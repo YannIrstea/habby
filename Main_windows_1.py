@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLa
 import time
 import h5py
 import estimhab_GUI
-import hydro_GUI
+import hydro_GUI_2
 
 class MainWindows(QMainWindow):
     """
@@ -25,7 +25,9 @@ class MainWindows(QMainWindow):
         # load user setting
         self.settings = QSettings('HABBY', 'irstea')
         name_prj_set = self.settings.value('name_prj')
+        print(name_prj_set)
         name_path_set = self.settings.value('path_prj')
+        print(name_path_set)
         language_set = self.settings.value('language_code')
         del self.settings
 
@@ -367,7 +369,7 @@ class CentralW(QWidget):
 
         self.welcome_tab = WelcomeW()
         self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
-        self.hydro_tab = hydro_GUI.Hydro2W(path_prj, name_prj)
+        self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
         self.rech = rech
