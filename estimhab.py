@@ -71,7 +71,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pi
             doc = ET.parse(filename)
             root = doc.getroot()
         else:
-            print('the xml file for the fish'+fish_name[f]+"do not exist")
+            print('the xml file for the fish'+fish_name[f]+' does not exist')
             return [-99], [-99]
 
         # get data
