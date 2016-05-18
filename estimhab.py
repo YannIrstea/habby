@@ -99,12 +99,14 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pi
         if pict:
             plt.subplot(2, 1, 1)
             plt.plot(q_all, VH_f, color=c[f])
+            plt.grid(True)
             plt.xlabel('discharge [m3/sec]')
             plt.ylabel('Valeur habitat []')
             plt.ylim(0, 1)
 
             plt.subplot(2, 1, 2)
             plt.plot(q_all, SPU_f, color=c[f])
+            plt.grid(True)
             plt.xlabel('discharge [m3/sec]')
             plt.ylabel('SPU by 100 m')
 
