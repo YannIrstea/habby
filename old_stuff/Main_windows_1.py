@@ -6,16 +6,13 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, QRect
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
-    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox
-from PyQt5.QtGui import QPixmap
+    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox
 import time
 import h5py
 import estimhab_GUI
 import hydro_GUI_2
-
 
 class MainWindows(QMainWindow):
     """
@@ -33,6 +30,7 @@ class MainWindows(QMainWindow):
         print(name_path_set)
         language_set = self.settings.value('language_code')
         del self.settings
+
         # set up tranlsation
         self.languageTranslator = QTranslator()
         self.path_trans = r'.\translation'
@@ -48,7 +46,6 @@ class MainWindows(QMainWindow):
         app.installTranslator(self.languageTranslator)
 
         # prepare the attributes
-        self.msg2 = QMessageBox()
         self.rechmain = False
         if name_path_set:
             self.name_prj = name_prj_set
@@ -90,8 +87,8 @@ class MainWindows(QMainWindow):
         A function which change the language of the programme. It change the menu and the central widget.
         it uses the self.lang attribute which should be set to the new language before
         :param nb_lang the number representing the language (int)
-        :return: None
         # 0 is for english, 1 for french, x for any additionnal language
+        :return: None
         """
         # set the langugae
         self.lang = nb_lang
@@ -198,22 +195,10 @@ class MainWindows(QMainWindow):
         A function to save the xml file with the information of the project
         :return: None
         """
-        # saved path
-        e2here = self.central_widget.welcome_tab.e2
-        if not os.path.isdir(e2here.text()):  # if the directoy do not exist
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Path to project"))
-            self.msg2.setText(
-                self.tr("The directory indicated in the project path does not exists. Project not saved."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            return
-        else:
-            self.path_prj = e2here.text()
-        # name
         e1here = self.central_widget.welcome_tab.e1
         self.name_prj = e1here.text()
-        # username and description
+        e2here = self.central_widget.welcome_tab.e2
+        self.path_prj = e2here.text()
         e4here = self.central_widget.welcome_tab.e4
         self.username_prj = e4here.text()
         e3here = self.central_widget.welcome_tab.e3
@@ -246,10 +231,6 @@ class MainWindows(QMainWindow):
             # save new xml file
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
             tree.write(fname)
-            # create a default directory for the figures
-            path_im = os.path.join(self.path_prj, 'figures_habby')
-            if not os.path.exists(path_im):
-                os.makedirs(path_im)
         else:
             doc = ET.parse(fname)
             root = doc.getroot()
@@ -264,10 +245,6 @@ class MainWindows(QMainWindow):
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
             doc.write(fname)
-            # create a default directory for the figures
-            path_im = os.path.join(self.path_prj, 'figures_habby')
-            if not os.path.exists(path_im):
-                os.makedirs(path_im)
 
     def save_project_estimhab(self):
         """
@@ -388,87 +365,60 @@ class CentralW(QWidget):
     """
     This class create the different tabs of the programm, which are then used as the central widget by MainWindows
     """
-
     def __init__(self, rech, path_prj, name_prj):
 
-        self.msg2 = QMessageBox()
         self.welcome_tab = WelcomeW()
         self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
         self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
-        self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
         self.rech = rech
         super().__init__()
         self.init_iu()
-        self.child_win = None  # in case, we open an extra windows
-
 
     def init_iu(self):
 
         # create a tab and the name of the project6
-        self.tab_widget = QTabWidget()
+        tab_widget = QTabWidget()
 
         # create all the widgets
+
+        substrate_tab = HydroW()
         biorun_tab = HydroW()
         output_tab = HydroW()
         bioinfo_tab = HydroW()
         other_tab = HydroW()
         other_tab2 = HydroW()
 
-        # connect signal
-        self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
-        self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
-        self.hydro_tab.telemac.show_fig.connect(self.showfig)
-        self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
-        self.substrate_tab.show_fig.connect(self.showfig)
-        self.statmod_tab.show_fig.connect(self.showfig)
-
         # fill the general tab
         self.welcome_tab.e1.setText(self.name_prj_c)
         self.welcome_tab.e2.setText(self.path_prj_c)
-        if not os.path.isdir(self.path_prj_c):  #if the directoy do not exist
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Path to project"))
-            self.msg2.setText( \
-                self.tr("The directory indicated the project path does not exists. Correction needed."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
         fname = os.path.join(self.path_prj_c, self.name_prj_c+'.xml')
         if os.path.isfile(fname):
             doc = ET.parse(fname)
             root = doc.getroot()
             user_child = root.find(".//User_Name")
             des_child = root.find(".//Description")
-            self.welcome_tab.e4.setText(user_child.text)
-            self.welcome_tab.e3.setText(des_child.text)
+            self.welcome_tab.e3.setText(user_child.text)
+            self.welcome_tab.e4.setText(des_child.text)
 
         # add the widget to the tab
-        self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
-        self.tab_widget.addTab(self.hydro_tab, self.tr("Hydrology"))
-        self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-        self.tab_widget.addTab(biorun_tab, self.tr("Run the model"))
-        self.tab_widget.addTab(output_tab, self.tr("Output"))
-        self.tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
-        self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
+        tab_widget.addTab(self.welcome_tab, self.tr("General"))
+        tab_widget.addTab(self.hydro_tab, self.tr("Hydrology"))
+        tab_widget.addTab(substrate_tab, self.tr("Substrate"))
+        tab_widget.addTab(biorun_tab, self.tr("Run the model"))
+        tab_widget.addTab(output_tab, self.tr("Output"))
+        tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
+        tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
         if self.rech:
-            self.tab_widget.addTab(other_tab, self.tr("Reseach 1"))
-            self.tab_widget.addTab(other_tab2, self.tr("Reseach 2"))
+            tab_widget.addTab(other_tab, self.tr("Reseach 1"))
+            tab_widget.addTab(other_tab2, self.tr("Reseach 2"))
 
         # layout
         layoutc = QGridLayout()
         # layoutc.addWidget(l1,0,0)
-        layoutc.addWidget(self.tab_widget, 1, 0)
+        layoutc.addWidget(tab_widget, 1, 0)
         self.setLayout(layoutc)
-
-    def showfig(self):
-        """
-        A small function to show the last figures
-        """
-        self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)
-        self.child_win.update_namefig()
-        self.child_win.selectionchange(-1)
-        self.child_win.show()
 
 
 class WelcomeW(QWidget):
@@ -524,9 +474,7 @@ class WelcomeW(QWidget):
 
     def setfolder(self):
         dir_name = QFileDialog.getExistingDirectory()
-        if dir_name != '':  # cancel case
-            self.e2.setText(dir_name)
-
+        self.e2.setText(dir_name)
 
 class HydroW(QWidget):
 
@@ -548,120 +496,6 @@ class HydroW(QWidget):
 
     def addtext(self):
         print('Text Text and MORE Text')
-
-
-class ShowImageW(QWidget):
-    """
-    The widget which shows the saved images (so that there is a return when you saved somethings)
-    :return:
-    """
-
-    def __init__(self, path_prj, name_prj):
-        super().__init__()
-        self.image_list = QComboBox()
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.label_im = QLabel()
-        #self.w = 200  #size of the image (see if we let some options for this)
-        #self.h = 200
-        self.imtype = '*.png'
-        self.path_im = os.path.join(self.path_prj, 'figures_habby')
-        self.msg2 = QMessageBox()
-        self.init_iu()
-
-    def init_iu(self):
-
-        # check if there is a path where to save the image
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            child = root.find(".//" + 'Path_Figure')
-            if child is not None:
-                self.path_im = child.text
-
-        # find all figures and add them to the menu ComboBox
-        self.update_namefig()
-        self.image_list.currentIndexChanged.connect(self.selectionchange)
-
-        # create the label which will show the figure
-        # self.label_im.setGeometry(QRect(0, 0, self.w, self.h))
-        self.label_im.setScaledContents(True)
-        self.but1 = QPushButton('Change Folder')
-        self.but1.clicked.connect(self.change_folder)
-
-        self.setWindowTitle(self.tr('FIGURES'))
-
-        # layout
-        self.layout4 = QGridLayout()
-        self.sublayout = QGridLayout()
-        self.layout4.addLayout(self.sublayout, 0, 0)
-        self.sublayout.addWidget(self.but1, 0, 1)
-        self.sublayout.addWidget(self.image_list, 0, 0)
-        self.layout4.addWidget(self.label_im, 1, 0)
-        self.setLayout(self.layout4)
-
-    def selectionchange(self, i):
-        """
-        A function to change the figure
-        :return:
-        """
-        if not self.all_file:
-            return
-        else:
-            namefile_im = os.path.join(self.path_im,self.all_file[i])
-            pixmap = QPixmap(namefile_im)
-            self.label_im.setPixmap(pixmap)
-
-    def change_folder(self):
-        """
-        a function to change the folder where are the image
-        :return:
-        """
-        self.path_im = QFileDialog.getExistingDirectory()
-        self.update_namefig()
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        # save the name and the path in the xml .prj file
-        if not os.path.isfile(filename_path_pro):
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-        else:
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            # geo data
-            child1 = root.find('.//Path_Figure')
-            if child1 is None:
-                child1 = ET.SubElement(root, 'Path_Figure')
-                child1.text = self.path_im
-            else:
-                child1.text = self.path_im
-            doc.write(filename_path_pro, method="xml")
-
-    def update_namefig(self):
-        """
-        add the different figure name to the drop-down list
-        :return:
-        """
-        self.image_list.clear()
-        if not self.path_im:
-            self.path_im = os.path.join(self.path_prj, 'figures_habby')
-        self.all_file = glob.glob(os.path.join(self.path_im, self.imtype))
-        if not self.all_file:
-            return
-        self.all_file.sort(key=os.path.getmtime)  # the newest figure on the top
-        if self.all_file[0] != 'Available figures':
-            first_name = self.tr('Available figures')  # variable needed for the translation
-            self.all_file = [first_name] + self.all_file
-        all_file_nice = self.all_file
-        # make them look nicer
-        for i in range(0, len(all_file_nice)):
-            all_file_nice[i] = all_file_nice[i].replace(self.path_im, "")
-            all_file_nice[i] = all_file_nice[i].replace("\\", "")
-        self.image_list.addItems(all_file_nice)
 
 
 def open_project():

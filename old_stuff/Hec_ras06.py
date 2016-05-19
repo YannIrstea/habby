@@ -4,13 +4,10 @@ import os
 import re
 import numpy as np
 import warnings
-import time
-from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
-    show, subplot, fill_between, rcParams, savefig, close, rcParams,suptitle
+from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylabel, title, figure, text, legend, show, subplot, fill_between, rcParams, bar
 
 
-
-def open_hecras(geo_file, res_file, path_geo, path_res, path_im):
+def open_hecras(geo_file, res_file, path_geo, path_res):
     """
     This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS
 
@@ -27,7 +24,6 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im):
      Select Flow data and Geometry data in input data and, in Specific Table, Flow distribution and Cross section Table
     :param path_res: path to the result file
     :param path_geo: path to the geo file
-    :param path_im
 
     all entry parameter are string
     :return: velocity, height for (x,y) of each river profile -> [x y dist v] and [ x y dist h]
@@ -54,7 +50,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im):
     # velocity is by zone (between 2 points) and height is on the node
     [xy_h, zone_v] = find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim)
     # plot and check
-    figure_xml(data_profile, coord_pro, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
+    figure_xml(data_profile, coord_pro, coord_r, xy_h, zone_v, [0, 6], 0, riv_name)
 
     return xy_h, zone_v
 
@@ -680,7 +676,7 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     cros_sec_o = re.findall(exp_reg1, data_rep)
     nb_sim = len(cros_sec_o)/len(data_profile)
     if np.floor(nb_sim) != nb_sim:
-        warnings.warn("The number of simulation does not seems right. It should be an integer.")
+        warning.warn("The number of simulation does not seems right. It should be an integer.")
     nb_sim = int(nb_sim)
 
     # obtain the name of the reaches and the name of the profile
@@ -876,7 +872,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim):
     return xy_h_all, zone_v_all
 
 
-def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
+def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, nb_sim=0, name_profile='no_name', coord_p2=-99):
     """
     A small function to plot the results
     :param data_profile (list with np.array)
@@ -889,12 +885,8 @@ def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im
     :param nb_sim which simulatino sould be plotted,
     :param name_profile: a list of string with the name of the profile
     :param coord_p2 the data of the profile when non geo-referenced, optional
-    :param path_im the path where the figure should be saved
     :return: none
     """
-    #rcParams['figure.figsize'] = 7, 3
-    rcParams['font.size'] = 10
-    close()
 
     # choose the simulation to plot
     xy_h = xy_h_all[nb_sim]
@@ -908,7 +900,6 @@ def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im
         v_xy_i = zone_v[i]
         hi = xyh_i[:, 3]
         fig = figure(m)
-        suptitle("")
         ax1 = subplot(313)
         # find the water limits
         h0 = hi[0] + xz[0, 1]
@@ -955,9 +946,6 @@ def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im
         legend(("Profile", "Water surface"))
         xlim([np.min(xz[:, 0]-1)*0.95, np.max(xz[:, 0])*1.05])
         m += 1
-        savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png'))
-        savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.pdf'))
-        close()
 
     # plot the profile in the (x,y) plane
     fig2 = figure(len(pro))
@@ -997,11 +985,8 @@ def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im
     ylabel("y []")
     title("Position of the profiles")
     axis('equal') # if right angle are needed
-    legend(bbox_to_anchor=(1.1, 1), prop={'size':10})
-    savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"))
-    savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".pdf"))
-    close()
-
+    legend()
+    show()
 
 
 def main():

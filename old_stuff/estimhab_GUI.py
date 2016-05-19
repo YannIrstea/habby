@@ -9,7 +9,6 @@ from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox
 import h5py
-import hydro_GUI_2
 
 class EstimhabW(QWidget):
     """
@@ -17,7 +16,6 @@ class EstimhabW(QWidget):
     """
 
     save_signal_estimhab = pyqtSignal()
-    show_fig = pyqtSignal()
 
     def __init__(self, path_prj, name_prj):
 
@@ -34,26 +32,23 @@ class EstimhabW(QWidget):
         self.esub = QLineEdit()
         self.list_f = QListWidget()
         self.list_s = QListWidget()
-        self.path_prj = path_prj
-        self.name_prj = name_prj
         self.VH = []
         self.SPU = []
         self.msge = QMessageBox()
 
         super().__init__()
-        self.init_iu()
+        self.init_iu(path_prj, name_prj)
 
-    def init_iu(self):
+    def init_iu(self, path_prj, name_prj):
 
         # load the data if it exist already
-        fname = os.path.join(self.path_prj, self.name_prj+'.xml')
+        fname = os.path.join(path_prj, name_prj+'.xml')
         if os.path.isfile(fname):
             doc = ET.parse(fname)
             root = doc.getroot()
             child = root.find(".//ESTIMHAB_data")
             if child is not None: # if there is data for ESTIHAB
                 fname_h5 = child.text
-                fname_h5 = os.path.join(self.path_prj, fname_h5)
                 if os.path.isfile(fname_h5):
                     file_estimhab = h5py.File(fname_h5,'r+')
                     # hydrological data
@@ -234,10 +229,8 @@ class EstimhabW(QWidget):
             self.msge.show()
             return
         fish_list = list(set(fish_list))  # it will remove duplicate, but change the list order!
-        # run
-        path_im = self.find_path_im_est()
-        [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio, fish_list, path_im, True)
-        self.show_fig.emit()
+        #run
+        [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio, fish_list, True, True)
 
         self.l12.setText(self.tr("ESTIMHAB: Done"))
 
@@ -249,27 +242,3 @@ class EstimhabW(QWidget):
     def remove_fish(self):
         item = self.list_s.takeItem(self.list_s.currentRow())
         item = None
-
-    def find_path_im_est(self):
-        """
-        A function to find the path where to save the figues, careful a simialr one is in hydro_GUI_2
-        :return: path_im
-        """
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            child = root.find(".//Path_Figure")
-            if child is None:
-                path_im = os.path.join(self.path_prj, 'figures_habby')
-            else:
-                path_im = child.text
-        else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            return
-        return path_im

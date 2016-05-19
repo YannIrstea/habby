@@ -9,7 +9,6 @@ import numpy as np
 import os
 import warnings
 import matplotlib.pyplot as plt
-import time
 
 
 def load_telemac(namefilet, pathfilet):
@@ -49,18 +48,14 @@ def load_telemac(namefilet, pathfilet):
     return v, h, coord_p, ikle
 
 
-def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
+def plot_vel_h(coord_p2, h, v, timestep=[-1]):
     """
     a function to plot the velocity and height which are the output from TELEMAC
      :param coord_p2 the coordinates of the point froming the grid
      :param h the  water heigh
      :param v the velocity
-     :param path_im the path where the image should be saved
      :param timestep, which time step should be plotted
     """
-    #plt.rcParams['figure.figsize'] = 7, 3
-    plt.close()
-    plt.rcParams['font.size'] = 10
 
     for i in timestep:
         plt.figure()
@@ -71,9 +66,6 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
         plt.title('Telemac data - water height at time step '+str(i))
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Water height [m]')
-        plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-        plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
 
         plt.figure()
         cm = plt.cm.get_cmap('terrain')
@@ -84,10 +76,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
         plt.title('Telemac data - velocity at time step '+str(i))
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Velocity [m/s]')
-        plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-        plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
-    #plt.show()
+    plt.show()
 
 def getendianfromchar(fileslf, nchar):
     """

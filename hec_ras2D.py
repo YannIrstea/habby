@@ -111,7 +111,7 @@ def load_hec_ras2d(filename, path):
     return vel_c_all, water_depth_all, elev_all, coord_p_all, coord_c_all, ikle_all
 
 
-def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, time_step=[0], flow_area=[0], max_point=-99):
+def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im,  time_step=[0], flow_area=[0], max_point=-99):
     """
     This is a function to plot figure of the output from hec-ras 2D
     :param v_all: a list of np array representing the velocity at the center of the cells
@@ -124,52 +124,36 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
     :param time_step which time_step should be plotted (default, the first one)
     :param flow_area: which flow_area should be plotted (default, the first one)
     :param max_point the number of cell to be drawn when reconstructing the grid (it might long)
+    :param path_im the path where the figure should be saved
     :return:
     """
     # figure size
+    plt.close()
     fig_size_inch = (8,6)
+    #plt.rcParams['figure.figsize'] = 7, 3
+    plt.rcParams['font.size'] = 10
 
     # for each chosen flow_area
     for f in flow_area:
         ikle = ikle_all[f]
-        if max_point < 0 or max_point > len(ikle[:, 0]):
-            max_point = len(ikle[:, 0])
         coord_p = coord_p_all[f]
         coord_c = coord_c_all[f]
         elev = elev_all[f]
         vel_c = v_all[f]
         water_depth = h_all[f]
-        # prepare grid
-        xlist = []
-        ylist = []
-        col_ikle = ikle.shape[1]
-        for i in range(0, max_point):
-            pi = 0
-            while pi < col_ikle-1 and ikle[i, pi+1] > 0 :  # we have all sort of xells, max eight sides
-                # The conditions should be tested in this order to avoid to go out of the array
-                p = ikle[i, pi]  # we start at 0 in python, careful about -1 or not
-                p2 = ikle[i, pi+1]
-                xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
-                xlist.append(None)
-                ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
-                ylist.append(None)
-                pi += 1
-
-            p = ikle[i, pi]
-            p2 = ikle[i, 0]
-            xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
-            xlist.append(None)
-            ylist.extend([coord_p[p,1], coord_p[p2, 1]])
-            ylist.append(None)
 
         # plot grid
-        fig = plt.figure(figsize= fig_size_inch)
+        [xlist, ylist] = prepare_grid(ikle, coord_p)
+        fig = plt.figure()
         # sc2 = plt.scatter(coord_p[:, 0], coord_p[:, 1], s=0.07, color='r')
         # sc1 = plt.scatter(point_dam_levee[:, 0], point_dam_levee[:, 1], s=0.07, color='k')
         plt.plot(xlist, ylist, c='b', linewidth=0.2)
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Grid ')
+        plt.savefig(os.path.join(path_im, "HEC2D_grid_"+ time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+        plt.savefig(os.path.join(path_im, "HEC2D_grid" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        plt.close()  #do not forget to close or the program crash
 
         # size of the marker (to avoid having to pale, unclear figure)
         # this is a rough estimation, no need for precise number here
@@ -181,58 +165,106 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         s2 = s1/10
 
         # elevation
-        fig = plt.figure(figsize= fig_size_inch)
+        fig = plt.figure()
         cm = plt.cm.get_cmap('terrain')
-        # sc = plt.hexbin(coord_c[:, 0], coord_c[:, 1], C=elev, cmap=cm)
         sc = plt.scatter(coord_c[:, 0], coord_c[:, 1], c=elev, vmin=np.nanmin(elev), vmax=np.nanmax(elev), s=s1,cmap=cm, edgecolors='none')
         cbar = plt.colorbar(sc)
         cbar.ax.set_ylabel('Elev. [m]')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Elevation above sea level')
+        plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+        plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        plt.close()
 
         # for each chosen time step
         for t in time_step:
             # plot water depth
-            fig = plt.figure(figsize=fig_size_inch)
-            cm = plt.cm.get_cmap('terrain')
             water_deptht = np.squeeze(water_depth[t, :])
-            water_deptht0 = water_deptht[water_deptht >0]
-            # sc = plt.hexbin(coord_c[:, 0], coord_c[:, 1], C=water_deptht, cmap=cm)
-            sc = plt.scatter(coord_c[water_deptht > 0, 0], coord_c[water_deptht > 0, 1], c=water_deptht0,\
-                             vmin=np.nanmin(water_deptht0), vmax=np.nanmax(water_deptht0), s=s1, cmap=cm, edgecolors='none')
-            sc2 = plt.scatter(coord_c[water_deptht == 0, 0], coord_c[water_deptht == 0, 1], c='0.5',\
-                              s=s2, cmap=cm, edgecolors='none')
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel('Depth. [m]')
-            plt.xlabel('x coord []')
-            plt.ylabel('y coord []')
-            t0 = t
-            if t == -1:
-                plt.title('Water depth at the last time step')
-            else:
-                plt.title('Water depth at time step '+ str(t))
+            scatter_plot(coord_c, water_deptht, 'Water Depth [m]', 'terrain', 8, t)
+            plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+            plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+            plt.close()
 
              # plot velocity
-            fig = plt.figure(figsize= fig_size_inch)
-            cm = plt.cm.get_cmap('gist_ncar')
-            # cm = plt.cm.get_cmap('plasma')
             vel_c0 = vel_c[:, t]
-            vel_c00 = vel_c0[vel_c0 > 0 ]
-            #sc = plt.hexbin(coord_c[:, 0], coord_c[:, 1], C=vel_c0, gridsize=70, cmap=cm)
-            sc = plt.scatter(coord_c[vel_c0 > 0, 0], coord_c[vel_c0 > 0, 1], c=vel_c00, vmin=np.nanmin(vel_c00),\
-                             vmax=np.nanmax(vel_c00)/2, s=s1, cmap=cm, edgecolors='none')
-            cbar = plt.colorbar(sc)
-            cbar.ax.set_ylabel('Vel. [m3/sec]')
-            sc = plt.scatter(coord_c[vel_c0 == 0, 0], coord_c[vel_c0 == 0, 1], c='0.5', s=s2, cmap=cm, edgecolors='none')
-            plt.xlabel('x coord []')
-            plt.ylabel('y coord []')
-            if t == -1:
-                plt.title('Cell mean velocity at the last time step')
-            else:
-                plt.title('Cell mean velocity at time step ' + str(t))
+            scatter_plot(coord_c,vel_c0, 'Vel. [m3/sec]', 'gist_ncar', 8, t)
+            plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+            plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+            plt.close()
 
-    plt.show()
+    #plt.show()
+
+
+def prepare_grid(ikle, coord_p, max_point=-99):
+    """
+    This is a function to put in the new form the data forming the grid to accelerate the plotting of the grid
+    :param ikle the connectivity table
+    :param coord_p the coordinate of hte point
+    :param max_point: if the grid is very big, it is possible to only plot the first points, up to max_points
+    :return:
+    """
+    if max_point < 0 or max_point > len(ikle[:, 0]):
+        max_point = len(ikle[:, 0])
+
+    # prepare grid
+    xlist = []
+    ylist = []
+    col_ikle = ikle.shape[1]
+    for i in range(0, max_point):
+        pi = 0
+        while pi < col_ikle - 1 and ikle[i, pi + 1] > 0:  # we have all sort of xells, max eight sides
+            # The conditions should be tested in this order to avoid to go out of the array
+            p = ikle[i, pi]  # we start at 0 in python, careful about -1 or not
+            p2 = ikle[i, pi + 1]
+            xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+            xlist.append(None)
+            ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+            ylist.append(None)
+            pi += 1
+
+        p = ikle[i, pi]
+        p2 = ikle[i, 0]
+        xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+        xlist.append(None)
+        ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+        ylist.append(None)
+
+    return xlist, ylist
+
+
+def scatter_plot(coord, data, data_name, my_cmap, s1, t):
+    """
+    the function to plot the scatter of the data
+    :param coord the coordinates
+    :param data the data to be plotted (np.array)
+    :param data_name the name of the data
+    :param my_cmap the color map
+    :param s1 the size of the dot
+    :param t the time step being plotted
+    :return:
+    """
+    s2 = s1/10
+    fig = plt.figure()
+    cm = plt.cm.get_cmap(my_cmap)
+    # cm = plt.cm.get_cmap('plasma')
+
+    data_big = data[data > 0]
+    # sc = plt.hexbin(coord_c[:, 0], coord_c[:, 1], C=vel_c0, gridsize=70, cmap=cm)
+    if np.sum(data_big) > 0:
+        sc = plt.scatter(coord[data > 0, 0], coord[data > 0, 1], c=data_big, vmin=np.nanmin(data_big), \
+                         vmax=np.nanmax(data_big), s=s1, cmap=cm, edgecolors='none')
+        cbar = plt.colorbar(sc)
+        cbar.ax.set_ylabel(data_name)
+    else:
+        plt.text(np.mean(coord[:,0]), np.mean(coord[:,1]), 'Data is null. No plotting possible')
+    sc = plt.scatter(coord[data == 0, 0], coord[data == 0, 1], c='0.5', s=s2, cmap=cm, edgecolors='none')
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    if t == -1:
+        plt.title('Cell mean '+data_name+ ' at the last time step')
+    else:
+        plt.title('Cell mean '+data_name+ ' at time step ' + str(t))
 
 
 def main():
@@ -242,7 +274,8 @@ def main():
     [v, h, elev, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
     b = time.clock()
     print('Time to load data:' + str(b-a) + 'sec')
-    figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, [-1], [0])
+    figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, 'figures_habby', [0], [0])
+
 
 if __name__ == '__main__':
     main()

@@ -1,9 +1,8 @@
 import os
 import numpy as np
-from PyQt5.QtCore import QTranslator, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
-    QStackedWidget, QRadioButton, QCheckBox
+    QStackedWidget, QRadioButton
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -11,8 +10,6 @@ except ImportError:
 import Hec_ras06
 import hec_ras2D
 import selafin_habby1
-import substrate
-import rubar
 
 class Hydro2W(QWidget):
     """
@@ -30,7 +27,7 @@ class Hydro2W(QWidget):
         self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D" ,"RUBAR 2D", "TELEMAC"]  # "MAGE", 'MASCARET', "RIVER 2D", "RUBAR",
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D",  "TELEMAC"]  # "MAGE", 'MASCARET', "RIVER 2D", "RUBAR",
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -56,11 +53,9 @@ class Hydro2W(QWidget):
         self.hecras1D = HEC_RAS1D(self.path_prj, self.name_prj)
         self.hecras2D = HEC_RAS2D(self.path_prj, self.name_prj)
         self.telemac = TELEMAC(self.path_prj, self.name_prj)
-        self.rubar2d = Rubar2D(self.path_prj, self.name_prj)
         self.stack.addWidget(self.free)
         self.stack.addWidget(self.hecras1D)
         self.stack.addWidget(self.hecras2D)
-        self.stack.addWidget(self.rubar2d)
         self.stack.addWidget(self.telemac)
         self.stack.setCurrentIndex(self.mod_act)
 
@@ -146,10 +141,9 @@ class SubHydroW(QWidget):
         self.msg2 = QMessageBox()
         super().__init__()
 
-    def was_model_loaded_before(self, i=0):
+    def was_model_loaded_before(self):
         """
         A function to test if the model loaded before, if yes, update the attibutes anf the widgets
-        :param i a number in case there is more than one file to load
         TO BE DONE load hdf5
         :return:
         """
@@ -157,20 +151,21 @@ class SubHydroW(QWidget):
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
-            child = root.find(".//" + self.attributexml[i])
-            # if there is data in the project file about the model
-            if child is not None:
-                geo_name_path = child.text
-                if os.path.isfile(geo_name_path):
-                    self.namefile[i] = os.path.basename(geo_name_path)
-                    self.pathfile[i] = os.path.dirname(geo_name_path)
-                else:
-                    self.msg2.setIcon(QMessageBox.Warning)
-                    self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
-                    self.msg2.setText(
-                        self.tr("The file given in the project file does not exist. Hydrological model:" + self.model_type))
-                    self.msg2.setStandardButtons(QMessageBox.Ok)
-                    self.msg2.show()
+            for i in range(0, len(self.attributexml)):
+                child = root.find(".//" + self.attributexml[i])
+                # if there is data in the project file about the model
+                if child is not None:
+                    geo_name_path = child.text
+                    if os.path.isfile(geo_name_path):
+                        self.namefile[i] = os.path.basename(geo_name_path)
+                        self.pathfile[i] = os.path.dirname(geo_name_path)
+                    else:
+                        self.msg2.setIcon(QMessageBox.Warning)
+                        self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
+                        self.msg2.setText(
+                            self.tr("The file given in the project file does not exist. Hydrological model:" + self.modeltype))
+                        self.msg2.setStandardButtons(QMessageBox.Ok)
+                        self.msg2.show()
 
     def show_dialog(self, i=0):
         """
@@ -224,6 +219,7 @@ class SubHydroW(QWidget):
             # geo data
             child1 = root.find(".//"+self.model_type)
             if child1 is None:
+                print('a')
                 child1 = ET.SubElement(root, self.model_type)
             child = root.find(".//" + self.attributexml[i])
             if child is None:
@@ -233,38 +229,12 @@ class SubHydroW(QWidget):
                 child.text = filename_path_file
             doc.write(filename_path_pro, method="xml")
 
-    def find_path_im(self):
-        """
-        A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py
-        :return: path_im
-        """
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            child = root.find(".//Path_Figure")
-            if child is None:
-                path_im = os.path.join(self.path_prj, 'figures_habby')
-            else:
-                path_im = child.text
-        else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            return
-        return path_im
-
 
 class HEC_RAS1D(SubHydroW):
     """
     The sub-windows which help to open the Hec-RAS data. Call the Hec-RAS loader and save the name
      of the files to the project xml file.
     """
-    show_fig = pyqtSignal()
-
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
         self.init_iu()
@@ -278,8 +248,7 @@ class HEC_RAS1D(SubHydroW):
                             '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
 
         # if there is the project file with hecras geo info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
+        self.was_model_loaded_before()
 
         # label with the file name
         self.out_t2 = QLabel(self.namefile[0], self)
@@ -299,7 +268,6 @@ class HEC_RAS1D(SubHydroW):
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         spacer = QSpacerItem(1, 1)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
         self.layout_hec = QGridLayout()
@@ -310,7 +278,6 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(self.out_t2, 1, 1)
         self.layout_hec.addWidget(self.out_b, 1, 2)
         self.layout_hec.addWidget(self.load_b, 2, 2)
-        self.layout_hec.addWidget(self.cb, 2, 1)
         self.layout_hec.addItem(spacer, 3, 1)
         self.setLayout(self.layout_hec)
 
@@ -322,88 +289,14 @@ class HEC_RAS1D(SubHydroW):
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
-        path_im = self.find_path_im()
-        #load hec_ras data
-        [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0], self.pathfile[1], path_im)
-        if self.cb.isChecked():
-            self.show_fig.emit()
-
-class Rubar2D(SubHydroW):
-    """
-    The sub-windows which help to open the rubar data. Call the rubar loader and save the name
-     of the files to the project xml file.
-    """
-    show_fig = pyqtSignal()
-
-    def __init__(self, path_prj, name_prj):
-        super().__init__(path_prj, name_prj)
-        self.init_iu()
-
-    def init_iu(self):
-
-        # update attibute for hec-ras 1d
-        self.attributexml = ['rubar_geodata', 'tpsdata']
-        self.model_type = 'RUBAR2D'
-        self.extension = [['.mai'], ['.tps']]
-
-        # if there is the project file with rubar geo info, update the label and attibutes
-        self.was_model_loaded_before(0)
-        self.was_model_loaded_before(1)
-
-        # label with the file name
-        self.out_t2 = QLabel(self.namefile[0], self)
-        self.geo_t2 = QLabel(self.namefile[1], self)
-
-        # geometry and output data
-        l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.mai)', self)
-        self.geo_b.clicked.connect(lambda: self.show_dialog(0))
-        self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
-        l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (.tps)', self)
-        self.out_b.clicked.connect(lambda: self.show_dialog(1))
-        self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
-
-        # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
-        self.load_b.clicked.connect(self.load_rubar)
-        spacer = QSpacerItem(1, 1)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
-
-        # layout
-        self.layout_hec = QGridLayout()
-        self.layout_hec.addWidget(l1, 0, 0)
-        self.layout_hec.addWidget(self.geo_t2,0, 1)
-        self.layout_hec.addWidget(self.geo_b, 0, 2)
-        self.layout_hec.addWidget(l2, 1, 0)
-        self.layout_hec.addWidget(self.out_t2, 1, 1)
-        self.layout_hec.addWidget(self.out_b, 1, 2)
-        self.layout_hec.addWidget(self.load_b, 2, 2)
-        self.layout_hec.addWidget(self.cb, 2, 1)
-        self.layout_hec.addItem(spacer, 3, 1)
-        self.setLayout(self.layout_hec)
-
-    def load_rubar(self):
-        """
-        A function to execture the loading and saving the the rubar file using rubar.py
-        :return:
-        """
-        # update the xml file of the project
-        self.save_xml(0)
-        self.save_xml(1)
-        path_im = self.find_path_im()
-        #load hec_ras data
-        [v, h, coord_p, coord_c, ikle] = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im)
-        if self.cb.isChecked():
-            self.show_fig.emit()
+        # load the hec_ras data
+        [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0], self.pathfile[1])
 
 
 class HEC_RAS2D(SubHydroW):
     """
     The Qwidget which open the Hec-RAS data in 2D dimension
     """
-    show_fig = pyqtSignal()
-
     def __init__(self, path_prj, name_prj):
 
         super().__init__(path_prj, name_prj)
@@ -433,7 +326,6 @@ class HEC_RAS2D(SubHydroW):
         load_b = QPushButton('Load data and create hdf5', self)
         load_b.clicked.connect(self.load_hec_2d_gui)
         spacer = QSpacerItem(1, 20)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -445,7 +337,6 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(l4, 1, 2)
         self.layout_hec2.addWidget(load_b, 2, 2)
         self.layout_hec2.addItem(spacer, 3, 1)
-        self.layout_hec2.addWidget(self.cb, 2, 1)
         self.setLayout(self.layout_hec2)
 
     def load_hec_2d_gui(self):
@@ -454,19 +345,15 @@ class HEC_RAS2D(SubHydroW):
          :return:
         """
         self.save_xml(0)
-        path_im = self.find_path_im()
         # load the hec_ras data
         [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(self.namefile[0], self.pathfile[0])
-        hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
-        if self.cb.isChecked():
-            self.show_fig.emit()
+        hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, [-1], [0])
 
 
 class TELEMAC(SubHydroW):
     """
     The Qwidget which open the TELEMAC data
     """
-    show_fig = pyqtSignal()
     def __init__(self, path_prj, name_prj):
 
         super().__init__(path_prj, name_prj)
@@ -495,7 +382,6 @@ class TELEMAC(SubHydroW):
         load_b = QPushButton('Load data and create hdf5', self)
         load_b.clicked.connect(self.load_telemac_gui)
         spacer = QSpacerItem(1, 20)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -506,7 +392,6 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(l3, 1, 1)
         self.layout_hec2.addWidget(load_b, 2, 2)
         self.layout_hec2.addItem(spacer, 3, 1)
-        self.layout_hec2.addWidget(self.cb, 2, 1)
         self.setLayout(self.layout_hec2)
 
     def load_telemac_gui(self):
@@ -516,128 +401,5 @@ class TELEMAC(SubHydroW):
         """
         self.save_xml(0)
         # load the telemac data
-        path_im = self.find_path_im()
         [v, h, coord_p, ikle] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
-        selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
-        if self.cb.isChecked():
-            self.show_fig.emit()
-
-
-class SubstrateW(SubHydroW):
-    """
-    This is the widget used to load the substrate. It is practical to re-use some of the method from SubHydroW.
-    So this class inherit from SubHydroW.
-    """
-    show_fig = pyqtSignal()
-    def __init__(self, path_prj, name_prj):
-        super().__init__(path_prj, name_prj)
-        self.init_iu()
-
-    def init_iu(self):
-
-        # update attribute
-        self.attributexml = ['substrate_data', 'att_name']
-        self.model_type = 'SUBSTRATE'
-        self.extension = [['.txt', '.shp', '.asc']]
-        self.name_att = ''
-
-        # if there was substrate info before, update the label and attibutes
-        self.e2 = QLineEdit()
-        self.was_model_loaded_before()
-        self.get_att_name()
-        self.h2d_t2 = QLabel(self.namefile[0], self)
-        self.e2.setText(self.name_att)
-
-        # label and button
-        l1 = QLabel(self.tr('<b> Load substrate data </b>'))
-        l2 = QLabel(self.tr('File'))
-        l3 = QLabel(self.tr('If text file used as input:'))
-        l7 = QLabel(self.tr('Attribute name:'))
-        l6 = QLabel(self.tr('(only for shapefile)'))
-        l5 = QLabel(self.tr('A Delaunay triangulation will be applied.'))
-        self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
-        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
-        l4 = QLabel(self.tr('Default substrate:'))
-        self.e1 = QLineEdit()
-        # e1.setValidator(QIntValidator())
-        load_b = QPushButton('Load data and save', self)
-        load_b.clicked.connect(self.load_sub_gui)
-        spacer = QSpacerItem(1, 140)
-        spacer2 = QSpacerItem(150, 1)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
-
-        #layout
-        self.layout_sub = QGridLayout()
-        self.layout_sub.addWidget(l1, 0, 0)
-        self.layout_sub.addWidget(l2, 1, 0)
-        self.layout_sub.addWidget(self.h2d_t2, 1, 1)
-        self.layout_sub.addWidget(self.h2d_b, 1, 2)
-        self.layout_sub.addWidget(l7, 2, 0)
-        self.layout_sub.addWidget(self.e2, 2, 1)
-        self.layout_sub.addWidget(l6, 2, 2)
-        self.layout_sub.addWidget(l3, 4, 0)
-        self.layout_sub.addWidget(l5, 4, 1)
-        self.layout_sub.addWidget(l4, 3, 0)
-        self.layout_sub.addWidget(self.e1, 3, 1)
-        self.layout_sub.addWidget(load_b, 3, 2)
-        self.layout_sub.addItem(spacer, 5, 0)
-        self.layout_sub.addItem(spacer2, 5, 3)
-        self.layout_sub.addWidget(self.cb, 3, 3)
-        self.setLayout(self.layout_sub)
-
-    def load_sub_gui(self):
-        # save path and name substrate
-        self.save_xml(0)
-        # only save attribute name if shapefile
-        self.name_att = self.e2.text()
-        blob, ext = os.path.splitext(self.namefile[0])
-        path_im = self.find_path_im()
-        if ext == '.shp':
-            if not self.name_att:
-                self.msg2.setIcon(QMessageBox.Warning)
-                self.msg2.setWindowTitle(self.tr("Save Substrate Data"))
-                self.msg2.setText(self.tr("No attribute name was given to load the shapefile"))
-                self.msg2.setStandardButtons(QMessageBox.Ok)
-                self.msg2.show()
-                return
-            self.pathfile[1] = ''
-            self.namefile[1] = self.name_att  # avoid to code things again
-            self.save_xml(1)
-        # load substrate
-            [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
-            substrate.fig_substrate(coord_p, ikle_sub, sub_info, path_im)
-        elif ext == '.txt' or ext == ".asc":
-            [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
-            substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
-        else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("File type"))
-            self.msg2.setText(self.tr("Unknown extension for substrate data, the model will try to load as .txt"))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
-            substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
-        if self.cb.isChecked():
-            self.show_fig.emit()
-
-    def get_att_name(self):
-        """
-        A function to get the attribute name of the shape file which is possibly int e project xml file.
-        :return:
-        """
-
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            for i in range(0, len(self.attributexml)):
-                child = root.find(".//" + self.attributexml[1])
-                # if there is data in the project file about the model
-                if child is not None:
-                    self.name_att = child.text
-
-
-
-
-
+        selafin_habby1.plot_vel_h(coord_p, h, v)
