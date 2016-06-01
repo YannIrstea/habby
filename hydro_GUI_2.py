@@ -140,6 +140,7 @@ class SubHydroW(QWidget):
         self.pathfile = ['.', '.']
         self.attributexml = [' ', ' ']
         self.model_type = ' '
+        self.save_fig = False
         self.extension = [[".txt"]]
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -282,8 +283,8 @@ class HEC_RAS1D(SubHydroW):
         self.was_model_loaded_before(1)
 
         # label with the file name
-        self.out_t2 = QLabel(self.namefile[0], self)
-        self.geo_t2 = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0], self)
+        self.out_t2 = QLabel(self.namefile[1], self)
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
@@ -324,9 +325,12 @@ class HEC_RAS1D(SubHydroW):
         self.save_xml(1)
         path_im = self.find_path_im()
         #load hec_ras data
-        [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0], self.pathfile[1], path_im)
+        if self.cb.isChecked():
+            self.save_fig = True
+        [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
         if self.cb.isChecked():
             self.show_fig.emit()
+
 
 class Rubar2D(SubHydroW):
     """
@@ -344,21 +348,23 @@ class Rubar2D(SubHydroW):
         # update attibute for hec-ras 1d
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
-        self.extension = [['.mai'], ['.tps']]
+        self.extension = [['.mai'], ['.tps']]  # list of list in case there is more than one possible ext.
 
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
         self.was_model_loaded_before(1)
 
         # label with the file name
-        self.out_t2 = QLabel(self.namefile[0], self)
-        self.geo_t2 = QLabel(self.namefile[1], self)
+        self.geo_t2 = QLabel(self.namefile[0], self)
+        self.out_t2 = QLabel(self.namefile[1], self)
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
         self.geo_b = QPushButton('Choose file (.mai)', self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
+        self.geo_b.clicked.connect(self.propose_next_file)
+
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (.tps)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
@@ -383,6 +389,20 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addItem(spacer, 3, 1)
         self.setLayout(self.layout_hec)
 
+    def propose_next_file(self):
+        """
+        A function which avoid to the user to search for both file,
+        it tries to find the second one when the first one is selected
+        :return:
+        """
+        if len(self.extension[1]) == 1:  # would not work with more than one possible extension
+            if self.out_t2.text() == 'unknown file':
+                blob = self.namefile[0]
+                self.out_t2.setText(blob[:-len(self.extension[0][0])] + self.extension[1][0])
+                # keep the name in an attribute until we save it
+                self.pathfile[1] = self.pathfile[0]
+                self.namefile[1] = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+
     def load_rubar(self):
         """
         A function to execture the loading and saving the the rubar file using rubar.py
@@ -392,8 +412,10 @@ class Rubar2D(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
         path_im = self.find_path_im()
+        if self.cb.isChecked():
+            self.save_fig = True
         #load hec_ras data
-        [v, h, coord_p, coord_c, ikle] = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im)
+        [v, h, coord_p, coord_c, ikle] = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
         if self.cb.isChecked():
             self.show_fig.emit()
 
@@ -457,8 +479,8 @@ class HEC_RAS2D(SubHydroW):
         path_im = self.find_path_im()
         # load the hec_ras data
         [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(self.namefile[0], self.pathfile[0])
-        hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
         if self.cb.isChecked():
+            hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
             self.show_fig.emit()
 
 
@@ -518,8 +540,8 @@ class TELEMAC(SubHydroW):
         # load the telemac data
         path_im = self.find_path_im()
         [v, h, coord_p, ikle] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
-        selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
         if self.cb.isChecked():
+            selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
             self.show_fig.emit()
 
 
@@ -606,10 +628,12 @@ class SubstrateW(SubHydroW):
             self.save_xml(1)
         # load substrate
             [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
-            substrate.fig_substrate(coord_p, ikle_sub, sub_info, path_im)
+            if self.cb.isChecked():
+                substrate.fig_substrate(coord_p, ikle_sub, sub_info, path_im)
         elif ext == '.txt' or ext == ".asc":
             [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
-            substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
+            if self.cb.isChecked():
+                substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("File type"))
@@ -617,7 +641,8 @@ class SubstrateW(SubHydroW):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
             [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
-            substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
+            if self.cb.isChecked():
+                substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
         if self.cb.isChecked():
             self.show_fig.emit()
 

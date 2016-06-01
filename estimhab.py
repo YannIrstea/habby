@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import time
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pict=False, save_pict=False):
+def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False):
     """
     A function to run the estimhab model. Unit in meter amd m^3/sec
     :param qmes the two measured discharge
@@ -15,7 +15,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pi
     :param qrange the range of discharge
     :param substrat mean height of substrat
     :param pict if true the figure is shown. If false, the figure is not shown
-    :param save_pict if true the figure is save. If false, the figure is not save
+    :param path_im, the path where the image should be saved
     :param path_bio the path to the xml file with the information on the fishes
     :param fish_name the name of the fish which have to be analyzed
     :return Habitat value and useful surface (VH and SPU) as a function of discharge
@@ -59,7 +59,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pi
     if pict:
         c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'b', 'm', 'r', 'c', '#9932CC', '#800000']
         plt.figure()
-        plt.suptitle("ESTIMHAB2008 - HABBY", fontsize=14)
+        plt.suptitle("ESTIMHAB2008 - HABBY", fontsize=12)
 
     # get fish data
     VH = []
@@ -71,7 +71,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pi
             doc = ET.parse(filename)
             root = doc.getroot()
         else:
-            print('the xml file for the fish '+fish_name[f]+' does not exist')
+            print('the xml file for the fish'+fish_name[f]+"do not exist")
             return [-99], [-99]
 
         # get data
@@ -99,14 +99,12 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pi
         if pict:
             plt.subplot(2, 1, 1)
             plt.plot(q_all, VH_f, color=c[f])
-            plt.grid(True)
             plt.xlabel('discharge [m3/sec]')
             plt.ylabel('Valeur habitat []')
             plt.ylim(0, 1)
 
             plt.subplot(2, 1, 2)
             plt.plot(q_all, SPU_f, color=c[f])
-            plt.grid(True)
             plt.xlabel('discharge [m3/sec]')
             plt.ylabel('SPU by 100 m')
 
@@ -114,21 +112,23 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pi
         SPU.append(SPU_f)
 
     if pict:
+        plt.rcParams['font.size'] = 10
         plt.legend(fish_name)
         # saving with date and time
-        if save_pict:
-            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            plt.savefig(name_pict + '.pdf')
 
-            txt_header = 'Q [m3/sec] '
-            data = q_all
-            for f in range(0, len(fish_name)):
-                txt_header += ' VH_' + fish_name[f] + ' SPU_' + fish_name[f]
-                data = np.vstack((data, VH[f]))
-                data = np.vstack((data, SPU[f]))
-            np.savetxt(name_pict+'.txt', data.T, newline=os.linesep, header=txt_header)
+        name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
-        plt.show()
+        txt_header = 'Q [m3/sec] '
+        data = q_all
+        for f in range(0, len(fish_name)):
+            txt_header += ' VH_' + fish_name[f] + ' SPU_' + fish_name[f]
+            data = np.vstack((data, VH[f]))
+            data = np.vstack((data, SPU[f]))
+        #save
+        np.savetxt(os.path.join(path_im, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header)
+        plt.savefig(os.path.join(path_im, name_pict + '.png'))
+        plt.savefig(os.path.join(path_im, name_pict + '.pdf'))
+        #plt.show()
 
     return VH, SPU
 
@@ -158,7 +158,7 @@ def main():
     qrange = [1, 38]
     substrat = 0.25
     fish = ['TRF_ADU', 'TRF_JUV', 'BAF', 'CHA', 'GOU']
-    path = os.path.join('.', 'biologie')
+    path = r'biologie'
 
     [VH, SPU] = estimhab(q, w, h, q50, qrange, substrat, path, fish, True, True)
 

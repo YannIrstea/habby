@@ -209,6 +209,7 @@ class MainWindows(QMainWindow):
             self.msg2.show()
             return
         else:
+            path_prj_before = self.path_prj
             self.path_prj = e2here.text()
         # name
         e1here = self.central_widget.welcome_tab.e1
@@ -258,8 +259,14 @@ class MainWindows(QMainWindow):
             path_child = root.find(".//Path_Projet")
             user_child = root.find(".//User_Name")
             des_child = root.find(".//Description")
+            pathim_child = root.find(".//Path_Figure")
+            #  if pathim is the default one change it. Otherwise keep the user chosen directory
+            if pathim_child is not None:
+                if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, 'figures_habby')):
+                    pathim_child.text = os.path.join(self.path_prj, 'figures_habby')
             child.text = self.name_prj
             path_child.text = self.path_prj
+
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
@@ -427,7 +434,7 @@ class CentralW(QWidget):
         # fill the general tab
         self.welcome_tab.e1.setText(self.name_prj_c)
         self.welcome_tab.e2.setText(self.path_prj_c)
-        if not os.path.isdir(self.path_prj_c):  #if the directoy do not exist
+        if not os.path.isdir(self.path_prj_c):  # if the directoy do not exist
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Path to project"))
             self.msg2.setText( \
@@ -445,11 +452,11 @@ class CentralW(QWidget):
 
         # add the widget to the tab
         self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
-        self.tab_widget.addTab(self.hydro_tab, self.tr("Hydrology"))
+        self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
         self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
+        self.tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
         self.tab_widget.addTab(biorun_tab, self.tr("Run the model"))
         self.tab_widget.addTab(output_tab, self.tr("Output"))
-        self.tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
         self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
         if self.rech:
             self.tab_widget.addTab(other_tab, self.tr("Reseach 1"))

@@ -20,7 +20,7 @@ def load_rubar1d(geofile, mailfile, data_pro, path):
     pass
 
 
-def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im):
+def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     """
     the function to load the RUBA data in 2D
     :param geofile: the name of the .mai file which contain the connectivity table and the (x,y)
@@ -28,13 +28,15 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im):
     :param pathgeo : path to the geo file
     :param pathtps : path to the tps file
     :param path_im: the path where to save the figure
+    :param save_fig: boolean indicated if the figures should be created or not
     all strings input
     :return: (x,y), ikle velocity and height at the center of the cells, the coordinate of the point of the cells,
     the coordinates of the center of the cells and the connectivity table.
     """
     [ikle, xy, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)
     [timestep, h,v] = load_tps_2d(tpsfile, pathtps, nb_cell)
-    figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [0,1,-1])
+    if save_fig:
+        figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [0, 1, -1])
 
     return v, h, xy, coord_c, ikle,
 

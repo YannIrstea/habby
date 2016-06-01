@@ -9,8 +9,7 @@ from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylab
     show, subplot, fill_between, rcParams, savefig, close, rcParams,suptitle
 
 
-
-def open_hecras(geo_file, res_file, path_geo, path_res, path_im):
+def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False):
     """
     This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS
 
@@ -28,6 +27,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im):
     :param path_res: path to the result file
     :param path_geo: path to the geo file
     :param path_im
+    :param save_fig if True image is saved
 
     all entry parameter are string
     :return: velocity, height for (x,y) of each river profile -> [x y dist v] and [ x y dist h]
@@ -52,9 +52,11 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im):
         [vel, wse, riv_name, nb_sim] = open_xmlfile(res_file, reach_name, path_res)
     # get water height in the (x,y coordinate) and get the velocity in the (x,y) coordinates
     # velocity is by zone (between 2 points) and height is on the node
-    [xy_h, zone_v] = find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim)
+    # maximum distance between two velocity point: ASK YANN
+    [xy_h, zone_v] = find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, 1000)
     # plot and check
-    figure_xml(data_profile, coord_pro, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
+    if save_fig:
+        figure_xml(data_profile, coord_pro, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
 
     return xy_h, zone_v
 
@@ -798,7 +800,7 @@ def pass_in_float_from_geo(data_str, len_number):
     return xz
 
 
-def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim):
+def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_vel_dist=0):
     """
     find the coordinates of the height/velocity
     :param coord_pro: the coordinate (x,y) of the profile
@@ -806,6 +808,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim):
     :param vel the velocity data
     :param wse the water sufrace elevation
     :param nb_sim the number of simulation in case there is more than one
+    :param max_vel_dist the minimum number of velocity point by ten meter before a warnings appears
     :return: for each simulation, a list of np.array representing (x,y,v) and (x,y,h,)
     Careful the height is on the node and the velocity is by zone
     """
@@ -871,8 +874,14 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim):
             xy_h.append(xy2)
             zone_v.append(zone_v_p)
 
+            #  check if we get enough velocity point
+            #  max_vel_dist is the maximum distance between two velocity measurements
+            if dist_pro/len(zone_v_p) >= max_vel_dist:
+                warnings.warn('Warning: the number of velocity point is low compared to the profile length.')
+
         xy_h_all.append(xy_h)
         zone_v_all.append(zone_v)
+
     return xy_h_all, zone_v_all
 
 

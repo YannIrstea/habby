@@ -121,7 +121,6 @@ class EstimhabW(QWidget):
         button2.clicked.connect(self.change_folder)
         button3 = QPushButton(self.tr('Save Data'), self)
         button3.clicked.connect(self.save_signal_estimhab.emit)
-        self.l12 = QLabel(" ")
         self.layout3 = QGridLayout()
         self.layout3.addWidget(l1, 0, 0)
         self.layout3.addWidget(l2, 1, 0)
@@ -148,7 +147,6 @@ class EstimhabW(QWidget):
         self.layout3.addWidget(button1, 10, 2)
         self.layout3.addWidget(button3, 10, 1)
         self.layout3.addWidget(button2, 10, 0)
-        self.layout3.addWidget(self.l12, 11, 2)
         self.setLayout(self.layout3)
 
     def change_folder(self):
@@ -175,8 +173,7 @@ class EstimhabW(QWidget):
         A function to execute estimhab
         :return: None
         """
-        self.l12.setText(self.tr(""))
-        # preapre data
+        # prepare data
         try:
             q = [float(self.eq1.text()), float(self.eq2.text())]
             w = [float(self.ew1.text()), float(self.ew2.text())]
@@ -238,8 +235,6 @@ class EstimhabW(QWidget):
         path_im = self.find_path_im_est()
         [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio, fish_list, path_im, True)
         self.show_fig.emit()
-
-        self.l12.setText(self.tr("ESTIMHAB: Done"))
 
     def add_fish(self):
         items = self.list_f.selectedItems()
