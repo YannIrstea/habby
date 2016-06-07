@@ -1,3 +1,0 @@
-TELEMAC is a 2D hydrological model.
-MORE INFO
-Serafin or Selafin is the format you need. It has the extensions ".res" or ".slf".
