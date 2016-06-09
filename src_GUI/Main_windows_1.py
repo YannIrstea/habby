@@ -1,15 +1,16 @@
 import sys
 import glob
 import os
+import shutil
 import numpy as np
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, QRect
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, QRect, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
-    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox
+    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy
 from PyQt5.QtGui import QPixmap
 import time
 import h5py
@@ -146,6 +147,16 @@ class MainWindows(QMainWindow):
         saveprj.triggered.connect(self.save_project)
 
         # Menu to open menu research
+        logc = QAction(self.tr("Clear Log Windows"), self)
+        logc.setStatusTip(self.tr('Empty the log windows at the bottom of the main window. Do not erase the .log file.'))
+        logc.setShortcut('Ctrl+L')
+        logc.triggered.connect(self.clear_log)
+        logn = QAction(self.tr("Do Not Save Log"), self)
+        logn.setStatusTip(self.tr('The .log file will not be updated further.'))
+        logn.triggered.connect(lambda: self.do_log(0))
+        logy = QAction(self.tr("Save Log"), self)
+        logy.setStatusTip(self.tr('Events will be written to the .log file.'))
+        logy.triggered.connect(lambda: self.do_log(1))
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
         rech.setStatusTip(self.tr('Add untested research options'))
@@ -174,7 +185,10 @@ class MainWindows(QMainWindow):
         fileMenu.addAction(openprj)
         fileMenu.addAction(newprj)
         fileMenu.addAction(exitAction)
-        fileMenu4 = self.menubar.addMenu(self.tr('Options Recherches'))
+        fileMenu4 = self.menubar.addMenu(self.tr('Options'))
+        fileMenu4.addAction(logc)
+        fileMenu4.addAction(logn)
+        fileMenu4.addAction(logy)
         fileMenu4.addAction(rech)
         fileMenu4.addAction(rechc)
         fileMenu2 = self.menubar.addMenu(self.tr('Language'))
@@ -182,7 +196,6 @@ class MainWindows(QMainWindow):
         fileMenu2.addAction(lAction2)
         fileMenu3 = self.menubar.addMenu(self.tr('Help'))
         fileMenu3.addAction(helpm)
-
 
         # add the status bar
         self.statusBar()
@@ -230,17 +243,22 @@ class MainWindows(QMainWindow):
 
         # if new projet
         if not os.path.isfile(fname):
-            # create the root <root>
+            # create the root <root> and general tab
             root_element = ET.Element("root")
             tree = ET.ElementTree(root_element)
+            general_element = ET.SubElement(root_element, "General")
             # create all child
-            child = ET.SubElement(root_element, "Project_Name")
+            child = ET.SubElement(general_element, "Project_Name")
             child.text = self.name_prj
-            path_child = ET.SubElement(root_element, "Path_Projet")
+            path_child = ET.SubElement(general_element, "Path_Projet")
             path_child.text = self.path_prj
-            user_child = ET.SubElement(root_element, "User_Name")
+            pathlog_child = ET.SubElement(general_element, "File_Log")
+            pathlog_child.text = os.path.join(self.path_prj, self.name_prj + '.log')
+            savelog_child = ET.SubElement(general_element, "Save_Log")
+            savelog_child.text = str(self.central_widget.logon)
+            user_child = ET.SubElement(general_element, "User_Name")
             user_child.text = self.username_prj
-            des_child = ET.SubElement(root_element, "Description")
+            des_child = ET.SubElement(general_element, "Description")
             des_child.text = self.descri_prj
             pathbio_child = ET.SubElement(root_element, "Path_Bio")
             pathbio_child.text = "./biologie\\"
@@ -251,6 +269,9 @@ class MainWindows(QMainWindow):
             path_im = os.path.join(self.path_prj, 'figures_habby')
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
+            # create the log file by copying the existing "basic" log file (log0.txt)
+            shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj+'.log'))
+
         else:
             doc = ET.parse(fname)
             root = doc.getroot()
@@ -382,14 +403,60 @@ class MainWindows(QMainWindow):
         return var
 
     def open_rech(self):
+        """
+        open the additional research menu
+        """
         self.rechmain = True
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # 0 is not research mode
         self.setCentralWidget(self.central_widget)
 
     def close_rech(self):
+        """
+            close the additional research menu
+            """
         self.rechmain = False
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # 0 is not research mode
         self.setCentralWidget(self.central_widget)
+
+    def clear_log(self):
+        """
+        Clear the log in the GUI.
+        """
+        self.central_widget.l2.clear()
+        self.central_widget.l2.setText(self.tr('Log erased in this window.<br>'))
+
+    def do_log(self, save_log):
+        """
+        Save or not save the log
+        :param save_log 0 -> do not save log, 1 -> save the log in the .log file and restart file
+        """
+        if save_log == 0:
+            t = self.central_widget.l2.text()
+            self.central_widget.l2.setText(t+self.tr('This log will not be saved anymore in the .log file. <br>')
+                                           + self.tr('This log will not be saved anymore in the restart file. <br>'))
+            self.central_widget.logon = False
+        if save_log == 1:
+            t = self.central_widget.l2.text()
+            self.central_widget.l2.setText(t + self.tr('This log will be saved in the .log file.<br> '
+                                                       'This log will not be saved anymore in the restart file. <br>'))
+            self.central_widget.logon = True
+
+        # save the option in the xml file
+        fname = os.path.join(self.path_prj, self.name_prj +'.xml')
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        savelog_child = root.find(".//Save_Log")
+        try:
+            savelog_child.text = str(self.central_widget.logon)
+            doc.write(fname)
+        except AttributeError:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Log Info"))
+            self.msg2.setText( \
+                self.tr("Information related to the .log file are incomplete. Please check."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
 
 
 class CentralW(QWidget):
@@ -407,10 +474,12 @@ class CentralW(QWidget):
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
         self.rech = rech
+        self.logon = True  # do we save the log in .log file or not
+
         super().__init__()
+        self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is shown
         self.init_iu()
         self.child_win = None  # in case, we open an extra windows
-
 
     def init_iu(self):
 
@@ -424,7 +493,7 @@ class CentralW(QWidget):
         other_tab = HydroW()
         other_tab2 = HydroW()
 
-        # connect signal
+        # connect signals save figures
         self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
         self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
         self.hydro_tab.telemac.show_fig.connect(self.showfig)
@@ -433,6 +502,9 @@ class CentralW(QWidget):
         self.substrate_tab.show_fig.connect(self.showfig)
         self.statmod_tab.show_fig.connect(self.showfig)
 
+        # connect signal for the log
+        self.connect_signal_log()
+
         # fill the general tab
         self.welcome_tab.e1.setText(self.name_prj_c)
         self.welcome_tab.e2.setText(self.path_prj_c)
@@ -440,7 +512,7 @@ class CentralW(QWidget):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Path to project"))
             self.msg2.setText( \
-                self.tr("The directory indicated the project path does not exists. Correction needed."))
+                self.tr("The directory indicated by the project path does not exists. Correction needed."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         fname = os.path.join(self.path_prj_c, self.name_prj_c+'.xml')
@@ -451,6 +523,9 @@ class CentralW(QWidget):
             des_child = root.find(".//Description")
             self.welcome_tab.e4.setText(user_child.text)
             self.welcome_tab.e3.setText(des_child.text)
+            logon_child = root.find(".//Save_Log")
+            if logon_child == 'False' or logon_child == 'false':
+                self.logon = False  # is True by default
 
         # add the widget to the tab
         self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
@@ -464,11 +539,36 @@ class CentralW(QWidget):
             self.tab_widget.addTab(other_tab, self.tr("Reseach 1"))
             self.tab_widget.addTab(other_tab2, self.tr("Reseach 2"))
 
+        # Area to show the log
+        # add two Qlabel l1 ad l2 , with one scroll for the log in l2
+        l1 = QLabel(self.tr('HABBY says:'))
+        self.l2.setAlignment(Qt.AlignTop)
+        self.l2.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.l2.setTextFormat(Qt.RichText)
+        self.scroll = QScrollArea()
+        # see the end of the log first
+        self.vbar = self.scroll.verticalScrollBar()
+        self.vbar.rangeChanged.connect(self.scrolldown)
+        self.scroll.setWidget(self.l2)
+        # to have the Qlabel at the right size
+        self.scroll.setWidgetResizable(True)
+        # colors
+        self.scroll.setStyleSheet('background-color: white')
+        self.vbar.setStyleSheet('background-color: lightGrey')
+        self.write_log('nbfs')
+
         # layout
         layoutc = QGridLayout()
-        # layoutc.addWidget(l1,0,0)
         layoutc.addWidget(self.tab_widget, 1, 0)
+        layoutc.addWidget(l1, 2, 0)
+        layoutc.addWidget(self.scroll, 3, 0)
         self.setLayout(layoutc)
+
+    def scrolldown(self):
+        """
+        Move the scroll bar to the bottowm if the ScollArea is getting bigger
+        """
+        self.vbar.setValue(self.vbar.maximum())
 
     def showfig(self):
         """
@@ -479,6 +579,70 @@ class CentralW(QWidget):
         self.child_win.selectionchange(-1)
         self.child_win.show()
 
+    def connect_signal_log(self):
+        """
+        connect all the signal linked to the log
+        is in a function only to improve lisibility
+        """
+        self.hydro_tab.hecras1D.send_log.connect(self.write_log)
+    def write_log(self, text_log):
+        """
+        A function to wrtie the different log
+        :param text_log: the text which should be added to the log
+        if start with # -> added it to self.l2 (QLabel) and the .log file (comments)
+        if start with restart -> added it restart_nameproject.txt
+        if start with WARNING -> added it to self.l2 (QLabel) and the .log file
+        if start with ERROR -> added it to self.l2 (QLabel) and the .log file
+        if start with py -> added to the .log file (python command)
+        if start with nothing -> treat it like a comment
+        if logon = false do not write in log.txt
+        :return:
+        """
+        # read xml file to find the path to the log file
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        if os.path.isfile(fname):
+            doc = ET.parse(fname)
+            root = doc.getroot()
+            child_logfile = root.find(".//File_Log")
+            if child_logfile is not None:
+                pathname_logfile = child_logfile.text
+            else:
+                t = self.l2.text()
+                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The "
+                                    "log file is not indicated in the xml file. No log written. </br> <br>")
+                return
+        else:
+            t = self.l2.text()
+            self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
+                                "found. No log written. </br> <br>")
+            return
+
+        # add comment to Qlabel and .log file
+        if text_log[0] == '#':
+            t = self.l2.text()
+            self.l2.setText(t + text_log[1:] + '<br>')
+            self.write_log_file(text_log, pathname_logfile)
+
+        # add python code to the .log file
+        if text_log[:2] == 'py':
+            self.write_log_file(text_log[2:], pathname_logfile)
+
+    def write_log_file(self, text_log, pathname_logfile):
+        """
+        A function to write to the .log text
+        :param text_log: the text to be written
+        :param pathname_logfile: the path+name where the log is
+        :return:
+        """
+        if self.logon:
+            if os.path.isfile(pathname_logfile):
+                with open(pathname_logfile, "a") as myfile:
+                    myfile.write('\n' + text_log)
+            else:
+                t = self.l2.text()
+                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: Log file not found. No log written. </br> <br>")
+                return
+        return
 
 class WelcomeW(QWidget):
 

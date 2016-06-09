@@ -267,6 +267,7 @@ class HEC_RAS1D(SubHydroW):
      of the files to the project xml file.
     """
     show_fig = pyqtSignal()
+    send_log = pyqtSignal(str, name='send_log')
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -329,7 +330,16 @@ class HEC_RAS1D(SubHydroW):
         #load hec_ras data
         if self.cb.isChecked():
             self.save_fig = True
-        [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
+        [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
+                                               self.pathfile[1], path_im, self.save_fig)
+        # log info
+        self.send_log.emit(self.tr('#Load: Hec-Ras 1D data.'))
+        self.send_log.emit("py    file1='"+ self.namefile[0] + "'")
+        self.send_log.emit("py    file2='" + self.namefile[1]+ "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0]+ "'")
+        self.send_log.emit("py    path2='" + self.pathfile[1]+ "'")
+        self.send_log.emit("py    [xy_h, zone_v] = Hec_ras06.open_hecras(file1, file2, path1, path2, '.', False)\n")
+        # show figure
         if self.cb.isChecked():
             self.show_fig.emit()
 
