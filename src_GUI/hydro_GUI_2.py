@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import sys
+from io import StringIO
 from PyQt5.QtCore import QTranslator, pyqtSignal
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
@@ -327,21 +329,37 @@ class HEC_RAS1D(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
         path_im = self.find_path_im()
-        #load hec_ras data
+        # load hec_ras data
         if self.cb.isChecked():
             self.save_fig = True
+
+        # redirect the out stream to my output
+        # THREAD -> TO BE CHECKED!!!
+        sys.stdout = mystdout = StringIO()
         [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
                                                self.pathfile[1], path_im, self.save_fig)
+        sys.stdout = sys.__stdout__
+
         # log info
-        self.send_log.emit(self.tr('#Load: Hec-Ras 1D data.'))
+        self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
         self.send_log.emit("py    file1='"+ self.namefile[0] + "'")
-        self.send_log.emit("py    file2='" + self.namefile[1]+ "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0]+ "'")
-        self.send_log.emit("py    path2='" + self.pathfile[1]+ "'")
+        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
         self.send_log.emit("py    [xy_h, zone_v] = Hec_ras06.open_hecras(file1, file2, path1, path2, '.', False)\n")
+        self.send_log.emit("restart LOAD_HECRAS_1D")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0],self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1],self.namefile[1]))
+        str_found = mystdout.getvalue()
+        str_found = str_found.split('\n')
+        for i in range(0, len(str_found)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+
         # show figure
         if self.cb.isChecked():
             self.show_fig.emit()
+
 
 
 class Rubar2D(SubHydroW):

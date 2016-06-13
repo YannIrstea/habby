@@ -30,11 +30,17 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
     :param save_fig if True image is saved
 
     all entry parameter are string
-    :return: velocity, height for (x,y) of each river profile -> [x y dist v] and [ x y dist h]
+    :return: velocity, height for (x,y) of each river profile -> [x y dist v] and [ x y dist h] zone_v and xh_h
+    + out_message, a string which collect all message
     """
+    xy_h = [-99]
+    zone_v = [-99]
 
     # load the geometry file which contains info on the profile and the geometry
     [data_profile, coord_pro, coord_r, reach_name, data_bank] = open_geofile(geo_file, path_geo)
+    # if data could be extracted
+    if data_profile == [-99]:
+        return xy_h, zone_v
 
     # load the xml, rep, or sdf file to get velocity and wse
     blob, ext = os.path.splitext(res_file)
@@ -44,12 +50,17 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
         try:
             [vel, wse, riv_name, nb_sim] = open_sdffile(res_file, reach_name, path_res)
         except ValueError:
-            print("Error: Cannot open .sdf file. Is the model georeferenced? If not, use the .rep file.")
+            print("Error: Cannot open .sdf file. Is the model georeferenced? If not, use the .rep file.\n")
+            return xy_h, zone_v
+
     elif ext == ".rep":
         [vel, wse, riv_name, nb_sim] = open_repfile(res_file, reach_name, path_res, data_profile, data_bank)
     else:
-        warnings.warn("The file containing the results is not in XML, rep or sdf format. HABBY try to read it as XML file.")
+        print("Warning: The file containing the results is not in XML, rep or sdf format. HABBY try to read it as XML file.\n")
         [vel, wse, riv_name, nb_sim] = open_xmlfile(res_file, reach_name, path_res)
+    # if data could not be extracted
+    if vel == [-99]:
+        return xy_h, zone_v
     # get water height in the (x,y coordinate) and get the velocity in the (x,y) coordinates
     # velocity is by zone (between 2 points) and height is on the node
     # maximum distance between two velocity point: ASK YANN
@@ -77,25 +88,28 @@ def open_xmlfile(xml_file, reach_name, path):
 
     # load the xml file
     root = load_xml(xml_file, path)
+    if root == [-99]:  # if error arised
+        print("Error: the XML file could not be read.\n")
+        return [-99], [-99], [-99], [-99]
 
     # find the velocity in the XML file
     # .// all child ./ only first child
     try:  # check that the data is not empty
         vel = root.findall(".//Velocity")
     except AttributeError:
-        print("Error: Velocity data cannot be read from the XML file")
-        return None, None
+        print("Error: Velocity data cannot be read from the XML file.\n")
+        return [-99], [-99], [-99], [-99]
     if len(vel) == 0:
-        warnings.warn('Warning: Velocity data from XML is empty.')
+        print('Warning: Velocity data from XML is empty.\n')
 
     # find where all water suface elevation are
     try:
         wse = root.findall(".//WSE")
     except AttributeError:
-        print("Error: water surface elevation cannot be read from the XML file")
-        return None, None
+        print("Error: water surface elevation cannot be read from the XML file.\n")
+        return [-99], [-99], [-99], [-99]
     if len(wse) == 0:
-        warnings.warn('Warning: Height data from XML is empty.')
+        print('Warning: Height data from XML is empty.\n')
 
     # find profile name and if there is more than one profile
     try:
@@ -105,7 +119,7 @@ def open_xmlfile(xml_file, reach_name, path):
         sim_name = sim_name.split('" "')
         nb_sim = len(sim_name)
     except AttributeError:
-        warnings.warn("Warning: the number and name of the simulation cannot be read from the XML file.")
+        print("Warning: the number and name of the simulation cannot be read from the XML file.\n")
         nb_sim = 1
 
     # find the name of the river station
@@ -117,21 +131,15 @@ def open_xmlfile(xml_file, reach_name, path):
                 riv_name_i = str(riv_name_xml[i].text)
                 riv_name.append(riv_name_i)
     except AttributeError:
-        warnings.warn("Warning: the name of the river station cannot be read from the XML file.")
+        print("Warning: the name of the river station cannot be read from the XML file.\n")
         riv_name = []
-
-    # take this out when done!!!
-    test_creuse = False
-    if test_creuse:
-        vel = wse
-        print('WARNING: dummy velocity data. DO NOT FORGET')
 
     # transform the Element data into float
     if len(vel) == len(wse):
         nbstat = len(vel)  # number of profiles
     else:
         nbstat = min(len(vel), len(wse))
-        warnings.warn('WARNING: the length of height data and velocity data do not match.')
+        print('Warning: the length of height data and velocity data do not match.\n')
     data_vel = []  # liste of profiles
     data_wse = []
     try:
@@ -153,8 +161,8 @@ def open_xmlfile(xml_file, reach_name, path):
 
             data_vel.append(data_vel_pro)
     except TypeError:
-        print('Error: The velocity or height data could not be extracted. Format of the XML file should be checked.')
-        return None, None
+        print('Error: The velocity or height data could not be extracted. Format of the XML file should be checked.\n')
+        return [-99], [-99], [-99], [-99]
 
     # re-oder the reaches and river as in the .geo file
     if len(reach_name) > 1:
@@ -182,7 +190,7 @@ def open_xmlfile(xml_file, reach_name, path):
 
             m += len(f_reach)
         if m == 0:
-            warnings.warn('The reach and rivers names of the .geo file could not be found in the xml file.')
+            print('Warning: The reach and rivers names of the .geo file could not be found in the xml file.\n')
 
     riv_name = riv_name[::nb_sim]  # get the name only once
     return data_vel, data_wse, riv_name, nb_sim
@@ -200,15 +208,19 @@ def load_xml(xml_file, path):
     if ext_xml == '.xml' or ext_xml == '.gml':
         pass
     else:
-        warnings.warn("Warning: File should be of type XML or GML")
+        print("Warning: File should be of type XML or GML \n")
 
     # load the XML file
     try:
-        docxml = Etree.parse(os.path.join(path, xml_file))
-        root = docxml.getroot()
-    except IOError:
-        print("Error: the file "+xml_file+" does not exist")
-        return []
+        try:
+            docxml = Etree.parse(os.path.join(path, xml_file))
+            root = docxml.getroot()
+        except IOError:
+            print("Error: the file "+xml_file+" does not exist\n")
+            return [-99]
+    except Etree.ParseError:
+        print('Error: the XML is not well-formed.\n')
+        return [-99]
 
     return root
 
@@ -226,17 +238,17 @@ def open_geofile(geo_file, path):
     # check that the geo file has the right extension (.goX)
     blob, ext_geo = os.path.splitext(geo_file)
     if ext_geo[:3] == '.G0':
-        warnings.warn("Warning: File of G0X type.")
+        print("Warning: File of G0X type.\n")
     elif ext_geo[:3] != '.g0':
-        warnings.warn("Warning: File should be of type .g0X such as .g01 ou .g02")
+        print("Warning: File should be of type .g0X such as .g01 ou .g02.\n")
 
     # open the geo file
     try:
         with open(os.path.join(path, geo_file), 'rt') as f:
             data_geo = f.read()
     except IOError:
-        print("Error: the file "+geo_file+" does not exist")
-        return []
+        print("Error: the file "+geo_file+" does not exist.\n")
+        return [-99],[-99], [-99], '-99', [-99]
 
     # find the (x,z) data related to the profiles.
         # HEC_RAS manual p5-4: the geometry file is for-the-most-part self explanotary.
@@ -247,16 +259,16 @@ def open_geofile(geo_file, path):
     exp_reg1 = "Sta/Elev=\s+\d+\s*\n([\s+\d+\.-]+)"
     data_profile_str = re.findall(exp_reg1, data_geo, re.DOTALL)
     if not data_profile_str:
-        warnings.warn("Warning: no profile found, the geometry file might not be in the right format")
-        return []
+        print("Error: no profile found, the geometry file might not be in the right format.\n")
+        return [-99], [-99], [-99], '-99', [-99]
     data_profile = []
     try:
         for i in range(0, len(data_profile_str)):
                 xz = pass_in_float_from_geo(data_profile_str[i], 8)
                 data_profile.append(xz)  # fill a list with an array (x,z) for each profile
     except ValueError:
-        print('Error: The profile data could be extracted from the geometry file. The format should be checked.')
-        return []
+        print('Error: The profile data could be extracted from the geometry file. The format should be checked. \n')
+        return [-99], [-99], [-99], '-99', [-99]
 
     # load the coordinate of the river
     exp_reg2 = 'Reach\s+XY=\s+\d+\s*\n([\s+\d+\.-]+)'
@@ -267,16 +279,16 @@ def open_geofile(geo_file, path):
         data_river_str = re.findall(exp_reg21, data_geo, re.DOTALL)
         data_river_str[0] = data_river_str[0].replace(',', ' ')
         if data_river_str:
-            warnings.warn('Warning: The river is assumed to be straight.')
+            print('Warning: The river is assumed to be straight.\n')
     if not data_river_str:
-        warnings.warn('Warning: no river found, the geometry file might not be in the right format')
+        print('Warning: no river found, the geometry file might not be in the right format.\n')
     try:
         data_river = []
         for i in range(0, len(data_river_str)):
             data_river.append(pass_in_float_from_geo(data_river_str[i], 16))
     except ValueError:
-        print('The river data could not be extracted from the geometry file. The format should be checked.')
-        return []
+        print('Error: The river data could not be extracted from the geometry file. The format should be checked.\n')
+        return [-99], [-99], [-99], '-99', [-99]
 
     # load the bank limit (where is the limit of the river without a flood)
     try:
@@ -287,8 +299,8 @@ def open_geofile(geo_file, path):
         data_bank_right = list(map(float, data_bank_str[:, 1]))
         data_bank = np.column_stack((data_bank_left, data_bank_right))
     except ValueError:
-        print('Error: The location of the bank stations on the profile could not be extracted from the geometry file.')
-        return []
+        print('Error: The location of the bank stations on the profile could not be extracted from the geometry file.\n')
+        return [-99], [-99], [-99], '-99', [-99]
 
     # load the order of the reaches and rivers in .geo file
     # It might be different in the XML file unfortunately!
@@ -317,7 +329,7 @@ def open_geofile(geo_file, path):
         nb_pro_reach[i+1] = reach_nb_str.count('#Sta/Elev=')
         check_nb_pro_reach = len(data_profile_str) - np.sum(nb_pro_reach)
         if check_nb_pro_reach > 1:
-            warnings.warn("Warning: The number of profile by reach might not be right.")
+            print("Warning: The number of profile by reach might not be right.\n")
     else:
         nb_pro_reach = [len(data_profile_str)]
 
@@ -343,24 +355,24 @@ def open_geofile(geo_file, path):
                 if i == len(data_dist_str)-1:
                     data_dist_str_i = '-99,0,-99'
                 else:  # erase (it is probably a bridge or culvert or other)
-                    warnings.warn('Warning: At least one distance between profile is not found. Distance data erased.\
-                     Might be a bridge or a culvert.')
+                    print('Warning: At least one distance between profile is not found. Distance data erased.\
+                     Might be a bridge or a culvert.\n')
                     erase = True
                     data_dist_str_i = '-99,0,-99'
             if data_dist_str_i[0] == ',':
                 data_dist_str_i = '-99'+data_dist_str_i
-                warnings.warn('Warning: One distance between left overbanks is not found.')
+                print('Warning: One distance between left overbanks is not found.\n')
             if data_dist_str_i[-1] == ',':
                 data_dist_str_i += '-99'
-                warnings.warn('Warning: One distance between right overbanks is not found.')
+                print('Warning: One distance between right overbanks is not found.\n')
 
             data_dist_i = np.array(list(map(float, data_dist_str_i.split(','))))
             if not erase:
                 data_dist.append(data_dist_i)
 
     except ValueError:
-        print('Error: The location of the bank stations could not be extracted from the geometry file.')
-        return [], [], [], []
+        print('Error: The location of the bank stations could not be extracted from the geometry file.\n')
+        return [-99], [-99], [-99], '-99', [-99]
 
     if data_xy_pro_str:  # if georeferenced
         coord_p = []
@@ -373,7 +385,7 @@ def open_geofile(geo_file, path):
             xy = np.column_stack((data_pro_x, data_pro_y))  # or xy
             coord_p.append(xy)
     else:
-        warnings.warn('Warnings: The river profiles are not georeferenced. HYP: straight profiles. CHECK NECESSARY')
+        print('Warning: The river profiles are not georeferenced. HYP: straight profiles. CHECK NECESSARY. \n')
         coord_p = coord_profile_non_georeferenced(data_bank, data_dist, data_river, data_profile, nb_pro_reach)
 
     return data_profile, coord_p, data_river, reach_name, data_bank
@@ -480,30 +492,30 @@ def open_sdffile(sdf_file, reach_name, path):
     :param reach_name, a list of string containing the name of the reaches/rivers in the order of the geo file
      (might not be the one of the sdf file)
     :param path: the path where the file is stored
-    :return:
+    :return: velocity, water height, river_name, number of  time step (nb_sim)
     """
 
     # check that the sdf file has the right extension (.sdf)
     # we might so the test two times, but so we are sure it is here
     blob, ext_sdf = os.path.splitext(sdf_file)
     if ext_sdf != '.sdf':
-        warnings.warn("Warning: File should be of .sdf type.")
+        print("Warning: File should be of .sdf type.\n")
 
     # open the sdf file
     try:
         with open(os.path.join(path, sdf_file), 'rt') as f:
             data_sdf = f.read()
     except IOError:
-        print("Error: the file "+sdf_file+" does not exist")
-        return []
+        print("Error: the file "+sdf_file+" does not exist.\n")
+        return [-99], [-99], '-99', -99
 
     # get the velocity data
     exp_reg1 = "VELOCITIES:\s*\n([\s+\d+\,\.-]+)"
     vel_str = re.findall(exp_reg1, data_sdf, re.DOTALL)
 
     if not vel_str:
-        warnings.warn("Warning: no velocity data found, the .sdf file might not be in the right format")
-        return []
+        print("Error: no velocity data found, the .sdf file might not be in the right format\n")
+        return [-99], [-99], '-99', -99
     vel = []
     try:
         for i in range(0, len(vel_str)):
@@ -511,15 +523,15 @@ def open_sdffile(sdf_file, reach_name, path):
                 vel_i = pass_in_float_from_geo(vel_str[i], -99)  # HYP: No data given without space -> -99
                 vel.append(vel_i)
     except ValueError:
-        print('Error: The velocity data could not be extracted from the sdf file.')
-        return []
+        print('Error: The velocity data could not be extracted from the sdf file.\n')
+        return [-99], [-99], '-99', -99
 
     # get the height data
     exp_reg2 = "WATER ELEVATION:\s*([\s+\d+\,\.-]+)"
     wse_str = re.findall(exp_reg2, data_sdf, re.DOTALL)
     if not wse_str:
-        warnings.warn("Warning: no height data found, the .sdf file might not be in the right format")
-        return []
+        print("Error: no height data found, the .sdf file might not be in the right format.\n")
+        return [-99], [-99], '-99', -99
     wse = []
     try:
         for i in range(0, len(wse_str)):
@@ -529,8 +541,8 @@ def open_sdffile(sdf_file, reach_name, path):
                 for j in range(0, len(wse_i)):
                     wse.append(wse_i[j])
     except ValueError:
-        print('Error: The water height data could not be extracted from the sdf file.')
-        return []
+        print('Error: The water height data could not be extracted from the sdf file.\n')
+        return [-99], [-99], '-99', -99
 
     # get the reach and river name
     exp_reg_extra = "BEGIN CROSS-SECTIONS:(.+)END CROSS-SECTION"
@@ -540,9 +552,9 @@ def open_sdffile(sdf_file, reach_name, path):
     exp_reg4 = "REACH ID:\s*(.+)\n"
     reach_str = re.findall(exp_reg4, data_sdf2[0])
     if not stream_str:
-        warnings.warn("Warning: Stream names could not be extracted from the .sdf file")
+        print("Warning: Stream names could not be extracted from the .sdf file.\n")
     if not reach_str:
-        warnings.warn("Warning: Reach names could not be extracted from the .sdf file")
+        print("Warning: Reach names could not be extracted from the .sdf file.\n")
     stream_str = get_rid_of_white_space(stream_str)
     reach_str = get_rid_of_white_space(reach_str)
 
@@ -551,13 +563,13 @@ def open_sdffile(sdf_file, reach_name, path):
     nb_sim_str = re.findall(exp_reg6, data_sdf, re.DOTALL)
 
     if not nb_sim_str:
-        warnings.warn("Warning: the number of profiles is not found in the .sdf file")
-        return []
+        print("Warning: the number of profiles is not found in the .sdf file.\n")
+        return [-99], [-99], '-99', -99
     try:
         nb_sim = int(float(nb_sim_str[0]))
     except ValueError:
-        print('Error: The number of simulation could not be extracted from the .sdf file')
-        return []
+        print('Error: The number of simulation could not be extracted from the .sdf file.\n')
+        return [-99], [-99], '-99', -99
 
     # get the name of the profile (riv_name)
     exp_reg5 = "STATION:\s*(.+)\n"
@@ -567,7 +579,7 @@ def open_sdffile(sdf_file, reach_name, path):
         for s in range(0, nb_sim):
             riv_name.append(riv_name_a[i])
     if not riv_name:
-        warnings.warn('Warning: Profile name could not be extracted from the sdf file.')
+        print('Warning: Profile name could not be extracted from the sdf file.\n')
 
     [wse, vel, riv_name] = reorder_reach(wse, vel,riv_name, reach_name, reach_str, stream_str, nb_sim)
 
@@ -615,13 +627,13 @@ def reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim)
                     riv_name[m+i] = riv_name2[f_reach[i]]
                 except IndexError:
                     if out_print:
-                        print("Error: Some reaches are possibly missing. It is necessary to export all reaches.")
-                        print("Click on Select Reach to Export in GIS export of HEC-RAS 5")
+                        print("Error: Some reaches are possibly missing. It is necessary to export all reaches.\n")
+                        print("Error: Click on Select Reach to Export in GIS export of HEC-RAS 5.\n")
                         out_print = False
 
             m += len(f_reach)
         if m == 0:
-            warnings.warn('The reach and rivers names of the .geo file could not be found in the .sdf file.')
+            print('Warning: The reach and rivers names of the .geo file could not be found in the .sdf file.\n')
 
     return wse, vel, riv_name
 
@@ -656,25 +668,26 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     # we might so the test two times, but so we are sure it is here
     blob, ext_sdf = os.path.splitext(report_file)
     if ext_sdf != '.rep':
-        warnings.warn("Warning: File should be of .rep type.")
+        print("Warning: File should be of .rep type.\n")
 
     # open the rep file
     try:
         with open(os.path.join(path, report_file), 'rt') as f:
             data_rep = f.read()
     except IOError:
-        print("Error: the file "+report_file+" does not exist")
-        return []
+        print("Error: the file "+report_file+" does not exist.\n")
+        return [-99],[-99], -99, '-99'
 
     # obtain WSE data
     exp_reg = "W.S. Elev\s*\(\D+\)\s*([\d\.-]+)\D"
     wse_str = re.findall(exp_reg, data_rep)
     if not wse_str:
-        warnings.warn("Warning: Water level is empty")
+        print("Warning: Water level is empty.\n")
     try:
         wse = list(map(float, wse_str))
     except ValueError:
-        print("The water level height could not be , could not be extracted from the rep file")
+        print("Error:The water level height could not be extracted from the rep file.\n")
+        return [-99], [-99], -99, '-99'
 
     # obtain the number of simulation
     # it is not really given so we we could the number of cross section output
@@ -682,14 +695,14 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     cros_sec_o = re.findall(exp_reg1, data_rep)
     nb_sim = len(cros_sec_o)/len(data_profile)
     if np.floor(nb_sim) != nb_sim:
-        warnings.warn("The number of simulation does not seems right. It should be an integer.")
+        print("Warning: The number of simulation does not seems right. It should be an integer.\n")
     nb_sim = int(nb_sim)
 
     # obtain the name of the reaches and the name of the profile
     exp_reg = "CROSS SECTION\s*\n+(.*\n.*\n)"
     name_str = re.findall(exp_reg, data_rep)
     if not name_str:
-        warnings.warn("The profile name could be extracrted from the .rep file")
+        print("Warning: The profile name could be extracted from the .rep file.\n")
     reach_str = []
     pro_str = []
     stream_str = []
@@ -715,7 +728,7 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     exp_reg = "Avg. Vel.\s*\(\D+\)([\d\.\s]+)\n"
     vel_av_str = re.findall(exp_reg, data_rep)
     if not vel_av_str:
-        warnings.warn("Warning: the velocity data is empty (.rep file)")
+        print("Warning: the velocity data is empty (.rep file).\n")
 
     # pass the velocity data in float
     m = []
@@ -737,7 +750,8 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
             vel_av_i = list(map(float, vel_av_str_i))
             vel_av.append(vel_av_i)
     except ValueError:
-        print("Error: the velocity could not be extracted from the .rep file (non-georeferenced case)")
+        print("Error: the velocity could not be extracted from the .rep file (non-georeferenced case).\n")
+        return [-99], [-99], -99, '-99'
 
     # obtain the x coordinate from data bank and data profile
     x_av = []
@@ -750,7 +764,8 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
             for j in range(0, nb_sim):
                 x_av.append(vel_x_i)
     except ValueError:
-        print("Error: the coordinate of the velocity could not be extracted from the .rep file (non-georeferenced case)")
+        print("Error: the coordinate of the velocity could not be extracted from the .rep file (non-georeferenced case).\n")
+        return [-99], [-99], -99, '-99'
 
     # put the (x and v) data together
     vel = []
@@ -794,9 +809,9 @@ def pass_in_float_from_geo(data_str, len_number):
             data_profile_x = data_i[0::2]  # choose every 2 float
             data_profile_z = data_i[1::2]
             xz = np.column_stack((data_profile_x, data_profile_z))  # or xy
-            warnings.warn("Two coordinates were not separated by space. HYP: Number of digit is 8 or 16.")
+            print("Warning: Two coordinates were not separated by space. HYP: Number of digit is 8 or 16.\n")
         except ValueError:
-            print("Error: Data are not number.")
+            print("Error: Data are not number.\n")
     return xz
 
 
@@ -877,7 +892,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
             #  check if we get enough velocity point
             #  max_vel_dist is the maximum distance between two velocity measurements
             if dist_pro/len(zone_v_p) >= max_vel_dist:
-                warnings.warn('Warning: the number of velocity point is low compared to the profile length.')
+                print('Warning: the number of velocity point is low compared to the profile length.\n')
 
         xy_h_all.append(xy_h)
         zone_v_all.append(zone_v)

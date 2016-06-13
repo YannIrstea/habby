@@ -25,7 +25,6 @@ class MainWindows(QMainWindow):
     """
 
     def __init__(self, user_option):
-
         # load user setting
         self.settings = QSettings('HABBY', 'irstea')
         name_prj_set = self.settings.value('name_prj')
@@ -252,10 +251,19 @@ class MainWindows(QMainWindow):
             child.text = self.name_prj
             path_child = ET.SubElement(general_element, "Path_Projet")
             path_child.text = self.path_prj
-            pathlog_child = ET.SubElement(general_element, "File_Log")
+            # log
+            log_element = ET.SubElement(general_element, "Log_Info")
+            pathlog_child = ET.SubElement(log_element, "File_Log")
             pathlog_child.text = os.path.join(self.path_prj, self.name_prj + '.log')
-            savelog_child = ET.SubElement(general_element, "Save_Log")
+            pathlog_child = ET.SubElement(log_element, "File_Restart")
+            pathlog_child.text = os.path.join(self.path_prj, 'restart_'+self.name_prj + '.log')
+            savelog_child = ET.SubElement(log_element, "Save_Log")
             savelog_child.text = str(self.central_widget.logon)
+            # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
+            shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj + '.log'))
+            shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'), os.path.join(self.path_prj,
+                                                                                  'restart_' + self.name_prj + '.log'))
+            # more precise info
             user_child = ET.SubElement(general_element, "User_Name")
             user_child.text = self.username_prj
             des_child = ET.SubElement(general_element, "Description")
@@ -269,13 +277,10 @@ class MainWindows(QMainWindow):
             path_im = os.path.join(self.path_prj, 'figures_habby')
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
-            # create the log file by copying the existing "basic" log file (log0.txt)
-            shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj+'.log'))
-
+        # project exist
         else:
             doc = ET.parse(fname)
             root = doc.getroot()
-
             child = root.find(".//Project_Name")
             path_child = root.find(".//Path_Projet")
             user_child = root.find(".//User_Name")
@@ -458,7 +463,6 @@ class MainWindows(QMainWindow):
             self.msg2.show()
 
 
-
 class CentralW(QWidget):
     """
     This class create the different tabs of the programm, which are then used as the central widget by MainWindows
@@ -555,7 +559,7 @@ class CentralW(QWidget):
         # colors
         self.scroll.setStyleSheet('background-color: white')
         self.vbar.setStyleSheet('background-color: lightGrey')
-        self.write_log('nbfs')
+        # redirect stdout
 
         # layout
         layoutc = QGridLayout()
@@ -585,6 +589,7 @@ class CentralW(QWidget):
         is in a function only to improve lisibility
         """
         self.hydro_tab.hecras1D.send_log.connect(self.write_log)
+
     def write_log(self, text_log):
         """
         A function to wrtie the different log
@@ -594,7 +599,8 @@ class CentralW(QWidget):
         if start with WARNING -> added it to self.l2 (QLabel) and the .log file
         if start with ERROR -> added it to self.l2 (QLabel) and the .log file
         if start with py -> added to the .log file (python command)
-        if start with nothing -> treat it like a comment
+        if start with nothing -> just print to the Qlabel
+        if out from stdout -> added it to self.l2 (QLabel) and the .log file (comments)
         if logon = false do not write in log.txt
         :return:
         """
@@ -603,6 +609,7 @@ class CentralW(QWidget):
         if os.path.isfile(fname):
             doc = ET.parse(fname)
             root = doc.getroot()
+            # python-based log
             child_logfile = root.find(".//File_Log")
             if child_logfile is not None:
                 pathname_logfile = child_logfile.text
@@ -611,21 +618,45 @@ class CentralW(QWidget):
                 self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The "
                                     "log file is not indicated in the xml file. No log written. </br> <br>")
                 return
+            # restart log
+            child_logfile = root.find(".//File_Restart")
+            if child_logfile is not None:
+                pathname_restartfile = child_logfile.text
+            else:
+                t = self.l2.text()
+                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The "
+                                    "restart file is not indicated in the xml file. No log written. </br> <br>")
+                return
         else:
             t = self.l2.text()
             self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
                                 "found. No log written. </br> <br>")
             return
 
-        # add comment to Qlabel and .log file
+        # add comments to Qlabel and .log file
         if text_log[0] == '#':
             t = self.l2.text()
             self.l2.setText(t + text_log[1:] + '<br>')
             self.write_log_file(text_log, pathname_logfile)
-
         # add python code to the .log file
-        if text_log[:2] == 'py':
+        elif text_log[:2] == 'py':
             self.write_log_file(text_log[2:], pathname_logfile)
+        # add restart command to the restart file
+        elif text_log[:7] == 'restart':
+            self.write_log_file(text_log[7:], pathname_restartfile)
+        elif text_log[:5] == 'Error':
+            t = self.l2.text()
+            self.l2.setText(t + "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
+            self.write_log_file('# ' +text_log, pathname_logfile)
+        # add warning
+        elif text_log[:7] == 'Warning':
+            t = self.l2.text()
+            self.l2.setText(t + "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
+            self.write_log_file('# ' + text_log, pathname_logfile)
+        # other case not accounted for
+        else:
+            t = self.l2.text()
+            self.l2.setText(t + text_log + '<br>')
 
     def write_log_file(self, text_log, pathname_logfile):
         """
@@ -643,6 +674,7 @@ class CentralW(QWidget):
                 self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: Log file not found. No log written. </br> <br>")
                 return
         return
+
 
 class WelcomeW(QWidget):
 
