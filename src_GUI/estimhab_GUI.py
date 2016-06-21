@@ -10,7 +10,8 @@ from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox
 import h5py
-from src_GUI import hydro_GUI_2
+import sys
+from io import StringIO
 
 class EstimhabW(QWidget):
     """
@@ -18,11 +19,12 @@ class EstimhabW(QWidget):
     """
 
     save_signal_estimhab = pyqtSignal()
+    send_log = pyqtSignal(str, name='send_log')
     show_fig = pyqtSignal()
 
     def __init__(self, path_prj, name_prj):
 
-        self.path_bio = './biologie\\'
+        self.path_bio = './biologie'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
         self.eh1 = QLineEdit()
@@ -234,7 +236,33 @@ class EstimhabW(QWidget):
         fish_list = list(set(fish_list))  # it will remove duplicate, but change the list order!
         # run
         path_im = self.find_path_im_est()
+        sys.stdout = mystdout = StringIO()
         [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio, fish_list, path_im, True)
+
+        #log info
+        self.send_log.emit(self.tr('# Run: Estimhab'))
+        str_found = mystdout.getvalue()
+        str_found = str_found.split('\n')
+        for i in range(0, len(str_found)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+        self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' +str(h) + ',' + str(q50) +
+                           ',' + str(substrate) + ']')
+        self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']' )
+        self.send_log.emit("py    path1='" + self.path_bio + "'")
+        fish_list_str = "py    fish_list = ["
+        for i in range(0,len(fish_list)):
+            fish_list_str += "'" + fish_list[i] + "',"
+        fish_list_str = fish_list_str[:-1] + ']'
+        self.send_log.emit(fish_list_str)
+        self.send_log.emit("py    [VH, SPU] = estimhab.estimhab(data[0], data[1], data[2], data[3] ,"
+                           " qrange, data[4], path1, fish_list, '.', True)\n")
+        self.send_log.emit("restart Run_Estimab")
+        self.send_log.emit("restart    data: " + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
+                           ',' + str(substrate)+ str(qrange[0]) + ',' + str(qrange[1]))
+        self.send_log.emit("restart    fish: " + fish_list_str)
+
+        # we always do a figure for estmihab
         self.show_fig.emit()
 
     def add_fish(self):

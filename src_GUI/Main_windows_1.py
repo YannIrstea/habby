@@ -293,7 +293,7 @@ class MainWindows(QMainWindow):
                     pathim_child.text = os.path.join(self.path_prj, 'figures_habby')
             child.text = self.name_prj
             path_child.text = self.path_prj
-            pathbio_child.text = "./biologie\\"
+            pathbio_child.text = "./biologie"
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
@@ -302,6 +302,16 @@ class MainWindows(QMainWindow):
             path_im = os.path.join(self.path_prj, 'figures_habby')
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
+
+        # write log
+        self.central_widget.write_log('# Project saved')
+        self.central_widget.write_log("py    name_prj= '" + self.name_prj + "'")
+        self.central_widget.write_log("py    path_prj= '" + self.path_prj + "'")
+        self.central_widget.write_log("restart Name_project")
+        self.central_widget.write_log("restart    name_prj= " + self.name_prj)
+
+
+
 
     def save_project_estimhab(self):
         """
@@ -443,7 +453,7 @@ class MainWindows(QMainWindow):
         if save_log == 1:
             t = self.central_widget.l2.text()
             self.central_widget.l2.setText(t + self.tr('This log will be saved in the .log file.<br> '
-                                                       'This log will not be saved anymore in the restart file. <br>'))
+                                                       'This log will be saved anymore in the restart file. <br>'))
             self.central_widget.logon = True
 
         # save the option in the xml file
@@ -589,6 +599,12 @@ class CentralW(QWidget):
         is in a function only to improve lisibility
         """
         self.hydro_tab.hecras1D.send_log.connect(self.write_log)
+        self.hydro_tab.hecras2D.send_log.connect(self.write_log)
+        self.hydro_tab.rubar2d.send_log.connect(self.write_log)
+        self.hydro_tab.rubar1d.send_log.connect(self.write_log)
+        self.hydro_tab.telemac.send_log.connect(self.write_log)
+        self.substrate_tab.send_log.connect(self.write_log)
+        self.statmod_tab.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """
@@ -630,8 +646,9 @@ class CentralW(QWidget):
         else:
             t = self.l2.text()
             self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
-                                "found. No log written. </br> <br>")
+                                "found. no Log written. </br> <br>")
             return
+
 
         # add comments to Qlabel and .log file
         if text_log[0] == '#':
@@ -671,7 +688,11 @@ class CentralW(QWidget):
                     myfile.write('\n' + text_log)
             else:
                 t = self.l2.text()
-                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: Log file not found. No log written. </br> <br>")
+                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
+                shutil.copy(os.path.join('src_GUI', 'log0.txt'),
+                            os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
+                shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
+                            os.path.join(self.path_prj_c,'restart_' + self.name_prj_c + '.log'))
                 return
         return
 

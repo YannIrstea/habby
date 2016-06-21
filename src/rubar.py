@@ -1,6 +1,5 @@
 
 import os
-import warnings
 import re
 import numpy as np
 import matplotlib.pyplot as plt
@@ -154,24 +153,24 @@ def load_coord_1d(name_rbe, path):
     # check extension
     blob, ext = os.path.splitext(name_rbe)
     if ext != '.rbe':
-        warnings.warn('Warning: The fils does not seem to be of .rbe type.')
+        print('Warning: The fils does not seem to be of .rbe type.')
     # load the XML file
     if not os.path.isfile(filename_path):
         print('Error: the .reb file does not exist.')
-        return []
+        return [-99], [-99], [-99], [-99]
     try:
         docxml = Etree.parse(filename_path)
         root = docxml.getroot()
     except IOError:
         print("Error: the .rbe file cannot be open.")
-        return []
+        return [-99], [-99], [-99], [-99]
     # read the section data
     try:  # check that the data is not empty
         jeusect = root.findall(".//Sections.JeuSection")
         sect = jeusect[0].findall(".//Sections.Section")
     except AttributeError:
         print("Error: Sections data cannot be read from the .rbe file")
-        return [], [], []
+        return [-99], [-99], [-99], [-99]
     # read each point of the section
     coord = []
     lim_riv = []  # for each section, the right lim of the bed, the position of the 1D river, the left lim of the bed
@@ -186,12 +185,12 @@ def load_coord_1d(name_rbe, path):
         try:
             name_profile.append(sect[i].attrib['nom'])
         except KeyError:
-            warnings.warn('The name of the profile could not be extracted from the .reb file')
+            print('Warning: The name of the profile could not be extracted from the .reb file')
         try:
             x = sect[i].attrib['Pk']
             dist_riv.append(np.float(x))
         except KeyError:
-            warnings.warn('The name of the profile could not be extracted from the .reb file')
+            print('Warning: The name of the profile could not be extracted from the .reb file')
         coord_sect = np.zeros((len(point), 3))
         lim_riv_sect = np.zeros((3, 3))
         name_sect = []
@@ -203,13 +202,13 @@ def load_coord_1d(name_rbe, path):
                 coord_sect[j, 2] = np.float(attrib_p['z'])
             except ValueError:
                 print('Error: Some coordinates of the .rbe file are not float. Section number: ' + str(i+1))
-                return [], [], []
+                return [-99], [-99], [-99], [-99]
             # find right bank, left bank and river center.
             try:
                 name_here = attrib_p['nom']
             except KeyError:
                 print('Error: the position of the river can not be extracted fromt he .rbe file. ')
-                return [], [], []
+                return [-99], [-99], [-99], [-99]
             if name_here == 'rg':
                 lim_riv_sect[0, :] = coord_sect[j, :]
             if name_here == 'axe':
@@ -321,24 +320,25 @@ def load_mai_2d(geofile, path):
     # check extension
     blob, ext = os.path.splitext(geofile)
     if ext != '.mai':
-        warnings.warn('Warning: The fils does not seem to be of .mai type.')
+        print('Warning: The fils does not seem to be of .mai type.')
     # check if the file exist
     if not os.path.isfile(filename_path):
         print('Error: The .mai file does not exist.')
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99]
     # open file
     try:
         with open(filename_path, 'rt') as f:
             data_geo2d = f.read()
     except IOError:
         print('Error: The .mai file can not be open.')
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99]
     data_geo2d = data_geo2d.splitlines()
     # extract nb cells
     try:
         nb_cell = np.int(data_geo2d[0])
     except ValueError:
         print('Error: Could not extract the number of cells from the .mai file.')
+        return [-99], [-99], [-99], [-99]
         nb_cell = 0
     # extract connectivity table
     data_l = data_geo2d[1].split()
@@ -348,7 +348,7 @@ def load_mai_2d(geofile, path):
         m += 1
         if m == len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .mai file.')
-            return [-99], [-99], [-99], [-99], [-99], [-99]
+            return [-99], [-99], [-99], [-99]
         data_l = data_geo2d[m].split()
         ind_l = np.zeros(len(data_l)-1,)
         for i in range(0,len(data_l)-1):
@@ -356,11 +356,11 @@ def load_mai_2d(geofile, path):
                 ind_l[i] = np.float(data_l[i+1]) -1
             except ValueError:
                 print('Error: Could not extract the connectivity table from the .mai file.')
-                return [-99], [-99], [-99], [-99], [-99], [-99]
+                return [-99], [-99], [-99], [-99]
         ikle.append(ind_l)
 
     if len(ikle) != nb_cell+1:
-        warnings.warn('Warnings: some cells might be missing.')
+        print('Warning: some cells might be missing.')
     # nb coordinates
     try:
         nb_coord = np.int(data_geo2d[m])
@@ -368,8 +368,8 @@ def load_mai_2d(geofile, path):
         print('Error: Could not extract the number of coordinates from the .mai file.')
         nb_coord = 0
     # extract coordinates
-    data_f= []
-    m +=1
+    data_f = []
+    m += 1
     for mi in range(m, len(data_geo2d)):
         data_str = data_geo2d[mi]
         l = 0
@@ -379,7 +379,7 @@ def load_mai_2d(geofile, path):
                 l += 8
             except ValueError:
                 print('Error: Could not extract the coordinates from the .mai file.')
-                return [-99], [-99], [-99], [-99], [-99], [-99]
+                return [-99], [-99], [-99], [-99]
     # separe x and z
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:]
@@ -393,7 +393,6 @@ def load_mai_2d(geofile, path):
         for i in range(0, len(ikle_c)):
             xy_c += xy[ikle_c[i]]
         coord_c.append(xy_c/len(ikle_c))
-
 
     return ikle, xy, coord_c, nb_cell
 
@@ -410,14 +409,14 @@ def load_tps_2d(tpsfile, path, nb_cell):
     # check extension
     blob, ext = os.path.splitext(tpsfile)
     if ext != '.tps':
-        warnings.warn('Warning: The fils does not seem to be of .tps type.')
+        print('Warning: The fils does not seem to be of .tps type.')
     # open file
     try:
         with open(filename_path, 'rt') as f:
             data_tps = f.read()
     except IOError:
         print('Error: The .tps file does not exist.')
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99]
     data_tps = data_tps.split()
     # get data and transform into float
     i = 0
@@ -445,7 +444,7 @@ def load_tps_2d(tpsfile, path, nb_cell):
             v.append(vi)
         except ValueError:
             print('Error: the data could not be extracted from the .tps file. Error at number ' + str(i) + '.')
-            return [-99], [-99], [-99], [-99], [-99], [-99]
+            return [-99], [-99], [-99]
 
     return t, h,v
 

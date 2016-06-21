@@ -78,14 +78,14 @@ def load_sub_txt(filename, path):
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
         print("Error: The txt file "+filename+" does not exist.")
-        return [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99]
     # read
     with open(file, 'rt') as f:
         data = f.read()
     data = data.split()
     if len(data) % 3 != 0:
         print('Error: the number of column in ' + filename+ ' is not three. Check format.')
-        return [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99]
     # get x,y (you might have alphanumeric data in the thris colum)
     x = [data[i] for i in np.arange(0, len(data), 3)]
     y = [data[i] for i in np.arange(1, len(data), 3)]
@@ -95,7 +95,7 @@ def load_sub_txt(filename, path):
         y = list(map(float,y))
     except TypeError:
         print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename +'.')
-
+        return [-99], [-99], [-99], [-99], [-99], [-99]
     # Delauney
     triang = tri.Triangulation(x, y)
     ikle = triang.triangles

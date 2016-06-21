@@ -26,7 +26,7 @@ def load_telemac(namefilet, pathfilet):
         return [-99],[-99],[-99], [-99]
     blob, ext = os.path.splitext(namefilet)
     if ext != '.res' and ext != '.slf':
-        warnings.warn('The extension of the telemac file is not .res or .slf')
+        print('Warning: The extension of the telemac file is not .res or .slf')
     try:
         telemac_data = Selafin(filename_path_res)
     except ValueError:
@@ -105,7 +105,7 @@ def getendianfromchar(fileslf, nchar):
         l, c, chk = unpack(endian + 'i' + str(nchar) + 'si', \
             fileslf.read(4 + nchar + 4))
     if l != chk:
-        print('... Cannot read ' + str(nchar) + \
+        print('Error: ... Cannot read ' + str(nchar) + \
                 ' characters from your binary file')
         print('     +> Maybe it is the wrong file format ?')
     fileslf.seek(pointer)
@@ -125,7 +125,7 @@ def getfloattypefromfloat(fileslf, endian, nfloat):
     r = unpack(endian + str(nfloat) + cfloat, fileslf.read(ifloat * nfloat))
     chk = unpack(endian + 'i', fileslf.read(4))
     if l != chk:
-        print('... Cannot read '+str(nfloat)+' floats from your binary file')
+        print('Error: ... Cannot read '+str(nfloat)+' floats from your binary file')
         print('     +> Maybe it is the wrong file format ?')
     fileslf.seek(pointer)
     return cfloat, ifloat

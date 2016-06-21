@@ -2,7 +2,6 @@ import h5py
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-import warnings
 import time
 
 
@@ -25,7 +24,7 @@ def load_hec_ras2d(filename, path):
     if ext == '.hdf' or ext == '.h5':
         pass
     else:
-        warnings.warn('Warning: The fils does not seem to be of hdf type.')
+        print('Warning: The fils does not seem to be of hdf type.')
 
     # initialization
     coord_p_all = []
@@ -69,7 +68,7 @@ def load_hec_ras2d(filename, path):
             ikle_all.append(ikle)
     except KeyError:
         print('Error: Geometry data could not be extracted. Check format of the hdf file.')
-        return [-99],[-99], [-99],[-99], [-99],[-99]
+        return [-99],[-99], [-99], [-99], [-99],[-99]
 
     # water depth
     for i in range(0, len(name_area)):
@@ -153,7 +152,7 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         plt.title('Grid ')
         plt.savefig(os.path.join(path_im, "HEC2D_grid_"+ time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "HEC2D_grid" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()  #do not forget to close or the program crash
+        plt.close()  # do not forget to close or the program crash
 
         # size of the marker (to avoid having to pale, unclear figure)
         # this is a rough estimation, no need for precise number here

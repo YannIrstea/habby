@@ -2,7 +2,7 @@ import os
 import numpy as np
 import sys
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal
+from PyQt5.QtCore import QTranslator, pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox
@@ -10,6 +10,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+import threading
 from src import Hec_ras06
 from src import hec_ras2D
 from src import selafin_habby1
@@ -139,7 +140,10 @@ class SubHydroW(QWidget):
     The latter classes have various methods in common, so they inherit from SubHydroW, this class.
     """
 
+    send_log = pyqtSignal(str, name='send_log')
+
     def __init__(self, path_prj, name_prj):
+
         self.namefile = ['unknown file', 'unknown file']  # for children, careful with list index out of range
         self.pathfile = ['.', '.']
         self.attributexml = [' ', ' ']
@@ -149,6 +153,7 @@ class SubHydroW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
+        self.mystdout = None
         super().__init__()
 
     def was_model_loaded_before(self, i=0):
@@ -262,6 +267,18 @@ class SubHydroW(QWidget):
             return
         return path_im
 
+    def send_err_log(self):
+        """
+        Send the error and warning to the logs
+        The stdout was redirected to self.mystdout
+        :return:
+        """
+        str_found = self.mystdout.getvalue()
+        str_found = str_found.split('\n')
+        for i in range(0, len(str_found)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+
 
 class HEC_RAS1D(SubHydroW):
     """
@@ -269,7 +286,7 @@ class HEC_RAS1D(SubHydroW):
      of the files to the project xml file.
     """
     show_fig = pyqtSignal()
-    send_log = pyqtSignal(str, name='send_log')
+
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -335,13 +352,14 @@ class HEC_RAS1D(SubHydroW):
 
         # redirect the out stream to my output
         # THREAD -> TO BE CHECKED!!!
-        sys.stdout = mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()
         [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
                                                self.pathfile[1], path_im, self.save_fig)
         sys.stdout = sys.__stdout__
 
         # log info
         self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
+        self.send_err_log()
         self.send_log.emit("py    file1='"+ self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
@@ -350,11 +368,7 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("restart LOAD_HECRAS_1D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0],self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1],self.namefile[1]))
-        str_found = mystdout.getvalue()
-        str_found = str_found.split('\n')
-        for i in range(0, len(str_found)):
-            if len(str_found[i]) > 1:
-                self.send_log.emit(str_found[i])
+
 
         # show figure
         if self.cb.isChecked():
@@ -370,6 +384,7 @@ class Rubar2D(SubHydroW):
     show_fig = pyqtSignal()
 
     def __init__(self, path_prj, name_prj):
+
         super().__init__(path_prj, name_prj)
         self.init_iu()
 
@@ -421,7 +436,7 @@ class Rubar2D(SubHydroW):
 
     def load_rubar(self):
         """
-        A function to execture the loading and saving the the rubar file using rubar.py
+        A function to execture the loading and saving the the rubar file using rubar.py.
         :return:
         """
         # update the xml file of the project
@@ -430,15 +445,31 @@ class Rubar2D(SubHydroW):
         path_im = self.find_path_im()
         if self.cb.isChecked():
             self.save_fig = True
-        #load rubar 2d data
+        # load rubar 2d data
+        sys.stdout = self.mystdout = StringIO()
         [v, h, coord_p, coord_c, ikle] = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
+        sys.stdout = sys.__stdout__
+
+        # log info
+        self.send_log.emit(self.tr('# Load: Rubar 2D data.'))
+        self.send_err_log()
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = rubar.load_rubar2d(file1,"
+                           " file2, path1, path2, '.', False)\n")
+        self.send_log.emit("restart LOAD_RUBAR_2D")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+
         if self.cb.isChecked():
             self.show_fig.emit()
 
     def propose_next_file(self):
         """
-        A function which avoid to the user to search for both file,
-        it tries to find the second one when the first one is selected
+        A function which avoid to the user to search for both file to load.
+        it tries to find the second file when the first one is selected
         :return:
         """
         if len(self.extension[1]) == 1:
@@ -519,7 +550,22 @@ class Rubar1D(SubHydroW):
         if self.cb.isChecked():
             self.save_fig = True
         #load rubar 1D
+        sys.stdout = self.mystdout = StringIO()
         [v, h, coord, lim_riv] = rubar.load_rubar1d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
+        sys.stdout = sys.__stdout__
+        # log info
+        self.send_log.emit(self.tr('# Load: Rubar 1D data.'))
+        self.send_err_log()
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = rubar.load_rubar1d(file1,"
+                           " file2, path1, path2, '.', False)\n")
+        self.send_log.emit("restart LOAD_RUBAR_1D")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+
         if self.cb.isChecked():
             self.show_fig.emit()
 
@@ -582,7 +628,17 @@ class HEC_RAS2D(SubHydroW):
         self.save_xml(0)
         path_im = self.find_path_im()
         # load the hec_ras data
+        sys.stdout = self.mystdout = StringIO()
         [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(self.namefile[0], self.pathfile[0])
+        sys.stdout = sys.__stdout__
+        # log info
+        self.send_log.emit(self.tr('# Load: HEC-RAS 2D.'))
+        self.send_err_log()
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(file1, path1)\n")
+        self.send_log.emit("restart LOAD_HECRAS_2D")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         if self.cb.isChecked():
             hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
             self.show_fig.emit()
@@ -593,6 +649,7 @@ class TELEMAC(SubHydroW):
     The Qwidget which open the TELEMAC data
     """
     show_fig = pyqtSignal()
+
     def __init__(self, path_prj, name_prj):
 
         super().__init__(path_prj, name_prj)
@@ -643,7 +700,18 @@ class TELEMAC(SubHydroW):
         self.save_xml(0)
         # load the telemac data
         path_im = self.find_path_im()
+        sys.stdout = self.mystdout = StringIO()
         [v, h, coord_p, ikle] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
+        sys.stdout = sys.__stdout__
+        # log info
+        self.send_log.emit(self.tr('# Load: TELEMAC data.'))
+        self.send_err_log()
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    [[v, h, coord_p, ikle] = selafin_habby1.load_telemac(file1, path1)\n")
+        self.send_log.emit("restart LOAD_TELEMAC")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+
         if self.cb.isChecked():
             selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
             self.show_fig.emit()
@@ -655,6 +723,7 @@ class SubstrateW(SubHydroW):
     So this class inherit from SubHydroW.
     """
     show_fig = pyqtSignal()
+
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
         self.init_iu()
@@ -721,34 +790,61 @@ class SubstrateW(SubHydroW):
         path_im = self.find_path_im()
         if ext == '.shp':
             if not self.name_att:
-                self.msg2.setIcon(QMessageBox.Warning)
-                self.msg2.setWindowTitle(self.tr("Save Substrate Data"))
-                self.msg2.setText(self.tr("No attribute name was given to load the shapefile"))
-                self.msg2.setStandardButtons(QMessageBox.Ok)
-                self.msg2.show()
+                self.send_log.emit("Error: No attribute name was given to load the shapefile.")
                 return
             self.pathfile[1] = ''
             self.namefile[1] = self.name_att  # avoid to code things again
             self.save_xml(1)
         # load substrate
+            sys.stdout = self.mystdout = StringIO()
             [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
+            # log info
+            self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
+            self.send_err_log()
+            self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+            self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+            self.send_log.emit("py    attr='" + self.name_att + "'")
+            self.send_log.emit("py    [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(file1, path1, attr)\n")
+            self.send_log.emit("restart LOAD_SUB_SHP")
+            self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+            self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[0], self.namefile[0]))
+            self.send_log.emit("restart    attr: " + self.name_att)
+
             if self.cb.isChecked():
                 substrate.fig_substrate(coord_p, ikle_sub, sub_info, path_im)
         elif ext == '.txt' or ext == ".asc":
+            sys.stdout = self.mystdout = StringIO()
             [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
+            self.log_txt()
             if self.cb.isChecked():
                 substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("File type"))
-            self.msg2.setText(self.tr("Unknown extension for substrate data, the model will try to load as .txt"))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit("Warning: Unknown extension for substrate data, the model will try to load as .txt")
+            sys.stdout = self.mystdout = StringIO()
             [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
             if self.cb.isChecked():
                 substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
+            self.log_txt()
         if self.cb.isChecked():
             self.show_fig.emit()
+
+    def log_txt(self):
+        """
+        The log for the substrate in text form. In a function because it is used twice
+        :return:
+        """
+        # log info
+        self.send_log.emit(self.tr('# Load: Substrate data - text file'))
+        str_found = self.mystdout.getvalue()
+        str_found = str_found.split('\n')
+        for i in range(0, len(str_found)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(file1, path1)\n")
+        self.send_log.emit("restart LOAD_SUB_TXT")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
 
     def get_att_name(self):
         """

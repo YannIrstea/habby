@@ -27,6 +27,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     nb_q = 20  # number of calculated q
     if qrange[1] > qrange[0]:
         diff = (qrange[1] - qrange[0]) / nb_q
+        if qrange[0] == 0:
+            qrange[0] = 10**-6   # if exactly zero, you cannot divide anymore
         q_all = np.arange(qrange[0], qrange[1]+diff, diff)
     else:
         print('Error: The mininum discharge is higher or equal than the maximum')
@@ -71,7 +73,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
             doc = ET.parse(filename)
             root = doc.getroot()
         else:
-            print('the xml file for the fish '+fish_name[f]+" does not exist")
+            print('Error: the xml file for the fish '+fish_name[f]+" does not exist")
             return [-99], [-99]
 
         # get data
@@ -126,11 +128,11 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
             txt_header += ' VH_' + fish_name[f] + ' SPU_' + fish_name[f]
             data = np.vstack((data, VH[f]))
             data = np.vstack((data, SPU[f]))
-        #save
+        # save
         np.savetxt(os.path.join(path_im, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header)
         plt.savefig(os.path.join(path_im, name_pict + '.png'))
         plt.savefig(os.path.join(path_im, name_pict + '.pdf'))
-        #plt.show()
+        # plt.show()
 
     return VH, SPU
 

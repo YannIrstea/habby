@@ -8,6 +8,7 @@ from src import hec_ras2D
 from src import selafin_habby1
 from src import substrate
 from src import rubar
+from src import estimhab
 
 
 # start the main program
