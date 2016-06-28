@@ -24,7 +24,7 @@ class EstimhabW(QWidget):
 
     def __init__(self, path_prj, name_prj):
 
-        self.path_bio = './biologie'
+        self.path_bio = './/biologie'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
         self.eh1 = QLineEdit()
@@ -42,6 +42,7 @@ class EstimhabW(QWidget):
         self.VH = []
         self.SPU = []
         self.msge = QMessageBox()
+        self.fish_selected = []
 
         super().__init__()
         self.init_iu()
@@ -76,6 +77,7 @@ class EstimhabW(QWidget):
                     for i in range(0,len(dataset)):
                         dataset_i = str(dataset[i])
                         self.list_s.addItem(dataset_i[3:-2])
+                        self.fish_selected.append(dataset_i[3:-2])
 
                     file_estimhab.close()
                 else:
@@ -197,7 +199,7 @@ class EstimhabW(QWidget):
             fish_item_str = fish_item.text()
             fish_list.append(fish_item_str)
 
-        #check internal logic
+        # check internal logic
         if not fish_list:
             self.msge.setIcon(QMessageBox.Warning)
             self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
@@ -268,10 +270,17 @@ class EstimhabW(QWidget):
     def add_fish(self):
         items = self.list_f.selectedItems()
         if items:
-            [self.list_s.addItem(items[i].text()) for i in range(0, len(items))]
+            for i in range(0,len(items)):
+                # avoid to have the same fish multiple times
+                if items[i].text() in self.fish_selected:
+                    pass
+                else:
+                    self.list_s.addItem(items[i].text())
+                    self.fish_selected.append(items[i].text())
 
     def remove_fish(self):
         item = self.list_s.takeItem(self.list_s.currentRow())
+        self.fish_selected.remove(item.text())
         item = None
 
     def find_path_im_est(self):

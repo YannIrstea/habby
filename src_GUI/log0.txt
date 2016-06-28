@@ -9,6 +9,7 @@ from src import selafin_habby1
 from src import substrate
 from src import rubar
 from src import estimhab
+from src import stathab_c
 
 
 # start the main program

@@ -12,10 +12,10 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLa
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
     QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy
 from PyQt5.QtGui import QPixmap
-import time
 import h5py
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
+from src_GUI import stathab_GUI
 
 
 class MainWindows(QMainWindow):
@@ -310,9 +310,6 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log("restart Name_project")
         self.central_widget.write_log("restart    name_prj= " + self.name_prj)
 
-
-
-
     def save_project_estimhab(self):
         """
         a function to save in an hdf5 file the information linked with Estimhab.
@@ -485,6 +482,7 @@ class CentralW(QWidget):
         self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
         self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
         self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
+        self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
         self.rech = rech
@@ -515,6 +513,7 @@ class CentralW(QWidget):
         self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
         self.substrate_tab.show_fig.connect(self.showfig)
         self.statmod_tab.show_fig.connect(self.showfig)
+        self.stathab_tab.show_fig.connect(self.showfig)
 
         # connect signal for the log
         self.connect_signal_log()
@@ -549,6 +548,7 @@ class CentralW(QWidget):
         self.tab_widget.addTab(biorun_tab, self.tr("Run the model"))
         self.tab_widget.addTab(output_tab, self.tr("Output"))
         self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
+        self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
         if self.rech:
             self.tab_widget.addTab(other_tab, self.tr("Reseach 1"))
             self.tab_widget.addTab(other_tab2, self.tr("Reseach 2"))
@@ -605,6 +605,7 @@ class CentralW(QWidget):
         self.hydro_tab.telemac.send_log.connect(self.write_log)
         self.substrate_tab.send_log.connect(self.write_log)
         self.statmod_tab.send_log.connect(self.write_log)
+        self.stathab_tab.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """
@@ -693,7 +694,13 @@ class CentralW(QWidget):
                             os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
                 shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
                             os.path.join(self.path_prj_c,'restart_' + self.name_prj_c + '.log'))
-                return
+                with open(pathname_logfile, "a") as myfile:
+                    myfile.write("    name_projet = " + self.name_prj_c + "'\n")
+                with open(pathname_logfile, "a") as myfile:
+                    myfile.write("    path_projet = " + self.path_prj_c + "'\n")
+                with open(pathname_logfile, "a") as myfile:
+                    myfile.write('\n' + text_log)
+
         return
 
 
