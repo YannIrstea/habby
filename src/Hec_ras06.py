@@ -31,7 +31,6 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
 
     all entry parameter are string
     :return: velocity, height for (x,y) of each river profile -> [x y dist v] and [ x y dist h] zone_v and xh_h
-    + out_message, a string which collect all message
     """
     xy_h = [-99]
     zone_v = [-99]

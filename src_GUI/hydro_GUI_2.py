@@ -16,6 +16,7 @@ from src import hec_ras2D
 from src import selafin_habby1
 from src import substrate
 from src import rubar
+from src import river2d
 
 class Hydro2W(QWidget):
     """
@@ -33,7 +34,7 @@ class Hydro2W(QWidget):
         self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D" ,"RUBAR 1D", "RUBAR2D", "TELEMAC"]  # "MAGE", 'MASCARET', "RIVER 2D",
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "RIVER2D", "RUBAR 1D", "RUBAR2D", "TELEMAC"]  # "MAGE", 'MASCARET'
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -61,9 +62,11 @@ class Hydro2W(QWidget):
         self.telemac = TELEMAC(self.path_prj, self.name_prj)
         self.rubar2d = Rubar2D(self.path_prj, self.name_prj)
         self.rubar1d = Rubar1D(self.path_prj, self.name_prj)
+        self.riverhere2d = River2D(self.path_prj, self.name_prj)
         self.stack.addWidget(self.free)
         self.stack.addWidget(self.hecras1D)
         self.stack.addWidget(self.hecras2D)
+        self.stack.addWidget(self.riverhere2d)
         self.stack.addWidget(self.rubar1d)
         self.stack.addWidget(self.rubar2d)
         self.stack.addWidget(self.telemac)
@@ -156,11 +159,11 @@ class SubHydroW(QWidget):
         self.mystdout = None
         super().__init__()
 
-    def was_model_loaded_before(self, i=0):
+    def was_model_loaded_before(self, i=0, many_file=False):
         """
         A function to test if the model loaded before, if yes, update the attibutes anf the widgets
         :param i a number in case there is more than one file to load
-        TO BE DONE load hdf5
+        :param many_file if true it will load more than one file, separated by ','
         :return:
         """
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -171,9 +174,22 @@ class SubHydroW(QWidget):
             # if there is data in the project file about the model
             if child is not None:
                 geo_name_path = child.text
-                if os.path.isfile(geo_name_path):
+                if os.path.isfile(geo_name_path) and not many_file:
                     self.namefile[i] = os.path.basename(geo_name_path)
                     self.pathfile[i] = os.path.dirname(geo_name_path)
+                # load many file at once
+                elif many_file:
+                    list_all_name = geo_name_path.split(',\n')
+                    for j in range(0, len(list_all_name)):
+                        if os.path.isfile(list_all_name[j]):
+                            self.namefile.append(os.path.basename(list_all_name[j]))
+                            self.pathfile.append(os.path.dirname(list_all_name[j]))
+                        else:
+                            self.msg2.setIcon(QMessageBox.Warning)
+                            self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
+                            self.msg2.setText(self.tr("One of the file given in the project file does not exist." ))
+                            self.msg2.setStandardButtons(QMessageBox.Ok)
+                            self.msg2.show()
                 else:
                     self.msg2.setIcon(QMessageBox.Warning)
                     self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
@@ -190,8 +206,14 @@ class SubHydroW(QWidget):
         """
 
         # find the filename based on user choice
-        # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
-        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[i])[0]
+
+        if len(self.pathfile) == 0:
+            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
+        elif i >= len(self.pathfile):
+            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[0])[0]
+        else:
+            # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
+            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[i])[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
             pass
@@ -209,13 +231,18 @@ class SubHydroW(QWidget):
                 self.msg2.setStandardButtons(QMessageBox.Ok)
                 self.msg2.show()
             # keep the name in an attribute until we save it
-            self.pathfile[i] = os.path.dirname(filename_path)
-            self.namefile[i] = filename
+            if i >= len(self.pathfile) or len(self.pathfile) == 0:
+                self.pathfile.append(os.path.dirname(filename_path))
+                self.namefile.append(filename)
+            else:
+                self.pathfile[i] = os.path.dirname(filename_path)
+                self.namefile[i] = filename
 
-    def save_xml(self, i=0):
+    def save_xml(self, i=0, append_name = False):
         """
         A function to save the loaded data in the xml file
         :param i a number in case there is more than one file to save
+        :param append_name. If True, name will be append to the existing namwe
         :return:
         """
         filename_path_file = os.path.join(self.pathfile[i], self.namefile[i])
@@ -224,7 +251,7 @@ class SubHydroW(QWidget):
         if not os.path.isfile(filename_path_pro):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText(\
+            self.msg2.setText(
                 self.tr("The project is not saved. Save the project in the General tab before saving data."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
@@ -240,7 +267,11 @@ class SubHydroW(QWidget):
                 child = ET.SubElement(child1, self.attributexml[i])
                 child.text = filename_path_file
             else:
-                child.text = filename_path_file
+                if append_name:
+                    child.text += ",\n"
+                    child.text += filename_path_file
+                else:
+                    child.text = filename_path_file
             doc.write(filename_path_pro, method="xml")
 
     def find_path_im(self):
@@ -260,7 +291,7 @@ class SubHydroW(QWidget):
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText( \
+            self.msg2.setText(
                 self.tr("The project is not saved. Save the project in the General tab before saving data."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
@@ -286,7 +317,6 @@ class HEC_RAS1D(SubHydroW):
      of the files to the project xml file.
     """
     show_fig = pyqtSignal()
-
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -375,7 +405,6 @@ class HEC_RAS1D(SubHydroW):
             self.show_fig.emit()
 
 
-
 class Rubar2D(SubHydroW):
     """
     The sub-windows which help to open the rubar data. Call the rubar loader and save the name
@@ -390,7 +419,7 @@ class Rubar2D(SubHydroW):
 
     def init_iu(self):
 
-        # update attibute for hec-ras 1d
+        # update attibute for rubar 2d
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
         self.extension = [['.mai'], ['.tps']]  # list of list in case there is more than one possible ext.
@@ -479,6 +508,167 @@ class Rubar2D(SubHydroW):
                 # keep the name in an attribute until we save it
                 self.pathfile[1] = self.pathfile[0]
                 self.namefile[1] = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+
+
+class River2D(SubHydroW):
+    """
+        The sub-windows which help to open the river 2ddata. Call the river2D loader and save the name
+         of the files to the project xml file.
+        """
+    show_fig = pyqtSignal()
+
+    def __init__(self, path_prj, name_prj):
+        super().__init__(path_prj, name_prj)
+        self.mystdout = None
+        self.init_iu()
+
+    def init_iu(self):
+        # update attibute for rubbar 2d
+        self.attributexml = ['river2d_data']
+        self.model_type = 'RIVER2D'
+        self.namefile = []
+        self.pathfile = []
+        self.extension = [['.cdg'], ['.cdg']]  # list of list in case there is more than one possible ext.
+
+        # if there is the project file with river 2d info, update the label and attibutes
+        self.was_model_loaded_before(0, True)
+
+        # geometry and output data
+        self.l1 = QLabel(self.tr('<b> Geometry and Output data </.b>'))
+        self.list_f = QListWidget()
+        self.add_file_to_list()
+        self.cb = QCheckBox(self.tr('Show figures'), self)
+
+        # button
+        self.choodirb = QPushButton(self.tr("Add all .cdg files (choose dir)"))
+        self.choodirb.clicked.connect(self.add_all_file)
+        self.removefileb = QPushButton(self.tr("Remove file"))
+        self.removefileb.clicked.connect(self.remove_file)
+        self.removeallfileb = QPushButton(self.tr("Remove all files"))
+        self.removeallfileb.clicked.connect(self.remove_all_file)
+        self.addfileb = QPushButton(self.tr("Add file"))
+        self.addfileb.clicked.connect(self.add_file_river2d)
+        self.loadb = QPushButton(self.tr("Load all files and create hdf5"))
+        self.loadb.clicked.connect(self.load_river2d_gui)
+
+        # layout
+        self.layout = QGridLayout()
+        self.layout.addWidget(self.l1, 0, 0)
+        self.layout.addWidget(self.list_f, 1, 0, 2, 2)
+        self.layout.addWidget(self.choodirb, 1, 2, 1,2)
+        self.layout.addWidget(self.addfileb, 2, 2)
+        self.layout.addWidget(self.removefileb, 2, 3)
+        self.layout.addWidget(self.removeallfileb, 3, 3)
+        self.layout.addWidget(self.loadb, 3, 1)
+        self.layout.addWidget(self.cb, 3, 0)
+        self.setLayout(self.layout)
+
+    def remove_file(self):
+        """
+        small function to remove a .cdg file to the list to be loaded
+        :return:
+        """
+        i = self.list_f.currentRow()
+        item = self.list_f.takeItem(i)
+        item = None
+        del self.namefile[i]
+        del self.pathfile[i]
+
+    def remove_all_file(self):
+        """
+        reove all files as you could expect
+        :return:
+        """
+        # empty list
+        self.namefile = []
+        self.pathfile = []
+        self.list_f.clear()
+
+    def add_file_river2d(self):
+        """
+        A function which call show_dialog, oprepare some data for it and update the list
+        :return:
+        """
+        if len(self.extension) == len(self.namefile):
+            self.extension.append(self.extension[0])
+            self.attributexml.append(self.attributexml[0])
+        self.show_dialog(len(self.namefile))
+        self.add_file_to_list()
+
+    def add_file_to_list(self):
+        """
+        A function to add all file contained in self.namefile to the QWidgetlist
+        :return:
+        """
+        self.list_f.clear()
+        while len(self.extension) <= len(self.namefile):
+            self.extension.append(self.extension[0])
+            self.attributexml.append(self.attributexml[0])
+        for i in range(0, len(self.namefile)):
+                self.list_f.addItem(self.namefile[i])
+
+    def add_all_file(self):
+        """
+        The function which find all .cdg file in one directory
+        :return:
+        """
+
+        # get the directory
+        dir_name = QFileDialog.getExistingDirectory()
+        if dir_name == '':  # cancel case
+            self.send_log.emit("Warning: No selected directory for river 2d\n")
+            return
+        # get all file with .cdg
+        dirlist = np.array(os.listdir(dir_name))
+        dirlsit0 = dirlist[0]
+        listcdf = [e for e in dirlist if e[-4:] == self.extension[0][0]]
+        # add them to name file, path file and extension
+        self.namefile = self.namefile + listcdf
+        self.pathfile = self.pathfile + [dir_name] * len(listcdf)
+        # update list
+        self.add_file_to_list()
+
+    def load_river2d_gui(self):
+        """
+        The function to load the river 2d data
+        :return:
+        """
+
+        xyzhv = []
+        ikle = []
+        self.send_log.emit(self.tr('# Load: River2D data.'))
+
+        path_im = self.find_path_im()
+        if len(self.namefile) == 0:
+            self.send_log.emit("Warning: No file chosen.")
+        for i in range(0, len(self.namefile)):
+            # save each name in the project file, empty list on i == 0
+            if i == 0:
+                self.save_xml(i, False)
+            else:
+                self.save_xml(i, True)
+            # load
+            sys.stdout = self.mystdout = StringIO()
+            [xyzhv_i, ikle_i, coord_c] = river2d.load_river2d_cdg(self.namefile[i], self.pathfile[i])
+            sys.stdout = sys.__stdout__
+            # if fail
+            self.send_err_log()
+            if len(xyzhv_i) == 1 and xyzhv_i[0] == -99:
+                return
+            xyzhv.append(xyzhv_i)
+            ikle.append(ikle_i)
+            if self.cb and i == 0:
+                river2d.figure_river2d(xyzhv_i, ikle_i, path_im, i)
+
+            # log
+            self.send_log.emit("py    file1='" + self.namefile[i] + "'")
+            self.send_log.emit("py    path1='" + self.pathfile[i] + "'")
+            self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = river2d.load_river2d_cdg(file1, path1) \n")
+            self.send_log.emit("restart LOAD_RIVER_2D")
+            self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[i], self.namefile[i]))
+
+        if self.cb.isChecked():
+            self.show_fig.emit()
 
 
 class Rubar1D(SubHydroW):

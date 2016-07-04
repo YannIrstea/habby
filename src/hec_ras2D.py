@@ -261,9 +261,9 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     if t == -1:
-        plt.title('Cell mean '+data_name+ ' at the last time step')
+        plt.title(data_name + ' at the last time step')
     else:
-        plt.title('Cell mean '+data_name+ ' at time step ' + str(t))
+        plt.title(data_name + ' at time step ' + str(t))
 
 
 def main():

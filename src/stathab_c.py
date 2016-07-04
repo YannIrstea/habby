@@ -178,7 +178,7 @@ class Stathab:
         try:
             gen_dataset = file_stathab[basename1 + "/reach_name"]
         except KeyError:
-            print('Error: the dataset reach_name is missing from the hdf5 file. Is ' + fname_h5 +' a stathab input?\n')
+            print('Error: the dataset reach_name is missing from the hdf5 file. Is ' + fname_h5 + ' a stathab input? \n')
             return
         gen_dataset = list(gen_dataset.values())[0]
         gen_dataset = np.array(gen_dataset)

@@ -135,7 +135,6 @@ class StathabW(QWidget):
                 self.msge.setStandardButtons(QMessageBox.Ok)
                 self.msge.show()
 
-
         # Layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.l1, 0, 0)
