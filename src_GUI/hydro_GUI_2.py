@@ -34,7 +34,7 @@ class Hydro2W(QWidget):
         self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "RIVER2D", "RUBAR 1D", "RUBAR2D", "TELEMAC"]  # "MAGE", 'MASCARET'
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "MASCARET", "RIVER2D", "RUBAR 1D", "RUBAR2D", "TELEMAC"]  # "MAGE"
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -62,10 +62,12 @@ class Hydro2W(QWidget):
         self.telemac = TELEMAC(self.path_prj, self.name_prj)
         self.rubar2d = Rubar2D(self.path_prj, self.name_prj)
         self.rubar1d = Rubar1D(self.path_prj, self.name_prj)
+        self.mascar = Mascaret(self.path_prj, self.name_prj)
         self.riverhere2d = River2D(self.path_prj, self.name_prj)
-        self.stack.addWidget(self.free)
+        self.stack.addWidget(self.free)  # order matters in the next lines!
         self.stack.addWidget(self.hecras1D)
         self.stack.addWidget(self.hecras2D)
+        self.stack.addWidget(self.mascar)
         self.stack.addWidget(self.riverhere2d)
         self.stack.addWidget(self.rubar1d)
         self.stack.addWidget(self.rubar2d)
@@ -510,6 +512,68 @@ class Rubar2D(SubHydroW):
                 self.namefile[1] = blob[:-len(self.extension[0][0])] + self.extension[1][0]
 
 
+class Mascaret(SubHydroW):
+    """
+    The sub widows which call the function to load the mascaret data and save the name of the mascaret file to the
+     project xml file.
+    """
+    show_fig = pyqtSignal()
+
+    def __init__(self, path_prj, name_prj):
+        super().__init__(path_prj, name_prj)
+        self.init_iu()
+
+    def init_iu(self):
+
+        # update attibute for mascaret
+        self.attributexml = ['geodata_mas', 'resdata_mas']
+        self.model_type = 'mascaret'
+        self.extension = [['.geo'], ['.opt']]
+
+        # if there is the project file with mascaret info, update the label and attibutes
+        self.was_model_loaded_before(0)
+        self.was_model_loaded_before(1)
+
+        # label with the file name
+        self.geo_t2 = QLabel(self.namefile[0], self)
+        self.out_t2 = QLabel(self.namefile[1], self)
+
+        # geometry and output data
+        l1 = QLabel(self.tr('<b> Geometry data </b>'))
+        self.geo_b = QPushButton('Choose file (.geo)', self)
+        self.geo_b.clicked.connect(lambda: self.show_dialog(0))
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
+        l2 = QLabel(self.tr('<b> Output data </b>'))
+        self.out_b = QPushButton('Choose file \n (.opt)', self)
+        self.out_b.clicked.connect(lambda: self.show_dialog(1))
+        self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+
+        # load button
+        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.clicked.connect(self.load_mascaret_gui)
+        spacer = QSpacerItem(1, 1)
+        self.cb = QCheckBox(self.tr('Show figures'), self)
+
+        # layout
+        self.layout = QGridLayout()
+        self.layout.addWidget(l1, 0, 0)
+        self.layout.addWidget(self.geo_t2, 0, 1)
+        self.layout.addWidget(self.geo_b, 0, 2)
+        self.layout.addWidget(l2, 1, 0)
+        self.layout.addWidget(self.out_t2, 1, 1)
+        self.layout.addWidget(self.out_b, 1, 2)
+        self.layout.addWidget(self.load_b, 2, 2)
+        self.layout.addWidget(self.cb, 2, 1)
+        self.layout.addItem(spacer, 3, 1)
+        self.setLayout(self.layout)
+
+    def load_mascaret_gui(self):
+        """
+        The function to load the mascaret data, calling mascaret.py
+        :return:
+        """
+        print("I am here")
+
 class River2D(SubHydroW):
     """
         The sub-windows which help to open the river 2ddata. Call the river2D loader and save the name
@@ -555,7 +619,7 @@ class River2D(SubHydroW):
         self.layout = QGridLayout()
         self.layout.addWidget(self.l1, 0, 0)
         self.layout.addWidget(self.list_f, 1, 0, 2, 2)
-        self.layout.addWidget(self.choodirb, 1, 2, 1,2)
+        self.layout.addWidget(self.choodirb, 1, 2, 1, 2)
         self.layout.addWidget(self.addfileb, 2, 2)
         self.layout.addWidget(self.removefileb, 2, 3)
         self.layout.addWidget(self.removeallfileb, 3, 3)

@@ -515,6 +515,7 @@ class CentralW(QWidget):
         self.statmod_tab.show_fig.connect(self.showfig)
         self.stathab_tab.show_fig.connect(self.showfig)
         self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
+        self.hydro_tab.mascar.show_fig.connect(self.showfig)
 
         # connect signal for the log
         self.connect_signal_log()
@@ -608,6 +609,7 @@ class CentralW(QWidget):
         self.statmod_tab.send_log.connect(self.write_log)
         self.stathab_tab.send_log.connect(self.write_log)
         self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
+        self.hydro_tab.mascar.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """
