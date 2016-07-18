@@ -204,7 +204,7 @@ def load_xml(xml_file, path):
     """
     # check that the xml file has the right extension
     blob, ext_xml = os.path.splitext(xml_file)
-    if ext_xml == '.xml' or ext_xml == '.gml':
+    if ext_xml == '.xml' or ext_xml == '.gml' or ext_xml == '.xcas':
         pass
     else:
         print("Warning: File should be of type XML or GML \n")

@@ -17,6 +17,7 @@ from src import selafin_habby1
 from src import substrate
 from src import rubar
 from src import river2d
+from src import mascaret
 
 class Hydro2W(QWidget):
     """
@@ -526,27 +527,35 @@ class Mascaret(SubHydroW):
     def init_iu(self):
 
         # update attibute for mascaret
-        self.attributexml = ['geodata_mas', 'resdata_mas']
+        self.attributexml = ['gen_data', 'geodata_mas', 'resdata_mas']
+        self.namefile = ['unknown file', 'unknown file', 'unknown file']
+        self.pathfile = ['.', '.', '.']
         self.model_type = 'mascaret'
-        self.extension = [['.geo'], ['.opt']]
+        self.extension = [['.xcas'], ['.geo'], ['.opt']]
 
         # if there is the project file with mascaret info, update the label and attibutes
         self.was_model_loaded_before(0)
         self.was_model_loaded_before(1)
+        self.was_model_loaded_before(2)
 
         # label with the file name
-        self.geo_t2 = QLabel(self.namefile[0], self)
-        self.out_t2 = QLabel(self.namefile[1], self)
+        self.gen_t2 = QLabel(self.namefile[0], self)
+        self.geo_t2 = QLabel(self.namefile[1], self)
+        self.out_t2 = QLabel(self.namefile[2], self)
 
-        # geometry and output data
+        # general, geometry and output data
+        l0 = QLabel(self.tr('<b> General data </b>'))
+        self.gen_b = QPushButton('Choose file (.xcas)', self)
+        self.gen_b.clicked.connect(lambda: self.show_dialog(0))
+        self.gen_b.clicked.connect(lambda: self.gen_t2.setText(self.namefile[0]))
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
         self.geo_b = QPushButton('Choose file (.geo)', self)
-        self.geo_b.clicked.connect(lambda: self.show_dialog(0))
-        self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
+        self.geo_b.clicked.connect(lambda: self.show_dialog(1))
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[1]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (.opt)', self)
-        self.out_b.clicked.connect(lambda: self.show_dialog(1))
-        self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+        self.out_b.clicked.connect(lambda: self.show_dialog(2))
+        self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[2]))
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -556,15 +565,18 @@ class Mascaret(SubHydroW):
 
         # layout
         self.layout = QGridLayout()
-        self.layout.addWidget(l1, 0, 0)
-        self.layout.addWidget(self.geo_t2, 0, 1)
-        self.layout.addWidget(self.geo_b, 0, 2)
-        self.layout.addWidget(l2, 1, 0)
-        self.layout.addWidget(self.out_t2, 1, 1)
-        self.layout.addWidget(self.out_b, 1, 2)
-        self.layout.addWidget(self.load_b, 2, 2)
-        self.layout.addWidget(self.cb, 2, 1)
-        self.layout.addItem(spacer, 3, 1)
+        self.layout.addWidget(l0, 0, 0)
+        self.layout.addWidget(self.gen_t2, 0, 1)
+        self.layout.addWidget(self.gen_b, 0, 2)
+        self.layout.addWidget(l1, 1, 0)
+        self.layout.addWidget(self.geo_t2, 1, 1)
+        self.layout.addWidget(self.geo_b, 1, 2)
+        self.layout.addWidget(l2, 2, 0)
+        self.layout.addWidget(self.out_t2, 2, 1)
+        self.layout.addWidget(self.out_b, 2, 2)
+        self.layout.addWidget(self.load_b, 3, 2)
+        self.layout.addWidget(self.cb, 3, 1)
+        self.layout.addItem(spacer, 4, 1)
         self.setLayout(self.layout)
 
     def load_mascaret_gui(self):
@@ -572,7 +584,40 @@ class Mascaret(SubHydroW):
         The function to load the mascaret data, calling mascaret.py
         :return:
         """
-        print("I am here")
+
+        # update the xml file of the project
+        self.save_xml(0)
+        self.save_xml(1)
+        self.save_xml(2)
+        path_im = self.find_path_im()
+
+        self.send_log.emit(self.tr('# Load: Mascaret data.'))
+        sys.stdout = self.mystdout = StringIO()
+        [coord_pro, coord, coord_r, xhzv_data, t_data, nb_pro_reach, name_pro, on_profile, name_reach]\
+            = mascaret.load_mascaret(self.namefile[0], self.namefile[1], self.namefile[2], self.pathfile[0],
+                                     self.pathfile[1], self.pathfile[2])
+        sys.stdout = sys.__stdout__
+
+        self.send_err_log()
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
+        self.send_log.emit("py    file3='" + self.namefile[2] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    path3='" + self.pathfile[2] + "'")
+        self.send_log.emit("py    [coord_pro, coord, coord_r, xhzv_data, t_data, nb_pro_reach, name_pro, "
+                           "on_profile, name_reach] = rubar.load_rubar1d(file1, file2, file3, path1, path2, path3)\n")
+        self.send_log.emit("restart LOAD_MASCARET")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
+
+        if self.cb.isChecked():
+            mascaret.figure_mascaret(coord_pro, coord, coord_r, xhzv_data, t_data, on_profile, nb_pro_reach, name_pro,
+                                     name_reach, path_im,[0, 1, 2], [-1], [0])
+            self.show_fig.emit()
+
+
 
 class River2D(SubHydroW):
     """

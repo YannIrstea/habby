@@ -302,7 +302,7 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     [ikle, xy, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)
     [timestep, h,v] = load_tps_2d(tpsfile, pathtps, nb_cell)
     if save_fig:
-        figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [0, 1, -1])
+        figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [-1])
 
     return v, h, xy, coord_c, ikle,
 
@@ -520,16 +520,16 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
 
 def main():
 
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
-    #geofile2d='BS15a6.mai'
-    #tpsfile = 'BS15a6.tps'
-    #load_rubar2d(geofile2d,tpsfile, path, path, path, True)
+    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
+    geofile2d='BS15a6.mai'
+    tpsfile = 'BS15a6.tps'
+    load_rubar2d(geofile2d,tpsfile, path, path, path, True)
 
-    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
-    mail = 'mail.LE13'
-    geofile = 'LE13.rbe'
-    data = 'profil.LE13'
-    load_rubar1d(geofile, data, path, path, path, True)
+    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
+    #mail = 'mail.LE13'
+    #geofile = 'LE13.rbe'
+    #data = 'profil.LE13'
+    #load_rubar1d(geofile, data, path, path, path, True)
 
 
 if __name__ == '__main__':

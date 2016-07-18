@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE fichierCas SYSTEM "mascaret-1.0.dtd">
+<fichierCas>
+  <parametresCas>
+    <parametresGeneraux>
+      <versionCode>3</versionCode>
+      <code>1</code>
+      <fichMotsCles>mascaret0.xcas</fichMotsCles>
+      <dictionaire>dico.txt</dictionaire>
+      <progPrincipal>princi.f</progPrincipal>
+      <sauveModele>false</sauveModele>
+      <fichSauvModele>mascaret0.tmp</fichSauvModele>
+      <validationCode>false</validationCode>
+      <typeValidation>1</typeValidation>
+      <presenceCasiers>true</presenceCasiers>
+      <bibliotheques>
+        <bibliotheque>mascaretV5P1.a damoV3P0.a</bibliotheque>
+      </bibliotheques>
+    </parametresGeneraux>
+    <parametresModelePhysique>
+      <perteChargeConf>false</perteChargeConf>
+      <compositionLits>1</compositionLits>
+      <conservFrotVertical>false</conservFrotVertical>
+      <elevCoteArrivFront>0.05</elevCoteArrivFront>
+      <interpolLinStrickler>false</interpolLinStrickler>
+      <debordement>
+        <litMajeur>true</litMajeur>
+        <zoneStock>true</zoneStock>
+      </debordement>
+    </parametresModelePhysique>
+    <parametresNumeriques>
+      <calcOndeSubmersion>false</calcOndeSubmersion>
+      <froudeLimCondLim>1000.0</froudeLimCondLim>
+      <traitImplicitFrot>false</traitImplicitFrot>
+      <hauteurEauMini>0.005</hauteurEauMini>
+      <implicitNoyauTrans>false</implicitNoyauTrans>
+      <optimisNoyauTrans>false</optimisNoyauTrans>
+      <perteChargeAutoElargissement>true</perteChargeAutoElargissement>
+      <termesNonHydrostatiques>false</termesNonHydrostatiques>
+      <apportDebit>0</apportDebit>
+      <attenuationConvection>false</attenuationConvection>
+    </parametresNumeriques>
+    <parametresTemporels>
+      <pasTemps>10.0</pasTemps>
+      <tempsInit>0.0</tempsInit>
+      <critereArret>2</critereArret>
+      <nbPasTemps>2</nbPasTemps>
+      <tempsMax>864000.0</tempsMax>
+      <pasTempsVar>false</pasTempsVar>
+      <nbCourant>0.8</nbCourant>
+      <coteMax>0.0</coteMax>
+      <abscisseControle>0.0</abscisseControle>
+      <biefControle>1</biefControle>
+    </parametresTemporels>
+    <parametresGeometrieReseau>
+      <geometrie>
+        <fichier>mascaret0.geo</fichier>
+        <format>2</format>
+        <profilsAbscAbsolu>false</profilsAbscAbsolu>
+      </geometrie>
+      <listeBranches>
+        <nb>1</nb>
+        <numeros>1</numeros>
+        <abscDebut>13150.0</abscDebut>
+        <abscFin>62175.0</abscFin>
+        <numExtremDebut>1</numExtremDebut>
+        <numExtremFin>2</numExtremFin>
+      </listeBranches>
+      <listeNoeuds>
+        <nb>0</nb>
+        <noeuds/>
+      </listeNoeuds>
+      <extrLibres>
+        <nb>2</nb>
+        <num>1 2</num>
+        <numExtrem>1 2</numExtrem>
+        <noms>
+          <string>limite1</string>
+          <string>limite2</string>
+        </noms>
+        <typeCond>1 2</typeCond>
+        <numLoi>2 1</numLoi>
+      </extrLibres>
+    </parametresGeometrieReseau>
+    <parametresConfluents>
+      <nbConfluents>0</nbConfluents>
+      <confluents/>
+    </parametresConfluents>
+    <parametresPlanimetrageMaillage>
+      <methodeMaillage>5</methodeMaillage>
+      <planim>
+        <nbPas>71</nbPas>
+        <nbZones>1</nbZones>
+        <valeursPas>0.5</valeursPas>
+        <num1erProf>1</num1erProf>
+        <numDerProf>83</numDerProf>
+      </planim>
+      <maillage>
+        <modeSaisie>2</modeSaisie>
+        <sauvMaillage>false</sauvMaillage>
+        <maillageClavier>
+          <nbSections>0</nbSections>
+          <nbPlages>1</nbPlages>
+          <num1erProfPlage>1</num1erProfPlage>
+          <numDerProfPlage>83</numDerProfPlage>
+          <pasEspacePlage>100.0</pasEspacePlage>
+          <nbZones>0</nbZones>
+        </maillageClavier>
+      </maillage>
+    </parametresPlanimetrageMaillage>
+    <parametresSingularite>
+      <nbSeuils>0</nbSeuils>
+    </parametresSingularite>
+    <parametresCasier>
+      <nbCasiers>15</nbCasiers>
+      <optionPlanimetrage>2 2 2 2 2 2 2 2 2 2 2 2 2 2 2</optionPlanimetrage>
+      <optionCalcul>2</optionCalcul>
+      <fichierGeomCasiers>mascaret0.casier</fichierGeomCasiers>
+      <cotesInitiale>23.0 23.0 22.0 22.0 21.0 23.0 20.0 19.0 19.0 16.0 17.0 16.0 16.0 14.0 13.0</cotesInitiale>
+      <pasPlanimetrage>1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0</pasPlanimetrage>
+      <nbCotesPlanimetrage>3 5 4 4 4 3 5 4 3 10 9 4 5 6 7</nbCotesPlanimetrage>
+      <liaisons>
+        <nbLiaisons>74</nbLiaisons>
+        <types>1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 1 1 1 2 1 2 2 2 2 1 2 1 1 2 1 1</types>
+        <nature>1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 1</nature>
+        <cote>28.48 27.93 27.24 27.8 27.22 26.67 26.16 25.99 25.8 25.89 25.86 25.36 24.9 23.97 23.67 26.0 26.35 25.9 26.74 26.78 25.9 25.05 23.37 23.84 22.82 22.35 21.9 21.89 20.66 21.09 20.83 19.49 18.75 19.34 18.65 22.58 22.68 22.01 21.6 21.22 20.78 20.59 20.47 19.7 19.0 18.9 19.32 19.13 17.32 16.76 17.71 17.47 17.73 23.0 24.5 24.0 23.0 22.0 23.0 21.0 19.0 16.0 17.1 20.0 20.0 24.9 21.0 18.5 16.0 17.0 17.4 15.0 17.0 16.8</cote>
+        <largeur>300.0 1006.0 985.0 1079.0 1228.0 1318.0 1023.0 945.0 1033.0 725.0 1150.0 1080.0 1022.0 1422.0 815.0 1049.0 1197.0 1663.0 1076.0 1683.0 1187.0 1151.0 1317.0 1140.0 1226.0 1051.0 1040.0 1155.0 987.0 1037.0 1097.0 1053.0 1051.0 1242.0 918.0 1024.0 901.0 979.0 976.0 916.0 1223.0 1333.0 1124.0 950.0 1000.0 1000.0 1246.0 1226.0 1235.0 1188.0 1379.0 1341.0 1144.0 2000.0 1500.0 2000.0 3000.0 1000.0 1000.0 4000.0 2000.0 1000.0 2500.0 500.0 500.0 100.0 1000.0 1500.0 1000.0 1000.0 600.0 800.0 800.0 700.0</largeur>
+        <longueur>-1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 1000.0 3000.0 3000.0 1000.0 3000.0 -1.0 -1.0 -1.0 2000.0 -1.0 1000.0 200.0 200.0 500.0 -1.0 1000.0 -1.0 -1.0 500.0 -1.0 -1.0</longueur>
+        <rugosite>-1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 10.0 10.0 10.0 10.0 10.0 -1.0 -1.0 -1.0 12.0 -1.0 12.0 12.0 12.0 20.0 -1.0 12.0 -1.0 -1.0 12.0 -1.0 -1.0</rugosite>
+        <section>-1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0</section>
+        <coefPerteCharge>-1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0</coefPerteCharge>
+        <coefDebitSeuil>0.28 0.3 0.29 0.28 0.28 0.28 0.28 0.28 0.28 0.28 0.29 0.28 0.29 0.28 0.29 0.29 0.28 0.28 0.28 0.28 0.28 0.28 0.28 0.28 0.28 0.28 0.28 0.28 0.29 0.28 0.28 0.28 0.28 0.28 0.28 0.29 0.29 0.28 0.28 0.28 0.29 0.28 0.3 0.28 0.28 0.27 0.29 0.3 0.28 0.28 0.29 0.29 0.28 -1.0 -1.0 -1.0 -1.0 -1.0 0.4 0.3 0.39 -1.0 0.39 -1.0 -1.0 -1.0 -1.0 0.4 -1.0 0.3 0.3 -1.0 0.4 0.3</coefDebitSeuil>
+        <coefActivation>0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 0.8 -1.0 -1.0 -1.0 -1.0 -1.0 0.8 0.8 0.8 -1.0 0.8 -1.0 -1.0 -1.0 -1.0 0.8 -1.0 0.8 0.8 -1.0 0.8 0.8</coefActivation>
+        <coefDebitOrifice>-1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0</coefDebitOrifice>
+        <typeOrifice>-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1</typeOrifice>
+        <numCasierOrigine>1 2 2 2 2 4 4 4 4 4 5 5 5 5 5 6 6 6 7 7 7 7 7 8 9 9 9 9 10 10 10 10 10 10 10 11 11 11 11 11 12 12 13 13 13 12 14 14 14 14 15 15 15 1 1 2 3 3 4 7 9 12 12 11 8 6 9 11 12 13 13 15 15 13</numCasierOrigine>
+        <numCasierFin>-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 2 3 4 4 5 5 8 10 13 15 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1</numCasierFin>
+        <numBiefAssocie>1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 1 1 1 1 1 1 1 1 1 1 1</numBiefAssocie>
+        <abscBief>17500.0 18300.0 19025.0 19875.0 20500.0 22460.0 22925.0 23990.0 24350.0 24875.0 26275.0 27250.0 29360.0 30390.0 31400.0 24350.0 25675.0 27250.0 29360.0 30390.0 31830.0 32790.0 34225.0 36950.0 39950.0 40560.0 41590.0 42140.0 44450.0 45310.0 45960.0 46540.0 47425.0 48910.0 49860.0 38940.0 39550.0 40560.0 41590.0 42675.0 46540.0 47425.0 48290.0 49860.0 50800.0 54110.0 52175.0 52640.0 53825.0 54925.0 54925.0 57150.0 58600.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 -1.0 37800.0 37600.0 27300.0 39500.0 44500.0 54900.0 51500.0 52500.0 59400.0 60500.0 53100.0</abscBief>
+      </liaisons>
+    </parametresCasier>
+    <parametresApportDeversoirs/>
+    <parametresCalage>
+      <frottement>
+        <loi>1</loi>
+        <nbZone>3</nbZone>
+        <numBranche>1 1 1</numBranche>
+        <absDebZone>13150.0 21925.0 36240.0</absDebZone>
+        <absFinZone>21925.0 36240.0 62175.0</absFinZone>
+        <coefLitMin>40.0 32.0 33.0</coefLitMin>
+        <coefLitMaj>10.0 12.0 12.0</coefLitMaj>
+      </frottement>
+      <zoneStockage>
+        <nbProfils>1</nbProfils>
+        <numProfil>70</numProfil>
+        <limGauchLitMaj>950.36</limGauchLitMaj>
+        <limDroitLitMaj>1480.12</limDroitLitMaj>
+      </zoneStockage>
+    </parametresCalage>
+    <parametresLoisHydrauliques>
+      <nb>2</nb>
+      <lois>
+        <structureParametresLoi>
+          <nom>Zaval</nom>
+          <type>2</type>
+          <donnees>
+            <modeEntree>1</modeEntree>
+            <fichier>mascaret0_0.loi</fichier>
+            <uniteTps>-0</uniteTps>
+            <nbPoints>-0</nbPoints>
+            <nbDebitsDifferents>-0</nbDebitsDifferents>
+          </donnees>
+        </structureParametresLoi>
+        <structureParametresLoi>
+          <nom>Qamaont</nom>
+          <type>1</type>
+          <donnees>
+            <modeEntree>1</modeEntree>
+            <fichier>mascaret0_1.loi</fichier>
+            <uniteTps>-0</uniteTps>
+            <nbPoints>-0</nbPoints>
+            <nbDebitsDifferents>-0</nbDebitsDifferents>
+          </donnees>
+        </structureParametresLoi>
+      </lois>
+    </parametresLoisHydrauliques>
+    <parametresConditionsInitiales>
+      <repriseEtude>
+        <repriseCalcul>false</repriseCalcul>
+      </repriseEtude>
+      <ligneEau>
+        <LigEauInit>false</LigEauInit>
+        <modeEntree>2</modeEntree>
+        <formatFichLig>1</formatFichLig>
+        <nbPts>0</nbPts>
+        <branche>-0</branche>
+        <abscisse>-0</abscisse>
+        <cote>-0</cote>
+        <debit>-0</debit>
+      </ligneEau>
+    </parametresConditionsInitiales>
+    <parametresImpressionResultats>
+      <titreCalcul>Etude hydraulique1d</titreCalcul>
+      <impression>
+        <impressionGeometrie>false</impressionGeometrie>
+        <impressionPlanimetrage>false</impressionPlanimetrage>
+        <impressionReseau>false</impressionReseau>
+        <impressionLoiHydraulique>false</impressionLoiHydraulique>
+        <impressionligneEauInitiale>false</impressionligneEauInitiale>
+        <impressionCalcul>true</impressionCalcul>
+      </impression>
+      <pasStockage>
+        <premPasTpsStock>1</premPasTpsStock>
+        <pasStock>1</pasStock>
+        <pasImpression>1</pasImpression>
+      </pasStockage>
+      <resultats>
+        <fichResultat>mascaret0.rub</fichResultat>
+        <postProcesseur>1</postProcesseur>
+      </resultats>
+      <listing>
+        <fichListing>mascaret0.lis</fichListing>
+      </listing>
+      <fichReprise>
+        <fichRepriseEcr>mascaret0_ecr.rep</fichRepriseEcr>
+      </fichReprise>
+      <rubens>
+        <ecartInterBranch>1.0</ecartInterBranch>
+      </rubens>
+      <stockage>
+        <option>1</option>
+        <nbSite>0</nbSite>
+      </stockage>
+      <casier>
+        <resultatCasier>mascaret0.cas_rub</resultatCasier>
+        <listingCasier>mascaret0.cas_lis</listingCasier>
+        <resultatLiaison>mascaret0.liai_rub</resultatLiaison>
+        <listingLiaison>mascaret0.liai_lis</listingLiaison>
+      </casier>
+    </parametresImpressionResultats>
+    <parametresVariablesCalculees>
+      <variablesCalculees>false false false false false false false false false false false false false false false</variablesCalculees>
+    </parametresVariablesCalculees>
+    <parametresVariablesStockees>
+      <variablesStockees>true false false false false true true true false false false false false false false false false false false true false false true false false false false false false false true false false false false false false false false true false false</variablesStockees>
+    </parametresVariablesStockees>
+  </parametresCas>
+</fichierCas>
