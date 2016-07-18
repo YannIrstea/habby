@@ -156,6 +156,9 @@ class MainWindows(QMainWindow):
         logy = QAction(self.tr("Save Log"), self)
         logy.setStatusTip(self.tr('Events will be written to the .log file.'))
         logy.triggered.connect(lambda: self.do_log(1))
+        logy = QAction(self.tr("Clear Image"), self)
+        logy.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
+        logy.triggered.connect(self.erase_pict)
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
         rech.setStatusTip(self.tr('Add untested research options'))
@@ -469,6 +472,43 @@ class MainWindows(QMainWindow):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
+    def erase_pict(self):
+        """
+        All figure contained in the folder path im will be deleted
+        :return:
+        """
+        # get path im
+        path_im = '.'
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Figure")
+            if child is None:
+                path_im = os.path.join(self.path_prj, 'figures_habby')
+            else:
+                path_im = child.text
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab before saving data."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        # ask for confimation
+        self.msg2.setIcon(QMessageBox.Warning)
+        self.msg2.setWindowTitle(self.tr("Delete figure"))
+        self.msg2.setText(
+            self.tr("Are you sure that you want to delete all file in the folder: \n" + path_im))
+        self.msg2.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        res = self.msg2.exec_()
+
+        # delete
+        if res == QMessageBox.Ok:
+            filelist = [f for f in os.listdir(path_im)]
+            for f in filelist:
+                os.remove(os.path.join(path_im, f))
 
 class CentralW(QWidget):
     """
