@@ -7,7 +7,7 @@ def main():
     # create app
     app = QApplication(sys.argv)
     # create windows
-    ex = Main_windows_1.MainWindows('user_opt.xml')
+    ex = Main_windows_1.MainWindows()
 
     # close
     sys.exit(app.exec_())

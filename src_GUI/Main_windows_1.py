@@ -24,7 +24,7 @@ class MainWindows(QMainWindow):
     It also create all the widgets which can be called during execution
     """
 
-    def __init__(self, user_option):
+    def __init__(self):
         # load user setting
         self.settings = QSettings('HABBY', 'irstea')
         name_prj_set = self.settings.value('name_prj')
