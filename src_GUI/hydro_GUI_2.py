@@ -593,7 +593,7 @@ class Mascaret(SubHydroW):
 
         self.send_log.emit(self.tr('# Load: Mascaret data.'))
         sys.stdout = self.mystdout = StringIO()
-        [coord_pro, coord, coord_r, xhzv_data, t_data, nb_pro_reach, name_pro, on_profile, name_reach]\
+        [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach]\
             = mascaret.load_mascaret(self.namefile[0], self.namefile[1], self.namefile[2], self.pathfile[0],
                                      self.pathfile[1], self.pathfile[2])
         sys.stdout = sys.__stdout__
@@ -605,16 +605,16 @@ class Mascaret(SubHydroW):
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
         self.send_log.emit("py    path3='" + self.pathfile[2] + "'")
-        self.send_log.emit("py    [coord_pro, coord, coord_r, xhzv_data, t_data, nb_pro_reach, name_pro, "
-                           "on_profile, name_reach] = rubar.load_rubar1d(file1, file2, file3, path1, path2, path3)\n")
+        self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
+                           " = rubar.load_rubar1d(file1, file2, file3, path1, path2, path3)\n")
         self.send_log.emit("restart LOAD_MASCARET")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
         self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
 
         if self.cb.isChecked():
-            mascaret.figure_mascaret(coord_pro, coord, coord_r, xhzv_data, t_data, on_profile, nb_pro_reach, name_pro,
-                                     name_reach, path_im,[0, 1, 2], [-1], [0])
+            mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro,
+                                     name_reach, path_im, [0, 1, 2], [-1], [0])
             self.show_fig.emit()
 
 
@@ -850,7 +850,7 @@ class Rubar1D(SubHydroW):
             self.save_fig = True
         #load rubar 1D
         sys.stdout = self.mystdout = StringIO()
-        [v, h, coord, lim_riv] = rubar.load_rubar1d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
+        [data_xhzv, coord_pro, lim_riv] = rubar.load_rubar1d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
         sys.stdout = sys.__stdout__
         # log info
         self.send_log.emit(self.tr('# Load: Rubar 1D data.'))
@@ -859,7 +859,7 @@ class Rubar1D(SubHydroW):
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = rubar.load_rubar1d(file1,"
+        self.send_log.emit("py    [data_xhzv, coord_pro, lim_riv] = rubar.load_rubar1d(file1,"
                            " file2, path1, path2, '.', False)\n")
         self.send_log.emit("restart LOAD_RUBAR_1D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))

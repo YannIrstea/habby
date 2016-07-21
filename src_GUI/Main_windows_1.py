@@ -38,13 +38,13 @@ class MainWindows(QMainWindow):
         self.path_trans = r'.\translation'
         self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm']
         if language_set:
-            self.lang = language_set
+            self.lang = int(language_set)  # need to be sure to have an integer there
         else:
             self.lang = 0
         app = QApplication.instance()
         app.removeTranslator(self.languageTranslator)
         self.languageTranslator = QTranslator()
-        self.languageTranslator.load(self.file_langue[self.lang], self.path_trans)
+        self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
         app.installTranslator(self.languageTranslator)
 
         # prepare the attributes
@@ -94,12 +94,12 @@ class MainWindows(QMainWindow):
         # 0 is for english, 1 for french, x for any additionnal language
         """
         # set the langugae
-        self.lang = nb_lang
+        self.lang = int(nb_lang)
         # get a new tranlator
         app = QApplication.instance()
         app.removeTranslator(self.languageTranslator)
         self.languageTranslator = QTranslator()
-        self.languageTranslator.load(self.file_langue[self.lang], self.path_trans)
+        self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
         app.installTranslator(self.languageTranslator)
 
         # create the new menu
@@ -156,9 +156,10 @@ class MainWindows(QMainWindow):
         logy = QAction(self.tr("Save Log"), self)
         logy.setStatusTip(self.tr('Events will be written to the .log file.'))
         logy.triggered.connect(lambda: self.do_log(1))
-        logy = QAction(self.tr("Clear Image"), self)
+        logy = QAction(self.tr("Clear Images"), self)
         logy.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
         logy.triggered.connect(self.erase_pict)
+
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
         rech.setStatusTip(self.tr('Add untested research options'))
@@ -510,6 +511,11 @@ class MainWindows(QMainWindow):
             for f in filelist:
                 os.remove(os.path.join(path_im, f))
 
+        # log
+        t = self.central_widget.l2.text()
+        self.central_widget.l2.setText(t + self.tr('Images deleted. <br>'))
+
+
 class CentralW(QWidget):
     """
     This class create the different tabs of the programm, which are then used as the central widget by MainWindows
@@ -693,7 +699,6 @@ class CentralW(QWidget):
             self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
                                 "found. no Log written. </br> <br>")
             return
-
 
         # add comments to Qlabel and .log file
         if text_log[0] == '#':

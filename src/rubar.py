@@ -19,20 +19,23 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
     :param pathdata the path to the data_vh file
     :param path_im the file where to save the image
     :param savefig: a boolean. If True create and save the figure.
-    :return: (x,water height) np.array, (x, velocity) np.array, (x,y,h) of each profiles in list of np.array
+    :return: coordinates of the profile (x,z,y, dist along the profile) coordinates (x,y) of the river and the bed,
+    data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
+    and v the velocity
     """
 
     # load the river coordinates 1d (not needed anymore, but can be useful)
     # [x, nb_mail] = load_mai_1d(mailfile, pathmail)
     # load the profile coordinates
-    [coord, lim_riv, name_profile, x] = load_coord_1d(geofile, pathgeo)
+    [coord_pro, lim_riv, name_profile, x] = load_coord_1d(geofile, pathgeo)
     # load the height and velocity 1d
-    [timestep, v,h, cote]= load_data_1d(data_vh, pathdata)
+    [timestep, data_xhzv]= load_data_1d(data_vh, pathdata, x)
+
     # plot the figure
     if savefig:
-        figure_rubar1d(coord, lim_riv, v, h, x, cote, name_profile, path_im, [0, 2], [-1])
+        figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], [-1])
 
-    return v,h, coord, lim_riv
+    return data_xhzv, coord_pro, lim_riv
 
 
 def load_mai_1d(mailfile, path):
@@ -75,67 +78,72 @@ def load_mai_1d(mailfile, path):
     return x, nb_mail
 
 
-def load_data_1d(name_data_vh, path):
+def load_data_1d(name_data_vh, path, x):
     """
     :param name_data_vh: the name of the profile.ETUDE file
     :param path: the path to this file
-    :return: v,h, cote for each time step (list of np.array), time step
+    :param x the distance along the river
+    :return: data x, velocity height, cote for each time step (list of np.array), time step
     """
+    failload = [-99], [-99]
 
     filename_path = os.path.join(path, name_data_vh)
-
     # check if the file exists
     if not os.path.isfile(filename_path):
         print('Error: The profil.ETUDE file does not exist.\n')
-        return [-99], [-99], [-99], [-99]
+        return failload
     # open file
     try:
         with open(filename_path, 'rt') as f:
             data_vh = f.read()
     except IOError:
         print('Error: The profil.ETUDE file can not be open.\n')
-        return [-99], [-99], [-99], [-99]
+        return failload
     data_vh = np.array(data_vh.split())
     # find timestep
     timestep_ind = np.squeeze(np.array(np.where(data_vh == 'tnprof'))) - 1  # why [[]] and not []?
     if len(timestep_ind) == 0:
         print('Error: No timestep could be extracted from the profil.ETUDE file.\n')
-        return [-99], [-99], [-99], [-99]
+        return failload
     try:
         timestep = np.array(list(map(float, data_vh[timestep_ind])))
     except ValueError:
         print('Error: the timesteps could not be extracted from the profile.ETUDE file.\n')
-        return [-99], [-99], [-99], [-99]
+        return failload
+
     # find velocity, height
-    vel = []
-    h = []
+    data_xhzv = []
+    cote = []
     nb_mail = (len(data_vh) - timestep_ind[-1] - 2)/4
     for i in range(0, len(timestep_ind)):
         data_vh_t = data_vh[timestep_ind[i] + 2:int(timestep_ind[i] + 4*nb_mail + 4)]
         vel_t = data_vh_t[1:-1:4]
-        h_t = data_vh_t[0:-1:4]
+        h_t = data_vh_t[0:-2:4]
         try:
             vel_t = np.array(list(map(float, vel_t)))
         except ValueError:
             print('Error: Velocity could not be extracted from the profile.ETUDE file.\n')
-            return [-99], [-99], [-99], [-99]
+            return failload
         try:
             h_t = np.array(list(map(float, h_t)))
         except ValueError:
             print('Error: Water height could not be extracted from the profile.ETUDE file.\n')
-            return [-99], [-99], [-99], [-99]
-        vel.append(vel_t)
-        h.append(h_t)
-        # find cote z (altitude of the river bed)
-        # cote are the same for all time steps
+            return failload
+            # find cote z (altitude of the river bed)
+            # cote are the same for all time steps
         if i == 0:
             cote = data_vh_t[3:-1:4]
             try:
                 cote = np.array(list(map(float, cote)))
             except ValueError:
                 print('Error: River bed altitude could not be extracted from the profile.ETUDE file.\n')
-                return [-99], [-99], [-99], [-99]
-    return timestep, vel, h, cote
+                return failload
+
+        data = np.column_stack((x,  h_t, cote, vel_t))
+
+        data_xhzv.append(data)
+
+    return timestep, data_xhzv
 
 
 def load_coord_1d(name_rbe, path):
@@ -189,7 +197,7 @@ def load_coord_1d(name_rbe, path):
             dist_riv.append(np.float(x))
         except KeyError:
             print('Warning: The name of the profile could not be extracted from the .reb file.\n')
-        coord_sect = np.zeros((len(point), 3))
+        coord_sect = np.zeros((len(point), 4))
         lim_riv_sect = np.zeros((3, 3))
         name_sect = []
         for j in range(0, len(point)):
@@ -198,6 +206,9 @@ def load_coord_1d(name_rbe, path):
                 coord_sect[j, 0] = np.float(attrib_p['x'])
                 coord_sect[j, 1] = np.float(attrib_p['y'])
                 coord_sect[j, 2] = np.float(attrib_p['z'])
+                if j > 0:
+                    coord_sect[j, 3] = coord_sect[j-1,3] + np.sqrt((coord_sect[j, 0] - coord_sect[j-1, 0])**2 +
+                                               (coord_sect[j, 1] - coord_sect[j-1, 1])**2)
             except ValueError:
                 print('Error: Some coordinates of the .rbe file are not float. Section number: ' + str(i+1)+'.\n')
                 return [-99], [-99], [-99], [-99]
@@ -208,25 +219,28 @@ def load_coord_1d(name_rbe, path):
                 print('Error: the position of the river can not be extracted fromt he .rbe file.\n')
                 return [-99], [-99], [-99], [-99]
             if name_here == 'rg':
-                lim_riv_sect[0, :] = coord_sect[j, :]
+                lim_riv_sect[0, :] = coord_sect[j, :3]
             if name_here == 'axe':
-                lim_riv_sect[1, :] = coord_sect[j, :]
+                lim_riv_sect[1, :] = coord_sect[j, :3]
             if name_here == 'rd':
-                lim_riv_sect[2, :] = coord_sect[j, :]
+                lim_riv_sect[2, :] = coord_sect[j, :3]
+        coord_sect = coord_sect.T
         coord.append(coord_sect)
         lim_riv.append(lim_riv_sect)
 
-    return coord, lim_riv, name_profile, dist_riv
+    # geometry on cell border, hydraulique center of cell for the data (more intesting for us)
+    x = [(a + b) / 2 for a, b in zip(dist_riv[:], dist_riv[1:])]
+    x = np.concatenate(([dist_riv[0]], x, [dist_riv[-1]]))
+
+    return coord, lim_riv, name_profile, x
 
 
-def figure_rubar1d(coord, lim_riv, v, h, x, cote, name_profile, path_im, pro, plot_timestep):
+def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, plot_timestep):
     """
     The function to plot the loaded RUBAR 1D data
-    :param coord: the cooedinate of the profile (with height data)
+    :param coord_pro: the cooedinate of the profile (x, y, z, dist along the river)
     :param lim_riv: the right bank, river center, left bank
-    :param v:  water velocity at the river center
-    :param h: water height at the river center
-    :param x: the distance along the river
+    :param data_xhzv the data by time step with x the distance along the river, h the water height and v the vlocity
     :param cote: the altitude of the river center
     :param name_profile the name of the profile
     :param path_im: the path where to save the image
@@ -238,14 +252,14 @@ def figure_rubar1d(coord, lim_riv, v, h, x, cote, name_profile, path_im, pro, pl
     #plt.rcParams.update({'font.size': 9})
 
     # profiles in xy view
-    riv_mid = np.zeros((len(coord), 3))
+    riv_mid = np.zeros((len(coord_pro), 3))
     fig2 = plt.figure()
-    for p in range(0, len(coord)):
-        coord_p = coord[p]
-        plt.plot(coord_p[:,0], coord_p[:,1], '-b')
-        plt.plot(coord_p[:, 0], coord_p[:, 1], 'xk',markersize=1)
+    for p in range(0, len(coord_pro)):
+        coord_p = coord_pro[p]
+        plt.plot(coord_p[0], coord_p[1], '-b')
+        plt.plot(coord_p[0], coord_p[1], 'xk',markersize=1)
         riv_sect = lim_riv[p]
-        riv_mid[p,:] = riv_sect[1]
+        riv_mid[p, :] = riv_sect[1]
         if p % 5 == 0:
             plt.text(coord_p[0, 0] + 0.03, coord_p[0, 1] + 0.03, name_profile[p])
     # river
@@ -258,31 +272,31 @@ def figure_rubar1d(coord, lim_riv, v, h, x, cote, name_profile, path_im, pro, pl
     plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
 
     # plot speeed and height
-    x2 = [(a + b) / 2 for a, b in zip(x[:], x[1:])] # geometry on cell border, hydraulique center of cell
-    x2 = np.concatenate(([x[0]], x2, [x[-1]]))
+    x = data_xhzv[0][:, 0]
+    cote = data_xhzv[0][:, 2]
     for t in plot_timestep:
         fig1 = plt.figure()
-        h_t = h[t]
-        v_t = v[t]
+        h_t = data_xhzv[t][:, 1]
+        v_t = data_xhzv[t][:, 3]
         if t == -1:
             plt.suptitle("RUBAR1D - Last timestep ")
         else:
             plt.suptitle("RUBAR1D - Timestep " + str(t))
         ax1 = plt.subplot(211)
-        plt.plot(x2, h_t + cote, '-b')
-        plt.plot(x2, cote, '-k')
+        plt.plot(x, h_t + cote, '-b')
+        plt.plot(x, cote, '-k')
         plt.xlabel('Distance along the river [m]')
         plt.ylabel('Height [m]')
         plt.legend(('water height', 'river slope'))
         ax1 = plt.subplot(212)
-        plt.plot(x2, v_t, '-r')
+        plt.plot(x, v_t, '-r')
         plt.xlabel('Distance along the river [m]')
         plt.ylabel('Velocity [m/sec]')
         plt.savefig(
             os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(
             os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    plt.close()
+    # plt.close()
     # plt.show()
 
 
@@ -520,16 +534,17 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
 
 def main():
 
-    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
-    geofile2d='BS15a6.mai'
-    tpsfile = 'BS15a6.tps'
-    load_rubar2d(geofile2d,tpsfile, path, path, path, True)
+    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
+    #geofile2d='BS15a6.mai'
+    #tpsfile = 'BS15a6.tps'
+    #load_rubar2d(geofile2d,tpsfile, path, path, path, True)
 
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
-    #mail = 'mail.LE13'
-    #geofile = 'LE13.rbe'
-    #data = 'profil.LE13'
-    #load_rubar1d(geofile, data, path, path, path, True)
+    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
+    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    mail = 'mail.LE13'
+    geofile = 'LE13.rbe'
+    data = 'profil.LE13'
+    load_rubar1d(geofile, data, path, path, path_im, True)
 
 
 if __name__ == '__main__':

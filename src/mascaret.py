@@ -16,14 +16,15 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
     :param file_res: the files containting the mascaret output in the Optyca format (.opt)
     :param path_geo: the path to the geo file
     :param path_res the path to the res file
-    :return: for each time step, for each reach (x,water height) list of list of np.array,
-    (x, velocity)  list of list of np.array, (x,y,h) np.array
+    :return: the coordinates of the profile (x,y,z, dist along the profile), the coordinate of the river (x,y), name of reach and profile,
+    data height and velocity (list by time step), list of bollean indicating which data is on the profile and the
+    number of profile by reach
     """
 
     # geofile not georeferenced
     blob, ext = os.path.splitext(file_geo)
     if ext == '.geo':
-        [coord_pro, name_pro, name_reach, nb_pro_reach, abscisse, bt] = open_geo_mascaret(file_geo, path_geo)
+        [coord_pro1, name_pro, name_reach, nb_pro_reach, abscisse, bt] = open_geo_mascaret(file_geo, path_geo)
     else:
         print('Error: the geo file should be of .geo type.\n')
         return [-99]
@@ -45,15 +46,20 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
         return -99
 
     # profile info
-    coord = profil_coord_non_georef(coord_pro, coord_r, nr, nb_pro_reach, bt)
+    coord_xy = profil_coord_non_georef(coord_pro1, coord_r, nr, nb_pro_reach, bt)
+    coord_pro = []
+    for p in range(0, len(coord_pro1)):
+        coord_pro_p = [coord_xy[p][0], coord_xy[p][1], coord_pro1[p][1], coord_pro1[p][0]]
+        coord_pro.append(coord_pro_p)
+
     # result info
-    [t_data, xhzv_data, nb_timestep] = open_res_file(file_res, path_res)
-    if t_data[0] == -99 and len(t_data) == 1:
+    [xhzv_data, timestep] = open_res_file(file_res, path_res)
+    if len(timestep) == 1 and timestep[0] == -99:
         print('Error: Data could not be loaded. \n')
         return
     on_profile = is_this_res_on_the_profile(abscisse, xhzv_data)
 
-    return coord_pro, coord, coord_r, xhzv_data, t_data, nb_pro_reach, name_pro, on_profile, name_reach
+    return coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach
 
 
 def get_geo_name_from_xcas(file_gen, path_gen):
@@ -492,7 +498,7 @@ def define_stream_network(node_number, start_node, end_node, angles, nb_pro_reac
 def find_node(node_number, reach_to_find):
     """
     To find with which node is a stream end or a stream start is associatied
-    used by  river_coord_non_georef
+    used by define_stream_network
     :param node_number: the list of list of the reach linked with one node
     :param reach_to_find: the number indicateng start or end of the reach
     :return: the node number, ordered as in the xcas file
@@ -558,7 +564,7 @@ def open_res_file(file_res, path_res):
     :param path_res: the path to this file
     :return:
     """
-    failload = [-99], [-99], [-99]
+    failload = [-99], [-99]
 
     # open file
     blob, ext = os.path.splitext(file_res)
@@ -605,12 +611,12 @@ def open_res_file(file_res, path_res):
     if not data_var:
         print('Error: no data found in the output file (mascaret).\n')
         return failload
-    # height
+    # height and velocity data
     data_var = data_var[0].split('\n')
     data_var = list(filter(bool, data_var))  # erase empty lines
     t_data = np.zeros((len(data_var), ))
     xhzv_data = np.zeros((len(data_var), 4))
-    nb_timestep = 1
+    timestep = []
     for i in range(0, len(data_var)):
         data_i = data_var[i].split(";")
         try:
@@ -629,23 +635,28 @@ def open_res_file(file_res, path_res):
             print('Error: Output data could not be converted to float (mascaret .opt file) \n')
             return failload
         if i == 0:
-            timestep = t_data[0]
-        if t_data[i] != timestep:
-            nb_timestep += 1
-            timestep = t_data[i]
+            timestep.append(t_data[0])
+        if t_data[i] != timestep[-1]:
+            timestep.append(t_data[i])
 
-    return t_data, xhzv_data, nb_timestep
+    # update by time step
+    xhzv_data_all = []
+    for t in range(0, len(timestep)):
+        xhzv_data_all.append(xhzv_data[t_data == timestep[t], :])
+
+    return xhzv_data_all, timestep
 
 
-def is_this_res_on_the_profile(abscisse, xhzv_data):
+def is_this_res_on_the_profile(abscisse, xhzv_data_all):
     """
     The output of mascaret can be given at point of the river where there is no profile.
     The function here says which results are on the profiles. All profiles have a results.
     :param abscisse: the position of the profile
-    :param xhzv_data: the outputs from mascaret
+    :param xhzv_data_all: the outputs from mascaret by time step
     :return: a list of bool of the length of xhzv_data, True on profile, False not on profile
     """
 
+    xhzv_data = xhzv_data_all[0]
     on_profile = [False] * len(xhzv_data)
 
     for p in range(0, len(abscisse)):
@@ -663,22 +674,20 @@ def is_this_res_on_the_profile(abscisse, xhzv_data):
     return on_profile
 
 
-def figure_mascaret(coord_pro, coord, coord_r, xhzv_data, t_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]):
+def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]):
     """
     The function to plot the figures related to mascaret
     :param coord_pro: the cordinates (y,h) of the profiles
-    :param coord the coordinates (x,y) of the profile
     :param coord_r the coordinate (x,y) of the river
     :param name_pro: the name of the profile
     :param name_reach: the name of the reach
-    :param t_data timestep for each hvdata
     :param on_profile which result are on the profile
     :param nb_pro_reach the number of profile by reach (careful this is the number of profile, not the number of output)
-    :param xhzv_data (x,h,v) data fo
+    :param xhzv_data (x,h,v) list by time step
     :param pro profile to be plotted
     :param plot_timestep timestep to be plotted
     :param reach_plot the reach to be plotted for the river view
-    :param path im the pathwhere to save the figure
+    :param path_im the pathwhere to save the figure
     :return:
     """
     plt.close()
@@ -689,19 +698,16 @@ def figure_mascaret(coord_pro, coord, coord_r, xhzv_data, t_data, on_profile, nb
         return
 
     for t in plot_timestep:
-        if t == -1:   # correct also -n?
-            t = t_data[-1]
 
-        x_t_all = xhzv_data[t_data == t, 0]
-        h_t_all = xhzv_data[t_data == t, 1]
-        z_t_all = xhzv_data[t_data == t, 2]
-        v_t_all = xhzv_data[t_data == t, 3]
-        on_profile_t = on_profile[t_data == t]
+        x_t_all = xhzv_data[t][:, 0]
+        h_t_all = xhzv_data[t][:, 1]
+        z_t_all = xhzv_data[t][:, 2]
+        v_t_all = xhzv_data[t][:, 3]
 
-        h_t_all_p = h_t_all[on_profile_t]
-        z_t_all_p = z_t_all[on_profile_t]
-        x_t_all_p = x_t_all[on_profile_t]
-        v_t_all_p = v_t_all[on_profile_t]
+        h_t_all_p = h_t_all[on_profile]
+        z_t_all_p = z_t_all[on_profile]
+        x_t_all_p = x_t_all[on_profile]
+        v_t_all_p = v_t_all[on_profile]
 
         # "river" view
         for r in reach_plot:
@@ -735,8 +741,8 @@ def figure_mascaret(coord_pro, coord, coord_r, xhzv_data, t_data, on_profile, nb
     for r in range(0, len(coord_r)):
         coord_r_reach = np.array(coord_r[r])
         plt.plot(coord_r_reach[:, 0], coord_r_reach[:, 1], label=name_reach[r])
-    for p in range(0, len(coord)):
-        coord_p = coord[p]
+    for p in range(0, len(coord_pro)):
+        coord_p = coord_pro[p]
         plt.plot(coord_p[0], coord_p[1], 'k', linewidth=0.5)
         #plt.plot(coord_p[0], coord_p[1], 'k', markersize=1.5, label=txt_h)
         #if p % 30 == 0:
@@ -756,19 +762,19 @@ def figure_mascaret(coord_pro, coord, coord_r, xhzv_data, t_data, on_profile, nb
     for p in pro:
         plt.figure()
         try:
-            coord_pro_p = coord_pro[p]
+            coord_p = coord_pro[p]
         except IndexError:
             print('Error: The profile number exceed the total number of profiles. Cannot be plotted.\n')
             return
         h_here = h_t_all_p[p] + z_t_all_p[p]
-        plt.fill_between(coord_pro_p[0, :], coord_pro_p[1, :], h_here, where=coord_pro_p[1, :] < h_here,
+        plt.fill_between(coord_p[3], coord_p[2], h_here, where=coord_p[2] < h_here,
                          facecolor='blue', alpha=0.5, interpolate=True)
-        plt.plot(coord_pro_p[0], coord_pro_p[1], 'k')
-        a = 0.95 * min(coord_pro_p[0])
+        plt.plot(coord_p[3], coord_p[2], 'k')
+        a = 0.95 * min(coord_p[3])
         if a == 0:
-            plt.xlim(-0.05, 1.05 * max(coord_pro_p[0]))
+            plt.xlim(-0.05, 1.05 * max(coord_p[3]))
         else:
-            plt.xlim(a, 1.05 * max(coord_pro_p[0]))
+            plt.xlim(a, 1.05 * max(coord_p[3]))
         plt.xlabel('distance along the profile [m]')
         plt.ylabel('Height of the river bed [m]')
         plt.title('Profile ' + name_pro[p] + ' at the time step ' + str(t))
@@ -788,9 +794,14 @@ def main():
     file_res = r'mascaret0_ecr.opt'
     file_gen = 'mascaret0.xcas'
     #file_gen = r'failltext.xcas'
+    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 
 
-    load_mascaret(file_gen, file_geo, file_res, path, path, path)
+    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] =\
+        load_mascaret(file_gen, file_geo, file_res, path, path, path)
+
+    figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro,
+                    name_reach, path_im, [0, 1, 2], [-1], [0])
 
 
 if __name__ == '__main__':
