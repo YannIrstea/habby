@@ -25,7 +25,7 @@ class StathabW(QWidget):
 
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.path_im = os.path.join(self.path_prj,'figures_habby')
+        self.path_im = os.path.join(self.path_prj, 'figures_habby')
         self.path_bio_stathab = './/biologie'
         self.fish_selected = []
         self.dir_name = self.tr("No directory selected")
@@ -44,7 +44,7 @@ class StathabW(QWidget):
         self.hdf5_name = self.tr('No hdf5 selected')
         self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
         self.dir_hdf5 = self.path_prj
-        self.typeload = 'txt'  #txt or hdf5
+        self.typeload = 'txt'  # txt or hdf5
 
         self.init_iu()
 
@@ -76,6 +76,8 @@ class StathabW(QWidget):
             child = root.find(".//" + 'Path_Figure')
             if child is not None:
                 self.path_im = child.text
+        if not os.path.exists(self.path_im):
+            os.makedirs(self.path_im)
 
         # prepare QLabel
         self.l1 = QLabel(self.tr('Stathab Input Files (.txt)'))

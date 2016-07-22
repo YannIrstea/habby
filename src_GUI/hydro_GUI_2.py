@@ -282,6 +282,10 @@ class SubHydroW(QWidget):
         A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py
         :return: path_im
         """
+
+        # to insure the existence of a path
+        path_im = '.'
+
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
@@ -295,10 +299,10 @@ class SubHydroW(QWidget):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
             self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
+                self.tr("The project is not saved. Save the project in the General tab."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
-            return
+
         return path_im
 
     def send_err_log(self):
