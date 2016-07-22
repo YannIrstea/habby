@@ -314,7 +314,6 @@ class MainWindows(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
-        print('save_project: ok')
 
         # write log
         if len(t) > 26:
@@ -650,10 +649,12 @@ class CentralW(QWidget):
         """
         A small function to show the last figures
         """
+        print('Fnction: Showfig')
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)
         self.child_win.update_namefig()
         self.child_win.selectionchange(-1)
         self.child_win.show()
+        print('Figure should have been plotted.')
 
     def connect_signal_log(self):
         """
@@ -864,6 +865,7 @@ class ShowImageW(QWidget):
         self.path_im = os.path.join(self.path_prj, 'figures_habby')
         self.msg2 = QMessageBox()
         self.init_iu()
+        self.all_file = []
 
     def init_iu(self):
 
@@ -877,8 +879,7 @@ class ShowImageW(QWidget):
                 self.path_im = child.text
 
         # find all figures and add them to the menu ComboBox
-        self.update_namefig()
-        self.image_list.currentIndexChanged.connect(self.selectionchange)
+        self.image_list.activated.connect(self.selectionchange)
 
         # create the label which will show the figure
         # self.label_im.setGeometry(QRect(0, 0, self.w, self.h))
@@ -902,12 +903,18 @@ class ShowImageW(QWidget):
         A function to change the figure
         :return:
         """
+        print('Function: selection change')
         if not self.all_file:
+            print('No figure was found. self.all_file empty')
+            print(self.path_im)
             return
         else:
-            namefile_im = os.path.join(self.path_im,self.all_file[i])
+            namefile_im = os.path.join(self.path_im, self.all_file[i])
+            print('try to open the following figure:')
+            print(namefile_im)
             pixmap = QPixmap(namefile_im)
             self.label_im.setPixmap(pixmap)
+            self.label_im.show()
 
     def change_folder(self):
         """
@@ -942,11 +949,14 @@ class ShowImageW(QWidget):
         add the different figure name to the drop-down list
         :return:
         """
+
         self.image_list.clear()
         if not self.path_im:
             self.path_im = os.path.join(self.path_prj, 'figures_habby')
         self.all_file = glob.glob(os.path.join(self.path_im, self.imtype))
         if not self.all_file:
+            print('No figure was found at the path: ')
+            print(self.path_im)
             return
         self.all_file.sort(key=os.path.getmtime)  # the newest figure on the top
         if self.all_file[0] != 'Available figures':
@@ -957,7 +967,10 @@ class ShowImageW(QWidget):
         for i in range(0, len(all_file_nice)):
             all_file_nice[i] = all_file_nice[i].replace(self.path_im, "")
             all_file_nice[i] = all_file_nice[i].replace("\\", "")
+            all_file_nice[i] = all_file_nice[i].replace("/", "")
         self.image_list.addItems(all_file_nice)
+        print('Name of figure update. Figure list: \n')
+        print(self.all_file)
 
 
 def open_project():

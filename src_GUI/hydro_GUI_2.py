@@ -406,7 +406,6 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0],self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1],self.namefile[1]))
 
-
         # show figure
         if self.cb.isChecked():
             self.show_fig.emit()
