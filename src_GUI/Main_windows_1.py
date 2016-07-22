@@ -223,6 +223,7 @@ class MainWindows(QMainWindow):
                 self.tr("The directory indicated in the project path does not exists. Project not saved."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
+            self.central_widget.write_log('# Project not saved.')
             return
         else:
             path_prj_before = self.path_prj
@@ -307,12 +308,26 @@ class MainWindows(QMainWindow):
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
 
+        # send the new name to all widget
+        t = self.central_widget.l2.text()
+        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
+        self.setCentralWidget(self.central_widget)
+        self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+        print('save_project: ok')
+
         # write log
-        self.central_widget.write_log('# Project saved')
+        if len(t) > 26:
+            # no need to write #log of habby started two times
+            # to breack line habby use <br> there, should not be added again
+            self.central_widget.write_log(t[26:-4])
+        self.central_widget.write_log('# Project saved sucessfully.')
         self.central_widget.write_log("py    name_prj= '" + self.name_prj + "'")
         self.central_widget.write_log("py    path_prj= '" + self.path_prj + "'")
         self.central_widget.write_log("restart Name_project")
         self.central_widget.write_log("restart    name_prj= " + self.name_prj)
+
+        return
 
     def save_project_estimhab(self):
         """
@@ -617,7 +632,6 @@ class CentralW(QWidget):
         # colors
         self.scroll.setStyleSheet('background-color: white')
         self.vbar.setStyleSheet('background-color: lightGrey')
-        # redirect stdout
 
         # layout
         layoutc = QGridLayout()

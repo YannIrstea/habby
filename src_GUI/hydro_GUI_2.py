@@ -283,8 +283,7 @@ class SubHydroW(QWidget):
         :return: path_im
         """
 
-        # to insure the existence of a path
-        path_im = '.'
+        path_im = 'no_path'
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         if os.path.isfile(filename_path_pro):
@@ -302,6 +301,7 @@ class SubHydroW(QWidget):
                 self.tr("The project is not saved. Save the project in the General tab."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
+
 
         return path_im
 
@@ -384,7 +384,7 @@ class HEC_RAS1D(SubHydroW):
         self.save_xml(1)
         path_im = self.find_path_im()
         # load hec_ras data
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
 
         # redirect the out stream to my output
@@ -479,7 +479,7 @@ class Rubar2D(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
         path_im = self.find_path_im()
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
         # load rubar 2d data
         sys.stdout = self.mystdout = StringIO()
@@ -616,9 +616,9 @@ class Mascaret(SubHydroW):
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
         self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
 
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro,
-                                     name_reach, path_im, [0, 1, 2], [-1], [0])
+                                     name_reach, path_im, [0, 1], [-1], [0])
             self.show_fig.emit()
 
 
@@ -770,7 +770,7 @@ class River2D(SubHydroW):
                 return
             xyzhv.append(xyzhv_i)
             ikle.append(ikle_i)
-            if self.cb and i == 0:
+            if self.cb.isChecked() and path_im != 'no_path' and i == 0:
                 river2d.figure_river2d(xyzhv_i, ikle_i, path_im, i)
 
             # log
@@ -850,7 +850,7 @@ class Rubar1D(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
         path_im = self.find_path_im()
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
         #load rubar 1D
         sys.stdout = self.mystdout = StringIO()
@@ -869,7 +869,7 @@ class Rubar1D(SubHydroW):
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
 
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
 
 
@@ -942,7 +942,7 @@ class HEC_RAS2D(SubHydroW):
         self.send_log.emit("py    [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(file1, path1)\n")
         self.send_log.emit("restart LOAD_HECRAS_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
             self.show_fig.emit()
 
@@ -1015,7 +1015,7 @@ class TELEMAC(SubHydroW):
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
 
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
             self.show_fig.emit()
 
@@ -1128,7 +1128,7 @@ class SubstrateW(SubHydroW):
             if self.cb.isChecked():
                 substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
             self.log_txt()
-        if self.cb.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
 
     def log_txt(self):

@@ -265,7 +265,8 @@ class EstimhabW(QWidget):
         self.send_log.emit("restart    fish: " + fish_list_str)
 
         # we always do a figure for estmihab
-        self.show_fig.emit()
+        if path_im != 'no_path':
+            self.show_fig.emit()
 
     def add_fish(self):
         items = self.list_f.selectedItems()
@@ -289,7 +290,7 @@ class EstimhabW(QWidget):
         :return: path_im
         """
         # to insure the existence of a path
-        path_im = '.'
+        path_im = 'no_path'
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         if os.path.isfile(filename_path_pro):
@@ -304,7 +305,7 @@ class EstimhabW(QWidget):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
             self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
+                self.tr("The project is not saved. Save the project in the General tab."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
