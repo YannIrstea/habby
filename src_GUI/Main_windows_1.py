@@ -547,11 +547,12 @@ class CentralW(QWidget):
         self.path_prj_c = path_prj
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
+        self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
 
         super().__init__()
         self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is shown
         self.init_iu()
-        self.child_win = None  # in case, we open an extra windows
+
 
     def init_iu(self):
 
@@ -649,12 +650,9 @@ class CentralW(QWidget):
         """
         A small function to show the last figures
         """
-        print('Fnction: Showfig')
-        self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)
         self.child_win.update_namefig()
         self.child_win.selectionchange(-1)
         self.child_win.show()
-        print('Figure should have been plotted.')
 
     def connect_signal_log(self):
         """
@@ -671,6 +669,8 @@ class CentralW(QWidget):
         self.stathab_tab.send_log.connect(self.write_log)
         self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
         self.hydro_tab.mascar.send_log.connect(self.write_log)
+        self.child_win.send_log.connect(self.write_log)
+        self.welcome_tab.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """
@@ -773,6 +773,8 @@ class WelcomeW(QWidget):
     # define the signal used by the class
     # should be outise of the __init__ function
     save_signal = pyqtSignal()
+    send_log = pyqtSignal(str, name='send_log')
+
 
     def __init__(self):
 
@@ -820,9 +822,10 @@ class WelcomeW(QWidget):
         print('Text Text and MORE Text')
 
     def setfolder(self):
-        dir_name = QFileDialog.getExistingDirectory()
+        dir_name = QFileDialog.getExistingDirectory(None)  # check for invalid null parameter on Linuxgit
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
+            self.send_log.emit('New folder selected for the project. \n')
 
 
 class HydroW(QWidget):
@@ -852,6 +855,7 @@ class ShowImageW(QWidget):
     The widget which shows the saved images (so that there is a return when you saved somethings)
     :return:
     """
+    send_log = pyqtSignal(str, name='send_log')
 
     def __init__(self, path_prj, name_prj):
         super().__init__()
@@ -903,15 +907,10 @@ class ShowImageW(QWidget):
         A function to change the figure
         :return:
         """
-        print('Function: selection change')
         if not self.all_file:
-            print('No figure was found. self.all_file empty')
-            print(self.path_im)
             return
         else:
             namefile_im = os.path.join(self.path_im, self.all_file[i])
-            print('try to open the following figure:')
-            print(namefile_im)
             pixmap = QPixmap(namefile_im)
             self.label_im.setPixmap(pixmap)
             self.label_im.show()
@@ -921,8 +920,12 @@ class ShowImageW(QWidget):
         a function to change the folder where are the image
         :return:
         """
-        self.path_im = QFileDialog.getExistingDirectory()
+
+        self.path_im = QFileDialog.getExistingDirectory(None)
+        if self.path_im == '':
+            return
         self.update_namefig()
+        self.send_log.emit('# New folder selected to save figures.\n')
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
@@ -942,7 +945,9 @@ class ShowImageW(QWidget):
                 child1.text = self.path_im
             else:
                 child1.text = self.path_im
-            doc.write(filename_path_pro, method="xml")
+            doc.write(filename_path_pro)
+            self.selectionchange(1)
+
 
     def update_namefig(self):
         """
@@ -955,8 +960,7 @@ class ShowImageW(QWidget):
             self.path_im = os.path.join(self.path_prj, 'figures_habby')
         self.all_file = glob.glob(os.path.join(self.path_im, self.imtype))
         if not self.all_file:
-            print('No figure was found at the path: ')
-            print(self.path_im)
+            self.send_log.emit('Warning: No figure was found at the path:' + self.path_im + '\n')
             return
         self.all_file.sort(key=os.path.getmtime)  # the newest figure on the top
         if self.all_file[0] != 'Available figures':
@@ -969,9 +973,6 @@ class ShowImageW(QWidget):
             all_file_nice[i] = all_file_nice[i].replace("\\", "")
             all_file_nice[i] = all_file_nice[i].replace("/", "")
         self.image_list.addItems(all_file_nice)
-        print('Name of figure update. Figure list: \n')
-        print(self.all_file)
-
 
 def open_project():
     print('I wish to open a project')
