@@ -47,7 +47,10 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
 
     # profile info
     coord_xy = profil_coord_non_georef(coord_pro1, coord_r, nr, nb_pro_reach, bt)
+
+    # update the form of coord_pro to be coherent with other hydrological models
     coord_pro = []
+    r = 1
     for p in range(0, len(coord_pro1)):
         coord_pro_p = [coord_xy[p][0], coord_xy[p][1], coord_pro1[p][1], coord_pro1[p][0]]
         coord_pro.append(coord_pro_p)
@@ -121,6 +124,7 @@ def open_geo_mascaret(file_geo, path_geo):
     brief name (list of string), the number of profile in each reach and distance along the river/abcisse (list)
     """
     failload = [[-99]], ['-99'], ['-99'], [-99], [-99], [-99]
+    send_warn = True
 
     # open file
     blob, ext = os.path.splitext(file_geo)
@@ -193,7 +197,10 @@ def open_geo_mascaret(file_geo, path_geo):
             except ValueError:
                 print('Error: Some y data in the .geo file were not float. \n')
                 return failload
-            coord_pro.append(np.array([x_pro, h_pro]))  # z data should be appended there also!!
+            # remove cases where the x is the same but the h is different, not good for 2D grid
+            [x_pro, send_warn] = correct_duplicate(x_pro, send_warn)
+
+            coord_pro.append(np.array([x_pro, h_pro]))
 
             # find if you have a bathymetry/topography difference
             bt_maybe_info = data_xh[len_data_xh-1::len_data_xh]
@@ -215,6 +222,40 @@ def open_geo_mascaret(file_geo, path_geo):
 
     return coord_pro, name_pro, name_reach, nb_pro_reach, abscisse, bt
 
+
+def correct_duplicate(seq, send_warn, idfun=None):
+    """
+    it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
+    So this function correct this case. A similiar function exists in rubar, for the case where input
+    is (x,y) coordinates and not distance along the profile
+    inspired by https://www.peterbe.com/plog/uniqifiers-benchmark
+    :param seq: thelist to be corrected
+    :param send_warn a bool to avoid printing the warning too many time (maybe a bit of an overkill?)
+    :param idfun: support an optional transform function (not tested)
+    :return:
+    """
+
+    # order preserving
+    if idfun is None:
+        def idfun(x): return x
+    seen = {}
+    result = []
+    for item in seq:
+        marker = idfun(item)
+        if marker in seen:
+            if item > 0:
+                result.append(1.01 * item)  # moving the duplicate a bit further to correct for it
+            elif item < 0:
+                result.append(0.99 * item)
+            else:
+                result.append(0.00001)
+            if send_warn:
+                 print('Warning: Vertical profile. One or more profiles were modified. \n')
+                 send_warn = False
+        else:
+            seen[marker] = 1
+            result.append(item)
+    return result, send_warn
 
 def river_coord_non_georef_from_xcas(file_gen, path_gen, abcisse, nb_pro_reach):
     """
@@ -677,7 +718,7 @@ def is_this_res_on_the_profile(abscisse, xhzv_data_all):
 def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]):
     """
     The function to plot the figures related to mascaret
-    :param coord_pro: the cordinates (y,h) of the profiles
+    :param coord_pro: the cordinates (x,y,h, dist along the river) of the profiles
     :param coord_r the coordinate (x,y) of the river
     :param name_pro: the name of the profile
     :param name_reach: the name of the reach
@@ -783,6 +824,22 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
         plt.close()
 
     #plt.show()
+
+
+def flat_coord_pro(coord_pro):
+    """
+    NOT USED ANYMORE
+    coord_pro was before a list of profile by reach. It was however useful to have each profile one after the other.
+    here is the function for this.
+    Finally, it is more practical to use an other variable to known on which reach is the profile.
+    :param coord_pro: the list of profile (x,y,h, dist along the river) by reach
+    :return: coord_pro_f: a list of profile without the reach information. The list is flatten
+    """
+
+    coord_pro_f = []
+    for r in range(0, len(coord_pro)):
+        coord_pro_f.extend(coord_pro[r])
+    return coord_pro_f
 
 
 def main():

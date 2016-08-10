@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 from src import hec_ras2D
+from src import mascaret
 import xml.etree.ElementTree as Etree
 
 
@@ -12,14 +13,12 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
     """
     the function to load the RUBAR data in 1D
     :param geofile: the name of .rbe file which gives the coordinates of each profile - string
-    :param mailfile: the coordinate x of each mail (1D so only along the river length) mail.ETUDE file -string
     :param data_vh: the profile.ETUDE file which contains the height and velocity data
     :param pathgeo the path to the geofile - string
-    :param pathmail idem
     :param pathdata the path to the data_vh file
     :param path_im the file where to save the image
     :param savefig: a boolean. If True create and save the figure.
-    :return: coordinates of the profile (x,z,y, dist along the profile) coordinates (x,y) of the river and the bed,
+    :return: coordinates of the profile (x,y,z dist along the profile) coordinates (x,y) of the river and the bed,
     data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
     and v the velocity
     """
@@ -29,7 +28,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
     # load the profile coordinates
     [coord_pro, lim_riv, name_profile, x] = load_coord_1d(geofile, pathgeo)
     # load the height and velocity 1d
-    [timestep, data_xhzv]= load_data_1d(data_vh, pathdata, x)
+    [timestep, data_xhzv] = load_data_1d(data_vh, pathdata, x)
 
     # plot the figure
     if savefig:
@@ -182,6 +181,7 @@ def load_coord_1d(name_rbe, path):
     lim_riv = []  # for each section, the right lim of the bed, the position of the 1D river, the left lim of the bed
     name_profile = []
     dist_riv = []
+    send_warn = True
     for i in range(0, len(sect)):
         try:
             point = sect[i].findall(".//Sections.PointXYZ")
@@ -193,7 +193,7 @@ def load_coord_1d(name_rbe, path):
         except KeyError:
             print('Warning: The name of the profile could not be extracted from the .reb file.\n')
         try:
-            x = sect[i].attrib['Pk']
+            x = sect[i].attrib['Pk']  # nthis is hte distance along the river, not along the profile
             dist_riv.append(np.float(x))
         except KeyError:
             print('Warning: The name of the profile could not be extracted from the .reb file.\n')
@@ -208,11 +208,10 @@ def load_coord_1d(name_rbe, path):
                 coord_sect[j, 2] = np.float(attrib_p['z'])
                 if j > 0:
                     coord_sect[j, 3] = coord_sect[j-1,3] + np.sqrt((coord_sect[j, 0] - coord_sect[j-1, 0])**2 +
-                                               (coord_sect[j, 1] - coord_sect[j-1, 1])**2)
+                                                                   (coord_sect[j, 1] - coord_sect[j-1, 1])**2)
             except ValueError:
                 print('Error: Some coordinates of the .rbe file are not float. Section number: ' + str(i+1)+'.\n')
                 return [-99], [-99], [-99], [-99]
-            # find right bank, left bank and river center.
             try:
                 name_here = attrib_p['nom']
             except KeyError:
@@ -225,6 +224,9 @@ def load_coord_1d(name_rbe, path):
             if name_here == 'rd':
                 lim_riv_sect[2, :] = coord_sect[j, :3]
         coord_sect = coord_sect.T
+        # For the 2D grid, it is not possible to have vertical profile, i.e. identical points
+        [coord_sect, send_warn] = correct_duplicate_xy(coord_sect, send_warn)
+        # find right bank, left bank and river center.
         coord.append(coord_sect)
         lim_riv.append(lim_riv_sect)
 
@@ -233,6 +235,86 @@ def load_coord_1d(name_rbe, path):
     x = np.concatenate(([dist_riv[0]], x, [dist_riv[-1]]))
 
     return coord, lim_riv, name_profile, x
+
+
+def correct_duplicate_xy(seq3D, send_warn, idfun=None):
+    """
+    it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
+    So this function correct this case for rubar. A similiar function exists in mascaret, for the case where input
+    is the distance along the profile and not (x,y) coordinates.
+    inspired by https://www.peterbe.com/plog/uniqifiers-benchmark
+    :param seq: the list to be corrected in this case (x,y,z,dist along the profile)
+    :param send_warn a bool to avoid printing the warning too many time (maybe a bit of an overkill?)
+    :param idfun: support an optional transform function (not tested)
+    :return:
+    """
+
+    def find_point(seqf, c):
+        """
+        A sub function to find the update (x,y) coordinate bsed on the modification the disntance along the porfile
+        :param seqf:
+        :param c:
+        :return:
+        """
+        if c == 0:  # should not happen
+            xf = seqf[c, 0] * 1.01
+            yf = seqf[c, 1] * 1.01
+            print('Warning: First indices is identical to another. Unlogical. \n')
+        else:
+            if seq[c, 3] > 0:
+                nx = (seqf[c, 0] - seqf[c - 1, 0]) * (1 / seqf[c, 3])
+                ny = (seqf[c, 0] - seqf[c - 1, 0]) * (1 / seqf[c, 3])
+            else:
+                nx = ny = 0
+            xf = seqf[c, 0] + nx * item
+            yf = seqf[c, 1] + ny * item
+
+        return xf, yf
+
+    # main function of correct_duplicate!
+
+    seq = seq3D[:, 3]
+
+    # order preserving
+    if idfun is None:
+        def idfun(x): return x
+    seen = {}
+    result = []
+    resultx = []
+    resulty = []
+    c = 0
+    for item in seq:
+        marker = idfun(item)
+        if marker in seen:
+            if item > 0:
+                result.append(1.01 * item)  # moving the duplicate a bit further to correct for it
+                [x,y] = find_point(seq, c)
+                resultx.append(x)
+                resulty.append(y)
+            elif item < 0:
+                result.append(0.99 * item)
+                [x, y] = find_point(seq, c)
+                resultx.append(x)
+                resulty.append(y)
+            else:
+                result.append(0.00001)
+                [x, y] = find_point(seq, c)
+                resultx.append(x)
+                resulty.append(y)
+            if send_warn:
+                 print('Warning: Vertical profile. One or more profiles were modified. \n')
+                 send_warn = False
+        else:
+            seen[marker] = 1
+            result.append(item)
+            resultx.append(seq3D[c, 0])
+            resulty.append(seq3D[c, 1])
+        c += 1
+
+    seq3D[:, 0] = resultx
+    seq3D[:, 1] = resulty  # z-= seq[:,2] is not changing
+    seq3D[:, 3] = result
+    return seq3D, send_warn
 
 
 def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, plot_timestep):
@@ -286,7 +368,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
         plt.plot(x, h_t + cote, '-b')
         plt.plot(x, cote, '-k')
         plt.xlabel('Distance along the river [m]')
-        plt.ylabel('Height [m]')
+        plt.ylabel('Elevation [m]')
         plt.legend(('water height', 'river slope'))
         ax1 = plt.subplot(212)
         plt.plot(x, v_t, '-r')
@@ -296,7 +378,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
             os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(
             os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    # plt.close()
+    plt.close()
     # plt.show()
 
 

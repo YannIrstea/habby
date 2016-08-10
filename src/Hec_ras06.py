@@ -30,14 +30,15 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
     :param save_fig if True image is saved
 
     all entry parameter are string
-    :return: velocity, height for (x,y) of each river profile -> [x y dist v] and [ x y dist h] zone_v and xh_h
+    :return: coord_pro: for each profile (x,y,elev, dist along the profile), vh_pro for each profile
+    [dist along the profile, water height, velocity]
     """
     xy_h = [-99]
     zone_v = [-99]
 
     # load the geometry file which contains info on the profile and the geometry
-    [data_profile, coord_pro, coord_r, reach_name, data_bank] = open_geofile(geo_file, path_geo)
-    # if data could be extracted
+    [data_profile, coord_pro_old, coord_r, reach_name, data_bank, nb_pro_reach] = open_geofile(geo_file, path_geo)
+    # test if data could be extracted
     if data_profile == [-99]:
         return xy_h, zone_v
 
@@ -55,20 +56,24 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
     elif ext == ".rep":
         [vel, wse, riv_name, nb_sim] = open_repfile(res_file, reach_name, path_res, data_profile, data_bank)
     else:
-        print("Warning: The file containing the results is not in XML, rep or sdf format. HABBY try to read it as XML file.\n")
+        print("Warning: The file containing the results is not "
+              "in XML, rep or sdf format. HABBY try to read it as XML file.\n")
         [vel, wse, riv_name, nb_sim] = open_xmlfile(res_file, reach_name, path_res)
     # if data could not be extracted
     if vel == [-99]:
         return xy_h, zone_v
     # get water height in the (x,y coordinate) and get the velocity in the (x,y) coordinates
     # velocity is by zone (between 2 points) and height is on the node
-    # maximum distance between two velocity point: ASK YANN
-    [xy_h, zone_v] = find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, 1000)
+    # maximum distance between two velocity point: yTO BE DEFINED
+    [xy_h, zone_v] = find_coord_height_velocity(coord_pro_old, data_profile, vel, wse, nb_sim, 1000)
     # plot and check
     if save_fig:
-        figure_xml(data_profile, coord_pro, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
+        figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
 
-    return xy_h, zone_v
+    # update the form of the vector to be coherent with rubar and mascaret
+    [coord_pro, vh_pro] = update_output(zone_v, coord_pro_old, data_profile, xy_h)
+
+    return coord_pro, vh_pro, nb_pro_reach
 
 
 def open_xmlfile(xml_file, reach_name, path):
@@ -323,14 +328,14 @@ def open_geofile(geo_file, path):
             a = data_geo.find('River Reach='+reach_name_ini[i])
             b = data_geo.find('River Reach='+reach_name_ini[i+1])
             reach_nb_str = data_geo[a:b]
-            nb_pro_reach[i] = reach_nb_str.count('#Sta/Elev=')
+            nb_pro_reach[i] = int(reach_nb_str.count('#Sta/Elev='))
         reach_nb_str = data_geo[b:]
-        nb_pro_reach[i+1] = reach_nb_str.count('#Sta/Elev=')
+        nb_pro_reach[i+1] = int(reach_nb_str.count('#Sta/Elev='))
         check_nb_pro_reach = len(data_profile_str) - np.sum(nb_pro_reach)
         if check_nb_pro_reach > 1:
             print("Warning: The number of profile by reach might not be right.\n")
     else:
-        nb_pro_reach = [len(data_profile_str)]
+        nb_pro_reach = [int(len(data_profile_str))]
 
     # load the coordinates of the profile
     # there is a georeferenced case with the coordinates of the profile
@@ -387,7 +392,7 @@ def open_geofile(geo_file, path):
         print('Warning: The river profiles are not georeferenced. HYP: straight profiles. CHECK NECESSARY. \n')
         coord_p = coord_profile_non_georeferenced(data_bank, data_dist, data_river, data_profile, nb_pro_reach)
 
-    return data_profile, coord_p, data_river, reach_name, data_bank
+    return data_profile, coord_p, data_river, reach_name, data_bank, nb_pro_reach
 
 
 def coord_profile_non_georeferenced(data_bank_all, data_dist_all, data_river_all, data_profile_all, nb_pro_reach):
@@ -899,11 +904,82 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
     return xy_h_all, zone_v_all
 
 
-def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
+def update_output(zone_v, coord_pro_old, data_profile, xy_h):
+    """
+    This functio update the form of the output so it is coherent with mascaret and rubar after the lateral
+     distribution of velocity. 2 important change: coord_pro contains dist along the profile (x) and height
+      in addition to the coordinates. vh_pro is only for height above water, a point is created at the water limits and
+      v and height are given at the same points.
+     :param zone_v (x,y, dist along profile, v) for each time step. However, the zone are the one from the models.
+     They are different than the one from xy_h, which is unpractical for the rest of the model
+     :param coord_pro_old the (x,y) coordinate for the profile, we add the distance along the profile and the height
+     to get the new coord_pro
+     :param data_profile the distance along the porfile and height of each profile
+     :param xy_h the water height
+    :return: coord_pro, vh_pro
+    """
+    vh_pro = []
+    coord_pro = []
+    for t in range(0, len(zone_v)):
+        # vhpro for this time step
+        vh_pro_t = []
+        for p in range(0, len(coord_pro_old)):
+
+            # amend coord_pro
+            if t == 0:
+                coord_pro_p_old = coord_pro_old[p]
+                data_profile_p = data_profile[p]
+                coord_pro_p = [coord_pro_p_old[:, 0], coord_pro_p_old[:, 1], data_profile_p[:, 1], data_profile_p[:, 0]]
+                coord_pro.append(coord_pro_p)
+
+            # create vh_pro
+            xy_h_pro = xy_h[t][p]
+            x_p = xy_h_pro[:, 2]
+            h_p = xy_h_pro[:, 3]
+            # add the point of the water limits
+            zero_crossings = np.where(np.diff(np.signbit(h_p)))[0]
+            for i in zero_crossings:
+                if x_p[i] < x_p[i + 1]:
+                    a = (h_p[i] - h_p[i + 1]) / (x_p[i] - x_p[i + 1])  # lin interpolation
+                    b = h_p[i] - a * x_p[i]
+                    new_x = - b / a
+                elif x_p[i] == x_p[i + 1]:
+                    new_x = x_p[i]
+                else:
+                    print('Error: x-coordinates are not increasing.\n')
+                    return [-99], [-99]
+                h_p = np.concatenate((h_p[:i+1 ], [0], h_p[i+1:]))
+                x_p = np.concatenate((x_p[:i+1 ], [new_x], x_p[i+1 :]))
+                zero_crossings += 1
+            water_ind = np.where(h_p >= 0)[0]
+            x_p0 = x_p
+            h_p0 = h_p
+            h_p = h_p[water_ind]
+            x_p = x_p[water_ind]
+            # update zone_v so it has the seme length than x_p
+            zone_v_pro = zone_v[t][p]
+            zone_v_new = np.zeros((len(h_p),))
+            for i in range(0, len(zone_v_pro)):
+                ind = np.where(x_p >= zone_v_pro[i,2])
+                zone_v_new[ind] = zone_v_pro[i,3]
+
+            # velcoity is zeros if water height = 0
+            x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[max(water_ind)+1]]))
+            h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p0[max(water_ind)+1]]))
+            v_here = np.concatenate(([0], zone_v_new, [0]))
+            vh_pro_t_p = [x_here, h_here, v_here]
+            vh_pro_t.append(vh_pro_t_p)
+
+        vh_pro.append(vh_pro_t)
+
+    return coord_pro, vh_pro
+
+
+def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
     """
     A small function to plot the results
     :param data_profile (list with np.array)
-    :param coord: (x,y) data of the profile
+    :param coord_pro_old: (x,y) data of the profile
     :param coord_r: (x,y) data of the river
     :param xy_h_all: (x,y, h) for the height data for each simulation
     :param zone_v_all: (x,y, v) for the velocity data. velocity is by zone. for each simulation.
@@ -994,8 +1070,8 @@ def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im
     for i in range(0,len(coord_r)):
         coord_r_i = coord_r[i]
         plot(coord_r_i[:, 0], coord_r_i[:, 1], label='River')
-    for j in range(0, len(coord)):
-        coord_j = coord[j]
+    for j in range(0, len(coord_pro_old)):
+        coord_j = coord_pro_old[j]
         xy_j = xy_h[j]
         v_xy_j = zone_v[j]
         plot(coord_j[:, 0], coord_j[:, 1], '-xm', label=txt_pro,  markersize=8)  # profile
@@ -1029,17 +1105,14 @@ def figure_xml(data_profile, coord, coord_r, xy_h_all, zone_v_all,  pro, path_im
 
 def main():
 
-    path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Unsteady Examples'
-    #path_test = r"D:\gros_fichier_pas_sauvegarder\2-Modele-HEC-RAS\Ram"
-    path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\2D Unsteady Flow Hydraulics\Muncie'
-    #name = 'BaldEagleDamBrk'
-    name = 'Muncie'
-    name_xml = name+ '.RASexport.sdf'
-    #name_xml = name + '.rep'
-    #name_xml = name+ '.O04.xml'
-    name_geo = name+'.g04'
+    path_test = r'C:\Users\diane.von-gunten\HABBY\test_data'
+    name = 'LOOP'
+    name_xml = name+ '.O02.xml'
+    name_geo = name+'.g01'
+    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 
-    [xyh, zone_v] = open_hecras(name_geo, name_xml, path_test, path_test)
+    [coord_pro, vh_pro, nb_pro_reach] = open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+    print(nb_pro_reach)
 
 if __name__ == '__main__':
     main()

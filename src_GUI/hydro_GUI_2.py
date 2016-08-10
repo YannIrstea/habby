@@ -35,7 +35,7 @@ class Hydro2W(QWidget):
         self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "MASCARET", "RIVER2D", "RUBAR 1D", "RUBAR2D", "TELEMAC"]  # "MAGE"
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20", "TELEMAC"]  # "MAGE"
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -390,7 +390,7 @@ class HEC_RAS1D(SubHydroW):
         # redirect the out stream to my output
         # THREAD -> TO BE CHECKED!!!
         sys.stdout = self.mystdout = StringIO()
-        [xy_h, zone_v] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
+        [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
                                                self.pathfile[1], path_im, self.save_fig)
         sys.stdout = sys.__stdout__
 
