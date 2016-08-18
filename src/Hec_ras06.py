@@ -71,7 +71,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
         figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
 
     # update the form of the vector to be coherent with rubar and mascaret
-    [coord_pro, vh_pro] = update_output(zone_v, coord_pro_old, data_profile, xy_h)
+    [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
 
     return coord_pro, vh_pro, nb_pro_reach
 
@@ -904,19 +904,21 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
     return xy_h_all, zone_v_all
 
 
-def update_output(zone_v, coord_pro_old, data_profile, xy_h):
+def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
     """
     This functio update the form of the output so it is coherent with mascaret and rubar after the lateral
      distribution of velocity. 2 important change: coord_pro contains dist along the profile (x) and height
       in addition to the coordinates. vh_pro is only for height above water, a point is created at the water limits and
-      v and height are given at the same points.
+      v and height are given at the same points. nb_pro_reach is also modified as in mascaret.
      :param zone_v (x,y, dist along profile, v) for each time step. However, the zone are the one from the models.
      They are different than the one from xy_h, which is unpractical for the rest of the model
      :param coord_pro_old the (x,y) coordinate for the profile, we add the distance along the profile and the height
      to get the new coord_pro
      :param data_profile the distance along the porfile and height of each profile
      :param xy_h the water height
-    :return: coord_pro, vh_pro
+     :param nb_pro_reach_old the numner of the profile by reach. we want to midify it so it start by zero and is additive
+      (give total number of profile before, not the numner of profile by reach)
+    :return: coord_pro, vh_pro, nb_pro_reach
     """
     vh_pro = []
     coord_pro = []
@@ -972,7 +974,13 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h):
 
         vh_pro.append(vh_pro_t)
 
-    return coord_pro, vh_pro
+    # update nb_pro_reach
+    nb_pro_reach = []
+    for r in range(0,len(nb_pro_reach_old)):
+        nb_pro_reach.append(int(np.sum(nb_pro_reach_old[:r])))
+    nb_pro_reach.append(int(np.sum(nb_pro_reach_old)))
+
+    return coord_pro, vh_pro, nb_pro_reach
 
 
 def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
@@ -1112,7 +1120,6 @@ def main():
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 
     [coord_pro, vh_pro, nb_pro_reach] = open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-    print(nb_pro_reach)
 
 if __name__ == '__main__':
     main()

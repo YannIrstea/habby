@@ -428,7 +428,7 @@ class Rubar2D(SubHydroW):
         # update attibute for rubar 2d
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
-        self.extension = [['.mai'], ['.tps']]  # list of list in case there is more than one possible ext.
+        self.extension = [['.mai', '.dat'], ['.tps']]  # list of list in case there is more than one possible ext.
 
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
@@ -440,7 +440,7 @@ class Rubar2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.mai)', self)
+        self.geo_b = QPushButton('Choose file (.mai, .dat)', self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
@@ -799,7 +799,7 @@ class Rubar1D(SubHydroW):
         # update attibute for hec-ras 1d
         self.attributexml = ['rubar_1dpro', 'data1d_rubar']
         self.model_type = 'RUBAR1D'
-        self.extension = [['.rbe'], ['']]  # no useful extension in this case
+        self.extension = [[''], ['']]  # no useful extension in this case
 
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
