@@ -856,6 +856,8 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
             # find distance between the coordinate system
             dist = np.linalg.norm(coord_pro_p[:-1, :] - coord_pro_p[1:, :], axis=1)  # dist between two points
             dist_tot = np.sum(dist)  # coordinates in (x,y)
+            if dist_tot == 0:  # division by zero is annoying
+                dist_tot = 1e-8
             dist_pro = x[-1]  # coordinates in meter or feet
             dist2 = dist * dist_pro / dist_tot  # also meter or feet
             vel_x = dist_pro * vel_p[:, 0]
@@ -926,16 +928,17 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
         # vhpro for this time step
         vh_pro_t = []
         for p in range(0, len(coord_pro_old)):
+            xy_h_pro = xy_h[t][p]
 
             # amend coord_pro
             if t == 0:
                 coord_pro_p_old = coord_pro_old[p]
                 data_profile_p = data_profile[p]
-                coord_pro_p = [coord_pro_p_old[:, 0], coord_pro_p_old[:, 1], data_profile_p[:, 1], data_profile_p[:, 0]]
+                #coord_pro_p = [coord_pro_p_old[:, 0], coord_pro_p_old[:, 1], data_profile_p[:, 1], data_profile_p[:, 0]]
+                coord_pro_p = [xy_h_pro[:, 0], xy_h_pro[:, 1], data_profile_p[:, 1], data_profile_p[:, 0]]
                 coord_pro.append(coord_pro_p)
 
             # create vh_pro
-            xy_h_pro = xy_h[t][p]
             x_p = xy_h_pro[:, 2]
             h_p = xy_h_pro[:, 3]
             # add the point of the water limits
@@ -966,8 +969,45 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                 zone_v_new[ind] = zone_v_pro[i,3]
 
             # velcoity is zeros if water height = 0
-            x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[max(water_ind)+1]]))
-            h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p0[max(water_ind)+1]]))
+            # so two additional point needed
+            # we should not have two identical point(!)
+            if len(x_p0)-1 == max(water_ind) and min(water_ind)>0:
+                h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p0[-1]]))
+                if x_p0[-1] > 0:
+                    x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[-1]*1.01]))
+                elif x_p0[-1] == 0:
+                    x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [0.0001]))
+                else:
+                    x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[-1] * 0.99]))
+
+            elif len(x_p0) - 1 > max(water_ind) and min(water_ind) == 0:
+                h_here = np.concatenate(([h_p0[0]], h_p, [h_p0[max(water_ind) + 1]]))
+                if x_p0[0] > 0:
+                    x_here = np.concatenate(([x_p0[0] * 0.99], x_p, [x_p0[max(water_ind) + 1]]))
+                elif x_p0[0] == 0:
+                    x_here = np.concatenate(([0.00001], x_p, [x_p0[max(water_ind) + 1]]))
+                else:
+                    x_here = np.concatenate(([x_p0[0] * 1.01], x_p, [x_p0[max(water_ind) + 1]]))
+
+            elif len(x_p0) - 1 == max(water_ind) and min(water_ind) == 0:
+                h_here = np.concatenate(([h_p0[0]], h_p, [h_p0[-1]]))
+                if x_p0[0] > 0 and x_p0[-1] > 0:
+                    x_here = np.concatenate(([x_p0[0] * 0.99], x_p, [x_p0[-1]*1.01]))
+                elif x_p0[0] > 0 and x_p0[-1] < 0:
+                    x_here = np.concatenate(([x_p0[0] * 0.99], x_p, [x_p0[-1] * 0.99]))
+                elif x_p0[0] == 0 and x_p0[-1] > 0:
+                    x_here = np.concatenate(([0.00001], x_p, [x_p0[-1]*1.01]))
+                elif x_p0[0] == 0 and x_p0[-1] < 0:
+                    x_here = np.concatenate(([0.00001], x_p, [x_p0[-1] * 0.99]))
+                elif x_p0[0]< 0 and x_p0[-1] < 0:
+                    x_here = np.concatenate(([x_p0[0] * 1.01], x_p, [x_p0[-1] * 0.99]))
+                else:  # < 0 and >0
+                    x_here = np.concatenate(([x_p0[0] * 1.01], x_p, [x_p0[-1]*1.01]))
+
+            else:
+                # this is the usually useful case! all the opther are special case
+                x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[max(water_ind) + 1]]))
+                h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p0[max(water_ind) + 1]]))
             v_here = np.concatenate(([0], zone_v_new, [0]))
             vh_pro_t_p = [x_here, h_here, v_here]
             vh_pro_t.append(vh_pro_t_p)
