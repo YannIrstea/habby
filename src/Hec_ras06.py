@@ -855,6 +855,8 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
 
             # find distance between the coordinate system
             dist = np.linalg.norm(coord_pro_p[:-1, :] - coord_pro_p[1:, :], axis=1)  # dist between two points
+            if dist[0] == 0:
+                m = 2
             dist_tot = np.sum(dist)  # coordinates in (x,y)
             if dist_tot == 0:  # division by zero is annoying
                 dist_tot = 1e-8
@@ -864,6 +866,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
 
             # get the first and end profile point
             xy2[:, :2] = coord_pro_p[0, :]
+            xy2[-1, :2] = coord_pro_p[-1, :]
             zone_v_p[:, :2] = coord_pro_p[0, :]
             if vel_p[0, 0] < -1e30:  # HEC-RAS-> +/-X.XXe35 = end or beginning of profile (if I get it right)
                 zone_v_p[0, :2] = coord_pro_p[0, :]
@@ -922,25 +925,75 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
       (give total number of profile before, not the numner of profile by reach)
     :return: coord_pro, vh_pro, nb_pro_reach
     """
+
     vh_pro = []
     coord_pro = []
+    warn_dup = True
+    dist_mov = 0.001
     for t in range(0, len(zone_v)):
         # vhpro for this time step
         vh_pro_t = []
+
         for p in range(0, len(coord_pro_old)):
             xy_h_pro = xy_h[t][p]
+            data_profile_p = data_profile[p]
 
-            # amend coord_pro
+            # create an updated form of coord_pro with all the data (one point by height measurement)
+            # add dist along profil and height to coord_pro
             if t == 0:
-                coord_pro_p_old = coord_pro_old[p]
-                data_profile_p = data_profile[p]
-                #coord_pro_p = [coord_pro_p_old[:, 0], coord_pro_p_old[:, 1], data_profile_p[:, 1], data_profile_p[:, 0]]
-                coord_pro_p = [xy_h_pro[:, 0], xy_h_pro[:, 1], data_profile_p[:, 1], data_profile_p[:, 0]]
+                # check for special case and correct or ignore profile
+                if np.sum(abs(xy_h_pro[:, 0]) + abs(xy_h_pro[:, 1])) == 0:
+                    print('Warning: profil with only (0,0) as a coordinate. Is ignored. \n')
+                    break
+                if len(xy_h_pro[:, 0]) < 2:
+                    print('Warning: profil with one or zeros points. Is ignored. \n')
+                    break
+                s = np.sort(xy_h_pro[:, 2], axis=None)
+                if (s == xy_h_pro[:, 2]).all:
+                    pass
+                else:
+                    print('Warning: Coordinate points are not aligned along the profile.\n')
+                # find if we have duplicates (the grid does not function in this case)
+                s2 = s[:-1]
+                duplicate = s2[s[1:] == s[:-1]]
+                # check duplicate first point
+                if xy_h_pro[0, 2] == xy_h_pro[1, 2]:
+                    duplicate_start = [0]
+                    duplicate_start.extend(duplicate)
+                    duplicate = duplicate_start
+                # correct the duplicates
+                if len(duplicate) > 1:
+                    if warn_dup:
+                        print('Warning: Duplicate value in the profile. Modifications will be made. \n')
+                        warn_dup = False
+                    for i in range(0, len(duplicate)):
+                        ind_dup = np.where(xy_h_pro[:, 2] == duplicate[i])[0]
+                        for j in range(0, len(ind_dup)-1):
+                            xy_h_pro[ind_dup[j], 2] -= dist_mov * (j+1)* xy_h_pro[ind_dup[j], 2] + dist_mov/100
+                            #if ind_dup[j]>0:
+                             #   ax = xy_h_pro[ind_dup[j], 0] - xy_h_pro[ind_dup[j]-1, 0]
+                             #   ay = xy_h_pro[ind_dup[j], 1] - xy_h_pro[ind_dup[j]-1, 1]
+                            #else:
+                            ax = xy_h_pro[-1, 0] - xy_h_pro[0, 0]
+                            ay = xy_h_pro[-1, 1] - xy_h_pro[0, 1]
+                            norm = np.sqrt(ax**2 + ay**2)
+                            ax = ax / norm
+                            ay = ay / norm
+                            if ax == 0 and ay == 0:
+                                xy_h_pro[ind_dup[j], 0] -= 1e-7
+                                xy_h_pro[ind_dup[j], 1] -= 1e-7
+                            else:
+                                xy_h_pro[ind_dup[j], 0] -= ax * dist_mov * (j+1)
+                                xy_h_pro[ind_dup[j], 1] -= ay * dist_mov * (j+1)
+
+                # add the new profile
+                coord_pro_p = [xy_h_pro[:, 0], xy_h_pro[:, 1], data_profile_p[:, 1], xy_h_pro[:, 2]]
                 coord_pro.append(coord_pro_p)
 
-            # create vh_pro
             x_p = xy_h_pro[:, 2]
             h_p = xy_h_pro[:, 3]
+
+            # create the vh_pro_t array
             # add the point of the water limits
             zero_crossings = np.where(np.diff(np.signbit(h_p)))[0]
             for i in zero_crossings:
@@ -953,65 +1006,40 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                 else:
                     print('Error: x-coordinates are not increasing.\n')
                     return [-99], [-99]
-                h_p = np.concatenate((h_p[:i+1 ], [0], h_p[i+1:]))
-                x_p = np.concatenate((x_p[:i+1 ], [new_x], x_p[i+1 :]))
+                h_p = np.concatenate((h_p[:i + 1], [0], h_p[i + 1:]))
+                x_p = np.concatenate((x_p[:i + 1], [new_x], x_p[i + 1:]))
                 zero_crossings += 1
             water_ind = np.where(h_p >= 0)[0]
             x_p0 = x_p
             h_p0 = h_p
             h_p = h_p[water_ind]
             x_p = x_p[water_ind]
-            # update zone_v so it has the seme length than x_p
+            # add the velocity
             zone_v_pro = zone_v[t][p]
             zone_v_new = np.zeros((len(h_p),))
-            for i in range(0, len(zone_v_pro)):
-                ind = np.where(x_p >= zone_v_pro[i,2])
-                zone_v_new[ind] = zone_v_pro[i,3]
-
-            # velcoity is zeros if water height = 0
-            # so two additional point needed
+            for i in range(0, len(h_p)):
+                indv = np.argmin(abs(zone_v_pro[:, 2] - x_p[i]))
+                zone_v_new[i] = zone_v_pro[indv, 3]
+            # velcoity is zeros if water height = 0, velocity is by zone and not by point
+            # so two additional point needed for plotting
             # we should not have two identical point(!)
-            if len(x_p0)-1 == max(water_ind) and min(water_ind)>0:
-                h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p0[-1]]))
-                if x_p0[-1] > 0:
-                    x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[-1]*1.01]))
-                elif x_p0[-1] == 0:
-                    x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [0.0001]))
-                else:
-                    x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[-1] * 0.99]))
-
-            elif len(x_p0) - 1 > max(water_ind) and min(water_ind) == 0:
-                h_here = np.concatenate(([h_p0[0]], h_p, [h_p0[max(water_ind) + 1]]))
-                if x_p0[0] > 0:
-                    x_here = np.concatenate(([x_p0[0] * 0.99], x_p, [x_p0[max(water_ind) + 1]]))
-                elif x_p0[0] == 0:
-                    x_here = np.concatenate(([0.00001], x_p, [x_p0[max(water_ind) + 1]]))
-                else:
-                    x_here = np.concatenate(([x_p0[0] * 1.01], x_p, [x_p0[max(water_ind) + 1]]))
-
-            elif len(x_p0) - 1 == max(water_ind) and min(water_ind) == 0:
-                h_here = np.concatenate(([h_p0[0]], h_p, [h_p0[-1]]))
-                if x_p0[0] > 0 and x_p0[-1] > 0:
-                    x_here = np.concatenate(([x_p0[0] * 0.99], x_p, [x_p0[-1]*1.01]))
-                elif x_p0[0] > 0 and x_p0[-1] < 0:
-                    x_here = np.concatenate(([x_p0[0] * 0.99], x_p, [x_p0[-1] * 0.99]))
-                elif x_p0[0] == 0 and x_p0[-1] > 0:
-                    x_here = np.concatenate(([0.00001], x_p, [x_p0[-1]*1.01]))
-                elif x_p0[0] == 0 and x_p0[-1] < 0:
-                    x_here = np.concatenate(([0.00001], x_p, [x_p0[-1] * 0.99]))
-                elif x_p0[0]< 0 and x_p0[-1] < 0:
-                    x_here = np.concatenate(([x_p0[0] * 1.01], x_p, [x_p0[-1] * 0.99]))
-                else:  # < 0 and >0
-                    x_here = np.concatenate(([x_p0[0] * 1.01], x_p, [x_p0[-1]*1.01]))
-
-            else:
-                # this is the usually useful case! all the opther are special case
+            if len(x_p0) - 1 > max(water_ind) and min(water_ind) > 0:
                 x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p0[max(water_ind) + 1]]))
                 h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p0[max(water_ind) + 1]]))
+            elif len(x_p0) - 1 > max(water_ind) and min(water_ind) == 0:
+                x_here = np.concatenate(
+                    ([x_p[0] - dist_mov * x_p[0] + dist_mov / 100], x_p, [x_p0[max(water_ind) + 1]]))
+                h_here = np.concatenate(([h_p[0]], h_p, [h_p0[max(water_ind) + 1]]))
+            elif len(x_p0) - 1 < max(water_ind) and min(water_ind) > 0:
+                x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p[-1] + dist_mov * x_p[-1]]))
+                h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p[-1] + dist_mov * h_p[-1]]))
+            else:
+                x_here = np.concatenate(([x_p0[0] - dist_mov * x_p0[0] + dist_mov / 100],
+                                         x_p, [x_p[-1] + dist_mov * x_p[-1]]))
+                h_here = np.concatenate(([h_p0[0]], h_p, [h_p[-1]]))
             v_here = np.concatenate(([0], zone_v_new, [0]))
             vh_pro_t_p = [x_here, h_here, v_here]
             vh_pro_t.append(vh_pro_t_p)
-
         vh_pro.append(vh_pro_t)
 
     # update nb_pro_reach
@@ -1021,6 +1049,8 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
     nb_pro_reach.append(int(np.sum(nb_pro_reach_old)))
 
     return coord_pro, vh_pro, nb_pro_reach
+
+
 
 
 def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
@@ -1154,7 +1184,8 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
 def main():
 
     path_test = r'C:\Users\diane.von-gunten\HABBY\test_data'
-    name = 'LOOP'
+    path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
+    name = 'JUNCTION'
     name_xml = name+ '.O02.xml'
     name_geo = name+'.g01'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
