@@ -823,8 +823,6 @@ def load_tps_2d(tpsfile, path, nb_cell):
             v.append(vi)
         except ValueError:
             print('Error: the data could not be extracted from the .tps file. Error at number ' + str(i) + '.\n')
-            print(i-nb_cell)
-            print(len(data_tps))
             return [-99], [-99], [-99]
 
     return t, h,v
@@ -902,16 +900,16 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
 
 def main():
 
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
-    # geofile2d='BS15a6.mai'
-    # tpsfile = 'BS15a6.tps'
-    # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\aval07'
-    # geofile2d = 'aval07.dat'
-    # tpsfile = 'aval07diane.tps'
-    # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\belcastel201106\sect2b14'
-    # geofile2d = 'sect2b.dat'
-    # tpsfile = 'sect2b.tps'
-    # load_rubar2d(geofile2d,tpsfile, path, path, path, True)
+    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
+    geofile2d='BS15a6.mai'
+    tpsfile = 'BS15a6.tps'
+    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\aval07'
+    geofile2d = 'aval07.dat'
+    tpsfile = 'aval07.tps'
+    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\belcastel201106\sect2b14'
+    #geofile2d = 'sect2b.dat'
+    #tpsfile = 'sect2b.tps'
+    load_rubar2d(geofile2d,tpsfile, path, path, path, True)
 
     #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'

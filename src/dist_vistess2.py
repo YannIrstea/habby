@@ -2,7 +2,7 @@ import numpy as np
 #import mascaret
 #import rubar
 import matplotlib.pyplot as plt
-import Hec_ras06
+from src import Hec_ras06
 
 
 def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, eng=1.0, on_profile=[]):
@@ -110,15 +110,19 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 x0 = x_p[:-1]
                 h0 = h_p[:-1]
                 x1 = x_p[1:]
+                # find the min / max height
                 hmax = np.max([h0, h_p[1:]], axis=0)
                 hmin = np.min([h0, h_p[1:]], axis=0)
 
                 # profil with vertical x (theorically corrected before, but here as extra control)
                 vert = np.where(x0 != x1)
                 h0 = h0[vert]
+                hmax = hmax[vert]
+                hmin = hmin[vert]
                 x0 = x0[vert]
                 x1 = x1[vert]
                 n = n[vert]
+
 
                 # get wetted perimeter, area, hydraulic radius
                 wet_pro = np.sqrt((hmax - hmin)**2 + (x1 - x0)**2)

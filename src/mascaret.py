@@ -4,6 +4,8 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from struct import unpack
+from struct import error as errstruct
 from src import Hec_ras06
 
 
@@ -56,11 +58,18 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
         coord_pro.append(coord_pro_p)
 
     # result info
-    [xhzv_data, timestep] = open_res_file(file_res, path_res)
+    blob, ext = os.path.splitext(file_res)
+    if ext == '.rub':
+        [xhzv_data, timestep] = open_rub_file(file_res, path_res)
+    else:
+        [xhzv_data, timestep] = open_res_file(file_res, path_res)
     if len(timestep) == 1 and timestep[0] == -99:
         print('Error: Data could not be loaded. \n')
-        return
+        return -99, -99, -99, -99, -99, -99, -99
     on_profile = is_this_res_on_the_profile(abscisse, xhzv_data)
+    if len(on_profile) == 1 and on_profile[0] == -99:
+        print('Error: the profile number was not coherent.\n')
+        return -99, -99, -99, -99, -99, -99, -99
 
     return coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach
 
@@ -256,6 +265,7 @@ def correct_duplicate(seq, send_warn, idfun=None):
             seen[marker] = 1
             result.append(item)
     return result, send_warn
+
 
 def river_coord_non_georef_from_xcas(file_gen, path_gen, abcisse, nb_pro_reach):
     """
@@ -709,10 +719,228 @@ def is_this_res_on_the_profile(abscisse, xhzv_data_all):
             for j in range(0, len(inds)):
                 on_profile[inds[j]] = True
         else:
-            print('Warning: a profile could not be found in the result files. \n')
+            print('Error: a profile could not be found in the result files. \n')
+            return [-99]
     on_profile = np.array(on_profile)
 
     return on_profile
+
+
+def open_rub_file(file_res, path_res):
+    """
+    The function to open the binary output file from mascaret (.rub format)
+    :param file_res: the name of the rub binary file
+    :param path_res: the path to this file
+    :return: xhzv_data, timestep
+    """
+
+    failload = [-99], [-99]
+    xhzv_data = []
+    timestep = []
+
+    # open a binary file
+    blob, ext = os.path.splitext(file_res)
+    if ext != '.rub':
+        print('Warning: The mascaret file should be of .rub type. \n')
+    filename = os.path.join(path_res, file_res)
+    if not os.path.isfile(filename):
+        print('Error: The binary output file is not found (mascaret).\n')
+        return failload
+    try:
+        with open(filename, 'rb') as f:
+            in_fp = f.read()
+    except IOError:
+        print('Error: The binary output file can not be open (mascaret).\n')
+        return failload
+
+    # get the header (can be useful)
+    c = 0
+    for i in range(0, 3):
+        c += 4        # fortran have addition octet giving the size
+        try:
+            title = unpack("72s", in_fp[c:c+72])[0]
+        except errstruct:
+            print('Error: header could not be extracted of the .rub file. \n')
+            return failload
+        c += 72
+        c += 4
+        title = title.decode()
+
+    # go to the end of the title/header part of the file
+    still_len = True
+    try:
+        check_end = unpack("3s", in_fp[:3])[0]
+        check_end = check_end.decode()
+    except errstruct:
+        print('Error: Information from the .rub file could not be extracted.\n')
+        return failload
+    c += 4
+    while check_end != 'FIN' and still_len:
+        try:
+            check_end = unpack("3s", in_fp[c:c + 3])[0]
+            check_end = check_end.decode()
+        except errstruct:
+            print('Error: Information from the .rub file could not be extracted.\n')
+            return failload
+        c += 3
+        if c >= len(in_fp) - 1:
+            still_len = False
+    if not still_len:
+        print('Error: The format of the input file is not recognized. '
+              'The end of the file was reached before the end of the header. \n')
+        return failload
+    c += 1  # the last bytes after "FIN"
+    c += 8  # two free bytes
+
+    # get number of reach
+    try:
+        nb_reach = unpack("1i", in_fp[c:c + 4])[0]
+    except errstruct:
+        print('Error: the number of reach could not be extracted from the .rub file. \n')
+        return failload
+    if nb_reach > 500:
+        print('Warning: The number of reach looks unlikely. Number of reach: ' + str(nb_reach) + '.\n' )
+    c += 8 + nb_reach * 4 + 8 + nb_reach*4 + 8   # 8 because of padding related to FORTRAN
+
+    # get variable name which do not have a time dependance
+    var_name = []
+    sill_len = True
+    try:
+        check_end = unpack("3s", in_fp[:3])[0]
+        check_end = check_end.decode()
+    except errstruct:
+        print('Error: Information from the .rub file could not be extracted.\n')
+        return failload
+    c += 8
+    while check_end != 'FIN ' and still_len:
+        try:
+            check_end = unpack("4s", in_fp[c:c + 4])[0]
+            check_end = check_end.decode()
+        except errstruct:
+            print('Error: Information from the .rub file could not be extracted.\n')
+            return failload
+        if check_end != 'FIN ' and 'x00' not in check_end:
+            var_name.append(check_end)
+        c += 4+8
+        if c >= len(in_fp) - 1:
+            still_len = False
+    if not still_len:
+        print('Error: The format fo the input file is not recognized. '
+              'The end of the file was reached before the end of the header. \n')
+        return failload
+    nb_varnt = len(var_name)
+    # time independant variable: data
+    try:
+        len_var = unpack("1i", in_fp[c:c + 4])[0]
+    except errstruct:
+        print('Error: length of the variable could not be extracted. \n')
+        return failload
+    c += 12
+    x = []
+    zref = []
+    try:
+        for v in range(0, nb_varnt):
+            c += 4
+            if var_name[v] == 'X   ':
+                for i in range(0, len_var):
+                    xi = unpack('1f', in_fp[c:c + 4])[0]
+                    c += 4
+                    x.append(xi)
+                c += 4
+            elif var_name[v] == 'ZREF':
+                for i in range(0, len_var):
+                    zrefi = unpack('1f', in_fp[c:c + 4])[0]
+                    c += 4
+                    zref.append(zrefi)
+                c += 4
+            else:
+                c += 4*len_var +4
+    except errstruct:
+        print('Error: Variable X and ZREF could not be extracted')
+    c += 4
+
+    # block with the time dependant variable
+    # get variable name with a time dependance
+    var_namet = []
+    sill_len = True
+    check_end = unpack("3s", in_fp[:3])[0]
+    check_end = check_end.decode()
+    while check_end != 'FIN ' and still_len:
+        check_end = unpack("4s", in_fp[c:c + 4])[0]
+        check_end = check_end.decode()
+        if check_end != 'FIN ' and 'x00' not in check_end:
+            var_namet.append(check_end)
+            c += 4+8
+        if c >= len(in_fp) - 1:
+            still_len = False
+    if not still_len:
+        print('Error: The format of the input file is not recognized. '
+              'The end of the file was reached before the end of the header. \n')
+        return failload
+    nb_vart = len(var_namet)
+
+    # time independant variable: data
+    # get the number of time step
+    c += 12
+    try:
+        nb_step = unpack("1i", in_fp[c:c + 4])[0]
+    except errstruct:
+        print('Error: the number of time step could not be extracted from the .rub file. \n')
+        return failload
+    if nb_step > 1000:
+        print('Warning: More than 1000 time steps found. \n')
+    c +=4
+    nb_step = unpack("1i", in_fp[c:c + 4])[0]
+    c += 12
+
+    v = []
+    z = []
+    for t in range(0, nb_step):
+        # get this time step
+        try:
+                t = unpack('1f', in_fp[c:c + 4])[0]
+                timestep.append(t)
+        except errstruct:
+            print('Error: the time step could not be exteracted from the .rub file. \n')
+        c += 8*2
+        # get the length of the variable
+        try:
+            len_var = unpack("1i", in_fp[c:c + 4])[0]
+        except errstruct:
+            print('Error: length of the variable could not be extracted. \n')
+            return failload
+        c += 12
+        # get the data for V and Z
+        zt = []
+        vt = []
+        try:
+            for var in range(0, nb_vart):
+                c += 4
+                if var_namet[var] == 'Z   ':
+                    for i in range(0, len_var):
+                        zi = unpack('1f', in_fp[c:c + 4])[0]
+                        c += 4
+                        zt.append(zi)
+                    c += 4
+                elif var_namet[var] == 'VMIN':
+                    for i in range(0, len_var):
+                        vi = unpack('1f', in_fp[c:c + 4])[0]
+                        c += 4
+                        vt.append(vi)
+                    c += 4
+                else:
+                    c += 4 * len_var + 4
+        except errstruct:
+            print('Error: Variable V and Z could not be extracted')
+        z.append(zt)
+        v.append(vt)
+
+    # create xhzv_data
+    for t in range(0, nb_step):
+        xhzv_data_t = np.array([x, np.array(z[t])- np.array(zref), np.array(zref), np.array(v[t])])
+        xhzv_data.append(xhzv_data_t.T)
+
+    return xhzv_data, timestep
 
 
 def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]):
@@ -844,11 +1072,11 @@ def flat_coord_pro(coord_pro):
 
 def main():
 
-    path = r'D:\Diane_work\output_hydro\mascaret'
-    path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
-    #path = r'D:\Diane_work\output_hydro\mascaret\Schematique'
+    #path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
+    path = r'D:\Diane_work\output_hydro\mascaret\LecRub'
     file_geo = r'mascaret0.geo'
-    file_res = r'mascaret0_ecr.opt'
+    #file_res = r'mascaret0_ecr.opt'
+    file_res = r'mascaret0_full.rub'
     file_gen = 'mascaret0.xcas'
     #file_gen = r'failltext.xcas'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'

@@ -1,16 +1,16 @@
 import numpy as np
-import mascaret
-import dist_vistess2
+from src import mascaret
+from src import dist_vistess2
 import triangle
 import matplotlib.pyplot as plt
 import time
-import rubar
-import Hec_ras06
+from src import rubar
+from src import Hec_ras06
 import scipy.interpolate
 np.set_printoptions(threshold=np.inf)
 
 
-def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
+def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
     """
     It creates a grid from the coord_pro data.
     It creates the grid up to the end of the profile or up to the water limti uif vh_pro_t is present
@@ -27,6 +27,8 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
 
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param extra_pro: the number of "extra" profiles to be added between profile to simplify the grid
+    :param coord_sub: the coordainte of the point forming the substrate layer (often created with substrate.load_sub)
+    :param ikle_sub: the connectivity table of the substrate grid (often created with substrate.load_sub)
     :param nb_pro_reach: the number of reach by profile starting with 0
     :param vh_pro_t: the velocity and height of the water (used to cut the limit of the river).
     in the form dist along profile, h , v for the analyzed time step
@@ -81,12 +83,12 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
                     if norm != 0 and w < len(coord_pro_p1[0])-1:
                         nx = (coord_pro_p1[0][w+1] - coord_pro_p1[0][w]) * (1 / norm)
                         ny = (coord_pro_p1[1][w+1] - coord_pro_p1[1][w]) * (1 / norm)
-                    elif norm == 0 and w+2 < len(coord_pro_p1[0])-1:
+                    elif norm == 0 and w+3 < len(coord_pro_p1[0])-1:
                         print('Warning: Two identical point in profile. Profile will be modified. \n')
-                        norm = np.sqrt((coord_pro_p1[0][w + 2] - coord_pro_p1[0][w]) ** 2 +
-                                       (coord_pro_p1[1][w + 2] - coord_pro_p1[1][w]) ** 2)
-                        nx = (coord_pro_p1[0][w + 2] - coord_pro_p1[0][w]) * (1 / norm)
-                        ny = (coord_pro_p1[1][w + 2] - coord_pro_p1[1][w]) * (1 / norm)
+                        norm = np.sqrt((coord_pro_p1[0][w + 3] - coord_pro_p1[0][w]) ** 2 +
+                                       (coord_pro_p1[1][w + 3] - coord_pro_p1[1][w]) ** 2)
+                        nx = (coord_pro_p1[0][w + 3] - coord_pro_p1[0][w]) * (1 / norm)
+                        ny = (coord_pro_p1[1][w + 3] - coord_pro_p1[1][w]) * (1 / norm)
                     else:
                         print('Warning: length of the profil is not coherent.\n')
                     w += 1
@@ -163,6 +165,7 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
     # if we reach the end of the profile we have a triangle even if it is dangerous because of fine angle
     hole_all_i = []
     if vh_pro_t:
+        warn_isl = True
         r = -1
         seg_island = []
         # find island profile by profile
@@ -228,6 +231,7 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
                                           (point_af[:, 1] - y[ind_lim[i+1]]) ** 2)
                         ind4 = ind_af_s + np.argmin(dist_xy)
                         # add the six segments (start and end of each segment), so 12 points
+                        beg_len = len(seg_island)
                         if ind2 != ind1:
                             seg_island.append([ind1, r, p_here+bef])
                             seg_island.append([ind2, r,p_here+bef])
@@ -264,7 +268,20 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
                         # add the holes, so triangle know that this zone should be empty
                         oa = np.array([x[ind_lim[i]], y[ind_lim[i]]])
                         ob = np.array([x[ind_lim[i + 1]], y[ind_lim[i + 1]]])
-                        hole_all_i.append((0.5 * oa + 0.5 * ob).tolist())
+                        hole_here = (0.5 * oa + 0.5 * ob).tolist()
+                        # check if hole is in the triangle (might not be always true if geometry is complicated)
+                        polygon_ind = range(beg_len, len(seg_island))
+                        seg_poly = []
+                        for i in range(0, len(polygon_ind), 2):
+                            p1 = point_all[seg_island[polygon_ind[i]][0]]
+                            p2 = point_all[seg_island[polygon_ind[i+1]][0]]
+                            seg_poly.append([p1, p2])
+                        inside = inside_polygon(seg_poly, hole_here)
+                        if inside:
+                            hole_all_i.append(hole_here)
+                        elif warn_isl:
+                            print('Warning: Some islands were neglected because the geometry was unclear. \n')
+                            warn_isl = False
             else:
                 r += 1
         seg_island = np.array(seg_island)
@@ -328,7 +345,7 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
     test_unique = sorted_data[row_mask]
     if len(test_unique) != len(point_all):
         print('Warning: There is duplicate points. The triangulation might fail. \n')
-        # this is very very slow, but it might solve problem
+        # this is very very slow, but it might solve problems
         #for p in range(0, len(point_all)):
            #for p2 in range(0, len(point_all)):
               #if p !=p2:
@@ -338,6 +355,7 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
                     # print(p)
 
     # find the limits
+    seg_to_be_added2 = []
     for r in range(0, len(nb_pro_reach)-1):
         lim_by_reach_r = []
         ind_r = nb_pro_reach[r]
@@ -356,6 +374,7 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
                 for w in range(0, int(len(ind_isl_re)/2)):
                     seg_to_be_added = np.array([int(seg_island[ind_isl_re[2*w], 0]),
                                                 int(seg_island[ind_isl_re[2*w+1], 0])])
+                    #seg_to_be_added2.append(seg_to_be_added)
                     # needed because no identical segment possible
                     lim_by_reach_arr = np.array(lim_by_reach_r)
                     sum_reach = np.sum(abs(lim_by_reach_arr - seg_to_be_added), axis=1)
@@ -364,8 +383,15 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
         # add the limit of this reach
         lim_by_reach.append(lim_by_reach_r)
 
-    # add the point of substrate to point_all
-    # TO BE DONE
+    # add the substrate coordinate to point_all
+    len_beg = len(point_all)
+    for p in range(0, len(coord_sub)):
+        sum_sub = np.sum(abs(point_all - coord_sub[p]), axis=1)
+        if (sum_sub != 0).all():
+            point_all.append(coord_sub[p])
+    # add the segment forming the substrate
+
+    # add the extra hole
 
     # triangulate. Overlaping elements are just flagged in the variable overlap
     ikle_all = []
@@ -384,7 +410,7 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
         # the current version is actually the quickest one which I know. Might not be the quickest.
 
         if hole_all_i:
-            dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)  # , holes=hole_all_i
+            dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)  #
         else:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r])
         grid_dict = triangle.triangulate(dict_point, 'p')  # 'p' would allos for constraint V for verbose
@@ -392,6 +418,7 @@ def create_grid(coord_pro, extra_pro=1, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
         try:
             ikle_r = grid_dict['triangles']
             point_all_r = grid_dict['vertices']
+
         except KeyError:
             print('Warning: Reach with an empty grid.\n')
             ikle_r = None
@@ -450,6 +477,30 @@ def newp(p0, p1, extra_pro):
     # extract the first point (p0)
     new_p = new_p[1:, :]
     return new_p
+
+
+def inside_polygon(seg_poly, point):
+    """
+    a function to find if a piont is inside a polygon, using ray casting
+    :param seg_poly: the segment forming the polygon
+    :param point: the point which is indide or outside the polygon
+    :return: True is the point is inside the polygon, false otherwise
+    """
+
+    # the direction of the ray does not matter
+    ray = [point, [point[0], 1e5]]
+    inter_count = 0
+    for s in range(0, len(seg_poly)):
+        [inter, blob] = intersection_seg(seg_poly[s][0], seg_poly[s][1], ray[0], ray[1])
+        if inter:
+            inter_count +=1
+    if inter_count%2 ==0:
+        return False
+    else:
+        return True
+
+
+
 
 
 def intersection_seg(p1hyd, p2hyd, p1sub, p2sub):
@@ -682,11 +733,13 @@ def main():
         geofile = 'LE13.rbe'
         data = 'profil.LE13'
         [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
+        coord_sub = [[0.0,0.0], [2.0,2.0],[1.5,1.5]]
+        ikle_sub = [[0, 1, 2]]
 
         manning_value_center = 0.025
         manning_value_border = 0.06
         manning = []
-        nb_point =77
+        nb_point = len(coord_pro)
         # write this function better
         for p in range(0, len(coord_pro)):
             x_manning = coord_pro[p][0]
@@ -701,10 +754,10 @@ def main():
                 manning_p[ind[i]] = manning_value_center
             manning.append(manning_p)
 
-        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point, 1)
-        #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,2,3])
+        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, -99, 1)
+        #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
         [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
-            = create_grid(coord_pro, 1, [0, len(coord_pro)], vh_pro[-1])
+            = create_grid(coord_pro, 1, coord_sub, ikle_sub, [0, len(coord_pro)], vh_pro[-1])
         plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
 
         # test hec-ras

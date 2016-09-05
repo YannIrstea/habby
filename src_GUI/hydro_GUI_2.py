@@ -534,7 +534,7 @@ class Mascaret(SubHydroW):
         self.namefile = ['unknown file', 'unknown file', 'unknown file']
         self.pathfile = ['.', '.', '.']
         self.model_type = 'mascaret'
-        self.extension = [['.xcas'], ['.geo'], ['.opt']]
+        self.extension = [['.xcas'], ['.geo'], ['.opt', '.rub']]
 
         # if there is the project file with mascaret info, update the label and attibutes
         self.was_model_loaded_before(0)
@@ -556,7 +556,7 @@ class Mascaret(SubHydroW):
         self.geo_b.clicked.connect(lambda: self.show_dialog(1))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[1]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (.opt)', self)
+        self.out_b = QPushButton('Choose file \n (.opt, .rub)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(2))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[2]))
 
@@ -593,11 +593,10 @@ class Mascaret(SubHydroW):
         self.save_xml(1)
         self.save_xml(2)
         path_im = self.find_path_im()
-
         self.send_log.emit(self.tr('# Load: Mascaret data.'))
         sys.stdout = self.mystdout = StringIO()
         [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach]\
-            = mascaret.load_mascaret(self.namefile[0], self.namefile[1], self.namefile[2], self.pathfile[0],
+            = mascaret.load_mascaret(self.namefile[0], self.namefile[1], self.namefile[2], self.pathfile[0],\
                                      self.pathfile[1], self.pathfile[2])
         sys.stdout = sys.__stdout__
 
@@ -619,7 +618,6 @@ class Mascaret(SubHydroW):
             mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro,
                                      name_reach, path_im, [0, 1], [-1], [0])
             self.show_fig.emit()
-
 
 
 class River2D(SubHydroW):
