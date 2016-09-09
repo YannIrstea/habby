@@ -102,12 +102,12 @@ class MainWindows(QMainWindow):
         self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
         app.installTranslator(self.languageTranslator)
 
-        # create the new menu
-        self.my_menu_bar()
-
         # set the central widget
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
         self.setCentralWidget(self.central_widget)
+
+        # create the new menu
+        self.my_menu_bar()
 
         # connect the signals with the different functions
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
@@ -159,6 +159,9 @@ class MainWindows(QMainWindow):
         savi = QAction(self.tr("Clear Images"), self)
         savi.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
         savi.triggered.connect(self.erase_pict)
+        showim = QAction(self.tr("Show Images"), self)
+        showim.setStatusTip(self.tr('Open the window to view the created figures.'))
+        showim.triggered.connect(self.central_widget.showfig)
 
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
@@ -168,9 +171,6 @@ class MainWindows(QMainWindow):
         rechc.setShortcut('Ctrl+H')
         rechc.setStatusTip(self.tr('Hide untested research options'))
         rechc.triggered.connect(self.close_rech)
-        showim = QAction(self.tr("Show Images"), self)
-        showim.setStatusTip(self.tr('Open the window to view the created figures.'))
-        showim.triggered.connect(self.central_widget.showfig)
 
         # Menu to choose the language
         lAction1 = QAction(self.tr('&English'), self)

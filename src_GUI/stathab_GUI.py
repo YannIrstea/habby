@@ -571,8 +571,9 @@ class StathabW(QWidget):
         # log information
         sys.stdout = sys.__stdout__
         self.send_err_log()
-        if self.mystathab.disthmes == [-99]:
-            return
+        if len(self.mystathab.disthmes[0]) == 1:
+            if self.mystathab.disthmes[0] == -99:
+                return
         self.send_log.emit("py    path_bio = '" + self.path_bio_stathab + "'")
         self.send_log.emit("py    mystathab.stathab_calc(path_bio)")
         self.send_log.emit("py    mystathab.savetxt_stathab()")

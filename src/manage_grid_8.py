@@ -7,10 +7,11 @@ import time
 from src import rubar
 from src import Hec_ras06
 import scipy.interpolate
+import copy
 np.set_printoptions(threshold=np.inf)
 
 
-def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e10], vh_pro_t=[]):
+def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], pnew_add = 1):
     """
     It creates a grid from the coord_pro data.
     It creates the grid up to the end of the profile or up to the water limti uif vh_pro_t is present
@@ -179,10 +180,10 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e1
                 if np.any(p-1 == np.array(nb_pro_reach)):
                     if extra_pro2 % 2 == 0:
                         af = int(extra_pro2 / 2)
-                        bef = -2
+                        bef = -af -1
                     else:
                         af = int(np.floor(extra_pro2 / 2) + 1)
-                        bef = -2
+                        bef = -af
                 else:
                     if extra_pro2 % 2 == 0:
                         af = int(extra_pro2/2)
@@ -207,7 +208,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e1
                     x = coord_pro[p][0]
                     y = coord_pro[p][1]
                     # find profile before and after
-                    p_here = p + p*extra_pro2 - r * extra_pro2 -1
+                    p_here = p + p*extra_pro2 - r * extra_pro2 - 1
                     ind_bef_s = ind_p[p_here+bef]
                     ind_bef_e = ind_p[p_here+bef+1]
                     ind_af_s = ind_p[p_here+af]
@@ -356,8 +357,11 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e1
 
     # find the limits
     seg_to_be_added2 = []
+    lim_by_reach_for_sub = []
+    lim_isl_for_sub = []
     for r in range(0, len(nb_pro_reach)-1):
         lim_by_reach_r = []
+        lim_isl_for_subr = []
         ind_r = nb_pro_reach[r]
         ind_r2 = nb_pro_reach[r+1]
         # side (for both list)
@@ -367,6 +371,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e1
         # start and end of each reach
         lim_by_reach_r.append([ind_s[ind_r], ind_e[ind_r]])
         lim_by_reach_r.append([ind_s[ind_r2-1], ind_e[ind_r2-1]])
+        blob = copy.deepcopy(lim_by_reach_r)  # classic, classic, but still annoying
+        lim_by_reach_for_sub.append(blob)
         # add the segments realted to the island
         if vh_pro_t:
             if len(seg_island) > 1:
@@ -374,24 +380,93 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e1
                 for w in range(0, int(len(ind_isl_re)/2)):
                     seg_to_be_added = np.array([int(seg_island[ind_isl_re[2*w], 0]),
                                                 int(seg_island[ind_isl_re[2*w+1], 0])])
-                    #seg_to_be_added2.append(seg_to_be_added)
+                    # seg_to_be_added2.append(seg_to_be_added)
                     # needed because no identical segment possible
                     lim_by_reach_arr = np.array(lim_by_reach_r)
                     sum_reach = np.sum(abs(lim_by_reach_arr - seg_to_be_added), axis=1)
                     if (sum_reach != 0).all():
                         lim_by_reach_r.append(seg_to_be_added)
+                        lim_isl_for_subr.append(seg_to_be_added)
         # add the limit of this reach
         lim_by_reach.append(lim_by_reach_r)
+        lim_isl_for_sub.append(lim_isl_for_subr)
 
-    # add the substrate coordinate to point_all
-    len_beg = len(point_all)
-    for p in range(0, len(coord_sub)):
-        sum_sub = np.sum(abs(point_all - coord_sub[p]), axis=1)
-        if (sum_sub != 0).all():
-            point_all.append(coord_sub[p])
-    # add the segment forming the substrate
+    # add the segments and points related to the substrate
+    add_sub = True
+    if add_sub:
+        lim_here_all = []
+        lim_herei_all = []
+        si = 0
+        sub_analyzed = np.zeros((len(ikle_sub)*4, 4))
+        for i in range(0, len(ikle_sub)):
+            # it is probably a triangular grid but it might not be always true
+            for j in range(0, len(ikle_sub[i])):
 
-    # add the extra hole
+                # get the substrate segment
+                if j < len(ikle_sub[i])-1:
+                    p1sub = np.array(coord_sub[ikle_sub[i][j]])
+                    p2sub = np.array(coord_sub[ikle_sub[i][j+1]])
+                else:
+                    p1sub = np.array(coord_sub[ikle_sub[i][j]])
+                    p2sub = np.array(coord_sub[ikle_sub[i][0]])
+                # there is segment more than one time in ikle, we do not want to do it more than once
+                p12sub = np.array([p1sub[0], p1sub[1], p2sub[0], p2sub[1]])
+                p21sub = np.array([p2sub[0], p2sub[1], p1sub[0], p1sub[1]])
+                if np.any(np.sum(sub_analyzed - p12sub, axis=1) == 0) or np.any(np.sum(sub_analyzed - p21sub,axis=1) == 0):
+                    break
+                else:
+                    sub_analyzed[si, :] = p12sub
+                    si +=1
+
+                # to get a better quality mesh it is often useful to use smaller segments
+                # hence we cut the substrate segment in smaller entities
+                p1sub0 = copy.deepcopy(p1sub)
+                p2sub0 = copy.deepcopy(p2sub)
+                #dist = np.sqrt((p2sub0[0] - p1sub0[0])**2 + (p2sub0[1] - p1sub0[1])**2) / pnew_add
+                for pnew in range(0, pnew_add):
+                    # we redfine p1sub and p2sub here
+                    if pnew > 0:
+                        p1sub = copy.deepcopy(p2sub)
+                    p2sub[0] = p1sub0[0] + (pnew+1) / pnew_add * (p2sub0[0] - p1sub0[0])
+                    p2sub[1] = p1sub0[1] + (pnew+1) / pnew_add * (p2sub0[1] - p1sub0[1])
+                    # find the new segments
+                    for r in range(0, len(nb_pro_reach)-1):
+                        sp1 = []
+                        sp2 = []
+                        sp3 = []
+                        sp4 = []
+                        if i == 0 and j == 0 and pnew == 0:
+                            # create the limits of the reach with coordinates and not indices
+                            lim_here = []
+                            for w0 in range(0, len(lim_by_reach_for_sub[r])):
+                                p1here = point_all[lim_by_reach_for_sub[r][w0][0]]
+                                p2here = point_all[lim_by_reach_for_sub[r][w0][1]]
+                                lim_here.append([p1here, p2here])
+                            lim_here_all.append(lim_here)
+                        else:
+                            lim_here = lim_here_all[r]
+                        # check if crossing with a segment of the reach
+                        # add the substrate segment to lim_by_reach and point_all
+                        ind_seg_sub_ini0 = len(lim_by_reach[r])
+                        [point_all, lim_by_reach[r]] = \
+                            get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reach[r], point_all, False)
+                        ind_seg_sub_ini1 = len(lim_by_reach[r])
+                        # create the limits of the island with coordinates and not indices
+                        if i == 0 and j == 0 and pnew ==0 :
+                            lim_here = []
+                            for w0 in range(0, len(lim_isl_for_sub[r])):
+                                p1here = point_all[lim_isl_for_sub[r][w0][0]]
+                                p2here = point_all[lim_isl_for_sub[r][w0][1]]
+                                lim_here.append([p1here, p2here])
+                            lim_herei_all.append(lim_here)
+                        else:
+                            lim_here = lim_herei_all[r]
+                        # check if crossing with a segment of the island
+                        # add the substrate segment to lim_by_reach and point_all (if not already in)
+                        # we need to correct
+                        ind_seg_sub_ini = np.arange(ind_seg_sub_ini0, ind_seg_sub_ini1)
+                        [point_all, lim_by_reach[r]] = \
+                               get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reach[r], point_all, True, ind_seg_sub_ini)
 
     # triangulate. Overlaping elements are just flagged in the variable overlap
     ikle_all = []
@@ -413,7 +488,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach= [0, 1e1
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)  #
         else:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r])
-        grid_dict = triangle.triangulate(dict_point, 'p')  # 'p' would allos for constraint V for verbose
+        grid_dict = triangle.triangulate(dict_point,'p')  # 'p' would allos for constraint V for verbose
 
         try:
             ikle_r = grid_dict['triangles']
@@ -500,9 +575,6 @@ def inside_polygon(seg_poly, point):
         return True
 
 
-
-
-
 def intersection_seg(p1hyd, p2hyd, p1sub, p2sub):
     """
     find if there is an intersection between two segment (AB and CD). Idea from :
@@ -554,6 +626,161 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub):
     return inter, pc
 
 
+def add_point(point_all, point):
+    """
+    add one point to point all in the part concerned with the substrate
+    :param point_all: all the point
+    :param point:
+    :return: point_all, position of the new point
+    """
+
+    sum_sub = np.sum(abs(point_all - point), axis=1)
+    if (sum_sub != 0).all():
+        point_all = np.vstack((point_all, point))
+        return point_all, len(point_all)-1
+    else:
+        ind = np.where(sum_sub == 0)[0]
+        return point_all, ind[0]
+
+
+def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, island, ind_seg_sub_ini=[0]):
+    """
+    This function looks at one substrate segment and find the crossing points of this semgnet with the different
+     river segment. If island switch is True, lim_here is the limit of the island, so inside the polygon is outside the river
+     If island is false, lim_here is the limiy of the reach under investigation
+    :param p1sub: the start point of the substrate semgent
+    :param p2sub: the end point of the substrate segment
+    :param lim_here: the reach?island limit given in the coordinate system
+    :param lim_by_reachr: the limits for reach r which will be given to triangle given by point_all indices.
+    :param point_all: all the point (ccordinates) which will be given to triangle
+    :param island a boolena indicating if we are on an island or not
+    :param ind_seg_sub_ini: the indices of the first segment add by p1sub et p2sub by the reach. Only used island = true
+    :return: the update point_all and lim_by_reach
+    """
+
+    for seg in ind_seg_sub_ini:
+
+        if island:
+            p1sub = point_all[lim_by_reachr[seg][0]]
+            p2sub = point_all[lim_by_reachr[seg][1]]
+            to_delete = []
+        cross_poly = False
+
+        sp1 = []
+        sp2 = []
+        sp3 = []
+        sp4 = []
+
+        # test all segments in lim_here
+        for w in range(0, len(lim_here)):
+            p1rea = lim_here[w][0]
+            p2rea = lim_here[w][1]
+            [inter, pc] = intersection_seg(p1rea, p2rea, p1sub, p2sub)
+            # for each sub segment find the crossing point and if limit are outside or inside
+            if inter:
+                cross_poly = True
+                # find which point is outside and should be moved
+                inside1 = inside_polygon(lim_here, p1sub)
+                inside2 = inside_polygon(lim_here, p2sub)
+                pc[0][0] *= 0.99999  # having point exactly on the vertex is not good for triangle
+                pc[0][1] *= 0.99999
+                # if insland inside and outise are
+                if island:
+                    inside1 = not inside1
+                    inside2 = not inside2
+                if inside1 and not inside2:
+                    sp3.append(pc)
+                elif inside2 and not inside1:
+                    sp4.append(pc)
+                elif inside2 and inside1:
+                    sp1.append(pc)
+                elif not inside1 and not inside2:
+                    sp2.append(pc)
+        # if seg sub is crossing none of the reach segment
+        # check if inside or outside. If outside ignore
+        # if inside add to the lim_by-reach
+        if not cross_poly and not island:
+            inside = inside_polygon(lim_here, p1sub)
+            if inside:
+                [point_all, ind1] = add_point(point_all, p1sub)
+                [point_all, ind2] = add_point(point_all, p2sub)
+                lim_by_reachr.append([ind1, ind2])
+
+        # if the sub segment does not cross with an island, the only important case
+        # is if the segment is totally inside the island, i.e.  inside1 and inside2 are true
+        # We need to re-calculate inside1 and inside2 as they were switched before
+        if not cross_poly and island:
+            inside1 = inside_polygon(lim_here, p1sub)
+            inside2 = inside_polygon(lim_here, p2sub)
+            if inside1 and inside2:
+                to_delete.append(seg)
+                #lim_by_reachr.remove([p1sub, p2sub])
+
+        # if crossing, add to lim_by_reach, case by case
+        # we could have more than crossing by substrate segment
+        if len(sp1) > 0:  # both p1sub and p2sub inside
+            # in this case we need to order the points
+            dist_to_sort = []
+            for wp in range(0, len(sp1)):
+                dist = np.sqrt((p1sub[0]-sp1[wp][0][0])**2 + (p1sub[1]-sp1[wp][0][1])**2)
+                dist_to_sort.append(dist)
+            ind_sp = np.argmin(dist_to_sort)
+            dist_to_sort[ind_sp] = np.inf
+            [point_all, ind1] = add_point(point_all, p1sub)
+            [point_all, ind2] = add_point(point_all, sp1[ind_sp])
+            lim_by_reachr.append([ind1, ind2])
+            if len(sp1) > 2:  # case with mulitple crossing
+                for w1 in range(1, len(sp1), 2):
+                    ind_sp = np.argmin(dist_to_sort)
+                    dist_to_sort[ind_sp] = np.inf
+                    [point_all, ind1] = add_point(point_all, sp1[ind_sp])
+                    [point_all, ind2] = add_point(point_all, sp1[ind_sp + 1])
+                    lim_by_reachr.append([ind1, ind2])
+            ind_sp = np.argmin(dist_to_sort)
+            dist_to_sort[ind_sp] = np.inf
+            [point_all, ind1] = add_point(point_all, sp1[ind_sp])
+            [point_all, ind2] = add_point(point_all, p2sub)
+            lim_by_reachr.append([ind1, ind2])
+            if island:
+                to_delete.append(seg)
+        if len(sp2) > 0:  # both p1sub and p2sub outside
+            if len(sp2) > 1:
+                for w2 in range(0, len(sp1)-1, 2):
+                    [point_all, ind1] = add_point(point_all, sp2[w2])
+                    [point_all, ind2] = add_point(point_all, sp2[w2 + 1])
+                    lim_by_reachr.append([ind1, ind2])
+            if island:
+                to_delete.append(seg)
+        if len(sp3) > 0:  # p1 inside, p2 outside
+            [point_all, ind1] = add_point(point_all, p1sub)
+            [point_all, ind2] = add_point(point_all, sp3[0])
+            lim_by_reachr.append([ind1, ind2])
+            if len(sp3) > 2:
+                for w1 in range(1, len(sp3), 2):
+                    [point_all, ind1] = add_point(point_all, sp3[w1])
+                    [point_all, ind2] = add_point(point_all, sp3[w1 + 1])
+                    lim_by_reachr.append([ind1, ind2])
+            if island:
+                to_delete.append(seg)
+        if len(sp4) > 0:  # both p1sub and p2sub outside
+            if len(sp4) > 1:
+                for w2 in range(0, len(sp4)-1, 2):
+                    [point_all, ind1] = add_point(point_all, sp4[w2])
+                    [point_all, ind2] = add_point(point_all, sp4[w2 + 1])
+                    lim_by_reachr.append([ind1, ind2])
+            [point_all, ind1] = add_point(point_all, sp4[-1])
+            [point_all, ind2] = add_point(point_all, p2sub)
+            lim_by_reachr.append([ind1, ind2])
+            if island:
+                to_delete.append(seg)
+
+    if island and len(ind_seg_sub_ini) > 0:
+        for d in sorted(to_delete, reverse=True):
+            del lim_by_reachr[d]
+
+    return point_all, lim_by_reachr
+
+
 def interpo_linear(point_c_all, coord_pro, vh_pro_t):
     """
     Using scipy.gridata, this function interpolates the 1.5 D velocity and height to the new grid
@@ -603,7 +830,56 @@ def interpo_linear(point_c_all, coord_pro, vh_pro_t):
     return inter_vel_all, inter_height_all
 
 
-def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, point_c_all = [], inter_vel_all = [], inter_h_all = []):
+def create_dummy_substrate(coord_pro, sqrtnp):
+    """
+    For testing purposes, it can be useful to create a substrate input even if one does not exist.
+    This substrate is compose of n triangle situated on the rivers in the same coodinates system
+    :param coord_pro: the coordinate of each profile
+    :param: sqrtnp the number of point which will compose one side of the new substrate grid
+    :return: dummy coord_sub, ikle_sub
+    """
+
+    ikle_sub = []
+    coord_sub = []
+    # find (x,y) limit of reach
+    maxy = -np.inf
+    maxx = - np.inf
+    miny = np.inf
+    minx = np.inf
+    for p in range(0, len(coord_pro)):
+        minx_here = np.min(coord_pro[p][0])
+        maxx_here = np.max(coord_pro[p][0])
+        miny_here = np.min(coord_pro[p][1])
+        maxy_here = np.max(coord_pro[p][1])
+        if minx_here < minx:
+            minx = minx_here
+        if miny_here < miny:
+            miny = miny_here
+        if maxx_here > maxx:
+            maxx = maxx_here
+        if maxy_here > maxy:
+            maxy = maxy_here
+    if maxx == minx or miny == maxy:
+        print('Error: no dummy substrate created. \n')
+    # create new point on a rectangular grid
+    distx = (maxx-minx)/(sqrtnp-1)
+    disty = (maxy - miny) / (sqrtnp-1)
+    x = np.arange(minx, maxx + distx, distx)
+    y = np.arange(miny, maxy+disty, disty)
+    for i in range(0, sqrtnp):
+        for j in range(0, sqrtnp):
+            coord_sub.extend([x[i],y[j]])
+
+    dict_point = dict(vertices= coord_sub)
+    grid_dict = triangle.triangulate(dict_point)  # 'p' would allos for constraint V for verbose
+
+    ikle_sub = grid_dict['triangles']
+    coord_sub = grid_dict['vertices']
+
+    return ikle_sub, coord_sub
+
+
+def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, point_c_all=[], inter_vel_all=[], inter_h_all=[]):
     """
     Function to plot a grid, copied from hec-ras2D
     :param point_all_reach: the grid point by reach
@@ -681,7 +957,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_is
         for r in range(0, len(inter_vel_all)):
             inter_vel = inter_vel_all[r]
             point_c = point_c_all[r]
-            sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_vel, vmin=np.nanmin(inter_vel), vmax=np.nanmax(inter_vel), cmap=cm, edgecolors='none', s=2)
+            sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_vel, vmin=np.nanmin(inter_vel), vmax=np.nanmax(inter_vel), cmap=cm, edgecolors='none', s=50000/len(point_c[:,0]))
         cbar = plt.colorbar(sc)
         cbar.ax.set_ylabel('Velocity [m/sec]')
         plt.xlabel('x coord []')
@@ -728,61 +1004,65 @@ def main():
         #         = create_grid(coord_pro, 2, nb_pro_reach, vh_pro[t])
         # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
         #
-        path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
-        mail = 'mail.LE13'
-        geofile = 'LE13.rbe'
-        data = 'profil.LE13'
-        [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
-        coord_sub = [[0.0,0.0], [2.0,2.0],[1.5,1.5]]
-        ikle_sub = [[0, 1, 2]]
-
-        manning_value_center = 0.025
-        manning_value_border = 0.06
-        manning = []
-        nb_point = len(coord_pro)
-        # write this function better
-        for p in range(0, len(coord_pro)):
-            x_manning = coord_pro[p][0]
-            manning_p = [manning_value_border] * nb_point
-            lim1 = lim_riv[p][0]
-            lim2 = lim_riv[p][2]
-            ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
-                      (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
-            ind = ind[0]
-
-            for i in range(0, len(ind)):
-                manning_p[ind[i]] = manning_value_center
-            manning.append(manning_p)
-
-        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, -99, 1)
-        #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
-        [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
-            = create_grid(coord_pro, 1, coord_sub, ikle_sub, [0, len(coord_pro)], vh_pro[-1])
-        plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+        # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
+        # mail = 'mail.LE13'
+        # geofile = 'LE13.rbe'
+        # data = 'profil.LE13'
+        # [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
+        # coord_sub = [[0.0,0.0], [2.0,2.0],[1.5,1.5]]
+        # ikle_sub = [[0, 1, 2]]
+        #
+        # manning_value_center = 0.025
+        # manning_value_border = 0.06
+        # manning = []
+        # nb_point = len(coord_pro)
+        # # write this function better
+        # for p in range(0, len(coord_pro)):
+        #     x_manning = coord_pro[p][0]
+        #     manning_p = [manning_value_border] * nb_point
+        #     lim1 = lim_riv[p][0]
+        #     lim2 = lim_riv[p][2]
+        #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
+        #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
+        #     ind = ind[0]
+        #
+        #     for i in range(0, len(ind)):
+        #         manning_p[ind[i]] = manning_value_center
+        #     manning.append(manning_p)
+        #
+        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, -99, 1)
+        # #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
+        # [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
+        #     = create_grid(coord_pro, 1, coord_sub, ikle_sub, [0, len(coord_pro)], vh_pro[-1])
+        # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
 
         # test hec-ras
         # CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
-        # path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-        # name = 'MIXED'
-        # name_xml = name + '.O01.xml'
-        # name_geo = name + '.g01'
-        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        #
-        # [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-        # # whole profile
-        # #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
-        #  #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
-        # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
-        #
-        # for t in range(0, len(vh_pro)):
-        #     which_pro = vh_pro[t]
-        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
-        #        = create_grid(coord_pro, 3, nb_pro_reach, which_pro)
-        #     if which_pro:
-        #         [inter_vel_all, inter_height_all] = interpo_linear(point_c_all, coord_pro2, vh_pro[t])
-        #         plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, point_c_all, inter_vel_all, inter_height_all) # , point_c_all, inter_vel_all, inter_height_all
-        #     else:
-        #         plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+        path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
+        name = 'CRITCREK'
+        name_xml = name + '.O02.xml'
+        name_geo = name + '.g01'
+        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
+        #ikle_sub = [[0, 1, 2]]
+
+        [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+        # whole profile
+        #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
+         #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
+        #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+
+        [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
+
+        for t in range(0, len(vh_pro)):
+            which_pro = vh_pro[t]
+            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
+               = create_grid(coord_pro, 1, [], [], nb_pro_reach, which_pro, 10)
+            if which_pro:
+                [inter_vel_all, inter_height_all] = interpo_linear(point_c_all, coord_pro2, vh_pro[t])
+                plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, point_c_all, inter_vel_all, inter_height_all) # , point_c_all, inter_vel_all, inter_height_all
+            else:
+                plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
 
 
 if __name__ == '__main__':
