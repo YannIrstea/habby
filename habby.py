@@ -11,6 +11,7 @@ def main():
 
     # close
     sys.exit(app.exec_())
+    #os._exit()
 
 if __name__ == '__main__':
     main()

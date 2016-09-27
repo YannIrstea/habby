@@ -16,6 +16,7 @@ import h5py
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
+from src_GUI import output_fig_GUI
 
 
 class MainWindows(QMainWindow):
@@ -84,6 +85,14 @@ class MainWindows(QMainWindow):
         self.setGeometry(300, 400, 700, 400)
         self.setCentralWidget(self.central_widget)
         self.show()
+
+    def closeEvent(self, event):
+        """
+        close the program better than before (where it used to crash about 1 times in ten). Not realy sure why.
+        :param event:
+        :return:
+        """
+        exit()
 
     def setlangue(self, nb_lang):
         """
@@ -162,6 +171,9 @@ class MainWindows(QMainWindow):
         showim = QAction(self.tr("Show Images"), self)
         showim.setStatusTip(self.tr('Open the window to view the created figures.'))
         showim.triggered.connect(self.central_widget.showfig)
+        optim = QAction(self.tr("More Options"), self)
+        optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
+        optim.triggered.connect(self.central_widget.optfig)
 
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
@@ -199,6 +211,7 @@ class MainWindows(QMainWindow):
         im_all = fileMenu4.addMenu(self.tr('Image options'))
         im_all.addAction(showim)
         im_all.addAction(savi)
+        im_all.addAction(optim)
         re_all = fileMenu4.addMenu(self.tr('Research options'))
         re_all.addAction(rech)
         re_all.addAction(rechc)
@@ -272,6 +285,7 @@ class MainWindows(QMainWindow):
             pathlog_child.text = os.path.join(self.path_prj, 'restart_'+self.name_prj + '.log')
             savelog_child = ET.SubElement(log_element, "Save_Log")
             savelog_child.text = str(self.central_widget.logon)
+
             # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
             shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj + '.log'))
             shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'), os.path.join(self.path_prj,
@@ -283,6 +297,7 @@ class MainWindows(QMainWindow):
             des_child.text = self.descri_prj
             pathbio_child = ET.SubElement(root_element, "Path_Bio")
             pathbio_child.text = "./biologie\\"
+
             # save new xml file
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
             tree.write(fname)
@@ -551,6 +566,7 @@ class CentralW(QWidget):
         self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
         self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
         self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
+        self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
         self.rech = rech
@@ -569,7 +585,6 @@ class CentralW(QWidget):
 
         # create all the widgets
         biorun_tab = HydroW()
-        output_tab = HydroW()
         bioinfo_tab = HydroW()
         other_tab = HydroW()
         other_tab2 = HydroW()
@@ -617,7 +632,7 @@ class CentralW(QWidget):
         self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
         self.tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
         self.tab_widget.addTab(biorun_tab, self.tr("Run the model"))
-        self.tab_widget.addTab(output_tab, self.tr("Output"))
+        self.tab_widget.addTab(self.output_tab, self.tr("Output"))
         self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
         self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
         if self.rech:
@@ -662,6 +677,14 @@ class CentralW(QWidget):
         self.child_win.selectionchange(-1)
         self.child_win.show()
 
+    def optfig(self):
+        """
+        Small function which open the output tab. It contains the different options for the figures.
+        Output should be the 6th tab, otherwise it will not work
+        :return:
+        """
+        self.tab_widget.setCurrentIndex(5)
+
     def connect_signal_log(self):
         """
         connect all the signal linked to the log
@@ -679,6 +702,7 @@ class CentralW(QWidget):
         self.hydro_tab.mascar.send_log.connect(self.write_log)
         self.child_win.send_log.connect(self.write_log)
         self.welcome_tab.send_log.connect(self.write_log)
+        self.output_tab.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """
@@ -989,16 +1013,3 @@ def open_project():
 def new_project():
     print('I wish to create a new project')
 
-
-def main():
-
-    # create app
-    app = QApplication(sys.argv)
-    # create windows
-    ex = MainWindows('user_opt.xml')
-
-    # close
-    sys.exit(app.exec_())
-
-if __name__ == '__main__':
-    main()

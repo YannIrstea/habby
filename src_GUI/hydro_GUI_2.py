@@ -26,7 +26,8 @@ class Hydro2W(QWidget):
     - TELEMAC
     - HEC-RAS
     - RUBAR
-    -
+    - MASCARET
+    - RIVER2D
     """
     def __init__(self, path_prj, name_prj):
 

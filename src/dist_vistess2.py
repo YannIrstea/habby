@@ -96,7 +96,6 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
             ind = np.where(h_p <= h_w_p)
             ind = ind[0]
 
-
             # if the profile is not totally dry
             if len(ind) > 0:
 
@@ -122,7 +121,6 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 x0 = x0[vert]
                 x1 = x1[vert]
                 n = n[vert]
-
 
                 # get wetted perimeter, area, hydraulic radius
                 wet_pro = np.sqrt((hmax - hmin)**2 + (x1 - x0)**2)

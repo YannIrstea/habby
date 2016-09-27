@@ -11,9 +11,9 @@ import copy
 np.set_printoptions(threshold=np.inf)
 
 
-def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], pnew_add = 1):
+def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], pnew_add=1):
     """
-    It creates a grid from the coord_pro data.
+    It creates a grid from the coord_pro data using the triangle module.
     It creates the grid up to the end of the profile or up to the water limti uif vh_pro_t is present
 
     The function has the following form:
@@ -32,6 +32,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     :param ikle_sub: the connectivity table of the substrate grid (often created with substrate.load_sub)
     :param nb_pro_reach: the number of reach by profile starting with 0
     :param vh_pro_t: the velocity and height of the water (used to cut the limit of the river).
+    :param pnew_add: a parameter to cut the substrate side in smaller part (improve grid quality)
     in the form dist along profile, h , v for the analyzed time step
     If not given, gird is contructed on the whole profile.
     :return: connectivity table and grid point
@@ -50,53 +51,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
 
     # if we create the grid only for the wetted area, update coord_pro to keep only the point which are under water
     seg_island = []
-    coord_change = []
     if vh_pro_t:
-        coord_pro_new = []
-        for p in range(0, len(coord_pro)):
-            coord_pro_p1 = coord_pro[p]
-            norm2 = np.sqrt((coord_pro_p1[0][-1] - coord_pro_p1[0][0]) ** 2 +
-                            (coord_pro_p1[1][-1] - coord_pro_p1[1][0])**2)
-            dist_in_m = coord_pro_p1[3][-1] - coord_pro_p1[3][0]
-            coord_change.extend([norm2/dist_in_m])
-            h_all = np.array(vh_pro_t[p][1])
-            dist_all = np.array(vh_pro_t[p][0] - coord_pro_p1[3][0])
-            x = np.zeros((len(dist_all),))
-            y = np.zeros((len(dist_all),))
-            # for loop is needed because profile not always straight
-            # so nx and ny should be calculated more than once
-            dist_pro = 0
-            w = 0
-            norm = np.sqrt(
-                (coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) ** 2 + (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
-            dist_pro += norm
-            if norm > 0:
-                nx = (coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) * (1 / norm)
-                ny = (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) * (1 / norm)
-            else:
-                nx = ny = 0
-            for c in range(0, len(dist_all)):
-                if dist_pro < abs(dist_all[c] * coord_change[p]):
-                    if w+1 < len(coord_pro_p1[0])-1:
-                        norm = np.sqrt((coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) ** 2 +
-                                       (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
-                    dist_pro += norm
-                    if norm != 0 and w < len(coord_pro_p1[0])-1:
-                        nx = (coord_pro_p1[0][w+1] - coord_pro_p1[0][w]) * (1 / norm)
-                        ny = (coord_pro_p1[1][w+1] - coord_pro_p1[1][w]) * (1 / norm)
-                    elif norm == 0 and w+3 < len(coord_pro_p1[0])-1:
-                        print('Warning: Two identical point in profile. Profile will be modified. \n')
-                        norm = np.sqrt((coord_pro_p1[0][w + 3] - coord_pro_p1[0][w]) ** 2 +
-                                       (coord_pro_p1[1][w + 3] - coord_pro_p1[1][w]) ** 2)
-                        nx = (coord_pro_p1[0][w + 3] - coord_pro_p1[0][w]) * (1 / norm)
-                        ny = (coord_pro_p1[1][w + 3] - coord_pro_p1[1][w]) * (1 / norm)
-                    else:
-                        print('Warning: length of the profil is not coherent.\n')
-                    w += 1
-                x[c] = coord_pro_p1[0][0] + dist_all[c] * nx * coord_change[p]
-                y[c] = coord_pro_p1[1][0] + dist_all[c] * ny * coord_change[p]
-            coord_pro_new.append([x, y, h_all, dist_all])
-        coord_pro = np.copy(coord_pro_new)
+        coord_pro = update_coord_pro_with_vh_pro(coord_pro, vh_pro_t)
 
     # get all the point for the grid
     print('create profile')
@@ -104,7 +60,6 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         # because of the if afterwards, p = 0 is accounted for.
         coord_pro_p0 = coord_pro[p - 1]
         coord_pro_p1 = coord_pro[p]
-
         # add known point
         # manage segment and holes to give the constraint to Delauney
         pro_orr = np.array([coord_pro_p0[0], coord_pro_p0[1]]).transpose()
@@ -401,14 +356,13 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         for i in range(0, len(ikle_sub)):
             # it is probably a triangular grid but it might not be always true
             for j in range(0, len(ikle_sub[i])):
-
                 # get the substrate segment
                 if j < len(ikle_sub[i])-1:
-                    p1sub = np.array(coord_sub[ikle_sub[i][j]])
-                    p2sub = np.array(coord_sub[ikle_sub[i][j+1]])
+                    p1sub = np.array(coord_sub[int(ikle_sub[i][j])])
+                    p2sub = np.array(coord_sub[int(ikle_sub[i][j+1])])
                 else:
-                    p1sub = np.array(coord_sub[ikle_sub[i][j]])
-                    p2sub = np.array(coord_sub[ikle_sub[i][0]])
+                    p1sub = np.array(coord_sub[int(ikle_sub[i][j])])
+                    p2sub = np.array(coord_sub[int(ikle_sub[i][0])])
                 # there is segment more than one time in ikle, we do not want to do it more than once
                 p12sub = np.array([p1sub[0], p1sub[1], p2sub[0], p2sub[1]])
                 p21sub = np.array([p2sub[0], p2sub[1], p1sub[0], p1sub[1]])
@@ -465,8 +419,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                         # add the substrate segment to lim_by_reach and point_all (if not already in)
                         # we need to correct
                         ind_seg_sub_ini = np.arange(ind_seg_sub_ini0, ind_seg_sub_ini1)
-                        [point_all, lim_by_reach[r]] = \
-                               get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reach[r], point_all, True, ind_seg_sub_ini)
+                        [point_all, lim_by_reach[r]] = get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reach[r],
+                                                                                point_all, True, ind_seg_sub_ini)
 
     # triangulate. Overlaping elements are just flagged in the variable overlap
     ikle_all = []
@@ -528,6 +482,191 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     b = time.time()
     print(b-a)
     return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, seg_island, coord_pro, point_c_all
+
+
+def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
+    """
+    It creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
+    :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
+    :param nb_pro_reach: the number of profile by reach
+    :param vh_pro_t: the data with heigh and velocity, giving the river limits
+    :return:
+    """
+
+    point_all_reach = []
+    ikle_all = []
+    point_c_all = []
+
+    # update coord_pro if we have data. Indeed, if velocity and water height is given, we only want wetted
+    # perimeter and points where the velocity is given (might not be all profil points).
+    if vh_pro_t:
+        inter_vel_all = []
+        inter_height_all = []
+        coord_pro = update_coord_pro_with_vh_pro(coord_pro, vh_pro_t)
+
+    for r in range(0, len(nb_pro_reach) - 1):
+        point_all = []
+        ikle = []
+        point_c = []
+        inter_vel = []
+        inter_height = []
+        data_height0 = [val for val in vh_pro_t[0][1][:-1] for blob in (0, 1)]
+        data_height_old = [val for val in data_height0 if val > 0]  # island
+        data_vel = [val for val in vh_pro_t[0][2][:-1] for blob in (0, 1)]
+        data_vel_old = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
+
+        for p in range(1, len(coord_pro)):
+            coord_pro_p0 = coord_pro[p-1]
+            coord_pro_p1 = coord_pro[p]
+            # find start/end of middle profile
+            x1 = 0.5 * coord_pro_p0[0][0] + 0.5 * coord_pro_p1[0][0]
+            y1 = 0.5 * coord_pro_p0[1][0] + 0.5 * coord_pro_p1[1][0]
+            x2 = 0.5 * coord_pro_p0[0][-1] + 0.5 * coord_pro_p1[0][-1]
+            y2 = 0.5 * coord_pro_p0[1][-1] + 0.5 * coord_pro_p1[1][-1]
+            # find the line representing the middle profile
+            a1 = (y1 - y2) / (x1-x2)
+            b1 = y1 - a1 * x1
+            # profile before the middle profile
+            [point_all, ikle, point_c] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t[p-1], a1, b1, point_all, ikle, point_c)
+            if vh_pro_t:
+                inter_vel.extend(data_vel_old)
+                inter_height.extend(data_height_old)
+            # profile after the middle profile
+            [point_all, ikle, point_c] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t[p], a1, b1, point_all, ikle, point_c)
+            # get the data
+            data_height0 = [val for val in vh_pro_t[p][1][:-1] for blob in (0, 1)]
+            data_height = [val for val in data_height0 if val > 0]  # island
+            data_vel = [val for val in vh_pro_t[p][2][:-1] for blob in (0, 1)]
+            data_vel = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
+            data_vel_old = data_vel
+            data_height_old = data_height
+            if vh_pro_t:
+                inter_vel.extend(data_vel)
+                inter_height.extend(data_height)
+        point_all_reach.append(np.array(point_all))
+        point_c_all.append(np.array(point_c))
+        ikle_all.append(np.array(ikle))
+        if vh_pro_t:
+            inter_vel_all.append(inter_vel)
+            inter_height_all.append(inter_height)
+
+    return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
+
+
+def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, a1, b1, point_all, ikle, point_c):
+    """
+     create the grid for one profile (one "line")
+    :param coord_pro_p: the coordinated of the profile
+    :param vh_pro_t_p the height and velocity data of the profile analysed
+    :param a1 the slope of the middle profile
+    :param b1 the abscisse of the midlle profile (a1*x + b1)
+    :param point_all the point of the grid
+    :param ikle the connectivity table of the grif
+    :param point_c the central point of each cell
+    :return: point_all, ikle. point_c
+    """
+    # get a vector perpendicular to the middle profile
+    # profile might not be straight, but cells would cross if we re-calculated every time.
+    diffx = coord_pro_p[0][0] - coord_pro_p[0][1]
+    diffy = coord_pro_p[1][0] - coord_pro_p[1][1]
+    norm = np.sqrt(diffx ** 2 + diffy ** 2)
+    nx = diffy / norm
+    ny = - diffx / norm
+    if nx == 0:
+        print('Warning: Found division by zero. \n')
+        nx = ny = 1
+
+    # add the cells and points to point_all and ikle
+    for s0 in range(1, len(coord_pro_p[0])):
+        # find the new point which interesect middle profile and perpendicular to the vector
+        a2 = ny/nx
+        # we need to get the point 0 also
+        # in this case, the assumption is that nx/ny is the same
+        if s0 == 1:
+            b20 = coord_pro_p[1][s0 - 1] - a2 * coord_pro_p[0][s0 - 1]
+            interx0 = (b20 - b1) / (a1 - a2)
+            intery0 = a1 * interx0 + b1
+            point_all.append([coord_pro_p[0][s0 - 1], coord_pro_p[1][s0 - 1]])
+            point_all.append([interx0, intery0])
+        # if s0 > 1 just add the new point
+        b2 = coord_pro_p[1][s0] - a2 * coord_pro_p[0][s0]
+        interx = (b2 - b1) / (a1 - a2)
+        intery = a1 * interx + b1
+        point_all.append([coord_pro_p[0][s0], coord_pro_p[1][s0]])
+        point_all.append([interx, intery])
+        # add the two new cells to ikle and point_c
+        if vh_pro_t_p[1][s0] > 0:
+            l = len(point_all) - 1
+            ikle.append([l - 1, l - 3, l - 2])
+            cx = (point_all[l - 1][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
+            cy = (point_all[l - 1][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+            point_c.append([cx, cy])
+            ikle.append([l - 1, l - 2, l])
+            cx = (point_all[l - 1][0] + point_all[l - 2][0] + point_all[l][0]) / 3
+            cy = (point_all[l - 1][1] + point_all[l - 2][1] + point_all[l][1]) / 3
+            point_c.append([cx, cy])
+
+    return point_all, ikle,  point_c
+
+def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
+    """
+    The points decribing the profile and the points where velocity is measured might not be the same. Additional,
+    part of the profile might be dry and we have adde point giving the river limits which are not in the original
+    profil. In this function coord_pro is recalculated to account for these modicfications. Only used if vh_pro_t exists.
+    :param coord_pro: the original coord_pro
+    :param vh_pro_t: the value and position of h and velcoity measurement with the river limits
+    :return: updated coord_pro
+    """
+    coord_pro_new = []
+    coord_change = []
+    for p in range(0, len(coord_pro)):
+        coord_pro_p1 = coord_pro[p]
+        norm2 = np.sqrt((coord_pro_p1[0][-1] - coord_pro_p1[0][0]) ** 2 +
+                        (coord_pro_p1[1][-1] - coord_pro_p1[1][0]) ** 2)
+        dist_in_m = coord_pro_p1[3][-1] - coord_pro_p1[3][0]
+        coord_change.extend([norm2 / dist_in_m])
+        h_all = np.array(vh_pro_t[p][1])
+        dist_all = np.array(vh_pro_t[p][0] - coord_pro_p1[3][0])
+        x = np.zeros((len(dist_all),))
+        y = np.zeros((len(dist_all),))
+        # for loop is needed because profile not always straight
+        # so nx and ny should be calculated more than once
+        dist_pro = 0
+        w = 0
+        norm = np.sqrt(
+            (coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) ** 2 + (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
+        dist_pro += norm
+        if norm > 0:
+            nx = (coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) * (1 / norm)
+            ny = (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) * (1 / norm)
+        else:
+            nx = ny = 0
+        for c in range(0, len(dist_all)):
+            if dist_pro < abs(dist_all[c] * coord_change[p]):
+                if w + 1 < len(coord_pro_p1[0]) - 1:
+                    norm = np.sqrt((coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) ** 2 +
+                                   (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
+                dist_pro += norm
+                if norm != 0 and w < len(coord_pro_p1[0]) - 1:
+                    nx = (coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) * (1 / norm)
+                    ny = (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) * (1 / norm)
+                elif norm == 0 and w + 3 < len(coord_pro_p1[0]) - 1:
+                    print('Warning: Two identical point in profile. Profile will be modified. \n')
+                    norm = np.sqrt((coord_pro_p1[0][w + 3] - coord_pro_p1[0][w]) ** 2 +
+                                   (coord_pro_p1[1][w + 3] - coord_pro_p1[1][w]) ** 2)
+                    nx = (coord_pro_p1[0][w + 3] - coord_pro_p1[0][w]) * (1 / norm)
+                    ny = (coord_pro_p1[1][w + 3] - coord_pro_p1[1][w]) * (1 / norm)
+                else:
+                    print('Warning: length of the profil is not coherent.\n')
+                w += 1
+            if c == 0:
+                x[c] = coord_pro_p1[0][0] + dist_all[c] * nx * coord_change[p]
+                y[c] = coord_pro_p1[1][0] + dist_all[c] * ny * coord_change[p]
+            else:
+                x[c] = x[c - 1] + (dist_all[c] - dist_all[c - 1]) * nx * coord_change[p]
+                y[c] = y[c - 1] + (dist_all[c] - dist_all[c - 1]) * ny * coord_change[p]
+        coord_pro_new.append([x, y, h_all, dist_all])
+    return coord_pro_new
 
 
 def newp(p0, p1, extra_pro):
@@ -796,7 +935,7 @@ def interpo_linear(point_c_all, coord_pro, vh_pro_t):
 
     inter_vel_all = []
     inter_height_all = []
-    for r in range(0, len(point_c_all)):
+    for r in range(0, len(point_c_all)):  # reaches
         point_c = point_c_all[r]
         # velocity
         x = []
@@ -902,7 +1041,8 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_is
         # get data for this reach
         ikle = ikle_all[r]
         coord_p = point_all_reach[r]
-        seg_reach = lim_by_reach[r]
+        if lim_by_reach:
+            seg_reach = lim_by_reach[r]
         h = hole_all
 
         # prepare the grid
@@ -930,34 +1070,35 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_is
                 ylist.append(None)
 
             plt.plot(xlist, ylist, linewidth=0.2)
-            for hh in range(0, len(h)):
-                 plt.plot(h[hh][0], h[hh][1], "g*", markersize=10)
-            for i in range(0, len(seg_reach)):
-                seg = seg_reach[i]
-                if i % 3 == 0:
-                    m = 'r'
-                elif i% 3 == 1:
-                    m = 'g'
-                else:
-                    m = 'y'
-                plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m, linewidth=1)
-            overlap_r = overlap[r]
-            #if len(overlap_r) > 0:
-                #for i in range(0, len(overlap_r)):
-                   # plt.plot(coord_p[overlap_r[i], 0],coord_p[overlap_r[i], 1], 'k.')
-        #for i in range(0, int(len(seg_island)/2)):
-         #seg = [int(seg_island[2*i, 2]), int(seg_island[2*i+1, 2])]
-         # plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], 'g', linewidth=1)
+            if lim_by_reach:
+                for hh in range(0, len(h)):
+                     plt.plot(h[hh][0], h[hh][1], "g*", markersize=10)
+                for i in range(0, len(seg_reach)):
+                    seg = seg_reach[i]
+                    if i % 3 == 0:
+                        m = 'r'
+                    elif i% 3 == 1:
+                        m = 'g'
+                    else:
+                        m = 'y'
+                    plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m, linewidth=1)
+                overlap_r = overlap[r]
+                #if len(overlap_r) > 0:
+                    #for i in range(0, len(overlap_r)):
+                       # plt.plot(coord_p[overlap_r[i], 0],coord_p[overlap_r[i], 1], 'k.')
+            #for i in range(0, int(len(seg_island)/2)):
+             #seg = [int(seg_island[2*i, 2]), int(seg_island[2*i+1, 2])]
+             # plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], 'g', linewidth=1)
     #plt.axis('equal')
 
     # plot the interpolated velocity
-    if len(inter_vel_all) > 0:
+    if len(inter_vel_all) >0 : #0
         plt.figure()
         cm = plt.cm.get_cmap('gist_ncar')
         for r in range(0, len(inter_vel_all)):
             inter_vel = inter_vel_all[r]
             point_c = point_c_all[r]
-            sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_vel, vmin=np.nanmin(inter_vel), vmax=np.nanmax(inter_vel), cmap=cm, edgecolors='none', s=50000/len(point_c[:,0]))
+            sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_vel, vmin=np.nanmin(inter_vel), vmax=np.nanmax(inter_vel), cmap=cm, edgecolors='none', s=200000/len(point_c[:,0]))
         cbar = plt.colorbar(sc)
         cbar.ax.set_ylabel('Velocity [m/sec]')
         plt.xlabel('x coord []')
@@ -969,8 +1110,8 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_is
         for r in range(0, len(inter_vel_all)):
             inter_h = inter_h_all[r]
             point_c = point_c_all[r]
-            sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_h, vmin=0,vmax=np.nanmax(inter_h),
-                                     cmap=cm, edgecolors='none', s=2)
+            sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_h, vmin=0, vmax=np.nanmax(inter_h),
+                                     cmap=cm, edgecolors='none',  s=200000/len(point_c[:, 0]))
         cbar = plt.colorbar(sc)
         cbar.ax.set_ylabel(' Water height [m]')
         plt.xlabel('x coord []')
@@ -1056,11 +1197,14 @@ def main():
 
         for t in range(0, len(vh_pro)):
             which_pro = vh_pro[t]
-            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
-               = create_grid(coord_pro, 1, [], [], nb_pro_reach, which_pro, 10)
+            #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
+             #  = create_grid(coord_pro, 10,[], [], nb_pro_reach, which_pro, 10)  # [], [] -> coord_sub, ikle_sub,
+            [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+                create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
             if which_pro:
-                [inter_vel_all, inter_height_all] = interpo_linear(point_c_all, coord_pro2, vh_pro[t])
-                plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, point_c_all, inter_vel_all, inter_height_all) # , point_c_all, inter_vel_all, inter_height_all
+                #[inter_vel_all, inter_height_all] = interpo_linear(point_c_all, coord_pro2, vh_pro[t])
+                #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, point_c_all, inter_vel_all, inter_height_all)
+                plot_grid(point_all_reach, ikle_all, [], [], [], [], point_c_all, inter_vel_all, inter_height_all)
             else:
                 plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
 
