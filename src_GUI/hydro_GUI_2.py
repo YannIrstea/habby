@@ -44,7 +44,7 @@ class Hydro2W(QWidget):
 
     def init_iu(self):
         # generic label
-        self.l1 = QLabel(self.tr('<b> Saved hydrological data </b>'))
+        self.l1 = QLabel(self.tr('blob'))
         l2 = QLabel(self.tr('<b> LOAD NEW DATA </b>'))
         l3 = QLabel(self.tr('<b>Available hydrological models </b>'))
 
@@ -133,9 +133,9 @@ class FreeSpace(QWidget):
     def __init__(self):
 
         super().__init__()
-        spacer = QSpacerItem(1, 1)
+        self.spacer = QSpacerItem(1, 1)
         self.layout_s = QGridLayout()
-        self.layout_s.addItem(spacer, 0, 0)
+        self.layout_s.addItem(self.spacer, 0, 0)
         self.setLayout(self.layout_s)
 
 
@@ -152,6 +152,7 @@ class SubHydroW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         self.namefile = ['unknown file', 'unknown file']  # for children, careful with list index out of range
+        self.interpo = ['', "Interpolation by block", "Linear interpolation", "Nearest Neighbors"]
         self.pathfile = ['.', '.']
         self.attributexml = [' ', ' ']
         self.model_type = ' '
@@ -328,6 +329,7 @@ class HEC_RAS1D(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
+        self.inter = QComboBox()
         self.init_iu()
 
     def init_iu(self):
@@ -356,10 +358,20 @@ class HEC_RAS1D(SubHydroW):
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
 
+        # # grid creation options
+        l6 = QLabel(self.tr('<b>Grid creation </b>'))
+        l3 = QLabel(self.tr('Velocity distribution'))
+        l31 = QLabel(self.tr('Model 1.5D: No dist. needed'))
+        l4 = QLabel(self.tr('Interpolation of the data'))
+        l5 = QLabel(self.tr('Number of additional profiles'))
+        self.inter.addItems(self.interpo)
+        self.nb_extrapro_text = QLineEdit('1')
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_hec_ras_gui)
-        spacer = QSpacerItem(1, 1)
+        self.spacer1 = QSpacerItem(1, 20)
+        self.spacer2 = QSpacerItem(1, 20)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -370,9 +382,18 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(l2, 1, 0)
         self.layout_hec.addWidget(self.out_t2, 1, 1)
         self.layout_hec.addWidget(self.out_b, 1, 2)
-        self.layout_hec.addWidget(self.load_b, 2, 2)
-        self.layout_hec.addWidget(self.cb, 2, 1)
-        self.layout_hec.addItem(spacer, 3, 1)
+        self.layout_hec.addItem(self.spacer1, 2, 1)
+        self.layout_hec.addWidget(l6, 3, 0)
+        self.layout_hec.addWidget(l3, 4, 1)
+        self.layout_hec.addWidget(l31, 4, 2, 1, 2)
+        self.layout_hec.addWidget(l4, 5, 1)
+        self.layout_hec.addWidget(self.inter, 5, 2, 1, 2)
+        self.layout_hec.addWidget(l5, 6, 1)
+        self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
+        self.layout_hec.addItem(self.spacer2, 7, 1)
+        self.layout_hec.addWidget(self.load_b, 8, 3)
+        self.layout_hec.addWidget(self.cb, 8, 2)
+        #self.layout_hec.addItem(spacer, 4, 1)
         self.setLayout(self.layout_hec)
 
     def load_hec_ras_gui(self):
@@ -445,16 +466,19 @@ class Rubar2D(SubHydroW):
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
-
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (.tps)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
 
+        # grid creation
+        l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+        l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_rubar)
-        spacer = QSpacerItem(1, 1)
+        self.spacer = QSpacerItem(1, 80)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -465,9 +489,11 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addWidget(l2, 1, 0)
         self.layout_hec.addWidget(self.out_t2, 1, 1)
         self.layout_hec.addWidget(self.out_b, 1, 2)
-        self.layout_hec.addWidget(self.load_b, 2, 2)
-        self.layout_hec.addWidget(self.cb, 2, 1)
-        self.layout_hec.addItem(spacer, 3, 1)
+        self.layout_hec.addWidget(l2D1, 2, 0)
+        self.layout_hec.addWidget(l2D2, 2, 1, 1, 2)
+        self.layout_hec.addWidget(self.load_b, 3, 2)
+        self.layout_hec.addWidget(self.cb, 3, 1)
+        self.layout_hec.addItem(self.spacer, 4, 1)
         self.setLayout(self.layout_hec)
 
     def load_rubar(self):
@@ -526,6 +552,7 @@ class Mascaret(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
+        self.inter = QComboBox()
         self.init_iu()
 
     def init_iu(self):
@@ -561,10 +588,19 @@ class Mascaret(SubHydroW):
         self.out_b.clicked.connect(lambda: self.show_dialog(2))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[2]))
 
+        # grid creation options
+        l6 = QLabel(self.tr('<b>Grid creation </b>'))
+        l3 = QLabel(self.tr('Velocity distribution'))
+        l32 = QLabel(self.tr("Based on Manning's formula"))
+        l4 = QLabel(self.tr('Interpolation of the data'))
+        l5 = QLabel(self.tr('Number of additional profiles'))
+        self.inter.addItems(self.interpo)
+        self.nb_extrapro_text = QLineEdit('1')
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_mascaret_gui)
-        spacer = QSpacerItem(1, 1)
+        #spacer = QSpacerItem(1, 20)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -578,9 +614,17 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(l2, 2, 0)
         self.layout.addWidget(self.out_t2, 2, 1)
         self.layout.addWidget(self.out_b, 2, 2)
-        self.layout.addWidget(self.load_b, 3, 2)
-        self.layout.addWidget(self.cb, 3, 1)
-        self.layout.addItem(spacer, 4, 1)
+        #self.layout.addItem(spacer, 2, 1)
+        self.layout.addWidget(l6, 3, 0)
+        self.layout.addWidget(l3, 4, 1)
+        self.layout.addWidget(l32, 4, 2, 1, 2)
+        self.layout.addWidget(l4, 5, 1)
+        self.layout.addWidget(self.inter, 5, 2, 1, 2)
+        self.layout.addWidget(l5, 6, 1)
+        self.layout.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
+        #self.layout.addItem(spacer, 7, 1)
+        self.layout.addWidget(self.load_b, 8, 2)
+        self.layout.addWidget(self.cb, 8, 1)
         self.setLayout(self.layout)
 
     def load_mascaret_gui(self):
@@ -662,6 +706,10 @@ class River2D(SubHydroW):
         self.loadb = QPushButton(self.tr("Load all files and create hdf5"))
         self.loadb.clicked.connect(self.load_river2d_gui)
 
+        # grid creation
+        l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+        l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+
         # layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.l1, 0, 0)
@@ -670,8 +718,10 @@ class River2D(SubHydroW):
         self.layout.addWidget(self.addfileb, 2, 2)
         self.layout.addWidget(self.removefileb, 2, 3)
         self.layout.addWidget(self.removeallfileb, 3, 3)
-        self.layout.addWidget(self.loadb, 3, 1)
-        self.layout.addWidget(self.cb, 3, 0)
+        self.layout.addWidget(l2D1, 4, 0)
+        self.layout.addWidget(l2D2, 4, 1, 1, 2)
+        self.layout.addWidget(self.loadb, 5, 1)
+        self.layout.addWidget(self.cb, 5, 0)
         self.setLayout(self.layout)
 
     def remove_file(self):
@@ -791,6 +841,7 @@ class Rubar1D(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
+        self.inter = QComboBox()
         self.init_iu()
 
     def init_iu(self):
@@ -813,16 +864,25 @@ class Rubar1D(SubHydroW):
         self.geo_b = QPushButton('Choose file (.reb)', self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
-
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (profil.X)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
 
+        # grid creation options
+        l6 = QLabel(self.tr('<b>Grid creation </b>'))
+        l3 = QLabel(self.tr('Velocity distribution'))
+        l32 = QLabel(self.tr("Based on Manning's formula"))
+        l4 = QLabel(self.tr('Interpolation of the data'))
+        l5 = QLabel(self.tr('Number of additional profiles'))
+        self.inter.addItems(self.interpo)
+        self.nb_extrapro_text = QLineEdit(self.tr('1'))
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_rubar1d)
-        spacer = QSpacerItem(1, 1)
+        self.spacer1 = QSpacerItem(1, 20)
+        self.spacer2 = QSpacerItem(1, 20)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -833,9 +893,17 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(l2, 1, 0)
         self.layout_hec.addWidget(self.out_t2, 1, 1)
         self.layout_hec.addWidget(self.out_b, 1, 2)
-        self.layout_hec.addWidget(self.load_b, 2, 2)
-        self.layout_hec.addWidget(self.cb, 2, 1)
-        self.layout_hec.addItem(spacer, 3, 1)
+        self.layout_hec.addItem(self.spacer1, 2, 1)
+        self.layout_hec.addWidget(l6, 3, 0)
+        self.layout_hec.addWidget(l3, 4, 1)
+        self.layout_hec.addWidget(l32, 4, 2, 1, 2)
+        self.layout_hec.addWidget(l4, 5, 1)
+        self.layout_hec.addWidget(self.inter, 5, 2, 1, 2)
+        self.layout_hec.addWidget(l5, 6, 1)
+        self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
+        self.layout_hec.addItem(self.spacer2, 7, 1)
+        self.layout_hec.addWidget(self.load_b, 8, 2)
+        self.layout_hec.addWidget(self.cb, 8, 1)
         self.setLayout(self.layout_hec)
 
 
@@ -902,10 +970,14 @@ class HEC_RAS2D(SubHydroW):
         l3 = QLabel('All time step', self)
         l4 = QLabel('All flow area', self)
 
+        # grid creation
+        l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+        l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+
         # load button
         load_b = QPushButton('Load data and create hdf5', self)
         load_b.clicked.connect(self.load_hec_2d_gui)
-        spacer = QSpacerItem(1, 20)
+        self.spacer = QSpacerItem(1, 80)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -916,9 +988,11 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(l2, 1, 0)
         self.layout_hec2.addWidget(l3, 1, 1)
         self.layout_hec2.addWidget(l4, 1, 2)
-        self.layout_hec2.addWidget(load_b, 2, 2)
-        self.layout_hec2.addItem(spacer, 3, 1)
-        self.layout_hec2.addWidget(self.cb, 2, 1)
+        self.layout_hec2.addWidget(l2D1, 2, 0)
+        self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
+        self.layout_hec2.addWidget(load_b, 3, 2)
+        self.layout_hec2.addWidget(self.cb, 3, 1)
+        self.layout_hec2.addItem(self.spacer, 4, 1)
         self.setLayout(self.layout_hec2)
 
     def load_hec_2d_gui(self):
@@ -975,10 +1049,14 @@ class TELEMAC(SubHydroW):
         l2 = QLabel(self.tr('<b> Options </b>'))
         l3 = QLabel('All time steps', self)
 
+        # grid creation
+        l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+        l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+
         # load button
         load_b = QPushButton('Load data and create hdf5', self)
         load_b.clicked.connect(self.load_telemac_gui)
-        spacer = QSpacerItem(1, 20)
+        self.spacer = QSpacerItem(1, 80)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -988,9 +1066,11 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         self.layout_hec2.addWidget(l2, 1, 0)
         self.layout_hec2.addWidget(l3, 1, 1)
-        self.layout_hec2.addWidget(load_b, 2, 2)
-        self.layout_hec2.addItem(spacer, 3, 1)
-        self.layout_hec2.addWidget(self.cb, 2, 1)
+        self.layout_hec2.addWidget(l2D1, 2, 0)
+        self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
+        self.layout_hec2.addWidget(load_b, 3, 2)
+        self.layout_hec2.addItem(self.spacer, 4, 1)
+        self.layout_hec2.addWidget(self.cb, 3, 1)
         self.setLayout(self.layout_hec2)
 
     def load_telemac_gui(self):

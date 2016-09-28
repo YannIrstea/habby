@@ -102,6 +102,7 @@ class MainWindows(QMainWindow):
         :return: None
         # 0 is for english, 1 for french, x for any additionnal language
         """
+
         # set the langugae
         self.lang = int(nb_lang)
         # get a new tranlator
@@ -115,12 +116,12 @@ class MainWindows(QMainWindow):
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
         self.setCentralWidget(self.central_widget)
 
-        # create the new menu
-        self.my_menu_bar()
-
         # connect the signals with the different functions
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+
+        # create the new menu
+        self.my_menu_bar()
 
         # update user option to remember the languge
         self.settings = QSettings('HABBY', 'irstea')
@@ -173,7 +174,7 @@ class MainWindows(QMainWindow):
         showim.triggered.connect(self.central_widget.showfig)
         optim = QAction(self.tr("More Options"), self)
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
-        optim.triggered.connect(self.central_widget.optfig)
+        #optim.triggered.connect(self.central_widget.optfig)
 
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
@@ -560,7 +561,9 @@ class CentralW(QWidget):
 
     def __init__(self, rech, path_prj, name_prj):
 
+        super().__init__()
         self.msg2 = QMessageBox()
+        self.tab_widget = QTabWidget()
         self.welcome_tab = WelcomeW()
         self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
         self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
@@ -569,19 +572,15 @@ class CentralW(QWidget):
         self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
+        self.scroll = QScrollArea()
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
-
-        super().__init__()
-        self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is shown
+        self.vbar = self.scroll.verticalScrollBar()
+        self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
         self.init_iu()
 
-
     def init_iu(self):
-
-        # create a tab and the name of the project6
-        self.tab_widget = QTabWidget()
 
         # create all the widgets
         biorun_tab = HydroW()
@@ -636,8 +635,8 @@ class CentralW(QWidget):
         self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
         self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
         if self.rech:
-            self.tab_widget.addTab(other_tab, self.tr("Reseach 1"))
-            self.tab_widget.addTab(other_tab2, self.tr("Reseach 2"))
+            self.tab_widget.addTab(other_tab, self.tr("Research 1"))
+            self.tab_widget.addTab(other_tab2, self.tr("Research 2"))
 
         # Area to show the log
         # add two Qlabel l1 ad l2 , with one scroll for the log in l2
@@ -645,9 +644,7 @@ class CentralW(QWidget):
         self.l2.setAlignment(Qt.AlignTop)
         self.l2.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.l2.setTextFormat(Qt.RichText)
-        self.scroll = QScrollArea()
         # see the end of the log first
-        self.vbar = self.scroll.verticalScrollBar()
         self.vbar.rangeChanged.connect(self.scrolldown)
         self.scroll.setWidget(self.l2)
         # to have the Qlabel at the right size
