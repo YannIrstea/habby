@@ -18,6 +18,8 @@ from src import substrate
 from src import rubar
 from src import river2d
 from src import mascaret
+from src import manage_grid_8
+from src import dist_vistess2
 
 class Hydro2W(QWidget):
     """
@@ -33,7 +35,7 @@ class Hydro2W(QWidget):
 
         super().__init__()
         self.mod = QComboBox()
-        self.mod_loaded = QComboBox()
+        #self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20", "TELEMAC"]  # "MAGE"
@@ -44,12 +46,12 @@ class Hydro2W(QWidget):
 
     def init_iu(self):
         # generic label
-        self.l1 = QLabel(self.tr('blob'))
+        #self.l1 = QLabel(self.tr('blob'))
         l2 = QLabel(self.tr('<b> LOAD NEW DATA </b>'))
         l3 = QLabel(self.tr('<b>Available hydrological models </b>'))
 
         # available model
-        self.mod_loaded.addItems([""])
+        #self.mod_loaded.addItems([""])
         self.mod.addItems(self.name_model)
         self.mod.currentIndexChanged.connect(self.selectionchange)
         self.button1 = QPushButton(self.tr('Model Info'), self)
@@ -83,9 +85,9 @@ class Hydro2W(QWidget):
         self.layout4.addItem(spacer2, 1, 1)
         self.layout4.addWidget(self.button1, 1, 2)
         self.layout4.addWidget(self.stack, 2, 0)
-        self.layout4.addWidget(self.l1, 3, 0)
-        self.layout4.addWidget(self.mod_loaded, 4, 0)
-        self.layout4.addItem(spacer, 5, 1)
+        #self.layout4.addWidget(self.l1, 3, 0)
+        #self.layout4.addWidget(self.mod_loaded, 4, 0)
+        self.layout4.addItem(spacer, 3, 1)
         self.setLayout(self.layout4)
 
     def selectionchange(self, i):
@@ -152,11 +154,16 @@ class SubHydroW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         self.namefile = ['unknown file', 'unknown file']  # for children, careful with list index out of range
-        self.interpo = ['', "Interpolation by block", "Linear interpolation", "Nearest Neighbors"]
+        self.interpo = ["Interpolation by block", "Linear interpolation", "Nearest Neighbors"]  # order matters here
+        self.interpo_choice = 0 # gives which type of interpolation is chosen (it is the index of self.interpo )
         self.pathfile = ['.', '.']
         self.attributexml = [' ', ' ']
         self.model_type = ' '
         self.save_fig = False
+        self.coord_pro = []
+        self.vh_pro = []
+        self.nb_pro_reach = []
+        self.pro_add = 2  # additional profil during the grid creation
         self.extension = [[".txt"]]
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -319,6 +326,102 @@ class SubHydroW(QWidget):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
 
+    def grid_and_interpo(self, cb_im):
+        """
+        this function form the link between GUI and the various grid and interpolation functions. Is called by
+        the "loading' function of hec-ras 1D, Mascaret and Rubar BE.
+        :param cb_im is true the image are shown
+        :return:
+        """
+        if not isinstance(self.interpo_choice, int):
+            self.send_log.emit('Error: Interpolation method is not recognized (Type).\n')
+            return
+        if cb_im:
+            path_im = self.find_path_im()
+
+        if self.interpo_choice == 0:
+            self.send_log.emit(self.tr('# Create grid by block.'))
+            for t in range(0, len(self.vh_pro)):
+                sys.stdout = self.mystdout = StringIO()
+                [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+                    manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach, self.vh_pro[t])
+                if cb_im:
+                    manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
+                                            inter_vel_all, inter_height_all, path_im)
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
+                self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
+                self.send_log.emit("py    [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+                    manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro_t)\n")
+                self.send_log.emit("restart INTERPOLATE_BLOCK")
+
+        elif self.interpo_choice == 1:
+            try:
+                self.pro_add = int(self.nb_extrapro_text.text())
+            except ValueError:
+                self.send_log.emit('Error: Number of profile not recognized.\n')
+                return
+            self.send_log.emit(self.tr('# Create grid by linear interpolation.'))
+            if not isinstance(self.pro_add, int):
+                self.send_log.emit('Error: Number of profile not recognized.\n')
+                return
+            if 1 > self.pro_add > 500:
+                self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
+                return
+            for t in range(0, len(self.vh_pro)):
+                # [], [] is used to add the substrate as a condition directly
+                sys.stdout = self.mystdout = StringIO()
+                [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
+                    manage_grid_8.create_grid(self.coord_pro, self.pro_add,[], [], self.nb_pro_reach, self.vh_pro[t])
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
+                sys.stdout = self.mystdout = StringIO()
+                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2, self.vh_pro[t])
+                if cb_im:
+                    manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                                            hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
+                self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
+                self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
+                                   " point_c_all] = manage_grid_8.create_grid(coord_pro, nb_pro_reach, vh_pro_t)\n")
+                self.send_log.emit("py    [inter_vel_all, inter_height_all] = "
+                                   "manage_grid_8.interpo_linear(point_c_all, coord_pro2, vh_pro_t))\n")
+                self.send_log.emit("restart INTERPOLATE_LINEAR")
+
+        elif self.interpo_choice == 2:
+            try:
+                self.pro_add = int(self.nb_extrapro_text.text())
+            except ValueError:
+                self.send_log.emit('Error: Number of profile not recognized.\n')
+                return
+            self.send_log.emit(self.tr('# Create grid by nearest neighbors interpolation.'))
+            if 1 > self.pro_add > 500:
+                self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
+                return
+            for t in range(0, len(self.vh_pro)):
+                sys.stdout = self.mystdout = StringIO()
+                [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
+                    manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach, self.vh_pro[t])
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
+                sys.stdout = self.mystdout = StringIO()
+                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_c_all, coord_pro2, self.vh_pro[t])
+                if cb_im:
+                    manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                                            hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
+                self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
+                self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
+                                   " point_c_all] = manage_grid_8.create_grid(coord_pro, nb_pro_reach, vh_pro_t)\n")
+                self.send_log.emit("py    [inter_vel_all, inter_height_all] = "
+                                   "manage_grid_8.interpo_nearest(point_c_all, coord_pro2, vh_pro_t))\n")
+                self.send_log.emit("restart INTERPOLATE_NEAREST")
+        else:
+            self.send_log.emit('Error: Interpolation method is not recognized (Num).\n')
+            return
+
 
 class HEC_RAS1D(SubHydroW):
     """
@@ -398,24 +501,22 @@ class HEC_RAS1D(SubHydroW):
 
     def load_hec_ras_gui(self):
         """
-        A function to execture the loading and saving the the HEC-ras file using Hec_ras.py
+        A function to exectue the loading and saving the the HEC-ras file using Hec_ras.py
         :return:
         """
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
         path_im = self.find_path_im()
+
         # load hec_ras data
         if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
-
         # redirect the out stream to my output
-        # THREAD -> TO BE CHECKED!!!
         sys.stdout = self.mystdout = StringIO()
-        [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
+        [self.coord_pro, self.vh_pro, self.nb_pro_reach] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
                                                self.pathfile[1], path_im, self.save_fig)
         sys.stdout = sys.__stdout__
-
         # log info
         self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
         self.send_err_log()
@@ -423,10 +524,14 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    [xy_h, zone_v] = Hec_ras06.open_hecras(file1, file2, path1, path2, '.', False)\n")
+        self.send_log.emit("py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(file1, file2, path1, path2, '.', False)\n")
         self.send_log.emit("restart LOAD_HECRAS_1D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0],self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1],self.namefile[1]))
+
+        # grid and interpolation
+        self.interpo_choice = self.inter.currentIndex()
+        self.grid_and_interpo(self.cb.isChecked())
 
         # show figure
         if self.cb.isChecked():
@@ -553,6 +658,7 @@ class Mascaret(SubHydroW):
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
         self.inter = QComboBox()
+        self.np_point_vel = -99 # -99 -> velocity calculated in the same point than the profile height
         self.init_iu()
 
     def init_iu(self):
@@ -592,10 +698,14 @@ class Mascaret(SubHydroW):
         l6 = QLabel(self.tr('<b>Grid creation </b>'))
         l3 = QLabel(self.tr('Velocity distribution'))
         l32 = QLabel(self.tr("Based on Manning's formula"))
+        l7 = QLabel(self.tr("Nb. of velocity points by profile"))
+        l8 = QLabel(self.tr("Manning coefficient"))
         l4 = QLabel(self.tr('Interpolation of the data'))
-        l5 = QLabel(self.tr('Number of additional profiles'))
+        l5 = QLabel(self.tr('Nb. of additional profiles'))
         self.inter.addItems(self.interpo)
         self.nb_extrapro_text = QLineEdit('1')
+        self.nb_vel_text = QLineEdit('70')
+        self.manning_text = QLineEdit('0.025')
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -618,13 +728,17 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(l6, 3, 0)
         self.layout.addWidget(l3, 4, 1)
         self.layout.addWidget(l32, 4, 2, 1, 2)
-        self.layout.addWidget(l4, 5, 1)
-        self.layout.addWidget(self.inter, 5, 2, 1, 2)
-        self.layout.addWidget(l5, 6, 1)
-        self.layout.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
+        self.layout.addWidget(l7, 5, 1)
+        self.layout.addWidget(self.nb_vel_text, 5, 2, 1, 2)
+        self.layout.addWidget(l8, 6, 1)
+        self.layout.addWidget(self.manning_text, 6, 2, 1, 2)
+        self.layout.addWidget(l4, 7, 1)
+        self.layout.addWidget(self.inter, 7, 2, 1, 2)
+        self.layout.addWidget(l5, 8, 1)
+        self.layout.addWidget(self.nb_extrapro_text, 8, 2, 1, 2)
         #self.layout.addItem(spacer, 7, 1)
-        self.layout.addWidget(self.load_b, 8, 2)
-        self.layout.addWidget(self.cb, 8, 1)
+        self.layout.addWidget(self.load_b, 9, 2)
+        self.layout.addWidget(self.cb, 9, 1)
         self.setLayout(self.layout)
 
     def load_mascaret_gui(self):
@@ -632,7 +746,6 @@ class Mascaret(SubHydroW):
         The function to load the mascaret data, calling mascaret.py
         :return:
         """
-
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
@@ -640,11 +753,10 @@ class Mascaret(SubHydroW):
         path_im = self.find_path_im()
         self.send_log.emit(self.tr('# Load: Mascaret data.'))
         sys.stdout = self.mystdout = StringIO()
-        [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach]\
+        [self.coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, self.nb_pro_reach]\
             = mascaret.load_mascaret(self.namefile[0], self.namefile[1], self.namefile[2], self.pathfile[0],\
                                      self.pathfile[1], self.pathfile[2])
         sys.stdout = sys.__stdout__
-
         self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
@@ -653,15 +765,30 @@ class Mascaret(SubHydroW):
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
         self.send_log.emit("py    path3='" + self.pathfile[2] + "'")
         self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
-                           " = rubar.load_rubar1d(file1, file2, file3, path1, path2, path3)\n")
+                           " =  mascaret.load_mascaret(file1, file2, file3, path1, path2, path3)\n")
         self.send_log.emit("restart LOAD_MASCARET")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
         self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
 
         if self.cb.isChecked() and path_im != 'no_path':
-            mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro,
+            mascaret.figure_mascaret(self.coord_pro, coord_r, xhzv_data, on_profile, self.nb_pro_reach, name_pro,
                                      name_reach, path_im, [0, 1], [-1], [0])
+
+        # velocity distibution
+        try:
+            manning1 = float(self.manning_text.text())
+            self.np_point_vel = int(self.nb_vel_text.text())
+        except ValueError:
+            self.send_log.emit("Error: The manning value or the number of velocity point is not understood.")
+        manning_array = dist_vistess2.get_manning(manning1, self.np_point_vel, len(self.coord_pro))
+        self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, xhzv_data, manning_array,
+                                                         self.np_point_vel, 1, on_profile)
+        # grid and interpolation
+        self.interpo_choice = self.inter.currentIndex()
+        self.grid_and_interpo(self.cb.isChecked())
+
+        if self.cb.isChecked():
             self.show_fig.emit()
 
 

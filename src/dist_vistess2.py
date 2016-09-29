@@ -304,6 +304,31 @@ def preparetest_velocity(coord_pro, vh_pro_orr, v_in):
         return xhzv_data
 
 
+def get_manning(manning1, nb_point, nb_profil):
+    """
+    A fucntion to create an array with the different manning value. Having one manning value for each point will be useful
+    if one has a river with various manning value, even if it is longer now
+    NOT FINISHED
+    :param manning1: the manning value (can be a value or an array)
+    :param nb_point: the number of velocity point by profile
+    :param nb_profil: the number of profile
+    :return:
+    """
+    manning_array = []
+    if not isinstance(nb_point, int):
+        print('Error: The number of velocity point is not understood (int needed) \n')
+        return
+    if nb_point == -99:
+        print('Error: Manning not finished yet \n')
+    if isinstance(manning1, float):
+        for p in range(0, nb_profil):
+             manning_array.append([manning1] * nb_point)
+    else:
+        print('Error: Manning not finished yet \n')
+
+    return manning_array
+
+
 def main():
 
         # # distrbution vitesse mascaret

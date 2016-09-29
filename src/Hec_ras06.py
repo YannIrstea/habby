@@ -1051,8 +1051,6 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
     return coord_pro, vh_pro, nb_pro_reach
 
 
-
-
 def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
     """
     A small function to plot the results
