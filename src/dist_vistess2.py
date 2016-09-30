@@ -1,8 +1,10 @@
 import numpy as np
-#import mascaret
+from src import mascaret
 from src import rubar
 import matplotlib.pyplot as plt
 from src import Hec_ras06
+import time
+import bisect
 
 
 def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, eng=1.0, on_profile=[]):
@@ -10,7 +12,7 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
     This function distribute the velocity along the profile using the method from hec-ras
     described in the hydraulic reference manual p 4-20 (Flow distribtion calculation)
     :param coord_pro: the coordinates and elevation of the river bed for each profile (x,y, h, dist along the profile)
-    !!!!!!this list is flatten compred to the usual coord_pro !!!!!! No reach info
+    this list is flatten No reach info.
     :param xhzv_data_all: water height and velocity at each profile, 1D
     :param manning_pro the manning coefficient for zone between point of each profile
     for a particular profile, the length of manning_pro is the length of coord_pro[0]
@@ -21,8 +23,9 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
     :return: the velocity for each profile by time step (x,v)
     """
     vh_pro = []
-
+    warn1 = True
     for t in range(0, len(xhzv_data_all)):
+
         # get the data for this time step
         v_pro_t = []
         xhzv_data = xhzv_data_all[t]
@@ -39,21 +42,26 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 x_ini = coord_pro[p][3]
                 h_ini = coord_pro[p][2]
                 x_p = np.linspace(x_ini[0], x_ini[-1], num=nb_point)
+                #x_p = np.arange(x_ini[0], x_ini[-1], (x_ini[-1] - x_ini[0]) / (nb_point-1))
                 h_p = np.zeros((len(x_p),))
                 for i in range(0, len(x_p)):
-                    indh = np.where(x_ini <= x_p[i])
-                    indh = max(indh[0])
+                    #indh = np.where(x_ini <= x_p[i])
+                    #indh = max(indh[0])
+                    indh = bisect.bisect(x_ini, x_p[i]) -1  # about 3 time quick than max(np.where(x_ini <= x_p[i]))
                     xhmin = x_ini[indh]
                     hmin = h_ini[indh]
                     if indh < len(x_ini)-1:
                         xhmax = x_ini[indh + 1]
                         hmax = h_ini[indh+1]
-                        a = (hmax - hmin) / (xhmax - xhmin)
-                        b = hmax - a * xhmax
+                        a1 = (hmax - hmin) / (xhmax - xhmin)
+                        b1 = hmax - a1 * xhmax
                     else:
-                        a = 1
-                        b = 0.000001
-                    h_p[i] = a * x_p[i] + b
+                        if warn1:
+                            print('Warning: length of the x-coordinate array is too short. \n')
+                            warn1 = False
+                        a1 = 100000
+                        b1 = 100000
+                    h_p[i] = a1 * x_p[i] + b1
             else:
                 print('Error: Number of point is not sufficient. \n')
                 return [-99]
@@ -61,6 +69,7 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
             if len(n) != len(x_p):
                 print('Error: Length of Manning data is not coherent with the length of the profil.\n')
                 return [-99]
+
 
             # add extra point where the profile is getting out of the water
             # possibility of an island, so no easy [h_wp h[h>h_wp] h_wp]
@@ -344,11 +353,11 @@ def main():
         #                     mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
         # manning_value = 0.025
         # manning = []
-        # nb_point = 145
+        # nb_point = 70
         # for p in range(0, len(coord_pro)):
         #     manning.append([manning_value] * nb_point)
         #
-        # v_pro = dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, on_profile)
+        # v_pro = dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
         # plot_dist_vit(v_pro, coord_pro, xhzv_data, [1], [-1], name_pro, on_profile)
 
         # hec-ras test
@@ -387,18 +396,18 @@ def main():
         manning_value_border = 0.06
         manning = []
         # write this function better
-        for p in range(0, len(coord_pro)):
-            x_manning = coord_pro[p][0]
-            manning_p = [manning_value_border] * len(x_manning)
-            lim1 = lim_riv[p][0]
-            lim2 = lim_riv[p][2]
-            ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
-                      (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
-            ind = ind[0]
-
-            for i in range(0, len(ind)):
-                manning_p[ind[i]] = manning_value_center
-            manning.append(manning_p)
+        # for p in range(0, len(coord_pro)):
+        #     x_manning = coord_pro[p][0]
+        #     manning_p = [manning_value_border] * len(x_manning)
+        #     lim1 = lim_riv[p][0]
+        #     lim2 = lim_riv[p][2]
+        #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
+        #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
+        #     ind = ind[0]
+        #
+        #     for i in range(0, len(ind)):
+        #         manning_p[ind[i]] = manning_value_center
+        #     manning.append(manning_p)
 
         manning = []
         nb_point = 200
