@@ -163,6 +163,10 @@ class SubHydroW(QWidget):
         self.coord_pro = []
         self.vh_pro = []
         self.nb_pro_reach = []
+        self.on_profile = []
+        self.xhzv_data = []
+        self.np_point_vel = -99  # -99 -> velocity calculated in the same point than the profile height
+        self.manning1 =0.025
         self.pro_add = 2  # additional profil during the grid creation
         self.extension = [[".txt"]]
         self.path_prj = path_prj
@@ -330,7 +334,7 @@ class SubHydroW(QWidget):
         """
         this function form the link between GUI and the various grid and interpolation functions. Is called by
         the "loading' function of hec-ras 1D, Mascaret and Rubar BE.
-        :param cb_im is true the image are shown
+        :param cb_im if true, the figures are created and shown.
         :return:
         """
         if not isinstance(self.interpo_choice, int):
@@ -339,6 +343,12 @@ class SubHydroW(QWidget):
         if cb_im:
             path_im = self.find_path_im()
 
+        if len(self.vh_pro) == 0:
+            self.send_log.emit('Warning: Velocity and height data is empty (from grid_and_interpo)')
+            return
+        if len(self.vh_pro) == 1 and self.vh_pro == [-99]:
+            self.send_log.emit('Error: Velocity and height data were not created.')
+            return
         if self.interpo_choice == 0:
             self.send_log.emit(self.tr('# Create grid by block.'))
             for t in range(0, len(self.vh_pro)):
@@ -377,10 +387,11 @@ class SubHydroW(QWidget):
                 self.send_err_log()
                 sys.stdout = self.mystdout = StringIO()
                 [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2, self.vh_pro[t])
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
                 if cb_im:
                     manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                             hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
-                sys.stdout = sys.__stdout__
                 self.send_err_log()
                 self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
                 self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
@@ -420,7 +431,28 @@ class SubHydroW(QWidget):
                 self.send_log.emit("restart INTERPOLATE_NEAREST")
         else:
             self.send_log.emit('Error: Interpolation method is not recognized (Num).\n')
-            return
+        return
+
+    def distribute_velocity(self):
+        """
+        This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
+        notably rubar and masacret.
+        :return:
+        """
+        self.send_log.emit("# Velocity distribution")
+        #sys.stdout = self.mystdout = StringIO()
+        manning_array = dist_vistess2.get_manning(self.manning1, self.np_point_vel, len(self.coord_pro))
+        self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
+                                                         self.np_point_vel, 1, self.on_profile)
+        #sys.stdout = sys.__stdout__
+        self.send_err_log()
+        self.send_log.emit("restart GET_MANNING")
+        self.send_log.emit("restart DISTRIBUTE VELOCITY")
+        self.send_log.emit("py    manning1 = " + str(self.manning1))
+        self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
+        self.send_log.emit("py    manning_array = dist_vistess2.get_manning(manning1, np_point_vel, len(coord_pro))")
+        self.send_log.emit("py    vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning_array, "
+                           "np_point_vel, 1, on_profile)")
 
 
 class HEC_RAS1D(SubHydroW):
@@ -658,7 +690,6 @@ class Mascaret(SubHydroW):
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
         self.inter = QComboBox()
-        self.np_point_vel = -99 # -99 -> velocity calculated in the same point than the profile height
         self.init_iu()
 
     def init_iu(self):
@@ -753,7 +784,7 @@ class Mascaret(SubHydroW):
         path_im = self.find_path_im()
         self.send_log.emit(self.tr('# Load: Mascaret data.'))
         sys.stdout = self.mystdout = StringIO()
-        [self.coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, self.nb_pro_reach]\
+        [self.coord_pro, coord_r, self.xhzv_data, name_pro, name_reach, self.on_profile, self.nb_pro_reach]\
             = mascaret.load_mascaret(self.namefile[0], self.namefile[1], self.namefile[2], self.pathfile[0],\
                                      self.pathfile[1], self.pathfile[2])
         sys.stdout = sys.__stdout__
@@ -772,18 +803,15 @@ class Mascaret(SubHydroW):
         self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
 
         if self.cb.isChecked() and path_im != 'no_path':
-            mascaret.figure_mascaret(self.coord_pro, coord_r, xhzv_data, on_profile, self.nb_pro_reach, name_pro,
-                                     name_reach, path_im, [0, 1], [-1], [0])
-
+            mascaret.figure_mascaret(self.coord_pro, coord_r, self.xhzv_data, self.on_profile, self.nb_pro_reach,
+                                     name_pro, name_reach, path_im, [0, 1], [-1], [0])
         # velocity distibution
         try:
-            manning1 = float(self.manning_text.text())
+            self.manning1 = float(self.manning_text.text())
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
             self.send_log.emit("Error: The manning value or the number of velocity point is not understood.")
-        manning_array = dist_vistess2.get_manning(manning1, self.np_point_vel, len(self.coord_pro))
-        self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, xhzv_data, manning_array,
-                                                         self.np_point_vel, 1, on_profile)
+        self.distribute_velocity()
         # grid and interpolation
         self.interpo_choice = self.inter.currentIndex()
         self.grid_and_interpo(self.cb.isChecked())
@@ -988,7 +1016,7 @@ class Rubar1D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.reb)', self)
+        self.geo_b = QPushButton('Choose file (.rbe)', self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
@@ -1000,10 +1028,14 @@ class Rubar1D(SubHydroW):
         l6 = QLabel(self.tr('<b>Grid creation </b>'))
         l3 = QLabel(self.tr('Velocity distribution'))
         l32 = QLabel(self.tr("Based on Manning's formula"))
+        l7 = QLabel(self.tr("Nb. of velocity points by profile"))
+        l8 = QLabel(self.tr("Manning coefficient"))
         l4 = QLabel(self.tr('Interpolation of the data'))
-        l5 = QLabel(self.tr('Number of additional profiles'))
+        l5 = QLabel(self.tr('Nb. of additional profiles'))
         self.inter.addItems(self.interpo)
-        self.nb_extrapro_text = QLineEdit(self.tr('1'))
+        self.nb_extrapro_text = QLineEdit('1')
+        self.nb_vel_text = QLineEdit('50')
+        self.manning_text = QLineEdit('0.025')
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -1021,14 +1053,18 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(self.out_t2, 1, 1)
         self.layout_hec.addWidget(self.out_b, 1, 2)
         self.layout_hec.addItem(self.spacer1, 2, 1)
-        self.layout_hec.addWidget(l6, 3, 0)
-        self.layout_hec.addWidget(l3, 4, 1)
-        self.layout_hec.addWidget(l32, 4, 2, 1, 2)
-        self.layout_hec.addWidget(l4, 5, 1)
-        self.layout_hec.addWidget(self.inter, 5, 2, 1, 2)
-        self.layout_hec.addWidget(l5, 6, 1)
-        self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
-        self.layout_hec.addItem(self.spacer2, 7, 1)
+        self.layout_hec.addWidget(l6, 2, 0)
+        self.layout_hec.addWidget(l3, 3, 1)
+        self.layout_hec.addWidget(l32, 3, 2, 1, 2)
+        self.layout_hec.addWidget(l7, 4, 1)
+        self.layout_hec.addWidget(self.nb_vel_text, 4, 2, 1, 2)
+        self.layout_hec.addWidget(l8, 5, 1)
+        self.layout_hec.addWidget(self.manning_text, 5, 2, 1, 2)
+        self.layout_hec.addWidget(l4, 6, 1)
+        self.layout_hec.addWidget(self.inter, 6, 2, 1, 2)
+        self.layout_hec.addWidget(l5, 7, 1)
+        self.layout_hec.addWidget(self.nb_extrapro_text, 7, 2, 1, 2)
+        #self.layout_hec.addItem(self.spacer2, 7, 1)
         self.layout_hec.addWidget(self.load_b, 8, 2)
         self.layout_hec.addWidget(self.cb, 8, 1)
         self.setLayout(self.layout_hec)
@@ -1047,7 +1083,9 @@ class Rubar1D(SubHydroW):
             self.save_fig = True
         #load rubar 1D
         sys.stdout = self.mystdout = StringIO()
-        [data_xhzv, coord_pro, lim_riv] = rubar.load_rubar1d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
+        [self.xhzv_data, self.coord_pro, lim_riv] = rubar.load_rubar1d(self.namefile[0],
+                                         self.namefile[1], self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
+        self.nb_pro_reach = [0, len(self.coord_pro)]   # should be corrected?
         sys.stdout = sys.__stdout__
         # log info
         self.send_log.emit(self.tr('# Load: Rubar 1D data.'))
@@ -1061,6 +1099,18 @@ class Rubar1D(SubHydroW):
         self.send_log.emit("restart LOAD_RUBAR_1D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+
+        # velocity distibution
+        try:
+            self.manning1 = float(self.manning_text.text())
+            self.np_point_vel = int(self.nb_vel_text.text())
+        except ValueError:
+            self.send_log.emit("Error: The manning value or the number of velocity point is not understood.")
+        # velcoity distribution
+        self.distribute_velocity()
+        # grid and interpolation
+        self.interpo_choice = self.inter.currentIndex()
+        self.grid_and_interpo(self.cb.isChecked())
 
         if self.cb.isChecked() and path_im != 'no_path':
             self.show_fig.emit()

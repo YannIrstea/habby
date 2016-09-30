@@ -1,6 +1,6 @@
 import numpy as np
 #import mascaret
-#import rubar
+from src import rubar
 import matplotlib.pyplot as plt
 from src import Hec_ras06
 
@@ -23,16 +23,13 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
     vh_pro = []
 
     for t in range(0, len(xhzv_data_all)):
-
         # get the data for this time step
         v_pro_t = []
         xhzv_data = xhzv_data_all[t]
         if len(on_profile) > 1:
             xhzv_data = xhzv_data[on_profile]
         warn_point = True
-
         for p in range(0, len(coord_pro)):
-
             # (x_p, h_p) points between which the velocity will be calculated
             h_w_p = xhzv_data[p, 1] + xhzv_data[p, 2]
             if nb_point == -99:  # by default use the same point than in coord_pro
@@ -41,22 +38,29 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
             elif nb_point > 2:
                 x_ini = coord_pro[p][3]
                 h_ini = coord_pro[p][2]
-                x_p = np.arange(x_ini[0], x_ini[-1], (x_ini[-1] - x_ini[0])/nb_point)
+                x_p = np.linspace(x_ini[0], x_ini[-1], num=nb_point)
                 h_p = np.zeros((len(x_p),))
                 for i in range(0, len(x_p)):
                     indh = np.where(x_ini <= x_p[i])
                     indh = max(indh[0])
                     xhmin = x_ini[indh]
-                    xhmax = x_ini[indh+1]
                     hmin = h_ini[indh]
-                    hmax = h_ini[indh+1]
-                    a = (hmax - hmin) / (xhmax - xhmin)
-                    b = hmax - a * xhmax
+                    if indh < len(x_ini)-1:
+                        xhmax = x_ini[indh + 1]
+                        hmax = h_ini[indh+1]
+                        a = (hmax - hmin) / (xhmax - xhmin)
+                        b = hmax - a * xhmax
+                    else:
+                        a = 1
+                        b = 0.000001
                     h_p[i] = a * x_p[i] + b
             else:
                 print('Error: Number of point is not sufficient. \n')
-                return
+                return [-99]
             n = np.array(manning_pro[p], dtype=np.float)  # need a float even if manning input might be an int.
+            if len(n) != len(x_p):
+                print('Error: Length of Manning data is not coherent with the length of the profil.\n')
+                return [-99]
 
             # add extra point where the profile is getting out of the water
             # possibility of an island, so no easy [h_wp h[h>h_wp] h_wp]
@@ -80,7 +84,7 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                     else:
                         # theorically not useful
                         print('Error: x-coordinates are not increasing.\n')
-                        return
+                        return [-99]
                     h_p = np.concatenate((h_p[:i + 1], [h_w_p], h_p[i + 1:]))
                     x_p = np.concatenate((x_p[:i+1], [new_x], x_p[i+1:]))
                     n = np.concatenate((n[:i+1], [n[i+1]], n[i+1:]))
@@ -93,8 +97,7 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 x_p = np.concatenate(([x_p[0]], x_p[1:]))
                 n = np.concatenate(([n[0]], [n[1]], n[1:]))
 
-            ind = np.where(h_p <= h_w_p)
-            ind = ind[0]
+            ind = np.where(h_p <= h_w_p)[0]
 
             # if the profile is not totally dry
             if len(ind) > 0:
@@ -208,7 +211,7 @@ def plot_dist_vit(v_pro, coord_pro, xhzv_data, plot_timestep, pro, name_pro=[], 
                 coord_pro_p = coord_pro[p]
             except IndexError:
                 print('Error: The profile number exceed the total number of profiles. Cannot be plotted.\n')
-                return
+                return [-99]
             h_here = xhzv_data_t[p][1] + xhzv_data_t[p][2]
             plt.fill_between(coord_pro_p[3], coord_pro_p[2], h_here, where=coord_pro_p[2] < h_here,
                              facecolor='blue', alpha=0.5, interpolate=True)
@@ -349,53 +352,60 @@ def main():
         # plot_dist_vit(v_pro, coord_pro, xhzv_data, [1], [-1], name_pro, on_profile)
 
         # hec-ras test
-        path_test = r"C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\1D Steady Flow Hydraulics\Chapter 4 Example Data"
-        path_im = r'D:\Diane_work\Grid\distribution_vitesse\fig_hec'
-        name_geo = r"EX1_dist_m.g01"
-        name_xml = r"EX1_dist_m.RASexport.sdf"
-        [coord_pro, vh_pro_orr, nb_pro_reach, zone_v, data_profile, xy_h] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-        # case EX1
-        # v for t = 0 based on cross section output (in hec_ras: View-> detailed output table. Find Avg. Vel)
-        #v_in = [2.04, 1.95, 1.98, 3.06, 2.98, 2.94, 2.90, 2.28, 2.42, 2.42]  #feet
-        v_in = [1.49, 1.42, 1.44, 2.30, 2.24,2.22, 2.19, 1.72, 1.84, 1.84] #m
-        xhzv_data = preparetest_velocity(coord_pro, vh_pro_orr, v_in)
-        manning_value = 0.040
-        manning = []
-        nb_point = 200#40
-        for p in range(0, len(coord_pro)):
-             manning.append([manning_value] * nb_point)
-        vh_pro = dist_velocity_hecras(coord_pro,xhzv_data, manning, nb_point)
-        plot_dist_vit(vh_pro, coord_pro, xhzv_data, [0], range(0, 9),[],[], zone_v, data_profile, xy_h)
-
-
-
-        # # the same with rubar
-        # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
-        # mail = 'mail.LE13'
-        # geofile = 'LE13.rbe'
-        # data = 'profil.LE13'
-        # [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
-        #
-        # manning_value_center = 0.025
-        # manning_value_border = 0.06
+        # path_test = r"C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\1D Steady Flow Hydraulics\Chapter 4 Example Data"
+        # path_im = r'D:\Diane_work\Grid\distribution_vitesse\fig_hec'
+        # name_geo = r"EX1_dist_m.g01"
+        # name_xml = r"EX1_dist_m.RASexport.sdf"
+        # [coord_pro, vh_pro_orr, nb_pro_reach, zone_v, data_profile, xy_h] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+        # # case EX1
+        # # v for t = 0 based on cross section output (in hec_ras: View-> detailed output table. Find Avg. Vel)
+        # #v_in = [2.04, 1.95, 1.98, 3.06, 2.98, 2.94, 2.90, 2.28, 2.42, 2.42]  #feet
+        # v_in = [1.49, 1.42, 1.44, 2.30, 2.24,2.22, 2.19, 1.72, 1.84, 1.84] #m
+        # xhzv_data = preparetest_velocity(coord_pro, vh_pro_orr, v_in)
+        # manning_value = 0.040
         # manning = []
-        # # write this function better
+        # nb_point = 200#40
         # for p in range(0, len(coord_pro)):
-        #     x_manning = coord_pro[p][0]
-        #     manning_p = [manning_value_border] * len(x_manning)
-        #     lim1 = lim_riv[p][0]
-        #     lim2 = lim_riv[p][2]
-        #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
-        #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
-        #     ind = ind[0]
-        #
-        #     for i in range(0, len(ind)):
-        #         manning_p[ind[i]] = manning_value_center
-        #     manning.append(manning_p)
-        #
-        # v_pro = dist_velocity_hecras(coord_pro, xhzv_data_all, manning, -99)
-        # if v_pro:
-        #     plot_dist_vit(v_pro, coord_pro, xhzv_data_all, [3], [1,2,3])
+        #      manning.append([manning_value] * nb_point)
+        # vh_pro = dist_velocity_hecras(coord_pro,xhzv_data, manning, nb_point)
+        # plot_dist_vit(vh_pro, coord_pro, xhzv_data, [0], range(0, 9),[],[], zone_v, data_profile, xy_h)
+
+
+
+        # the same with rubar
+        path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
+        mail = 'mail.LE13'
+        geofile = 'LE13.rbe'
+        data = 'profil.LE13'
+        #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\1D\RubarBE_four_0'
+        #mail = 'mail.LE13'
+        #geofile = 'four.rbe'
+        #data = 'profil.four'
+        [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
+
+        manning_value_center = 0.025
+        manning_value_border = 0.06
+        manning = []
+        # write this function better
+        for p in range(0, len(coord_pro)):
+            x_manning = coord_pro[p][0]
+            manning_p = [manning_value_border] * len(x_manning)
+            lim1 = lim_riv[p][0]
+            lim2 = lim_riv[p][2]
+            ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
+                      (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
+            ind = ind[0]
+
+            for i in range(0, len(ind)):
+                manning_p[ind[i]] = manning_value_center
+            manning.append(manning_p)
+
+        manning = []
+        nb_point = 200
+        manning = get_manning(manning_value_center, nb_point, len(coord_pro))
+        v_pro = dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point)
+        if v_pro:
+            plot_dist_vit(v_pro, coord_pro, xhzv_data_all, [3], [1,2,3])
 
 
 if __name__ == '__main__':
