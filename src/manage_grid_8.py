@@ -1,11 +1,11 @@
 import numpy as np
-#from src import mascaret
+from src import mascaret
 from src import dist_vistess2
 import triangle
 import matplotlib.pyplot as plt
 import time
 from src import rubar
-#from src import Hec_ras06
+from src import Hec_ras06
 import scipy.interpolate
 import copy
 #np.set_printoptions(threshold=np.inf)
@@ -1132,7 +1132,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
             plt.plot(xlist, ylist, linewidth=0.2)
             if lim_by_reach:
                 for hh in range(0, len(h)):
-                     plt.plot(h[hh][0], h[hh][1], "g*", markersize=10)
+                     plt.plot(h[hh][0], h[hh][1], "g*", markersize=3)
                 for i in range(0, len(seg_reach)):
                     seg = seg_reach[i]
                     if i % 3 == 0:
@@ -1202,30 +1202,33 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
 def main():
 
         #distrbution vitesse mascaret
-        # path = r'D:\Diane_work\output_hydro\mascaret'
-        # path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
-        # #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
-        # file_geo = r'mascaret0.geo'
-        # file_res = r'mascaret0_ecr.opt'
-        # file_gen = 'mascaret0.xcas'
-        # [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
-        #                     mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
-        # #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
-        # manning_value = 0.025
-        # manning = []
-        # nb_point = 20
-        # for p in range(0, len(coord_pro)):
-        #     manning.append([manning_value] * nb_point)
-        #
-        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
-        # for t in range(0, len(vh_pro)):
-        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
-        #         = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
+        path = r'D:\Diane_work\output_hydro\mascaret'
+        path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
+        #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
+        file_geo = r'mascaret0.geo'
+        file_res = r'mascaret0_ecr.opt'
+        file_gen = 'mascaret0.xcas'
+        [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
+                            mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
+        #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
+        manning_value = 0.025
+        manning = []
+        nb_point = 20
+        for p in range(0, len(coord_pro)):
+            manning.append([manning_value] * nb_point)
+
+        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
+        inter_vel_all = []
+        inter_height_all = []
+        for t in range(0, len(vh_pro)):
+            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
+                = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
             #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all]= \
             #create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
         #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
-        #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
-        #
+        plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
+
+        a = time.time()
         path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
         mail = 'mail.LE13'
         geofile = 'LE13.rbe'
@@ -1233,38 +1236,40 @@ def main():
         [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
         coord_sub = [[0.0,0.0], [2.0,2.0],[1.5,1.5]]
         ikle_sub = [[0, 1, 2]]
+        #
+        # manning_value_center = 0.025
+        # manning_value_border = 0.06
+        # manning = []
+        # nb_point = len(coord_pro)
+        # # write this function better
+        # for p in range(0, len(coord_pro)):
+        #     x_manning = coord_pro[p][0]
+        #     manning_p = [manning_value_border] * nb_point
+        #     lim1 = lim_riv[p][0]
+        #     lim2 = lim_riv[p][2]
+        #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
+        #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
+        #     ind = ind[0]
+        #
+        #     for i in range(0, len(ind)):
+        #         manning_p[ind[i]] = manning_value_center
+        #     manning.append(manning_p)
+        # #manning = []
+        # #nb_point = 167
+        # #manning = dist_vistess2.get_manning(manning_value_center, nb_point, len(coord_pro))
+        #
+        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point, 1)
+        # #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
+        # [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+        #     = create_grid(coord_pro, 10, [], [], [0, len(coord_pro)], vh_pro[-1])
+        # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap,[], [], [], path)
+        # b = time.time()
 
-        manning_value_center = 0.025
-        manning_value_border = 0.06
-        manning = []
-        nb_point = len(coord_pro)
-        # write this function better
-        for p in range(0, len(coord_pro)):
-            x_manning = coord_pro[p][0]
-            manning_p = [manning_value_border] * nb_point
-            lim1 = lim_riv[p][0]
-            lim2 = lim_riv[p][2]
-            ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
-                      (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
-            ind = ind[0]
 
-            for i in range(0, len(ind)):
-                manning_p[ind[i]] = manning_value_center
-            manning.append(manning_p)
-        manning = []
-        nb_point = 167
-        manning = dist_vistess2.get_manning(manning_value_center, nb_point, len(coord_pro))
-
-        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point, 1)
-        #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
-        [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-            = create_grid(coord_pro, 1, [], [], [0, len(coord_pro)], vh_pro[0])
-        plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap,[], [], [], path)
-
-        # test hec-ras
-        # CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
+        #test hec-ras
+        #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
         # path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-        # name = 'CRITCREK'  # CRITCREK, LOOP
+        # name = 'LOOP'  # CRITCREK, LOOP
         # name_xml = name + '.O02.xml'
         # name_geo = name + '.g01'
         # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
@@ -1281,12 +1286,12 @@ def main():
         #
         # for t in range(0, len(vh_pro)):
         #     which_pro = vh_pro[t]
-        #     #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island, coord_pro2, point_c_all] \
-        #      #  = create_grid(coord_pro, 10,[], [], nb_pro_reach, which_pro, 10)  # [], [] -> coord_sub, ikle_sub,
-        #     [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-        #         create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
+        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+        #        = create_grid(coord_pro, 3,[], [], nb_pro_reach, which_pro, 10)  # [], [] -> coord_sub, ikle_sub,
+        #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+        #        # create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
         #     if which_pro:
-        #         #[inter_vel_all, inter_height_all] = interpo_linear(point_c_all, coord_pro2, vh_pro[t])
+        #         [inter_vel_all, inter_height_all] = interpo_linear(point_c_all, coord_pro2, vh_pro[t])
         #         #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_height_all)
         #         plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, '.')
         #     else:

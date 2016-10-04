@@ -47,7 +47,7 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 for i in range(0, len(x_p)):
                     #indh = np.where(x_ini <= x_p[i])
                     #indh = max(indh[0])
-                    indh = bisect.bisect(x_ini, x_p[i]) -1  # about 3 time quick than max(np.where(x_ini <= x_p[i]))
+                    indh = bisect.bisect(x_ini, x_p[i]) - 1  # about 3 time quick than max(np.where(x_ini <= x_p[i]))
                     xhmin = x_ini[indh]
                     hmin = h_ini[indh]
                     if indh < len(x_ini)-1:
@@ -69,7 +69,6 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
             if len(n) != len(x_p):
                 print('Error: Length of Manning data is not coherent with the length of the profil.\n')
                 return [-99]
-
 
             # add extra point where the profile is getting out of the water
             # possibility of an island, so no easy [h_wp h[h>h_wp] h_wp]

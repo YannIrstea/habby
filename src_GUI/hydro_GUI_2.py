@@ -6,6 +6,8 @@ from PyQt5.QtCore import QTranslator, pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox
+import h5py
+import time
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -159,12 +161,18 @@ class SubHydroW(QWidget):
         self.pathfile = ['.', '.']
         self.attributexml = [' ', ' ']
         self.model_type = ' '
+        self.nb_dim = 2
         self.save_fig = False
         self.coord_pro = []
         self.vh_pro = []
         self.nb_pro_reach = []
         self.on_profile = []
         self.xhzv_data = []
+        self.inter_vel_all_t = []
+        self.inter_h_all_t = []
+        self.ikle_all_t = []
+        self.point_all_t = []
+        self.point_c_all_t = []
         self.np_point_vel = -99  # -99 -> velocity calculated in the same point than the profile height
         self.manning1 =0.025
         self.pro_add = 2  # additional profil during the grid creation
@@ -290,6 +298,92 @@ class SubHydroW(QWidget):
                     child.text = filename_path_file
             doc.write(filename_path_pro, method="xml")
 
+    def save_hdf5(self):
+        """
+        This function save the hydrological data in the hdf5 format.
+        The log is not really finished, notbaly this functin cannot be used outise of the class,
+        so it needs to be re-written if used in the command line
+        :return:
+        """
+        self.send_log.emit('# Save hdf5 hydrological data')
+
+        # create hdf5 name
+        h5name = self.name_prj + '_' + self.model_type + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        path_hdf5 = self.find_path_im()
+
+        # create a new hdf5
+        fname = os.path.join(path_hdf5, h5name)
+        file = h5py.File(fname, 'w')
+
+        # create attributes
+        file.attrs['path_projet'] = self.path_prj
+        file.attrs['name_projet'] = self.name_prj
+        file.attrs['HDF5_version'] = h5py.version.hdf5_version
+        file.attrs['h5py_version'] = h5py.version.version
+
+        # create all datasets and group
+        if self.nb_dim == 1:
+            Data_1D = file.create_group('Data_1D')
+            xhzv_datag = Data_1D.create_group('xhzv_data')
+            xhzv_datag.create_dataset(h5name, data=self.xhzv_data)
+        if self.nb_dim < 2:
+            Data_15D = file.create_group('Data_15D')
+            # is there a way to save inegal list in hdf5???
+            # save nb_pro_reach somewhere
+            for p in range(0, len(self.coord_pro)):
+                coord_prog = Data_15D.create_group('coord_pro_profil_num_'+str(p))
+                coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
+            for t in range(0, len(self.vh_pro)):
+                there = Data_15D.create_group('Timestep_' + str(t))
+                for p in range(0, len(self.vh_pro[t])):
+                    vh_prog = there.create_group('vh_pro_profil_num'+str(p))
+                    vh_prog.create_dataset(h5name, [3, len(self.vh_pro[t][p][0])], data=self.vh_pro[t][p])
+        if self.nb_dim <= 2:
+            Data_2D = file.create_group('Data_2D')
+            for t in range(0, len(self.ikle_all_t)):
+                there = Data_2D.create_group('Timestep_'+str(t))
+                for r in range(0, len(self.ikle_all_t[t])):
+                    rhere = there.create_group('Reach_' + str(r))
+                    ikleg = rhere.create_group('ikle')
+                    ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r]), 3], data=self.ikle_all_t[t][r])
+                    point_allg = rhere.create_group('point_all')
+                    point_allg.create_dataset(h5name, [len(self.point_all_t[t][r]), 2], data=self.point_all_t[t][r])
+                    point_cg = rhere.create_group('point_c_all')
+                    point_cg.create_dataset(h5name, [len(self.point_c_all_t[t][r]), 2], data=self.point_c_all_t[t][r])
+                    inter_velg = rhere.create_group('inter_vel_all')
+                    inter_velg.create_dataset(h5name, [len(self.inter_vel_all_t[t][r])], data=self.inter_vel_all_t[t][r])
+                    inter_hg = rhere.create_group('inter_h_all')
+                    inter_hg.create_dataset(h5name, [len(self.inter_h_all_t[t][r])], data=self.inter_h_all_t[t][r])
+        file.close()
+
+        # save the file to the xml of the project
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if not os.path.isfile(filename_prj):
+            print('Error: No project saved. Please create a project first in the General tab.\n')
+            return
+        else:
+            doc = ET.parse(filename_prj)
+            root = doc.getroot()
+            child = root.find(".//"+self.model_type)
+            if child is None:
+                stathab_element = ET.SubElement(root, self.model_type)
+                hdf5file = ET.SubElement(stathab_element, "hdf5_hydrodata")
+                hdf5file.text = fname
+            else:
+                hdf5file = root.find(".//"+self.model_type + "/hdf5_hydrodata")
+                if hdf5file is None:
+                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+                    hdf5file.text = fname
+                else:
+                    #hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
+                    hdf5file.text = fname   # keep only the new file
+            doc.write(filename_prj)
+
+        self.send_log.emit('restart SAVE_HYDRO_HDF5')
+        self.send_log.emit('py    # save_hdf5 (function needs to be re-written to be used in cmd)')
+
+        return
+
     def find_path_im(self):
         """
         A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py
@@ -337,18 +431,20 @@ class SubHydroW(QWidget):
         :param cb_im if true, the figures are created and shown.
         :return:
         """
+        # preparation
         if not isinstance(self.interpo_choice, int):
             self.send_log.emit('Error: Interpolation method is not recognized (Type).\n')
             return
         if cb_im:
             path_im = self.find_path_im()
-
         if len(self.vh_pro) == 0:
             self.send_log.emit('Warning: Velocity and height data is empty (from grid_and_interpo)')
             return
         if len(self.vh_pro) == 1 and self.vh_pro == [-99]:
             self.send_log.emit('Error: Velocity and height data were not created.')
             return
+
+        #all interpolations
         if self.interpo_choice == 0:
             self.send_log.emit(self.tr('# Create grid by block.'))
             for t in range(0, len(self.vh_pro)):
@@ -360,6 +456,11 @@ class SubHydroW(QWidget):
                                             inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
+                self.inter_vel_all_t.append(inter_vel_all)
+                self.inter_h_all_t.append(inter_height_all)
+                self.ikle_all_t.append(ikle_all)
+                self.point_all_t.append(point_all_reach)
+                self.point_c_all_t.append(point_c_all)
                 self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
                 self.send_log.emit("py    [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                     manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro_t)\n")
@@ -389,6 +490,11 @@ class SubHydroW(QWidget):
                 [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2, self.vh_pro[t])
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
+                self.inter_vel_all_t.append(inter_vel_all)
+                self.inter_h_all_t.append(inter_height_all)
+                self.ikle_all_t.append(ikle_all)
+                self.point_all_t.append(point_all_reach)
+                self.point_c_all_t.append(point_c_all)
                 if cb_im:
                     manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                             hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
@@ -417,12 +523,17 @@ class SubHydroW(QWidget):
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 sys.stdout = self.mystdout = StringIO()
-                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_c_all, coord_pro2, self.vh_pro[t])
+                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(self.point_c_all, coord_pro2, self.vh_pro[t])
                 if cb_im:
                     manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                             hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
+                self.inter_vel_all_t.append(inter_vel_all)
+                self.inter_h_all_t.append(inter_height_all)
+                self.ikle_all_t.append(ikle_all)
+                self.point_all_t.append(point_all_reach)
+                self.point_c_all_t.append(point_c_all)
                 self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
                 self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
                                    " point_c_all] = manage_grid_8.create_grid(coord_pro, nb_pro_reach, vh_pro_t)\n")
@@ -440,11 +551,11 @@ class SubHydroW(QWidget):
         :return:
         """
         self.send_log.emit("# Velocity distribution")
-        #sys.stdout = self.mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()
         manning_array = dist_vistess2.get_manning(self.manning1, self.np_point_vel, len(self.coord_pro))
         self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
                                                          self.np_point_vel, 1, self.on_profile)
-        #sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
         self.send_err_log()
         self.send_log.emit("restart GET_MANNING")
         self.send_log.emit("restart DISTRIBUTE VELOCITY")
@@ -474,6 +585,7 @@ class HEC_RAS1D(SubHydroW):
         self.model_type = 'HECRAS1D'
         self.extension = [['.g01', '.g02', '.g03', '.g04','.g05 ', '.g06', '.g07', '.g08',
                             '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
+        self.nb_dim = 1.5
 
         # if there is the project file with hecras geo info, update the label and attibutes
         self.was_model_loaded_before(0)
@@ -565,6 +677,8 @@ class HEC_RAS1D(SubHydroW):
         self.interpo_choice = self.inter.currentIndex()
         self.grid_and_interpo(self.cb.isChecked())
 
+        #save hdf5 data
+        self.save_hdf5()
         # show figure
         if self.cb.isChecked():
             self.show_fig.emit()
@@ -588,6 +702,7 @@ class Rubar2D(SubHydroW):
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
         self.extension = [['.mai', '.dat'], ['.tps']]  # list of list in case there is more than one possible ext.
+        self.nb_dim = 2
 
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
@@ -646,7 +761,9 @@ class Rubar2D(SubHydroW):
             self.save_fig = True
         # load rubar 2d data
         sys.stdout = self.mystdout = StringIO()
-        [v, h, coord_p, coord_c, ikle] = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
+        [self.inter_vel_all_t, self.inter_h_all_t, self.point_all_t, self.point_c_all_t, self.ikle_all_t] \
+            = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1],
+                                 path_im, self.save_fig)
         sys.stdout = sys.__stdout__
 
         # log info
@@ -661,6 +778,13 @@ class Rubar2D(SubHydroW):
         self.send_log.emit("restart LOAD_RUBAR_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+
+        # TEMPORARY correction because we have only one grid for all time step
+        self.point_all_t = [[self.point_all_t]]
+        self.point_c_all_t = [[self.point_c_all_t]]
+        self.ikle_all_t = [[self.ikle_all_t]]
+
+        self.save_hdf5()
 
         if self.cb.isChecked():
             self.show_fig.emit()
@@ -700,6 +824,7 @@ class Mascaret(SubHydroW):
         self.pathfile = ['.', '.', '.']
         self.model_type = 'mascaret'
         self.extension = [['.xcas'], ['.geo'], ['.opt', '.rub']]
+        self.nb_dim = 1
 
         # if there is the project file with mascaret info, update the label and attibutes
         self.was_model_loaded_before(0)
@@ -816,6 +941,8 @@ class Mascaret(SubHydroW):
         self.interpo_choice = self.inter.currentIndex()
         self.grid_and_interpo(self.cb.isChecked())
 
+        self.save_hdf5()
+
         if self.cb.isChecked():
             self.show_fig.emit()
 
@@ -839,6 +966,7 @@ class River2D(SubHydroW):
         self.namefile = []
         self.pathfile = []
         self.extension = [['.cdg'], ['.cdg']]  # list of list in case there is more than one possible ext.
+        self.nb_dim = 2
 
         # if there is the project file with river 2d info, update the label and attibutes
         self.was_model_loaded_before(0, True)
@@ -1005,6 +1133,7 @@ class Rubar1D(SubHydroW):
         self.attributexml = ['rubar_1dpro', 'data1d_rubar']
         self.model_type = 'RUBAR1D'
         self.extension = [[''], ['']]  # no useful extension in this case
+        self.nb_dim = 1
 
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
@@ -1111,6 +1240,7 @@ class Rubar1D(SubHydroW):
         # grid and interpolation
         self.interpo_choice = self.inter.currentIndex()
         self.grid_and_interpo(self.cb.isChecked())
+        self.save_hdf5()
 
         if self.cb.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
@@ -1133,6 +1263,7 @@ class HEC_RAS2D(SubHydroW):
         self.attributexml = ['data2D']
         self.model_type = 'HECRAS2D'
         self.extension = [['.hdf']]
+        self.nb_dim =2
 
         # if there is the project file with hecras info, update the label and attibutes
         self.was_model_loaded_before()
@@ -1213,6 +1344,7 @@ class TELEMAC(SubHydroW):
         self.attributexml = ['telemac_data']
         self.model_type = 'TELEMAC'
         self.extension = [['.res', '.slf']]
+        self.nb_dim = 2
 
         # if there is the project file with telemac info, update the label and attibutes
         self.was_model_loaded_before()
@@ -1259,7 +1391,7 @@ class TELEMAC(SubHydroW):
         # load the telemac data
         path_im = self.find_path_im()
         sys.stdout = self.mystdout = StringIO()
-        [v, h, coord_p, ikle] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
+        [v, h, coord_p, self.ikle_all] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
         sys.stdout = sys.__stdout__
         # log info
         self.send_log.emit(self.tr('# Load: TELEMAC data.'))

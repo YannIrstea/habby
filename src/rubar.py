@@ -572,11 +572,14 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
         [ikle, xy, coord_c, nb_cell] = load_mai_2d(geofile, pathgeo)
     elif ext == '.dat':
         [ikle, xy, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)
-    [timestep, h,v] = load_tps_2d(tpsfile, pathtps, nb_cell)
+    else:
+        return [-99], [-99], [-99], [-99], [-99]
+    [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)
+    [ikle, coord_c, xy, h, v] = get_triangular_grid(ikle, coord_c, xy, h, v)
     if save_fig:
         figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [-1])
 
-    return v, h, xy, coord_c, ikle,
+    return v, h, xy, coord_c, ikle
 
 
 def load_mai_2d(geofile, path):
@@ -706,7 +709,7 @@ def load_dat_2d(geofile, path):
     m2 = 2
     m = 1
     ikle = []
-    while m < nb_cell*3+3:
+    while m < nb_cell*3:
         if m >= len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .dat file.\n')
             return [-99], [-99], [-99], [-99]
@@ -721,16 +724,16 @@ def load_dat_2d(geofile, path):
                     return [-99], [-99], [-99], [-99]
             ikle.append(ind_l)
             m2 += 3
-        m +=1
+        m += 1
 
-    if len(ikle) != nb_cell+1:
+    if len(ikle) != nb_cell:
         print('Warning: some cells might be missing.\n')
 
     # extract the number of side (not needed)
-    m -=2
+    m +=1
     nb_side = int(data_geo2d[m])
     # and directly go to coordinate
-    m += nb_side * 2+1
+    m += nb_side * 2 +1
 
     # nb coordinates
     try:
@@ -754,11 +757,19 @@ def load_dat_2d(geofile, path):
                 print('Error: Could not extract the coordinates from the .dat file.\n')
                 print(data_geo2d[mi])
                 return [-99], [-99], [-99], [-99]
-        m +=1
+        m += 1
     # separe x and z
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:]
     xy = np.column_stack((x, y))
+
+    for c in range(0, len(ikle)):
+        ikle_c = ikle[c]
+        if len(ikle_c) < 3:
+            print('here first')
+            print(c)
+            print(ikle[c - 1])
+            print(ikle_c)
 
     # find the center point of each cellss
     # slow because number of point of a cell changes
@@ -815,7 +826,7 @@ def load_tps_2d(tpsfile, path, nb_cell):
             i += nb_cell
             # velocity
             hiv = np.copy(hi)
-            hiv[hiv == 0] = -99  #avoid division by zeros
+            hiv[hiv == 0] = -99  # avoid division by zeros
             if len(que) != len(qve):
                 np.set_printoptions(threshold=np.inf)
             vi = np.sqrt((que/hiv)**2 + (qve/hiv)**2)
@@ -826,6 +837,72 @@ def load_tps_2d(tpsfile, path, nb_cell):
             return [-99], [-99], [-99]
 
     return t, h,v
+
+
+def get_triangular_grid(ikle, coord_c, xy, h, v):
+    """
+    In Rubar it is possible to have non-triangular cells. You can have a grid composed a mixed of pentagonal, 4-sided
+    and triangluar cells. This function transform the grid to a triangular grid
+    :param ikle: the connectivity table
+    :param coord_c: the coordinate of the centroid of the cell
+    :param xy the points of the grid
+    :param h data on water height
+    :param v data on velocity
+    :return: the updated ikle, point_c and xy
+    """
+
+    # this is important for speed. np.array are slow to append value
+    xy = list(xy)
+    h2 = []
+    v2 = []
+    nbtime = len(v)
+    for t in range(0, nbtime):
+        h2.append(list(h[t]))
+        v2.append(list(v[t]))
+
+    # now create the triangular grid
+    likle = len(ikle)
+    for c in range(0, likle):
+        ikle_c = ikle[c]
+        if len(ikle_c) < 3:
+            print('Error: A cell with an area of 0 is found.\n')
+            print(ikle_c)
+            return [-99], [-99], [-99], [-99], [-99]
+
+        elif len(ikle_c) > 3:
+            # the new cell is compose of triangle where one point is the centroid and two points are side of
+            # the polygon which composed the cells before. The first new triangular cell take the place of the old one
+            # (to avoid changing the order of ikle), the other are added at the end
+            # no change to v and h for the first triangular data, change afterwards
+            xy.append(coord_c[c])
+            # first triangular cell
+            ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
+            p1 = xy[len(xy)-1]
+            coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1)/3
+            # next triangular cell
+            for s in range(1, len(ikle[c])-1):
+                ikle.append([ikle_c[s], ikle_c[s+1], len(xy) - 1])
+                coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s+1]] + p1) / 3)
+                for t in range(0, nbtime):
+                    v2[t].append(v[t][c])
+                    h2[t].append(h[t][c])
+            # last triangular cells
+            ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
+            coord_c.append((xy[ikle_c[-1]] + xy[ikle_c[0]] + p1) / 3)
+            for t in range(0, nbtime):
+                v2[t].append(v[t][c])
+                h2[t].append(h[t][c])
+
+    xy = np.array(xy)
+    v = []
+    h = []
+    for t in range(0, nbtime):
+        # there is an extra [] for the case where we more than one reach
+        # to be corrected if we get multi-reach RUBAR simulation
+        h.append([np.array(h2[t])])
+        v.append([np.array(v2[t])])
+
+    return ikle, coord_c, xy, v, h
 
 
 def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
@@ -878,7 +955,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
 
     for t in time_step:
         # plot water depth
-        h_t = np.array(h[t])
+        h_t = np.array(h[t][0])  # 0 in case we have more than one reach
         hec_ras2D.scatter_plot(coord_c, h_t, 'Water Depth [m]', 'terrain', 8, t)
         plt.savefig(
             os.path.join(path_im, "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
@@ -887,7 +964,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
         plt.close()
 
         # plot velocity
-        vel_c0 = v[t]
+        vel_c0 = v[t][0]
         hec_ras2D.scatter_plot(coord_c, h_t, 'Vel. [m/sec]', 'gist_ncar', 8, t)
         plt.savefig(
                 os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))

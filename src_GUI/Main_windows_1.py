@@ -166,7 +166,7 @@ class MainWindows(QMainWindow):
         logy = QAction(self.tr("Save Log"), self)
         logy.setStatusTip(self.tr('Events will be written to the .log file.'))
         logy.triggered.connect(lambda: self.do_log(1))
-        savi = QAction(self.tr("Clear Images"), self)
+        savi = QAction(self.tr("Clear Images and h5 Files"), self)
         savi.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
         savi.triggered.connect(self.erase_pict)
         showim = QAction(self.tr("Show Images"), self)
@@ -174,7 +174,7 @@ class MainWindows(QMainWindow):
         showim.triggered.connect(self.central_widget.showfig)
         optim = QAction(self.tr("More Options"), self)
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
-        #optim.triggered.connect(self.central_widget.optfig)
+        # optim.triggered.connect(self.central_widget.optfig)
 
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
