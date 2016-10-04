@@ -306,11 +306,11 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     if len(test_unique) != len(point_all):
         print('Warning: There is duplicate points. The triangulation might fail. \n')
         # this is very very slow, but it might solve problems
-        #for p in range(0, len(point_all)):
-           #for p2 in range(0, len(point_all)):
-             # if p !=p2:
-                 #if point_all[p,0] == point_all[p2,0] and point_all[p,1] == point_all[p2,1]:
-                    # point_all[p] = point_all[p] * 0.99
+        for p in range(0, len(point_all)):
+           for p2 in range(0, len(point_all)):
+             if p !=p2:
+                 if point_all[p,0] == point_all[p2,0] and point_all[p,1] == point_all[p2,1]:
+                    point_all[p] = point_all[p] * 0.99
 
     # find the limits
     seg_to_be_added2 = []
@@ -1202,32 +1202,32 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
 def main():
 
         #distrbution vitesse mascaret
-        path = r'D:\Diane_work\output_hydro\mascaret'
-        path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
-        #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
-        file_geo = r'mascaret0.geo'
-        file_res = r'mascaret0_ecr.opt'
-        file_gen = 'mascaret0.xcas'
-        [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
-                            mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
-        #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
-        manning_value = 0.025
-        manning = []
-        nb_point = 20
-        for p in range(0, len(coord_pro)):
-            manning.append([manning_value] * nb_point)
-
-        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
-        inter_vel_all = []
-        inter_height_all = []
-        for t in range(0, len(vh_pro)):
-            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
-                = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
-            #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all]= \
-            #create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
-        #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
-        plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
-
+        # path = r'D:\Diane_work\output_hydro\mascaret'
+        # path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
+        # #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
+        # file_geo = r'mascaret0.geo'
+        # file_res = r'mascaret0_ecr.opt'
+        # file_gen = 'mascaret0.xcas'
+        # [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
+        #                     mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
+        # #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
+        # manning_value = 0.025
+        # manning = []
+        # nb_point = 20
+        # for p in range(0, len(coord_pro)):
+        #     manning.append([manning_value] * nb_point)
+        #
+        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
+        # inter_vel_all = []
+        # inter_height_all = []
+        # for t in range(0, len(vh_pro)):
+        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
+        #         = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
+        #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all]= \
+        #     #create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
+        # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
+        # plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
+        #
         a = time.time()
         path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
         mail = 'mail.LE13'
@@ -1236,34 +1236,34 @@ def main():
         [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
         coord_sub = [[0.0,0.0], [2.0,2.0],[1.5,1.5]]
         ikle_sub = [[0, 1, 2]]
-        #
-        # manning_value_center = 0.025
-        # manning_value_border = 0.06
-        # manning = []
-        # nb_point = len(coord_pro)
-        # # write this function better
-        # for p in range(0, len(coord_pro)):
-        #     x_manning = coord_pro[p][0]
-        #     manning_p = [manning_value_border] * nb_point
-        #     lim1 = lim_riv[p][0]
-        #     lim2 = lim_riv[p][2]
-        #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
-        #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
-        #     ind = ind[0]
-        #
-        #     for i in range(0, len(ind)):
-        #         manning_p[ind[i]] = manning_value_center
-        #     manning.append(manning_p)
-        # #manning = []
-        # #nb_point = 167
-        # #manning = dist_vistess2.get_manning(manning_value_center, nb_point, len(coord_pro))
-        #
-        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point, 1)
-        # #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
-        # [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-        #     = create_grid(coord_pro, 10, [], [], [0, len(coord_pro)], vh_pro[-1])
-        # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap,[], [], [], path)
-        # b = time.time()
+
+        manning_value_center = 0.025
+        manning_value_border = 0.06
+        manning = []
+        nb_point = len(coord_pro)
+        # write this function better
+        for p in range(0, len(coord_pro)):
+            x_manning = coord_pro[p][0]
+            manning_p = [manning_value_border] * nb_point
+            lim1 = lim_riv[p][0]
+            lim2 = lim_riv[p][2]
+            ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
+                      (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
+            ind = ind[0]
+
+            for i in range(0, len(ind)):
+                manning_p[ind[i]] = manning_value_center
+            manning.append(manning_p)
+        #manning = []
+        #nb_point = 167
+        #manning = dist_vistess2.get_manning(manning_value_center, nb_point, len(coord_pro))
+
+        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point, 1)
+        #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
+        [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+            = create_grid(coord_pro, 10, [], [], [0, len(coord_pro)], vh_pro[0])
+        plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap,[], [], [], path)
+        b = time.time()
 
 
         #test hec-ras

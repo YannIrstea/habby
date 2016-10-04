@@ -22,6 +22,7 @@ from src import river2d
 from src import mascaret
 from src import manage_grid_8
 from src import dist_vistess2
+np.set_printoptions(threshold=np.inf)
 
 class Hydro2W(QWidget):
     """
@@ -345,7 +346,8 @@ class SubHydroW(QWidget):
                 for r in range(0, len(self.ikle_all_t[t])):
                     rhere = there.create_group('Reach_' + str(r))
                     ikleg = rhere.create_group('ikle')
-                    ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r]), 3], data=self.ikle_all_t[t][r])
+                    ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r]), len(self.ikle_all_t[t][r][0])],
+                                         data=self.ikle_all_t[t][r])
                     point_allg = rhere.create_group('point_all')
                     point_allg.create_dataset(h5name, [len(self.point_all_t[t][r]), 2], data=self.point_all_t[t][r])
                     point_cg = rhere.create_group('point_c_all')
@@ -1079,7 +1081,9 @@ class River2D(SubHydroW):
         """
 
         xyzhv = []
-        ikle = []
+        self.ikle_all_t = []
+        self.point_c_all_t = []
+        self.point_all_t = []
         self.send_log.emit(self.tr('# Load: River2D data.'))
 
         path_im = self.find_path_im()
@@ -1100,7 +1104,11 @@ class River2D(SubHydroW):
             if len(xyzhv_i) == 1 and xyzhv_i[0] == -99:
                 return
             xyzhv.append(xyzhv_i)
-            ikle.append(ikle_i)
+            self.point_all_t.append(xyzhv_i[:, :2])
+            self.ikle_all_t.append(ikle_i)
+            self.point_c_all_t.append(coord_c)
+            self.inter_h_all_t.append(xyzhv_i[:, 3])
+            self.inter_vel_all_t.append(xyzhv_i[:, 4])
             if self.cb.isChecked() and path_im != 'no_path' and i == 0:
                 river2d.figure_river2d(xyzhv_i, ikle_i, path_im, i)
 
@@ -1110,6 +1118,15 @@ class River2D(SubHydroW):
             self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = river2d.load_river2d_cdg(file1, path1) \n")
             self.send_log.emit("restart LOAD_RIVER_2D")
             self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[i], self.namefile[i]))
+
+        # TEMPORARY correction because we have only one grid for all reaches
+        self.point_all_t = [self.point_all_t]
+        self.point_c_all_t = [self.point_c_all_t]
+        self.ikle_all_t = [self.ikle_all_t]
+        self.inter_h_all_t = [self.inter_h_all_t]
+        self.inter_vel_all_t = [self.inter_vel_all_t]
+
+        self.save_hdf5()
 
         if self.cb.isChecked():
             self.show_fig.emit()
@@ -1314,6 +1331,14 @@ class HEC_RAS2D(SubHydroW):
         sys.stdout = self.mystdout = StringIO()
         [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(self.namefile[0], self.pathfile[0])
         sys.stdout = sys.__stdout__
+
+        # TEMPORARY correction because we have only one grid for all time step
+        self.point_all_t = [coord_p]
+        self.point_c_all_t = [coord_c]
+        self.ikle_all_t = [ikle]   # carefil ikle not corrected for non-triangular cells
+        self.inter_h_all_t = v
+        self.inter_vel_all_t = h
+
         # log info
         self.send_log.emit(self.tr('# Load: HEC-RAS 2D.'))
         self.send_err_log()
@@ -1322,10 +1347,13 @@ class HEC_RAS2D(SubHydroW):
         self.send_log.emit("py    [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(file1, path1)\n")
         self.send_log.emit("restart LOAD_HECRAS_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+
+        # save
+        self.save_hdf5()
+
         if self.cb.isChecked() and path_im != 'no_path':
             hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
             self.show_fig.emit()
-
 
 class TELEMAC(SubHydroW):
     """
@@ -1391,8 +1419,16 @@ class TELEMAC(SubHydroW):
         # load the telemac data
         path_im = self.find_path_im()
         sys.stdout = self.mystdout = StringIO()
-        [v, h, coord_p, self.ikle_all] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
+        [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
         sys.stdout = sys.__stdout__
+
+        # TEMPORARY correction because we have only one grid for all time step and all reach
+        self.point_all_t = [[coord_p]]
+        self.point_c_all_t = [[coord_c]]
+        self.ikle_all_t = [[ikle] ]  # carefil ikle not corrected for non-triangular cells
+        self.inter_h_all_t = [v]
+        self.inter_vel_all_t = [h]
+
         # log info
         self.send_log.emit(self.tr('# Load: TELEMAC data.'))
         self.send_err_log()
@@ -1402,9 +1438,13 @@ class TELEMAC(SubHydroW):
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
 
+        # save
+        self.save_hdf5()
+
         if self.cb.isChecked() and path_im != 'no_path':
             selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
             self.show_fig.emit()
+
 
 
 class SubstrateW(SubHydroW):

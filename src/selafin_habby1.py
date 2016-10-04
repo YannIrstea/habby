@@ -45,8 +45,18 @@ def load_telemac(namefilet, pathfilet):
     coord_p = np.array([telemac_data.meshx, telemac_data.meshy])
     coord_p = coord_p.T
     ikle = telemac_data.ikle2
+
+    # get the center of the cell
+    # center of element
+    p1 = coord_p[ikle[:, 0], :]
+    p2 = coord_p[ikle[:, 1], :]
+    p3 = coord_p[ikle[:, 2], :]
+    coord_c_x = 1.0 / 3.0 * (p1[:, 0] + p2[:, 0] + p3[:, 0])
+    coord_c_y = 1.0 / 3.0 * (p1[:, 1] + p2[:, 1] + p3[:, 1])
+    coord_c = np.array([coord_c_x, coord_c_y]).T
+
     del telemac_data
-    return v, h, coord_p, ikle
+    return v, h, coord_p, ikle, coord_c
 
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
