@@ -249,21 +249,24 @@ def correct_duplicate(seq, send_warn, idfun=None):
         def idfun(x): return x
     seen = {}
     result = []
+    c = 0
+    le = len(seq)
     for item in seq:
         marker = idfun(item)
         if marker in seen:
             if item > 0:
-                result.append(1.01 * item)  # moving the duplicate a bit further to correct for it
+                result.append(item + 0.01 * c / le)  # moving the duplicate a bit further to correct for it
             elif item < 0:
-                result.append(0.99 * item)
+                result.append(item - 0.01 * c / le)
             else:
-                result.append(0.00001)
+                result.append(0.01 * c / le)
             if send_warn:
                  print('Warning: Vertical profile. One or more profiles were modified. \n')
                  send_warn = False
         else:
             seen[marker] = 1
             result.append(item)
+        c+=1
     return result, send_warn
 
 

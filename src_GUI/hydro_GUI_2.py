@@ -342,20 +342,32 @@ class SubHydroW(QWidget):
         if self.nb_dim <= 2:
             Data_2D = file.create_group('Data_2D')
             for t in range(0, len(self.ikle_all_t)):
-                there = Data_2D.create_group('Timestep_'+str(t))
+                if t == 0:
+                    there = Data_2D.create_group('Whole Profile')
+                else:
+                    there = Data_2D.create_group('Timestep_'+str(t-1))
                 for r in range(0, len(self.ikle_all_t[t])):
                     rhere = there.create_group('Reach_' + str(r))
                     ikleg = rhere.create_group('ikle')
-                    ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r]), len(self.ikle_all_t[t][r][0])],
-                                         data=self.ikle_all_t[t][r])
+                    if len(self.ikle_all_t[t][r]) > 0:
+                        ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r]), len(self.ikle_all_t[t][r][0])],
+                                             data=self.ikle_all_t[t][r])
+                    else:
+                        self.send_log.emit('Warning: Reach number ' + str(r) + ' has an empty grid. '
+                                                                               'It might be entierely dry.')
+                        ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r])], data=self.ikle_all_t[t][r])
                     point_allg = rhere.create_group('point_all')
                     point_allg.create_dataset(h5name, [len(self.point_all_t[t][r]), 2], data=self.point_all_t[t][r])
                     point_cg = rhere.create_group('point_c_all')
                     point_cg.create_dataset(h5name, [len(self.point_c_all_t[t][r]), 2], data=self.point_c_all_t[t][r])
-                    inter_velg = rhere.create_group('inter_vel_all')
-                    inter_velg.create_dataset(h5name, [len(self.inter_vel_all_t[t][r])], data=self.inter_vel_all_t[t][r])
-                    inter_hg = rhere.create_group('inter_h_all')
-                    inter_hg.create_dataset(h5name, [len(self.inter_h_all_t[t][r])], data=self.inter_h_all_t[t][r])
+                    if self.inter_vel_all_t[t]:
+                        inter_velg = rhere.create_group('inter_vel_all')
+                        inter_velg.create_dataset(h5name, [len(self.inter_vel_all_t[t][r])], data=self.inter_vel_all_t[t][r])
+                        inter_hg = rhere.create_group('inter_h_all')
+                        inter_hg.create_dataset(h5name, [len(self.inter_h_all_t[t][r])], data=self.inter_h_all_t[t][r])
+                    else:
+                        rhere.create_group('inter_vel_all')
+                        rhere.create_group('inter_h_all')
         file.close()
 
         # save the file to the xml of the project
@@ -446,9 +458,24 @@ class SubHydroW(QWidget):
             self.send_log.emit('Error: Velocity and height data were not created.')
             return
 
-        #all interpolations
+        # each interpolations type
         if self.interpo_choice == 0:
             self.send_log.emit(self.tr('# Create grid by block.'))
+            # first whole profile
+            sys.stdout = self.mystdout = StringIO()
+            [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+                manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+            self.inter_vel_all_t.append([])
+            self.inter_h_all_t.append([])
+            self.ikle_all_t.append(ikle_all)
+            self.point_all_t.append(point_all_reach)
+            self.point_c_all_t.append(point_c_all)
+            self.send_log.emit("py    [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+                    manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach)\n")
+            self.send_log.emit("restart INTERPOLATE_BLOCK")
+            # by time step
             for t in range(0, len(self.vh_pro)):
                 sys.stdout = self.mystdout = StringIO()
                 [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
@@ -458,8 +485,8 @@ class SubHydroW(QWidget):
                                             inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
-                self.inter_vel_all_t.append(inter_vel_all)
-                self.inter_h_all_t.append(inter_height_all)
+                self.inter_vel_all_t.append([])
+                self.inter_h_all_t.append([])
                 self.ikle_all_t.append(ikle_all)
                 self.point_all_t.append(point_all_reach)
                 self.point_c_all_t.append(point_c_all)
@@ -481,6 +508,18 @@ class SubHydroW(QWidget):
             if 1 > self.pro_add > 500:
                 self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
                 return
+            # grid for the whole profile,
+            sys.stdout = self.mystdout = StringIO()
+            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
+                manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+            self.inter_vel_all_t.append([])
+            self.inter_h_all_t.append([])
+            self.ikle_all_t.append(ikle_all)
+            self.point_all_t.append(point_all_reach)
+            self.point_c_all_t.append(point_c_all)
+            # only the wet area, by time step
             for t in range(0, len(self.vh_pro)):
                 # [], [] is used to add the substrate as a condition directly
                 sys.stdout = self.mystdout = StringIO()
@@ -518,6 +557,18 @@ class SubHydroW(QWidget):
             if 1 > self.pro_add > 500:
                 self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
                 return
+            # grid for the whole profile,
+            sys.stdout = self.mystdout = StringIO()
+            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
+                manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+            self.inter_vel_all_t.append([])
+            self.inter_h_all_t.append([])
+            self.ikle_all_t.append(ikle_all)
+            self.point_all_t.append(point_all_reach)
+            self.point_c_all_t.append(point_c_all)
+            # create grid for the wet area by time steps
             for t in range(0, len(self.vh_pro)):
                 sys.stdout = self.mystdout = StringIO()
                 [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
@@ -525,7 +576,7 @@ class SubHydroW(QWidget):
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 sys.stdout = self.mystdout = StringIO()
-                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(self.point_c_all, coord_pro2, self.vh_pro[t])
+                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_c_all, coord_pro2, self.vh_pro[t])
                 if cb_im:
                     manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                             hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
@@ -938,8 +989,8 @@ class Mascaret(SubHydroW):
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
             self.send_log.emit("Error: The manning value or the number of velocity point is not understood.")
-        self.distribute_velocity()
         # grid and interpolation
+        self.distribute_velocity()
         self.interpo_choice = self.inter.currentIndex()
         self.grid_and_interpo(self.cb.isChecked())
 
@@ -1215,7 +1266,6 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(self.cb, 8, 1)
         self.setLayout(self.layout_hec)
 
-
     def load_rubar1d(self):
         """
         A function to execture the loading and saving the the rubar file using rubar.py
@@ -1354,6 +1404,7 @@ class HEC_RAS2D(SubHydroW):
         if self.cb.isChecked() and path_im != 'no_path':
             hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
             self.show_fig.emit()
+
 
 class TELEMAC(SubHydroW):
     """

@@ -969,7 +969,7 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                     for i in range(0, len(duplicate)):
                         ind_dup = np.where(xy_h_pro[:, 2] == duplicate[i])[0]
                         for j in range(0, len(ind_dup)-1):
-                            xy_h_pro[ind_dup[j], 2] -= dist_mov * (j+1)* xy_h_pro[ind_dup[j], 2] + dist_mov/100
+                            xy_h_pro[ind_dup[j], 2] -= dist_mov * (j+1)#* xy_h_pro[ind_dup[j], 2] #+ dist_mov/100
                             #if ind_dup[j]>0:
                              #   ax = xy_h_pro[ind_dup[j], 0] - xy_h_pro[ind_dup[j]-1, 0]
                              #   ay = xy_h_pro[ind_dup[j], 1] - xy_h_pro[ind_dup[j]-1, 1]

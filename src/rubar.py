@@ -391,8 +391,14 @@ def load_coord_1d(name_rbe, path):
         lim_riv.append(lim_riv_sect)
 
     # geometry on cell border, hydraulique center of cell for the data (more intesting for us)
+
     x = [(a + b) / 2 for a, b in zip(dist_riv[:], dist_riv[1:])]
     x = np.concatenate(([dist_riv[0]], x, [dist_riv[-1]]))
+
+    for c in range(0, len(coord)):
+        if coord[c][0][-1] == coord[c][0][-2]:
+            print(c)
+            print(coord[c])
 
     return coord, lim_riv, name_profile, x
 
@@ -400,40 +406,45 @@ def load_coord_1d(name_rbe, path):
 def correct_duplicate_xy(seq3D, send_warn, idfun=None):
     """
     it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
-    So this function correct this case for rubar. A similiar function exists in mascaret, for the case where input
+    So this function correct this case for rubar. A similiar function exists in mascaret.py, for the case where input
     is the distance along the profile and not (x,y) coordinates.
     inspired by https://www.peterbe.com/plog/uniqifiers-benchmark
-    :param seq: the list to be corrected in this case (x,y,z,dist along the profile)
-    :param send_warn a bool to avoid printing the warning too many time (maybe a bit of an overkill?)
+    :param seq3D: the list to be corrected in this case (x,y,z,dist along the profile)
+    :param send_warn a bool to avoid printing the warning too many time
     :param idfun: support an optional transform function (not tested)
     :return:
     """
 
-    def find_point(seqf, c):
+    def find_point(seqf, result2, c2):
         """
         A sub function to find the update (x,y) coordinate bsed on the modification the disntance along the porfile
-        :param seqf:
-        :param c:
+        :param seqf: the orginal data
+        :param result2: the updated distance
+        :param c2: where we are
         :return:
         """
+
         if c == 0:  # should not happen
-            xf = seqf[c, 0] * 1.01
-            yf = seqf[c, 1] * 1.01
+            xf = seqf[0, c2] * 1.01
+            yf = seqf[1, c2] * 1.01
             print('Warning: First indices is identical to another. Unlogical. \n')
         else:
-            if seq[c, 3] > 0:
-                nx = (seqf[c, 0] - seqf[c - 1, 0]) * (1 / seqf[c, 3])
-                ny = (seqf[c, 0] - seqf[c - 1, 0]) * (1 / seqf[c, 3])
+            if result2[c2] > 0:
+                # as a direction for the new point use the general direction of the profil
+                # stright line from beginnning of the profil to point c2
+                nx = (seqf[0, c2] - seqf[0, 0]) * (1 / (result2[c2] - result2[0]))
+                ny = (seqf[1, c2] - seqf[1, 0]) * (1 / (result2[c2] - result2[0]))
             else:
-                nx = ny = 0
-            xf = seqf[c, 0] + nx * item
-            yf = seqf[c, 1] + ny * item
+                # special case, chosen arbitrarily
+                nx = ny = 1
+            xf = seqf[0, c2] + nx * (result2[c2] - result2[c2 - 1])
+            yf = seqf[1, c2] + ny * (result2[c2] - result2[c2 - 1])
 
         return xf, yf
 
     # main function of correct_duplicate!
 
-    seq = seq3D[:, 3]
+    seq = seq3D[3, :]
 
     # order preserving
     if idfun is None:
@@ -443,22 +454,23 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
     resultx = []
     resulty = []
     c = 0
+    le = len(seq)
     for item in seq:
         marker = idfun(item)
         if marker in seen:
             if item > 0:
-                result.append(1.01 * item)  # moving the duplicate a bit further to correct for it
-                [x,y] = find_point(seq, c)
+                result.append(item + 0.01 * c / le)  # moving the duplicate a bit further to correct for it
+                [x,y] = find_point(seq3D, result, c)
                 resultx.append(x)
                 resulty.append(y)
             elif item < 0:
-                result.append(0.99 * item)
-                [x, y] = find_point(seq, c)
+                result.append(item - 0.01 * c / le)
+                [x, y] = find_point(seq3D, result, c)
                 resultx.append(x)
                 resulty.append(y)
             else:
-                result.append(0.00001)
-                [x, y] = find_point(seq, c)
+                result.append(0.01 * c / le)
+                [x, y] = find_point(seq3D, result, c)
                 resultx.append(x)
                 resulty.append(y)
             if send_warn:
@@ -467,13 +479,14 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
         else:
             seen[marker] = 1
             result.append(item)
-            resultx.append(seq3D[c, 0])
-            resulty.append(seq3D[c, 1])
+            resultx.append(seq3D[0, c])
+            resulty.append(seq3D[1, c])
         c += 1
 
-    seq3D[:, 0] = resultx
-    seq3D[:, 1] = resulty  # z-= seq[:,2] is not changing
-    seq3D[:, 3] = result
+    seq3D[0, :] = resultx
+    seq3D[1, :] = resulty  # z-= seq[:,2] is not changing
+    seq3D[3, :] = result
+
     return seq3D, send_warn
 
 
@@ -504,11 +517,10 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
         #if p % 5 == 0:
           #  plt.text(coord_p[0, 0] + 0.03, coord_p[0, 1] + 0.03, name_profile[p])
     # river
-
-    if np.sum(lim_riv[1]) != -99 and np.sum(lim_riv[1]) != 0:
-        riv_sect = lim_riv[p]
-        riv_mid[p, :] = riv_sect[1]
-        plt.plot(riv_mid[:, 0], riv_mid[:, 1], '-r')
+    #if np.sum(lim_riv[1]) != -99 and np.sum(lim_riv[1]) != 0:
+       # riv_sect = lim_riv[p]
+       # riv_mid[p, :] = riv_sect[1]
+       # plt.plot(riv_mid[:, 0], riv_mid[:, 1], '-r')
     plt.xlabel("x coordinate []")
     plt.ylabel("y coordinate []")
     plt.title("Position of the profiles")
@@ -763,14 +775,6 @@ def load_dat_2d(geofile, path):
     y = data_f[nb_coord:]
     xy = np.column_stack((x, y))
 
-    for c in range(0, len(ikle)):
-        ikle_c = ikle[c]
-        if len(ikle_c) < 3:
-            print('here first')
-            print(c)
-            print(ikle[c - 1])
-            print(ikle_c)
-
     # find the center point of each cellss
     # slow because number of point of a cell changes
     coord_c = []
@@ -977,22 +981,22 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
 
 def main():
 
-    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
-    geofile2d='BS15a6.mai'
-    tpsfile = 'BS15a6.tps'
-    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\aval07'
-    geofile2d = 'aval07.dat'
-    tpsfile = 'aval07.tps'
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\belcastel201106\sect2b14'
-    #geofile2d = 'sect2b.dat'
-    #tpsfile = 'sect2b.tps'
-    load_rubar2d(geofile2d,tpsfile, path, path, path, True)
-
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
+    # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
+    # geofile2d='BS15a6.mai'
+    # tpsfile = 'BS15a6.tps'
+    # #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\aval07'
+    # #geofile2d = 'aval07.dat'
+    # #tpsfile = 'aval07.tps'
+    # #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\belcastel201106\sect2b14'
+    # #geofile2d = 'sect2b.dat'
+    # #tpsfile = 'sect2b.tps'
+    # load_rubar2d(geofile2d,tpsfile, path, pat    #mail = 'mail.LE13'h, path, True)
+    #
+    path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    #mail = 'mail.LE13'
-    #geofile = 'LE13.rbe'
-    #data = 'profil.LE13'
+
+    geofile = 'LE13.rbe'
+    data = 'profil.LE13'
 
     #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\1D\RubarBE_four_0'
     #geofile = r'four.rbe'
@@ -1003,7 +1007,7 @@ def main():
     #geofile = 'm.b120'
     #data = 'profil.b120'
     #mail = 'mail.b120'
-    #load_rubar1d(geofile, data, path, path, path_im, True)
+    load_rubar1d(geofile, data, path, path, path_im, True)
 
 
 if __name__ == '__main__':
