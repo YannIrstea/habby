@@ -604,19 +604,19 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
             inter_vel_all.append(inter_vel)
             inter_height_all.append(inter_height)
 
-        plt.figure()
-        for er in range(0, len(all_point_midy)):
-            if er%3 == 0:
-                plt.plot(all_point_midx[er], all_point_midy[er], '.m')
-            if er % 3 == 1:
-                plt.plot(all_point_midx[er], all_point_midy[er], '.g')
-            if er % 3 == 2:
-                plt.plot(all_point_midx[er], all_point_midy[er], '.y')
-        for p in range(0, len(coord_pro)):
-            plt.plot(coord_pro[p][0], coord_pro[p][1], '.b')
-        #for p in range(0, len(p_not_found)):
-           # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
-        plt.show()
+        # plt.figure()
+        # for er in range(0, len(all_point_midy)):
+        #     if er%3 == 0:
+        #         plt.plot(all_point_midx[er], all_point_midy[er], '.m')
+        #     if er % 3 == 1:
+        #         plt.plot(all_point_midx[er], all_point_midy[er], '.g')
+        #     if er % 3 == 2:
+        #         plt.plot(all_point_midx[er], all_point_midy[er], '.y')
+        # for p in range(0, len(coord_pro)):
+        #     plt.plot(coord_pro[p][0], coord_pro[p][1], '.b')
+        # #for p in range(0, len(p_not_found)):
+        #    # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
+        # plt.show()
 
     return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
 
@@ -1509,12 +1509,12 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     #if coord_pro2:
     #   for p in range(0, len(coord_pro2)):
     #        plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=2)
-    #plt.axis('equal')
-    #plt.title('Computational Grid')
-    #plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-    #plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-    #plt.close()
-    plt.show()
+    plt.axis('equal')
+    plt.title('Computational Grid')
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+    plt.close()
+    #plt.show()
 
     # plot the interpolated velocity
     if len(inter_vel_all) >0 : #0

@@ -329,16 +329,25 @@ class SubHydroW(QWidget):
             xhzv_datag.create_dataset(h5name, data=self.xhzv_data)
         if self.nb_dim < 2:
             Data_15D = file.create_group('Data_15D')
-            # is there a way to save inegal list in hdf5???
-            # save nb_pro_reach somewhere
+            adict = dict()
             for p in range(0, len(self.coord_pro)):
-                coord_prog = Data_15D.create_group('coord_pro_profil_num_'+str(p))
-                coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
+                ns = 'p' + str(p)
+                adict[ns] = self.coord_pro[p]
+            coord_prog = Data_15D.create_group('coord_pro')
+            for k, v in adict.items():
+                coord_prog.create_dataset(k, data=v)
+                #coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
             for t in range(0, len(self.vh_pro)):
                 there = Data_15D.create_group('Timestep_' + str(t))
+                adict = dict()
                 for p in range(0, len(self.vh_pro[t])):
-                    vh_prog = there.create_group('vh_pro_profil_num'+str(p))
-                    vh_prog.create_dataset(h5name, [3, len(self.vh_pro[t][p][0])], data=self.vh_pro[t][p])
+                    ns = 'p' + str(p)
+                    adict[ns] = self.vh_pro[t][p]
+                for k, v in adict.items():
+                    there.create_dataset(k, data=v)
+            nbproreachg = Data_15D.create_group('Number_profile_by_reach')
+            nb_pro_reach2 = list(map(float, self.nb_pro_reach))
+            nbproreachg.create_dataset(h5name, [len(nb_pro_reach2), 1], data=nb_pro_reach2)
         if self.nb_dim <= 2:
             Data_2D = file.create_group('Data_2D')
             for t in range(0, len(self.ikle_all_t)):
