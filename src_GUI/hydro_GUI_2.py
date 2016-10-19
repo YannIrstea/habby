@@ -23,6 +23,7 @@ from src import mascaret
 from src import manage_grid_8
 from src import dist_vistess2
 np.set_printoptions(threshold=np.inf)
+from multiprocessing import Process, Queue
 
 class Hydro2W(QWidget):
     """
@@ -518,10 +519,32 @@ class SubHydroW(QWidget):
                 self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
                 return
             # grid for the whole profile,
-            sys.stdout = self.mystdout = StringIO()
-            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
-                manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach)
-            sys.stdout = sys.__stdout__
+            q = Queue()
+            ok = 0
+            k = self.pro_add
+            while ok == 0:
+                # [], [] is used to add the substrate as a condition directly
+                p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
+                                                                    [], self.nb_pro_reach, [], q))
+                # sys.stdout = self.mystdout = StringIO()
+                # [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
+                #     manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach)
+                # sys.stdout = sys.__stdout__
+                self.send_err_log()
+                p.start()
+                time.sleep(1)
+                if p.exitcode == None:
+                    point_all_reach = q.get()
+                    ikle_all = q.get()
+                    lim_by_reach = q.get()
+                    hole_all = q.get()
+                    overlap = q.get()
+                    coord_pro2 = q.get()
+                    point_c_all = q.get()
+                    ok = 1
+                else:
+                    k += 5
+                p.terminate()
             self.send_err_log()
             self.inter_vel_all_t.append([])
             self.inter_h_all_t.append([])
@@ -530,31 +553,46 @@ class SubHydroW(QWidget):
             self.point_c_all_t.append(point_c_all)
             # only the wet area, by time step
             for t in range(0, len(self.vh_pro)):
-                # [], [] is used to add the substrate as a condition directly
-                sys.stdout = self.mystdout = StringIO()
-                [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
-                    manage_grid_8.create_grid(self.coord_pro, self.pro_add,[], [], self.nb_pro_reach, self.vh_pro[t])
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
-                sys.stdout = self.mystdout = StringIO()
-                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2, self.vh_pro[t])
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
-                self.inter_vel_all_t.append(inter_vel_all)
-                self.inter_h_all_t.append(inter_height_all)
-                self.ikle_all_t.append(ikle_all)
-                self.point_all_t.append(point_all_reach)
-                self.point_c_all_t.append(point_c_all)
-                if cb_im:
-                    manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                                            hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
-                self.send_err_log()
-                self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
-                self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
-                                   " point_c_all] = manage_grid_8.create_grid(coord_pro, nb_pro_reach, vh_pro_t)\n")
-                self.send_log.emit("py    [inter_vel_all, inter_height_all] = "
-                                   "manage_grid_8.interpo_linear(point_c_all, coord_pro2, vh_pro_t))\n")
-                self.send_log.emit("restart INTERPOLATE_LINEAR")
+                q = Queue()
+                ok = 0
+                k = self.pro_add
+                while ok == 0:
+                    # [], [] is used to add the substrate as a condition directly
+                    p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k,[],
+                                                                        [], self.nb_pro_reach, self.vh_pro[t],q))
+                    self.send_err_log()
+                    p.start()
+                    time.sleep(1)
+                    if p.exitcode == None:
+                        point_all_reach = q.get()
+                        ikle_all = q.get()
+                        lim_by_reach = q.get()
+                        hole_all = q.get()
+                        overlap = q.get()
+                        coord_pro2 = q.get()
+                        point_c_all = q.get()
+                        [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2,
+                                                                                         self.vh_pro[t])
+                        ok = 1
+                    else:
+                        k += 5
+                    p.terminate()
+            self.send_err_log()
+            self.inter_vel_all_t.append(inter_vel_all)
+            self.inter_h_all_t.append(inter_height_all)
+            self.ikle_all_t.append(ikle_all)
+            self.point_all_t.append(point_all_reach)
+            self.point_c_all_t.append(point_c_all)
+            if cb_im:
+                manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                                        hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+            self.send_err_log()
+            self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
+            self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
+                               " point_c_all] = manage_grid_8.create_grid(coord_pro, nb_pro_reach, vh_pro_t)\n")
+            self.send_log.emit("py    [inter_vel_all, inter_height_all] = "
+                               "manage_grid_8.interpo_linear(point_c_all, coord_pro2, vh_pro_t))\n")
+            self.send_log.emit("restart INTERPOLATE_LINEAR")
 
         elif self.interpo_choice == 2:
             try:
@@ -567,10 +605,28 @@ class SubHydroW(QWidget):
                 self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
                 return
             # grid for the whole profile,
-            sys.stdout = self.mystdout = StringIO()
-            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
-                manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach)
-            sys.stdout = sys.__stdout__
+            q = Queue()
+            ok = 0
+            k = self.pro_add
+            while ok == 0:
+                # [], [] is used to add the substrate as a condition directly
+                p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
+                                                                    [], self.nb_pro_reach, [], q))
+                self.send_err_log()
+                p.start()
+                time.sleep(1)
+                if p.exitcode == None:
+                    point_all_reach = q.get()
+                    ikle_all = q.get()
+                    lim_by_reach = q.get()
+                    hole_all = q.get()
+                    overlap = q.get()
+                    coord_pro2 = q.get()
+                    point_c_all = q.get()
+                    ok = 1
+                else:
+                    k += 5
+                p.terminate()
             self.send_err_log()
             self.inter_vel_all_t.append([])
             self.inter_h_all_t.append([])
@@ -579,10 +635,30 @@ class SubHydroW(QWidget):
             self.point_c_all_t.append(point_c_all)
             # create grid for the wet area by time steps
             for t in range(0, len(self.vh_pro)):
-                sys.stdout = self.mystdout = StringIO()
-                [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
-                    manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach, self.vh_pro[t])
-                sys.stdout = sys.__stdout__
+                q = Queue()
+                ok = 0
+                k = self.pro_add
+                while ok == 0:
+                    # [], [] is used to add the substrate as a condition directly
+                    p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
+                                                                        [], self.nb_pro_reach, self.vh_pro[t], q))
+                    self.send_err_log()
+                    p.start()
+                    time.sleep(1)
+                    if p.exitcode == None:
+                        point_all_reach = q.get()
+                        ikle_all = q.get()
+                        lim_by_reach = q.get()
+                        hole_all = q.get()
+                        overlap = q.get()
+                        coord_pro2 = q.get()
+                        point_c_all = q.get()
+                        [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2,
+                                                                                         self.vh_pro[t])
+                        ok = 1
+                    else:
+                        k += 5
+                    p.terminate()
                 self.send_err_log()
                 sys.stdout = self.mystdout = StringIO()
                 [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_c_all, coord_pro2, self.vh_pro[t])

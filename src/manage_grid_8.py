@@ -13,7 +13,7 @@ import os
 import bisect
 
 
-def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], pnew_add=1):
+def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], q=[], pnew_add=1):
     """
     It creates a grid from the coord_pro data using the triangle module.
     It creates the grid up to the end of the profile or up to the water limti uif vh_pro_t is present
@@ -27,7 +27,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     based on the start/end points and the island limits, create the segments which gives the grid limit
     triangulate and so create the grid
     flag point which are overlapping in two grids
-
+    :param q: used in the secondary process (like in hydro_gui2) we do not call this function direclty, but we
+    call it in a second process so that the GUI do not crash if something go wrong
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param extra_pro: the number of "extra" profiles to be added between profile to simplify the grid
     :param coord_sub: (not used anymore)
@@ -520,7 +521,17 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         point_c = np.squeeze(np.array(point_c))  # why squeeze?
         point_c_all.append(point_c)
 
-    return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro, point_c_all
+    if q:
+        q.put(point_all_reach)
+        q.put(ikle_all)
+        q.put(lim_by_reach)
+        q.put(hole_all_i)
+        q.put(overlap)
+        q.put(coord_pro)
+        q.put(point_c_all)
+        return
+    else:
+        return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro, point_c_all
 
 
 def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
@@ -617,6 +628,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
         # #for p in range(0, len(p_not_found)):
         #    # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
         # plt.show()
+
 
     return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
 
