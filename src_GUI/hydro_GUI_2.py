@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import sys
+import shutil
 from io import StringIO
 from PyQt5.QtCore import QTranslator, pyqtSignal, QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
@@ -35,6 +36,8 @@ class Hydro2W(QWidget):
     - MASCARET
     - RIVER2D
     """
+    send_log = pyqtSignal(str, name='send_log')
+
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
@@ -60,6 +63,8 @@ class Hydro2W(QWidget):
         self.mod.currentIndexChanged.connect(self.selectionchange)
         self.button1 = QPushButton(self.tr('Model Info'), self)
         self.button1.clicked.connect(self.give_info_model)
+        self.button2 = QPushButton(self.tr('Load data from hdf5'))
+        self.button2.clicked.connect(self.load_hydro_hdf5)
         spacer2 = QSpacerItem(50, 1)
         spacer = QSpacerItem(1, 50)
 
@@ -88,6 +93,7 @@ class Hydro2W(QWidget):
         self.layout4.addWidget(self.mod, 1, 0)
         self.layout4.addItem(spacer2, 1, 1)
         self.layout4.addWidget(self.button1, 1, 2)
+        self.layout4.addWidget(self.button2, 2, 2)
         self.layout4.addWidget(self.stack, 2, 0)
         #self.layout4.addWidget(self.l1, 3, 0)
         #self.layout4.addWidget(self.mod_loaded, 4, 0)
@@ -130,6 +136,191 @@ class Hydro2W(QWidget):
             self.msgi.setDetailedText('No detailed info yet.')
         self.msgi.setEscapeButton(QMessageBox.Ok)  # detailed text erase the red x
         self.msgi.show()
+
+    def load_hydro_hdf5(self):
+        """
+        This is a function which allows the user to select an hdf5 file containing hydro data from a previous project
+        and add it to the current project. it modify the xml project file and test that the data is in correct form
+        by loading it.
+        :return:
+        """
+
+        self.send_log.emit('# Load hdf5 file of hydrological data')
+        # prep
+        ikle_all_t = []
+        point_all = []
+        inter_vel_all = []
+        inter_height_all = []
+        # select a file
+        fname_h5 = QFileDialog.getOpenFileName()[0]
+        if fname_h5 != '':  # cancel
+            blob, ext = os.path.splitext(fname_h5)
+        else:
+            self.send_log.emit('Warning: No file selected.\n')
+            return
+        if ext != '.h5':
+            self.send_log.emit('Warning: the file should be of hdf5 type. \n')
+        # load hdf5 file
+        if os.path.isfile(fname_h5):
+            try:
+                file_hydro = h5py.File(fname_h5, 'r+')
+            except OSError:
+                self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
+        else:
+            self.send_log.emit("Error: the hdf5 file is not found. \n")
+            return
+        # load the number of time steps
+        basename1 = 'Data_gen'
+        try:
+            gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
+        except KeyError:
+            print(
+                'Error: the number of time step is missing from the hdf5 file. Is ' + fname_h5
+                +' an hydrological input? \n')
+            return
+        nb_t = list(gen_dataset.values())[0]
+        nb_t = np.array(nb_t)
+        nb_t = int(nb_t)
+        # load the number of reach
+        try:
+            gen_dataset = file_hydro[basename1 + "/Nb_reach"]
+        except KeyError:
+            print(
+                'Error: the number of time step is missing from the hdf5 file. \n')
+            return
+        nb_r = list(gen_dataset.values())[0]
+        nb_r = np.array(nb_r)
+        nb_r = int(nb_r)
+
+        # load ikle
+        basename1 = 'Data_2D'
+        ikle_whole_all = []
+        # ikle whole porfile
+        for r in range(0, nb_r):
+            name_ik = basename1 + "/Whole_Profile/Reach_" + str(r) + "/ikle"
+            try:
+                gen_dataset = file_hydro[name_ik]
+            except KeyError:
+                print(
+                    'Error: the dataset for ikle (1) is missing from the hdf5 file. \n')
+                return
+            ikle_whole = list(gen_dataset.values())[0]
+            ikle_whole = np.array(ikle_whole)
+            ikle_whole_all.append(ikle_whole)
+        ikle_all_t.append(ikle_whole_all)
+        # ikle by time step
+        for t in range(0, nb_t):
+            ikle_whole_all = []
+            for r in range(0, nb_r):
+                name_ik = basename1 + "/Timestep_"+str(t) + "/Reach_" + str(r) + "/ikle"
+                try:
+                    gen_dataset = file_hydro[name_ik]
+                except KeyError:
+                    print(
+                        'Error: the dataset for ikle (2) is missing from the hdf5 file. \n')
+                    return
+                ikle_whole = list(gen_dataset.values())[0]
+                ikle_whole = np.array(ikle_whole)
+                ikle_whole_all.append(ikle_whole)
+            ikle_all_t.append(ikle_whole_all)
+
+        # coordinate of the point for the  whole profile
+        point_whole_all =[]
+        for r in range(0, nb_r):
+            name_pa = basename1 + "/Whole_Profile/Reach_" + str(r) + "/point_all"
+            try:
+                gen_dataset = file_hydro[name_pa]
+            except KeyError:
+                print(
+                    'Error: the dataset for coordinates of the points (1) is missing from the hdf5 file. \n')
+                return
+            point_whole = list(gen_dataset.values())[0]
+            point_whole = np.array(point_whole)
+            point_whole_all.append(point_whole)
+        point_all.append(point_whole_all)
+        # coordinate of the point by time step
+        for t in range(0, nb_t):
+            point_whole_all = []
+            for r in range(0, nb_r):
+                name_pa = basename1 + "/Timestep_"+str(t) + "/Reach_" + str(r) + "/point_all"
+                try:
+                    gen_dataset = file_hydro[name_pa]
+                except KeyError:
+                    print(
+                        'Error: the dataset for coordinates of the points (2) is missing from the hdf5 file. \n')
+                    return
+                point_whole = list(gen_dataset.values())[0]
+                point_whole = np.array(point_whole)
+                point_whole_all.append(point_whole)
+            point_all.append(point_whole_all)
+
+        # load height and velocity data
+        inter_vel_all.append([])  # no data for the whole profile case
+        inter_height_all.append([])
+        for t in range(0, nb_t):
+            h_all = []
+            vel_all = []
+            for r in range(0, nb_r):
+                name_vel = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_vel_all"
+                name_he = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_h_all"
+                try:
+                    gen_dataset = file_hydro[name_vel]
+                except KeyError:
+                    print(
+                        'Error: the dataset for velocity is missing from the hdf5 file. \n')
+                    return
+                vel = list(gen_dataset.values())[0]
+                vel = np.array(vel)
+                vel_all.append(vel)
+                try:
+                    gen_dataset = file_hydro[name_he]
+                except KeyError:
+                    print(
+                        'Error: the dataset for water height is missing from the hdf5 file. \n')
+                    return
+                heigh = list(gen_dataset.values())[0]
+                heigh = np.array(heigh)
+                h_all.append(heigh)
+            inter_vel_all.append(vel_all)
+            inter_height_all.append(h_all)
+
+        # copy the file and update the attribute
+        if os.path.isdir(self.path_prj):
+            new_name = os.path.join(self.path_prj,'COPY_' + os.path.basename(fname_h5))
+            shutil.copyfile(fname_h5, new_name)
+        else:
+            self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
+        try:
+            file_hydro2 = h5py.File(new_name, 'r+')
+        except OSError:
+            self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
+        file_hydro2.attrs['path_projet'] = self.path_prj
+        file_hydro2.attrs['name_projet'] = self.name_prj
+        # save the new file name in the xml file of the project
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if not os.path.isfile(filename_prj):
+            print('Error: No project saved. Please create a project first in the General tab.\n')
+            return
+        else:
+            doc = ET.parse(filename_prj)
+            root = doc.getroot()
+            # new xml category in case the hydrological model is not supported by HABBY
+            # as long s loded in the right format, it would not be a problem
+            child = root.find(".//Imported_hydro")
+            if child is None:
+                stathab_element = ET.SubElement(root, "Imported_hydro")
+                hdf5file = ET.SubElement(stathab_element, "hdf5import")
+                hdf5file.text = new_name
+            else:
+                hdf5file = root.find(".//hdf5import")
+                if hdf5file is None:
+                    hdf5file = ET.SubElement(child, "hdf5import")
+                    hdf5file.text = new_name
+                else:
+                    hdf5file.text += '\n' + new_name
+            doc.write(filename_prj)
+        self.send_log.emit('# hdf5 file sucessfully loaded to the current project.')
+        return
 
 
 class FreeSpace(QWidget):
@@ -307,7 +498,7 @@ class SubHydroW(QWidget):
         so it needs to be re-written if used in the command line
         :return:
         """
-        self.send_log.emit('# Save hdf5 hydrological data')
+        self.send_log.emit('py    # Save hdf5 hydrological data')
 
         # create hdf5 name
         h5name = self.name_prj + '_' + self.model_type + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
@@ -324,6 +515,12 @@ class SubHydroW(QWidget):
         file.attrs['h5py_version'] = h5py.version.version
 
         # create all datasets and group
+        data_all = file.create_group('Data_gen')
+        timeg = data_all.create_group('Nb_timestep')
+        timeg.create_dataset(h5name, data=len(self.ikle_all_t)-1) # the first time step is for the whole profile
+        nreachg = data_all.create_group('Nb_reach')
+        nreachg.create_dataset(h5name, data=len(self.ikle_all_t[0]))
+        # data by type of model (1D, 1.5D, 2D)
         if self.nb_dim == 1:
             Data_1D = file.create_group('Data_1D')
             xhzv_datag = Data_1D.create_group('xhzv_data')
@@ -353,7 +550,7 @@ class SubHydroW(QWidget):
             Data_2D = file.create_group('Data_2D')
             for t in range(0, len(self.ikle_all_t)):
                 if t == 0:
-                    there = Data_2D.create_group('Whole Profile')
+                    there = Data_2D.create_group('Whole_Profile')
                 else:
                     there = Data_2D.create_group('Timestep_'+str(t-1))
                 for r in range(0, len(self.ikle_all_t[t])):
@@ -372,11 +569,14 @@ class SubHydroW(QWidget):
                     point_cg.create_dataset(h5name, [len(self.point_c_all_t[t][r]), 2], data=self.point_c_all_t[t][r])
                     if self.inter_vel_all_t[t]:
                         inter_velg = rhere.create_group('inter_vel_all')
-                        inter_velg.create_dataset(h5name, [len(self.inter_vel_all_t[t][r])], data=self.inter_vel_all_t[t][r])
-                        inter_hg = rhere.create_group('inter_h_all')
-                        inter_hg.create_dataset(h5name, [len(self.inter_h_all_t[t][r])], data=self.inter_h_all_t[t][r])
+                        inter_velg.create_dataset(h5name, [len(self.inter_vel_all_t[t][r]), 1], data=self.inter_vel_all_t[t][r])
                     else:
                         rhere.create_group('inter_vel_all')
+                    if self.inter_h_all_t[t]:
+                        inter_hg = rhere.create_group('inter_h_all')
+                        inter_hg.create_dataset(h5name, [len(self.inter_h_all_t[t][r]), 1],
+                                                data=self.inter_h_all_t[t][r])
+                    else:
                         rhere.create_group('inter_h_all')
         file.close()
 
@@ -495,8 +695,8 @@ class SubHydroW(QWidget):
                                             inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
-                self.inter_vel_all_t.append([])
-                self.inter_h_all_t.append([])
+                self.inter_vel_all_t.append(inter_vel_all)
+                self.inter_h_all_t.append(inter_height_all)
                 self.ikle_all_t.append(ikle_all)
                 self.point_all_t.append(point_all_reach)
                 self.point_c_all_t.append(point_c_all)

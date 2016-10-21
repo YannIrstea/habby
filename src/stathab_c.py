@@ -166,9 +166,12 @@ class Stathab:
         # load the h5 file
         fname_h5 = child.text
         if os.path.isfile(fname_h5):
-            file_stathab = h5py.File(fname_h5, 'r+')
+            try:
+                file_stathab = h5py.File(fname_h5, 'r+')
+            except OSError:
+                print('Error: the hdf5 file could not be loaded.\n')
         else:
-            print("Error: Hdf5 file is not found. \n")
+            print("Error: The hdf5 file is not found. \n")
             return
 
         # prepare the data to be found

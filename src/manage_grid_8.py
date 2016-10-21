@@ -27,7 +27,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     based on the start/end points and the island limits, create the segments which gives the grid limit
     triangulate and so create the grid
     flag point which are overlapping in two grids
-    :param q: used in the secondary process (like in hydro_gui2) we do not call this function direclty, but we
+    :param q: used in the secondary process (like in hydro_gui2) when we do not call this function direclty, but we
     call it in a second process so that the GUI do not crash if something go wrong
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param extra_pro: the number of "extra" profiles to be added between profile to simplify the grid
@@ -191,7 +191,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                     # ind_lim = np.delete(ind_lim, isl_del)
                     x = coord_pro[p][0]
                     y = coord_pro[p][1]
-                    # find profile before and after
+                    # find the end and start indices of the extra-profile before and after
                     p_here = p + p*extra_pro2 - r * extra_pro2 - 1
                     ind_bef_s = ind_p[p_here + bef]
                     ind_bef_e = ind_p[p_here + bef+1]
@@ -304,7 +304,6 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                 point_all[ind, :] = point_all[ind, :] * 0.99
 
         # correct for crossing segment (not used in all, just if check needed)
-        # realtion
         check_cross = False
         hole_isl = np.array(hole_isl)
         if check_cross:
@@ -353,7 +352,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         #          if point_all[p,0] == point_all[p2,0] and point_all[p,1] == point_all[p2,1]:
         #             point_all[p] = point_all[p] * 0.99
 
-    # find the limits
+    # put data in order and find the limits
     seg_to_be_added2 = []
     lim_by_reach_for_sub = []
     lim_isl_for_sub = []
@@ -559,13 +558,14 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
         coord_pro = update_coord_pro_with_vh_pro(coord_pro, vh_pro_t)
 
     a = 0
+    # for each reach
     for r in range(0, len(nb_pro_reach) - 1):
         point_all = []
         ikle = []
         point_c = []
         inter_vel = []
         inter_height = []
-        # get rid of island
+        # get rid of island for the data
         if vh_pro_t:
             data_height0 = [val for val in vh_pro_t[nb_pro_reach[r]][1][:-1] for blob in (0, 1)]
             data_height_old = [val for val in data_height0 if val > 0]  # island
@@ -577,21 +577,24 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
             coord_pro_p1 = coord_pro[p]
 
             # find the middle profile
-            [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False)
-            all_point_midx.extend([point_mid_x[0]])
-            all_point_midy.extend([point_mid_y[0]])
+            if len(coord_pro_p0[0]) > 0 and len(coord_pro_p1[0]) > 0:
+                [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False)
+                all_point_midx.extend([point_mid_x[0]])
+                all_point_midy.extend([point_mid_y[0]])
 
             # create cells for the profile before the middle profile
             if len(coord_pro_p0[0]) > 0:
+                # wet profile
                 if vh_pro_t:
                     [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t[p - 1], point_mid_x, point_mid_y, point_all, ikle, point_c, 1)
+                # whole profile
                 else:
                     [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t, point_mid_x, point_mid_y,point_all, ikle, point_c, 1)
             if vh_pro_t:
-                inter_vel.append(data_vel_old)
-                inter_height.append(data_height_old)
+                inter_vel += data_vel_old
+                inter_height += data_height_old
             #  create cells for the profile after the middle profile
-            if len(coord_pro_p0[0]) > 0:
+            if len(coord_pro_p1[0]) > 0:
                 if vh_pro_t:
                     [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t[p], point_mid_x,
                                                                                  point_mid_y, point_all, ikle, point_c, -1)
@@ -604,16 +607,16 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
                 data_height = [val for val in data_height0 if val > 0]  # island
                 data_vel = [val for val in vh_pro_t[p][2][:-1] for blob in (0, 1)]
                 data_vel = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
-                inter_vel.extend(data_vel)
-                inter_height.extend(data_height)
+                inter_vel += data_vel
+                inter_height += data_height
                 data_vel_old = data_vel
                 data_height_old = data_height
         point_all_reach.append(np.array(point_all))
         point_c_all.append(np.array(point_c))
         ikle_all.append(np.array(ikle))
         if vh_pro_t:
-            inter_vel_all.append(inter_vel)
-            inter_height_all.append(inter_height)
+            inter_vel_all.append(np.array(inter_vel))
+            inter_height_all.append(np.array(inter_height))
 
         # plt.figure()
         # for er in range(0, len(all_point_midy)):
@@ -1235,50 +1238,51 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     # first profile
     s = 0
     for i in range(0, len(x0all)):
-        inter = False
-        #p1 = [x0all[i], y0all[i]]
-        #p2 = [xpro0[i], ypro0[i]]
-        p1 = [xstart0[i], ystart0[i]]
-        p2 = [xend0[i], yend0[i]]
-        for i2 in range(0, len(x1all)-1):
-            if max(x1all[i2], x1all[i2+1]) > min(p1[0], p2[0]) and max(y1all[i2], y1all[i2+1]) > min(p1[1], p2[1]):
-                p3 = [x1all[i2], y1all[i2]]
-                p4 = [x1all[i2+1], y1all[i2+1]]
+        if len(x1all) > 0 and len(x0all) > 0:
+            inter = False
+            #p1 = [x0all[i], y0all[i]]
+            #p2 = [xpro0[i], ypro0[i]]
+            p1 = [xstart0[i], ystart0[i]]
+            p2 = [xend0[i], yend0[i]]
+            for i2 in range(0, len(x1all)-1):
+                if max(x1all[i2], x1all[i2+1]) > min(p1[0], p2[0]) and max(y1all[i2], y1all[i2+1]) > min(p1[1], p2[1]):
+                    p3 = [x1all[i2], y1all[i2]]
+                    p4 = [x1all[i2+1], y1all[i2+1]]
+                    [inter, pc] = intersection_seg(p1, p2, p3, p4, False)
+                if inter:
+                    point_inter0[i] = pc[0]
+                    break
+            #start/end of line
+            if not inter:
+                if len(x1all) > 4:
+                    p3 = [x1all[-4], y1all[-4]]
+                    p4 = [x1all[-1], y1all[-1]]
+                else:
+                    p3 = [x1all[0], y1all[0]]
+                    p4 = [x1all[-1], y1all[-1]]
+                norm = np.sqrt((p4[0] - p3[0])**2 + (p4[1] - p3[1])**2)
+                p3x = p3[0] + far * (p4[0] - p3[0]) / norm
+                p3y = p3[1] + far * (p4[1] - p3[1]) /norm
+                p3 = [p3x, p3y]
                 [inter, pc] = intersection_seg(p1, p2, p3, p4, False)
-            if inter:
-                point_inter0[i] = pc[0]
-                break
-        #start/end of line
-        if not inter:
-            if len(x1all) > 4:
-                p3 = [x1all[-4], y1all[-4]]
-                p4 = [x1all[-1], y1all[-1]]
-            else:
-                p3 = [x1all[-2], y1all[-2]]
-                p4 = [x1all[-1], y1all[-1]]
-            norm = np.sqrt((p4[0] - p3[0])**2 + (p4[1] - p3[1])**2)
-            p3x = p3[0] + far * (p4[0] - p3[0]) / norm
-            p3y = p3[1] + far * (p4[1] - p3[1]) /norm
-            p3 = [p3x, p3y]
-            [inter, pc] = intersection_seg(p1, p2, p3, p4, False)
-            if inter:
-                point_inter0[i] = pc[0]
-        if not inter:
-            if len(x1all) > 4:
-                p30 = [x1all[0], y1all[0]]
-                p4 = [x1all[4], y1all[4]]
-            else:
-                p30 = [x1all[0], y1all[0]]
-                p4 = [x1all[1], y1all[1]]
-            norm = np.sqrt((p4[0] - p30[0]) ** 2 + (p4[1] - p30[1]) ** 2)
-            p3x = p30[0] - far * (p4[0] - p30[0])/norm
-            p3y = p30[1] - far * (p4[1] - p30[1]) /norm
-            p3 = [p3x, p3y]
-            [inter, pc] = intersection_seg(p1, p2, p3, p30, False)
-            if inter:
-                point_inter0[i] = pc[0]
-        if not inter:
-                no_inter0[i] = -99
+                if inter:
+                    point_inter0[i] = pc[0]
+            if not inter:
+                if len(x1all) > 4:
+                    p30 = [x1all[0], y1all[0]]
+                    p4 = [x1all[4], y1all[4]]
+                else:
+                    p30 = [x1all[0], y1all[0]]
+                    p4 = [x1all[1], y1all[1]]
+                norm = np.sqrt((p4[0] - p30[0]) ** 2 + (p4[1] - p30[1]) ** 2)
+                p3x = p30[0] - far * (p4[0] - p30[0])/norm
+                p3y = p30[1] - far * (p4[1] - p30[1]) /norm
+                p3 = [p3x, p3y]
+                [inter, pc] = intersection_seg(p1, p2, p3, p30, False)
+                if inter:
+                    point_inter0[i] = pc[0]
+            if not inter:
+                    no_inter0[i] = -99
         # if not inter:
         #     print('Warning: No intersection found when created new profile. (1)')
         #     point_inter0[i] = point_inter0[i-1] + 0.001

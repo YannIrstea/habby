@@ -687,6 +687,8 @@ class CentralW(QWidget):
         connect all the signal linked to the log
         is in a function only to improve lisibility
         """
+
+        self.hydro_tab.send_log.connect(self.write_log)
         self.hydro_tab.hecras1D.send_log.connect(self.write_log)
         self.hydro_tab.hecras2D.send_log.connect(self.write_log)
         self.hydro_tab.rubar2d.send_log.connect(self.write_log)
