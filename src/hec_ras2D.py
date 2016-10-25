@@ -77,6 +77,7 @@ def load_hec_ras2d(filename, path):
                       + '/' + name_area_i[2:-1]
         result = file2D[path_h5_geo]
         water_depth = np.array(result['Depth'])
+        print(len(water_depth))
         water_depth_all.append(water_depth)
 
     # velocity
@@ -267,13 +268,14 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
 
 
 def main():
-    path = r'.'
+    path = r'C:\Users\diane.von-gunten\HABBY\test_data'
     filename='Muncie.p04.hdf'
+    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
     a = time.clock()
     [v, h, elev, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
     b = time.clock()
     print('Time to load data:' + str(b-a) + 'sec')
-    figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, 'figures_habby', [0], [0])
+    figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [0], [0])
 
 
 if __name__ == '__main__':

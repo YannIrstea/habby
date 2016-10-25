@@ -536,6 +536,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
 def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
     """
     It creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
+    The data interpolation is done in this function also.
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param nb_pro_reach: the number of profile by reach
     :param vh_pro_t: the data with heigh and velocity, giving the river limits
@@ -567,10 +568,13 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
         inter_height = []
         # get rid of island for the data
         if vh_pro_t:
-            data_height0 = [val for val in vh_pro_t[nb_pro_reach[r]][1][:-1] for blob in (0, 1)]
-            data_height_old = [val for val in data_height0 if val > 0]  # island
-            data_vel = [val for val in vh_pro_t[nb_pro_reach[r]][2][:-1] for blob in (0, 1)]
-            data_vel_old = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
+            data_height_old = [val for val in vh_pro_t[nb_pro_reach[r]][1] for blob in (0, 1)]
+            # was used for created the island, not needed
+            # because the island information is contained in ikle
+            # be caseful in case where it do not work
+            # data_height_old = [val for val in data_height0 if val > 0]  # island
+            data_vel_old = [val for val in vh_pro_t[nb_pro_reach[r]][2] for blob in (0, 1)]
+            # data_vel_old = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
 
         for p in range(nb_pro_reach[r]+1, nb_pro_reach[r+1]):
             coord_pro_p0 = coord_pro[p-1]
@@ -601,12 +605,15 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
                 else:
                     [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t, point_mid_x,
                                                                                  point_mid_y, point_all, ikle, point_c, -1)
-                    # get the data
+            # get the data
             if vh_pro_t:
-                data_height0 = [val for val in vh_pro_t[p][1][:-1] for blob in (0, 1)]
-                data_height = [val for val in data_height0 if val > 0]  # island
-                data_vel = [val for val in vh_pro_t[p][2][:-1] for blob in (0, 1)]
-                data_vel = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
+                data_height = [val for val in vh_pro_t[p][1] for blob in (0, 1)]
+                # was used for created the island, not needed
+                # because the island information is contained in ikle
+                # be caseful in case where it do not work
+                # data_height = [val for val in data_height0 if val > 0]  # island
+                data_vel = [val for val in vh_pro_t[p][2] for blob in (0, 1)]
+                # data_vel = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
                 inter_vel += data_vel
                 inter_height += data_height
                 data_vel_old = data_vel
@@ -618,6 +625,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
             inter_vel_all.append(np.array(inter_vel))
             inter_height_all.append(np.array(inter_height))
 
+        # useful to control the middle profile 9added between two profiles)
         # plt.figure()
         # for er in range(0, len(all_point_midy)):
         #     if er%3 == 0:
@@ -676,8 +684,8 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         p1hyd = [xbefore, ybefore]
         p2hyd = [xafter, yafter]
         for m in range(0, len(point_mid_x)-1):
-            #if max(point_mid_x[m], point_mid_x[m+1]) > min(p1hyd[0], p2hyd[0]) \
-                  #  and max(point_mid_y[m], point_mid_y[m+1]) > min(p1hyd[1], p2hyd[1]):
+            if max(point_mid_x[m], point_mid_x[m+1]) > min(p1hyd[0], p2hyd[0]) \
+                    and max(point_mid_y[m], point_mid_y[m+1]) > min(p1hyd[1], p2hyd[1]):
                 p1 = [point_mid_x[m], point_mid_y[m]]
                 p2 = [point_mid_x[m+1], point_mid_y[m+1]]
                 [inter, pc] = intersection_seg(p1hyd, p2hyd, p1, p2, False)
@@ -733,6 +741,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         point_all.append([pc[0][0], pc[0][1]])
         # add the two new cells to ikle and point_c
         if vh_pro_t_p:
+
             if vh_pro_t_p[1][s0] > 0:
                 l = len(point_all) - 1
                 ikle.append([l - 1, l - 3, l - 2])
@@ -1085,11 +1094,11 @@ def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, i
     return point_all, lim_by_reachr
 
 
-def interpo_linear(point_c_all, coord_pro, vh_pro_t):
+def interpo_linear(point_all, coord_pro, vh_pro_t):
     """
     Using scipy.gridata, this function interpolates the 1.5 D velocity and height to the new grid
     can be used for only one time step - linear
-    :param point_c_all: the centroid of each grid element by reach
+    :param point_all: the coordinate of the grid point
     :param coord_pro: the coordinate of the profile (should be coherent with the coordinate from vh_pro).
     To insure this pass coord_pro through the function "create_grid" with the same vh_pro as input
     :param vh_pro_t: for each profile, dist along the profile, water height and velocity at a particular time step
@@ -1098,8 +1107,8 @@ def interpo_linear(point_c_all, coord_pro, vh_pro_t):
 
     inter_vel_all = []
     inter_height_all = []
-    for r in range(0, len(point_c_all)):  # reaches
-        point_c = point_c_all[r]
+    for r in range(0, len(point_all)):  # reaches
+        point_p = point_all[r]
         # velocity
         x = []
         y = []
@@ -1111,7 +1120,9 @@ def interpo_linear(point_c_all, coord_pro, vh_pro_t):
             values.extend(vh_pro_t[p][2])
         xy = np.array([x, y]).T
         values = np.array(values)
-        inter_vel = scipy.interpolate.griddata(xy, values, point_c, method='linear')
+        inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='linear')
+        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_vel[inter_vel < 0] = 0
         inter_vel_all.append(inter_vel)
 
         # height
@@ -1125,17 +1136,19 @@ def interpo_linear(point_c_all, coord_pro, vh_pro_t):
             values.extend(vh_pro_t[p][1])  # height here
         xy = np.array([x, y]).T
         values = np.array(values)
-        inter_height = scipy.interpolate.griddata(xy, values, point_c, method='linear')
+        inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
+        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_height[inter_height < 0] = 0
         inter_height_all.append(inter_height)
 
     return inter_vel_all, inter_height_all
 
 
-def interpo_nearest(point_c_all, coord_pro, vh_pro_t):
+def interpo_nearest(point_all, coord_pro, vh_pro_t):
     """
     Using scipy.gridata, this function interpolates the 1.5 D velocity and height to the new grid
     can be used for only one time step - nearest neighbors
-    :param point_c_all: the centroid of each grid element by reach
+    :param point_all: the coordinate of the grid point
     :param coord_pro: the coordinate of the profile (should be coherent with the coordinate from vh_pro).
     To insure this pass coord_pro through the function "create_grid" with the same vh_pro as input
     :param vh_pro_t: for each profile, dist along the profile, water height and velocity at a particular time step
@@ -1144,8 +1157,8 @@ def interpo_nearest(point_c_all, coord_pro, vh_pro_t):
 
     inter_vel_all = []
     inter_height_all = []
-    for r in range(0, len(point_c_all)):  # reaches
-        point_c = point_c_all[r]
+    for r in range(0, len(point_all)):  # reaches
+        point_p = point_all[r]
         # velocity
         x = []
         y = []
@@ -1157,7 +1170,9 @@ def interpo_nearest(point_c_all, coord_pro, vh_pro_t):
             values.extend(vh_pro_t[p][2])  # velocity
         xy = np.array([x, y]).T
         values = np.array(values)
-        inter_vel = scipy.interpolate.griddata(xy, values, point_c, method='nearest')
+        inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
+        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_vel[inter_vel < 0] = 0
         inter_vel_all.append(inter_vel)
 
         # height
@@ -1171,7 +1186,9 @@ def interpo_nearest(point_c_all, coord_pro, vh_pro_t):
             values.extend(vh_pro_t[p][1])  # height here
         xy = np.array([x, y]).T
         values = np.array(values)
-        inter_height = scipy.interpolate.griddata(xy, values, point_c, method='nearest')
+        inter_height = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
+        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_height[inter_height < 0] = 0
         inter_height_all.append(inter_height)
 
     return inter_vel_all, inter_height_all
@@ -1525,7 +1542,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     #if coord_pro2:
     #   for p in range(0, len(coord_pro2)):
     #        plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=2)
-    plt.axis('equal')
+    #plt.axis('equal')
     plt.title('Computational Grid')
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
@@ -1533,19 +1550,21 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     #plt.show()
 
     # plot the interpolated velocity
-    if len(inter_vel_all) >0 : #0
+    if len(inter_vel_all) >0: #0
+        cm = plt.cm.get_cmap('coolwarm')
         plt.figure()
-        cm = plt.cm.get_cmap('gist_ncar')
         for r in range(0, len(inter_vel_all)):
+            point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
-            point_c = point_c_all[r]
-            if len(point_c) > 0 and len(point_c) == len(inter_vel):
-                sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_vel, vmin=np.nanmin(inter_vel), vmax=np.nanmax(inter_vel), cmap=cm, edgecolors='none', s=50000/len(point_c[:,0]))
+            print(len(point_here))
+            print(len(inter_vel))
+            if len(point_here[:, 0]) == len(inter_vel):
+                sc = plt.tricontourf(point_here[:, 0],point_here[:, 1], ikle_all[r], inter_vel
+                                     , min=0, max=np.nanmax(inter_vel), cmap=cm)
+                cbar = plt.colorbar(sc)
+                cbar.ax.set_ylabel('Velocity [m/sec]')
             else:
-                print('Warning: The velocity in one reach could not be drawn. \n')
-                sc = plt.scatter([0,1], [0,1], c=[0,1], cmap=cm)
-        cbar = plt.colorbar(sc)
-        cbar.ax.set_ylabel('Velocity [m/sec]')
+                print('Warning: One reach could not be drawn. \n')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated velocity')
@@ -1553,24 +1572,24 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
         plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
         plt.close()
 
+    if len(inter_h_all) > 0:  # 0
+        cm = plt.cm.get_cmap('jet')
         plt.figure()
-        cm = plt.cm.get_cmap('terrain')
         for r in range(0, len(inter_h_all)):
+            point_here = np.array(point_all_reach[r])
             inter_h = inter_h_all[r]
-            point_c = point_c_all[r]
-            if len(point_c) > 0 and len(point_c) == len(inter_h):
-                sc = plt.scatter(point_c[:, 0], point_c[:, 1], c=inter_h, vmin=0, vmax=np.nanmax(inter_h),
-                                     cmap=cm, edgecolors='none',  s=50000/len(point_c[:, 0]))
+            if len(point_here) == len(inter_vel):
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h
+                                     , min=0, max=np.nanmax(inter_h), cmap=cm)
+                cbar = plt.colorbar(sc)
+                cbar.ax.set_ylabel('Water height [m]')
             else:
-                print('Warning: The water height in one reach could not be drawn. \n')
-                sc = plt.scatter([0, 1], [0, 1], c=[0,1], cmap=cm)
-        cbar = plt.colorbar(sc)
-        cbar.ax.set_ylabel(' Water height [m]')
+                print('Warning: One reach could not be drawn. \n')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
-        plt.savefig(os.path.join(path_im, "Water_height_inter" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-        plt.savefig(os.path.join(path_im, "Water_height_inter" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+        plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
+        plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
         plt.close()
 
     #plt.show()
@@ -1579,31 +1598,31 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
 def main():
 
         #distrbution vitesse mascaret
-        path = r'D:\Diane_work\output_hydro\mascaret'
-        path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
-        #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
-        file_geo = r'mascaret0.geo'
-        file_res = r'mascaret0_ecr.opt'
-        file_gen = 'mascaret0.xcas'
-        [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
-                            mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
-        #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
-        manning_value = 0.025
-        manning = []
-        nb_point = 20
-        for p in range(0, len(coord_pro)):
-            manning.append([manning_value] * nb_point)
-
-        vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
-        inter_vel_all = []
-        inter_height_all = []
-        for t in range(0, len(vh_pro)):
-            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
-                = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
-            #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all]= \
-            #create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
-        #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
-        plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
+        # path = r'D:\Diane_work\output_hydro\mascaret'
+        # path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
+        # #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
+        # file_geo = r'mascaret0.geo'
+        # file_res = r'mascaret0_ecr.opt'
+        # file_gen = 'mascaret0.xcas'
+        # [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
+        #                     mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
+        # #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
+        # manning_value = 0.025
+        # manning = []
+        # nb_point = 20
+        # for p in range(0, len(coord_pro)):
+        #     manning.append([manning_value] * nb_point)
+        #
+        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
+        # inter_vel_all = []
+        # inter_height_all = []
+        # for t in range(0, len(vh_pro)):
+        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
+        #         = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
+        #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all]= \
+        #     #create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
+        # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
+        # plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
         #
         # a = time.time()
         # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
@@ -1654,35 +1673,36 @@ def main():
 
         # #test hec-ras
         #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
-        # path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-        # name = 'CRITCREK'  # CRITCREK, LOOP
-        # name_xml = name + '.O02.xml'
-        # name_geo = name + '.g01'
-        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        # #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
-        # #ikle_sub = [[0, 1, 2]]
-        #
-        # [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-        # # whole profile
-        # #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
-        #  #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
-        # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
-        #
-        # [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
-        #
-        # for t in range(0, len(vh_pro)):
-        #     which_pro = vh_pro[t]
-        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-        #        = create_grid(coord_pro, 13,[], [], nb_pro_reach, which_pro, 10)  # [], [] -> coord_sub, ikle_sub,
-        #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-        #         #create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
-        #     if which_pro:
-        #         [inter_vel_all, inter_height_all] = interpo_linear(point_c_all, coord_pro2, vh_pro[t])
-        #         plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_height_all)
-        #         #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, '.')
-        #     else:
-        #         pass
-        #         #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
+        name = 'CRITCREK'  # CRITCREK, LOOP
+        name_xml = name + '.O03.xml'
+        name_geo = name + '.g01'
+        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
+        #ikle_sub = [[0, 1, 2]]
+
+        [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+        # whole profile
+        #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
+         #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
+        #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+
+        [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
+
+        for t in range(0, len(vh_pro)):
+            which_pro = vh_pro[t]
+            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+               = create_grid(coord_pro, 13,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
+            #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+              #  create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
+            if which_pro:
+                [inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
+                plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
+                #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
+            else:
+                pass
+                #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
 
 
 if __name__ == '__main__':

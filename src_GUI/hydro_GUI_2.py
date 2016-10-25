@@ -423,7 +423,6 @@ class SubHydroW(QWidget):
         """
 
         # find the filename based on user choice
-
         if len(self.pathfile) == 0:
             filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
         elif i >= len(self.pathfile):
@@ -771,7 +770,7 @@ class SubHydroW(QWidget):
                         overlap = q.get()
                         coord_pro2 = q.get()
                         point_c_all = q.get()
-                        [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2,
+                        [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_all_reach, coord_pro2,
                                                                                          self.vh_pro[t])
                         ok = 1
                     else:
@@ -861,7 +860,7 @@ class SubHydroW(QWidget):
                     p.terminate()
                 self.send_err_log()
                 sys.stdout = self.mystdout = StringIO()
-                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_c_all, coord_pro2, self.vh_pro[t])
+                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_all_reach, coord_pro2, self.vh_pro[t])
                 if cb_im:
                     manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                             hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
@@ -1780,7 +1779,6 @@ class TELEMAC(SubHydroW):
         if self.cb.isChecked() and path_im != 'no_path':
             selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
             self.show_fig.emit()
-
 
 
 class SubstrateW(SubHydroW):

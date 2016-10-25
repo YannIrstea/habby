@@ -1183,12 +1183,12 @@ def main():
 
     path_test = r'C:\Users\diane.von-gunten\HABBY\test_data'
     path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-    name = 'JUNCTION'
-    name_xml = name+ '.O02.xml'
+    name = 'CRITCREK'
+    name_xml = name+ '.O03.xml'
     name_geo = name+'.g01'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 
-    [coord_pro, vh_pro, nb_pro_reach] = open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+    [coord_pro, vh_pro, nb_pro_reach] = open_hecras(name_geo, name_xml, path_test, path_test, path_im, True)
 
 if __name__ == '__main__':
     main()

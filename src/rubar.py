@@ -840,7 +840,7 @@ def load_tps_2d(tpsfile, path, nb_cell):
             print('Error: the data could not be extracted from the .tps file. Error at number ' + str(i) + '.\n')
             return [-99], [-99], [-99]
 
-    return t, h,v
+    return t, h, v
 
 
 def get_triangular_grid(ikle, coord_c, xy, h, v):
