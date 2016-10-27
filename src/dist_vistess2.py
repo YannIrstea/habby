@@ -317,8 +317,7 @@ def preparetest_velocity(coord_pro, vh_pro_orr, v_in):
 
 def get_manning(manning1, nb_point, nb_profil):
     """
-    A fucntion to create an array with the different manning value. Having one manning value for each point will be useful
-    if one has a river with various manning value, even if it is longer now
+    A fucntion to create an array with the manning value when a single float is given as info.
     NOT FINISHED
     :param manning1: the manning value (can be a value or an array)
     :param nb_point: the number of velocity point by profile
@@ -335,7 +334,72 @@ def get_manning(manning1, nb_point, nb_profil):
         for p in range(0, nb_profil):
              manning_array.append([manning1] * nb_point)
     else:
-        print('Error: Manning not finished yet \n')
+        print('Error: the value given for maning is not a float \n')
+
+    return manning_array
+
+
+def get_manning_arr(manning_arr,nb_point,coord_pro):
+    """
+    A function to create the manning array when manning data is loaded using a text file, the form of the array is
+    p, dist, n where p is the profile, dist is the distance along the profile and n is manning
+    :param manning_arr: the data for manning
+    :param nb_point: the number of velocity point by profile
+    :param coord_pro: x,y,dist
+    :return:
+    """
+
+    # check that we have manning data
+    if len(manning_arr) < 1:
+        print('Error: Need at least one data for the manning profile.\n')
+        return 0.025
+
+    manning_array = []
+    new_manning = []
+    for p in range(0, len(coord_pro)):
+        # distance as a function of point number
+        x_ini = coord_pro[p][3]
+        x_p = np.linspace(x_ini[0], x_ini[-1], num=nb_point)
+        # which manning data should be used fro this porfile
+        # if the data for a profile is not given, we use the data before
+        # if no data, before, we use the first one
+        pro = manning_arr[:,0]
+        lower_p = np.max(pro[pro <= p])
+        ind = np.where(manning_arr[:,0] == lower_p)[0]
+        if len(ind) == 0:
+            ind = [0]  # if not profile find, use the first profile
+        # find where to stop in x_p which gives the ditance along the profile
+        c = 0
+        len_tot = 0
+        for m in ind:
+            if len(ind) <=1:
+                len_here = nb_point
+            else:
+                # hyp: no identical points
+                # points before the first manning info (all point before)
+                if c == 0:
+                    len_here = bisect.bisect_left(x_p, manning_arr[m,1])
+                # point in between manning info
+                elif c < len(ind) -1:
+                    st = bisect.bisect_left(x_p, manning_arr[m-1,1])
+                    end = bisect.bisect_left(x_p, manning_arr[m,1])
+                    len_here = end-st
+                # last manning info (point before and after)
+                if c == len(ind)-1:
+                    st = bisect.bisect_left(x_p, manning_arr[m-1, 1])
+                    end = bisect.bisect_left(x_p, manning_arr[m, 1])
+                    len_here = end-st + nb_point - bisect.bisect_left(x_p, manning_arr[m, 1])
+            new_manning = [manning_arr[m, 2]] * len_here  # * is to add new element in a list
+            # if this is the informatin about manning on this profile
+            if len(manning_array) == p:
+                manning_array.append(new_manning)
+            # if we already have manning data on this profile
+            else:
+                manning_array[p].extend(new_manning)
+            c += 1
+            len_tot += len_here
+        if len_tot != nb_point:
+            print('Warning: the number of manning information is not coherent. \n')
 
     return manning_array
 
@@ -378,8 +442,6 @@ def main():
         # vh_pro = dist_velocity_hecras(coord_pro,xhzv_data, manning, nb_point)
         # plot_dist_vit(vh_pro, coord_pro, xhzv_data, [0], range(0, 9),[],[], zone_v, data_profile, xy_h)
 
-
-
         # the same with rubar
         path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
         mail = 'mail.LE13'
@@ -391,29 +453,23 @@ def main():
         #data = 'profil.four'
         [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
 
-        manning_value_center = 0.025
-        manning_value_border = 0.06
-        manning = []
-        # write this function better
-        # for p in range(0, len(coord_pro)):
-        #     x_manning = coord_pro[p][0]
-        #     manning_p = [manning_value_border] * len(x_manning)
-        #     lim1 = lim_riv[p][0]
-        #     lim2 = lim_riv[p][2]
-        #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
-        #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
-        #     ind = ind[0]
-        #
-        #     for i in range(0, len(ind)):
-        #         manning_p[ind[i]] = manning_value_center
-        #     manning.append(manning_p)
+        # test the new manning function
+        # nb_point = 5
+        # manning_arr = np.zeros((6, 3))
+        # manning_arr[0, :] = [0, 23, 0.0252]
+        # manning_arr[1, :] = [3, 75, 50]
+        # manning_arr[2, :] = [3, 125, 30]
+        # manning_arr[3, :] = [11, 45, 22]
+        # manning_arr[4, :] = [11, 123, 0.0252]
+        # manning_arr[5, :] = [11, 223, 0.0252]
+        # manning = get_manning_arr(manning_arr, nb_point, coord_pro)
+        # print(manning)
 
-        manning = []
-        nb_point = 200
-        manning = get_manning(manning_value_center, nb_point, len(coord_pro))
-        v_pro = dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point)
-        if v_pro:
-            plot_dist_vit(v_pro, coord_pro, xhzv_data_all, [3], [1,2,3])
+        # manning_value_center = 0.025
+        # manning = get_manning(manning_value_center, nb_point, len(coord_pro))
+        # v_pro = dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point)
+        # if v_pro:
+        #     plot_dist_vit(v_pro, coord_pro, xhzv_data_all, [3], [1,2,3])
 
 
 if __name__ == '__main__':

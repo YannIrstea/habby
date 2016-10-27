@@ -998,7 +998,7 @@ class ShowImageW(QWidget):
             first_name = self.tr('Available figures')  # variable needed for the translation
             self.all_file = [first_name] + self.all_file
         all_file_nice = self.all_file
-        # make them look nicer
+        # make the name look nicer
         for i in range(0, len(all_file_nice)):
             all_file_nice[i] = all_file_nice[i].replace(self.path_im, "")
             all_file_nice[i] = all_file_nice[i].replace("\\", "")

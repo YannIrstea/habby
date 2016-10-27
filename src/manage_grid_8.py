@@ -1561,8 +1561,9 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
             if len(point_here[:, 0]) == len(inter_vel):
                 sc = plt.tricontourf(point_here[:, 0],point_here[:, 1], ikle_all[r], inter_vel
                                      , min=0, max=np.nanmax(inter_vel), cmap=cm)
-                cbar = plt.colorbar(sc)
-                cbar.ax.set_ylabel('Velocity [m/sec]')
+                if r == len(inter_vel_all) -1:
+                    cbar = plt.colorbar(sc)
+                    cbar.ax.set_ylabel('Velocity [m/sec]')
             else:
                 print('Warning: One reach could not be drawn. \n')
         plt.xlabel('x coord []')
@@ -1578,11 +1579,12 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
         for r in range(0, len(inter_h_all)):
             point_here = np.array(point_all_reach[r])
             inter_h = inter_h_all[r]
-            if len(point_here) == len(inter_vel):
+            if len(point_here) == len(inter_h):
                 sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h
                                      , min=0, max=np.nanmax(inter_h), cmap=cm)
-                cbar = plt.colorbar(sc)
-                cbar.ax.set_ylabel('Water height [m]')
+                if r == len(inter_h_all) - 1:
+                    cbar = plt.colorbar(sc)
+                    cbar.ax.set_ylabel('Water height [m]')
             else:
                 print('Warning: One reach could not be drawn. \n')
         plt.xlabel('x coord []')

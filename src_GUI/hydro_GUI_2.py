@@ -367,7 +367,8 @@ class SubHydroW(QWidget):
         self.point_all_t = []
         self.point_c_all_t = []
         self.np_point_vel = -99  # -99 -> velocity calculated in the same point than the profile height
-        self.manning1 =0.025
+        self.manning1 = 0.025
+        self.manning_arr = []
         self.pro_add = 2  # additional profil during the grid creation
         self.extension = [[".txt"]]
         self.path_prj = path_prj
@@ -887,11 +888,19 @@ class SubHydroW(QWidget):
         notably rubar and masacret.
         :return:
         """
+
         self.send_log.emit("# Velocity distribution")
         sys.stdout = self.mystdout = StringIO()
-        manning_array = dist_vistess2.get_manning(self.manning1, self.np_point_vel, len(self.coord_pro))
-        self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
+        if len(self.manning_arr) < 1:
+            # distribution of velocity using a float as a manning value (same value for all place)
+            manning_array = dist_vistess2.get_manning(self.manning1, self.np_point_vel, len(self.coord_pro))
+            self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
                                                          self.np_point_vel, 1, self.on_profile)
+        else:
+            # distribution of velocity using txt file as input for manning
+            manning_array = dist_vistess2.get_manning_arr(self.manning_arr, self.np_point_vel, self.coord_pro)
+            self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
+                                                             self.np_point_vel, 1, self.on_profile)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         self.send_log.emit("restart GET_MANNING")
@@ -901,6 +910,73 @@ class SubHydroW(QWidget):
         self.send_log.emit("py    manning_array = dist_vistess2.get_manning(manning1, np_point_vel, len(coord_pro))")
         self.send_log.emit("py    vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning_array, "
                            "np_point_vel, 1, on_profile)")
+
+    def load_manning_text(self):
+        """
+        This function loads the manning data in case where manning number is not simply a constant. This used by
+        1 D model such as mascaret or Rubar BE to distribute velocity to 1.5 D model.
+        the format of the txt file is "p, dist, n" where  p is the profile number (start at zero) , dist is the distance
+         along the profile in meter and n is the manning value (in SI unit). One point per line so something like:
+        0, 150, 0.035
+        0, 200, 0.025
+        1, 120, 0.035
+        .....
+        white space is neglected and a line starting with # is also neglected.
+        :return:
+        """
+        # find the filename based on user choice
+        if len(self.pathfile) == 0:
+            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
+        else:
+            # if a model was loded go directly to the folder were this model was loaded
+            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[0])[0]
+        # exeption: you should be able to clik on "cancel"
+        if not filename_path:
+            return
+        else:
+            filename = os.path.basename(filename_path)
+        # load data
+        if not os.path.isfile(filename_path):
+            self.send_log.emit('Error: The selected file for manning is not found.')
+            return
+        try:
+            with open(filename_path, 'rt') as f:
+                data = f.read()
+        except IOError:
+            self.send_log.emit('Error: The selected file for manning can not be open.')
+            return
+        # create manning array (to pass to dist_vitess)
+        data = data.split('\n')
+        manning = np.zeros((len(data), 3))
+        com= 0
+        for l in range(0, len(data)):
+            data[l] = data[l].strip()
+            if data[l][0] != '#':
+                data_here = data[l].split(',')
+                if len(data_here) == 3:
+                    try:
+                        manning[l - com, 0] = np.int(data_here[0])
+                        manning[l - com, 1] = np.float(data_here[1])
+                        manning[l - com, 2] = np.float(data_here[2])
+                    except ValueError:
+                        self.send_log.emit('Error: The manning data could not be converted to float or int.'
+                                           ' Format: p,dist,n line by line.')
+                        return
+                else:
+                    self.send_log.emit('Error: The manning data was not in the right format.'
+                                       ' Format: p,dist,n line by line.')
+                    return
+
+            else:
+                manning = np.delete(manning, -1, 0)
+                com += 1
+
+        # save the adress of the text data in the xml file
+        self.pathfile[3] = os.path.dirname(filename_path)
+        self.namefile[3] = filename
+        self.save_xml(3)
+
+        self.manning_arr = manning
 
 
 class HEC_RAS1D(SubHydroW):
@@ -1156,9 +1232,9 @@ class Mascaret(SubHydroW):
     def init_iu(self):
 
         # update attibute for mascaret
-        self.attributexml = ['gen_data', 'geodata_mas', 'resdata_mas']
-        self.namefile = ['unknown file', 'unknown file', 'unknown file']
-        self.pathfile = ['.', '.', '.']
+        self.attributexml = ['gen_data', 'geodata_mas', 'resdata_mas', 'manning_mas']
+        self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
+        self.pathfile = ['.', '.', '.', '.']
         self.model_type = 'mascaret'
         self.extension = [['.xcas'], ['.geo'], ['.opt', '.rub']]
         self.nb_dim = 1
@@ -1199,6 +1275,9 @@ class Mascaret(SubHydroW):
         self.nb_extrapro_text = QLineEdit('1')
         self.nb_vel_text = QLineEdit('70')
         self.manning_text = QLineEdit('0.025')
+        self.ltest = QLabel(self.tr('or'))
+        self.manningb = QPushButton(self.tr('Load .txt'))
+        self.manningb.clicked.connect(self.load_manning_text)
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -1222,13 +1301,15 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(l3, 4, 1)
         self.layout.addWidget(l32, 4, 2, 1, 2)
         self.layout.addWidget(l7, 5, 1)
-        self.layout.addWidget(self.nb_vel_text, 5, 2, 1, 2)
+        self.layout.addWidget(self.nb_vel_text, 5, 2)
         self.layout.addWidget(l8, 6, 1)
-        self.layout.addWidget(self.manning_text, 6, 2, 1, 2)
+        self.layout.addWidget(self.manning_text, 6, 2)
+        self.layout.addWidget(self.ltest, 6, 3)
+        self.layout.addWidget(self.manningb, 6, 4)
         self.layout.addWidget(l4, 7, 1)
         self.layout.addWidget(self.inter, 7, 2, 1, 2)
         self.layout.addWidget(l5, 8, 1)
-        self.layout.addWidget(self.nb_extrapro_text, 8, 2, 1, 2)
+        self.layout.addWidget(self.nb_extrapro_text, 8, 2)
         #self.layout.addItem(spacer, 7, 1)
         self.layout.addWidget(self.load_b, 9, 2)
         self.layout.addWidget(self.cb, 9, 1)
@@ -1269,10 +1350,16 @@ class Mascaret(SubHydroW):
                                      name_pro, name_reach, path_im, [0, 1], [-1], [0])
         # velocity distibution
         try:
-            self.manning1 = float(self.manning_text.text())
+            # we have two cases possible: a manning array or a manning float. here we take the case manning as float
+            if not self.manning_arr:
+                self.manning1 = float(self.manning_text.text())
+        except ValueError:
+            self.send_log.emit("Error: The manning value is not understood.")
+        try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
-            self.send_log.emit("Error: The manning value or the number of velocity point is not understood.")
+            self.send_log.emit("Error: The number of velocity point is not understood.")
+
         # grid and interpolation
         self.distribute_velocity()
         self.interpo_choice = self.inter.currentIndex()
@@ -1482,7 +1569,9 @@ class Rubar1D(SubHydroW):
     def init_iu(self):
 
         # update attibute for hec-ras 1d
-        self.attributexml = ['rubar_1dpro', 'data1d_rubar']
+        self.attributexml = ['rubar_1dpro', 'data1d_rubar', '', 'manning_rubar']
+        self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
+        self.pathfile = ['.', '.', '.', '.']
         self.model_type = 'RUBAR1D'
         self.extension = [[''], ['']]  # no useful extension in this case
         self.nb_dim = 1
@@ -1517,6 +1606,9 @@ class Rubar1D(SubHydroW):
         self.nb_extrapro_text = QLineEdit('1')
         self.nb_vel_text = QLineEdit('50')
         self.manning_text = QLineEdit('0.025')
+        self.ltest = QLabel(self.tr('or'))
+        self.manningb = QPushButton(self.tr('Load .txt'))
+        self.manningb.clicked.connect(self.load_manning_text)
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -1538,13 +1630,15 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(l3, 3, 1)
         self.layout_hec.addWidget(l32, 3, 2, 1, 2)
         self.layout_hec.addWidget(l7, 4, 1)
-        self.layout_hec.addWidget(self.nb_vel_text, 4, 2, 1, 2)
+        self.layout_hec.addWidget(self.nb_vel_text, 4, 2)
         self.layout_hec.addWidget(l8, 5, 1)
-        self.layout_hec.addWidget(self.manning_text, 5, 2, 1, 2)
+        self.layout_hec.addWidget(self.manning_text, 5, 2)
+        self.layout_hec.addWidget(self.ltest, 5, 3)
+        self.layout_hec.addWidget(self.manningb, 5, 4)
         self.layout_hec.addWidget(l4, 6, 1)
-        self.layout_hec.addWidget(self.inter, 6, 2, 1, 2)
+        self.layout_hec.addWidget(self.inter, 6, 2)
         self.layout_hec.addWidget(l5, 7, 1)
-        self.layout_hec.addWidget(self.nb_extrapro_text, 7, 2, 1, 2)
+        self.layout_hec.addWidget(self.nb_extrapro_text, 7, 2)
         #self.layout_hec.addItem(self.spacer2, 7, 1)
         self.layout_hec.addWidget(self.load_b, 8, 2)
         self.layout_hec.addWidget(self.cb, 8, 1)
@@ -1582,10 +1676,15 @@ class Rubar1D(SubHydroW):
 
         # velocity distibution
         try:
-            self.manning1 = float(self.manning_text.text())
+            # we have two cases possible: a manning array or a manning float. here we take the case manning as float
+            if not self.manning_arr:
+                self.manning1 = float(self.manning_text.text())
+        except ValueError:
+            self.send_log.emit("Error: The manning value is not understood.")
+        try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
-            self.send_log.emit("Error: The manning value or the number of velocity point is not understood.")
+            self.send_log.emit("Error: The number of velocity point is not understood.")
         # velcoity distribution
         self.distribute_velocity()
         # grid and interpolation

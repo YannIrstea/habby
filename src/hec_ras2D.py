@@ -77,7 +77,6 @@ def load_hec_ras2d(filename, path):
                       + '/' + name_area_i[2:-1]
         result = file2D[path_h5_geo]
         water_depth = np.array(result['Depth'])
-        print(len(water_depth))
         water_depth_all.append(water_depth)
 
     # velocity
