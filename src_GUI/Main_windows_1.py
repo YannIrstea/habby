@@ -548,7 +548,9 @@ class MainWindows(QMainWindow):
             filelist = [f for f in os.listdir(path_im)]
             for f in filelist:
                 os.remove(os.path.join(path_im, f))
-
+        # update substrate and hydro list
+        self.central_widget.substrate_tab.drop_hyd.clear()
+        self.central_widget.substrate_tab.drop_sub.clear()
         # log
         t = self.central_widget.l2.text()
         self.central_widget.l2.setText(t + self.tr('Images deleted. <br>'))
@@ -599,7 +601,14 @@ class CentralW(QWidget):
         self.stathab_tab.show_fig.connect(self.showfig)
         self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
         self.hydro_tab.mascar.show_fig.connect(self.showfig)
-
+        # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
+        self.hydro_tab.hecras1D.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+        self.hydro_tab.hecras2D.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+        self.hydro_tab.telemac.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+        self.hydro_tab.rubar2d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+        self.hydro_tab.rubar1d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+        self.hydro_tab.riverhere2d.drop_hydro.connect(self.substrate_tab.save_hdf5_sub)
+        self.hydro_tab.mascar.drop_hydro.connect(self.substrate_tab.save_hdf5_sub)
         # connect signal for the log
         self.connect_signal_log()
 

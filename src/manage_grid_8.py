@@ -852,13 +852,13 @@ def inside_polygon(seg_poly, point):
     """
 
     # the direction of the ray does not matter
-    ray = [point, [point[0], 1e5]]
+    ray = [point, [point[0], 1e7]]
     inter_count = 0
     for s in range(0, len(seg_poly)):
         [inter, blob] = intersection_seg(seg_poly[s][0], seg_poly[s][1], ray[0], ray[1])
         if inter:
             inter_count +=1
-    if inter_count%2 ==0:
+    if inter_count%2 == 0:
         return False
     else:
         return True
@@ -869,6 +869,7 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     find if there is an intersection between two segment (AB and CD). Idea from :
     http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
     based on the caluclaion of the cross-product z= 0 for 2D
+    careful there is many function using this function, so change here should be thought about.
     return the crossing point if true
     :param p1hyd: point A
     :param p2hyd: point B
@@ -1383,7 +1384,6 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
 
         if len1 + len0 == 0:
             print('Warning: Middle profile empty \n')
-
 
         # sort so tha each point is one after the other
         if trim:

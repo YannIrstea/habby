@@ -99,13 +99,13 @@ class EstimhabW(QWidget):
         # data fish type
         l10 = QLabel(self.tr('<b>Available Fish and Guild </b>'))
         l11 = QLabel(self.tr('Selected Fish'))
-        # create lists with the possible fishes
 
+        # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.itemClicked.connect(self.add_fish)
-
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_s.itemClicked.connect(self.remove_fish)
+
         # add  all test file in a directory
         all_file = glob.glob(os.path.join(self.path_bio,r'*.xml'))
         # make them look nicer

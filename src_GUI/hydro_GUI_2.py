@@ -23,6 +23,7 @@ from src import river2d
 from src import mascaret
 from src import manage_grid_8
 from src import dist_vistess2
+from src import load_hdf5
 np.set_printoptions(threshold=np.inf)
 from multiprocessing import Process, Queue
 
@@ -64,7 +65,7 @@ class Hydro2W(QWidget):
         self.button1 = QPushButton(self.tr('Model Info'), self)
         self.button1.clicked.connect(self.give_info_model)
         self.button2 = QPushButton(self.tr('Load data from hdf5'))
-        self.button2.clicked.connect(self.load_hydro_hdf5)
+        self.button2.clicked.connect(self.get_new_hydro_hdf5)
         spacer2 = QSpacerItem(50, 1)
         spacer = QSpacerItem(1, 50)
 
@@ -137,7 +138,7 @@ class Hydro2W(QWidget):
         self.msgi.setEscapeButton(QMessageBox.Ok)  # detailed text erase the red x
         self.msgi.show()
 
-    def load_hydro_hdf5(self):
+    def get_new_hydro_hdf5(self):
         """
         This is a function which allows the user to select an hdf5 file containing hydro data from a previous project
         and add it to the current project. it modify the xml project file and test that the data is in correct form
@@ -158,131 +159,8 @@ class Hydro2W(QWidget):
         else:
             self.send_log.emit('Warning: No file selected.\n')
             return
-        if ext != '.h5':
-            self.send_log.emit('Warning: the file should be of hdf5 type. \n')
-        # load hdf5 file
-        if os.path.isfile(fname_h5):
-            try:
-                file_hydro = h5py.File(fname_h5, 'r+')
-            except OSError:
-                self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
-        else:
-            self.send_log.emit("Error: the hdf5 file is not found. \n")
-            return
-        # load the number of time steps
-        basename1 = 'Data_gen'
-        try:
-            gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
-        except KeyError:
-            print(
-                'Error: the number of time step is missing from the hdf5 file. Is ' + fname_h5
-                +' an hydrological input? \n')
-            return
-        nb_t = list(gen_dataset.values())[0]
-        nb_t = np.array(nb_t)
-        nb_t = int(nb_t)
-        # load the number of reach
-        try:
-            gen_dataset = file_hydro[basename1 + "/Nb_reach"]
-        except KeyError:
-            print(
-                'Error: the number of time step is missing from the hdf5 file. \n')
-            return
-        nb_r = list(gen_dataset.values())[0]
-        nb_r = np.array(nb_r)
-        nb_r = int(nb_r)
-
-        # load ikle
-        basename1 = 'Data_2D'
-        ikle_whole_all = []
-        # ikle whole porfile
-        for r in range(0, nb_r):
-            name_ik = basename1 + "/Whole_Profile/Reach_" + str(r) + "/ikle"
-            try:
-                gen_dataset = file_hydro[name_ik]
-            except KeyError:
-                print(
-                    'Error: the dataset for ikle (1) is missing from the hdf5 file. \n')
-                return
-            ikle_whole = list(gen_dataset.values())[0]
-            ikle_whole = np.array(ikle_whole)
-            ikle_whole_all.append(ikle_whole)
-        ikle_all_t.append(ikle_whole_all)
-        # ikle by time step
-        for t in range(0, nb_t):
-            ikle_whole_all = []
-            for r in range(0, nb_r):
-                name_ik = basename1 + "/Timestep_"+str(t) + "/Reach_" + str(r) + "/ikle"
-                try:
-                    gen_dataset = file_hydro[name_ik]
-                except KeyError:
-                    print(
-                        'Error: the dataset for ikle (2) is missing from the hdf5 file. \n')
-                    return
-                ikle_whole = list(gen_dataset.values())[0]
-                ikle_whole = np.array(ikle_whole)
-                ikle_whole_all.append(ikle_whole)
-            ikle_all_t.append(ikle_whole_all)
-
-        # coordinate of the point for the  whole profile
-        point_whole_all =[]
-        for r in range(0, nb_r):
-            name_pa = basename1 + "/Whole_Profile/Reach_" + str(r) + "/point_all"
-            try:
-                gen_dataset = file_hydro[name_pa]
-            except KeyError:
-                print(
-                    'Error: the dataset for coordinates of the points (1) is missing from the hdf5 file. \n')
-                return
-            point_whole = list(gen_dataset.values())[0]
-            point_whole = np.array(point_whole)
-            point_whole_all.append(point_whole)
-        point_all.append(point_whole_all)
-        # coordinate of the point by time step
-        for t in range(0, nb_t):
-            point_whole_all = []
-            for r in range(0, nb_r):
-                name_pa = basename1 + "/Timestep_"+str(t) + "/Reach_" + str(r) + "/point_all"
-                try:
-                    gen_dataset = file_hydro[name_pa]
-                except KeyError:
-                    print(
-                        'Error: the dataset for coordinates of the points (2) is missing from the hdf5 file. \n')
-                    return
-                point_whole = list(gen_dataset.values())[0]
-                point_whole = np.array(point_whole)
-                point_whole_all.append(point_whole)
-            point_all.append(point_whole_all)
-
-        # load height and velocity data
-        inter_vel_all.append([])  # no data for the whole profile case
-        inter_height_all.append([])
-        for t in range(0, nb_t):
-            h_all = []
-            vel_all = []
-            for r in range(0, nb_r):
-                name_vel = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_vel_all"
-                name_he = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_h_all"
-                try:
-                    gen_dataset = file_hydro[name_vel]
-                except KeyError:
-                    print(
-                        'Error: the dataset for velocity is missing from the hdf5 file. \n')
-                    return
-                vel = list(gen_dataset.values())[0]
-                vel = np.array(vel)
-                vel_all.append(vel)
-                try:
-                    gen_dataset = file_hydro[name_he]
-                except KeyError:
-                    print(
-                        'Error: the dataset for water height is missing from the hdf5 file. \n')
-                    return
-                heigh = list(gen_dataset.values())[0]
-                heigh = np.array(heigh)
-                h_all.append(heigh)
-            inter_vel_all.append(vel_all)
-            inter_height_all.append(h_all)
+        # load the data to check integrity
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(fname_h5)
 
         # copy the file and update the attribute
         if os.path.isdir(self.path_prj):
@@ -345,6 +223,7 @@ class SubHydroW(QWidget):
     """
 
     send_log = pyqtSignal(str, name='send_log')
+    drop_hydro = pyqtSignal()
 
     def __init__(self, path_prj, name_prj):
 
@@ -498,7 +377,7 @@ class SubHydroW(QWidget):
         so it needs to be re-written if used in the command line
         :return:
         """
-        self.send_log.emit('py    # Save hdf5 hydrological data')
+        self.send_log.emit('# Save hdf5 hydrological data')
 
         # create hdf5 name
         h5name = self.name_prj + '_' + self.model_type + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
@@ -567,12 +446,12 @@ class SubHydroW(QWidget):
                     point_allg.create_dataset(h5name, [len(self.point_all_t[t][r]), 2], data=self.point_all_t[t][r])
                     point_cg = rhere.create_group('point_c_all')
                     point_cg.create_dataset(h5name, [len(self.point_c_all_t[t][r]), 2], data=self.point_c_all_t[t][r])
-                    if self.inter_vel_all_t[t]:
+                    if len(self.inter_vel_all_t[t]) > 0:
                         inter_velg = rhere.create_group('inter_vel_all')
                         inter_velg.create_dataset(h5name, [len(self.inter_vel_all_t[t][r]), 1], data=self.inter_vel_all_t[t][r])
                     else:
                         rhere.create_group('inter_vel_all')
-                    if self.inter_h_all_t[t]:
+                    if len(self.inter_h_all_t[t]) > 0:
                         inter_hg = rhere.create_group('inter_h_all')
                         inter_hg.create_dataset(h5name, [len(self.inter_h_all_t[t][r]), 1],
                                                 data=self.inter_h_all_t[t][r])
@@ -599,13 +478,15 @@ class SubHydroW(QWidget):
                     hdf5file = ET.SubElement(child, "hdf5_hydrodata")
                     hdf5file.text = fname
                 else:
-                    #hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
+                    # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
                     hdf5file.text = fname   # keep only the new file
             doc.write(filename_prj)
 
+        # send a signal to the substrate tab so it can account for the new info
+        self.drop_hydro.emit()
+        # log info
         self.send_log.emit('restart SAVE_HYDRO_HDF5')
         self.send_log.emit('py    # save_hdf5 (function needs to be re-written to be used in cmd)')
-
         return
 
     def find_path_im(self):
@@ -633,8 +514,36 @@ class SubHydroW(QWidget):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
-
         return path_im
+
+    def read_attribute_xml(self, att_here):
+        """
+        A function to read the text of an attribute in the xml project file
+        :param att_here: the attribute name (string).
+        :return:
+        """
+        data = 'no_data'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.findall('.//' +att_here)
+            if child is not None:
+                for i in range(0, len(child)):
+                    if i == 0:
+                        data = child[i].text
+                    else:
+                        data += ',' + child[i].text
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return data
 
     def send_err_log(self):
         """
@@ -1898,6 +1807,9 @@ class SubstrateW(SubHydroW):
         self.model_type = 'SUBSTRATE'
         self.extension = [['.txt', '.shp', '.asc']]
         self.name_att = ''
+        self.coord_p = []
+        self.ikle_sub = []
+        self.sub_info = []
 
         # if there was substrate info before, update the label and attibutes
         self.e2 = QLineEdit()
@@ -1921,11 +1833,33 @@ class SubstrateW(SubHydroW):
         # e1.setValidator(QIntValidator())
         load_b = QPushButton('Load data and save', self)
         load_b.clicked.connect(self.load_sub_gui)
-        spacer = QSpacerItem(1, 140)
-        spacer2 = QSpacerItem(150, 1)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
-        #layout
+        # label and button for the part to merge the grid
+        l8 = QLabel(self.tr("<b> Merge the hydrological and substrate grid </b>"))
+        l9 = QLabel(self.tr("Hydrological data (hdf5)"))
+        l10 = QLabel(self.tr("Substrate data (hdf5)"))
+        self.drop_hyd = QComboBox()
+        self.drop_sub = QComboBox()
+        self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
+        self.load_b2.clicked.connect(self.send_merge_grid)
+        self.spacer2 = QSpacerItem(1, 120)
+        self.cb2 = QCheckBox(self.tr('Show figures'), self)
+
+        # get possible substrate and hydro hdf5 from the project file
+        self.sub_name = self.read_attribute_xml('hdf5_substrate')
+        self.sub_name = self.sub_name.split(',')
+        sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
+        for i in range(0, len(self.sub_name)):
+            if os.path.isfile(self.sub_name[i]):
+                sub_name2.append(self.sub_name[i])
+        self.sub_name = sub_name2
+        for i in range(0, len(self.sub_name)):
+            if os.path.isfile(self.sub_name[i]):
+                self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+        self.update_hydro_hdf5_name()
+
+        # layout
         self.layout_sub = QGridLayout()
         self.layout_sub.addWidget(l1, 0, 0)
         self.layout_sub.addWidget(l2, 1, 0)
@@ -1939,10 +1873,37 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(l4, 3, 0)
         self.layout_sub.addWidget(self.e1, 3, 1)
         self.layout_sub.addWidget(load_b, 3, 2)
-        self.layout_sub.addItem(spacer, 5, 0)
-        self.layout_sub.addItem(spacer2, 5, 3)
+        #self.layout_sub.addItem(spacer, 5, 0)
+        #self.layout_sub.addItem(spacer2, 5, 3)
         self.layout_sub.addWidget(self.cb, 3, 3)
+        self.layout_sub.addWidget(l8, 5, 0)
+        self.layout_sub.addWidget(l9, 6, 0)
+        self.layout_sub.addWidget(self.drop_hyd, 6, 1)
+        self.layout_sub.addWidget(l10, 7, 0)
+        self.layout_sub.addWidget(self.drop_sub, 7, 1)
+        self.layout_sub.addWidget(self.load_b2, 8, 2)
+        self.layout_sub.addWidget(self.cb2, 8, 1)
+        self.layout_sub.addItem(self.spacer2, 9, 1)
+
         self.setLayout(self.layout_sub)
+
+    def update_hydro_hdf5_name(self):
+        """
+        a short function used to read all the hdf5 data available in one project adn to add it to the drop-down menu
+        should be a function because an update to this list can be triggered by the loading of a new hydrological data.
+        the class SubstrateW() noticed this thought the signal new_hydro_hdf5
+        :return:
+        """
+        self.hyd_name = self.read_attribute_xml('hdf5_hydrodata')
+        self.hyd_name = self.hyd_name.split(',')
+        hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
+        for i in range(0, len(self.hyd_name)):
+            if os.path.isfile(self.hyd_name[i]):
+                hyd_name2.append(self.hyd_name[i])
+        self.hyd_name = hyd_name2
+        for i in range(0, len(self.hyd_name)):
+            if os.path.isfile(self.hyd_name[i]):
+                self.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
     def load_sub_gui(self):
         # save path and name substrate
@@ -1960,7 +1921,7 @@ class SubstrateW(SubHydroW):
             self.save_xml(1)
         # load substrate
             sys.stdout = self.mystdout = StringIO()
-            [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
+            [self.coord_p, self.ikle_sub, self.sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
             # log info
             self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
             self.send_err_log()
@@ -1974,20 +1935,34 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart    attr: " + self.name_att)
 
             if self.cb.isChecked():
-                substrate.fig_substrate(coord_p, ikle_sub, sub_info, path_im)
+                substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im)
         elif ext == '.txt' or ext == ".asc":
             sys.stdout = self.mystdout = StringIO()
-            [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
+            [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
             self.log_txt()
             if self.cb.isChecked():
-                substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
+                substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
         else:
             self.send_log.emit("Warning: Unknown extension for substrate data, the model will try to load as .txt")
             sys.stdout = self.mystdout = StringIO()
-            [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
+            [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
             if self.cb.isChecked():
-                substrate.fig_substrate(coord_pt, ikle_subt, sub_infot, path_im, x, y, sub)
+                substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
             self.log_txt()
+        self.save_hdf5_sub()
+
+        # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
+        self.sub_name = self.read_attribute_xml('hdf5_substrate')
+        self.sub_name = self.sub_name.split(',')
+        sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
+        for i in range(0, len(self.sub_name)):
+            if os.path.isfile(self.sub_name[i]):
+                sub_name2.append(self.sub_name[i])
+        self.sub_name = sub_name2
+        self.drop_sub.clear()
+        for i in range(0, len(self.sub_name)):
+            self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+        # show figure
         if self.cb.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
 
@@ -2024,6 +1999,109 @@ class SubstrateW(SubHydroW):
                 # if there is data in the project file about the model
                 if child is not None:
                     self.name_att = child.text
+
+    def save_hdf5_sub(self):
+        """
+        This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
+        xml project file
+        :return:
+        """
+
+        self.send_log.emit('# Save data for the substrate in an hdf5 file.')
+
+        # create hdf5 name
+        h5name = self.name_prj + '_' + 'substrate' + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        path_hdf5 = self.find_path_im()
+
+        # create a new hdf5
+        fname = os.path.join(path_hdf5, h5name)
+        file = h5py.File(fname, 'w')
+
+        # create attributes
+        file.attrs['path_projet'] = self.path_prj
+        file.attrs['name_projet'] = self.name_prj
+        file.attrs['HDF5_version'] = h5py.version.hdf5_version
+        file.attrs['h5py_version'] = h5py.version.version
+
+        # save ikle, coordonate and data
+        ikleg = file.create_group('ikle_sub')
+        coordpg = file.create_group('coord_p_sub')
+        if len(self.ikle_sub) > 0:
+            ikleg.create_dataset(h5name, [len(self.ikle_sub), len(self.ikle_sub[0])], data=self.ikle_sub)
+        coordpg.create_dataset(h5name, [len(self.coord_p), 2], data=self.coord_p)
+        # CAREFUL: Data sub is not save yet in the substrate hdf5
+        # because we do not know yet the form of the substrate data
+        datasubg = file.create_group('data_sub')
+        file.close()
+
+        # save the file to the xml of the project
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if not os.path.isfile(filename_prj):
+            print('Error: No project saved. Please create a project first in the General tab.\n')
+            return
+        else:
+            doc = ET.parse(filename_prj)
+            root = doc.getroot()
+            child = root.find(".//" + self.model_type)
+            if child is None:
+                stathab_element = ET.SubElement(root, self.model_type)
+                hdf5file = ET.SubElement(stathab_element, "hdf5_substrate")
+                hdf5file.text = fname
+            else:
+                hdf5file = root.find(".//" + 'substrate_data' + "/hdf5_substrate")
+                if hdf5file is None:
+                    hdf5file = ET.SubElement(child, "hdf5_substrate")
+                    hdf5file.text = fname
+                else:
+                    # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
+                    hdf5file.text = fname  # keep only the new file
+            doc.write(filename_prj)
+
+        self.send_log.emit('restart SAVE_HYDRO_HDF5')
+        self.send_log.emit('py    # save_hdf5_sub (function needs to be re-written to be used in cmd)')
+
+    def send_merge_grid(self):
+        """
+        This function calls the function merge grid in substrate.py. The goal is to have the substrate and hysrological
+        data on the same grid/
+        :return:
+        """
+        self.send_log.emit('# Merge substrate and hydrological grid')
+
+        hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()]
+        hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()]
+        default_data = self.e1.text()
+
+        # check inputs in the function
+        sys.stdout = self.mystdout = StringIO()
+        [ikle_both, point_all_both, sub_data, vel, height] = substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
+                                                                                default_data)
+        sys.stdout = sys.__stdout__
+        # figure
+        path_im = self.find_path_im()
+        if self.cb2.isChecked() and path_im != 'no_path':
+            # plot the last time step, can be changed if necessary
+            substrate.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_im)
+
+        # log
+        self.send_err_log()
+        self.send_log.emit("py    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()] + "'")
+        self.send_log.emit("py    file_sub='" + self.sub_name[self.drop_sub.currentIndex()] + "'")
+        self.send_log.emit("py    defval='" + self.e1.text() + "'")
+        self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = substrate.merge_grid_hydro_sub(file_hyd,"
+                           " file_sub, defval)\n")
+        self.send_log.emit("restart MERGE_GRID_SUB")
+        self.send_log.emit("restart    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()] + "'")
+        self.send_log.emit("restart    file_sub='" + self.sub_name[self.drop_sub.currentIndex()] + "'")
+        self.send_log.emit("restart    defval='" + self.e1.text() + "'")
+        if self.cb2.isChecked() and path_im != 'no_path':
+            self.show_fig.emit()
+
+        # save the data in a new hdf5
+
+
+
+
 
 
 

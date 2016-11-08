@@ -68,6 +68,8 @@ class StathabW(QWidget):
                 typeloadxml = root.find(".//TypeloadStathab")
                 if typeloadxml is not None:
                     self.typeload = typeloadxml.text
+        else:
+            self.send_log('Warning: Project was not saved. Save the project in the general tab \n')
 
         # check if there is a path where to save the figures
         if os.path.isfile(filename_prj):
@@ -375,7 +377,6 @@ class StathabW(QWidget):
                 else:
                     typeload.text = 'hdf5'
             doc.write(filename_prj)
-
 
         # clear list of the GUI
         self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
