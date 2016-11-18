@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import time
 from src import rubar
 from src import Hec_ras06
+from src import selafin_habby1
 import scipy.interpolate
 import copy
 #np.set_printoptions(threshold=np.inf)
@@ -533,7 +534,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro, point_c_all
 
 
-def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
+def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
     """
     It creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
     The data interpolation is done in this function also.
@@ -620,6 +621,8 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
                 data_height_old = data_height
         point_all_reach.append(np.array(point_all))
         point_c_all.append(np.array(point_c))
+        # possible check which could be added:
+        # take out triangle with an area hwich is smaller than a certain threshold
         ikle_all.append(np.array(ikle))
         if vh_pro_t:
             inter_vel_all.append(np.array(inter_vel))
@@ -639,7 +642,6 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t =[]):
         # #for p in range(0, len(p_not_found)):
         #    # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
         # plt.show()
-
 
     return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
 
@@ -764,6 +766,132 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
             point_c.append([cx, cy])
 
     return point_all, ikle,  point_c, p_not_found
+
+
+def cut_2d_grid(ikle, point_all, water_height,velocity):
+    """
+    This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
+    with h>0, this function cut the cells to find the wetted perimeter. it functions for one time steps and for one reach
+    :param ikle: the connectivity table of the 2D grid
+    :param point_all: the coordinate of the point
+    :param water_height: the water height data given on the nodes
+    :param velocity: the velcoity given on the nodes
+    :return:
+    """
+    # prep
+    at = time.time()
+    c_dry = []
+    water_height = np.array(water_height)
+
+    # get all cells with at least one node with h < 0
+    ind_neg = np.where(water_height <= 0)[0]
+    for c in range(0, len(ikle)):
+        if np.any(ikle[c, 0] == ind_neg) or np.any(ikle[c, 1] == ind_neg) or np.any(ikle[c, 2] == ind_neg):
+            c_dry.append(c)
+
+    # find the intersection point for cells particlally dry
+    pc_all = []
+    which_side = []
+    for c in c_dry:
+        pc_c = []
+        which_side_c = []
+        a = ikle[c, 0]
+        b = ikle[c, 1]
+        c = ikle[c, 2]
+        p1a = point_all[a]
+        p1b = point_all[b]
+        p1c = point_all[c]
+        ha = water_height[a]
+        hb = water_height[b]
+        hc = water_height[c]
+        pc = linear_h_cross(p1a, p1b, ha, hb)
+        if len(pc) > 0:
+            pc_c.append(pc)
+            which_side_c.append([0])
+        pc = linear_h_cross(p1b, p1c, hb, hc)
+        if len(pc) > 0:
+            pc_c.append(pc)
+            which_side_c.append([1])
+        pc = linear_h_cross(p1c, p1a, hc, ha)
+        if len(pc) > 0:
+            pc_c.append(pc)
+            which_side_c.append([2])
+        pc_all.append(pc_c)
+        which_side.append(which_side_c)
+
+    # create new cells
+    which_side = np.array(which_side)
+    i = 0
+    for c in c_dry:
+        if len(pc_all[i]) == 2:
+            # add new point
+            pc1 = pc_all[i][0]
+            pc2 = pc_all[i][1]
+            point_all = np.vstack((point_all, pc2))  # order matters
+            point_all = np.vstack((point_all, pc1))
+            water_height = np.hstack((water_height, [0]))
+            velocity = np.hstack((water_height, [0]))
+            # seg1 = [0,1] and seg2 = [1,2] in ikle order
+            if np.sum(which_side[i]) == 1:
+                ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 1]]))
+                if which_side[i][1] == 1:  # seg = [1, 2]
+                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 0]]))
+                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 2], ikle[c, 0]]))
+                else:
+                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 2]]))
+                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 2], ikle[c, 0]]))
+            # seg1 = [0,1] and seg2 = [0,2]
+            if np.sum(which_side[i]) == 2:
+                ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 0]]))
+                if which_side[i][1] == 0:  # seg = [1, 0]
+                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 2]]))
+                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 2]]))
+                else:
+                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 1]]))
+                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 2]]))
+            # seg1 = [2,1] and seg2 = [0,2]
+            if np.sum(which_side[i]) == 3:
+                ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 2]]))
+                if which_side[i][1] == 2:  # seg = [2, 0]
+                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 1]]))
+                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 0]]))
+                else:
+                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 0]]))
+                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 0]]))
+        i += 1
+
+
+    # rease the old cells
+    ikle = np.delete(ikle, c_dry, axis=0)
+
+    bt = time.time()
+    #print(bt-at)
+
+    return ikle, point_all, water_height, velocity
+
+
+def linear_h_cross(p1,p2,h1,h2):
+    """
+    a small function called by cut_2D_grid. It find the intersection point if part of the cells is dry
+    :param p1: the coordinate (x,y) of the first point
+    :param p2: the coordinate (x,y) of the first point
+    :param h1: the water height at p1 (might be negative or positive)
+    :param h2: the water height at p2 (might be negative or positive)
+    :return:
+    """
+    pc = []
+
+    if h1 <= 0 and h2 > 0 or h1 >0 and h2 <= 0:
+        # h is linear, i.e., h = a*x +b pc == x(h==0) and y = a2*x + b2
+        a1 = (h1-h2)/(p1[0]-p2[0])
+        pcx = p1[0] - h1/a1
+        a2 = (p1[1]-p2[1])/(p1[0]-p2[0])
+        b2 = p1[1] - a2 * p1[0]
+        pcy = a2 * pcx + b2
+        pc = [pcx, pcy]
+
+    return pc
+
 
 
 def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
@@ -1538,7 +1666,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
             #for i in range(0, int(len(seg_island)/2)):
              #seg = [int(seg_island[2*i, 2]), int(seg_island[2*i+1, 2])]
              # plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], 'g', linewidth=1)
-    #plt.plot(xlist, ylist, 'g.', markersize=1)
+    plt.plot(xlist, ylist, 'g.', markersize=1)
     #if coord_pro2:
     #   for p in range(0, len(coord_pro2)):
     #        plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=2)
@@ -1599,7 +1727,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
 
 def main():
 
-        #distrbution vitesse mascaret
+        # #create grid mascaret
         # path = r'D:\Diane_work\output_hydro\mascaret'
         # path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
         # #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
@@ -1626,6 +1754,7 @@ def main():
         # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
         # plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
         #
+        # #create grid RUBAR
         # a = time.time()
         # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
         # mail = 'mail.LE13'
@@ -1671,40 +1800,51 @@ def main():
         # #plt.show()
         # b = time.time()
         # print(b-a)
-
-
+        #
         # #test hec-ras
         #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
+        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        # path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
+        # name = 'CRITCREK'  # CRITCREK, LOOP
+        # name_xml = name + '.O03.xml'
+        # name_geo = name + '.g01'
+        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        # #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
+        # #ikle_sub = [[0, 1, 2]]
+        #
+        # [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+        # # whole profile
+        # #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
+        #  #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
+        # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+        #
+        # [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
+        #
+        # for t in range(0, len(vh_pro)):
+        #     which_pro = vh_pro[t]
+        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+        #        = create_grid(coord_pro, 13,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
+        #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+        #       #  create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
+        #     if which_pro:
+        #         [inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
+        #         plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
+        #         #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
+        #     else:
+        #         pass
+        #         #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+
+        # cut 2D grid
+        namefile = r'mersey.res'
+        pathfile = r'C:\Users\diane.von-gunten\HABBY\test_data'
         path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-        name = 'CRITCREK'  # CRITCREK, LOOP
-        name_xml = name + '.O03.xml'
-        name_geo = name + '.g01'
-        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
-        #ikle_sub = [[0, 1, 2]]
+        [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(namefile, pathfile)
+        h = np.array(h)
+        h[-1][1:50] = -10
+        [ikle, point_all, water_height, velocity] = cut_2d_grid(ikle, coord_p, h[-1], v[-1])
+        print(ikle)
+        plot_grid([point_all], [ikle], [], [], [], [], [],[], path_im)
 
-        [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-        # whole profile
-        #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
-         #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
-        #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
-
-        [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
-
-        for t in range(0, len(vh_pro)):
-            which_pro = vh_pro[t]
-            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-               = create_grid(coord_pro, 13,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
-            #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-              #  create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
-            if which_pro:
-                [inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
-                plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
-                #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
-            else:
-                pass
-                #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
 
 
 if __name__ == '__main__':

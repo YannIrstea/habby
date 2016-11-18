@@ -69,7 +69,7 @@ class StathabW(QWidget):
                 if typeloadxml is not None:
                     self.typeload = typeloadxml.text
         else:
-            self.send_log('Warning: Project was not saved. Save the project in the general tab \n')
+            self.send_log.emit('Warning: Project was not saved. Save the project in the general tab \n')
 
         # check if there is a path where to save the figures
         if os.path.isfile(filename_prj):

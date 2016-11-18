@@ -32,6 +32,8 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
         if len(on_profile) > 1:
             xhzv_data = xhzv_data[on_profile]
         warn_point = True
+
+        # calculated hwere velcoity should be determined
         for p in range(0, len(coord_pro)):
             # (x_p, h_p) points between which the velocity will be calculated
             h_w_p = xhzv_data[p, 1] + xhzv_data[p, 2]
@@ -65,6 +67,8 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
             else:
                 print('Error: Number of point is not sufficient. \n')
                 return [-99]
+
+            # manning
             n = np.array(manning_pro[p], dtype=np.float)  # need a float even if manning input might be an int.
             if len(n) != len(x_p):
                 print('Error: Length of Manning data is not coherent with the length of the profil.\n')
@@ -107,7 +111,7 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
 
             ind = np.where(h_p <= h_w_p)[0]
 
-            # if the profile is not totally dry
+            # if the profile is not totally dry, distribute velcoity
             if len(ind) > 0:
 
                 # prep
@@ -315,13 +319,13 @@ def preparetest_velocity(coord_pro, vh_pro_orr, v_in):
         return xhzv_data
 
 
-def get_manning(manning1, nb_point, nb_profil):
+def get_manning(manning1, nb_point, nb_profil, coord_pro):
     """
     A fucntion to create an array with the manning value when a single float is given as info.
-    NOT FINISHED
     :param manning1: the manning value (can be a value or an array)
     :param nb_point: the number of velocity point by profile
     :param nb_profil: the number of profile
+    :param coord_pro: necessary if the number is -99 as we needs to know the length of each profile
     :return:
     """
     manning_array = []
@@ -329,7 +333,13 @@ def get_manning(manning1, nb_point, nb_profil):
         print('Error: The number of velocity point is not understood (int needed) \n')
         return
     if nb_point == -99:
-        print('Error: Manning not finished yet \n')
+        if len(coord_pro) > 0:
+            for pi in range(0, len(coord_pro)):
+                for p in range(0, nb_profil):
+                    manning_array.append([manning1] * len(coord_pro[p]))
+        else:
+            print('Error: if the number chosen is -99 (i.e., the same number of point'
+                  ' than the profile), coord_pro should be provided. \n')
     if isinstance(manning1, float):
         for p in range(0, nb_profil):
              manning_array.append([manning1] * nb_point)
@@ -339,7 +349,7 @@ def get_manning(manning1, nb_point, nb_profil):
     return manning_array
 
 
-def get_manning_arr(manning_arr,nb_point,coord_pro):
+def get_manning_arr(manning_arr, nb_point, coord_pro):
     """
     A function to create the manning array when manning data is loaded using a text file, the form of the array is
     p, dist, n where p is the profile, dist is the distance along the profile and n is manning
@@ -363,9 +373,9 @@ def get_manning_arr(manning_arr,nb_point,coord_pro):
         # which manning data should be used fro this porfile
         # if the data for a profile is not given, we use the data before
         # if no data, before, we use the first one
-        pro = manning_arr[:,0]
+        pro = manning_arr[:, 0]
         lower_p = np.max(pro[pro <= p])
-        ind = np.where(manning_arr[:,0] == lower_p)[0]
+        ind = np.where(manning_arr[:, 0] == lower_p)[0]
         if len(ind) == 0:
             ind = [0]  # if not profile find, use the first profile
         # find where to stop in x_p which gives the ditance along the profile
