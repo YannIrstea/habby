@@ -1010,7 +1010,7 @@ def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr= [], point_a
                 ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                 ylist.append(None)
         plt.plot(xlist, ylist, linewidth=0.1)
-        plt.plot(coord_p[:, 0], coord_p[:, 1], '*r')
+        #plt.plot(coord_p[:, 0], coord_p[:, 1], '*r')
     # for test, remove otherwise
     # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35]])
     # plt.plot(point_all_sub[:, 0], point_all_sub[:, 1], '*r')
@@ -1035,8 +1035,8 @@ def main():
     # [coord_pt, ikle_subt, sub_infot,  x, y, sub] = load_sub_txt(filetxt, path,)
     #fig_substrate(coord_pt, ikle_subt, sub_infot, path, x, y, sub)
     path1 = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    hdf5_name_hyd = os.path.join(path1, r'my_test4_HECRAS1D_02_11_2016_at_13_23_15.h5' )
-    hdf5_name_sub = os.path.join(path1, r'my_test4_substrate_02_11_2016_at_09_47_16.h5')
+    hdf5_name_hyd = os.path.join(path1, r'my_test4_HECRAS1D_18_11_2016_at_15_45_19.h5' )
+    hdf5_name_sub = os.path.join(path1, r'my_test4_substrate_18_11_2016_at_15_25_21.h5')
     [ikle_both, point_all_both, sub_data, vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,0)
     fig_merge_grid(point_all_both[0], ikle_both[0], path1)
 

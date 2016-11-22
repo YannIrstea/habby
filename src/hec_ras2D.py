@@ -60,7 +60,7 @@ def load_hec_ras2d(filename, path):
             geometry = file2D[path_h5_geo]
             coord_p = np.array(geometry["FacePoints Coordinate"])
             coord_c = np.array(geometry["Cells Center Coordinate"])
-            elev = np.array(geometry["Cells Minimum Elevation"])  # might introduce a bias
+            elev = np.array(geometry["Cells Minimum Elevation"])  # might introduce a bias NEED MODIFICATIONS
             ikle = np.array(geometry["Cells FacePoint Indexes"])
             coord_p_all.append(coord_p)
             coord_c_all.append(coord_c)
@@ -68,7 +68,7 @@ def load_hec_ras2d(filename, path):
             ikle_all.append(ikle)
     except KeyError:
         print('Error: Geometry data could not be extracted. Check format of the hdf file.')
-        return [-99],[-99], [-99], [-99], [-99],[-99]
+        return [-99],[-99], [-99], [-99], [-99], [-99]
 
     # water depth
     for i in range(0, len(name_area)):

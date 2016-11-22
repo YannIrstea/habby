@@ -23,6 +23,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
     data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
     and v the velocity
     """
+    failload = [-99], [-99], [-99]
 
     # load the river coordinates 1d (not needed anymore, but can be useful)
     #[x, nb_mail] = load_mai_1d(mail, pathgeo)
@@ -36,7 +37,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
         lim_riv = [0, 0, 0]
     else:
         print('Error: the geofile file should be a m.ETUDE file or a rbe file.')
-        return
+        return failload
 
     # load the height and velocity 1d
     [timestep, data_xhzv] = load_data_1d(data_vh, pathdata, x)
@@ -45,7 +46,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
     if savefig:
         if np.all(data_xhzv == [-99]) or np.all(coord_pro[0] == -99):
             print('Error: No data to produce the figure. \n')
-            return
+            return failload
         else:
             figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], [-1], nb_pro_reach)
 

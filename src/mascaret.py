@@ -29,10 +29,10 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
         [coord_pro1, name_pro, name_reach, nb_pro_reach, abscisse, bt] = open_geo_mascaret(file_geo, path_geo)
     else:
         print('Error: the geo file should be of .geo type.\n')
-        return [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
     if name_reach == ['-99']:
         print('Error: .geo data not loaded. \n')
-        return -99
+        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
     # general file
     blob, ext = os.path.splitext(file_gen)
@@ -42,10 +42,10 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
         [coord_r, nr] = river_coord_non_georef_from_cas(file_gen, path_gen, abscisse, nb_pro_reach)
     else:
         print('Error the general file should be of .xcas or .cas type.\n')
-        return [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
     if nr == [-99]:
         print('Error: .xcas data not loaded. \n')
-        return -99
+        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
     # profile info
     coord_xy = profil_coord_non_georef(coord_pro1, coord_r, nr, nb_pro_reach, bt)

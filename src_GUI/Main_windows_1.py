@@ -607,8 +607,8 @@ class CentralW(QWidget):
         self.hydro_tab.telemac.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
         self.hydro_tab.rubar2d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
         self.hydro_tab.rubar1d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
-        self.hydro_tab.riverhere2d.drop_hydro.connect(self.substrate_tab.save_hdf5_sub)
-        self.hydro_tab.mascar.drop_hydro.connect(self.substrate_tab.save_hdf5_sub)
+        self.hydro_tab.riverhere2d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+        self.hydro_tab.mascar.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
         # connect signal for the log
         self.connect_signal_log()
 

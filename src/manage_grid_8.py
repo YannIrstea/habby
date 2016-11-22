@@ -1684,8 +1684,6 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
         for r in range(0, len(inter_vel_all)):
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
-            print(len(point_here))
-            print(len(inter_vel))
             if len(point_here[:, 0]) == len(inter_vel):
                 sc = plt.tricontourf(point_here[:, 0],point_here[:, 1], ikle_all[r], inter_vel
                                      , min=0, max=np.nanmax(inter_vel), cmap=cm)

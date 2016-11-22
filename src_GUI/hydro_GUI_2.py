@@ -802,7 +802,7 @@ class SubHydroW(QWidget):
         sys.stdout = self.mystdout = StringIO()
         if len(self.manning_arr) < 1:
             # distribution of velocity using a float as a manning value (same value for all place)
-            manning_array = dist_vistess2.get_manning(self.manning1, self.np_point_vel, len(self.coord_pro))
+            manning_array = dist_vistess2.get_manning(self.manning1, self.np_point_vel, len(self.coord_pro), self.coord_pro)
             self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
                                                          self.np_point_vel, 1, self.on_profile)
         else:
@@ -995,11 +995,15 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0],self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1],self.namefile[1]))
 
+        if self.coord_pro == [-99]:
+            self.send_log.emit('Error: HEC-RAS data not loaded')
+            return
+
         # grid and interpolation
         self.interpo_choice = self.inter.currentIndex()
         self.grid_and_interpo(self.cb.isChecked())
 
-        #save hdf5 data
+        # save hdf5 data
         self.save_hdf5()
         # show figure
         if self.cb.isChecked():
@@ -1100,6 +1104,10 @@ class Rubar2D(SubHydroW):
         self.send_log.emit("restart LOAD_RUBAR_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+
+        if self.inter_vel_all_t == [-99]:
+            self.send_log.emit('Error: Rubar data not loaded.')
+            return
 
         # TEMPORARY correction because we have only one grid for all time step
         self.point_all_t = [[self.point_all_t]]
@@ -1254,6 +1262,10 @@ class Mascaret(SubHydroW):
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
         self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
 
+        if self.coord_pro == [-99]:
+            print('Error: Mascaret data not loaded. \n')
+            return
+
         if self.cb.isChecked() and path_im != 'no_path':
             mascaret.figure_mascaret(self.coord_pro, coord_r, self.xhzv_data, self.on_profile, self.nb_pro_reach,
                                      name_pro, name_reach, path_im, [0, 1], [-1], [0])
@@ -1268,6 +1280,7 @@ class Mascaret(SubHydroW):
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
             self.send_log.emit("Error: The number of velocity point is not understood.")
+
 
         # grid and interpolation
         self.distribute_velocity()
@@ -1415,6 +1428,8 @@ class River2D(SubHydroW):
         self.ikle_all_t = []
         self.point_c_all_t = []
         self.point_all_t = []
+        self.inter_h_all_t = []
+        self.inter_vel_all_t = []
         self.send_log.emit(self.tr('# Load: River2D data.'))
 
         path_im = self.find_path_im()
@@ -1432,8 +1447,10 @@ class River2D(SubHydroW):
             sys.stdout = sys.__stdout__
             # if fail
             self.send_err_log()
-            if len(xyzhv_i) == 1 and xyzhv_i[0] == -99:
-                return
+            if isinstance(xyzhv_i[0], int):
+                if xyzhv_i[0] == -99:
+                    self.send_log.emit('Error: River2D data could not be loaded')
+                    return
             xyzhv.append(xyzhv_i)
             self.point_all_t.append(xyzhv_i[:, :2])
             self.ikle_all_t.append(ikle_i)
@@ -1583,6 +1600,10 @@ class Rubar1D(SubHydroW):
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
 
+        if self.xhzv_data == [-99]:
+            self.send_log.emit("Rubar data could not be loaded.")
+            return
+
         # velocity distibution
         try:
             # we have two cases possible: a manning array or a manning float. here we take the case manning as float
@@ -1690,6 +1711,11 @@ class HEC_RAS2D(SubHydroW):
         self.send_log.emit("restart LOAD_HECRAS_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
 
+        if isinstance(v[0], int):
+            if v == [-99]:
+                self.send_log.emit("Error: HEC-RAS2D data could not be loaded.")
+                return
+
         # save
         self.save_hdf5()
 
@@ -1780,6 +1806,9 @@ class TELEMAC(SubHydroW):
         self.send_log.emit("py    [[v, h, coord_p, ikle] = selafin_habby1.load_telemac(file1, path1)\n")
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+
+        if len(v) == 1 and v[0] == [-99]:
+            self.send_log.emit('Error: Telemac data not loaded.')
 
         # save
         self.save_hdf5()

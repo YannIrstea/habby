@@ -40,7 +40,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
     [data_profile, coord_pro_old, coord_r, reach_name, data_bank, nb_pro_reach] = open_geofile(geo_file, path_geo)
     # test if data could be extracted
     if data_profile == [-99]:
-        return xy_h, zone_v
+        return [-99], [-99], [-99]
 
     # load the xml, rep, or sdf file to get velocity and wse
     blob, ext = os.path.splitext(res_file)
@@ -61,7 +61,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
         [vel, wse, riv_name, nb_sim] = open_xmlfile(res_file, reach_name, path_res)
     # if data could not be extracted
     if vel == [-99]:
-        return xy_h, zone_v
+        return  [-99], [-99], [-99]
     # get water height in the (x,y coordinate) and get the velocity in the (x,y) coordinates
     # velocity is by zone (between 2 points) and height is on the node
     # maximum distance between two velocity point: yTO BE DEFINED
@@ -239,6 +239,8 @@ def open_geofile(geo_file, path):
      of each point in the profile, the coordinate of the profile in alist of np.array, the coordinate of the river
      and a list of string with the name of the reaches/ river in order
     """
+
+    failload = [-99],[-99], [-99], '-99', [-99], [-99]
     # check that the geo file has the right extension (.goX)
     blob, ext_geo = os.path.splitext(geo_file)
     if ext_geo[:3] == '.G0':
@@ -250,9 +252,9 @@ def open_geofile(geo_file, path):
     try:
         with open(os.path.join(path, geo_file), 'rt') as f:
             data_geo = f.read()
-    except IOError:
+    except IOError or UnicodeDecodeError:
         print("Error: the file "+geo_file+" does not exist.\n")
-        return [-99],[-99], [-99], '-99', [-99]
+        return failload
 
     # find the (x,z) data related to the profiles.
         # HEC_RAS manual p5-4: the geometry file is for-the-most-part self explanotary.
@@ -264,7 +266,7 @@ def open_geofile(geo_file, path):
     data_profile_str = re.findall(exp_reg1, data_geo, re.DOTALL)
     if not data_profile_str:
         print("Error: no profile found, the geometry file might not be in the right format.\n")
-        return [-99], [-99], [-99], '-99', [-99]
+        return failload
     data_profile = []
     try:
         for i in range(0, len(data_profile_str)):
@@ -272,7 +274,7 @@ def open_geofile(geo_file, path):
                 data_profile.append(xz)  # fill a list with an array (x,z) for each profile
     except ValueError:
         print('Error: The profile data could be extracted from the geometry file. The format should be checked. \n')
-        return [-99], [-99], [-99], '-99', [-99]
+        return failload
 
     # load the coordinate of the river
     exp_reg2 = 'Reach\s+XY=\s+\d+\s*\n([\s+\d+\.-]+)'
@@ -292,7 +294,7 @@ def open_geofile(geo_file, path):
             data_river.append(pass_in_float_from_geo(data_river_str[i], 16))
     except ValueError:
         print('Error: The river data could not be extracted from the geometry file. The format should be checked.\n')
-        return [-99], [-99], [-99], '-99', [-99]
+        return failload
 
     # load the bank limit (where is the limit of the river without a flood)
     try:
@@ -304,7 +306,7 @@ def open_geofile(geo_file, path):
         data_bank = np.column_stack((data_bank_left, data_bank_right))
     except ValueError:
         print('Error: The location of the bank stations on the profile could not be extracted from the geometry file.\n')
-        return [-99], [-99], [-99], '-99', [-99]
+        return failload
 
     # load the order of the reaches and rivers in .geo file
     # It might be different in the XML file unfortunately!
@@ -376,7 +378,7 @@ def open_geofile(geo_file, path):
 
     except ValueError:
         print('Error: The location of the bank stations could not be extracted from the geometry file.\n')
-        return [-99], [-99], [-99], '-99', [-99]
+        return failload
 
     if data_xy_pro_str:  # if georeferenced
         coord_p = []
