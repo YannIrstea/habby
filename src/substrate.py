@@ -890,7 +890,7 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
     # TO BE DONE!!!!
     sub_info = np.array(list(map(float, sub_info)))
     #plt.rcParams['figure.figsize'] = 7,3
-    plt.close()
+    #plt.close()
     plt.rcParams['font.size'] = 10
 
     # prepare grid
@@ -943,7 +943,7 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
     plt.title('Substrate Grid')
     plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    plt.close()
+    #plt.close()
 
     # if we start with txt data, plot the original data
     if xtxt != [-99]:
@@ -964,7 +964,7 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
         plt.title('Original Substrate Data (x,y)')
         plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
+        #plt.close()
 
     #plt.show()
 

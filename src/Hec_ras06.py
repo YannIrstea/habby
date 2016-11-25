@@ -1071,7 +1071,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     """
     # rcParams['figure.figsize'] = 7, 3
     rcParams['font.size'] = 10
-    close()
+    #close()
 
     # choose the simulation to plot
     xy_h = xy_h_all[nb_sim]
@@ -1134,7 +1134,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
         m += 1
         savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png'))
         savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.pdf'))
-        close()
+        #close()
 
     # plot the profile in the (x,y) plane
     fig2 = figure(len(pro))
@@ -1177,7 +1177,8 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     legend(bbox_to_anchor=(1.1, 1), prop={'size':10})
     savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"))
     savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".pdf"))
-    close()
+    #close()
+    #show()
 
 
 

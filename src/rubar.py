@@ -505,7 +505,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     :param nb_pro_reach: the number of profile by reach
     :return: none
     """
-    plt.close()
+
     #plt.rcParams.update({'font.size': 9})
 
     # profiles in xy view
@@ -562,7 +562,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
         elif warn_reach:
             print('Warning: Too many reaches to plot them all. Only the ten first reaches plotted. \n')
             warn_reach = False
-    plt.close()
+
     # plt.show()
 
 
@@ -924,7 +924,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
     """
     coord_p = np.array(xy)
     coord_c = np.array(coord_c)
-    plt.close()
+    #plt.close()
 
     # ikle cannot be an np.array
     xlist = []
@@ -956,7 +956,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
     plt.title('Grid ')
     plt.savefig(os.path.join(path_im, "RUBAR_grid_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     plt.savefig(os.path.join(path_im, "RUBAR_grid" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    plt.close()  # do not forget to close or the program crash
+    #plt.close()  # do not forget to close or the program crash
 
     for t in time_step:
         # plot water depth
@@ -966,7 +966,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
             os.path.join(path_im, "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(
             os.path.join(path_im, "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
+        #plt.close()
 
         # plot velocity
         vel_c0 = v[t][0]
@@ -975,7 +975,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
                 os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(
                 os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
+        #plt.close()
 
     # plt.show()
 

@@ -607,7 +607,7 @@ class Stathab:
         """
         plt.rcParams['figure.figsize'] = 10, 8
         plt.rcParams['font.size'] = 8
-        plt.close()
+        #plt.close()
 
         for r in range(0, len(self.name_reach)):
             rclass = self.rclass_all[r]
@@ -774,7 +774,7 @@ class Stathab:
         plt.title('Suitability index J')
         lgd = plt.legend(bbox_to_anchor=(1, 1), loc='upper right', ncol=1)
     
-        #plt.show()
+        plt.show()
 
 
 def load_float_stathab(filename, check_neg):
@@ -879,6 +879,7 @@ def main():
 
     path = 'D:\Diane_work\model_stat\input_test'
     path_ori = 'D:\Diane_work\model_stat\stathab_t(1)'
+    #path_ori = r'D:\Diane_work\model_stat\stathab_t(1)\mob_test'
     end_file_reach = ['deb.txt', 'qhw.txt', 'gra.txt', 'dis.txt']
     name_file_allreach = ['bornh.txt', 'bornv.txt', 'borng.txt', 'Pref.txt']
     path_habby = r'C:\Users\diane.von-gunten\HABBY'
@@ -890,8 +891,8 @@ def main():
     mystathab.load_stathab_from_hdf5()
     mystathab.stathab_calc(path_ori)
     mystathab.path_im = path_im
-    mystathab.savefig_stahab()
-    mystathab.savetxt_stathab()
+    #mystathab.savefig_stahab()
+    #mystathab.savetxt_stathab()
     mystathab.test_stathab(path_ori)
 
 

@@ -127,7 +127,7 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
     :return:
     """
     # figure size
-    plt.close()
+    #plt.close()
     fig_size_inch = (8,6)
     #plt.rcParams['figure.figsize'] = 7, 3
     plt.rcParams['font.size'] = 10
@@ -152,7 +152,7 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         plt.title('Grid ')
         plt.savefig(os.path.join(path_im, "HEC2D_grid_"+ time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "HEC2D_grid" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()  # do not forget to close or the program crash
+        #plt.close()
 
         # size of the marker (to avoid having to pale, unclear figure)
         # this is a rough estimation, no need for precise number here
@@ -174,7 +174,7 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         plt.title('Elevation above sea level')
         plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
+        #plt.close()
 
         # for each chosen time step
         for t in time_step:
@@ -183,14 +183,14 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
             scatter_plot(coord_c, water_deptht, 'Water Depth [m]', 'terrain', 8, t)
             plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
             plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-            plt.close()
+            #plt.close()
 
              # plot velocity
             vel_c0 = vel_c[:, t]
             scatter_plot(coord_c,vel_c0, 'Vel. [m3/sec]', 'gist_ncar', 8, t)
             plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
             plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-            plt.close()
+            #plt.close()
 
     #plt.show()
 

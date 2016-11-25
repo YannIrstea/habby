@@ -20,8 +20,6 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     :param fish_name the name of the fish which have to be analyzed
     :return Habitat value and useful surface (VH and SPU) as a function of discharge
     """
-    # matplotlib is hard to manage with more than one figure
-    plt.close()
 
     # Q
     nb_q = 20  # number of calculated q

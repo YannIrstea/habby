@@ -962,7 +962,7 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
     :param path_im the pathwhere to save the figure
     :return:
     """
-    plt.close()
+    #plt.close()
     plt.rcParams['font.size'] = 10
 
     if not coord_pro:
@@ -1006,7 +1006,7 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
             plt.ylabel('Velocity [m/sec]')
             plt.savefig(os.path.join(path_im, "mascaret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
             plt.savefig(os.path.join(path_im, "masacret_riv_" +  name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-            plt.close()
+            #plt.close()
 
     # (x,y) coordinates view
     fig = plt.figure()
@@ -1028,7 +1028,7 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
     plt.legend(bbox_to_anchor=(1.1, 1), prop={'size': 10})
     plt.savefig(os.path.join(path_im, "mascaret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
     plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-    plt.close()
+    #plt.close()
 
     # profiles (h, x) with water levels
     for p in pro:
@@ -1052,7 +1052,7 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
         plt.title('Profile ' + name_pro[p] + ' at the time step ' + str(t))
         plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
         plt.savefig(os.path.join(path_im, "masacret_pro_" + str(p) + '_time' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-        plt.close()
+        #plt.close()
 
     #plt.show()
 

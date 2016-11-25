@@ -669,9 +669,10 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     diffx = coord_pro_p[0][0] - coord_pro_p[0][1]
     diffy = coord_pro_p[1][0] - coord_pro_p[1][1]
     norm = np.sqrt(diffx ** 2 + diffy ** 2)
-    nx = diffy / norm
-    ny = - diffx / norm
-    if nx == 0:
+    if norm > 0:
+        nx = diffy / norm
+        ny = - diffx / norm
+    elif norm == 0:
         print('Warning: Found division by zero. \n')
         nx = ny = 1
 
@@ -891,7 +892,6 @@ def linear_h_cross(p1,p2,h1,h2):
         pc = [pcx, pcy]
 
     return pc
-
 
 
 def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
@@ -1351,7 +1351,10 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
 
     # careful the equation is ax + by + c = 0 and not y = ax + b as usual
     # easier for the porjection formula
-    a = (y1 - y2)/(x1-x2)
+    if x1 != x2:
+        a = (y1 - y2)/(x1-x2)
+    else:
+        a = 1
     b = -1
     c = y1 - a * x1
     norm = np.sqrt((x2-x1)**2+(y2-y1)**2)
@@ -1360,10 +1363,13 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
 
     # project points from both profil perpendiculary on the line
     # from https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
-    xpro0 = (b * (b * x0all - a * y0all) - a*c) / (a**2 + b**2)
-    # ypro0 = (a * (-1*b* x0all + a * y0all) - b*c) / (a**2 + b**2)
-    xpro1 = (b * (b * x1all - a * y1all) - a*c) / (a**2 + b**2)
-    # ypro1 = (a * (-1*b * x1all + a * y1all) - b*c) / (a**2 + b**2)
+    if a**2 + b**2 > 0:
+        xpro0 = (b * (b * x0all - a * y0all) - a*c) / (a**2 + b**2)
+        # ypro0 = (a * (-1*b* x0all + a * y0all) - b*c) / (a**2 + b**2)
+        xpro1 = (b * (b * x1all - a * y1all) - a*c) / (a**2 + b**2)
+        # ypro1 = (a * (-1*b * x1all + a * y1all) - b*c) / (a**2 + b**2)
+    else:
+        xpro0 = xpro1 = 1e10
 
     # get a longer line (to have intersection in all cases)
     # to avoid case whew the vector nearly touch each other
@@ -1608,10 +1614,10 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     :param path_im the path where to save the image
     :return:
     """
-    plt.close()
+    #plt.close()
 
     # plot only the grid
-    fig = plt.figure()
+    plt.figure()
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     for r in range(0, len(ikle_all)):
@@ -1658,7 +1664,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
                         m = 'g'
                     else:
                         m = 'y'
-                    plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m, linewidth=1)
+                    #plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m, linewidth=1)
                 overlap_r = overlap[r]
                 #if len(overlap_r) > 0:
                     #for i in range(0, len(overlap_r)):
@@ -1674,7 +1680,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     plt.title('Computational Grid')
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-    plt.close()
+    #plt.close()
     #plt.show()
 
     # plot the interpolated velocity
@@ -1688,6 +1694,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
                 sc = plt.tricontourf(point_here[:, 0],point_here[:, 1], ikle_all[r], inter_vel
                                      , min=0, max=np.nanmax(inter_vel), cmap=cm)
                 if r == len(inter_vel_all) -1:
+                    #plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
                     cbar.ax.set_ylabel('Velocity [m/sec]')
             else:
@@ -1695,10 +1702,11 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated velocity')
-        plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-        plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-        plt.close()
+        #plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
+        #plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+        #plt.close()
 
+    # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
         cm = plt.cm.get_cmap('jet')
         plt.figure()
@@ -1706,6 +1714,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
             point_here = np.array(point_all_reach[r])
             inter_h = inter_h_all[r]
             if len(point_here) == len(inter_h):
+                inter_h[inter_h < 0] = 0
                 sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h
                                      , min=0, max=np.nanmax(inter_h), cmap=cm)
                 if r == len(inter_h_all) - 1:
@@ -1716,9 +1725,10 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
-        plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-        plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-        plt.close()
+        #plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
+        #plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+        #plt.close()
+        #plt.show()
 
     #plt.show()
 
@@ -1801,47 +1811,47 @@ def main():
         #
         # #test hec-ras
         #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
-        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        # path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-        # name = 'CRITCREK'  # CRITCREK, LOOP
-        # name_xml = name + '.O03.xml'
-        # name_geo = name + '.g01'
-        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        # #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
-        # #ikle_sub = [[0, 1, 2]]
-        #
-        # [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-        # # whole profile
-        # #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
-        #  #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
-        # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
+        name = 'CRITCREK'  # CRITCREK, LOOP
+        name_xml = name + '.O02.xml'
+        name_geo = name + '.g02'
+        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
+        #ikle_sub = [[0, 1, 2]]
+
+        [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+        # whole profile
+        #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
+         #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
+        #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
         #
         # [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
         #
-        # for t in range(0, len(vh_pro)):
-        #     which_pro = vh_pro[t]
-        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-        #        = create_grid(coord_pro, 13,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
-        #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-        #       #  create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
-        #     if which_pro:
-        #         [inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
-        #         plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
-        #         #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
-        #     else:
-        #         pass
-        #         #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+        for t in range(0, len(vh_pro)):
+            which_pro = vh_pro[t]
+            #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+             #  = create_grid(coord_pro, 5,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
+            [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+                create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
+            if which_pro:
+                #[inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
+                #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
+                plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
+            else:
+                pass
+                #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
 
         # cut 2D grid
-        namefile = r'mersey.res'
-        pathfile = r'C:\Users\diane.von-gunten\HABBY\test_data'
-        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(namefile, pathfile)
-        h = np.array(h)
-        h[-1][1:50] = -10
-        [ikle, point_all, water_height, velocity] = cut_2d_grid(ikle, coord_p, h[-1], v[-1])
-        print(ikle)
-        plot_grid([point_all], [ikle], [], [], [], [], [],[], path_im)
+        # namefile = r'mersey.res'
+        # pathfile = r'C:\Users\diane.von-gunten\HABBY\test_data'
+        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+        # [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(namefile, pathfile)
+        # h = np.array(h)
+        # h[-1][1:50] = -10
+        # [ikle, point_all, water_height, velocity] = cut_2d_grid(ikle, coord_p, h[-1], v[-1])
+        # print(ikle)
+        # plot_grid([point_all], [ikle], [], [], [], [], [],[], path_im)
 
 
 

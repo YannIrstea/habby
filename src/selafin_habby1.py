@@ -69,7 +69,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
      :param timestep, which time step should be plotted
     """
     #plt.rcParams['figure.figsize'] = 7, 3
-    plt.close()
+    #plt.close()
     plt.rcParams['font.size'] = 10
 
     for i in timestep:
@@ -83,7 +83,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
         cbar.ax.set_ylabel('Water height [m]')
         plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
+        #plt.close()
 
         plt.figure()
         cm = plt.cm.get_cmap('terrain')
@@ -96,7 +96,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
         cbar.ax.set_ylabel('Velocity [m/s]')
         plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        plt.close()
+        #plt.close()
     #plt.show()
 
 def getendianfromchar(fileslf, nchar):

@@ -192,17 +192,17 @@ def figure_river2d(xyzhv, ikle, path_im, t=0):
     plt.close()
 
     hec_ras2D.scatter_plot(xyzhv[:, :2], xyzhv[:, 3], 'Water Depth [m]', 'terrain', 8, 0)
-    plt.savefig(
-        os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-    plt.savefig(
-        os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    plt.close()
+    #plt.savefig(
+      #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+   # plt.savefig(
+      #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+    #plt.close()
 
     hec_ras2D.scatter_plot(xyzhv[:, :2], xyzhv[:, 4], 'Vel. [m3/sec]', 'gist_ncar', 8, 0)
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    plt.close()
-    # plt.show()
+    #plt.close()
+    #plt.show()
 
 
 def main():

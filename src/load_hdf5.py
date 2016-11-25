@@ -29,7 +29,7 @@ def open_hdf5(hdf5_name):
 def load_hdf5_hyd(hdf5_name_hyd):
     """
     A function to load the hydrological data contains in the hdf5 file
-    :param hdf5_name_hyd: path and file name to the df5 file (string)
+    :param hdf5_name_hyd: path and filename of the hdf5 file (string)
     :return:
     """
 

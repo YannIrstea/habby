@@ -26,6 +26,7 @@ from src import dist_vistess2
 from src import load_hdf5
 np.set_printoptions(threshold=np.inf)
 from multiprocessing import Process, Queue
+#import matplotlib.pyplot as plt
 
 class Hydro2W(QWidget):
     """
@@ -581,10 +582,10 @@ class SubHydroW(QWidget):
         if self.interpo_choice == 0:
             self.send_log.emit(self.tr('# Create grid by block.'))
             # first whole profile
-            sys.stdout = self.mystdout = StringIO()
+            #sys.stdout = self.mystdout = StringIO()
             [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                 manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach)
-            sys.stdout = sys.__stdout__
+            #sys.stdout = sys.__stdout__
             self.send_err_log()
             self.inter_vel_all_t.append([])
             self.inter_h_all_t.append([])
@@ -1287,7 +1288,7 @@ class Mascaret(SubHydroW):
         self.interpo_choice = self.inter.currentIndex()
         self.grid_and_interpo(self.cb.isChecked())
 
-        self.save_hdf5()
+        #self.save_hdf5()
 
         if self.cb.isChecked():
             self.show_fig.emit()

@@ -13,10 +13,18 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLa
     QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy
 from PyQt5.QtGui import QPixmap
 import h5py
+import matplotlib
+matplotlib.use("Qt5Agg")
+import matplotlib.pyplot as plt
+#from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
 from src_GUI import output_fig_GUI
+
+
 
 
 class MainWindows(QMainWindow):
@@ -171,7 +179,7 @@ class MainWindows(QMainWindow):
         savi.triggered.connect(self.erase_pict)
         showim = QAction(self.tr("Show Images"), self)
         showim.setStatusTip(self.tr('Open the window to view the created figures.'))
-        showim.triggered.connect(self.central_widget.showfig)
+        showim.triggered.connect(self.central_widget.showfig2)
         optim = QAction(self.tr("More Options"), self)
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
         # optim.triggered.connect(self.central_widget.optfig)
@@ -679,6 +687,13 @@ class CentralW(QWidget):
         """
         A small function to show the last figures
         """
+        plt.show()
+
+    def showfig2(self):
+        """
+        A function to see all saved figures without possibility to zoom
+        :return:
+        """
         self.child_win.update_namefig()
         self.child_win.selectionchange(-1)
         self.child_win.show()
@@ -931,7 +946,7 @@ class ShowImageW(QWidget):
         self.but1 = QPushButton('Change Folder')
         self.but1.clicked.connect(self.change_folder)
 
-        self.setWindowTitle(self.tr('FIGURES'))
+        self.setWindowTitle(self.tr('ALL FIGURES'))
 
         # layout
         self.layout4 = QGridLayout()
@@ -988,7 +1003,6 @@ class ShowImageW(QWidget):
             doc.write(filename_path_pro)
             self.selectionchange(1)
 
-
     def update_namefig(self):
         """
         add the different figure name to the drop-down list
@@ -1014,9 +1028,45 @@ class ShowImageW(QWidget):
             all_file_nice[i] = all_file_nice[i].replace("/", "")
         self.image_list.addItems(all_file_nice)
 
+
+# class MyMplCanvas(FigureCanvas):
+#     #Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.).
+#     def __init__(self, parent=None, width=5, height=4, dpi=100):
+#         fig = Figure(figsize=(width, height), dpi=dpi)
+#         self.fig = fig
+#         self.axes = fig.add_subplot(111)
+#         # We want the axes cleared every time plot() is called
+#         self.axes.hold(False)
+#
+#         self.compute_initial_figure()
+#         FigureCanvas.__init__(self, fig)
+#         self.setParent(parent)
+#
+#         FigureCanvas.setSizePolicy(self,
+#                                    QSizePolicy.Expanding,
+#                                    QSizePolicy.Expanding)
+#         FigureCanvas.updateGeometry(self)
+#
+#     def compute_initial_figure(self):
+#         pass
+#
+#
+# class MyStaticMplCanvas(MyMplCanvas):
+#     #Simple canvas with a sine plot.
+#     def compute_initial_figure(self):
+#         plt.show()
+#         #figure()
+#         #t = np.arange(0.0, 3.0, 0.01)
+#         #s = np.sin(2*np.pi*t)
+#         print(plt.gcf())
+#
+#         #self.axes = plt.gca()
+#         self.fig = plt.gcf()
+
+
+
 def open_project():
     print('I wish to open a project')
-
 
 def new_project():
     print('I wish to create a new project')
