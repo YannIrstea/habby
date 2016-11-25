@@ -687,7 +687,18 @@ class CentralW(QWidget):
         """
         A small function to show the last figures
         """
+
+        # check if there is a path where to save the image
+        filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//" + 'Path_Figure')
+            if child is not None:
+                self.path_im = child.text
+
         plt.show()
+
 
     def showfig2(self):
         """
