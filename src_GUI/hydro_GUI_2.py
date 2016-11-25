@@ -600,7 +600,7 @@ class SubHydroW(QWidget):
                 sys.stdout = self.mystdout = StringIO()
                 [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                     manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach, self.vh_pro[t])
-                if cb_im:
+                if cb_im and path_im != 'no_path':
                     manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
                                             inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
@@ -693,7 +693,7 @@ class SubHydroW(QWidget):
             self.ikle_all_t.append(ikle_all)
             self.point_all_t.append(point_all_reach)
             self.point_c_all_t.append(point_c_all)
-            if cb_im:
+            if cb_im and path_im != 'no_path':
                 manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                         hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
             self.send_err_log()
@@ -772,7 +772,7 @@ class SubHydroW(QWidget):
                 self.send_err_log()
                 sys.stdout = self.mystdout = StringIO()
                 [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_all_reach, coord_pro2, self.vh_pro[t])
-                if cb_im:
+                if cb_im and path_im != 'no_path':
                     manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                             hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
