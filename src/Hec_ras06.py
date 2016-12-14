@@ -51,7 +51,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
             [vel, wse, riv_name, nb_sim] = open_sdffile(res_file, reach_name, path_res)
         except ValueError:
             print("Error: Cannot open .sdf file. Is the model georeferenced? If not, use the .rep file.\n")
-            return xy_h, zone_v
+            return [-99], [-99], [-99]
 
     elif ext == ".rep":
         [vel, wse, riv_name, nb_sim] = open_repfile(res_file, reach_name, path_res, data_profile, data_bank)
@@ -65,7 +65,11 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
     # get water height in the (x,y coordinate) and get the velocity in the (x,y) coordinates
     # velocity is by zone (between 2 points) and height is on the node
     # maximum distance between two velocity point: yTO BE DEFINED
-    [xy_h, zone_v] = find_coord_height_velocity(coord_pro_old, data_profile, vel, wse, nb_sim, 1000)
+    try:
+        [xy_h, zone_v] = find_coord_height_velocity(coord_pro_old, data_profile, vel, wse, nb_sim, 1000)
+    except IndexError:
+        print('Error: The number of time steps might not be not coherent between geo and output files.')
+        return [-99], [-99], [-99]
     # plot and check
     if save_fig:
         figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
@@ -670,7 +674,7 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     :return: velocity and the water surface elevation for each river profiles in a list of np.array,
     the number of simulation (int) and the name of the river profile (list of string)
     """
-    # check that the report file has the right extension (.sdf)
+    # check that the report file has the right extension
     # we might so the test two times, but so we are sure it is here
     blob, ext_sdf = os.path.splitext(report_file)
     if ext_sdf != '.rep':
@@ -971,7 +975,7 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                     for i in range(0, len(duplicate)):
                         ind_dup = np.where(xy_h_pro[:, 2] == duplicate[i])[0]
                         for j in range(0, len(ind_dup)-1):
-                            xy_h_pro[ind_dup[j], 2] -= dist_mov * (j+1)#* xy_h_pro[ind_dup[j], 2] #+ dist_mov/100
+                            xy_h_pro[ind_dup[j], 2] -= dist_mov * (j+1)* xy_h_pro[ind_dup[j], 2] #+ dist_mov/100
                             #if ind_dup[j]>0:
                              #   ax = xy_h_pro[ind_dup[j], 0] - xy_h_pro[ind_dup[j]-1, 0]
                              #   ay = xy_h_pro[ind_dup[j], 1] - xy_h_pro[ind_dup[j]-1, 1]
@@ -1030,13 +1034,13 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                 h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p0[max(water_ind) + 1]]))
             elif len(x_p0) - 1 > max(water_ind) and min(water_ind) == 0:
                 x_here = np.concatenate(
-                    ([x_p[0] - dist_mov * x_p[0] + dist_mov / 100], x_p, [x_p0[max(water_ind) + 1]]))
+                    ([x_p[0] - dist_mov * x_p[0] - dist_mov / 100], x_p, [x_p0[max(water_ind) + 1]]))
                 h_here = np.concatenate(([h_p[0]], h_p, [h_p0[max(water_ind) + 1]]))
             elif len(x_p0) - 1 < max(water_ind) and min(water_ind) > 0:
                 x_here = np.concatenate(([x_p0[min(water_ind) - 1]], x_p, [x_p[-1] + dist_mov * x_p[-1]]))
                 h_here = np.concatenate(([h_p0[min(water_ind) - 1]], h_p, [h_p[-1] + dist_mov * h_p[-1]]))
             else:
-                x_here = np.concatenate(([x_p0[0] - dist_mov * x_p0[0] + dist_mov / 100],
+                x_here = np.concatenate(([x_p0[0] - dist_mov * x_p0[0] - dist_mov / 100],
                                          x_p, [x_p[-1] + dist_mov * x_p[-1]]))
                 h_here = np.concatenate(([h_p0[0]], h_p, [h_p[-1]]))
             v_here = np.concatenate(([0], zone_v_new, [0]))
@@ -1087,7 +1091,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
         fig = figure(m)
         suptitle("")
         ax1 = subplot(313)
-        # find the water limits
+        # find the water limits (important  to plot the velocity, not the elevation of the profile)
         h0 = hi[0] + xz[0, 1]
         wet = np.squeeze(np.where(hi > 0))
         p1 = wet[0]
@@ -1109,7 +1113,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
                 xint2 = xz[p2+1, 0]
         else:
             xint2 = xz[p2, 0]
-        # update velocity data
+        # update velocity data with point where water level h=0
         v_xy_i_wet = v_xy_i[(xint1 <= v_xy_i[:, 2]) & (v_xy_i[:, 2] <= xint2), 2:]
         if len(v_xy_i_wet) > 0:
             v_xy_i_wet = np.vstack(([[0, 0], [xint1, v_xy_i[0, 3]], v_xy_i_wet, [xint2, 0]]))
@@ -1187,7 +1191,7 @@ def main():
     path_test = r'C:\Users\diane.von-gunten\HABBY\test_data'
     path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
     name = 'CRITCREK'
-    name_xml = name+ '.O03.xml'
+    name_xml = name+ '.O02.xml'
     name_geo = name+'.g01'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 

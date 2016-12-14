@@ -980,10 +980,13 @@ class HEC_RAS1D(SubHydroW):
         if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
         # redirect the out stream to my output
+        a = time.time()
         sys.stdout = self.mystdout = StringIO()
         [self.coord_pro, self.vh_pro, self.nb_pro_reach] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
                                                self.pathfile[1], path_im, self.save_fig)
         sys.stdout = sys.__stdout__
+        b = time.time()
+        print('time to load data: ' + str(b-a))
         # log info
         self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
         self.send_err_log()
@@ -1002,10 +1005,16 @@ class HEC_RAS1D(SubHydroW):
 
         # grid and interpolation
         self.interpo_choice = self.inter.currentIndex()
+        b = time.time()
         self.grid_and_interpo(self.cb.isChecked())
+        c = time.time()
+        print('time to interpolate velocity ' + str(b-a))
+        print('time to create grid ' + str(c-b))
 
         # save hdf5 data
         self.save_hdf5()
+        d = time.time()
+        print('time to create grid ' + str(d-c))
         # show figure
         if self.cb.isChecked():
             self.show_fig.emit()

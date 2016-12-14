@@ -23,7 +23,7 @@ def load_telemac(namefilet, pathfilet):
     # load the data and do some test
     if not filename_path_res:
         print('Error: The telemac file does not exist. Cannot be loaded.')
-        return [-99],[-99],[-99], [-99]
+        return [-99], [-99], [-99], [-99]
     blob, ext = os.path.splitext(namefilet)
     if ext != '.res' and ext != '.slf':
         print('Warning: The extension of the telemac file is not .res or .slf')
@@ -99,6 +99,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
         #plt.close()
     #plt.show()
 
+
 def getendianfromchar(fileslf, nchar):
     """
     Get the endian encoding
@@ -120,6 +121,7 @@ def getendianfromchar(fileslf, nchar):
         print('     +> Maybe it is the wrong file format ?')
     fileslf.seek(pointer)
     return endian
+
 
 def getfloattypefromfloat(fileslf, endian, nfloat):
     """

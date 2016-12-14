@@ -558,7 +558,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
     all_point_midy = []
     if vh_pro_t:
         coord_pro = update_coord_pro_with_vh_pro(coord_pro, vh_pro_t)
-
+    b = time.time()
     a = 0
     # for each reach
     for r in range(0, len(nb_pro_reach) - 1):
@@ -664,6 +664,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     point_mid_x = point_mid_x[0]
     point_mid_y = point_mid_y[0]
     far = 1e5
+    warn_inter = True
 
     # get a vector perpendicular to the profile
     diffx = coord_pro_p[0][0] - coord_pro_p[0][1]
@@ -683,7 +684,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         xafter = coord_pro_p[0][s0] - far * nx * dir
         yafter = coord_pro_p[1][s0] - far * ny * dir
         xbefore = coord_pro_p[0][s0] + nx * dir
-        ybefore = coord_pro_p[1][s0] + ny *dir
+        ybefore = coord_pro_p[1][s0] + ny * dir
         p1hyd = [xbefore, ybefore]
         p2hyd = [xafter, yafter]
         for m in range(0, len(point_mid_x)-1):
@@ -720,7 +721,9 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
             p3 = [p3x, p3y]
             [inter, pc] = intersection_seg(p1hyd, p2hyd, p1, p3, False)
         if not inter:
-            print('Warning: no intersection found for a point. \n')
+            if not warn_inter:
+                print('Warning: no intersection found for a point. \n')
+                warn_inter= False
             # plt.figure()
             # plt.plot()
             # plt.plot(p1hyd[0], p1hyd[1], '.b')
@@ -1018,20 +1021,20 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     pc = []  # the crossing point
     # if the start or the end of segment are the same, crossing if col is True
     # if col = False not crossing
-    if np.all(p1hyd == p1sub) or np.all(p2hyd == p1sub):
-        if col:
-            inter = True
-            pc.append([x1sub, y1sub])
-        else:
-            inter = False
-        return inter, pc
-    if np.all(p1hyd == p2sub) or np.all(p2hyd == p2sub):
-        if col:
-            inter = True
-            pc.append([x2sub, y2sub])
-        else:
-            inter = False
-        return inter, pc
+    # if np.all(p1hyd == p1sub) or np.all(p2hyd == p1sub):
+    #     if col:
+    #         inter = True
+    #         pc.append([x1sub, y1sub])
+    #     else:
+    #         inter = False
+    #     return inter, pc
+    # if np.all(p1hyd == p2sub) or np.all(p2hyd == p2sub):
+    #     if col:
+    #         inter = True
+    #         pc.append([x2sub, y2sub])
+    #     else:
+    #         inter = False
+    #     return inter, pc
     # find r and s such as r = psub - p2sub  and s = qhyd - q2hyd
     [sx, sy] = [x2hyd - x1hyd, y2hyd - y1hyd]
     [rx, ry] = [x2sub - x1sub, y2sub - y1sub]
@@ -1251,6 +1254,7 @@ def interpo_linear(point_all, coord_pro, vh_pro_t):
         values = np.array(values)
         inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='linear')
         # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_vel[np.isnan(inter_vel)] = 0
         inter_vel[inter_vel < 0] = 0
         inter_vel_all.append(inter_vel)
 
@@ -1267,6 +1271,7 @@ def interpo_linear(point_all, coord_pro, vh_pro_t):
         values = np.array(values)
         inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
         # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_height[np.isnan(inter_height)] = 0
         inter_height[inter_height < 0] = 0
         inter_height_all.append(inter_height)
 
@@ -1301,6 +1306,7 @@ def interpo_nearest(point_all, coord_pro, vh_pro_t):
         values = np.array(values)
         inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
         # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_vel[np.isnan(inter_vel)] = 0
         inter_vel[inter_vel < 0] = 0
         inter_vel_all.append(inter_vel)
 
@@ -1317,6 +1323,7 @@ def interpo_nearest(point_all, coord_pro, vh_pro_t):
         values = np.array(values)
         inter_height = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
         # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_height[np.isnan(inter_height)] = 0
         inter_height[inter_height < 0] = 0
         inter_height_all.append(inter_height)
 
@@ -1652,7 +1659,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
                 ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                 ylist.append(None)
 
-            plt.plot(xlist, ylist, linewidth=0.1)
+            plt.plot(xlist, ylist, '-b', linewidth=0.1)
             if lim_by_reach:
                 for hh in range(0, len(h)):
                      plt.plot(h[hh][0], h[hh][1], "g*", markersize=3)
@@ -1672,7 +1679,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
             #for i in range(0, int(len(seg_island)/2)):
              #seg = [int(seg_island[2*i, 2]), int(seg_island[2*i+1, 2])]
              # plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], 'g', linewidth=1)
-    plt.plot(xlist, ylist, 'g.', markersize=1)
+    #plt.plot(xlist, ylist, 'g.', markersize=1)
     #if coord_pro2:
     #   for p in range(0, len(coord_pro2)):
     #        plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=2)

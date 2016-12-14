@@ -25,8 +25,6 @@ from src_GUI import stathab_GUI
 from src_GUI import output_fig_GUI
 
 
-
-
 class MainWindows(QMainWindow):
     """
     The class MainWindows contains the menu and the title of all the HABBY windows.
@@ -100,7 +98,7 @@ class MainWindows(QMainWindow):
         :param event:
         :return:
         """
-        exit()
+        sys.exit()
 
     def setlangue(self, nb_lang):
         """
@@ -929,8 +927,8 @@ class ShowImageW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.label_im = QLabel()
-        #self.w = 200  #size of the image (see if we let some options for this)
-        #self.h = 200
+        # self.w = 200  #size of the image (see if we let some options for this)
+        # self.h = 200
         self.imtype = '*.png'
         self.path_im = os.path.join(self.path_prj, 'figures_habby')
         self.msg2 = QMessageBox()
@@ -1073,7 +1071,6 @@ class ShowImageW(QWidget):
 #
 #         #self.axes = plt.gca()
 #         self.fig = plt.gcf()
-
 
 
 def open_project():
