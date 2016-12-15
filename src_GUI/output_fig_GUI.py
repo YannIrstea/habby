@@ -212,7 +212,9 @@ def load_fig_option(path_prj, name_prj):
 
     fig_dict = create_default_figoption()
     fname = os.path.join(path_prj, name_prj + '.xml')
-    if not os.path.isfile(fname):
+    if not os.path.isfile(fname) and name_prj != '':  # no project exists
+        pass
+    elif not os.path.isfile(fname):  # the project is not found
         print('Error: No project file (.xml) found.\n')
     else:
         doc = ET.parse(fname)

@@ -144,7 +144,7 @@ class MainWindows(QMainWindow):
         self.menubar.clear()
 
         # Menu to open and close file
-        exitAction = QAction(self.tr('&Exit'), self)
+        exitAction = QAction(self.tr('Exit'), self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip(self.tr('Exit application'))
         exitAction.triggered.connect(qApp.quit)
@@ -621,7 +621,8 @@ class CentralW(QWidget):
         # fill the general tab
         self.welcome_tab.e1.setText(self.name_prj_c)
         self.welcome_tab.e2.setText(self.path_prj_c)
-        if not os.path.isdir(self.path_prj_c):  # if the directoy do not exist
+        # if the directoy to the project do not exist, leave the general tab empty
+        if not os.path.isdir(self.path_prj_c):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Path to project"))
             self.msg2.setText( \
@@ -629,6 +630,7 @@ class CentralW(QWidget):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         fname = os.path.join(self.path_prj_c, self.name_prj_c+'.xml')
+        # otherwise, fill it
         if os.path.isfile(fname):
             doc = ET.parse(fname)
             root = doc.getroot()
@@ -640,18 +642,28 @@ class CentralW(QWidget):
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
 
-        # add the widget to the tab
-        self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
-        self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
-        self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-        self.tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
-        self.tab_widget.addTab(biorun_tab, self.tr("Run the model"))
-        self.tab_widget.addTab(self.output_tab, self.tr("Output"))
-        self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
-        self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
-        if self.rech:
-            self.tab_widget.addTab(other_tab, self.tr("Research 1"))
-            self.tab_widget.addTab(other_tab2, self.tr("Research 2"))
+        # add the widgets to the list of tab if a project exist
+        if os.path.isfile(fname) and self.name_prj_c != '':
+            self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
+            self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
+            self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
+            self.tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
+            self.tab_widget.addTab(biorun_tab, self.tr("Run the model"))
+            self.tab_widget.addTab(self.output_tab, self.tr("Output"))
+            self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
+            self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
+            if self.rech:
+                self.tab_widget.addTab(other_tab, self.tr("Research 1"))
+                self.tab_widget.addTab(other_tab2, self.tr("Research 2"))
+        # if the project do not exist, do nmot add new tab
+        else:
+            self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Create project"))
+            self.msg2.setText( \
+                self.tr("Create and save a project to use HABBY further."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
 
         # Area to show the log
         # add two Qlabel l1 ad l2 , with one scroll for the log in l2
@@ -696,7 +708,6 @@ class CentralW(QWidget):
                 self.path_im = child.text
 
         plt.show()
-
 
     def showfig2(self):
         """
@@ -994,7 +1005,7 @@ class ShowImageW(QWidget):
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
+            self.msg2.setWindowTitle(self.tr("Change Folder"))
             self.msg2.setText( \
                 self.tr("The project is not saved. Save the project in the General tab before saving data."))
             self.msg2.setStandardButtons(QMessageBox.Ok)

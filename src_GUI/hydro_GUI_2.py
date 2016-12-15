@@ -509,7 +509,7 @@ class SubHydroW(QWidget):
                 path_im = child.text
         else:
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
+            self.msg2.setWindowTitle(self.tr("Save the path to the figures"))
             self.msg2.setText(
                 self.tr("The project is not saved. Save the project in the General tab."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
@@ -537,12 +537,13 @@ class SubHydroW(QWidget):
                     else:
                         data += ',' + child[i].text
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            pass
+            # self.msg2.setIcon(QMessageBox.Warning)
+            # self.msg2.setWindowTitle(self.tr("Read attributes"))
+            # self.msg2.setText(
+            #     self.tr("The project is not saved. Save the project in the General tab."))
+            # self.msg2.setStandardButtons(QMessageBox.Ok)
+            # self.msg2.show()
 
         return data
 
@@ -2076,7 +2077,8 @@ class SubstrateW(SubHydroW):
         # save the file to the xml of the project
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(filename_prj):
-            print('Error: No project saved. Please create a project first in the General tab.\n')
+            pass
+            self.send_log.emit('Error: No project saved. Please create a project first in the General tab.\n')
             return
         else:
             doc = ET.parse(filename_prj)
