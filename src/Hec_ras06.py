@@ -70,6 +70,8 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
     except IndexError:
         print('Error: The number of time steps might not be not coherent between geo and output files.')
         return [-99], [-99], [-99]
+    if xy_h == [-99]:
+        return [-99], [-99], [-99]
     # plot and check
     if save_fig:
         figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
@@ -123,7 +125,7 @@ def open_xmlfile(xml_file, reach_name, path):
     try:
         sim_name = root.findall(".//ProfileNames")
         sim_name = str(sim_name[0].text)
-        sim_name = sim_name[1:-2] # erase firt and last " sign
+        sim_name = sim_name[1:-1] # erase firt and last " sign
         sim_name = sim_name.split('" "')
         nb_sim = len(sim_name)
     except AttributeError:
@@ -485,11 +487,16 @@ def coord_profile_non_georeferenced(data_bank_all, data_dist_all, data_river_all
                 dist_right_pro = (data_profile_j[-1, 0] - data_profile_j[0, 0]) * alpha - dist_left_pro
                 coord_p[ar+m+j, 4, :] = vec_pro_n1 * dist_right_pro + coord_p[ar+m+j, 2, :]
                 coord_p[ar+m+j, 0, :] = -vec_pro_n1 * dist_left_pro + coord_p[ar+m+j, 2, :]
-
+            #just in case
             dact += dist_xy[i]
             m += len(ri)
 
         ar += len(data_profile)
+
+    # really should not be needded !!!!!
+    for p in range(0, len(coord_p)):
+        inx = coord_p[p, :, 0].argsort()
+        coord_p[p] = coord_p[p, inx, :]
     return coord_p
 
 
@@ -524,7 +531,8 @@ def open_sdffile(sdf_file, reach_name, path):
     vel_str = re.findall(exp_reg1, data_sdf, re.DOTALL)
 
     if not vel_str:
-        print("Error: no velocity data found, the .sdf file might not be in the right format\n")
+        print("Error: no velocity data found, the .sdf file might not be in the right format or the model is not"
+              " geo-referenced. In the last case, use a .rep file. \n")
         return [-99], [-99], '-99', -99
     vel = []
     try:
@@ -882,7 +890,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
 
             # find the new coordinates
             for i in range(0, len(dist)):
-                xi = x[(x > dact) & (x <= dact + dist2[i])]
+                xi = x[(x > dact) & (x < dact + dist2[i])]  # <=???
                 vxi = vel_x[(vel_x > dact) & (vel_x <= dact + dist2[i])]
 
                 alpha = (xi-dact) / dist2[i]
@@ -906,7 +914,8 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
 
             #  check if we get enough velocity point
             #  max_vel_dist is the maximum distance between two velocity measurements
-            if dist_pro/len(zone_v_p) >= max_vel_dist:
+            warn_vel = False
+            if dist_pro/len(zone_v_p) >= max_vel_dist and warn_vel:
                 print('Warning: the number of velocity point is low compared to the profile length.\n')
 
         xy_h_all.append(xy_h)
@@ -935,7 +944,7 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
     vh_pro = []
     coord_pro = []
     warn_dup = True
-    dist_mov = 0.001
+    dist_mov = 0.00001
     for t in range(0, len(zone_v)):
         # vhpro for this time step
         vh_pro_t = []
@@ -986,11 +995,12 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                             ax = ax / norm
                             ay = ay / norm
                             if ax == 0 and ay == 0:
-                                xy_h_pro[ind_dup[j], 0] -= 1e-7
-                                xy_h_pro[ind_dup[j], 1] -= 1e-7
+                                xy_h_pro[ind_dup[j], 0] -= 1e-10
+                                xy_h_pro[ind_dup[j], 1] -= 1e-10
                             else:
                                 xy_h_pro[ind_dup[j], 0] -= ax * dist_mov * (j+1)
                                 xy_h_pro[ind_dup[j], 1] -= ay * dist_mov * (j+1)
+
 
                 # add the new profile
                 coord_pro_p = [xy_h_pro[:, 0], xy_h_pro[:, 1], data_profile_p[:, 1], xy_h_pro[:, 2]]
@@ -1182,16 +1192,16 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"))
     savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".pdf"))
     #close()
-    #show()
+    show()
 
 
 
 def main():
 
-    path_test = r'C:\Users\diane.von-gunten\HABBY\test_data'
-    path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-    name = 'CRITCREK'
-    name_xml = name+ '.O02.xml'
+    path_test = r'D:\Diane_work\version\file_test'
+    #path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
+    name = 'thames'
+    name_xml = name+ '.O01.xml'
     name_geo = name+'.g01'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 

@@ -13,7 +13,6 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-import threading
 from src import Hec_ras06
 from src import hec_ras2D
 from src import selafin_habby1

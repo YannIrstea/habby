@@ -62,7 +62,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     if vh_pro_t:
         coord_pro = update_coord_pro_with_vh_pro(coord_pro, vh_pro_t)
 
-    # get all the point for the grid
+        # get all the point for the grid
     for p in range(1, len(coord_pro)):  # len(coord_pro) nb_pro_reach[1]
         # because of the if afterwards, p = 0 is accounted for.
         coord_pro_p0 = coord_pro[p - 1]
@@ -304,7 +304,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                                                                       point_all[:, 1]) < point_all[0, 0] * 1e-7)[0]
                 point_all[ind, :] = point_all[ind, :] * 0.99
 
-        # correct for crossing segment (not used in all, just if check needed)
+        # correct for crossing segment (not used, just if check needed)
         check_cross = False
         hole_isl = np.array(hole_isl)
         if check_cross:
@@ -345,13 +345,24 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     row_mask = np.append([True], np.any(np.diff(sorted_data, axis=0), 1))
     test_unique = sorted_data[row_mask]
     if len(test_unique) != len(point_all):
-        print('Warning: There is duplicate points. The triangulation might fail. \n')
-        # this is very very slow, but it might solve problems
-        # for p in range(0, len(point_all)):
-        #    for p2 in range(0, len(point_all)):
-        #      if p !=p2:
-        #          if point_all[p,0] == point_all[p2,0] and point_all[p,1] == point_all[p2,1]:
-        #             point_all[p] = point_all[p] * 0.99
+        print('Warning: There is duplicate points. The triangulation might fail.'
+              ' Correction will be slow and unprecise.\n')
+        print(len(test_unique))
+        print(len(point_all))
+        # this is slow , but it might solve problems
+        j = 0
+        unique_find = []
+        for p in point_all:
+            p = list(p)
+            if p not in unique_find:
+                unique_find.append(p)
+            else:
+                point_all[j] = [p[0]+0.000001*j, p[1]+0.000001*j]
+                print('duplicate found')
+                print(j)
+                print(p)
+            j += 1
+
 
     # put data in order and find the limits
     seg_to_be_added2 = []
@@ -546,9 +557,6 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
     point_all_reach = []
     ikle_all = []
     point_c_all = []
-    p_not_found_all = []
-    warn_pro_short = True
-    warn_pro_short2 = True
 
     # update coord_pro if we have data. Indeed, if velocity and water height is given, we only want wetted
     # perimeter and points where the velocity is given (might not be all profil points).
@@ -628,7 +636,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
             inter_vel_all.append(np.array(inter_vel))
             inter_height_all.append(np.array(inter_height))
 
-        # useful to control the middle profile 9added between two profiles)
+        # useful to control the middle profile 9\(added between two profiles)
         # plt.figure()
         # for er in range(0, len(all_point_midy)):
         #     if er%3 == 0:
@@ -639,9 +647,9 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
         #         plt.plot(all_point_midx[er], all_point_midy[er], '.y')
         # for p in range(0, len(coord_pro)):
         #     plt.plot(coord_pro[p][0], coord_pro[p][1], '.b')
-        # #for p in range(0, len(p_not_found)):
-        #    # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
-        # plt.show()
+        #for p in range(0, len(p_not_found)):
+           # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
+        #plt.show()
 
     return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
 
@@ -659,16 +667,28 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     :param dir: in which direction are we going arounf the profile (upstream/downstram)
     :return: point_all, ikle. point_c
     """
+
     p_not_found = []
     inter = False
-    point_mid_x = point_mid_x[0]
-    point_mid_y = point_mid_y[0]
-    far = 1e5
-    warn_inter = True
+    far = 1e5 * abs(coord_pro_p[0][-1] - coord_pro_p[0][0])
+    if far == 0:
+        far = 1e5
+    warn_inter = False
+
+    # elongate midlle profile
+    dirmidx = point_mid_x[0][-1] - point_mid_x[0][0]
+    dirmidy = point_mid_y[0][-1] - point_mid_y[0][0]
+    norm = np.sqrt(dirmidx ** 2 + dirmidy ** 2)
+    a1 = point_mid_x[0][0] - dirmidx * far / norm
+    a2 = point_mid_y[0][0] - dirmidy * far / norm
+    a3= point_mid_x[0][-1] + dirmidx * far / norm
+    a4= point_mid_y[0][-1] + dirmidy * far / norm
+    point_mid_x = np.hstack(([a1], point_mid_x[0], [a3]))
+    point_mid_y = np.hstack(([a2], point_mid_y[0], [a4]))
 
     # get a vector perpendicular to the profile
-    diffx = coord_pro_p[0][0] - coord_pro_p[0][1]
-    diffy = coord_pro_p[1][0] - coord_pro_p[1][1]
+    diffx = coord_pro_p[0][0] - coord_pro_p[0][-1]
+    diffy = coord_pro_p[1][0] - coord_pro_p[1][-1]
     norm = np.sqrt(diffx ** 2 + diffy ** 2)
     if norm > 0:
         nx = diffy / norm
@@ -683,63 +703,31 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         # find which part of the middle profile to use
         xafter = coord_pro_p[0][s0] - far * nx * dir
         yafter = coord_pro_p[1][s0] - far * ny * dir
-        xbefore = coord_pro_p[0][s0] + nx * dir
-        ybefore = coord_pro_p[1][s0] + ny * dir
+        xbefore = coord_pro_p[0][s0] + nx * dir *far
+        ybefore = coord_pro_p[1][s0] + ny * dir *far
         p1hyd = [xbefore, ybefore]
         p2hyd = [xafter, yafter]
-        for m in range(0, len(point_mid_x)-1):
-            if max(point_mid_x[m], point_mid_x[m+1]) > min(p1hyd[0], p2hyd[0]) \
-                    and max(point_mid_y[m], point_mid_y[m+1]) > min(p1hyd[1], p2hyd[1]):
+        m0 = 0  # x coord
+        for m in range(m0, len(point_mid_x)-1):  # to be optimized
+            if max(point_mid_x[m], point_mid_x[m+1]) >= min(p1hyd[0], p2hyd[0]) \
+                    and max(point_mid_y[m], point_mid_y[m+1]) >= min(p1hyd[1], p2hyd[1]):
                 p1 = [point_mid_x[m], point_mid_y[m]]
                 p2 = [point_mid_x[m+1], point_mid_y[m+1]]
-                [inter, pc] = intersection_seg(p1hyd, p2hyd, p1, p2, False)
+                [inter, pc] = intersection_seg(p1hyd, p2hyd, p1, p2, False)  # do not change this to True (or check)
                 if inter:
+                    m0 = m
                     break
-        # start/end of the line
         if not inter:
-            if len(point_mid_x) > 4:
-                p1 = [point_mid_x[-4], point_mid_y[-4]]
-                p2 = [point_mid_x[-1], point_mid_y[-1]]
-            else:
-                p1 = [point_mid_x[-2], point_mid_y[-2]]
-                p2 = [point_mid_x[-1], point_mid_y[-1]]
-            norm = np.sqrt( (p2[0] - p1[0])**2 + (p2[1] - p1[0]) **2)
-            p3x = p2[0] + far * (p2[0]-p1[0]) /norm
-            p3y = p2[1] + far * (p2[1]-p1[1]) /norm
-            p3 = [p3x, p3y]
-            [inter, pc] = intersection_seg(p1hyd, p2hyd, p2, p3, False)
-        if not inter:
-            if len(point_mid_x) > 4:
-                p1 = [point_mid_x[0], point_mid_y[0]]
-                p2 = [point_mid_x[4], point_mid_y[4]]
-            else:
-                p1 = [point_mid_x[0], point_mid_y[0]]
-                p2 = [point_mid_x[1], point_mid_y[1]]
-            norm = np.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[0]) ** 2)
-            p3x = p1[0] + far * (p1[0] - p2[0]) / norm
-            p3y = p1[1] + far * (p1[1] - p2[1]) / norm
-            p3 = [p3x, p3y]
-            [inter, pc] = intersection_seg(p1hyd, p2hyd, p1, p3, False)
-        if not inter:
-            if not warn_inter:
-                print('Warning: no intersection found for a point. \n')
-                warn_inter= False
-            # plt.figure()
-            # plt.plot()
-            # plt.plot(p1hyd[0], p1hyd[1], '.b')
-            # plt.plot(p2hyd[0], p2hyd[1], '.b')
-            # plt.plot(p2[0], p2[1], '.g')
-            # plt.plot(p3[0], p3[1], '.g')
-            # plt.plot(coord_pro_p[0], coord_pro_p[1], '-k')
-            # plt.show()
-            #pc = pc
-            if not pc:
-                pc = [[point_mid_x[0], point_mid_y[0]]]
-            else:
-                pc[0][0] = pc[0][0] + 0.0001
-                pc[0][1] = pc[0][1] + 0.0001
-            #p_not_found.append(pc)
-
+            print('Error: Point not found')
+            plt.figure()
+            plt.plot()
+            plt.plot(p1hyd[0], p1hyd[1], 'xb')
+            plt.plot(p2hyd[0], p2hyd[1], 'xb')
+            plt.plot([p1hyd[0], p2hyd[0]],[p1hyd[1], p2hyd[1]])
+            plt.plot(point_mid_x, point_mid_y,'.r')
+            plt.plot(coord_pro_p[0], coord_pro_p[1], '-k')
+            plt.show()
+            return
         if s0 == 1:
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
@@ -747,7 +735,6 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         point_all.append([pc[0][0], pc[0][1]])
         # add the two new cells to ikle and point_c
         if vh_pro_t_p:
-
             if vh_pro_t_p[1][s0] > 0:
                 l = len(point_all) - 1
                 ikle.append([l - 1, l - 3, l - 2])
@@ -910,7 +897,11 @@ def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
     coord_change = []
     for p in range(0, len(coord_pro)):
         # prep
-        coord_pro_p1 = coord_pro[p]
+        try:
+            coord_pro_p1 = coord_pro[p]
+        except IndexError:
+            print('Error: a profile is empty. Could not be managed')
+            return [-99]
         dist_all = np.array(vh_pro_t[p][0] - coord_pro_p1[3][0])
         dist_coordorr = np.array(coord_pro_p1[3] - coord_pro_p1[3][0])
         h_all = np.array(vh_pro_t[p][1])
@@ -1018,23 +1009,10 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     x2sub = p2sub[0]
     y1sub = p1sub[1]
     y2sub = p2sub[1]
+    wig = 10e-8 # uncertainties
     pc = []  # the crossing point
-    # if the start or the end of segment are the same, crossing if col is True
-    # if col = False not crossing
-    # if np.all(p1hyd == p1sub) or np.all(p2hyd == p1sub):
-    #     if col:
-    #         inter = True
-    #         pc.append([x1sub, y1sub])
-    #     else:
-    #         inter = False
-    #     return inter, pc
-    # if np.all(p1hyd == p2sub) or np.all(p2hyd == p2sub):
-    #     if col:
-    #         inter = True
-    #         pc.append([x2sub, y2sub])
-    #     else:
-    #         inter = False
-    #     return inter, pc
+    #if the start or the end of segment are the same, crossing if col is True
+    #if col = False not crossing
     # find r and s such as r = psub - p2sub  and s = qhyd - q2hyd
     [sx, sy] = [x2hyd - x1hyd, y2hyd - y1hyd]
     [rx, ry] = [x2sub - x1sub, y2sub - y1sub]
@@ -1055,18 +1033,11 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     else:
         t = u = 10**10
     # in this case, crossing
-    if col:
-        if rxs != 0 and 0 <= t <= 1 and 0 <= u <= 1:
-            inter = True
-            xcross = x1hyd + u * sx
-            ycross = y1hyd + u * sy
-            pc.append([xcross, ycross])
-    else:
-        if rxs != 0 and 0 < t < 1 and 0 < u < 1:
-            inter = True
-            xcross = x1hyd + u * sx
-            ycross = y1hyd + u * sy
-            pc.append([xcross, ycross])
+    if rxs != 0 and 0-wig <= t <= 1+wig and 0-wig <= u <= 1+wig:
+        inter = True
+        xcross = x1hyd + u * sx
+        ycross = y1hyd + u * sy
+        pc.append([xcross, ycross])
 
     return inter, pc
 
@@ -1342,8 +1313,7 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
 
     mid_point_x = []
     mid_point_y = []
-    far = 1e5
-
+    far = 1000 * (abs(coord_pro_p0[0][-1] - coord_pro_p0[0][0]) + abs(coord_pro_p0[1][-1] - coord_pro_p0[1][0]))
     # find point forming the middle profile
     x0all = coord_pro_p0[0]
     y0all = coord_pro_p0[1]
@@ -1376,7 +1346,7 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
         xpro1 = (b * (b * x1all - a * y1all) - a*c) / (a**2 + b**2)
         # ypro1 = (a * (-1*b * x1all + a * y1all) - b*c) / (a**2 + b**2)
     else:
-        xpro0 = xpro1 = 1e10
+        xpro0 = xpro1 = 10e10
 
     # get a longer line (to have intersection in all cases)
     # to avoid case whew the vector nearly touch each other
@@ -1421,7 +1391,7 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
                     p4 = [x1all[-1], y1all[-1]]
                 norm = np.sqrt((p4[0] - p3[0])**2 + (p4[1] - p3[1])**2)
                 p3x = p3[0] + far * (p4[0] - p3[0]) / norm
-                p3y = p3[1] + far * (p4[1] - p3[1]) /norm
+                p3y = p3[1] + far * (p4[1] - p3[1]) / norm
                 p3 = [p3x, p3y]
                 [inter, pc] = intersection_seg(p1, p2, p3, p4, False)
                 if inter:
@@ -1434,16 +1404,16 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
                     p30 = [x1all[0], y1all[0]]
                     p4 = [x1all[1], y1all[1]]
                 norm = np.sqrt((p4[0] - p30[0]) ** 2 + (p4[1] - p30[1]) ** 2)
-                p3x = p30[0] - far * (p4[0] - p30[0])/norm
-                p3y = p30[1] - far * (p4[1] - p30[1]) /norm
+                p3x = p30[0] + far * (p4[0] - p30[0])/norm
+                p3y = p30[1] + far * (p4[1] - p30[1]) /norm
                 p3 = [p3x, p3y]
                 [inter, pc] = intersection_seg(p1, p2, p3, p30, False)
                 if inter:
                     point_inter0[i] = pc[0]
             if not inter:
                     no_inter0[i] = -99
-        # if not inter:
-        #     print('Warning: No intersection found when created new profile. (1)')
+        #if not inter:
+         #    print('Warning: No intersection found when created new profile. (1)')
         #     point_inter0[i] = point_inter0[i-1] + 0.001
 
     # intersection second profile
@@ -1516,18 +1486,20 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
         div2 = 1 - div
 
         # point linked with the first profile
-        pm_all[:len0, 0] = x0all[no_inter0 ==0] + (point_inter0[no_inter0 == 0, 0] - x0all[no_inter0 ==0]) * div
-        pm_all[:len0, 1] = y0all[no_inter0 ==0] + (point_inter0[no_inter0 ==0, 1] - y0all[no_inter0 ==0]) * div
+        pm_all[:len0, 0] = x0all[no_inter0 == 0] + (point_inter0[no_inter0 == 0, 0] - x0all[no_inter0 == 0]) * div
+        pm_all[:len0, 1] = y0all[no_inter0 == 0] + (point_inter0[no_inter0 == 0, 1] - y0all[no_inter0 == 0]) * div
 
         # point related to second profile
-        pm_all[len0:, 0] = x1all[no_inter1 ==0] + (point_inter1[no_inter1 ==0, 0] - x1all[no_inter1 ==0]) * div2
-        pm_all[len0:, 1] = y1all[no_inter1 ==0] + (point_inter1[no_inter1 ==0, 1] - y1all[no_inter1 ==0]) * div2
+        pm_all[len0:, 0] = x1all[no_inter1 == 0] + (point_inter1[no_inter1 == 0, 0] - x1all[no_inter1 == 0]) * div2
+        pm_all[len0:, 1] = y1all[no_inter1 == 0] + (point_inter1[no_inter1 == 0, 1] - y1all[no_inter1 == 0]) * div2
 
         if len1 + len0 == 0:
             print('Warning: Middle profile empty \n')
 
-        # sort so tha each point is one after the other
+        # if the profile should not be bigger than it is
         if trim:
+
+            # sort so tha each point is one after the other
             xpro = np.concatenate((xpro0[no_inter0 == 0], xpro1[no_inter1 == 0]), axis=0)
             pm_all = pm_all[xpro.argsort()]
 
@@ -1551,6 +1523,8 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
                 if inter:
                     pm_all = pm_all[:w+1, :]
                     break
+
+        pm_all = pm_all[pm_all[:, 0].argsort(), :]
 
         mid_point_x.append(pm_all[:, 0])
         mid_point_y.append(pm_all[:, 1])
@@ -1819,8 +1793,8 @@ def main():
         # #test hec-ras
         #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
         path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        path_test = r'C:\Users\diane.von-gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
-        name = 'CRITCREK'  # CRITCREK, LOOP
+        path_test = r'D:\Diane_work\version\file_test'
+        name = 'CRITCREK'  # CRITCREK (22), LOOP
         name_xml = name + '.O02.xml'
         name_geo = name + '.g02'
         path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
@@ -1840,7 +1814,7 @@ def main():
             #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
              #  = create_grid(coord_pro, 5,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
             [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-                create_grid_only_1_profile(coord_pro, nb_pro_reach, which_pro)
+                create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
             if which_pro:
                 #[inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
                 #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)

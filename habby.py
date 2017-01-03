@@ -1,6 +1,7 @@
 import sys
 from src_GUI import Main_windows_1
 from PyQt5.QtWidgets import QMainWindow, QApplication
+import multiprocessing
 
 def main():
 
@@ -15,3 +16,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # necessarry to freeze the application with parrallel process
+    multiprocessing.freeze_support()

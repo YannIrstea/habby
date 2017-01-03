@@ -206,3 +206,18 @@ def load_hdf5_sub(hdf5_name_sub):
     # NOT DONE YET AS THE FORM OF THE SUBSTRATE INFO IS UNKNOWN
 
     return ikle_sub, point_all_sub, data_sub
+
+
+def get_all_filename(dirname, ext):
+    """
+    This is a function to get the name of all file with a particular extension in a folder. Useful to get all the output
+    from one hydraulic models
+    :param dirname: the path to the directory
+    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character
+    :return: a list with the filename (filename+dir) for each extension
+    """
+    filenames = []
+    for file in os.listdir(dirname):
+        if file.endswith(ext):
+            filenames.append(file)
+    return filenames
