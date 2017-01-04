@@ -15,12 +15,22 @@ from io import StringIO
 
 class EstimhabW(QWidget):
     """
-    A class to load the widget controlling the ESTIMHAB model
+    The Estimhab class provides the graphical interface for the version of the Estimhab model written in HABBY.
+    The Estimhab model is described elsewhere. EstimhabW() just loads the data for Estimhab given by the user.
     """
 
     save_signal_estimhab = pyqtSignal()
+    """
+    PyQtsignal to save the Estimhab data.
+    """
     send_log = pyqtSignal(str, name='send_log')
+    """
+    PyQtsignal to write the log.
+    """
     show_fig = pyqtSignal()
+    """
+    PyQtsignal to show the figures.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -48,6 +58,35 @@ class EstimhabW(QWidget):
         self.init_iu()
 
     def init_iu(self):
+        """
+        This function is used to initialized an instance of the EstimhabW() class. It is called be __init__().
+
+         **Technical comments and walk-through**
+
+         First we looked if some data for Estimhab was saved before by an user. If yes, we will fill the GUI with
+         the information saved before. Estimhab information is saved in hdf5 file format and the path/name of the
+         hdf5 file is saved in the xml project file. So we open the xml project file and look if the name of an hdf5
+         file was saved for Estimhab. If yes, the hdf5 file is read.
+
+         The format of hdf5 file is relatively simple. Each input data for Estimhab has its own dataset (qmes, hmes,
+         wmes, q50, qrange, and substrate).  Then, we a list of string which are a code for the fish species which
+         were analyzed.  All the data contained in hdf5 file is loaded into variable.
+
+         The different label are written on the graphical interface. Then, two QListWidget are modified. The first
+         list contains all the fish species on which HABBY has info (see XML Estimhab format for more info).
+         The second list is the fish selected by the user on which Estimhab will be run. Here, we link these lists
+         with two functions so that the user can select/deselect fish using the mouse. The function name are add_fish()
+         and remove_fish().
+
+         Then, we fill the first list. HABBY look up all file of xml type in the “Path_bio” folder (the one indicated in
+         the xml project file under the attribute “Path_bio”).  The name are them modified so that the only the name of
+         species appears (and not the full path). We set the layout with all the different QLineEdit where the user
+         can write the needed data.
+
+         Estimhab model is saved using a function situated in MainWindows_1.py  (frankly, I am not so sure why I did put
+         the save function there, but anyway). So the save button just send a signal to MainWindows
+         here, which save the data.
+        """
 
         # load the data if it exist already
         fname = os.path.join(self.path_prj, self.name_prj+'.xml')
@@ -156,8 +195,7 @@ class EstimhabW(QWidget):
 
     def change_folder(self):
         """
-        a small method to change the folder where is the biological data
-        :return: None
+        A small method to change the folder which indicates where is the biological data
         """
         # user find new path
         self.path_bio = QFileDialog.getExistingDirectory()
@@ -175,8 +213,23 @@ class EstimhabW(QWidget):
 
     def run_estmihab(self):
         """
-        A function to execute estimhab
-        :return: None
+        A function to execute Estimhab by calling the estimhab function.
+
+        **Technical comment**
+
+        This is the function making the link between the GUI and the source code proper. The source code for Estimhab
+        is in src/Estimhab.py.
+
+        This function loads in memory the data given in the graphical interface and call sthe Estimhab model.
+        The data could be written by the user now or it could be data which was saved in the hdf5 file before and
+        loaded when HABBY was open (and the init function called).  We check that all necessary data is present and
+        that the data given makes sense (e.g.,the minimum discharge should not be bigger than the maximal discharge,
+        the data should be a float, etc.). We then remove the duplicate fish species (in case the user select one
+        specie twice) and the Estimhab model is called. The log is then written (see the paragraph on the log for more
+        information). Next, the figures created by Estimmhab are shown. As there is only a short number of outputs
+        for Estimhab, we create a figure in all cases (it could be changed by adding a checkbox on the GUI like
+        in the Telemac or other hydrological class).
+
         """
         # prepare data
         try:
@@ -269,6 +322,9 @@ class EstimhabW(QWidget):
             self.show_fig.emit()
 
     def add_fish(self):
+        """
+        The function is used to select a new fish species
+        """
         items = self.list_f.selectedItems()
         if items:
             for i in range(0,len(items)):
@@ -280,14 +336,19 @@ class EstimhabW(QWidget):
                     self.fish_selected.append(items[i].text())
 
     def remove_fish(self):
+        """
+        The function is used to remove fish species
+        """
         item = self.list_s.takeItem(self.list_s.currentRow())
         self.fish_selected.remove(item.text())
         item = None
 
     def find_path_im_est(self):
         """
-        A function to find the path where to save the figues, careful a simialr one is in hydro_GUI_2
-        :return: path_im
+        A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.
+        Do not mix it up
+
+        :return: path_im a string which indicates the path to the folder where are save the images.
         """
         # to insure the existence of a path
         path_im = 'no_path'

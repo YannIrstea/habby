@@ -1,0 +1,2550 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to HABBY’s documentation! &#8212; HABBY 1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">HABBY 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-habby-s-documentation">
+<h1>Welcome to HABBY&#8217;s documentation!<a class="headerlink" href="#welcome-to-habby-s-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>HABBY is a program to estimate the habitat of fish using various hydrological models and preference curve as input.</p>
+</div>
+<div class="section" id="how-to-execute-habby">
+<h1>How to execute HABBY<a class="headerlink" href="#how-to-execute-habby" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt>To execute HABBY:</dt>
+<dd><ul class="first last simple">
+<li>Go to folder which contains habby.py using the command line.</li>
+<li>Open the command line and type python habby.py.</li>
+</ul>
+</dd>
+</dl>
+<p>The python version should be 3.4. HABBY should also function with most of the python 3 distributions.</p>
+<p>If a module is missing, it is possible to install it using pip (&#8220;pip install -m <em>module_name</em>&#8221;). Obviously, pip needs to installed, which should be done by default in python 3.4. If you want to be sure to have the same version of the module than originally, go to the folder zen_file/wheele with the command line and install the missing module from there (something similar to &#8220;pip install -m <em>.whl</em>&#8221;). Not all modules are in this folder, only the ones which were difficult to install.</p>
+</div>
+<div class="section" id="main-and-source-code">
+<h1>Main(   ) and source code<a class="headerlink" href="#main-and-source-code" title="Permalink to this headline">¶</a></h1>
+<p>The source code is separated in two folders: one folder which contain the code source for the graphical user interface (GUI) and one folder for the rest of the code source.</p>
+<p>The dependency between the different part of the source code can be visualized in the mindmap real_GUI.xmind (xmind should be installed).</p>
+<p>The main of HABBY is habby.py. It has the usual form for an application using PyQt5.  The main() creates an application of QWidget and call the Main_Windows class, which we will discuss shortly. The last line closes the application.</p>
+</div>
+<div class="section" id="modules-for-the-graphical-interface">
+<h1>Modules for the graphical interface<a class="headerlink" href="#modules-for-the-graphical-interface" title="Permalink to this headline">¶</a></h1>
+<p>Here is the list of all modules contains in the src_GUI folder.</p>
+<div class="section" id="main-windows-of-habby">
+<h2>Main_windows of HABBY<a class="headerlink" href="#main-windows-of-habby" title="Permalink to this headline">¶</a></h2>
+<p>in src_GUI/Main_Windows_1.py</p>
+<span class="target" id="module-src_GUI"></span><span class="target" id="module-src_GUI.Main_windows_1"></span><dl class="class">
+<dt id="src_GUI.Main_windows_1.CentralW">
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">CentralW</code><span class="sig-paren">(</span><em>rech</em>, <em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class create the different tabs of the programm, which are then used as the central widget by the class
+MainWindows.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rech</strong> &#8211; A bollean which is True if the tabs for the &#8220;research option&#8221; are shown. False otherwise.</li>
+<li><strong>path_prj</strong> &#8211; A string with the path to the project xml file</li>
+<li><strong>name_prj</strong> &#8211; A string with the name of the project</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments</strong></p>
+<p>In the attribute list, there are a series of name which finish by “tab” such as stathab_tab or output_tab. Each of
+these names corresponds to one tab and a new name should be added to the attributes to add a new tab.</p>
+<p>During the creation of the class, each tab is created. Then, the signals to show the figures are connected between this
+class and all the children classes which need it (often this are the classes used to load the hydrological data). When a
+class emits the signal “show_fig”, CentralW collect this signal and show the figure, using the showfig function.</p>
+<p>Show_fig is mostly a “plt.show()”. To avoid problem between matplotlib and PyQt, it is however important that
+matplotlib use the backend “Qt5Agg” in the .py where the “plt.plot” is called. Practically, this means modifying
+the matplotlib import.</p>
+<p>Showfig shows only one figure. To show all existing figures, one can call the function show_fig2 from the menu.
+Show_fig2 call the instance child_win of the class ShowImageW to open a new Windows with all figure. However,
+this would only show the figure without any option for the zoom.</p>
+<p>Then we call a function which connects all the signals from each class which need to write into the log. It is a good
+policy to create a “send_log” signal for each new important class. As there are a lot of signal to connect, these
+connections are written in the function “connect_signal_log”, where the signal for a new class can be added.</p>
+<p>When this is done, the info for the general tab (created before) is filled. If the user has opened a project in HABBY
+before, the name of the project and the other info related to it will be shown on the general tab. If the general
+tab is modified in the class WelcomeW(), this part of the code which fill the general tab will probably needs to
+be modified.</p>
+<p>Finally, each tab is filled. The tabs have been created before, but there were empty. Now we fill each one with the
+adequate widget. This is the link with many of the other classes that we describe below. Indeed, many of the widget
+are based on more complicated classes created for example in hydro_GUI_2.py.</p>
+<p>Then, we create an area under it for the log. Here HABBY will write various infos for the user. Two things to note
+here: a) we should show the end of the scroll area. b) The size of the area should be controlled and not be
+changing even if a lot of text appears. Hence, the setSizePolicy should be fixed.</p>
+<p>The write_log() and write_log_file() method are explained in the section about the log.</p>
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.connect_signal_log">
+<code class="descname">connect_signal_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.connect_signal_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>connect all the signal linked to the log. This is in a function only to improve lisibility.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to initilize an instance of CentralW. Called by __init___().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.optfig">
+<code class="descname">optfig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.optfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small function which open the output tab. It contains the different options for the figures.
+Output should be the 6th tab, otherwise it will not work.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.scrolldown">
+<code class="descname">scrolldown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.scrolldown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move the scroll bar to the bottow if the ScollArea is getting bigger</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.showfig">
+<code class="descname">showfig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.showfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small function to show the last figure</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.showfig2">
+<code class="descname">showfig2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.showfig2" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to see all saved figures without possibility to zoom</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.write_log">
+<code class="descname">write_log</code><span class="sig-paren">(</span><em>text_log</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.write_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to write the different log. Please read the section of the doc on the log.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>text_log</strong> &#8211; the text which should be added to the log (a string)</td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li>if text_log start with # -&gt; added it to self.l2 (QLabel) and the .log file (comments)</li>
+<li>if text_log start with restart -&gt; added it restart_nameproject.txt</li>
+<li>if text_log start with WARNING -&gt; added it to self.l2 (QLabel) and the .log file</li>
+<li>if text_log start with ERROR -&gt; added it to self.l2 (QLabel) and the .log file</li>
+<li>if text_log start with py -&gt; added to the .log file (python command)</li>
+<li>if text_log start with nothing -&gt; just print to the Qlabel</li>
+<li>if text_log out from stdout -&gt; added it to self.l2 (QLabel) and the .log file (comments)</li>
+</ul>
+<p>if logon = false, do not write in log.txt</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.write_log_file">
+<code class="descname">write_log_file</code><span class="sig-paren">(</span><em>text_log</em>, <em>pathname_logfile</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.write_log_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to write to the .log text. Called by write_log.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>text_log</strong> &#8211; the text to be written (string)</li>
+<li><strong>pathname_logfile</strong> &#8211; the path+name where the log is</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.Main_windows_1.EmptyTab">
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">EmptyTab</code><a class="headerlink" href="#src_GUI.Main_windows_1.EmptyTab" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is  used to fill empty tabs with something during the developement.
+It will not be use in the final version.</p>
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.EmptyTab.addtext">
+<code class="descname">addtext</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.EmptyTab.addtext" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function print a string on the command line. This is useful if you need to check if a button (or similar).
+is connected.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.EmptyTab.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.EmptyTab.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in the initialization.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.Main_windows_1.MainWindows">
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">MainWindows</code><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows" title="Permalink to this definition">¶</a></dt>
+<dd><p>The class MainWindows contains the menu and the title of all the HABBY windows.
+It also create all the widgets which can be called during execution</p>
+<p><strong>Technical comments and walk-through</strong></p>
+<p>First, we load the user setting using Qsettings: The settings by default of Qsettings are the name of the program (HABBY) and
+the name of the organization which develops the program (irstea).  I have added three user settings (the name of the
+last project loaded into HABBY, the path to this project and the language used). The Qsetting are stored in the
+registry in Windows. Qsettings also function with Apple and Linux even if the information is stored differently</p>
+<p>We set up the translation next. The translation of HABBY in different language is explained in more detail in
+the section “Translation of HABBY”. We give here the path to the data related to the translation. More precisely, we indicate
+here the path to the translation data and the name of the qm file containing the data related to the translation
+in each language. If a new qm is added for a new language, it should be added here to the list.</p>
+<p>Now, two important attributes are defined: self.name_prj and self.path_prj. These attribute will be communicated to
+children classes. For each project, an xml file is created. This “project” file should be called name_prj.xml
+and should be situated in the path indicated by self.path_prj.</p>
+<p>We call the central_widget which contains the different tabs.</p>
+<p>We create the menu of HABBY calling the function my menu_bar().</p>
+<p>Two signal are connected, one to save the project (i.e to update the xml project file) and another to save an
+ESTIMHAB calculation.</p>
+<p>We show the created widget.</p>
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.clear_log">
+<code class="descname">clear_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.clear_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the log in the GUI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.closeEvent">
+<code class="descname">closeEvent</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.closeEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>event</strong> &#8211; managed by the operating system.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.close_rech">
+<code class="descname">close_rech</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.close_rech" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the additional research menu (see open_rech for more information)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.do_log">
+<code class="descname">do_log</code><span class="sig-paren">(</span><em>save_log</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.do_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save or not save the log</p>
+<p>:param save_log an int which indicates if the log should be saved or not
+*   0: do not save log
+*   1: save the log in the .log file and restart file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.erase_pict">
+<code class="descname">erase_pict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.erase_pict" title="Permalink to this definition">¶</a></dt>
+<dd><p>All files contained in the folder indicated by path_im will be deleted.</p>
+<p>From the menu of HABBY, it is possible to ask to erase all files in the folder indicated by path_im
+(usually figure_HABBY). Of course, this is a bit dangerous. So the function asks the user for confirmation.
+However, it is practical because you do not have to go to the folder to erase all the images when there
+are too many of them.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.init_ui">
+<code class="descname">init_ui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.init_ui" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used by __init__() to create an instance of the class MainWindows</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.my_menu_bar">
+<code class="descname">my_menu_bar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.my_menu_bar" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates the menu bar of HABBY.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.open_rech">
+<code class="descname">open_rech</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.open_rech" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open the additional research tab, which can be used to create Tab with more experimental contents.</p>
+<p>Indeed, it is possible to show extra tab in HABBY. These supplementary tab correspond to open for researcher.
+The plan is that these options are less tested than other mainstream options. It is not clear yet what
+will be added to these options, but the basic architecture is there when it will be needed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.save_project">
+<code class="descname">save_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.save_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to save the xml file with the information on the project</p>
+<p><strong>Technical comments</strong></p>
+<p>This function saves or creates the xml file related to the projet. In this xml file, there are the path and
+the name to all files related to the project, notably the hdf5 files containing the hydrological data.</p>
+<p>To find or create the xml file, we use the attribute self.path_prj and self.name_proj. If the path to
+the project directory is not found an error appears. The error is here sent though additional windows
+(to be sure that the user notice this problem), using the Qmesssage module. The user should give the general
+info about the project in the general tab of HABBY and they are collected here. User option (using Qsetting)
+is next updated so that the user will find his project open the next time it opens HABBY.</p>
+<p>When HABBY open, there are therefore  two choice: a) This is a new project b) the project exists already.
+If the project is new, the xml file is created and general information is written in this file. In addition,
+the text file which are necessary to log the action of HABBY are created now. This part of the reason why it
+is not possible to run other part of HABBY (such as loading hydrological data) before a project is saved.
+In addition, it would create a lot of problems on where to store the data created. Hence, a project is needed
+before using HABBY. If the project exists already (i.e. the name and the path of the project have not been
+modified), the xml file is just updated to change its attributes as needed.</p>
+<p>Interesting path are a) the biologie path (named &#8220;biologie&#8221; by default) which contains the biological information
+such as the preference curve and b) the path_im which is the path where all figures and most outputs of HABBY
+is saved. If path_im is not given, HABBY automatically create a folder called figure_habby when the
+user creates a new project. The user can however change this path if he wants. The next step is to communicate
+to all the children widget than the name and path of the project have changed.</p>
+<p>Finally the log is written (see “log and HABBY in the command line).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.save_project_estimhab">
+<code class="descname">save_project_estimhab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.save_project_estimhab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to save the information linked with Estimhab in an hdf5 file.</p>
+<p><strong>Technical comments</strong></p>
+<p>This function save the data and result from the estimhab calculation. It would look more logic if it was in
+the esimhab.py script, but it was easier to call it from here instead of in the child class.</p>
+<p>This function get all estimhab input, create an hdf5 file using h5py and save the data in the hdf5. One
+specialty of hdf5 is that is cannot use Unicode. Hence all string have to be passed to ascii using the encode
+function. The size of each data should also be known.</p>
+<p>Finally, we save the name and path of the estimhab file in the xml project file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.setlangue">
+<code class="descname">setlangue</code><span class="sig-paren">(</span><em>nb_lang</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.setlangue" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which change the language of the programme. It change the menu and the central widget.
+It uses the self.lang attribute which should be set to the new language before calling this function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>nb_lang</strong> &#8211; the number representing the language (int)</td>
+</tr>
+</tbody>
+</table>
+<ul class="simple">
+<li>0 is for English</li>
+<li>1 for French</li>
+<li>n for any additionnal language</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.test_entry_float">
+<code class="descname">test_entry_float</code><span class="sig-paren">(</span><em>var_in</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.test_entry_float" title="Permalink to this definition">¶</a></dt>
+<dd><p>An utility function to test if var_in are float or not
+the boolean self.does_it_work is used to know if the functions run until the end.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>var_in</strong> &#8211; the QlineEdit which contains the data (so var_in.text is a string)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the tested variable var_in</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.Main_windows_1.ShowImageW">
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">ShowImageW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW" title="Permalink to this definition">¶</a></dt>
+<dd><p>The widget which shows the saved images. Used only to show all the saved figure together iwhtout zoom or other
+options.</p>
+<p><strong>Technical comments</strong></p>
+<p>The ShowImageW() class is used to show all the figures created by HABBY. It is a class which can only be
+called from the menu (In Option/Option Image). This is not the usual way of opening a figure which is usually done
+by plt.show from matplotlib. This is the way to look at all figures  together, which can be useful, even if zooming
+is not possible anymore.</p>
+<p>To show all image, HABBY open a separate window and show the saved image in .png format.  Currently, the figures
+shown are in .png, but other formats could be used. For this, one can change the variable self.imtype.</p>
+<p>An important point for the ShowImageW  class  is where the images were saved by the functions which created them.
+In HABBY, all figures are saved in the same folder called “path_im”. One “path_im” is chosen at the start of each
+project. By default, it is the folder “Figure_Habby”, but the user can modify this folder in the window created by
+ShowImageW(). The function for this is called “change_folder”, also in ShowImageW(). The path_im is written in
+the xml project file. The different functions which create image read this path and send the figure created
+to this folder. ShowImageW() reads all  figure of “.png” type in the” path_im” folder and show the most recent
+figure. The user can use the drop-down menu to choose to see another figure. The names of the figure are added to
+the drop-down menu in the function update_namefig. The function &#8220;selectionchange&#8221; changes the figure shown based
+on the user action.</p>
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.ShowImageW.change_folder">
+<code class="descname">change_folder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW.change_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to change the folder where are stored the image (i.e., the path_im)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.ShowImageW.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in the initialization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.ShowImageW.selectionchange">
+<code class="descname">selectionchange</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW.selectionchange" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to change the figure shown by ShowImageW()
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.ShowImageW.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW.send_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQt signal used to write the log</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.ShowImageW.update_namefig">
+<code class="descname">update_namefig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW.update_namefig" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function add the different figure name to the drop-down list.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.Main_windows_1.WelcomeW">
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">WelcomeW</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW" title="Permalink to this definition">¶</a></dt>
+<dd><p>The class WeLcomeW()  creates the first tab of HABBY (the tab called “General”). This tab is there to create
+a new project or to change the name, path, etc. of a project.</p>
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.WelcomeW.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in the initialization of a new instance of the class WelcomeW()</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.WelcomeW.save_signal">
+<code class="descname">save_signal</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.save_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQt signal used to save the figure</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.WelcomeW.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.send_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQt signal used to write the log</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.WelcomeW.setfolder">
+<code class="descname">setfolder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.setfolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used by the user to select the folder where the xml project file will be located.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="src_GUI.Main_windows_1.new_project">
+<code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">new_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.new_project" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="src_GUI.Main_windows_1.open_project">
+<code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">open_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.open_project" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="estimhab-gui">
+<h2>Estimhab - GUI<a class="headerlink" href="#estimhab-gui" title="Permalink to this headline">¶</a></h2>
+<p>in src_GUI/estimhab_GUI.py</p>
+<span class="target" id="module-src_GUI.estimhab_GUI"></span><dl class="class">
+<dt id="src_GUI.estimhab_GUI.EstimhabW">
+<em class="property">class </em><code class="descclassname">src_GUI.estimhab_GUI.</code><code class="descname">EstimhabW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW" title="Permalink to this definition">¶</a></dt>
+<dd><p>The Estimhab class provides the graphical interface for the version of the Estimhab model written in HABBY.
+The Estimhab model is described elsewhere. EstimhabW() just loads the data for Estimhab given by the user.</p>
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.add_fish">
+<code class="descname">add_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.add_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function is used to select a new fish species</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.change_folder">
+<code class="descname">change_folder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.change_folder" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small method to change the folder which indicates where is the biological data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.find_path_im_est">
+<code class="descname">find_path_im_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.find_path_im_est" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.
+Do not mix it up</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">path_im a string which indicates the path to the folder where are save the images.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to initialized an instance of the EstimhabW() class. It is called be __init__().</p>
+<blockquote>
+<div><p><strong>Technical comments and walk-through</strong></p>
+<p>First we looked if some data for Estimhab was saved before by an user. If yes, we will fill the GUI with
+the information saved before. Estimhab information is saved in hdf5 file format and the path/name of the
+hdf5 file is saved in the xml project file. So we open the xml project file and look if the name of an hdf5
+file was saved for Estimhab. If yes, the hdf5 file is read.</p>
+<p>The format of hdf5 file is relatively simple. Each input data for Estimhab has its own dataset (qmes, hmes,
+wmes, q50, qrange, and substrate).  Then, we a list of string which are a code for the fish species which
+were analyzed.  All the data contained in hdf5 file is loaded into variable.</p>
+<p>The different label are written on the graphical interface. Then, two QListWidget are modified. The first
+list contains all the fish species on which HABBY has info (see XML Estimhab format for more info).
+The second list is the fish selected by the user on which Estimhab will be run. Here, we link these lists
+with two functions so that the user can select/deselect fish using the mouse. The function name are add_fish()
+and remove_fish().</p>
+<p>Then, we fill the first list. HABBY look up all file of xml type in the “Path_bio” folder (the one indicated in
+the xml project file under the attribute “Path_bio”).  The name are them modified so that the only the name of
+species appears (and not the full path). We set the layout with all the different QLineEdit where the user
+can write the needed data.</p>
+<p>Estimhab model is saved using a function situated in MainWindows_1.py  (frankly, I am not so sure why I did put
+the save function there, but anyway). So the save button just send a signal to MainWindows
+here, which save the data.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.remove_fish">
+<code class="descname">remove_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.remove_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function is used to remove fish species</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.run_estmihab">
+<code class="descname">run_estmihab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.run_estmihab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to execute Estimhab by calling the estimhab function.</p>
+<p><strong>Technical comment</strong></p>
+<p>This is the function making the link between the GUI and the source code proper. The source code for Estimhab
+is in src/Estimhab.py.</p>
+<p>This function loads in memory the data given in the graphical interface and call sthe Estimhab model.
+The data could be written by the user now or it could be data which was saved in the hdf5 file before and
+loaded when HABBY was open (and the init function called).  We check that all necessary data is present and
+that the data given makes sense (e.g.,the minimum discharge should not be bigger than the maximal discharge,
+the data should be a float, etc.). We then remove the duplicate fish species (in case the user select one
+specie twice) and the Estimhab model is called. The log is then written (see the paragraph on the log for more
+information). Next, the figures created by Estimmhab are shown. As there is only a short number of outputs
+for Estimhab, we create a figure in all cases (it could be changed by adding a checkbox on the GUI like
+in the Telemac or other hydrological class).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.save_signal_estimhab">
+<code class="descname">save_signal_estimhab</code><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.save_signal_estimhab" title="Permalink to this definition">¶</a></dt>
+<dd><p>PyQtsignal to save the Estimhab data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.send_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>PyQtsignal to write the log.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd><p>PyQtsignal to show the figures.</p>
+</dd></dl>
+
+</dd></dl>
+
+<div class="section" id="biological-data-for-estimhab">
+<h3>Biological data for Estimhab<a class="headerlink" href="#biological-data-for-estimhab" title="Permalink to this headline">¶</a></h3>
+<p>The biological data, i.e., the preference curves of Estimhab, are saved in xml files
+situated in the folder given by the path written in the xml project file under the
+attribute Path_bio. By default, it is HABBY/biology. It is possible to change this folder
+using the GUI.</p>
+<p>Estimhab is a statistical model, which functions using mathematical regressions.
+The different regressions (or preference curve) of each fish are described in an xml file
+whose format is given here.</p>
+<p>Conceptually, the regressions R are of two types:</p>
+<ul class="simple">
+<li>Type 0          R = C * Q^{m1} * exp(m2*Q)</li>
+<li>Type 1          R = C * (1+m1*exp(m2*Q))</li>
+</ul>
+<p>Where Q is the discharge, m1 and m2 are coefficients which depend on the fish type, and C is a
+constant which depends on the stream characteristic and the fish type.</p>
+<p>The constant C is of the form C = a + ∑ ai * ln(Si) where a and ai are coefficients which depend on
+the fish type. Si are particular stream characteristics. Which characteristics should be used is a
+function of the fish type and is so given in the xml file. The value of S i is a function of the stream
+and is calculated by the program.</p>
+<p>In the xml file,</p>
+<ul class="simple">
+<li>Attribute coeff_q: Give the main coefficient of the regression (m1 and m2)</li>
+<li>Attribute func_q : Give the type of regression R used.  Type 0 and type 1, as described above, are known by HABBY.</li>
+<li>Attribute coeff_const: Give the coefficient used to construct the constant C (a, a1, a2, a3,…). The number of coefficient differs for each fish, but should be at least one.</li>
+<li>Attribute var_const: Give which type of stream characteristics is used. This is not the value of the particular characteristic, but only which type is used. The following list of type is accepted:<ul>
+<li>0 for Q50, natural median discharge</li>
+<li>1 for H50, the height of the stream at q50</li>
+<li>2 for L50, the width of the stream at q50</li>
+<li>3 for V50, the velocity of the stream at q50</li>
+<li>4 for Re50, the discharge divided by 10 times the width at Q50</li>
+<li>5 for Fr50, the Froude number at Q50</li>
+<li>6 for Dh50, the mean substrate height divided by h50</li>
+<li>7 for Exp(Dh50). Erase the log() of this particular term of the constant</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="hydrological-information-gui">
+<h2>Hydrological information - GUI<a class="headerlink" href="#hydrological-information-gui" title="Permalink to this headline">¶</a></h2>
+<p>in src_GUI/hydro_GUI_2.py</p>
+<p>This python module contains the class which forms the hydrological tab in HABBY.
+It contains the information for the graphical interface and make the link with the scripts
+used for the hydrological calculations.</p>
+<span class="target" id="module-src_GUI.hydro_GUI_2"></span><dl class="class">
+<dt id="src_GUI.hydro_GUI_2.FreeSpace">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">FreeSpace</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.FreeSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>Very simple class with empty space, just to have only Qwidget in the stack</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS1D">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">HEC_RAS1D</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<p>The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
+src/hec_ras06.py which loads the hec-ras data in 1D.</p>
+<p><strong>Technical comment</strong></p>
+<p>The class HEC_RAS1D inherits from SubHydroW() so it have all the methods and the variables from the class
+SubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
+the user is on the hydrological tab and click on hec-ras1D as hydrological model.</p>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS1D.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS1D.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is called by __init__() durring the initialization.</p>
+<p><strong>Technical comment</strong></p>
+<p>The self.attributexml variable is the name of the attribute in the xml file. To load a hec-ras file, one needs
+to give to HABBY one file containing the geometry data and one file containing the simulation result. The name
+and path to  these two file are saved in the xml project file under the attribute given in
+the self.attributexml variable.</p>
+<p>The variable self.extension is a list of list of the accepted file type. The first list is for the file
+with geometry data. The second list is the extension of the files containing the simulation results.</p>
+<p>Using the function self.was_model_loaded_before, HABBY write the name of the hec-ras files which were loaded
+in HABBY in the same project before.</p>
+<p>Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. The user can choose the interpolation
+type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
+profile will always be one. See manage_grid.py for more information on how to create a grid.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS1D.load_hec_ras_gui">
+<code class="descname">load_hec_ras_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS1D.load_hec_ras_gui" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to exectue the loading and saving the the HEC-ras file using Hec_ras.py
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS1D.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS1D.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS2D">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">HEC_RAS2D</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<p>The Qwidget which open the Hec-RAS data in 2D dimension</p>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS2D.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS2D.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS2D.load_hec_2d_gui">
+<code class="descname">load_hec_2d_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS2D.load_hec_2d_gui" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>The function which call the function which load hecras 2d and save name of file in the project file</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS2D.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS2D.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.Hydro2W">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">Hydro2W</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>A class to load the hydrological data
+List of model supported:
+- TELEMAC
+- HEC-RAS
+- RUBAR
+- MASCARET
+- RIVER2D</p>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Hydro2W.get_new_hydro_hdf5">
+<code class="descname">get_new_hydro_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W.get_new_hydro_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function which allows the user to select an hdf5 file containing hydro data from a previous project
+and add it to the current project. it modify the xml project file and test that the data is in correct form
+by loading it.
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Hydro2W.give_info_model">
+<code class="descname">give_info_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W.give_info_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to show extra information about each hydrological model.
+The information should be in a text file with the same as the model in the model_hydo folder
+General info goes as the startof the text file. If the text is too long, add the keyword &#8220;MORE INFO&#8221;
+and the message box will add the supplementary information
+:return: None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Hydro2W.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Hydro2W.selectionchange">
+<code class="descname">selectionchange</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W.selectionchange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the widget reprsenting each hydrological model (all widget are in a stack)
+:param i: the number of the model (0=no model, 1=hecras1d, 2= hecras2D,...)
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.Hydro2W.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W.send_log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.Mascaret">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">Mascaret</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<dl class="docutils">
+<dt>The sub widows which call the function to load the mascaret data and save the name of the mascaret file to the</dt>
+<dd>project xml file.</dd>
+</dl>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Mascaret.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Mascaret.load_mascaret_gui">
+<code class="descname">load_mascaret_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret.load_mascaret_gui" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to load the mascaret data, calling mascaret.py
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.Mascaret.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.River2D">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">River2D</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<dl class="docutils">
+<dt>The sub-windows which help to open the river 2ddata. Call the river2D loader and save the name</dt>
+<dd>of the files to the project xml file.</dd>
+</dl>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.River2D.add_all_file">
+<code class="descname">add_all_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.add_all_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function which find all .cdg file in one directory
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.River2D.add_file_river2d">
+<code class="descname">add_file_river2d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.add_file_river2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which call show_dialog, oprepare some data for it and update the list
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.River2D.add_file_to_list">
+<code class="descname">add_file_to_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.add_file_to_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to add all file contained in self.namefile to the QWidgetlist
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.River2D.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.River2D.load_river2d_gui">
+<code class="descname">load_river2d_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.load_river2d_gui" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to load the river 2d data
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.River2D.remove_all_file">
+<code class="descname">remove_all_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.remove_all_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>reove all files as you could expect
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.River2D.remove_file">
+<code class="descname">remove_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.remove_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>small function to remove a .cdg file to the list to be loaded
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.River2D.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.Rubar1D">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">Rubar1D</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<dl class="docutils">
+<dt>The sub-windows which help to open the rubar data. Call the rubar loader and save the name</dt>
+<dd>of the files to the project xml file.</dd>
+</dl>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Rubar1D.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar1D.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Rubar1D.load_rubar1d">
+<code class="descname">load_rubar1d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar1D.load_rubar1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to execture the loading and saving the the rubar file using rubar.py
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.Rubar1D.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar1D.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.Rubar2D">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">Rubar2D</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<dl class="docutils">
+<dt>The sub-windows which help to open the rubar data. Call the rubar loader and save the name</dt>
+<dd>of the files to the project xml file.</dd>
+</dl>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Rubar2D.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar2D.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Rubar2D.load_rubar">
+<code class="descname">load_rubar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar2D.load_rubar" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to execture the loading and saving the the rubar file using rubar.py.
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Rubar2D.propose_next_file">
+<code class="descname">propose_next_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar2D.propose_next_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which avoid to the user to search for both file to load.
+it tries to find the second file when the first one is selected
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.Rubar2D.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar2D.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">SubHydroW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>a class which is the parent of the class which can be used to open the hydrological model.
+So there are MainWindiws which provides the windows around the widget,
+Hydro2W which provide the widget in the windows and one class by hydrological model to really load the model.
+The latter classes have various methods in common, so they inherit from SubHydroW, this class.</p>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.distribute_velocity">
+<code class="descname">distribute_velocity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.distribute_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
+notably rubar and masacret.
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.drop_hydro">
+<code class="descname">drop_hydro</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.drop_hydro" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.find_path_im">
+<code class="descname">find_path_im</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.find_path_im" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py
+:return: path_im</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.grid_and_interpo">
+<code class="descname">grid_and_interpo</code><span class="sig-paren">(</span><em>cb_im</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.grid_and_interpo" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function form the link between GUI and the various grid and interpolation functions. Is called by
+the &#8220;loading&#8217; function of hec-ras 1D, Mascaret and Rubar BE.
+:param cb_im if true, the figures are created and shown.
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.load_manning_text">
+<code class="descname">load_manning_text</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.load_manning_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the manning data in case where manning number is not simply a constant. This used by
+1 D model such as mascaret or Rubar BE to distribute velocity to 1.5 D model.
+the format of the txt file is &#8220;p, dist, n&#8221; where  p is the profile number (start at zero) , dist is the distance</p>
+<blockquote>
+<div>along the profile in meter and n is the manning value (in SI unit). One point per line so something like:</div></blockquote>
+<p>0, 150, 0.035
+0, 200, 0.025
+1, 120, 0.035
+.....
+white space is neglected and a line starting with # is also neglected.
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.read_attribute_xml">
+<code class="descname">read_attribute_xml</code><span class="sig-paren">(</span><em>att_here</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.read_attribute_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to read the text of an attribute in the xml project file
+:param att_here: the attribute name (string).
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.save_hdf5">
+<code class="descname">save_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.save_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function save the hydrological data in the hdf5 format.
+The log is not really finished, notbaly this functin cannot be used outise of the class,
+so it needs to be re-written if used in the command line
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.save_xml">
+<code class="descname">save_xml</code><span class="sig-paren">(</span><em>i=0</em>, <em>append_name=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.save_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to save the loaded data in the xml file
+:param i a number in case there is more than one file to save
+:param append_name. If True, name will be append to the existing namwe
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.send_err_log">
+<code class="descname">send_err_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_err_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the error and warning to the logs
+The stdout was redirected to self.mystdout
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.show_dialog">
+<code class="descname">show_dialog</code><span class="sig-paren">(</span><em>i=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.show_dialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to obtain the name of the file chosen by the user
+:param i a number in case there is more than one file to load
+:return: the name of the file, the path to this file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.was_model_loaded_before">
+<code class="descname">was_model_loaded_before</code><span class="sig-paren">(</span><em>i=0</em>, <em>many_file=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.was_model_loaded_before" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to test if the model loaded before, if yes, update the attibutes anf the widgets
+:param i a number in case there is more than one file to load
+:param many_file if true it will load more than one file, separated by &#8216;,&#8217;
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">SubstrateW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<p>This is the widget used to load the substrate. It is practical to re-use some of the method from SubHydroW.
+So this class inherit from SubHydroW.</p>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.get_att_name">
+<code class="descname">get_att_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.get_att_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to get the attribute name of the shape file which is possibly int e project xml file.
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.load_sub_gui">
+<code class="descname">load_sub_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.load_sub_gui" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.log_txt">
+<code class="descname">log_txt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.log_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>The log for the substrate in text form. In a function because it is used twice
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub">
+<code class="descname">save_hdf5_sub</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
+xml project file
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.send_merge_grid">
+<code class="descname">send_merge_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.send_merge_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calls the function merge grid in substrate.py. The goal is to have the substrate and hysrological
+data on the same grid/
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.update_hydro_hdf5_name">
+<code class="descname">update_hydro_hdf5_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.update_hydro_hdf5_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>a short function used to read all the hdf5 data available in one project adn to add it to the drop-down menu
+should be a function because an update to this list can be triggered by the loading of a new hydrological data.
+the class SubstrateW() noticed this thought the signal new_hydro_hdf5
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.TELEMAC">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">TELEMAC</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.TELEMAC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<p>The Qwidget which open the TELEMAC data</p>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.TELEMAC.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.TELEMAC.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.TELEMAC.load_telemac_gui">
+<code class="descname">load_telemac_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.TELEMAC.load_telemac_gui" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>The function which call the function which load htelemac and save tje name of file in the project file</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">return:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.TELEMAC.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.TELEMAC.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-src_GUI.output_fig_GUI"></span><dl class="function">
+<dt id="src_GUI.output_fig_GUI.create_default_figoption">
+<code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">create_default_figoption</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.create_default_figoption" title="Permalink to this definition">¶</a></dt>
+<dd><p>create the default dictionnary of option for the figure (static)
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src_GUI.output_fig_GUI.load_fig_option">
+<code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">load_fig_option</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.load_fig_option" title="Permalink to this definition">¶</a></dt>
+<dd><p>load the figure option saved in the xml file. If the options are not written or if the porject is not saved,
+use data by default.
+:param path_prj: the path to the xml project file
+:param name_prj: the name to this file
+:return: the dictionary containing the figure option</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.output_fig_GUI.outputW">
+<em class="property">class </em><code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">outputW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW" title="Permalink to this definition">¶</a></dt>
+<dd><p>The class which support the creation and management of the output</p>
+<dl class="method">
+<dt id="src_GUI.output_fig_GUI.outputW.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.output_fig_GUI.outputW.save_option_fig">
+<code class="descname">save_option_fig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.save_option_fig" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which save the options for the figure in the xlm project file
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.output_fig_GUI.outputW.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.send_log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-src"></span><span class="target" id="module-src.dist_vistess2"></span><dl class="function">
+<dt id="src.dist_vistess2.dist_velocity_hecras">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">dist_velocity_hecras</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>xhzv_data_all</em>, <em>manning_pro</em>, <em>nb_point=-99</em>, <em>eng=1.0</em>, <em>on_profile=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.dist_velocity_hecras" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function distribute the velocity along the profile using the method from hec-ras
+described in the hydraulic reference manual p 4-20 (Flow distribtion calculation)
+:param coord_pro: the coordinates and elevation of the river bed for each profile (x,y, h, dist along the profile)
+this list is flatten No reach info.
+:param xhzv_data_all: water height and velocity at each profile, 1D
+:param manning_pro the manning coefficient for zone between point of each profile
+for a particular profile, the length of manning_pro is the length of coord_pro[0]
+:param nb_point: number of velocity points (-99 takes the profil form as the velocity points)
+:param on_profile: Mascaret also gives outputs in poitns between profile. on_profile is true if the results are</p>
+<blockquote>
+<div>close or on the profile (les than 3cm of difference), not important for rubar or other</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>eng</strong> &#8211; in case the output from hec-ras are in US unit (eng=1 for SI unit and 1.486 for US unit)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the velocity for each profile by time step (x,v)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.get_manning">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">get_manning</code><span class="sig-paren">(</span><em>manning1</em>, <em>nb_point</em>, <em>nb_profil</em>, <em>coord_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.get_manning" title="Permalink to this definition">¶</a></dt>
+<dd><p>A fucntion to create an array with the manning value when a single float is given as info.
+:param manning1: the manning value (can be a value or an array)
+:param nb_point: the number of velocity point by profile
+:param nb_profil: the number of profile
+:param coord_pro: necessary if the number is -99 as we needs to know the length of each profile
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.get_manning_arr">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">get_manning_arr</code><span class="sig-paren">(</span><em>manning_arr</em>, <em>nb_point</em>, <em>coord_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.get_manning_arr" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to create the manning array when manning data is loaded using a text file, the form of the array is
+p, dist, n where p is the profile, dist is the distance along the profile and n is manning
+:param manning_arr: the data for manning
+:param nb_point: the number of velocity point by profile
+:param coord_pro: x,y,dist
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.main">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.plot_dist_vit">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">plot_dist_vit</code><span class="sig-paren">(</span><em>v_pro</em>, <em>coord_pro</em>, <em>xhzv_data</em>, <em>plot_timestep</em>, <em>pro</em>, <em>name_pro=[]</em>, <em>on_profile=[]</em>, <em>zone_v_all=[]</em>, <em>data_profile=[]</em>, <em>xy_h_all=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.plot_dist_vit" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function plot the calculated velocity distribution
+:param v_pro: the calculated velcocity distribution by time step
+:param coord_pro: the coordinate of the profiles
+:param xhzv_data: the output data from the model, before the velocity distrbution
+:param plot_timestep: which time step to be plottied
+:param name_pro: the name of the profile (optionnal just for the title)
+:param pro: which porfile to be plotted
+:param on_profile, select the data which is on the profile
+:param zone_v: output from hec-ras used to test dist_vitesse
+:param data_profile: output from hec-ras used to test dist_vitesse
+:param xy_h: output from hec-ras used to test dist_vitesse
+:return: figures</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.preparetest_velocity">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">preparetest_velocity</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>vh_pro_orr</em>, <em>v_in</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.preparetest_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes the output from hec-ras, with the velocity distrbution already present, and
+transform these output into input for dist_vel.
+:param coord_pro: the coordinate of the profile (x,y,h,dist along profile)
+:param vh_pro_orr: the velocity distribution which is the output from hec ras (produced by hec-ras06.py)
+:param v_in the uni-dimensional velocity
+:return:</p>
+</dd></dl>
+
+<span class="target" id="module-src.estimhab"></span><dl class="function">
+<dt id="src.estimhab.estimhab">
+<code class="descclassname">src.estimhab.</code><code class="descname">estimhab</code><span class="sig-paren">(</span><em>qmes</em>, <em>width</em>, <em>height</em>, <em>q50</em>, <em>qrange</em>, <em>substrat</em>, <em>path_bio</em>, <em>fish_name</em>, <em>path_im</em>, <em>pict=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.estimhab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to run the estimhab model. Unit in meter amd m^3/sec
+:param qmes the two measured discharge
+:param width the two measured width
+:param height the two measured height
+:param q50 the natural median discharge
+:param qrange the range of discharge
+:param substrat mean height of substrat
+:param pict if true the figure is shown. If false, the figure is not shown
+:param path_im, the path where the image should be saved
+:param path_bio the path to the xml file with the information on the fishes
+:param fish_name the name of the fish which have to be analyzed
+:return Habitat value and useful surface (VH and SPU) as a function of discharge</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.estimhab.main">
+<code class="descclassname">src.estimhab.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="src.estimhab.pass_to_float_estimhab">
+<code class="descclassname">src.estimhab.</code><code class="descname">pass_to_float_estimhab</code><span class="sig-paren">(</span><em>var_name</em>, <em>root</em><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.pass_to_float_estimhab" title="Permalink to this definition">¶</a></dt>
+<dd><p>a small function to pass from xml element to float
+:param root: the root of the open xml file
+:param var_name: the name of the attribute in the xml file
+:return: the float data</p>
+</dd></dl>
+
+<span class="target" id="module-src.hec_ras2D"></span><dl class="function">
+<dt id="src.hec_ras2D.figure_hec_ras2d">
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">figure_hec_ras2d</code><span class="sig-paren">(</span><em>v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im, time_step=[0], flow_area=[0], max_point=-99</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.figure_hec_ras2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function to plot figure of the output from hec-ras 2D
+:param v_all: a list of np array representing the velocity at the center of the cells
+:param h_all:  a list of np array representing the water depth at the center of the cells
+:param elev_all: a list of np array representing the mimium elevation of each cells
+:param coord_p_all: a list of np array representing the coordinates of the points of the grid
+:param coord_c_all: a list of np array representing the coordinates of the centers of the grid
+:param ikle_all: a list of np array representing the connectivity table
+one array by flow area
+:param time_step which time_step should be plotted (default, the first one)
+:param flow_area: which flow_area should be plotted (default, the first one)
+:param max_point the number of cell to be drawn when reconstructing the grid (it might long)
+:param path_im the path where the figure should be saved
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.hec_ras2D.load_hec_ras2d">
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">load_hec_ras2d</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.load_hec_ras2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>The goal of this function is to load 2D data from Hec-RAS
+:param filename: the name of the file containg the results of HEC-RAS in 2 Dimensions. Only since the version 5.
+The fuile is an hdf5 file (.hdf) created automatically by HEC-RAS
+There are many .hdf created by Hec-RAS. the one to choose is the one with the extensino p0X.hdf (not g0x.hdf).</p>
+<blockquote>
+<div>It is usually the largest file in the results folder</div></blockquote>
+<p>:param path where the file is
+:return: velocity and height at the center of the cells, the coordinate of the point of the cells,
+the coordinates of the center of the cells and the connectivity table.
+Each output is a list of numpy array (one array by 2D flow area)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.hec_ras2D.main">
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="src.hec_ras2D.prepare_grid">
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">prepare_grid</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>max_point=-99</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.prepare_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function to put in the new form the data forming the grid to accelerate the plotting of the grid
+:param ikle the connectivity table
+:param coord_p the coordinate of hte point
+:param max_point: if the grid is very big, it is possible to only plot the first points, up to max_points
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.hec_ras2D.scatter_plot">
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">scatter_plot</code><span class="sig-paren">(</span><em>coord</em>, <em>data</em>, <em>data_name</em>, <em>my_cmap</em>, <em>s1</em>, <em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.scatter_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to plot the scatter of the data
+:param coord the coordinates
+:param data the data to be plotted (np.array)
+:param data_name the name of the data
+:param my_cmap the color map
+:param s1 the size of the dot
+:param t the time step being plotted
+:return:</p>
+</dd></dl>
+
+<span class="target" id="module-src.Hec_ras06"></span><dl class="function">
+<dt id="src.Hec_ras06.coord_profile_non_georeferenced">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">coord_profile_non_georeferenced</code><span class="sig-paren">(</span><em>data_bank_all</em>, <em>data_dist_all</em>, <em>data_river_all</em>, <em>data_profile_all</em>, <em>nb_pro_reach</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.coord_profile_non_georeferenced" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function to create the coordinates of the profile in the non-georeferenced case.
+This function is called by open geo_file()
+Hypothesis: The profile are straight and perpendicular to the river. The last profile is at the end of the river.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data_bank_all</strong> &#8211; distance along the profile of bank station</li>
+<li><strong>data_dist_all</strong> &#8211; the distance between the profile (left, center channel, right)</li>
+<li><strong>data_river_all</strong> &#8211; the coordinate of the river</li>
+<li><strong>data_profile_all</strong> &#8211; the (d,z) data of the profile</li>
+<li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the coordinates of the profile</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.figure_xml">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">figure_xml</code><span class="sig-paren">(</span><em>data_profile</em>, <em>coord_pro_old</em>, <em>coord_r</em>, <em>xy_h_all</em>, <em>zone_v_all</em>, <em>pro</em>, <em>path_im</em>, <em>nb_sim=0</em>, <em>name_profile='no_name'</em>, <em>coord_p2=-99</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.figure_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small function to plot the results
+:param data_profile (list with np.array)
+:param coord_pro_old: (x,y) data of the profile
+:param coord_r: (x,y) data of the river
+:param xy_h_all: (x,y, h) for the height data for each simulation
+:param zone_v_all: (x,y, v) for the velocity data. velocity is by zone. for each simulation.
+the (x,y) indicates the start of the zone which end with the next velocity
+:param pro: a list with which profile should be plot [2,3,4]
+:param nb_sim which simulatino sould be plotted,
+:param name_profile: a list of string with the name of the profile
+:param coord_p2 the data of the profile when non geo-referenced, optional
+:param path_im the path where the figure should be saved
+:return: none</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.find_coord_height_velocity">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">find_coord_height_velocity</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>data_profile</em>, <em>vel</em>, <em>wse</em>, <em>nb_sim</em>, <em>max_vel_dist=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.find_coord_height_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>find the coordinates of the height/velocity
+:param coord_pro: the coordinate (x,y) of the profile
+:param data_profile: data concening the geometry of the profile, notably (x,z)
+:param vel the velocity data
+:param wse the water sufrace elevation
+:param nb_sim the number of simulation in case there is more than one
+:param max_vel_dist the minimum number of velocity point by ten meter before a warnings appears
+:return: for each simulation, a list of np.array representing (x,y,v) and (x,y,h,)
+Careful the height is on the node and the velocity is by zone</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.get_rid_of_white_space">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">get_rid_of_white_space</code><span class="sig-paren">(</span><em>stream_str</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.get_rid_of_white_space" title="Permalink to this definition">¶</a></dt>
+<dd><p>a small fonction to get rid of white space at the end of name which could contain white space
+:param stream_str the name of the string
+:return the same name without str</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.load_xml">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">load_xml</code><span class="sig-paren">(</span><em>xml_file</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.load_xml" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a small utility function used by openxml_file and opengml_file to load an xml file
+:param xml_file: an xml file
+:param path: a path where the file is
+:return: the loaded data from the XML file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.main">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.open_geofile">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_geofile</code><span class="sig-paren">(</span><em>geo_file</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_geofile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to open the geometry file (.g0X) from HEC-RAS and to extract the (x,z) from each profile
+and the (x,y) if gereferenced
+:param geo_file: the HEC-RAS geometry file
+:param path: path to the geo file
+:return: a list with each river profile. Each profile is represented by a numpy array with the x and the altitude</p>
+<blockquote>
+<div>of each point in the profile, the coordinate of the profile in alist of np.array, the coordinate of the river
+and a list of string with the name of the reaches/ river in order</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.open_hecras">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_hecras</code><span class="sig-paren">(</span><em>geo_file</em>, <em>res_file</em>, <em>path_geo</em>, <em>path_res</em>, <em>path_im</em>, <em>save_fig=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_hecras" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">list of numpy array</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>geo_file</strong> &#8211; the name of .goX (example .go3) file which is an output from hec-ras containg the profile data</li>
+<li><strong>res_file</strong> &#8211; the name of O0X.xml file from HEC-RAS or the name of the .sdf file from HEC-RAS or the name of the</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>.rep file from HEC-RAS</dt>
+<dd>-To obtain the xml file in hEC-RAS 4, open the project in HEC-RAS,
+click on File , then export geometry and result (RAS Mapper), then OK
+-To obtain the sdf file in HEC-RAS5, click on File, then Export GIS data
+Export all reaches (select Reaches to export -. Full List -&gt; Ok)
+Export all needed profile (select Profile to export -&gt; Select all -&gt; ok)
+- To obtain the report file .rep, click on File, generate report
+Select Flow data and Geometry data in input data and, in Specific Table, Flow distribution and Cross section Table</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_res</strong> &#8211; path to the result file</li>
+<li><strong>path_geo</strong> &#8211; path to the geo file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param path_im
+:param save_fig if True image is saved</p>
+<p>all entry parameter are string
+:return: coord_pro: for each profile (x,y,elev, dist along the profile), vh_pro for each profile
+[dist along the profile, water height, velocity]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.open_repfile">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_repfile</code><span class="sig-paren">(</span><em>report_file</em>, <em>reach_name</em>, <em>path</em>, <em>data_profile</em>, <em>data_bank</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_repfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to open the report file (.rep) from HEC-RAS. To obtain the report file, click on File, generate Report,
+Choose Flow data, Geometry data and, in specific Table, choose Cross section Table and Flow distribution.
+:param report_file:
+:param reach_name :a list of string containing the name of the reaches/rivers in the order of the geo file</p>
+<blockquote>
+<div>(might not be the one of the sdf file)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> &#8211; the path where the file is stored</li>
+<li><strong>data_profile</strong> &#8211; the data from each profile from the geo file</li>
+<li><strong>data_bank</strong> &#8211; the position of the bank limit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">velocity and the water surface elevation for each river profiles in a list of np.array,</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>the number of simulation (int) and the name of the river profile (list of string)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.open_sdffile">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_sdffile</code><span class="sig-paren">(</span><em>sdf_file</em>, <em>reach_name</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_sdffile" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function to load .sdf file from HEC-RAS v5
+To obtain this file, click on File, then &#8220;export GIS data&#8221; in HEC-RAS v5
+Export all reaches (select Reaches to export -. Full List -&gt; Ok)
+:param sdf_file: the name of the sdf file
+:param reach_name, a list of string containing the name of the reaches/rivers in the order of the geo file</p>
+<blockquote>
+<div>(might not be the one of the sdf file)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; the path where the file is stored</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">velocity, water height, river_name, number of  time step (nb_sim)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.open_xmlfile">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_xmlfile</code><span class="sig-paren">(</span><em>xml_file</em>, <em>reach_name</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_xmlfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open the xml file from HEC-RAS to get the velocity and water surface elevation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xml_file</strong> &#8211; name of O0X.xml file from HEC-RAS. To obtain this file, open the project in HEC-RAS,
+click on File , then export geometry and result (RAS Mapper), then OK</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>:param reach_name, a list of string containing the name of the reaches/rivers in the order of the geo file</dt>
+<dd>(might not be the one of the xml file)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> &#8211; path to the xml file</td>
+</tr>
+</tbody>
+</table>
+<p>all entry parameter are string
+:return: velocity and the water surface elevation for each river profiles in a list of np.array,
+the number of simulation (int) and the name of the river profile (list of string)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.pass_in_float_from_geo">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">pass_in_float_from_geo</code><span class="sig-paren">(</span><em>data_str</em>, <em>len_number</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.pass_in_float_from_geo" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small utility function to pass the string data into float for open_geofile and sdf file
+:param data_str: the data in a string
+:param len_number the number of digit for one numer
+:return: a np.array of float with 2 columns  (x,y) or (x,z)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.reorder_reach">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">reorder_reach</code><span class="sig-paren">(</span><em>wse</em>, <em>vel</em>, <em>riv_name</em>, <em>reach_name</em>, <em>reach_str</em>, <em>stream_str</em>, <em>nb_sim</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.reorder_reach" title="Permalink to this definition">¶</a></dt>
+<dd><p>The order of the reach in HABBY is the order given in the geo file. It can be given in any order ni the orher file.
+(xml, sdf, rep,...). here is a dunction to re-roder the reaches based on theri name
+name should not have white space at the end but have white space into them
+:param wse: water height data (list of np.array for each profile)
+:param vel: velocity data (list of np.array for each profile)
+:param riv_name: the name of the profile (yeah I know it is not really logical as a name)
+:param reach_name: the name of the reach and stream (stream,reach) in the geo file order
+:param reach_str: the name of the reach in the anaylsed file order
+:param stream_str: the name of the stream in the anaylsed file order
+:param nb_sim the number of simulation
+:return: wse, vel, riv_name re-ordered</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.update_output">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">update_output</code><span class="sig-paren">(</span><em>zone_v</em>, <em>coord_pro_old</em>, <em>data_profile</em>, <em>xy_h</em>, <em>nb_pro_reach_old</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.update_output" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This functio update the form of the output so it is coherent with mascaret and rubar after the lateral</dt>
+<dd><dl class="first docutils">
+<dt>distribution of velocity. 2 important change: coord_pro contains dist along the profile (x) and height</dt>
+<dd>in addition to the coordinates. vh_pro is only for height above water, a point is created at the water limits and
+v and height are given at the same points. nb_pro_reach is also modified as in mascaret.</dd>
+</dl>
+<p>:param zone_v (x,y, dist along profile, v) for each time step. However, the zone are the one from the models.
+They are different than the one from xy_h, which is unpractical for the rest of the model
+:param coord_pro_old the (x,y) coordinate for the profile, we add the distance along the profile and the height
+to get the new coord_pro
+:param data_profile the distance along the porfile and height of each profile
+:param xy_h the water height
+:param nb_pro_reach_old the numner of the profile by reach. we want to midify it so it start by zero and is additive</p>
+<blockquote class="last">
+<div>(give total number of profile before, not the numner of profile by reach)</div></blockquote>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">coord_pro, vh_pro, nb_pro_reach</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<span class="target" id="module-src.load_hdf5"></span><dl class="function">
+<dt id="src.load_hdf5.get_all_filename">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">get_all_filename</code><span class="sig-paren">(</span><em>dirname</em>, <em>ext</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.get_all_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function to get the name of all file with a particular extension in a folder. Useful to get all the output
+from one hydraulic models
+:param dirname: the path to the directory
+:param ext: the extension (.txt for example). It is a string, the point needs to be the first character
+:return: a list with the filename (filename+dir) for each extension</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.load_hdf5.load_hdf5_hyd">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_hyd</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_hyd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the hydrological data contains in the hdf5 file
+:param hdf5_name_hyd: path and filename of the hdf5 file (string)
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.load_hdf5.load_hdf5_sub">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_sub</code><span class="sig-paren">(</span><em>hdf5_name_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the substrate data contained in the hdf5 file
+:param hdf5_name_sub: path and file name to the hdf5 file (string)
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.load_hdf5.open_hdf5">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">open_hdf5</code><span class="sig-paren">(</span><em>hdf5_name</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.open_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function which open an hdf5 file and check that it exists
+:param hdf5_name: the path and name of the hdf5 file (string)
+:return:</p>
+</dd></dl>
+
+<span class="target" id="module-src.mascaret"></span><dl class="function">
+<dt id="src.mascaret.correct_duplicate">
+<code class="descclassname">src.mascaret.</code><code class="descname">correct_duplicate</code><span class="sig-paren">(</span><em>seq</em>, <em>send_warn</em>, <em>idfun=None</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.correct_duplicate" title="Permalink to this definition">¶</a></dt>
+<dd><p>it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
+So this function correct this case. A similiar function exists in rubar, for the case where input
+is (x,y) coordinates and not distance along the profile
+inspired by <a class="reference external" href="https://www.peterbe.com/plog/uniqifiers-benchmark">https://www.peterbe.com/plog/uniqifiers-benchmark</a>
+:param seq: thelist to be corrected
+:param send_warn a bool to avoid printing the warning too many time (maybe a bit of an overkill?)
+:param idfun: support an optional transform function (not tested)
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.define_stream_network">
+<code class="descclassname">src.mascaret.</code><code class="descname">define_stream_network</code><span class="sig-paren">(</span><em>node_number</em>, <em>start_node</em>, <em>end_node</em>, <em>angles</em>, <em>nb_pro_reach</em>, <em>nb_reach</em>, <em>abcisse</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.define_stream_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to extract the stream network from the node and angle data
+:param node_number: the start/end number of the reaches for each nodes (list of list)
+:param start_node: the number indicating the start of each reach
+:param end_node: the number indicating the end of each reach
+:param angles: for each node the angle between the reach
+:param nb_pro_reach: the number of profile by reach
+:param nb_reach: the number of reach
+:param abcisse: teh distance along the river of each reach
+:return: the river coordinate and the unit vector indicating the river direction</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.figure_mascaret">
+<code class="descclassname">src.mascaret.</code><code class="descname">figure_mascaret</code><span class="sig-paren">(</span><em>coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.figure_mascaret" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to plot the figures related to mascaret
+:param coord_pro: the cordinates (x,y,h, dist along the river) of the profiles
+:param coord_r the coordinate (x,y) of the river
+:param name_pro: the name of the profile
+:param name_reach: the name of the reach
+:param on_profile which result are on the profile
+:param nb_pro_reach the number of profile by reach (careful this is the number of profile, not the number of output)
+:param xhzv_data (x,h,v) list by time step
+:param pro profile to be plotted
+:param plot_timestep timestep to be plotted
+:param reach_plot the reach to be plotted for the river view
+:param path_im the pathwhere to save the figure
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.find_node">
+<code class="descclassname">src.mascaret.</code><code class="descname">find_node</code><span class="sig-paren">(</span><em>node_number</em>, <em>reach_to_find</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.find_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>To find with which node is a stream end or a stream start is associatied
+used by define_stream_network
+:param node_number: the list of list of the reach linked with one node
+:param reach_to_find: the number indicateng start or end of the reach
+:return: the node number, ordered as in the xcas file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.flat_coord_pro">
+<code class="descclassname">src.mascaret.</code><code class="descname">flat_coord_pro</code><span class="sig-paren">(</span><em>coord_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.flat_coord_pro" title="Permalink to this definition">¶</a></dt>
+<dd><p>NOT USED ANYMORE
+coord_pro was before a list of profile by reach. It was however useful to have each profile one after the other.
+here is the function for this.
+Finally, it is more practical to use an other variable to known on which reach is the profile.
+:param coord_pro: the list of profile (x,y,h, dist along the river) by reach
+:return: coord_pro_f: a list of profile without the reach information. The list is flatten</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.get_geo_name_from_xcas">
+<code class="descclassname">src.mascaret.</code><code class="descname">get_geo_name_from_xcas</code><span class="sig-paren">(</span><em>file_gen</em>, <em>path_gen</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.get_geo_name_from_xcas" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small function which get the name of the .geo file from the .xcas xml file
+:param file_gen: the xcas file
+:param path_gen: the path to the xcas file
+:return: the name of the .geo file (no path indicated)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.get_name_from_cas">
+<code class="descclassname">src.mascaret.</code><code class="descname">get_name_from_cas</code><span class="sig-paren">(</span><em>file_gen</em>, <em>path_gen</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.get_name_from_cas" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small function which get the name of the .geo file from the .cas txt file
+:param file_gen: the cas file
+:param path_gen: the path to the cas file
+:return: the name of the .geo file (no path indicated)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.is_this_res_on_the_profile">
+<code class="descclassname">src.mascaret.</code><code class="descname">is_this_res_on_the_profile</code><span class="sig-paren">(</span><em>abscisse</em>, <em>xhzv_data_all</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.is_this_res_on_the_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>The output of mascaret can be given at point of the river where there is no profile.
+The function here says which results are on the profiles. All profiles have a results.
+:param abscisse: the position of the profile
+:param xhzv_data_all: the outputs from mascaret by time step
+:return: a list of bool of the length of xhzv_data, True on profile, False not on profile</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.load_mascaret">
+<code class="descclassname">src.mascaret.</code><code class="descname">load_mascaret</code><span class="sig-paren">(</span><em>file_gen</em>, <em>file_geo</em>, <em>file_res</em>, <em>path_gen</em>, <em>path_geo</em>, <em>path_res</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.load_mascaret" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to load the mascaret data
+:param file_gen: the xcas .xml file giving general info about the model (the number of biref notably)
+:param path_gen: the path to this file
+:param file_geo: the file containting the profile data (.geo)
+:param file_res: the files containting the mascaret output in the Optyca format (.opt)
+:param path_geo: the path to the geo file
+:param path_res the path to the res file
+:return: the coordinates of the profile (x,y,z, dist along the profile), the coordinate of the river (x,y), name of reach and profile,
+data height and velocity (list by time step), list of bollean indicating which data is on the profile and the
+number of profile by reach</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.main">
+<code class="descclassname">src.mascaret.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.open_geo_mascaret">
+<code class="descclassname">src.mascaret.</code><code class="descname">open_geo_mascaret</code><span class="sig-paren">(</span><em>file_geo</em>, <em>path_geo</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.open_geo_mascaret" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to load the mascaret geo file
+:param file_geo:
+:param path_geo:
+:return: the profile data (x,y), profile name (list of string),
+brief name (list of string), the number of profile in each reach and distance along the river/abcisse (list)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.open_res_file">
+<code class="descclassname">src.mascaret.</code><code class="descname">open_res_file</code><span class="sig-paren">(</span><em>file_res</em>, <em>path_res</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.open_res_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to load the output from mascaret (.opt file)
+:param file_res: the name of the .opt file
+:param path_res: the path to this file
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.open_rub_file">
+<code class="descclassname">src.mascaret.</code><code class="descname">open_rub_file</code><span class="sig-paren">(</span><em>file_res</em>, <em>path_res</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.open_rub_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to open the binary output file from mascaret (.rub format)
+:param file_res: the name of the rub binary file
+:param path_res: the path to this file
+:return: xhzv_data, timestep</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.profil_coord_non_georef">
+<code class="descclassname">src.mascaret.</code><code class="descname">profil_coord_non_georef</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>coord_r</em>, <em>nr</em>, <em>nb_pro_reach</em>, <em>bt=None</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.profil_coord_non_georef" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the profile coordniates if the mascaret file is not georeferenced.
+HYP: The river and the profile are straight. The profile is perpendiular to the river.
+The river pass at the minimum of the bed (of the main bad if a distinction between main and secondary bed is given)
+The origin of the coordinate system is the river for x and depends on the va;ue of abscisse for y
+:param coord_pro: the coordinate of the profile
+not in the general coordinate system, just distance along the profile and bed elevation
+:param coord_r: river coordinates
+:param n the vector indicating the river direction
+:param nb_pro_reach the number of profile by reach (additive)
+:param bt: optionnal indicates which points in the profiles are in the minor/major bed
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.river_coord_non_georef_from_cas">
+<code class="descclassname">src.mascaret.</code><code class="descname">river_coord_non_georef_from_cas</code><span class="sig-paren">(</span><em>file_gen</em>, <em>path_gen</em>, <em>abcisse</em>, <em>nb_pro_reach</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.river_coord_non_georef_from_cas" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>get the coordinates of the river based on the cas .txt file</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>file_gen</strong> &#8211; the .cas file containting general info</li>
+<li><strong>path_gen</strong> &#8211; the path to this faile</li>
+<li><strong>abcisse</strong> &#8211; ditance along the profile</li>
+<li><strong>nb_pro_reach</strong> &#8211; the number of reach by profile</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the river coordinate and the unit vector indicating the river direction</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.river_coord_non_georef_from_xcas">
+<code class="descclassname">src.mascaret.</code><code class="descname">river_coord_non_georef_from_xcas</code><span class="sig-paren">(</span><em>file_gen</em>, <em>path_gen</em>, <em>abcisse</em>, <em>nb_pro_reach</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.river_coord_non_georef_from_xcas" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the coordinates of the river based on the xcas xml file
+:param file_gen: the .xcas file with the information concerning the reach
+:param path_gen: the path to the xcas file
+:param abcisse: the distance along the river
+:param nb_pro_reach: the number of profile by reach
+:return: coord_r the coordinate of the river</p>
+</dd></dl>
+
+<span class="target" id="module-src.river2d"></span><dl class="function">
+<dt id="src.river2d.figure_river2d">
+<code class="descclassname">src.river2d.</code><code class="descname">figure_river2d</code><span class="sig-paren">(</span><em>xyzhv</em>, <em>ikle</em>, <em>path_im</em>, <em>t=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.figure_river2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to plot the output from river 2d. Need hec-ras2d as import because it re-used most of the plot from there
+Plot only one time step because river 2d output have one file by time step
+:param xyzhv: the x,y, coordinates of the node (h,v are nodal output in river 2d), the river bed, the water height
+and the velocity (one data by column, row are node)
+:param ikle: connectivity table
+:param path_im the path where to save the figure
+:param t: the time step
+:return: grid figure, h and v</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.river2d.get_rid_of_lines">
+<code class="descclassname">src.river2d.</code><code class="descname">get_rid_of_lines</code><span class="sig-paren">(</span><em>datahere</em>, <em>nb_data</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.get_rid_of_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>There are lines which are useless. used to correct ikle and data_node
+:param datahere: the data with the empty lines
+:param nb_data: nb_node or nb_el
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.river2d.load_river2d_cdg">
+<code class="descclassname">src.river2d.</code><code class="descname">load_river2d_cdg</code><span class="sig-paren">(</span><em>file_cdg</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.load_river2d_cdg" title="Permalink to this definition">¶</a></dt>
+<dd><p>The file to load the output data from River2D. Cerful the input data has the same ending and nearly the same format.
+Do not mix the files.
+:param file_cdg:
+:param path:
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.river2d.main">
+<code class="descclassname">src.river2d.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<span class="target" id="module-src.rubar"></span><dl class="function">
+<dt id="src.rubar.correct_duplicate_xy">
+<code class="descclassname">src.rubar.</code><code class="descname">correct_duplicate_xy</code><span class="sig-paren">(</span><em>seq3D</em>, <em>send_warn</em>, <em>idfun=None</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.correct_duplicate_xy" title="Permalink to this definition">¶</a></dt>
+<dd><p>it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
+So this function correct this case for rubar. A similiar function exists in mascaret.py, for the case where input
+is the distance along the profile and not (x,y) coordinates.
+inspired by <a class="reference external" href="https://www.peterbe.com/plog/uniqifiers-benchmark">https://www.peterbe.com/plog/uniqifiers-benchmark</a>
+:param seq3D: the list to be corrected in this case (x,y,z,dist along the profile)
+:param send_warn a bool to avoid printing the warning too many time
+:param idfun: support an optional transform function (not tested)
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.figure_rubar1d">
+<code class="descclassname">src.rubar.</code><code class="descname">figure_rubar1d</code><span class="sig-paren">(</span><em>coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, plot_timestep, nb_pro_reach=[0, 10000000000]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.figure_rubar1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to plot the loaded RUBAR 1D data
+:param coord_pro: the cooedinate of the profile (x, y, z, dist along the river)
+:param lim_riv: the right bank, river center, left bank
+:param data_xhzv the data by time step with x the distance along the river, h the water height and v the vlocity
+:param cote: the altitude of the river center
+:param name_profile the name of the profile
+:param path_im: the path where to save the image
+:param pro: the profile number which should be plotted
+:param plot_timestep: which timestep should be plotted
+:param nb_pro_reach: the number of profile by reach
+:return: none</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.figure_rubar2d">
+<code class="descclassname">src.rubar.</code><code class="descname">figure_rubar2d</code><span class="sig-paren">(</span><em>xy, coord_c, ikle, v, h, path_im, time_step=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.figure_rubar2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to plot the rubar 2d data
+:param xy: coordinates of the points
+:param coord_c: the center of the point
+:param ikle: connectivity table
+:param v: speed
+:param h: height
+:param path_im where to save the figure
+;param time_step which will be plotted
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.get_triangular_grid">
+<code class="descclassname">src.rubar.</code><code class="descname">get_triangular_grid</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_c</em>, <em>xy</em>, <em>h</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.get_triangular_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>In Rubar it is possible to have non-triangular cells. You can have a grid composed a mixed of pentagonal, 4-sided
+and triangluar cells. This function transform the grid to a triangular grid
+:param ikle: the connectivity table
+:param coord_c: the coordinate of the centroid of the cell
+:param xy the points of the grid
+:param h data on water height
+:param v data on velocity
+:return: the updated ikle, point_c and xy</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_coord_1d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_coord_1d</code><span class="sig-paren">(</span><em>name_rbe</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_coord_1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the rbe file, which is an xml file.
+:param name_rbe: The name fo the rbe files
+:param path: the path to this file
+:return: the coordinates of the profiles and the coordinates of the right bank, center of the river, left bank
+(list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
+number of cells (int)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_dat_2d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_dat_2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_dat_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the geomtery info for the 2D case, using the .dat file
+it is close to the .mai file but with more information (number of side and more complicated connectivity table)
+:param geofile: the .mai file which contain the connectivity table and the (x,y)
+:param path: the path to this file
+:return: connectivity table, point coordinates, coodinantes of the cell centers</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_data_1d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_data_1d</code><span class="sig-paren">(</span><em>name_data_vh</em>, <em>path</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_data_1d" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_data_vh</strong> &#8211; the name of the profile.ETUDE file</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param x the distance along the river
+:return: data x, velocity height, cote for each time step (list of np.array), time step</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_mai_1d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_mai_1d</code><span class="sig-paren">(</span><em>mailfile</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_mai_1d" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mailfile</strong> &#8211; the name of the file which contain the (x,z) data</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">x of the river, np.array and the number of mail</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_mai_2d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_mai_2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_mai_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the geomtery info for the 2D case
+:param geofile: the .mai file which contain the connectivity table and the (x,y)
+:param path: the path to this file
+:return: connectivity table, point coordinates, coodinantes of the cell centers</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_rubar1d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d</code><span class="sig-paren">(</span><em>geofile</em>, <em>data_vh</em>, <em>pathgeo</em>, <em>pathdata</em>, <em>path_im</em>, <em>savefig</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the RUBAR data in 1D
+:param geofile: the name of .rbe file which gives the coordinates of each profile - string
+#(:param mail: the name of the file which given the position of the data point )
+:param data_vh: the profile.ETUDE file which contains the height and velocity data
+:param pathgeo the path to the geofile - string
+:param pathdata the path to the data_vh file
+:param path_im the file where to save the image
+:param savefig: a boolean. If True create and save the figure.
+:return: coordinates of the profile (x,y,z dist along the profile) coordinates (x,y) of the river and the bed,
+data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
+and v the velocity</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_rubar2d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_rubar2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>tpsfile</em>, <em>pathgeo</em>, <em>pathtps</em>, <em>path_im</em>, <em>save_fig</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the RUBAR data in 2D
+:param geofile: the name of the .mai or .dat file which contains the connectivity table and the (x,y)
+:param tpsfile: the name of the .tps file
+:param pathgeo : path to the geo file
+:param pathtps : path to the tps file
+:param path_im: the path where to save the figure
+:param save_fig: boolean indicated if the figures should be created or not
+all strings input
+:return: (x,y), ikle velocity and height at the center of the cells, the coordinate of the point of the cells,
+the coordinates of the center of the cells and the connectivity table.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_tps_2d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_tps_2d</code><span class="sig-paren">(</span><em>tpsfile</em>, <em>path</em>, <em>nb_cell</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_tps_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the data in the 2D rubar case
+:param tpsfile: the name of the file with the data for the 2d case
+:param path:
+:param nb_cell the number of cell extracted from the .mai file
+:return: v, h, timestep (all in list of np.array)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.m_file_load_coord_1d">
+<code class="descclassname">src.rubar.</code><code class="descname">m_file_load_coord_1d</code><span class="sig-paren">(</span><em>geofile_name</em>, <em>pathgeo</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.m_file_load_coord_1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the m.ETUDE file which is based on .st format from cemagref. When we use the M.ETUDE file
+instead of the rbe file, more than one reach can be studied but the center and side of the river is not
+indicated anymore
+:param geofile_name: The name to the file
+:param pathgeo: the path to this file
+:return: the coordinates of the profiles
+(list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
+number of profile by reach</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.main">
+<code class="descclassname">src.rubar.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<span class="target" id="module-src.selafin_habby1"></span><p>Selafin file format reader for Telemac 2D
+Adapted from the original script &#8216;parserSELAFIN.py&#8217;</p>
+<blockquote>
+<div>from the open Telemac distribution</div></blockquote>
+<dl class="class">
+<dt id="src.selafin_habby1.Selafin">
+<em class="property">class </em><code class="descclassname">src.selafin_habby1.</code><code class="descname">Selafin</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selafin reader
+Create an object for reading data from a slf file
+:param &#8216;filename&#8217;: the name of the binary Selafin file</p>
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.addcontent">
+<code class="descname">addcontent</code><span class="sig-paren">(</span><em>fileName</em>, <em>times</em>, <em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.addcontent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.appendcoretimeslf">
+<code class="descname">appendcoretimeslf</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.appendcoretimeslf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.appendcorevarsslf">
+<code class="descname">appendcorevarsslf</code><span class="sig-paren">(</span><em>varsor</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.appendcorevarsslf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.appendheaderslf">
+<code class="descname">appendheaderslf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.appendheaderslf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the header file</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.getheaderfloatsslf">
+<code class="descname">getheaderfloatsslf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.getheaderfloatsslf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the mesh coordinates</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.getheaderintegersslf">
+<code class="descname">getheaderintegersslf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.getheaderintegersslf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get dimensions and descritions (mesh)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.getheadermetadataslf">
+<code class="descname">getheadermetadataslf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.getheadermetadataslf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get header information</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.gettimehistoryslf">
+<code class="descname">gettimehistoryslf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.gettimehistoryslf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the timesteps</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.getvalues">
+<code class="descname">getvalues</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.getvalues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the values for the variables at time t</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.getvariablesat">
+<code class="descname">getvariablesat</code><span class="sig-paren">(</span><em>frame</em>, <em>varindexes</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.getvariablesat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the values for the variables at a particular time step</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.selafin_habby1.Selafin.putcontent">
+<code class="descname">putcontent</code><span class="sig-paren">(</span><em>fileName</em>, <em>times</em>, <em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.putcontent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="src.selafin_habby1.getendianfromchar">
+<code class="descclassname">src.selafin_habby1.</code><code class="descname">getendianfromchar</code><span class="sig-paren">(</span><em>fileslf</em>, <em>nchar</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.getendianfromchar" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Get the endian encoding</dt>
+<dd>&#8220;&lt;&#8221; means little-endian
+&#8220;&gt;&#8221; means big-endian</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.selafin_habby1.getfloattypefromfloat">
+<code class="descclassname">src.selafin_habby1.</code><code class="descname">getfloattypefromfloat</code><span class="sig-paren">(</span><em>fileslf</em>, <em>endian</em>, <em>nfloat</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.getfloattypefromfloat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get float precision</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.selafin_habby1.load_telemac">
+<code class="descclassname">src.selafin_habby1.</code><code class="descname">load_telemac</code><span class="sig-paren">(</span><em>namefilet</em>, <em>pathfilet</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.load_telemac" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which load the telemac data using the Selafin class
+:param namefilet: the name of the selafin file
+:param pathfilet: the path to this file
+:return: velocity, height, coord_p, ikle</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.selafin_habby1.plot_vel_h">
+<code class="descclassname">src.selafin_habby1.</code><code class="descname">plot_vel_h</code><span class="sig-paren">(</span><em>coord_p2, h, v, path_im, timestep=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.plot_vel_h" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>a function to plot the velocity and height which are the output from TELEMAC</dt>
+<dd>:param coord_p2 the coordinates of the point froming the grid
+:param h the  water heigh
+:param v the velocity
+:param path_im the path where the image should be saved
+:param timestep, which time step should be plotted</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-src.stathab_c"></span><dl class="class">
+<dt id="src.stathab_c.Stathab">
+<em class="property">class </em><code class="descclassname">src.stathab_c.</code><code class="descname">Stathab</code><span class="sig-paren">(</span><em>name_prj</em>, <em>path_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab" title="Permalink to this definition">¶</a></dt>
+<dd><p>The class for the Stathab model</p>
+<dl class="method">
+<dt id="src.stathab_c.Stathab.create_hdf5">
+<code class="descname">create_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.create_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to create an hdf5 file from the loaded txt
+:return: the &#8220;name_prj&#8221;_STATHAB.h5 an hdf5 file with the info from stathab</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.dengauss">
+<code class="descname">dengauss</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dengauss" title="Permalink to this definition">¶</a></dt>
+<dd><p>gaussian density, used only for debugging purposes.
+NOT USED IN Habby, but can be useful if scipy is not available
+(remplace all stat.norm.cdf with dengauss -&gt; no need for scipy)
+:param x: the parameter of the gaussian
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.dist_h">
+<code class="descname">dist_h</code><span class="sig-paren">(</span><em>sh0</em>, <em>h0</em>, <em>bornh</em>, <em>h</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dist_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>The calculation of height distribution  acrros the river
+The distribution is a mix of an exponential and guassian.
+:param sh0: the sh of the original data
+sh is the parameter of the distribution, gives the relative importance of ganussian and exp distrbution
+:param h the mean height data
+:param h0 the mean height
+:param bornh the limits of each class of height
+:return: disth the distribution of heights across the river for the mean height h.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.dist_v">
+<code class="descname">dist_v</code><span class="sig-paren">(</span><em>h</em>, <em>d</em>, <em>bornv</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dist_v" title="Permalink to this definition">¶</a></dt>
+<dd><p>The calculation of velocity distribution  acrros the river
+The distribution is a mix of an exponential and guassian.
+:param h: the height which is related to the mean velocity v
+:param d granulo moyenne
+:param bornv: the born of the velocity
+:param v: the mean velocity
+:return: the distribution of velocity across the river</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.find_sh0">
+<code class="descname">find_sh0</code><span class="sig-paren">(</span><em>disthmesr</em>, <em>h0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.find_sh0" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to find sh0, using a minimzation technique (NOT USE!!)
+!!!!!! possibly an error on the bornes?!!!!!!
+:param disthmesr: the measured distribution of height
+:param h0 the measured mean height
+:return: the optimized sh0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.find_sh0_maxvrais">
+<code class="descname">find_sh0_maxvrais</code><span class="sig-paren">(</span><em>disthmesr</em>, <em>h0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.find_sh0_maxvrais" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to find sh0, using the maximum of vraisemblance.
+This function aims at reproducing the results from the c++ code. hence, no use of scipy
+:param disthmesr: the measured distribution of height
+:param h0 the measured mean height
+:return: the optimized sh0</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.load_stathab_from_hdf5">
+<code class="descname">load_stathab_from_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.load_stathab_from_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the file from an hdf5 whose name is given  in the xml project file
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.load_stathab_from_txt">
+<code class="descname">load_stathab_from_txt</code><span class="sig-paren">(</span><em>reachname_file</em>, <em>end_file_reach</em>, <em>name_file_allreach</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.load_stathab_from_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to read and check the input from stathab based on the text files.
+All files should be in the same folder.
+The file Pref.txt is read in run_stathab.
+If self.fish_chosen is not present, all fish in the preference file are read.
+:param reachname_file the file with the name of the reaches to study (usually listirv.txt)
+:param end_file_reach the ending of the files whose names depends on the reach
+:param name_file_allreach the name of the file common to all reaches
+:param path the path to the file
+:return: the inputs needed for run_stathab</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.power_law">
+<code class="descname">power_law</code><span class="sig-paren">(</span><em>qwh_r</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.power_law" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to calculate power law for discharge and width
+ln(h0 = a1 + a2 ln(Q)
+:param qwh_r, an array where each line in one observatino of Q, width and height
+:return: the coeff of the regression</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.savefig_stahab">
+<code class="descname">savefig_stahab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.savefig_stahab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A fucntion to save the results in ascii and the figure
+:return: 2 figures</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.savetxt_stathab">
+<code class="descname">savetxt_stathab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.savetxt_stathab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to save the stathab result in .txt form
+:return: .txt files</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.stathab_calc">
+<code class="descname">stathab_calc</code><span class="sig-paren">(</span><em>path_pref='.'</em>, <em>name_pref='Pref.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.stathab_calc" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to calculate stathab output
+:param path_pref: the path to the preference file
+:param name_pref: the name of the preference file
+:return: the biological preferrence index (np.array of [reach, specices, nbclaq] size)
+, surface or volume by class, etc.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.test_stathab">
+<code class="descname">test_stathab</code><span class="sig-paren">(</span><em>path_ori</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.test_stathab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short function to test part of the outputs against the C++ code,
+NOT USED in Habby but practical anyways to debug
+:param path_ori: the path to the files from stathab based on the c++ code
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="src.stathab_c.load_float_stathab">
+<code class="descclassname">src.stathab_c.</code><code class="descname">load_float_stathab</code><span class="sig-paren">(</span><em>filename</em>, <em>check_neg</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_float_stathab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load float with extra checks
+:param filename: the file to load with the path
+:param check_neg, if true negative value are not allowed in the data
+:return: data if ok, -99 if failed</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.stathab_c.load_namereach">
+<code class="descclassname">src.stathab_c.</code><code class="descname">load_namereach</code><span class="sig-paren">(</span><em>path</em>, <em>name_file_reach='listriv.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_namereach" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to only load the reach names (useful for the GUI)
+:param path : the path th the listriv.txt
+:param name_file_reach: In case the file name is not listriv.txt
+:return: the list of reach name</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.stathab_c.load_pref">
+<code class="descclassname">src.stathab_c.</code><code class="descname">load_pref</code><span class="sig-paren">(</span><em>filepref</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_pref" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function loads the different pref coeffficient contained in filepref
+:param filepref: the name of the file (usually Pref.txt)
+:param path: the path to this file
+:return: the name of the fish, a np.array with the differen coeff</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.stathab_c.main">
+<code class="descclassname">src.stathab_c.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<span class="target" id="module-src.substrate"></span><dl class="function">
+<dt id="src.substrate.fig_merge_grid">
+<code class="descclassname">src.substrate.</code><code class="descname">fig_merge_grid</code><span class="sig-paren">(</span><em>point_all_both_t</em>, <em>ikle_both_t</em>, <em>path_im</em>, <em>ikle_orr=[]</em>, <em>point_all_orr=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_merge_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to plot the grid after it was merged with the substrate data
+plot one time step at the time
+:param point_all_both: the coordinate of the points of the updated grid
+:param ikle_both: the connectivity table
+:param path_im: the path where the image should be saved
+:param ikle_orr the orginial ikle
+:param point_all_orr the orginal point_all
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.fig_substrate">
+<code class="descclassname">src.substrate.</code><code class="descname">fig_substrate</code><span class="sig-paren">(</span><em>coord_p, ikle, sub_info, path_im, xtxt=[-99], ytxt=[-99], subtxt=[-99]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_substrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to plot the raw substrate data, which was loaded before
+:param coord_p: the coordinate of the point
+:param ikle: the connectivity table
+:param sub_info: the information on subtrate by element
+:param xtxt if the data was given in txt form, the orignal x data
+:param ytxt if the data was given in txt form, the orignal y data
+:param subtxt if the data was given in txt form, the orignal sub data
+:param path_im the path where to save the figure
+:return: figure</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.grid_update_sub2">
+<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub2" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the updated grid with the substrate. More complicated than grid_update3 because it tries to makes
+new cell based on the lines linkes the centroid and the side of the trianlge. Looks more elegant at first but
+quite complicated and do not work for all cases
+:param ikle:  the hydrological grid to be merge with the substrate grid
+:param coord_p: the coordinate of the point of the hydrological grid
+:param point_crossing: the crossing point, with the elemtn of the hydrological grid linked with it and the
+direction (nx,ny) of the substrate line at this point
+:param coord_sub the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
+cell of the hydrological grid
+:return: the new grid</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.grid_update_sub3">
+<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub3</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub3" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to update the grid after finding the crossing points
+:param ikle:  the hydrological grid to be merge with the substrate grid
+:param coord_p: the coordinate of the point of the hydrological grid
+:param point_crossing: the crossing point, with the elemtn of the hydrological grid linked with it and the
+direction (nx,ny) of the substrate line at this point
+:param coord_sub the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
+cell of the hydrological grid
+:return: the new grid</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.intersec_cross">
+<code class="descclassname">src.substrate.</code><code class="descname">intersec_cross</code><span class="sig-paren">(</span><em>hyd1</em>, <em>hyd2</em>, <em>sub1</em>, <em>sub2</em>, <em>e=-99</em>, <em>nx=[]</em>, <em>ny=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.intersec_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>small function to calculate the intersection, segment are not parrallel,
+in case where we know that the intersection exists
+Also save various info with the intersection (element, direction, etc.)
+:param hyd1: the first hydrological point
+:param hyd2: the second
+:param sub1: the first substrate point
+:param sub2: the second
+:param e: the element of the hydrological grid (optional)
+:param nx the direction of the cutting part of the substrate grid (x dir)
+:param ny the direction of the cutting part of the substrate grid (y dir)
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.load_sub_shp">
+<code class="descclassname">src.substrate.</code><code class="descname">load_sub_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em>, <em>name_att='SUBSTRATE'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_shp" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the substrate in form of shapefile.
+:param filename the name of the shapefile
+:param path the path where the shapefile is
+:param name_att the name of the substrate column in the attribute table
+:return grid in form of list of coordinate and connectivity table (two list)
+and an array with substrate type</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.load_sub_txt">
+<code class="descclassname">src.substrate.</code><code class="descname">load_sub_txt</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the substrate in form of a text file
+the text file must have 3 column x,y corrdinate and substrate info, no header or title
+:param filename the name of the shapefile
+:param path the path where the shapefile is
+:return grid in form of list of coordinate and connectivity table (two list)
+and an array with substrate type and (x,y,sub) of the orginal data</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.main">
+<code class="descclassname">src.substrate.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.merge_grid_hydro_sub">
+<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>default_data</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>After the data for the substrate and the hydrological data are loaded, they are still in different grids.
+This functions will merge both grid together. This is done for all time step and all reaches
+:param hdf5_name_hyd: the path and name of the hdf5 file with the hydrological data
+:param hdf5_name_sub: the path and the name of the hdf5 with the substrate data
+:param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.point_cross2">
+<code class="descclassname">src.substrate.</code><code class="descname">point_cross2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross2" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
+hydrological grid which cross with a side of the substrate grid
+the algo based on finding if points of one elements are in the same polygon using a ray casting method
+:param ikle: the connectivity table for the hydrological data
+:param coord_p: the coordinates of the points of the hydrological grid
+:param ikle_sub: the connecity vity table of the substrate
+:param coord_p_sub: the coordinates of the points of the substrate grid
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.point_cross_bis">
+<code class="descclassname">src.substrate.</code><code class="descname">point_cross_bis</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross_bis" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
+hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow.
+:param ikle: the connectivity table for the hydrological data
+:param coord_p: the coordinates of the points of the hydrological grid
+:param ikle_sub: the connecity vity table of the substrate
+:param coord_p_sub: the coordinates of the points of the substrate grid
+:return:</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to HABBY&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#how-to-execute-habby">How to execute HABBY</a></li>
+<li><a class="reference internal" href="#main-and-source-code">Main(   ) and source code</a></li>
+<li><a class="reference internal" href="#modules-for-the-graphical-interface">Modules for the graphical interface</a><ul>
+<li><a class="reference internal" href="#main-windows-of-habby">Main_windows of HABBY</a></li>
+<li><a class="reference internal" href="#estimhab-gui">Estimhab - GUI</a><ul>
+<li><a class="reference internal" href="#biological-data-for-estimhab">Biological data for Estimhab</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#hydrological-information-gui">Hydrological information - GUI</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">HABBY 1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2017, Diane von Gunten, Yann Le Coarer and Fabrice Zaoui.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

@@ -29,6 +29,31 @@ class MainWindows(QMainWindow):
     """
     The class MainWindows contains the menu and the title of all the HABBY windows.
     It also create all the widgets which can be called during execution
+
+    **Technical comments and walk-through**
+
+    First, we load the user setting using Qsettings: The settings by default of Qsettings are the name of the program (HABBY) and
+    the name of the organization which develops the program (irstea).  I have added three user settings (the name of the
+    last project loaded into HABBY, the path to this project and the language used). The Qsetting are stored in the
+    registry in Windows. Qsettings also function with Apple and Linux even if the information is stored differently
+
+    We set up the translation next. The translation of HABBY in different language is explained in more detail in
+    the section “Translation of HABBY”. We give here the path to the data related to the translation. More precisely, we indicate
+    here the path to the translation data and the name of the qm file containing the data related to the translation
+    in each language. If a new qm is added for a new language, it should be added here to the list.
+
+    Now, two important attributes are defined: self.name_prj and self.path_prj. These attribute will be communicated to
+    children classes. For each project, an xml file is created. This “project” file should be called name_prj.xml
+    and should be situated in the path indicated by self.path_prj.
+
+    We call the central_widget which contains the different tabs.
+
+    We create the menu of HABBY calling the function my menu_bar().
+
+    Two signal are connected, one to save the project (i.e to update the xml project file) and another to save an
+    ESTIMHAB calculation.
+
+    We show the created widget.
     """
 
     def __init__(self):
@@ -79,6 +104,7 @@ class MainWindows(QMainWindow):
         self.init_ui()
 
     def init_ui(self):
+        """ Used by __init__() to create an instance of the class MainWindows """
 
         # create the menu bar
         self.my_menu_bar()
@@ -94,19 +120,23 @@ class MainWindows(QMainWindow):
 
     def closeEvent(self, event):
         """
-        close the program better than before (where it used to crash about 1 times in ten). Not realy sure why.
-        :param event:
-        :return:
+        Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.
+
+        :param event: managed by the operating system.
         """
         sys.exit()
 
     def setlangue(self, nb_lang):
         """
         A function which change the language of the programme. It change the menu and the central widget.
-        it uses the self.lang attribute which should be set to the new language before
-        :param nb_lang the number representing the language (int)
-        :return: None
-        # 0 is for english, 1 for french, x for any additionnal language
+        It uses the self.lang attribute which should be set to the new language before calling this function.
+
+        :param nb_lang: the number representing the language (int)
+
+        *   0 is for English
+        *   1 for French
+        *   n for any additionnal language
+
         """
 
         # set the langugae
@@ -136,8 +166,7 @@ class MainWindows(QMainWindow):
 
     def my_menu_bar(self):
         """
-        The function creating the menu bar
-        :return: A menu
+        This function creates the menu bar of HABBY.
         """
 
         self.menubar = self.menuBar()
@@ -235,12 +264,38 @@ class MainWindows(QMainWindow):
         # self.toolbar = self.addToolBar('')
 
         # add the title of the windows
-        self.setWindowTitle(self.tr('HABBY- VERSION 1'))
+        self.setWindowTitle(self.tr('HABBY- FISH HABITAT'))
 
     def save_project(self):
         """
-        A function to save the xml file with the information of the project
-        :return: None
+        A function to save the xml file with the information on the project
+
+        **Technical comments**
+
+        This function saves or creates the xml file related to the projet. In this xml file, there are the path and
+        the name to all files related to the project, notably the hdf5 files containing the hydrological data.
+
+        To find or create the xml file, we use the attribute self.path_prj and self.name_proj. If the path to
+        the project directory is not found an error appears. The error is here sent though additional windows
+        (to be sure that the user notice this problem), using the Qmesssage module. The user should give the general
+        info about the project in the general tab of HABBY and they are collected here. User option (using Qsetting)
+        is next updated so that the user will find his project open the next time it opens HABBY.
+
+        When HABBY open, there are therefore  two choice: a) This is a new project b) the project exists already.
+        If the project is new, the xml file is created and general information is written in this file. In addition,
+        the text file which are necessary to log the action of HABBY are created now. This part of the reason why it
+        is not possible to run other part of HABBY (such as loading hydrological data) before a project is saved.
+        In addition, it would create a lot of problems on where to store the data created. Hence, a project is needed
+        before using HABBY. If the project exists already (i.e. the name and the path of the project have not been
+        modified), the xml file is just updated to change its attributes as needed.
+
+        Interesting path are a) the biologie path (named "biologie" by default) which contains the biological information
+        such as the preference curve and b) the path_im which is the path where all figures and most outputs of HABBY
+        is saved. If path_im is not given, HABBY automatically create a folder called figure_habby when the
+        user creates a new project. The user can however change this path if he wants. The next step is to communicate
+        to all the children widget than the name and path of the project have changed.
+
+        Finally the log is written (see “log and HABBY in the command line).
         """
         # saved path
         e2here = self.central_widget.welcome_tab.e2
@@ -360,8 +415,18 @@ class MainWindows(QMainWindow):
 
     def save_project_estimhab(self):
         """
-        a function to save in an hdf5 file the information linked with Estimhab.
-        :return:
+        A function to save the information linked with Estimhab in an hdf5 file.
+
+        **Technical comments**
+
+        This function save the data and result from the estimhab calculation. It would look more logic if it was in
+        the esimhab.py script, but it was easier to call it from here instead of in the child class.
+
+        This function get all estimhab input, create an hdf5 file using h5py and save the data in the hdf5. One
+        specialty of hdf5 is that is cannot use Unicode. Hence all string have to be passed to ascii using the encode
+        function. The size of each data should also be known.
+
+        Finally, we save the name and path of the estimhab file in the xml project file.
         """
 
         # a boolenan to check to progress of the saving
@@ -436,10 +501,12 @@ class MainWindows(QMainWindow):
 
     def test_entry_float(self, var_in):
         """
-        An utility function to test if the entry are float or not
-        the boolean self.does_it_work is used to know if it functions without openning new message box
-        :param var_in is the QlineEdit which contains the data
-        :return: the variable
+        An utility function to test if var_in are float or not
+        the boolean self.does_it_work is used to know if the functions run until the end.
+
+        :param var_in: the QlineEdit which contains the data (so var_in.text is a string)
+
+        :return: the tested variable var_in
         """
 
         var_str = var_in.text()
@@ -464,7 +531,11 @@ class MainWindows(QMainWindow):
 
     def open_rech(self):
         """
-        open the additional research menu
+        Open the additional research tab, which can be used to create Tab with more experimental contents.
+
+        Indeed, it is possible to show extra tab in HABBY. These supplementary tab correspond to open for researcher.
+        The plan is that these options are less tested than other mainstream options. It is not clear yet what
+        will be added to these options, but the basic architecture is there when it will be needed.
         """
         self.rechmain = True
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # 0 is not research mode
@@ -472,8 +543,8 @@ class MainWindows(QMainWindow):
 
     def close_rech(self):
         """
-            close the additional research menu
-            """
+            Close the additional research menu (see open_rech for more information)
+        """
         self.rechmain = False
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # 0 is not research mode
         self.setCentralWidget(self.central_widget)
@@ -488,7 +559,10 @@ class MainWindows(QMainWindow):
     def do_log(self, save_log):
         """
         Save or not save the log
-        :param save_log 0 -> do not save log, 1 -> save the log in the .log file and restart file
+
+        :param save_log an int which indicates if the log should be saved or not
+        *   0: do not save log
+        *   1: save the log in the .log file and restart file
         """
         if save_log == 0:
             t = self.central_widget.l2.text()
@@ -519,8 +593,12 @@ class MainWindows(QMainWindow):
 
     def erase_pict(self):
         """
-        All figure contained in the folder path im will be deleted
-        :return:
+        All files contained in the folder indicated by path_im will be deleted.
+
+        From the menu of HABBY, it is possible to ask to erase all files in the folder indicated by path_im
+        (usually figure_HABBY). Of course, this is a bit dangerous. So the function asks the user for confirmation.
+        However, it is practical because you do not have to go to the folder to erase all the images when there
+        are too many of them.
         """
         # get path im
         path_im = '.'
@@ -564,7 +642,48 @@ class MainWindows(QMainWindow):
 
 class CentralW(QWidget):
     """
-    This class create the different tabs of the programm, which are then used as the central widget by MainWindows
+    This class create the different tabs of the programm, which are then used as the central widget by the class
+    MainWindows.
+
+    :param rech: A bollean which is True if the tabs for the "research option" are shown. False otherwise.
+    :param path_prj: A string with the path to the project xml file
+    :param name_prj: A string with the name of the project
+
+    **Technical comments**
+
+    In the attribute list, there are a series of name which finish by “tab” such as stathab_tab or output_tab. Each of
+    these names corresponds to one tab and a new name should be added to the attributes to add a new tab.
+
+    During the creation of the class, each tab is created. Then, the signals to show the figures are connected between this
+    class and all the children classes which need it (often this are the classes used to load the hydrological data). When a
+    class emits the signal “show_fig”, CentralW collect this signal and show the figure, using the showfig function.
+
+    Show_fig is mostly a “plt.show()”. To avoid problem between matplotlib and PyQt, it is however important that
+    matplotlib use the backend “Qt5Agg” in the .py where the “plt.plot” is called. Practically, this means modifying
+    the matplotlib import.
+
+    Showfig shows only one figure. To show all existing figures, one can call the function show_fig2 from the menu.
+    Show_fig2 call the instance child_win of the class ShowImageW to open a new Windows with all figure. However,
+    this would only show the figure without any option for the zoom.
+
+    Then we call a function which connects all the signals from each class which need to write into the log. It is a good
+    policy to create a “send_log” signal for each new important class. As there are a lot of signal to connect, these
+    connections are written in the function “connect_signal_log”, where the signal for a new class can be added.
+
+    When this is done, the info for the general tab (created before) is filled. If the user has opened a project in HABBY
+    before, the name of the project and the other info related to it will be shown on the general tab. If the general
+    tab is modified in the class WelcomeW(), this part of the code which fill the general tab will probably needs to
+    be modified.
+
+    Finally, each tab is filled. The tabs have been created before, but there were empty. Now we fill each one with the
+    adequate widget. This is the link with many of the other classes that we describe below. Indeed, many of the widget
+    are based on more complicated classes created for example in hydro_GUI_2.py.
+
+    Then, we create an area under it for the log. Here HABBY will write various infos for the user. Two things to note
+    here: a) we should show the end of the scroll area. b) The size of the area should be controlled and not be
+    changing even if a lot of text appears. Hence, the setSizePolicy should be fixed.
+
+    The write_log() and write_log_file() method are explained in the section about the log.
     """
 
     def __init__(self, rech, path_prj, name_prj):
@@ -589,12 +708,15 @@ class CentralW(QWidget):
         self.init_iu()
 
     def init_iu(self):
+        """
+        A function to initilize an instance of CentralW. Called by __init___().
+        """
 
         # create all the widgets
-        biorun_tab = HydroW()
-        bioinfo_tab = HydroW()
-        other_tab = HydroW()
-        other_tab2 = HydroW()
+        biorun_tab = EmptyTab()
+        bioinfo_tab = EmptyTab()
+        other_tab = EmptyTab()
+        other_tab2 = EmptyTab()
 
         # connect signals save figures
         self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
@@ -689,13 +811,13 @@ class CentralW(QWidget):
 
     def scrolldown(self):
         """
-        Move the scroll bar to the bottowm if the ScollArea is getting bigger
+        Move the scroll bar to the bottow if the ScollArea is getting bigger
         """
         self.vbar.setValue(self.vbar.maximum())
 
     def showfig(self):
         """
-        A small function to show the last figures
+        A small function to show the last figure
         """
 
         # check if there is a path where to save the image
@@ -712,7 +834,6 @@ class CentralW(QWidget):
     def showfig2(self):
         """
         A function to see all saved figures without possibility to zoom
-        :return:
         """
         self.child_win.update_namefig()
         self.child_win.selectionchange(-1)
@@ -720,16 +841,14 @@ class CentralW(QWidget):
 
     def optfig(self):
         """
-        Small function which open the output tab. It contains the different options for the figures.
-        Output should be the 6th tab, otherwise it will not work
-        :return:
+        A small function which open the output tab. It contains the different options for the figures.
+        Output should be the 6th tab, otherwise it will not work.
         """
         self.tab_widget.setCurrentIndex(5)
 
     def connect_signal_log(self):
         """
-        connect all the signal linked to the log
-        is in a function only to improve lisibility
+        connect all the signal linked to the log. This is in a function only to improve lisibility.
         """
 
         self.hydro_tab.send_log.connect(self.write_log)
@@ -749,17 +868,19 @@ class CentralW(QWidget):
 
     def write_log(self, text_log):
         """
-        A function to wrtie the different log
-        :param text_log: the text which should be added to the log
-        if start with # -> added it to self.l2 (QLabel) and the .log file (comments)
-        if start with restart -> added it restart_nameproject.txt
-        if start with WARNING -> added it to self.l2 (QLabel) and the .log file
-        if start with ERROR -> added it to self.l2 (QLabel) and the .log file
-        if start with py -> added to the .log file (python command)
-        if start with nothing -> just print to the Qlabel
-        if out from stdout -> added it to self.l2 (QLabel) and the .log file (comments)
-        if logon = false do not write in log.txt
-        :return:
+        A function to write the different log. Please read the section of the doc on the log.
+
+        :param text_log: the text which should be added to the log (a string)
+
+        *   if text_log start with # -> added it to self.l2 (QLabel) and the .log file (comments)
+        *   if text_log start with restart -> added it restart_nameproject.txt
+        *   if text_log start with WARNING -> added it to self.l2 (QLabel) and the .log file
+        *   if text_log start with ERROR -> added it to self.l2 (QLabel) and the .log file
+        *   if text_log start with py -> added to the .log file (python command)
+        *   if text_log start with nothing -> just print to the Qlabel
+        *   if text_log out from stdout -> added it to self.l2 (QLabel) and the .log file (comments)
+
+        if logon = false, do not write in log.txt
         """
         # read xml file to find the path to the log file
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
@@ -817,10 +938,10 @@ class CentralW(QWidget):
 
     def write_log_file(self, text_log, pathname_logfile):
         """
-        A function to write to the .log text
-        :param text_log: the text to be written
+        A function to write to the .log text. Called by write_log.
+
+        :param text_log: the text to be written (string)
         :param pathname_logfile: the path+name where the log is
-        :return:
         """
         if self.logon:
             if os.path.isfile(pathname_logfile):
@@ -844,11 +965,22 @@ class CentralW(QWidget):
 
 
 class WelcomeW(QWidget):
-
+    """
+    The class WeLcomeW()  creates the first tab of HABBY (the tab called “General”). This tab is there to create
+    a new project or to change the name, path, etc. of a project.
+    """
     # define the signal used by the class
     # should be outise of the __init__ function
+
     save_signal = pyqtSignal()
+    """
+    A PyQt signal used to save the figure
+    """
+
     send_log = pyqtSignal(str, name='send_log')
+    """
+       A PyQt signal used to write the log
+    """
 
 
     def __init__(self):
@@ -857,6 +989,9 @@ class WelcomeW(QWidget):
         self.init_iu()
 
     def init_iu(self):
+        """
+        Used in the initialization of a new instance of the class WelcomeW()
+        """
 
         # general into to put in the xml .prj file
         l1 = QLabel(self.tr('Project Name: '))
@@ -893,23 +1028,31 @@ class WelcomeW(QWidget):
         layout2.addItem(spacer, 5, 1)
         self.setLayout(layout2)
 
-    def addtext(self):
-        print('Text Text and MORE Text')
 
     def setfolder(self):
+        """
+        This function is used by the user to select the folder where the xml project file will be located.
+        """
         dir_name = QFileDialog.getExistingDirectory(None)  # check for invalid null parameter on Linuxgit
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project. \n')
 
 
-class HydroW(QWidget):
+class EmptyTab(QWidget):
+    """
+    This class is  used to fill empty tabs with something during the developement.
+    It will not be use in the final version.
+    """
 
     def __init__(self):
         super().__init__()
         self.init_iu()
 
     def init_iu(self):
+        """
+        Used in the initialization.
+        """
         button1 = QPushButton(self.tr('I am a tab'), self)
         button1.clicked.connect(self.addtext)
 
@@ -922,15 +1065,43 @@ class HydroW(QWidget):
         self.setLayout(layout1)
 
     def addtext(self):
+        """
+        This function print a string on the command line. This is useful if you need to check if a button (or similar).
+        is connected.
+        """
         print('Text Text and MORE Text')
 
 
 class ShowImageW(QWidget):
     """
-    The widget which shows the saved images (so that there is a return when you saved somethings)
-    :return:
+    The widget which shows the saved images. Used only to show all the saved figure together iwhtout zoom or other
+    options.
+
+    **Technical comments**
+
+    The ShowImageW() class is used to show all the figures created by HABBY. It is a class which can only be
+    called from the menu (In Option/Option Image). This is not the usual way of opening a figure which is usually done
+    by plt.show from matplotlib. This is the way to look at all figures  together, which can be useful, even if zooming
+    is not possible anymore.
+
+    To show all image, HABBY open a separate window and show the saved image in .png format.  Currently, the figures
+    shown are in .png, but other formats could be used. For this, one can change the variable self.imtype.
+
+    An important point for the ShowImageW  class  is where the images were saved by the functions which created them.
+    In HABBY, all figures are saved in the same folder called “path_im”. One “path_im” is chosen at the start of each
+    project. By default, it is the folder “Figure_Habby”, but the user can modify this folder in the window created by
+    ShowImageW(). The function for this is called “change_folder”, also in ShowImageW(). The path_im is written in
+    the xml project file. The different functions which create image read this path and send the figure created
+    to this folder. ShowImageW() reads all  figure of “.png” type in the” path_im” folder and show the most recent
+    figure. The user can use the drop-down menu to choose to see another figure. The names of the figure are added to
+    the drop-down menu in the function update_namefig. The function "selectionchange" changes the figure shown based
+    on the user action.
+
     """
     send_log = pyqtSignal(str, name='send_log')
+    """
+        A PyQt signal used to write the log
+    """
 
     def __init__(self, path_prj, name_prj):
         super().__init__()
@@ -947,6 +1118,9 @@ class ShowImageW(QWidget):
         self.all_file = []
 
     def init_iu(self):
+        """
+        Used in the initialization.
+        """
 
         # check if there is a path where to save the image
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -979,7 +1153,7 @@ class ShowImageW(QWidget):
 
     def selectionchange(self, i):
         """
-        A function to change the figure
+        A function to change the figure shown by ShowImageW()
         :return:
         """
         if not self.all_file:
@@ -992,8 +1166,7 @@ class ShowImageW(QWidget):
 
     def change_folder(self):
         """
-        a function to change the folder where are the image
-        :return:
+        A function to change the folder where are stored the image (i.e., the path_im)
         """
 
         self.path_im = QFileDialog.getExistingDirectory(None)
@@ -1025,8 +1198,7 @@ class ShowImageW(QWidget):
 
     def update_namefig(self):
         """
-        add the different figure name to the drop-down list
-        :return:
+        This function add the different figure name to the drop-down list.
         """
 
         self.image_list.clear()

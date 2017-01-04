@@ -891,8 +891,14 @@ class SubHydroW(QWidget):
 
 class HEC_RAS1D(SubHydroW):
     """
-    The sub-windows which help to open the Hec-RAS data. Call the Hec-RAS loader and save the name
-     of the files to the project xml file.
+   The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
+   src/hec_ras06.py which loads the hec-ras data in 1D.
+
+   **Technical comment**
+
+   The class HEC_RAS1D inherits from SubHydroW() so it have all the methods and the variables from the class
+   SubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
+   the user is on the hydrological tab and click on hec-ras1D as hydrological model.
     """
     show_fig = pyqtSignal()
 
@@ -902,6 +908,26 @@ class HEC_RAS1D(SubHydroW):
         self.init_iu()
 
     def init_iu(self):
+        """
+        This function is called by __init__() durring the initialization.
+
+        **Technical comment**
+
+        The self.attributexml variable is the name of the attribute in the xml file. To load a hec-ras file, one needs
+        to give to HABBY one file containing the geometry data and one file containing the simulation result. The name
+        and path to  these two file are saved in the xml project file under the attribute given in
+        the self.attributexml variable.
+
+        The variable self.extension is a list of list of the accepted file type. The first list is for the file
+        with geometry data. The second list is the extension of the files containing the simulation results.
+
+        Using the function self.was_model_loaded_before, HABBY write the name of the hec-ras files which were loaded
+        in HABBY in the same project before.
+
+        Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. The user can choose the interpolation
+        type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
+        profile will always be one. See manage_grid.py for more information on how to create a grid.
+        """
 
         # update attibute for hec-ras 1d
         self.attributexml = ['geodata', 'resdata']

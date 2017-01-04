@@ -1,0 +1,170 @@
+.. HABBY documentation master file, created by
+   sphinx-quickstart on Tue Jan  3 14:37:35 2017.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to HABBY's documentation!
+==================================
+
+.. toctree::
+   :maxdepth: 4
+   :caption: Contents
+  
+HABBY is a program to estimate the habitat of fish using various hydrological models and preference curve as input. 
+
+How to execute HABBY
+================================
+To execute HABBY:
+	* Go to folder which contains habby.py using the command line.
+	* Open the command line and type python habby.py.
+	
+The python version should be 3.4. HABBY should also function with most of the python 3 distributions.
+
+If a module is missing, it is possible to install it using pip ("pip install -m *module_name*"). Obviously, pip needs to installed, which should be done by default in python 3.4. If you want to be sure to have the same version of the module than originally, go to the folder zen_file/wheele with the command line and install the missing module from there (something similar to "pip install -m *.whl*"). Not all modules are in this folder, only the ones which were difficult to install.
+
+Main(	) and source code
+==========================
+The source code is separated in two folders: one folder which contain the code source for the graphical user interface (GUI) and one folder for the rest of the code source. 
+
+The dependency between the different part of the source code can be visualized in the mindmap real_GUI.xmind (xmind should be installed).
+
+The main of HABBY is habby.py. It has the usual form for an application using PyQt5.  The main() creates an application of QWidget and call the Main_Windows class, which we will discuss shortly. The last line closes the application. 
+
+
+Modules for the graphical interface
+===================================
+Here is the list of all modules contains in the src_GUI folder.
+
+Main_windows of HABBY
+--------------------------------
+in src_GUI/Main_Windows_1.py
+
+.. automodule:: src_GUI
+   :members:
+   :undoc-members:  
+.. automodule:: src_GUI.Main_windows_1
+   :members:
+   :undoc-members:
+   
+Estimhab - GUI
+----------------------------------
+in src_GUI/estimhab_GUI.py
+
+.. automodule:: src_GUI.estimhab_GUI
+   :members:
+   :undoc-members:
+   
+Biological data for Estimhab
+""""""""""""""""""""""""""""""""""""""
+
+The biological data, i.e., the preference curves of Estimhab, are saved in xml files
+situated in the folder given by the path written in the xml project file under the 
+attribute Path_bio. By default, it is HABBY/biology. It is possible to change this folder
+using the GUI. 
+
+Estimhab is a statistical model, which functions using mathematical regressions. 
+The different regressions (or preference curve) of each fish are described in an xml file 
+whose format is given here.
+
+Conceptually, the regressions R are of two types:
+
+*	Type 0	 	R = C * Q^{m1} * exp(m2*Q)
+*	Type 1		R = C * (1+m1*exp(m2*Q))
+
+Where Q is the discharge, m1 and m2 are coefficients which depend on the fish type, and C is a
+constant which depends on the stream characteristic and the fish type. 
+
+The constant C is of the form C = a + ∑ ai * ln(Si) where a and ai are coefficients which depend on 
+the fish type. Si are particular stream characteristics. Which characteristics should be used is a 
+function of the fish type and is so given in the xml file. The value of S i is a function of the stream
+and is calculated by the program.
+ 
+In the xml file, 
+
+*	Attribute coeff_q: Give the main coefficient of the regression (m1 and m2)
+*	Attribute func_q : Give the type of regression R used.  Type 0 and type 1, as described above, are known by HABBY.
+*	Attribute coeff_const: Give the coefficient used to construct the constant C (a, a1, a2, a3,…). The number of coefficient differs for each fish, but should be at least one.
+*	Attribute var_const: Give which type of stream characteristics is used. This is not the value of the particular characteristic, but only which type is used. The following list of type is accepted:
+
+	*	0 for Q50, natural median discharge
+	*	1 for H50, the height of the stream at q50
+	*	2 for L50, the width of the stream at q50
+	*	3 for V50, the velocity of the stream at q50
+	*	4 for Re50, the discharge divided by 10 times the width at Q50
+	*	5 for Fr50, the Froude number at Q50
+	*	6 for Dh50, the mean substrate height divided by h50
+	*	7 for Exp(Dh50). Erase the log() of this particular term of the constant
+
+Hydrological information - GUI
+---------------------------------
+in src_GUI/hydro_GUI_2.py
+
+This python module contains the class which forms the hydrological tab in HABBY.
+It contains the information for the graphical interface and make the link with the scripts
+used for the hydrological calculations.
+
+.. automodule:: src_GUI.hydro_GUI_2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: src_GUI.output_fig_GUI
+   :members:
+   :undoc-members:
+
+.. automodule:: src_GUI.stathab_GUI
+   :members:
+   :undoc-members:
+   
+  Modules for the calculation of fish's habitat
+  =============================================
+.. automodule:: src
+   :members:
+   :undoc-members:
+.. automodule:: src.dist_vistess2
+   :members:
+   :undoc-members:
+.. automodule:: src.estimhab
+   :members:
+   :undoc-members:
+.. automodule:: src.hec_ras2D
+   :members:
+   :undoc-members:
+.. automodule:: src.Hec_ras06
+   :members:
+   :undoc-members:
+.. automodule:: src.load_hdf5
+   :members:
+   :undoc-members:
+.. automodule:: src.manage_grid_8.py
+   :members:
+   :undoc-members:
+.. automodule:: src.mascaret
+   :members:
+   :undoc-members:
+.. automodule:: src.river2d
+   :members:
+   :undoc-members:
+.. automodule:: src.rubar
+   :members:
+   :undoc-members:
+.. automodule:: src.selafin_habby1
+   :members:
+   :undoc-members:
+.. automodule:: src.stathab_c
+   :members:
+   :undoc-members:
+.. automodule:: src.substrate
+   :members:
+   :undoc-members:
+
+
+
+
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
