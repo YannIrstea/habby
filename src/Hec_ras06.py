@@ -11,27 +11,53 @@ from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylab
 
 def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False):
     """
-    This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS
+    This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS.
+    All arguments from this function are string.
 
-    :rtype: list of numpy array
     :param geo_file: the name of .goX (example .go3) file which is an output from hec-ras containg the profile data
-    :param res_file: the name of O0X.xml file from HEC-RAS or the name of the .sdf file from HEC-RAS or the name of the
-    .rep file from HEC-RAS
-     -To obtain the xml file in hEC-RAS 4, open the project in HEC-RAS,
-     click on File , then export geometry and result (RAS Mapper), then OK
-     -To obtain the sdf file in HEC-RAS5, click on File, then Export GIS data
-     Export all reaches (select Reaches to export -. Full List -> Ok)
-     Export all needed profile (select Profile to export -> Select all -> ok)
-     - To obtain the report file .rep, click on File, generate report
-     Select Flow data and Geometry data in input data and, in Specific Table, Flow distribution and Cross section Table
+    :param res_file: the name of O0X.xml file for the name of the .sdf file  or the name of the .rep file (output data)
     :param path_res: path to the result file
     :param path_geo: path to the geo file
-    :param path_im
-    :param save_fig if True image is saved
+    :param path_im: the path to the folder where the images should be saved
+    :param save_fig: if True image is saved
+    :return: coord_pro (for each profile, x,y,elev, dist along the profile), vh_pro
+            (for each profile, dist along the profile, water height, velocity). Both variable are a list of numpy array.
 
-    all entry parameter are string
-    :return: coord_pro: for each profile (x,y,elev, dist along the profile), vh_pro for each profile
-    [dist along the profile, water height, velocity]
+    **How to obtain the input files**
+
+    To obtain the xml file in HEC-RAS version 4:
+
+    *  open the project in HEC-RAS.
+    *   click on File , then export geometry and result (RAS Mapper), then OK
+
+    To obtain the sdf file in HEC-RAS version 5 which should be used if the model is georeferenced:
+
+    *    click on File, then Export GIS data
+    *    Export all reaches (select Reaches to export -. Full List -> Ok)
+    *    Export all needed profile (select Profile to export -> Select all -> ok)
+
+    To obtain the report file .rep in HEC-RAS version which should be used if the model is NOT geo-referenced
+
+    *   click on File, generate report
+    *   Select Flow data and Geometry data in input data and, in Specific Table, select Flow distribution and
+        Cross section Table
+
+    **Technical comments**
+
+    This is function which loads the hec_ras inputs in 1D for the version 4 and 5 of HEC-RAS. It accepts different type
+    of hec-ras output as input and calls the appropriate sub-function for each input file.  The geometrical data is
+    always given in the geo file (with the extension g01, G01, g02, G02, g03, etc.). The output data can be in an xml
+    file for the hec-ras in the version 4, an sdf file for hec-ras in version 5 or a .rep file in the version 5 if the
+    model is not georeferenced. The xml file is the format which has been tested the most.
+
+    First, it loads the geometrical data. Then it select the function to load the output data and loads it. Then, it
+    transforms the loaded data in a (x,y) coordinates system. Indeed, most of the data in hec-ras is given by indicating
+    a profile (which crossed the modelled river) and the distance along this profile. For HABBY, it is better to get
+    (x,y) coordinates. Then it create figure if asked by the switch “save_fig”. Finally, it updates the forms of the
+    output to be coherent with the dist_velocity_hecras function.  This way, in HABBY, the output from mascaret and
+    rubar after the velocity distribution have the same form than the output from hec-ras, which is useful afterwards
+    to save all these data in the hdf5 file.
+
     """
     xy_h = [-99]
     zone_v = [-99]
@@ -84,16 +110,31 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
 
 def open_xmlfile(xml_file, reach_name, path):
     """
-    This function open the xml file from HEC-RAS to get the velocity and water surface elevation.
+    This function open the xml file from HEC-RAS v4 to get the velocity and water surface elevation. To know how to
+    obtain this xml file, read the doc of open_hecras.
 
-    :param xml_file:  name of O0X.xml file from HEC-RAS. To obtain this file, open the project in HEC-RAS,
-     click on File , then export geometry and result (RAS Mapper), then OK
-    :param reach_name, a list of string containing the name of the reaches/rivers in the order of the geo file
-     (might not be the one of the xml file)
-    :param path: path to the xml file
-    all entry parameter are string
-    :return: velocity and the water surface elevation for each river profiles in a list of np.array,
-    the number of simulation (int) and the name of the river profile (list of string)
+    :param xml_file: the name of O0X.xml file from HEC-RAS. (string)
+    :param reach_name: a list of string containing the name of the reaches/rivers in the order of the geo file
+           which might not be the one of the xml file.
+    :param path: path to the xml file (string)
+    :return: velocity and the water surface elevation for each river profiles (list of np.array),
+            the number of simulation(int) and the name of the river profile (list of string)
+
+    **Technical comments**
+
+    To load the xml file, we first call the load_xml function. It is a function which check that the xml file is well
+    formed and which return the “root” part fo the xml. With this “root”, it is possible to load other part of the xml
+    file using the Etree module.
+
+    Then, we load the velocity and water height data from the xml file. We also load the name of the profiles and of
+    the reach names.  Next, we pass the data into float. For each velocity of height point, we get its position along
+    the profile (see below for format) and the value at this point.
+
+    Finally, we re-order the data as in the geo file. Indeed, it is possible to have different order between the reaches
+    in the geo file and in the xml file. The last part of this function is there to order all the data as in the geo
+    file. There is a function reorder_reach which does something similar, but could not be used by the output from the
+    xml file (it is slighty different). However the reorder_reach function and this part of the open_xml function is
+    very similar.
     """
 
     # load the xml file
@@ -208,10 +249,11 @@ def open_xmlfile(xml_file, reach_name, path):
 
 def load_xml(xml_file, path):
     """
-    This is a small utility function used by openxml_file and opengml_file to load an xml file
-    :param xml_file: an xml file
-    :param path: a path where the file is
-    :return: the loaded data from the XML file
+    This is a function used by openxml_file and opengml_file to load an xml file.
+
+    :param xml_file: the name of an xml file (string)
+    :param path: the path where the xml file is (string)
+    :return: the loaded data from the XML file in the form of the root of the xml file.
     """
     # check that the xml file has the right extension
     blob, ext_xml = os.path.splitext(xml_file)
@@ -237,13 +279,44 @@ def load_xml(xml_file, path):
 
 def open_geofile(geo_file, path):
     """
-    A function to open the geometry file (.g0X) from HEC-RAS and to extract the (x,z) from each profile
-    and the (x,y) if gereferenced
-    :param geo_file: the HEC-RAS geometry file
-    :param path: path to the geo file
-    :return: a list with each river profile. Each profile is represented by a numpy array with the x and the altitude
-     of each point in the profile, the coordinate of the profile in alist of np.array, the coordinate of the river
-     and a list of string with the name of the reaches/ river in order
+    This function opens the geometry file (.g0X) from Hecr-rad. It extracts the (x,z) from each profile
+    and the (x,y) if georeferenced,
+
+    :param geo_file: the name of the Hec-Ras geometry file (string)
+    :param path: the path to the geo file (string)
+    :return: A list with each river profile (each profile is represented by a numpy array with the x and the altitude
+             of each point in the profile), the coordinate of the profile (list of np.array),
+             the coordinate of the river and the name of the reaches/ river in the file order (list of string)
+
+    **Technical comments**
+
+    The geofile is a text file with contains the geographical information. Because it is written to be read by human,
+    it is complicated to load and regular expression are needed. It is written profile by profile.
+
+    Generally, to give a position, hec-ras indicates the profile number and the distance along this profile. In addition,
+    data can be georeferenced or not. If it is geo-referenced we have some data in an (x,y) form. Otherwise, we only
+    have geometrical data in the form (profile, dist).
+
+    First, for each profile, we get the elevation of the points forming each profile in the form (dist, elevation).
+    The list of elevation for each profile starts with the keyword “Sta/Elev”. The data found in the text file is in a
+    string format. We use the function pass_in_float_from_geo to pass it in float. It is usually done using the function
+    float. However, there are cases where there are no space between two number. However, in this case, the number of
+    character per number is constant. In this case, we separate the number first.
+
+    Then, we get the coordinate of the river. If no coordinate are available the river is assumed to be straight. Next,
+    we get the bank limit (even if we do not really used afterwards), and the name of the reach. It is also important
+    to save the order in which the names of the reach are given. Indeed, we want this order to be the same in all
+    functions, but they can be different between the geo file and the data output.
+
+    Next, we want to get the position (x,y) of each profile. If it is georeferenced, we will be able to get this
+    position directly from the file and put it in the data_dist_str variable. We will then pass it to float. If not,
+    we will use the function coord_profil_non_georeferenced to estimate the position of the profile (see below).
+
+    If the profile is not georeferenced, it is important to have the distance between two profile, so we extract the
+    information from the geo file in all cases (georeferenced or not). The last profile of a reach does not have a
+    distance to the next (not existing) profile. However, if a profile does not have a distance to the next profile
+    and is not the last profile, we ignore this profile. It is usually not a problem because this profile is usually
+    not a “real” profile, but the representation of a bridge or a culvert.
     """
 
     failload = [-99],[-99], [-99], '-99', [-99], [-99]
@@ -406,8 +479,8 @@ def open_geofile(geo_file, path):
 def coord_profile_non_georeferenced(data_bank_all, data_dist_all, data_river_all, data_profile_all, nb_pro_reach):
     """
     This is a function to create the coordinates of the profile in the non-georeferenced case.
-    This function is called by open geo_file()
-    Hypothesis: The profile are straight and perpendicular to the river. The last profile is at the end of the river.
+    This function is called by open geo_file(). Hypothesis: The profile are straight and perpendicular to the river.
+    The last profile is at the end of the river.
 
     :param data_bank_all: distance along the profile of bank station
     :param data_dist_all: the distance between the profile (left, center channel, right)
@@ -415,6 +488,21 @@ def coord_profile_non_georeferenced(data_bank_all, data_dist_all, data_river_all
     :param data_profile_all: the (d,z) data of the profile
     :param nb_pro_reach: the number of profile by reach
     :return: the coordinates of the profile
+
+    **Technical comments**
+
+    For each profile, we create an array composed of five points: Start of profile, left bank, intersection between
+    river and profile, right bank and end of profile. The intersection with the river is directly given as input to
+    the function. Then we find the vector perpendicular to this river and we get the four other points on the same line.
+
+    To get the distance for these four other point, we must be careful to pass from the distance given in meter and the
+    distance in the model coordinates (scaled between [0, 1] usually). The way to go from one coordinate system to
+    another is to use the “alpha” variable.  We only need to correct distance, no problem with a system of coordinate
+    which would not be in the same direction (as the data is given along a profile). The river passes in the middle of
+    the right and left bank, so we can find where is left and right bank is. Because we know the total length of the
+    profile, we can also find the beginning and end of the profile.
+
+
     """
     nb_pro = len(data_profile_all)
     coord_p = np.zeros((nb_pro, 5, 2))
@@ -502,14 +590,27 @@ def coord_profile_non_georeferenced(data_bank_all, data_dist_all, data_river_all
 
 def open_sdffile(sdf_file, reach_name, path):
     """
-    This is a function to load .sdf file from HEC-RAS v5
-    To obtain this file, click on File, then "export GIS data" in HEC-RAS v5
-    Export all reaches (select Reaches to export -. Full List -> Ok)
-    :param sdf_file: the name of the sdf file
-    :param reach_name, a list of string containing the name of the reaches/rivers in the order of the geo file
-     (might not be the one of the sdf file)
-    :param path: the path where the file is stored
+    This is a function to load .sdf file from HEC-RAS v5 used if the model is georeferenced. To find how to obtain the
+    sdf file, read the doc of open_hecras.
+
+    :param sdf_file: the name of the sdf file (string)
+    :param reach_name: a list of string containing the name of the reaches/rivers in the order of the geo file
+           which might not be the one of the sdf file. Output from open_geofile.
+    :param path: the path where the file is stored (string)
     :return: velocity, water height, river_name, number of  time step (nb_sim)
+
+    **Technical comments**
+
+    To strat loading the sdf file, we open the sdf file. It is mostly a text file. Then we find velocity data and we
+    pass this velocity data from string to float. The process is a bit similar to the one used in the function
+    open_geofile with a healthy dose of regular expressions. We do this again for height data.
+
+    We also extract the name of the river, reaches and profile. The number of simulation (nb_sim) is a bit confusing
+    for a variable name. In fact, it is the number of time step. Hec-Ras considers that one simulation is the simulation
+    for one time step. Hence, nb_sim is more or less nb_timestep.
+
+    As in the xml file, we finally re-order the data as in the geo file. Indeed, it is possible to have different order
+    between the reaches in the geo file and in the sdf file. Here, we use the function reorder_reach for this.
     """
 
     # check that the sdf file has the right extension (.sdf)
@@ -607,17 +708,22 @@ def open_sdffile(sdf_file, reach_name, path):
 
 def reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim):
     """
-    The order of the reach in HABBY is the order given in the geo file. It can be given in any order ni the orher file.
-    (xml, sdf, rep,...). here is a dunction to re-roder the reaches based on theri name
-    name should not have white space at the end but have white space into them
+    The order of the reach in HABBY is in the order given in the geo file. However, it can be given in any order
+    in the other file. (xml, sdf, rep,...). This function re-order the reaches based on their name.
+
     :param wse: water height data (list of np.array for each profile)
     :param vel: velocity data (list of np.array for each profile)
     :param riv_name: the name of the profile (yeah I know it is not really logical as a name)
     :param reach_name: the name of the reach and stream (stream,reach) in the geo file order
     :param reach_str: the name of the reach in the anaylsed file order
     :param stream_str: the name of the stream in the anaylsed file order
-    :param nb_sim the number of simulation
-    :return: wse, vel, riv_name re-ordered
+    :param nb_sim: the number of simulation
+    :return: wse, vel, riv_name all re-ordered
+
+    **Technical comments**
+
+    The reach name should not have white space at the end/start but can have white space into them.
+
     """
 
     # order the profile as in the geo file
@@ -658,9 +764,11 @@ def reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim)
 
 def get_rid_of_white_space(stream_str):
     """
-    a small fonction to get rid of white space at the end of name which could contain white space
-    :param stream_str the name of the string
-    :return the same name without str
+    This is a small fonction to get rid of white space at the end of name which could contain white space. Not used
+    anymore as str.strip() functions well. But, as it was done already, we let it here.
+
+    :param stream_str: the name of the string
+    :return: the same name without white space.
    """
     # get rid of space (but not all the space!)
     for i in range(0, len(stream_str)):
@@ -671,16 +779,31 @@ def get_rid_of_white_space(stream_str):
 
 def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     """
-    A function to open the report file (.rep) from HEC-RAS. To obtain the report file, click on File, generate Report,
-    Choose Flow data, Geometry data and, in specific Table, choose Cross section Table and Flow distribution.
-    :param report_file:
-    :param reach_name :a list of string containing the name of the reaches/rivers in the order of the geo file
-     (might not be the one of the sdf file)
-    :param path: the path where the file is stored
-    :param data_profile: the data from each profile from the geo file
-    :param data_bank: the position of the bank limit
+    A function to open the report file (.rep) from HEC-RAS. To obtain the report file, see the doc of the function
+    open_hecras.
+
+    :param report_file: a string with the name of the report file (.rep)
+    :param reach_name: a list of string containing the name of the reaches/rivers in the order of the geo file,
+           which might not be the order of the sdf file.
+    :param path: the path where the report file is stored (string)
+    :param data_profile: the data from each profile from the geofile (output from the open_geofile function)
+    :param data_bank: the position of the bank limit (output from the open_geofile function)
     :return: velocity and the water surface elevation for each river profiles in a list of np.array,
-    the number of simulation (int) and the name of the river profile (list of string)
+            the number of simulation (int) and the name of the river profile (list of string)
+
+    **Technical comments and walk-through**
+
+    This function is used to open output from models which were not geo-referenced in hec-ras v5. It cannot be used if
+    the model was georeferenced (or at least one should make some tests before).
+
+    First, we obtain the water height. Then, we obtain the number of time step (which is called the number of
+    simulation by hec-ras). To get the number of time step, we count each outputs given (one by profiles) and we
+    divided it by the number of profile in the river. It is a bit indirect, but I did not find a simpler solution.
+
+    We get the name of each profile and reach. Then, we get the velocity data. We have in a case which is not
+    geo-referenced. By consequence, there are only three velocities: one the left bank, one in the main river channel
+    and one the right bank.  Next we get the distance along the profile for these three velocities. Finally, we use
+    the function reoder_reach for the same reason than in open_sdffile and open_xml.
     """
     # check that the report file has the right extension
     # we might so the test two times, but so we are sure it is here
@@ -799,9 +922,11 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
 
 def pass_in_float_from_geo(data_str, len_number):
     """
-    A small utility function to pass the string data into float for open_geofile and sdf file
-    :param data_str: the data in a string
-    :param len_number the number of digit for one numer
+    This is a function to pass the string data into float for open_geofile() and open_sdffile(). It is in a function
+    because it is possible that two number are not separated by a space in the input data.
+
+    :param data_str: the data in a string form
+    :param len_number: the number of digit for one number (int)
     :return: a np.array of float with 2 columns  (x,y) or (x,z)
     """
 
@@ -835,15 +960,38 @@ def pass_in_float_from_geo(data_str, len_number):
 
 def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_vel_dist=0):
     """
-    find the coordinates of the height/velocity
-    :param coord_pro: the coordinate (x,y) of the profile
-    :param data_profile: data concening the geometry of the profile, notably (x,z)
-    :param vel the velocity data
-    :param wse the water sufrace elevation
-    :param nb_sim the number of simulation in case there is more than one
-    :param max_vel_dist the minimum number of velocity point by ten meter before a warnings appears
+    This function finds the coordinates of the height/velocity. In hec-ras outputs the data are often written in the
+    form (profile, distance along the profile, data). This function passes this type of information in the usual
+    coordinate form.
+
+    :param coord_pro: the coordinate (x,y) of the profile. List of np.array.
+    :param data_profile: data concening the geometry of the profile, notably its elevation (x,z). List of np.array.
+    :param vel: the velocity data. List of np.array.
+    :param wse: the water surface elevation. List of np.array.
+    :param nb_sim: the number of simulation in case there is more than one
+    :param max_vel_dist: the minimum number of velocity point by ten meter before a warnings appears
     :return: for each simulation, a list of np.array representing (x,y,v) and (x,y,h,)
-    Careful the height is on the node and the velocity is by zone
+
+    **Technical comments**
+
+    This is a function called after having loaded the data. Hec-Ras present the data in (profil, distance along
+    profile, data) form for the height. For the velocity, it is similar but the distance is given by a number between
+    0 and 1 (0 is the start of the profile, 1 is the end of the profile). This function transforms this data in the form
+    (x,y, dist, data) using the (x,y) coordinates given in the coord_pro variable. In other word,  we have the
+    coordinate of the profile, not of the coordinates of the height and velocity data.
+
+    First, we get the distance between all points in (x,y) system. Then, we get the length of the profile in
+    meter or feet. It is possible to have a (x,y) coordinate system in a different unit. Hence, the length of the profil
+    is valid for the (profile, distance along profile, data) view. We multiply the velocity distance data by this
+    length. Hence, the distance information is now in meter or feet along the profile for water height and velocity.
+
+    There are some lines added to account for the last and first points of the profile (annoying in hec-ras). We then
+    calculate the new coordinates. For each velocity and water height point, we find the last known point in the (x,y)
+    coordinates. We do a vectorial addition from this point plus the vector between this point and the next multiplied
+    by the distance from this point to the point that we tried to calculate.  The variable alpha is used to pass from
+    one coordinate system to the next one.
+
+    Careful the height is on the node and the velocity is by zone.
     """
 
     xy_h_all = []
@@ -926,19 +1074,22 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
 
 def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
     """
-    This functio update the form of the output so it is coherent with mascaret and rubar after the lateral
-     distribution of velocity. 2 important change: coord_pro contains dist along the profile (x) and height
-      in addition to the coordinates. vh_pro is only for height above water, a point is created at the water limits and
-      v and height are given at the same points. nb_pro_reach is also modified as in mascaret.
-     :param zone_v (x,y, dist along profile, v) for each time step. However, the zone are the one from the models.
-     They are different than the one from xy_h, which is unpractical for the rest of the model
-     :param coord_pro_old the (x,y) coordinate for the profile, we add the distance along the profile and the height
-     to get the new coord_pro
-     :param data_profile the distance along the porfile and height of each profile
-     :param xy_h the water height
-     :param nb_pro_reach_old the numner of the profile by reach. we want to midify it so it start by zero and is additive
-      (give total number of profile before, not the numner of profile by reach)
+    This function updates the form of the output so it is coherent with mascaret and rubar after the lateral
+    distribution of velocity for these two models. There are three important changes. First, coord_pro contains dist along
+    the profile (x) and height in addition to the coordinates. Secondly, vh_pro contains only height if height is above
+    or equal to zero. Thirdly, a point is created at the water limits and v and height are given at the same points.
+    nb_pro_reach is also modified as in mascaret. We want to modify it so it start by zero and is additive, i.e., that
+    it gives total number of profile before, not the number of profile by reach.
+
+    :param zone_v: (x,y, dist along profile, v) for each time step. However, the zone are the one from the models.
+           They are different than the one from xy_h, which is unpractical for the rest of HABBY.
+    :param coord_pro_old: the (x,y) coordinate for the profile
+    :param data_profile: the distance along the porfile and height of each profile
+    :param xy_h: the water height
+    :param nb_pro_reach_old: the number of the profile by reach in the old form.
     :return: coord_pro, vh_pro, nb_pro_reach
+
+    [doc to be finished]
     """
 
     vh_pro = []
@@ -1069,19 +1220,44 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
 
 def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
     """
-    A small function to plot the results
-    :param data_profile (list with np.array)
-    :param coord_pro_old: (x,y) data of the profile
-    :param coord_r: (x,y) data of the river
-    :param xy_h_all: (x,y, h) for the height data for each simulation
-    :param zone_v_all: (x,y, v) for the velocity data. velocity is by zone. for each simulation.
-    the (x,y) indicates the start of the zone which end with the next velocity
-    :param pro: a list with which profile should be plot [2,3,4]
-    :param nb_sim which simulatino sould be plotted,
-    :param name_profile: a list of string with the name of the profile
-    :param coord_p2 the data of the profile when non geo-referenced, optional
-    :param path_im the path where the figure should be saved
-    :return: none
+    A function to plot the results of the loading of hec-ras data.
+
+    :param data_profile: (list with np.array)
+    :param coord_pro_old: (x,y) data of the profile (list with np.array)
+    :param coord_r: (x,y) data of the river (list with np.array)
+    :param xy_h_all: (x,y, h) for the height data for each simulation (list with np.array)
+    :param zone_v_all: (x,y, v) for the velocity data. velocity is by zone of profile. for each simulation.
+           the (x,y) indicates the start of the zone which end with the next velocity
+    :param pro: a list of int with the profile whcih should be ploted [2,3,4]
+    :param nb_sim: which simulation should be plotted. In fact, it often relates to the time step.
+    :param name_profile: a list of string with the name of the profiles
+    :param coord_p2: the data of the profile when non geo-referenced, optional
+    :param path_im: the path where the figure should be saved (string)
+
+    **Technical comments**
+
+    We first choose the size of the font to be written. At term, it should be given by the options.
+
+    Two main groups of figure will be done: One list of figure with the form of the profil, the water height, and the
+    velocity for the chosen profiles and one (x,y) view of the position of each profile.
+
+    We chose the time step to be written (the variable nb_sim here). The variable pro is a list which says which
+    profiles are to be plotted. Hence, we get the velocity and water height for the time step and profile of interest.
+
+    To plot the velocity, we first get the distance along the profile where the water level cut the profile elevation.
+    This is the variable xint1 and xint2. We then get the velocity data for the region under the water. We add three
+    points for velocity at 0, xint1 and xint2. We then used the step function to plot the vecloity. Because of the added
+    point, we will have a zero velocity from 0 to xint1, then the velocity data, then again zeros from xint2 to the end.
+
+    To plot the elevation of the profile, we plot the variable xz and we use the function fill_between to fill
+    in blue the region under water. This function creates a line at the water elevation and fills in blue between this
+    line and the profile elevation. We add some titles and save the figures.
+
+    For the second type of figure (view in x,y coordinates), We first plot the river position which is saved in the
+    coord_r variable. Then we plot the coordinate of each profile and their names. If the name of the profile is not
+    known, we plot the profile number.  We also plot the position of each velocity data and height data (as it could be
+    useful). If the figure gets too complicated, this can be taken away by changing the two lines which finish
+    with height or velocity as comment.  We add some titles and save the figures.
     """
     # rcParams['figure.figsize'] = 7, 3
     rcParams['font.size'] = 10
@@ -1197,6 +1373,9 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
 
 
 def main():
+    """
+    This is not the main() of HABBY. This function is used to test this module independently of the rest of HABBY.
+    """
 
     path_test = r'D:\Diane_work\version\file_test'
     #path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'

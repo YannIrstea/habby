@@ -7,15 +7,47 @@ import time
 
 def load_hec_ras2d(filename, path):
     """
-    The goal of this function is to load 2D data from Hec-RAS
-    :param filename: the name of the file containg the results of HEC-RAS in 2 Dimensions. Only since the version 5.
-    The fuile is an hdf5 file (.hdf) created automatically by HEC-RAS
-    There are many .hdf created by Hec-RAS. the one to choose is the one with the extensino p0X.hdf (not g0x.hdf).
-     It is usually the largest file in the results folder
-    :param path where the file is
+    The goal of this function is to load 2D data from Hec-RAS in the version 5.
+
+    :param filename: the name of the file containg the results of HEC-RAS in 2D. (string)
+    :param path: the path where the file is (string)
     :return: velocity and height at the center of the cells, the coordinate of the point of the cells,
-    the coordinates of the center of the cells and the connectivity table.
-    Each output is a list of numpy array (one array by 2D flow area)
+             the coordinates of the center of the cells and the connectivity table. Each output is a list of numpy array
+             (one array by 2D flow area)
+
+    **How to obtain the input file**
+
+    The file neede as input is an hdf5 file (.hdf) created automatically by Hec-Ras. There are many .hdf created by
+    Hec-Ras. The one to choose is the one with the extension p0X.hdf (not g0x.hdf). It is usually the largest file in
+    the results folder.
+
+    **Technical comments**
+
+    Outputs from HEC-RAS in 2D are in the hdf5 format. However, it is not possible to directly use the output of HEC-RAS
+    as an hdf5 input for HABBY. Indeed, even if they are both in hdf5, the formats of the hdf5 files are different
+    (and would miss some important info for HABBY).  So we still need to load the HEC-RAS data in HABBY even if in 2D.
+
+    This function should be modified because currently it gets the data by cells. However, we should get the
+    data by node. So this function should be changed.
+
+    **Walk-through**
+
+    The name and path of the file is given as input to the load_hec_ras_2D function. Usually this is done by the class
+    HEC_RAS() in the GUI.  We load the file using the h5py module. This module opens and reads hdf5 file.
+
+    Then we can read different part of the hdf5 file when we know the address of it (this is a bit like a file system).
+    In hdf5 file of Hec-RAS, this first thing is to get the names of the flow area in “Geometry/2D Flow Area”. In
+    general, this is the name of each reach, but it could be lake or pond also.
+
+    Then, we go to “Geometry/2D Flow Area/<name>/FacePoint Coordinates” to get the points forming the grid.
+    We can also get the connectivity table (or ikle) to the path “Geometry/2D Flow Area/<name>/Cells Face Point Indexes”
+    We also get the elevations of the cells. Currently, this is just the minimum elevation of the cells, but it should
+    be modified to get the elevation by node (in the vocabulary of HEC-RAS by “FacePoints”). We then get the water depth
+    by cell. Somethings should be done to get it by node. I think that we did have the elevation by node somewhere in
+    the hdf5 file. For there, water height can be found.
+    The velocity is given by face of the cells. It should be averaged differently to get it on the point and
+    not on the side.
+
     """
     filename_path = os.path.join(path, filename)
 
@@ -112,19 +144,31 @@ def load_hec_ras2d(filename, path):
 
 def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im,  time_step=[0], flow_area=[0], max_point=-99):
     """
-    This is a function to plot figure of the output from hec-ras 2D
+    This is a function to plot figure of the output from hec-ras 2D.
+
+
     :param v_all: a list of np array representing the velocity at the center of the cells
     :param h_all:  a list of np array representing the water depth at the center of the cells
     :param elev_all: a list of np array representing the mimium elevation of each cells
     :param coord_p_all: a list of np array representing the coordinates of the points of the grid
     :param coord_c_all: a list of np array representing the coordinates of the centers of the grid
     :param ikle_all: a list of np array representing the connectivity table
-    one array by flow area
-    :param time_step which time_step should be plotted (default, the first one)
+           one array by flow area
+    :param time_step: which time_step should be plotted (default, the first one)
     :param flow_area: which flow_area should be plotted (default, the first one)
-    :param max_point the number of cell to be drawn when reconstructing the grid (it might long)
-    :param path_im the path where the figure should be saved
-    :return:
+    :param max_point: the number of cell to be drawn when reconstructing the grid (it might long)
+    :param path_im: the path where the figure should be saved
+
+    **Technical comment**
+
+    This function creates three figures which represent: a) the grid of the loaded models b) the water height and
+    c) the velocity.
+
+    The two last figures will be modified when the data will be loaded by node and not by cells. So we will not explai
+    n them here as they should be re-written.
+
+    The first figure is used to plot the gird. If we would plot the grid by drawing one side of each triangle
+    separately, it would be very long to draw. To optimize the process, we use the prepare_grid function.
     """
     # figure size
     #plt.close()
@@ -197,11 +241,16 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
 
 def prepare_grid(ikle, coord_p, max_point=-99):
     """
-    This is a function to put in the new form the data forming the grid to accelerate the plotting of the grid
-    :param ikle the connectivity table
-    :param coord_p the coordinate of hte point
-    :param max_point: if the grid is very big, it is possible to only plot the first points, up to max_points
-    :return:
+    This is a function to put in the new form the data forming the grid to accelerate the plotting of the grid. This function creates
+    a list of points of the grid which are re-ordered compared to the usual list of grid point (the variable coord_p
+    here). These points are reordered so that it is possible to draw only one line to form the grid (one point can
+    appears more than once). The grid is drawn as one long line and not as a succession of small lines, which is
+    quicker. When this new list is created by prepare_function(), it is send back to figure-hec_ras_2D and plotted.
+
+    :param ikle: the connectivity table
+    :param coord_p: the coordinates of the point
+    :param max_point: if the grid is very big, it is possible to only plot the first points, up to max_points (int)
+    :return: a list of x and y coordinates ordered.
     """
     if max_point < 0 or max_point > len(ikle[:, 0]):
         max_point = len(ikle[:, 0])
@@ -234,14 +283,15 @@ def prepare_grid(ikle, coord_p, max_point=-99):
 
 def scatter_plot(coord, data, data_name, my_cmap, s1, t):
     """
-    the function to plot the scatter of the data
-    :param coord the coordinates
-    :param data the data to be plotted (np.array)
-    :param data_name the name of the data
-    :param my_cmap the color map
-    :param s1 the size of the dot
-    :param t the time step being plotted
-    :return:
+    The function to plot the scatter of the data. Will not be used in the final version, but can be useful to
+    plot data by cells.
+
+    :param coord: the coordinates of the point
+    :param data: the data to be plotted (np.array)
+    :param data_name: the name of the data (string)
+    :param my_cmap: the color map (string with matplotlib colormap name)
+    :param s1: the size of the dot for the scatter
+    :param t: the time step being plotted
     """
     s2 = s1/10
     fig = plt.figure()
@@ -267,6 +317,9 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
 
 
 def main():
+    """
+    Used to test this module independantly of HABBY.
+    """
     path = r'C:\Users\diane.von-gunten\HABBY\test_data'
     filename='Muncie.p04.hdf'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'

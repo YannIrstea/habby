@@ -11,19 +11,22 @@ from src import Hec_ras06
 
 def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
     """
-    The function to load the mascaret data
-    :param file_gen: the xcas .xml file giving general info about the model (the number of biref notably)
-    :param path_gen: the path to this file
-    :param file_geo: the file containting the profile data (.geo)
-    :param file_res: the files containting the mascaret output in the Optyca format (.opt)
-    :param path_geo: the path to the geo file
-    :param path_res the path to the res file
-    :return: the coordinates of the profile (x,y,z, dist along the profile), the coordinate of the river (x,y), name of reach and profile,
-    data height and velocity (list by time step), list of bollean indicating which data is on the profile and the
-    number of profile by reach
+    The function is used to load the mascaret data. It load the geofile and the general file. Then, it re-forms the
+    geometrical data. Next, it loads the output data from mascaret. Fianally, it looks which outputs is close to
+    a profile and which outputs is not linked with a profile as there are some outputs given between profiles.
+
+    :param file_gen: the xcas .xml file giving general info about the model (string)
+    :param file_geo: the file containting the profile data (.geo) (string)
+    :param file_res: the files containting the mascaret output in the Optyca format (.opt) (string)
+    :param path_gen: the path to the xcas file or .cas file (string). By default, choose the xcas file.
+    :param path_geo: the path to the geo file (string)
+    :param path_res: the path to the res file (string)
+    :return: the coordinates of the profile (x,y,z, dist along the profile), the coordinate of the river (x,y), name of
+            reach and profile, data height and velocity (list by time step), list of bollean indicating which data is
+            on the profile and the number of profile by reach.
     """
 
-    # geofile not georeferenced
+    # load the geofile (not georeferenced)
     blob, ext = os.path.splitext(file_geo)
     if ext == '.geo':
         [coord_pro1, name_pro, name_reach, nb_pro_reach, abscisse, bt] = open_geo_mascaret(file_geo, path_geo)
@@ -36,7 +39,7 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
 
     # general file
     blob, ext = os.path.splitext(file_gen)
-    if ext == '.xcas':  # order matter as cas is in xcas
+    if ext == '.xcas':  # order matter as cas is in xcas. It loads xcas by default.
         [coord_r, nr] = river_coord_non_georef_from_xcas(file_gen, path_gen, abscisse, nb_pro_reach)
     elif ext == '.cas':
         [coord_r, nr] = river_coord_non_georef_from_cas(file_gen, path_gen, abscisse, nb_pro_reach)
@@ -76,7 +79,10 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
 
 def get_geo_name_from_xcas(file_gen, path_gen):
     """
-    A small function which get the name of the .geo file from the .xcas xml file
+    This function gets the name of the .geo file from the .xcas xml file. It is not used yet, but it could be useful
+    in the GUI to simplify the loading of mascaret. The user would not need to give the name of the geo and the xcas
+    files separetly. However, it is not written in yet.
+
     :param file_gen: the xcas file
     :param path_gen: the path to the xcas file
     :return: the name of the .geo file (no path indicated)
@@ -99,9 +105,12 @@ def get_geo_name_from_xcas(file_gen, path_gen):
 
 def get_name_from_cas(file_gen, path_gen):
     """
-    A small function which get the name of the .geo file from the .cas txt file
-    :param file_gen: the cas file
-    :param path_gen: the path to the cas file
+    This function gets the name of the .geo file from the .cas text file. It is not used yet, but it could be useful
+    in the GUI to simplify the loading of mascaret. The user would not need to give the name of the geo and the cas
+    files separetly. However, it is not written in yet.
+
+    :param file_gen: the name of .cas file (string)
+    :param path_gen: the path to the cas file (string
     :return: the name of the .geo file (no path indicated)
     """
 
@@ -126,11 +135,12 @@ def get_name_from_cas(file_gen, path_gen):
 
 def open_geo_mascaret(file_geo, path_geo):
     """
-    The function to load the mascaret geo file
-    :param file_geo:
-    :param path_geo:
+    This function load the mascaret geo file. Generally, the profile are not geo-referenced when using this function.
+
+    :param file_geo: the name of the geo file (string)
+    :param path_geo: the path to the geo file (string)
     :return: the profile data (x,y), profile name (list of string),
-    brief name (list of string), the number of profile in each reach and distance along the river/abcisse (list)
+             brief name (list of string), the number of profile in each reach and distance along the river/abcisse (list)
     """
     failload = [[-99]], ['-99'], ['-99'], [-99], [-99], [-99]
     send_warn = True
@@ -234,14 +244,19 @@ def open_geo_mascaret(file_geo, path_geo):
 
 def correct_duplicate(seq, send_warn, idfun=None):
     """
-    it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
-    So this function correct this case. A similiar function exists in rubar, for the case where input
-    is (x,y) coordinates and not distance along the profile
-    inspired by https://www.peterbe.com/plog/uniqifiers-benchmark
-    :param seq: thelist to be corrected
-    :param send_warn a bool to avoid printing the warning too many time (maybe a bit of an overkill?)
-    :param idfun: support an optional transform function (not tested)
-    :return:
+    It is possible to have a vertical line on a profile (different h, identical x). This is not possible for HABBY and
+    the 2D grid. So this function correct duplicates along the profile.
+
+    A similiar function exists in rubar, for the case where input is (x,y) coordinates and not distance along the profile.
+    This function is inspired by https://www.peterbe.com/plog/uniqifiers-benchmark
+
+    It should be tested more as manage_grid sometime still send warning about duplicate data in profile.
+
+    :param seq: the list to be corrected (list)
+    :param send_warn: a bool to avoid printing certains warning too many time
+    :param idfun: support an optional transform function (not used)
+
+    :return: the profile data without duplicate and the bollean which manages the warning.
     """
 
     # order preserving
@@ -272,9 +287,12 @@ def correct_duplicate(seq, send_warn, idfun=None):
 
 def river_coord_non_georef_from_xcas(file_gen, path_gen, abcisse, nb_pro_reach):
     """
-    get the coordinates of the river based on the xcas xml file
-    :param file_gen: the .xcas file with the information concerning the reach
-    :param path_gen: the path to the xcas file
+    Get the coordinates of the river based on the xcas xml file. If there are only one river, this is an easy task as
+    the river is straight. If there are more than one reach, the junctions and the angles between the reach sould be
+    managed using the define_stream_network function and the information in the .xcas file.
+
+    :param file_gen: the .xcas file with the information concerning the reach (string)
+    :param path_gen: the path to the xcas file (string)
     :param abcisse: the distance along the river
     :param nb_pro_reach: the number of profile by reach
     :return: coord_r the coordinate of the river
@@ -347,10 +365,13 @@ def river_coord_non_georef_from_xcas(file_gen, path_gen, abcisse, nb_pro_reach):
 
 def river_coord_non_georef_from_cas(file_gen, path_gen, abcisse, nb_pro_reach):
     """
-     get the coordinates of the river based on the cas .txt file
-    :param file_gen: the .cas file containting general info
-    :param path_gen: the path to this faile
-    :param abcisse: ditance along the profile
+    Get the coordinates of the river based on the cas text file. If there are only one river, this is an easy task as
+    the river is straight. If there are more than one reach, the junctions and the angles between the reach sould be
+    managed using the define_stream_network function and the information in the .cas file.
+
+    :param file_gen: the .cas file whcih contains general info (string)
+    :param path_gen: the path to this file (string)
+    :param abcisse: ditance along the profiles
     :param nb_pro_reach: the number of reach by profile
     :return: the river coordinate and the unit vector indicating the river direction
     """
@@ -454,15 +475,18 @@ def river_coord_non_georef_from_cas(file_gen, path_gen, abcisse, nb_pro_reach):
 
 def define_stream_network(node_number, start_node, end_node, angles, nb_pro_reach, nb_reach, abcisse):
     """
-    the function to extract the stream network from the node and angle data
+    This function extracts the stream network from the node and angle data. This is used if we have more than one
+    reach to define the geometry of the junction.
+
     :param node_number: the start/end number of the reaches for each nodes (list of list)
-    :param start_node: the number indicating the start of each reach
-    :param end_node: the number indicating the end of each reach
+    :param start_node: the numbers indicating the start of each reach (list)
+    :param end_node: the numbers indicating the end of each reach
     :param angles: for each node the angle between the reach
     :param nb_pro_reach: the number of profile by reach
     :param nb_reach: the number of reach
-    :param abcisse: teh distance along the river of each reach
-    :return: the river coordinate and the unit vector indicating the river direction
+    :param abcisse: the distance along the river of each reach
+    :return: the river coordinates and the unit vector indicating the river direction
+
     """
     failload = [-99], [-99]
 
@@ -489,7 +513,7 @@ def define_stream_network(node_number, start_node, end_node, angles, nb_pro_reac
     ne = find_node(node_number, end_node[0])
     pos_angle = node_number[ne].index(end_node[0])
     alpha = (angles[ne][pos_angle]) * (np.pi / 180.)
-    n_new = [np.cos(alpha), np.sin(alpha)]  # we start from the end of the stream heer
+    n_new = [np.cos(alpha), np.sin(alpha)]  # we start from the end of the stream here
     coord_r_new = np.zeros((len(abcisse_r), 2))
     coord_r_new[0, :] = coord_n[0]  # the first point is the last point of the last reach
     coord_r_new[1:, 0] = n_new[0] * dist_r + coord_n[0][0]
@@ -551,10 +575,11 @@ def define_stream_network(node_number, start_node, end_node, angles, nb_pro_reac
 
 def find_node(node_number, reach_to_find):
     """
-    To find with which node is a stream end or a stream start is associatied
-    used by define_stream_network
-    :param node_number: the list of list of the reach linked with one node
-    :param reach_to_find: the number indicateng start or end of the reach
+    This function finds which node is a stream end or a stream start. It is associated by the function
+    define_stream_network()
+
+    :param node_number: the list of list of the reaches linked with one node
+    :param reach_to_find: the number indicating the start or end of the reach
     :return: the node number, ordered as in the xcas file
     """
     no = 0
@@ -571,17 +596,21 @@ def find_node(node_number, reach_to_find):
 
 def profil_coord_non_georef(coord_pro, coord_r, nr, nb_pro_reach, bt=None):
     """
-    get the profile coordniates if the mascaret file is not georeferenced.
-    HYP: The river and the profile are straight. The profile is perpendiular to the river.
-    The river pass at the minimum of the bed (of the main bad if a distinction between main and secondary bed is given)
-    The origin of the coordinate system is the river for x and depends on the va;ue of abscisse for y
-    :param coord_pro: the coordinate of the profile
-    not in the general coordinate system, just distance along the profile and bed elevation
-    :param coord_r: river coordinates
-    :param n the vector indicating the river direction
-    :param nb_pro_reach the number of profile by reach (additive)
-    :param bt: optionnal indicates which points in the profiles are in the minor/major bed
-    :return:
+    This function gets the coordinates (x,y) of the profile as masacret outputs are not georeferenced.
+
+    Hypothesis: The river and the profile are straight. The profile is perpendicular to the river.
+    The river pass at the minimum elevation of the river bed. If there is a distinction between the main bed the
+    secondary bed is given, we take the minimum elevation of the main bed
+
+    The origin of the coordinate system is the start of the river.
+
+    :param coord_pro: the coordinate of the profile. This variable is not in the general coordinate system,
+            just distance along the profile and bed elevation (p, dist, h)
+    :param coord_r: the river coordinates
+    :param n: the vector indicating the river direction
+    :param nb_pro_reach: the number of profile by reach (additive)
+    :param bt: optional, it indicates which points in the profiles are in the minor/major bed
+    :return: the velocity and height data, the timestep
     """
     print("Warning: Data is not georeferenced. HYP: profiles perpendicular to the river \n")
     coord = []
@@ -613,9 +642,10 @@ def profil_coord_non_georef(coord_pro, coord_r, nr, nb_pro_reach, bt=None):
 
 def open_res_file(file_res, path_res):
     """
-    The function to load the output from mascaret (.opt file)
-    :param file_res: the name of the .opt file
-    :param path_res: the path to this file
+    The function to load the output from mascaret (.opt file). The format is Optyca.
+
+    :param file_res: the name of the .opt file (string)
+    :param path_res: the path to this file (string)
     :return:
     """
     failload = [-99], [-99]
@@ -703,11 +733,20 @@ def open_res_file(file_res, path_res):
 
 def is_this_res_on_the_profile(abscisse, xhzv_data_all):
     """
-    The output of mascaret can be given at point of the river where there is no profile.
-    The function here says which results are on the profiles. All profiles have a results.
-    :param abscisse: the position of the profile
+    The output of mascaret can be given at points of the river where there is no profile.
+    The function here says which results are on the profiles. All profiles are linked with an output, but some output
+    are not linked with a profile.
+
+    :param abscisse: the distance between each profile (list of float)
     :param xhzv_data_all: the outputs from mascaret by time step
     :return: a list of bool of the length of xhzv_data, True on profile, False not on profile
+
+    **Technical comment**
+
+    In the mascaret outputs, some rounding are suprising. For example, 0.49 can be transformed to 0.50 in an otehr file
+    (not 0.5). To avoid this type of problem, we says that outputs with a distance smaller than 3cm of the profile are
+    on the profile. If there are more than one output by profile, we takes the output which is the closest to the
+    profile.
     """
 
     xhzv_data = xhzv_data_all[0]
@@ -731,10 +770,16 @@ def is_this_res_on_the_profile(abscisse, xhzv_data_all):
 
 def open_rub_file(file_res, path_res):
     """
-    The function to open the binary output file from mascaret (.rub format)
-    :param file_res: the name of the rub binary file
-    :param path_res: the path to this file
+    The function to open the binary output file from mascaret (.rub format).
+
+    :param file_res: the name of the rub binary file (string)
+    :param path_res: the path to this file (string)
     :return: xhzv_data, timestep
+
+    **Technical comment**
+
+    The binary output file was done using a program written in FORTRAN. So there are often suprising
+    octet which are added to the binary file. Be careful before changing anything.
     """
 
     failload = [-99], [-99]
@@ -948,19 +993,19 @@ def open_rub_file(file_res, path_res):
 
 def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]):
     """
-    The function to plot the figures related to mascaret
+    The function to plot the figures related to mascaret.
+
     :param coord_pro: the cordinates (x,y,h, dist along the river) of the profiles
-    :param coord_r the coordinate (x,y) of the river
+    :param coord_r: the coordinate (x,y) of the river
     :param name_pro: the name of the profile
     :param name_reach: the name of the reach
-    :param on_profile which result are on the profile
-    :param nb_pro_reach the number of profile by reach (careful this is the number of profile, not the number of output)
-    :param xhzv_data (x,h,v) list by time step
-    :param pro profile to be plotted
-    :param plot_timestep timestep to be plotted
-    :param reach_plot the reach to be plotted for the river view
-    :param path_im the pathwhere to save the figure
-    :return:
+    :param on_profile: which result are on the profile. Some output are not the profiles.
+    :param nb_pro_reach: the number of profile by reach (careful this is the number of profile, not the number of output)
+    :param xhzv_data: the height and velcoity (x,h,v) list by time step
+    :param pro profile: which profile to be plotted (list of int)
+    :param plot_timestep: which timestep to be plotted
+    :param reach_plot: the reach to be plotted for the river view
+    :param path_im: the path where to save the figure
     """
     #plt.close()
     plt.rcParams['font.size'] = 10
@@ -1059,10 +1104,12 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
 
 def flat_coord_pro(coord_pro):
     """
-    NOT USED ANYMORE
-    coord_pro was before a list of profile by reach. It was however useful to have each profile one after the other.
-    here is the function for this.
-    Finally, it is more practical to use an other variable to known on which reach is the profile.
+    This function is not used anymroe.
+
+    The variable coord_pro was a list of profile by reach. Finally, it was useful to have each profile one after the
+    other with accounting for the reach. So we stop to use this function whose goal was to pass from one form of
+    coord_pro to the other form 9with or wihtout reach information).
+
     :param coord_pro: the list of profile (x,y,h, dist along the river) by reach
     :return: coord_pro_f: a list of profile without the reach information. The list is flatten
     """
@@ -1074,6 +1121,9 @@ def flat_coord_pro(coord_pro):
 
 
 def main():
+    """
+    Used to test this module separately.
+    """
 
     #path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
     path = r'D:\Diane_work\output_hydro\mascaret\LecRub'

@@ -12,9 +12,14 @@ import os
 
 class outputW(QWidget):
     """
-    The class which support the creation and management of the output
+    The class which support the creation and management of the output. It is notably used to select the otions to
+    create the figures.
+
     """
     send_log = pyqtSignal(str, name='send_log')
+    """
+    A PyQtsignal used to write the log.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -97,8 +102,9 @@ class outputW(QWidget):
 
     def save_option_fig(self):
         """
-        A function which save the options for the figure in the xlm project file
-        :return:
+        A function which save the options for the figures in the xlm project file. The options for the figures are
+        contained in a dictionnary. The idea is to give this dictinnory in argument to all the fonction which create
+        figures. In the xml project file, the options for the figures are saved under the attribute "Figure_Option".
         """
 
         # get default option
@@ -203,11 +209,14 @@ class outputW(QWidget):
 
 def load_fig_option(path_prj, name_prj):
     """
-    load the figure option saved in the xml file. If the options are not written or if the porject is not saved,
-    use data by default.
+    This function loads the figure option saved in the xml file and create a dictionnary will be given to the functions
+    which create the figures to know the different options chosen by the user. If the options are not written, this
+    function uses data by default which are in the fonction create_default_fig_options().
+
     :param path_prj: the path to the xml project file
     :param name_prj: the name to this file
-    :return: the dictionary containing the figure option
+    :return: the dictionary containing the figure options
+
     """
 
     fig_dict = create_default_figoption()
@@ -242,10 +251,10 @@ def load_fig_option(path_prj, name_prj):
                 print('Error: Figure Options are not of the right type.\n')
     return fig_dict
 
+
 def create_default_figoption():
     """
-    create the default dictionnary of option for the figure (static)
-    :return:
+    This function creates the default dictionnary of option for the figure.
     """
     fig_dict = {}
     fig_dict['height'] = 7

@@ -560,7 +560,8 @@ class MainWindows(QMainWindow):
         """
         Save or not save the log
 
-        :param save_log an int which indicates if the log should be saved or not
+        :param save_log: an int which indicates if the log should be saved or not
+
         *   0: do not save log
         *   1: save the log in the .log file and restart file
         """

@@ -8,11 +8,13 @@ import time
 
 def load_river2d_cdg(file_cdg, path):
     """
-    The file to load the output data from River2D. Cerful the input data has the same ending and nearly the same format.
-    Do not mix the files.
-    :param file_cdg:
-    :param path:
-    :return:
+    The file to load the output data from River2D. Careful the input data of River2D has the same ending and nearly
+    the same format as the output. However, it is nessary to have the output here. River2D gives one cdg. file by timestep.
+    Hence, this function read only one timeste. HABBY read all time step by calling this function once for each time step.
+
+    :param file_cdg: the name of the cdg file (string)
+    :param path: the path to this file (string).
+    :return: the velcoity and height data, the coordinate and the connectivity table.
     """
 
     failload = [-99], [-99], [-99]
@@ -149,10 +151,11 @@ def load_river2d_cdg(file_cdg, path):
 
 def get_rid_of_lines(datahere, nb_data):
     """
-    There are lines which are useless. used to correct ikle and data_node
+    There are lines which are useless in the cdg file. This function is used to correct ikle and data_node
+
     :param datahere: the data with the empty lines
     :param nb_data: nb_node or nb_el
-    :return:
+    :return: datahere wihtout the useless lines
     """
     # there are 3 useless lines are the start and one at the end. Hopefully, it is always the same number.
     for l in range(0, 3):
@@ -169,14 +172,17 @@ def get_rid_of_lines(datahere, nb_data):
 
 def figure_river2d(xyzhv, ikle, path_im, t=0):
     """
-    A function to plot the output from river 2d. Need hec-ras2d as import because it re-used most of the plot from there
-    Plot only one time step because river 2d output have one file by time step
+    A function to plot the output from river 2d. Need hec-ras2d as import because it re-used most of the plot from this
+    script.
+
+    Plot only one time step because river 2d output have one file by time step.
+
     :param xyzhv: the x,y, coordinates of the node (h,v are nodal output in river 2d), the river bed, the water height
-    and the velocity (one data by column, row are node)
+           and the velocity (one data by column, row are node)
     :param ikle: connectivity table
-    :param path_im the path where to save the figure
-    :param t: the time step
-    :return: grid figure, h and v
+    :param path_im: the path where to save the figure
+    :param t: the time step which is being plotted
+    :return:
     """
     plt.rcParams['font.size'] = 10
     # grid
@@ -206,6 +212,9 @@ def figure_river2d(xyzhv, ikle, path_im, t=0):
 
 
 def main():
+    """
+    Used to test this module.
+    """
     path = r'D:\Diane_work\output_hydro\river2d\output_time'
     name = 'test83.00.cdg'
 

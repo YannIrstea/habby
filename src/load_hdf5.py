@@ -5,9 +5,9 @@ import numpy as np
 
 def open_hdf5(hdf5_name):
     """
-    This is a function which open an hdf5 file and check that it exists
+    This is a function which open an hdf5 file and check that it exists. it does not load the data. It only opens the
+    files.
     :param hdf5_name: the path and name of the hdf5 file (string)
-    :return:
     """
     blob, ext = os.path.splitext(hdf5_name)
     if ext != '.h5':
@@ -28,11 +28,14 @@ def open_hdf5(hdf5_name):
 
 def load_hdf5_hyd(hdf5_name_hyd):
     """
-    A function to load the hydrological data contains in the hdf5 file
+    A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY.
+
     :param hdf5_name_hyd: path and filename of the hdf5 file (string)
-    :return:
+    :return: the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.
+
     """
 
+    # correct all change to the hdf5 form in the doc!
     ikle_all_t = []
     point_all = []
     inter_vel_all = []
@@ -57,6 +60,7 @@ def load_hdf5_hyd(hdf5_name_hyd):
     nb_t = list(gen_dataset.values())[0]
     nb_t = np.array(nb_t)
     nb_t = int(nb_t)
+
     # load the number of reach
     try:
         gen_dataset = file_hydro[basename1 + "/Nb_reach"]
@@ -84,6 +88,7 @@ def load_hdf5_hyd(hdf5_name_hyd):
         ikle_whole = np.array(ikle_whole)
         ikle_whole_all.append(ikle_whole)
     ikle_all_t.append(ikle_whole_all)
+
     # ikle by time step
     for t in range(0, nb_t):
         ikle_whole_all = []
@@ -165,12 +170,12 @@ def load_hdf5_hyd(hdf5_name_hyd):
 
 def load_hdf5_sub(hdf5_name_sub):
     """
-    A function to load the substrate data contained in the hdf5 file
+    A function to load the substrate data contained in the hdf5 file.
+
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
-    :return:
     """
-    ikle_sub = []
-    point_all_sub = []
+
+    # correct all change to the hdf5 form in the doc!
     data_sub = []
     failload = [-99], [-99], [-99]
 
@@ -210,10 +215,11 @@ def load_hdf5_sub(hdf5_name_sub):
 
 def get_all_filename(dirname, ext):
     """
-    This is a function to get the name of all file with a particular extension in a folder. Useful to get all the output
-    from one hydraulic models
-    :param dirname: the path to the directory
-    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character
+    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
+    from one hydraulic model.
+
+    :param dirname: the path to the directory (string)
+    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
     :return: a list with the filename (filename+dir) for each extension
     """
     filenames = []

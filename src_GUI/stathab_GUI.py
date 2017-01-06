@@ -13,11 +13,43 @@ import xml.etree.ElementTree as ET
 
 class StathabW(QWidget):
     """
-    A class to load the widget controlling the Stathab model
+    The class to load and manage the widget controlling the Stathab model.
+
+    **Technical comments**
+
+    The class StathabW makes the link between the data prepared by the user for Stathab and  the Stathab model
+    which is in the src folder (stathab_c.py) using the graphical interface.  Most of the Stathab input are given in
+    form of text file. For more info on the preparation of text files for stathab, read the document called
+    'stathabinfo.pdf".  To use Stathab in HABBY, all Stathab input should be in the same directory. The user select
+    this directory (using the button “loadb”) and HABBY tries to find the file it needs. All found files are added to
+    the list called “file found”. If file are missing, they are added to the “file still needed” list.  The user can then
+    select the fishes on which it wants to run stathab, then it run it by pressing on the “runb” button.
+
+    If file where loaded before by the user in the same project, StathabW looks for them and load them again. Here we
+    can have two cases: a) the data was saved in hdf5 format (as it is done when a stathab run was done) and the path
+    to this file noted in the xml project file. b) Only the name of the directory was written in the xml project file,
+    indicated that data was loaded but not saved in hdf5 yet. HABBY manages both cases.
+
+    Next, we check in the xml project file where the folder to save the figure (path_im) is. In case, there are
+    no path_im saved, Stathab create one folder to save the figure outputs. This should not be the usual case. Generally,
+    path_im is created with the xml project file, but you cannot be sure.
+
+    There is a list of error message which are there for the case where the data which was loaded before do not exist
+    anymore. For example, somebody erased the directory with the Stathab data in the meantime.  In this case,
+    a pop-up message open and warn the user.
+
+    An important attribute of StathabW() is self.mystathab. This is an object fo the stahab class. The stathab model,
+    which is in the form of a class and not a function, will be run on this object.
     """
 
     send_log = pyqtSignal(str, name='send_log')
+    """
+    A PyQtsignal used to write the log.
+    """
     show_fig = pyqtSignal()
+    """
+    A PyQtsignal used to show the figures.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -37,7 +69,7 @@ class StathabW(QWidget):
         self.list_s = QListWidget()
         self.list_re = QListWidget()
         self.list_f = QListWidget()
-        # name of all the file
+        # name of all the text file (see stathabinfo.pdf)
         self.listrivname = 'listriv.txt'
         self.end_file_reach = ['deb.txt', 'qhw.txt', 'gra.txt', 'dis.txt']
         self.name_file_allreach = ['bornh.txt', 'bornv.txt', 'borng.txt', 'Pref.txt']
@@ -162,9 +194,10 @@ class StathabW(QWidget):
 
     def select_dir(self):
         """
-        The function to select the directory and find the files to laod stathab from txt files
-        call load_from_txt_gui() when done
-        :return:
+        This function is used to select the directory and find the files to laod stathab from txt files. It calls
+        load_from_txt_gui() when done.
+
+
         """
         # get the directory
         self.dir_name = QFileDialog.getExistingDirectory()
@@ -217,9 +250,37 @@ class StathabW(QWidget):
 
     def load_from_txt_gui(self):
         """
-        The function which update the different lists to reflect the found files
-        and which load the txt file using stathab data
-        :return:
+        The main roles of load_from_text_gui() are to call the load_function of the stathab class (which is in
+        stathab_c.py in the folder src) and to call the function which create an hdf5 file. However, it does some
+        modifications to the GUI before.
+
+        **Technical comments**
+
+        Here is the list of the modifications done to the graphical user interface before calling the load_function of
+        Stathab.
+
+        First, it updates the label. Because a new directory was selected, we need to update the label containing the
+        directory’s name. We only show the 30 last character of the directory name. In addition, we also need to update
+        the other label. Indeed, it is possible that the data used by Stathab would be loaded from an hdf5 file.
+        In this case, the labels on the top of the list of file are slightly modified. Here, we insure that we are in
+        the “text” version since we will load the data from text file.
+
+        Next, it gets the name of all the reach and adds them to the list of reach name. For this, it calls a function
+        from the stathab class (in src). Then, it looks which files are present and add them to the list which contains
+        the reach name called self.list_re.
+
+        Afterwards, it checks if the files needed by Stathab are here. The list of file is given in the
+        self.end_file_reach list. The form of the file is always the name of the reach + one item of
+        self.end_file_reach. If it does not find all files, it add the name of the files not found to self.list_needed,
+        so that the user can be aware of which file he needs. The exception is Pref.txt. If HABBY do not find it in the
+        directory, it uses the default “Pref.txt”. All files (apart from Pref.txt) should be in the same directory.
+
+        Then, it calls a method of the Stathab class (in src) which reads the “pref.txt” file and adds the name
+        of the fish to the GUI. Next, if all files are present, it loads the data using the method written in Stathab
+        (in the src folder). When the data is loaded, it creates an hdf5 file from this data and save the name of this
+        new hdf5 file in the xml project file (also using a method in the stathab class).
+
+        Finally, it sends the log info as explained in the log section of the documentation
         """
 
         # update the labels
@@ -332,9 +393,18 @@ class StathabW(QWidget):
 
     def select_hdf5(self):
         """
-        A function to select the hdf5 and write the data to the xml file
-        call load_from_hdf5_gui when finished
-        :return:
+        This function allows the user to choose an hsdf5 file as input from Stathab.
+
+        **Technical comment**
+
+        This function is for example useful if the user would have created an hdf5 file for a Stathab model in another
+        project and he would like to send the same model on other fish species.
+
+        This function writes the name of the new hdf5 file in the xml project file. It also notes that the last data
+        loaded was of hdf5 type. This is useful when HABBY is restarting because it is possible to have a
+        directory name and the address of an hdf5 file in the part of the xml project file concerning Stathab.
+        HABBY should know if the last file loaded was this hdf5 or the files in the directory.
+        Finally, it calls the function to load the hdf5 called load_from_hdf5_gui.
         """
         self.send_log.emit('# Load stathab file from hdf5.')
 
@@ -392,8 +462,21 @@ class StathabW(QWidget):
 
     def load_from_hdf5_gui(self):
         """
-        A function to load the data from an hdf5 file, using function from stathab1.py
-        :return:
+        This function calls from the GUI the load_stathab_from_hdf5 function. In addition to call the function to load
+        the hdf5, it also updates the GUI according to the info contained in the hdf5.
+
+        **Technical comments**
+
+        This functino updates the Qlabel similarly to the function “load_from_txt_gui()”.
+        It also loads the data calling the load_stathab_from_hdf5 function from the Stathab class in src. The info
+        contains in the hdf5 file are now in the memory in various variables called self.mystathab.”something”.
+        HABBY used them to update the GUI. First, it updates the list which contains the name of the reaches
+        (self.list_re.). Next, it checks that each of the variable needed exists and that they contain some data.
+        Afterwards, HABBY looks which preference file to use. Either, it will use the default preference file
+        (contained in HABBY/biologie) or a custom preference prepared by the user. This custom preference
+        file should be in the same folder than the hdf5 file. When the preference file was found, HABBY reads all
+        the fish type which are described and add their name to the self.list_f list which show the available fish
+        to the user in the GUI. Finally it checks if all the variables were found or if some were missing
         """
         # update QLabel
         self.l1.setText(self.tr('Stathab Input Files (.hdf5)'))
@@ -487,8 +570,16 @@ class StathabW(QWidget):
 
     def reach_selected(self):
         """
-        A function whicjh indcates which files are linked with which reach
-        :return:
+        A function which indcates which files are linked with which reach.
+
+        **Technical comment**
+
+        This is a small function which only impacts the GUI. When a Stathab model has more than one reach,
+        the user can click on the name of the reach. When he does this, HABBY selects the first file linked
+        with this reach and shows it in self.list_f. This first file is highlighted and the list is scrolled
+        down so that the files linked with the selected reach are shown. This function manages this. It is connected
+        with the list self.list_re, which is the list with the name of the reaches.
+
         """
         [item_sel, r] = self.firstitemreach[self.list_re.currentRow()]
         self.list_file.setCurrentRow(r)
@@ -496,9 +587,7 @@ class StathabW(QWidget):
 
     def send_err_log(self):
         """
-        Send the error and warning to the logs
-        The stdout was redirected to self.mystdout
-        :return:
+        Send the errors and warnings to the logs. It is useful to note that the stdout was redirected to self.mystdout.
         """
         str_found = self.mystdout.getvalue()
         str_found = str_found.split('\n')
@@ -507,6 +596,9 @@ class StathabW(QWidget):
                 self.send_log.emit(str_found[i])
 
     def add_fish(self):
+        """
+        This function add the name of one fish species to the selected list of fish species.
+        """
         items = self.list_f.selectedItems()
         if items:
             for i in range(0,len(items)):
@@ -518,14 +610,17 @@ class StathabW(QWidget):
                     self.fish_selected.append(items[i].text())
 
     def remove_fish(self):
+        """
+        This function remove the name of one fish species to the selected list of fish species.
+        """
+
         item = self.list_s.takeItem(self.list_s.currentRow())
         self.fish_selected.remove(item.text())
         item = None
 
     def add_all_fish(self):
         """
-        Add all known fish
-        :return:
+        This function add the name of all known fish (the ones in Pref.txt) to the QListWidget.
         """
         if self.fishall.isChecked():
 
@@ -543,8 +638,9 @@ class StathabW(QWidget):
 
     def run_stathab_gui(self):
         """
-        A function to run stathab based on data loaded before
-        :return:
+        This is the function which calls the function to run the Stathab model.  First it read the list called
+        self.list_s. This is the list with the fishes selected by the user. Then, it calls the function to run
+        stathab and the one to create the figure if the figures were asked by the user. Finally, it writes the log.
         """
         self.send_log.emit('# Run Stathab from loaded data')
         # get the chosen fish

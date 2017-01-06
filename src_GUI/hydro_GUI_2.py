@@ -29,15 +29,47 @@ from multiprocessing import Process, Queue
 
 class Hydro2W(QWidget):
     """
-    A class to load the hydrological data
-    List of model supported:
-    - TELEMAC
-    - HEC-RAS
-    - RUBAR
-    - MASCARET
-    - RIVER2D
+    The class Hydro2W is the second tab of HABBY. It is the class containing all the classes/Widgets which are used
+    to load the hydrological data.
+
+    List of model supported by Hydro2W:
+    files separetly. However, sometime the file was not found
+    *   Telemac (2D)
+    *   Hec-Ras (1.5D et 2D)
+    *   Rubar BE et 2(1D et 2D)
+    *   Mascaret (1D)
+    *   River2D (2D)
+
+    **Technical comments**
+
+    To call the different classes used to load the hydrological data, the user selects the name of the hydrological
+    model from a QComboBox call self.mod. The method ‘selection_change” calls the class that the user chooses in
+    self.mod. All the classes used to load the
+    hydrological data are created when HABBY starts and are kept in a stack called self.stack. The function
+    selection_change() just changes the selected item of the stack based on the user choice on self.mod.
+
+    Any new hydrological model should also be added to the stack and to the list of models contained in self.mod
+    (name of the list: self.name_model).
+
+    In addition to the stack containing the hydrological information, hydro2W has two buttons. One button open
+    a QMessageBox() which give information about the models, using the method “give_info_model”.  It is useful if a
+    special type of file is needed to load the data from a model or to give extra information about one hydrological
+    model. The text which is shown on the QMessageBox is given in one text file for each model.
+    These text file are contained in the folder ‘model_hydro” which is in the HABBY folder. For the moment,
+    there are models for which no text files have been prepared. The text file should have the following format:
+
+    *	A short sentence with general info
+    *	The keyword:  MORE INFO
+    *	All other infomation which are needed.
+
+    The second button allows the user to load an hdf5 file containing hydrological data from another project.
+    As long as the hdf5 is in the right format, it does not matter from which hydrological model it was loaded from
+    or even if this hydrological model is supported by HABBY.
     """
     send_log = pyqtSignal(str, name='send_log')
+    """
+    A PyQt signal to send the log.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -53,6 +85,9 @@ class Hydro2W(QWidget):
         self.init_iu()
 
     def init_iu(self):
+        """
+        Used in the initialization by __init__()
+        """
         # generic label
         #self.l1 = QLabel(self.tr('blob'))
         l2 = QLabel(self.tr('<b> LOAD NEW DATA </b>'))
@@ -103,9 +138,9 @@ class Hydro2W(QWidget):
 
     def selectionchange(self, i):
         """
-        Change the widget reprsenting each hydrological model (all widget are in a stack)
+        Change the shown widget which represents each hydrological model (all widget are in a stack)
+
         :param i: the number of the model (0=no model, 1=hecras1d, 2= hecras2D,...)
-        :return:
         """
 
         self.mod_act = i
@@ -114,10 +149,10 @@ class Hydro2W(QWidget):
     def give_info_model(self):
         """
         A function to show extra information about each hydrological model.
-        The information should be in a text file with the same as the model in the model_hydo folder
-        General info goes as the startof the text file. If the text is too long, add the keyword "MORE INFO"
-        and the message box will add the supplementary information
-        :return: None
+        The information should be in a text file with the same name as the model in the model_hydo folder.
+        General info goes as the start of the text file. If the text is too long, add the keyword "MORE INFO"
+        and add the longer text afterwards. The message box will show the supplementary information only if the user
+        asks for detailed information.
         """
 
         self.msgi.setIcon(QMessageBox.Information)
@@ -140,10 +175,10 @@ class Hydro2W(QWidget):
 
     def get_new_hydro_hdf5(self):
         """
-        This is a function which allows the user to select an hdf5 file containing hydro data from a previous project
-        and add it to the current project. it modify the xml project file and test that the data is in correct form
-        by loading it.
-        :return:
+        This is a function which allows the user to select an hdf5 file containing the hydrological
+        data from a previous project and add it to the current project. It modifies the xml project file and test
+        that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
+        created by HABBY in the method save_hdf5 of the class SubHydroW.
         """
 
         self.send_log.emit('# Load hdf5 file of hydrological data')
@@ -203,8 +238,18 @@ class Hydro2W(QWidget):
 
 class FreeSpace(QWidget):
     """
-    Very simple class with empty space, just to have only Qwidget in the stack
+    Simple class with empty space, just to have only Qwidget in the stack.
+
+    **Technical comment**
+
+    The idea of this class is that the user see a free space when it opens the “Hydro” Tab instead
+    of directly seeing one of the hydraulic model. The goal is to avoid the case where a user tries to load data before
+    selecting the real model. For example, if a user wants to load mascaret data and that an item is selected by
+    default in the stack of classes related to hydrology (such as HEC-RAS1D), it might be logical for the user to try
+    to load masacret data using the HEC-RAS class. Because of the FreeSpace class, he actually has to select
+    the model he wants to load.
     """
+
     def __init__(self):
 
         super().__init__()
@@ -216,14 +261,25 @@ class FreeSpace(QWidget):
 
 class SubHydroW(QWidget):
     """
-    a class which is the parent of the class which can be used to open the hydrological model.
-    So there are MainWindiws which provides the windows around the widget,
-    Hydro2W which provide the widget in the windows and one class by hydrological model to really load the model.
-    The latter classes have various methods in common, so they inherit from SubHydroW, this class.
+    SubHydroW is class which is the parent of the classes which can be used to open the hydrological models. This class
+    is a bit special. It is not called directly by HABBY but by the classes which load the hydrological data and which
+    inherits from this class. The advantage of this architecture is that all the children classes can use the methods
+    written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and can use
+    similar functions.
+
+    In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the widget for the
+    hydrological Tab and one class by hydrological model to really load the model. The latter classes have various
+    methods in common, so they inherit from SubHydroW, this class.
     """
 
     send_log = pyqtSignal(str, name='send_log')
+    """
+    A Pyqtsignal to write the log.
+    """
     drop_hydro = pyqtSignal()
+    """
+    A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -258,10 +314,26 @@ class SubHydroW(QWidget):
 
     def was_model_loaded_before(self, i=0, many_file=False):
         """
-        A function to test if the model loaded before, if yes, update the attibutes anf the widgets
-        :param i a number in case there is more than one file to load
-        :param many_file if true it will load more than one file, separated by ','
-        :return:
+        A function to test if the model loaded before. If yes, it updates the attibutes anf the widgets of the
+        hydrological model on consideration.
+
+        :param i: an int used in cases where there is more than one file to load (geometry and output for example)
+        :param many_file: A bollean. If true this function will load more than one file, separated by ','. If False,
+                it will only loads the file of one model (see the comment below).
+
+        **Technical comment**
+
+        This method opens the xml project file and look in the attribute of the xml file to see if data from the
+        hydrological model have been loaded before. If yes, the name of the data is written on the GUI of HABBY in the
+        Widget related to the hydrological model. Now, there are often more than one data loaded. This method allows
+        choosing what should be written. There are two different case to be separated: a) We have loaded two different
+        models (like two rivers modeled by HEC-RAS) b) One model type needs two data file (like HEC-RAS would need a
+        geometry and output data). For the case a), the default is to write only the first model loaded. If we wish to
+        write all data, the switch “many_file” should be True. This switch is also useful for the river2D model, because
+        this model create one output file per time step. For the case b), the argument “i”(which is an int) allows us to
+        choose which data type should be shown. “i” is in the order of the self.attributexml variable. The definition of
+        this order is given in the definition of the class of each hydrological model.
+
         """
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         if os.path.isfile(filename_path_pro):
@@ -297,9 +369,11 @@ class SubHydroW(QWidget):
 
     def show_dialog(self, i=0):
         """
-        A function to obtain the name of the file chosen by the user
-        :param i a number in case there is more than one file to load
-        :return: the name of the file, the path to this file
+        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
+        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
+        is then used to loaded the file in other function, which are different for each children class.
+
+        :param i: a int for the case where there is more than one file to load
         """
 
         # find the filename based on user choice
@@ -336,10 +410,18 @@ class SubHydroW(QWidget):
 
     def save_xml(self, i=0, append_name = False):
         """
-        A function to save the loaded data in the xml file
-        :param i a number in case there is more than one file to save
-        :param append_name. If True, name will be append to the existing namwe
-        :return:
+        A function to save the loaded data in the xml file.
+
+        This function adds the name and the path of the newly chosen hydrological data to the xml project file. First,
+        it open the xml project file (and send an error if the project is not saved, or if it cannot find the project
+        file). Then, it opens the xml file and add the path and name of the file to this xml file. If the model data was
+        already loaded, it adds the new name without erasing the old name IF the switch append_name is True. Otherwise,
+        it erase the old name and replace it by a new name. The variable “i” has the same role than in show_dialog.
+
+        :param i: a int for the case where there is more than one file to load
+        :param append_name: A boolean. If True, the name found will be append to the existing name in the xml file,
+                instead of remplacing the old name by the new name.
+
         """
         filename_path_file = os.path.join(self.pathfile[i], self.namefile[i])
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -373,9 +455,35 @@ class SubHydroW(QWidget):
     def save_hdf5(self):
         """
         This function save the hydrological data in the hdf5 format.
-        The log is not really finished, notbaly this functin cannot be used outise of the class,
-        so it needs to be re-written if used in the command line
-        :return:
+
+        **Techincal comments**
+
+        This function cannot be used outside of the class, so it needs to be re-written if used from the command line.
+
+        This function creates an hdf5 file which contains the hydrological data. First it creates an empty hdf5.
+        Then it fill the hdf5 with data. For 1D model, it fill the data in 1D (the original data), then the 1.5D data
+        created by dist_vitess2.py and finally the 2D data. For model in 2D it only saved 2D data. Hence, the 2D data
+        is the data which is common to all model and which can always be loaded from a hydrological hdf5 created by
+        HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
+        created hdf5:
+
+        *   Name of the file: name_projet  +  ’_’ +  name model + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
+        *   Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)
+        *   Format of the hdf5 file:
+
+            *   Dats_gen:  number of time step and number of reach
+            *   Data_1D:  xhzv_data_all (given profile by profile)
+            *   Data_15D :  vh_pro, coord_pro (given profile by profile in a dict) and nb_pro_reach.
+            *   Data_2D : For each time step, for each reach: ikle, point, point_c, inter_h, inter_vel
+
+        If a list has elements with a changing number of variables, it is necessary to create a dictionary to save
+        this list in hdf5. For example, a dictionary will be needed to save the following list: [[1,2,3,4], [1,2,3]].
+        This is used for example, to save data by profile as we can have profile with more or less points. We also note
+        in the hdf5 attribute some important info such as the project name, path to the project, hdf5 version.
+        This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
+        hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.
+
+        Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.
         """
         self.send_log.emit('# Save hdf5 hydrological data')
 
@@ -491,8 +599,8 @@ class SubHydroW(QWidget):
 
     def find_path_im(self):
         """
-        A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py
-        :return: path_im
+        A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py. By default,
+        path_im is in a folder calls "Figure_Habby".
         """
 
         path_im = 'no_path'
@@ -518,9 +626,9 @@ class SubHydroW(QWidget):
 
     def read_attribute_xml(self, att_here):
         """
-        A function to read the text of an attribute in the xml project file
+        A function to read the text of an attribute in the xml project file.
+
         :param att_here: the attribute name (string).
-        :return:
         """
         data = 'no_data'
 
@@ -548,9 +656,8 @@ class SubHydroW(QWidget):
 
     def send_err_log(self):
         """
-        Send the error and warning to the logs
-        The stdout was redirected to self.mystdout
-        :return:
+        This function sends the errors and the warnings to the logs.
+        The stdout was redirected to self.mystdout.
         """
         str_found = self.mystdout.getvalue()
         str_found = str_found.split('\n')
@@ -560,10 +667,12 @@ class SubHydroW(QWidget):
 
     def grid_and_interpo(self, cb_im):
         """
-        this function form the link between GUI and the various grid and interpolation functions. Is called by
+        This function forms the link between GUI and the various grid and interpolation functions. Is called by
         the "loading' function of hec-ras 1D, Mascaret and Rubar BE.
-        :param cb_im if true, the figures are created and shown.
-        :return:
+        :param cb_im: A boolean if true, the figures are created and shown.
+
+        *Technical comment to be added*
+
         """
         # preparation
         if not isinstance(self.interpo_choice, int):
@@ -796,7 +905,9 @@ class SubHydroW(QWidget):
         """
         This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
         notably rubar and masacret.
-        :return:
+
+        Dist vitess needs a manning parameters. It can be given by the user in two forms: a constant (float) or an array
+        created by the function load_manning_text.
         """
 
         self.send_log.emit("# Velocity distribution")
@@ -823,22 +934,25 @@ class SubHydroW(QWidget):
 
     def load_manning_text(self):
         """
-        This function loads the manning data in case where manning number is not simply a constant. This used by
-        1 D model such as mascaret or Rubar BE to distribute velocity to 1.5 D model.
-        the format of the txt file is "p, dist, n" where  p is the profile number (start at zero) , dist is the distance
-         along the profile in meter and n is the manning value (in SI unit). One point per line so something like:
+        This function loads the manning data in case where manning number is not simply a constant. In this case, the manning
+        parameter is given in a .txt file.
+        The manning parameter used by 1D model such as mascaret or Rubar BE to distribute velocity along the profiles.
+        The format of the txt file is "p, dist, n" where  p is the profile number (start at zero), dist is the distance
+        along the profile in meter and n is the manning value (in SI unit). One point per line so something like:
+
         0, 150, 0.035
+
         0, 200, 0.025
-        1, 120, 0.035
-        .....
-        white space is neglected and a line starting with # is also neglected.
-        :return:
+
+        1, 120, 0.035, etc.
+
+        White space is neglected and a line starting with the character # is also neglected.
         """
         # find the filename based on user choice
         if len(self.pathfile) == 0:
             filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
         else:
-            # if a model was loded go directly to the folder were this model was loaded
+            # if a model was loaded go directly to the folder were this model was loaded
             filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[0])[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
@@ -892,15 +1006,14 @@ class SubHydroW(QWidget):
 class HEC_RAS1D(SubHydroW):
     """
    The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
-   src/hec_ras06.py which loads the hec-ras data in 1D.
-
-   **Technical comment**
-
-   The class HEC_RAS1D inherits from SubHydroW() so it have all the methods and the variables from the class
-   SubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
+   src/hec_ras06.py which loads the hec-ras data in 1D. The class HEC_RAS1D inherits from SubHydroW() so it have all
+   the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
    the user is on the hydrological tab and click on hec-ras1D as hydrological model.
     """
     show_fig = pyqtSignal()
+    """
+    PyQtsignal to show the figure.
+    """
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -994,8 +1107,22 @@ class HEC_RAS1D(SubHydroW):
 
     def load_hec_ras_gui(self):
         """
-        A function to exectue the loading and saving the the HEC-ras file using Hec_ras.py
-        :return:
+        A function to execute the loading and saving of the HEC-ras file using Hec_ras.py
+
+        **Technical comments**
+
+        This function is called when the user press on the button self.load_b. It is the function which really
+        calls the load function for hec_ras. First, it updates the xml project file. It adds the name of the new file
+        to xml project file under the attribute indicated by self.attributexml. It also gets the path_im by reading the
+        path_im in the xml project file. Then it check if the user want to create the figure or not
+        (if self.cb.isChecked(), figures should be created). It also manages the log as explained in the section
+        about the log. Notably, it redirects the  outstream to the mystdout stream. Hence, the “print” statement is
+        now sent to the log windows at the bottom of HABBY window. Next, it loads the hec-ras data as explained in
+        the section on hec_ras06.py. It then creates the grid as explained in the manage_grid.py based on the
+        interpolation type wished by the user (linear, nearest neighbor or by block). It creates the hdf5
+        with the loaded data. Finally, if necessary, it shows the figure by emitting a signal.
+        This signal is collected in the MainWindow() class.
+
         """
         # update the xml file of the project
         self.save_xml(0)
@@ -1048,10 +1175,15 @@ class HEC_RAS1D(SubHydroW):
 
 class Rubar2D(SubHydroW):
     """
-    The sub-windows which help to open the rubar data. Call the rubar loader and save the name
-     of the files to the project xml file.
+    The class Rubar2D is there to manage the link between the graphical interface and the functions in src/rubar.py
+    which loads the RUBAR data in 2D. It inherits from SubHydroW() so it have all the methods and the variables from
+    the class SubHydroW(). The form of the function is similar to hec-ras, but it does not have the part about the grid
+    creation as we look here as the data created in 2D by RUBAR.
     """
     show_fig = pyqtSignal()
+    """
+    A PyQtsignal to show the figure.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -1059,7 +1191,9 @@ class Rubar2D(SubHydroW):
         self.init_iu()
 
     def init_iu(self):
-
+        """
+        used by ___init__() in the initialization.
+        """
         # update attibute for rubar 2d
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
@@ -1112,8 +1246,14 @@ class Rubar2D(SubHydroW):
 
     def load_rubar(self):
         """
-        A function to execture the loading and saving the the rubar file using rubar.py.
-        :return:
+        A function to execture the loading and saving the the rubar file using rubar.py. It is similar to the
+        load_hec_ras_gui() function. Obviously, it calls rubar and not hec_ras this time. A small difference is that
+        the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it will be
+        necessary to cut the grid for each time step as a function of the wetted area and maybe to separate the
+        grid by reaches. This have not be done yet.
+
+        Another problem is that the data of Rubar2D is given on the cells of the grid and not the nodes.
+        This will need to be corrected as data in HABBY is centered on the node.
         """
         # update the xml file of the project
         self.save_xml(0)
@@ -1157,9 +1297,11 @@ class Rubar2D(SubHydroW):
 
     def propose_next_file(self):
         """
-        A function which avoid to the user to search for both file to load.
-        it tries to find the second file when the first one is selected
-        :return:
+        This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
+        one file with the geometry data and one file with the simulation results. If the user selects a file, this
+        function looks if a file with the same name but with the extension of the other file type exists in the
+        selected folder. This could be done for all hydrological models, but the function is harder
+        to write when more than one extension is possible, so it has not been done yet.
         """
         if len(self.extension[1]) == 1:
             if self.out_t2.text() == 'unknown file':
@@ -1172,10 +1314,21 @@ class Rubar2D(SubHydroW):
 
 class Mascaret(SubHydroW):
     """
-    The sub widows which call the function to load the mascaret data and save the name of the mascaret file to the
-     project xml file.
+    The class Mascaret is there to manage the link between the graphical interface and the functions in src/mascaret.py
+    which loads the Masacret data in 1D. It inherits from SubHydroW() so it have all the methods and the variables
+    from the class SubHydroW(). It is similar to the HEC-Ras1D class (see this class for more information). However, mascaret is 1D model, so the loading
+    of mascaret has one additional step compared to the hec-ras load: The velocity must be distributed along the
+    profile. For this, the load_masacret_gui call the self.distrbute _velocity function. In addition, it prepares
+    the manning value which is necessary to distribute the velocity. The user has two choices to input the manning
+    value. The easiest one is just to give a value constant for the whole river. In the second choice, the user loads
+    a text file with a serie of lines with the following info: p, dist, n where p is the profile number
+    (starting at zero), dist is the distance in meter along the profile and n in the manning value (see the method
+    load_manning_text of the class SubHydroW for more information)
     """
     show_fig = pyqtSignal()
+    """
+    A PyQtsignal to show the figure.
+    """
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -1183,6 +1336,9 @@ class Mascaret(SubHydroW):
         self.init_iu()
 
     def init_iu(self):
+        """
+        Used in the initialization by __init__()
+        """
 
         # update attibute for mascaret
         self.attributexml = ['gen_data', 'geodata_mas', 'resdata_mas', 'manning_mas']
@@ -1204,7 +1360,7 @@ class Mascaret(SubHydroW):
 
         # general, geometry and output data
         l0 = QLabel(self.tr('<b> General data </b>'))
-        self.gen_b = QPushButton('Choose file (.xcas)', self)
+        self.gen_b = QPushButton('Choose file (.xcas, .cas)', self)
         self.gen_b.clicked.connect(lambda: self.show_dialog(0))
         self.gen_b.clicked.connect(lambda: self.gen_t2.setText(self.namefile[0]))
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
@@ -1270,8 +1426,7 @@ class Mascaret(SubHydroW):
 
     def load_mascaret_gui(self):
         """
-        The function to load the mascaret data, calling mascaret.py
-        :return:
+        The function is used to load the mascaret data, calling the function contained in the script mascaret.py
         """
         # update the xml file of the project
         self.save_xml(0)
@@ -1331,10 +1486,33 @@ class Mascaret(SubHydroW):
 
 class River2D(SubHydroW):
     """
-        The sub-windows which help to open the river 2ddata. Call the river2D loader and save the name
-         of the files to the project xml file.
-        """
+   The class River2D t is there to manage the link between the graphical interface and the functions in src/river2D.py
+   which loads the River2D data in 2D.
+
+   **Technical comments**
+
+    The class River2D inherits from SubHydroW() so it have all the methods and the variables from the class SubHydroW().
+    It is similar generally to the hec-ras2D class. However, the hydrological model River2D create one file per time step.
+    Hence, it is necessary to have a way to load all the files automatically. Loading one file after one file would be
+    annoying. There are four functions to manage the large number of file:
+
+    *   add_all_file: find all files in a folder selected by the user.
+    *   add_file_river2D: add just one selected file
+    *   Remove_all_file: remove all selected files
+    *   Remove_file: remove one selected file
+
+    None of this four functions load the data, it just add the name and path of the files to be loaded to
+    self.namefile and self.pathfile. Generally, in HABBY, we load hydrological data in two steps: a) select the files,
+    b) load the data. For river2D, the step b) is done by the function load_river2d_gui().
+    This function is similar to the one used by Rubar2D. It has the same problem about the grid which
+    is identical for all time steps and which contains all reaches together. So a temporary correction was applied.
+    Data in River2D is given on the nodes as in HABBY.
+     """
+
     show_fig = pyqtSignal()
+    """
+    A PyQtsignal to show the figure.
+    """
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -1342,6 +1520,9 @@ class River2D(SubHydroW):
         self.init_iu()
 
     def init_iu(self):
+        """
+        used by __init__ in the initialization
+        """
         # update attibute for rubbar 2d
         self.attributexml = ['river2d_data']
         self.model_type = 'RIVER2D'
@@ -1391,8 +1572,7 @@ class River2D(SubHydroW):
 
     def remove_file(self):
         """
-        small function to remove a .cdg file to the list to be loaded
-        :return:
+        This is small function to remove a .cdg file from the list of files to be loaded and from the QlistWidget.
         """
         i = self.list_f.currentRow()
         item = self.list_f.takeItem(i)
@@ -1402,8 +1582,7 @@ class River2D(SubHydroW):
 
     def remove_all_file(self):
         """
-        reove all files as you could expect
-        :return:
+        This function removes all files from the list of files to be loaded and from the QlistWidget.
         """
         # empty list
         self.namefile = []
@@ -1412,8 +1591,9 @@ class River2D(SubHydroW):
 
     def add_file_river2d(self):
         """
-        A function which call show_dialog, oprepare some data for it and update the list
-        :return:
+        This function is used to add one file to the list of file to be loaded.
+        It calls show_dialog, prepare some data for it and update the QWidgetList with
+        the name of the file containted in the variable self.namefile.
         """
         if len(self.extension) == len(self.namefile):
             self.extension.append(self.extension[0])
@@ -1423,8 +1603,8 @@ class River2D(SubHydroW):
 
     def add_file_to_list(self):
         """
-        A function to add all file contained in self.namefile to the QWidgetlist
-        :return:
+        This function to add all file contained in self.namefile to the QWidgetlist. Called by add_file_river2D and
+        add_all_file.
         """
         self.list_f.clear()
         while len(self.extension) <= len(self.namefile):
@@ -1435,8 +1615,7 @@ class River2D(SubHydroW):
 
     def add_all_file(self):
         """
-        The function which find all .cdg file in one directory
-        :return:
+        The function finds all .cdg file in one directory to add there names to the list of files to be loaded
         """
 
         # get the directory
@@ -1456,8 +1635,7 @@ class River2D(SubHydroW):
 
     def load_river2d_gui(self):
         """
-        The function to load the river 2d data
-        :return:
+        This function is used to load the river 2d data.
         """
 
         xyzhv = []
@@ -1518,10 +1696,14 @@ class River2D(SubHydroW):
 
 class Rubar1D(SubHydroW):
     """
-    The sub-windows which help to open the rubar data. Call the rubar loader and save the name
-     of the files to the project xml file.
+    The class Rubar1D is there to manage the link between the graphical interface and the functions in src/rubar.py
+    which loads the Rubar1D data in 1D. It inherits from SubHydroW() so it have all the methods and the variables
+    from the class SubHydroW(). It is very similar to Mascaret class.
     """
     show_fig = pyqtSignal()
+    """
+    A PyQtsignal to show the figures.
+    """
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -1529,7 +1711,9 @@ class Rubar1D(SubHydroW):
         self.init_iu()
 
     def init_iu(self):
-
+        """
+        Used in the initalizatin by __init__()
+        """
         # update attibute for hec-ras 1d
         self.attributexml = ['rubar_1dpro', 'data1d_rubar', '', 'manning_rubar']
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
@@ -1608,8 +1792,9 @@ class Rubar1D(SubHydroW):
 
     def load_rubar1d(self):
         """
-        A function to execture the loading and saving the the rubar file using rubar.py
-        :return:
+        A function to execute the loading and saving the the rubar file using rubar.py. After loading the data,
+        it distribute the velocity along the profiles by calling self.distribute_velocity() and it created the 2D grid
+        by calling the method self.grid_and_interpo.
         """
         # update the xml file of the project
         self.save_xml(0)
@@ -1664,9 +1849,15 @@ class Rubar1D(SubHydroW):
 
 class HEC_RAS2D(SubHydroW):
     """
-    The Qwidget which open the Hec-RAS data in 2D dimension
+    The class hec_RAS2D is there to manage the link between the graphical interface and the functions in src/hec_ras2D.py
+    which loads the hec_ras2D data in 2D. It inherits from SubHydroW() so it have all the methods and the variables
+    from the class SubHydroW(). It is very similar to RUBAR2D class and it has the same problem about node/cell
+    which will need to be corrected.
     """
     show_fig = pyqtSignal()
+    """
+    PyQtsignal to show the figures.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -1674,6 +1865,9 @@ class HEC_RAS2D(SubHydroW):
         self.init_iu()
 
     def init_iu(self):
+        """
+        This method is used to by __init__() during the initialization.
+        """
 
         # update attibutes
         self.attributexml = ['data2D']
@@ -1721,8 +1915,8 @@ class HEC_RAS2D(SubHydroW):
 
     def load_hec_2d_gui(self):
         """
-        The function which call the function which load hecras 2d and save name of file in the project file
-         :return:
+        This function calls the function which load hecras 2d and save the names of file in the project file.
+        It is similar to the function to load_rubar2D.
         """
         self.save_xml(0)
         path_im = self.find_path_im()
@@ -1762,9 +1956,14 @@ class HEC_RAS2D(SubHydroW):
 
 class TELEMAC(SubHydroW):
     """
-    The Qwidget which open the TELEMAC data
+    The class Telemac is there to manage the link between the graphical interface and the functions in src/selafin_habby1.py
+    which loads the Telemac data in 2D. It inherits from SubHydroW() so it have all the methods and the variables
+    from the class SubHydroW(). It is very similar to RUBAR2D class, but data from Telemac is on the node as in HABBY.
     """
     show_fig = pyqtSignal()
+    """
+    A PyQtsignal to show the figure.
+    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -1772,6 +1971,9 @@ class TELEMAC(SubHydroW):
         self.init_iu()
 
     def init_iu(self):
+        """
+        Used by __init__() during the initialization.
+        """
 
         # update the attibutes
         self.attributexml = ['telemac_data']
@@ -1817,8 +2019,7 @@ class TELEMAC(SubHydroW):
 
     def load_telemac_gui(self):
         """
-        The function which call the function which load htelemac and save tje name of file in the project file
-         :return:
+        The function which call the function which load telemac and save the name of files in the project file
         """
         self.save_xml(0)
         # load the telemac data
@@ -1860,13 +2061,18 @@ class SubstrateW(SubHydroW):
     So this class inherit from SubHydroW.
     """
     show_fig = pyqtSignal()
+    """
+    A PyQtsignal to show the figures.
+    """
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
         self.init_iu()
 
     def init_iu(self):
-
+        """
+        Used in the initialization by __init__().
+        """
         # update attribute
         self.attributexml = ['substrate_data', 'att_name']
         self.model_type = 'SUBSTRATE'
@@ -1954,10 +2160,12 @@ class SubstrateW(SubHydroW):
 
     def update_hydro_hdf5_name(self):
         """
-        a short function used to read all the hdf5 data available in one project adn to add it to the drop-down menu
-        should be a function because an update to this list can be triggered by the loading of a new hydrological data.
-        the class SubstrateW() noticed this thought the signal new_hydro_hdf5
-        :return:
+        This is a short function used to read all the hydrological data contained in an hdf5 files and available in
+        one project. When these files are read, they are added to the drop-down menu;
+        This should be a function because an update to this list can be triggered by the loading of a new hydrological
+        data. The class SubstrateW() noticed this through the signal drop_hydro send by the hydrological class.
+        The signal drop_hydro is connected to this function in the class CentralW in MainWindows.py. Indeed, it is not
+        possible to do it in SubstrateW().
         """
         self.hyd_name = self.read_attribute_xml('hdf5_hydrodata')
         self.hyd_name = self.hyd_name.split(',')
@@ -1971,12 +2179,20 @@ class SubstrateW(SubHydroW):
                 self.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
     def load_sub_gui(self):
+        """
+        This function is used to load the substrate data. The substrate data can be in two forms: a) in the form of a shp
+        file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line).
+        Generally this function has some similarities to the functions used to load the hydrological data and it re-uses
+        some of the methods developed for them.
+        """
+
         # save path and name substrate
         self.save_xml(0)
         # only save attribute name if shapefile
         self.name_att = self.e2.text()
         blob, ext = os.path.splitext(self.namefile[0])
         path_im = self.find_path_im()
+        # if the substrate is in the shp form
         if ext == '.shp':
             if not self.name_att:
                 self.send_log.emit("Error: No attribute name was given to load the shapefile.")
@@ -2001,12 +2217,14 @@ class SubstrateW(SubHydroW):
 
             if self.cb.isChecked():
                 substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im)
+        # if the substrate data is a text form
         elif ext == '.txt' or ext == ".asc":
             sys.stdout = self.mystdout = StringIO()
             [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
             self.log_txt()
             if self.cb.isChecked():
                 substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
+        # case unknown
         else:
             self.send_log.emit("Warning: Unknown extension for substrate data, the model will try to load as .txt")
             sys.stdout = self.mystdout = StringIO()
@@ -2027,14 +2245,15 @@ class SubstrateW(SubHydroW):
         self.drop_sub.clear()
         for i in range(0, len(self.sub_name)):
             self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+
         # show figure
         if self.cb.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
 
     def log_txt(self):
         """
-        The log for the substrate in text form. In a function because it is used twice
-        :return:
+        This function gives the log for the substrate in text form. this is in a function because it is used twice in
+        the function load_sub_gui()
         """
         # log info
         self.send_log.emit(self.tr('# Load: Substrate data - text file'))
@@ -2051,8 +2270,8 @@ class SubstrateW(SubHydroW):
 
     def get_att_name(self):
         """
-        A function to get the attribute name of the shape file which is possibly int e project xml file.
-        :return:
+        A function to get the attribute name of the shapefile which contains the substrate data. it is given by the user
+        in the GUI.
         """
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -2068,8 +2287,7 @@ class SubstrateW(SubHydroW):
     def save_hdf5_sub(self):
         """
         This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
-        xml project file
-        :return:
+        xml project file. The format of the hdf5 file is not finalzed yet so it is not documented.
         """
 
         self.send_log.emit('# Save data for the substrate in an hdf5 file.')
@@ -2128,9 +2346,8 @@ class SubstrateW(SubHydroW):
 
     def send_merge_grid(self):
         """
-        This function calls the function merge grid in substrate.py. The goal is to have the substrate and hysrological
-        data on the same grid/
-        :return:
+        This function calls the function merge grid in substrate.py. The goal is to have the substrate and hydrological
+        data on the same grid. Hence, the hydrological grid will need to be cut to the form of the substrate grid.
         """
         self.send_log.emit('# Merge substrate and hydrological grid')
 
@@ -2164,12 +2381,3 @@ class SubstrateW(SubHydroW):
             self.show_fig.emit()
 
         # save the data in a new hdf5
-
-
-
-
-
-
-
-
-
