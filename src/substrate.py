@@ -1,6 +1,7 @@
 import shapefile
 import os
 import numpy as np
+from scipy.spatial import Voronoi, voronoi_plot_2d
 import matplotlib.tri as tri
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
@@ -73,7 +74,7 @@ def load_sub_shp(filename, path, name_att='SUBSTRATE'):
 def load_sub_txt(filename, path):
     """
     A function to load the substrate in form of a text file. The text file must have 3 column x,y coordinate and
-    substrate info, no header or title.
+    substrate info, no header or title. It is transform to a grid using a voronoi transformation
 
     :param filename: the name of the shapefile
     :param path: the path where the shapefile is
@@ -101,12 +102,17 @@ def load_sub_txt(filename, path):
     except TypeError:
         print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename +'.')
         return [-99], [-99], [-99], [-99], [-99], [-99]
-    # Delauney
-    triang = tri.Triangulation(x, y)
-    ikle = triang.triangles
-    xgrid = np.array(triang.x)
-    ygrid = np.array(triang.y)
-    xy = np.column_stack((xgrid,ygrid))
+    # Voronoi
+    point_in = np.array(np.reshape(np.array([x,y]), (len(x), 2)))
+    vor = Voronoi(point_in)  # with the option further_site
+    xy = vor.vertices
+    xy = np.reshape(xy, (len(xy), len(xy[0])))
+    xgrid = xy[:,0]
+    ygrid = xy[:,1]
+    ikle = vor.regions
+    ikle = [var for var in ikle if var]  # erase empy element
+    #voronoi_plot_2d(vor) # figure to debug
+    #plt.show()
     # find one sub data by triangle ?
     sub_grid = np.zeros(len(ikle),)
     for e in range(0, len(ikle)):
@@ -904,22 +910,22 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
     # prepare grid
     xlist = []
     ylist = []
-    ikle = np.array(ikle).squeeze()
+    #ikle = np.array(ikle)
     coord_p = np.array(coord_p)
-    col_ikle = ikle.shape[1]
+    #col_ikle = ikle.shape[1]
     for i in range(0, len(ikle)):
         pi = 0
-        while pi < col_ikle-1:  # we have all sort of xells, max eight sides
-            p = int(ikle[i, pi])  # we start at 0 in python, careful about -1 or not
-            p2 = int(ikle[i, pi+1])
+        while pi < len(ikle[i])-1:  # we have all sort of xells, max eight sides
+            p = int(ikle[i][pi])  # we start at 0 in python, careful about -1 or not
+            p2 = int(ikle[i][pi+1])
             xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
             xlist.append(None)
             ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
             ylist.append(None)
             pi += 1
 
-        p = int(ikle[i, pi])
-        p2 = int(ikle[i, 0])
+        p = int(ikle[i][pi])
+        p2 = int(ikle[i][0])
         xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
         xlist.append(None)
         ylist.extend([coord_p[p,1], coord_p[p2, 1]])
@@ -934,8 +940,8 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
     n = len(sub_info)
     for i in range(0, n-1):
         verts = []
-        for j in range(0, len(ikle[i,:])):
-            verts_j = coord_p[int(ikle[i, j]), :]
+        for j in range(0, len(ikle[i])):
+            verts_j = coord_p[int(ikle[i][j]), :]
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
@@ -966,30 +972,32 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
         s1 = 3.1 * (d1* transf)**2 / 2  # markersize is given as an area
 
         cm = plt.cm.get_cmap('gist_rainbow')
-        sc = plt.scatter(xtxt, ytxt, c=subtxt, vmin=np.nanmin(subtxt), vmax=np.nanmax(subtxt), s=s1, cmap=cm, edgecolors='none')
+        sc = plt.scatter(xtxt, ytxt, c=subtxt, vmin=np.nanmin(subtxt), vmax=np.nanmax(subtxt), s=34, cmap=cm, edgecolors='none')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Original Substrate Data (x,y)')
         plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        plt.show()
         #plt.close()
 
     #plt.show()
 
 
-def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr= [], point_all_orr = []):
+def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr=[], point_all_orr=[]):
     """
     A function to plot the grid after it was merged with the substrate data.
     It plots one time step at the time.
 
-    :param point_all_both: the coordinate of the points of the updated grid
-    :param ikle_both: the connectivity table
+    :param point_all_both_t: the coordinate of the points of the updated grid
+    :param ikle_both_t: the connectivity table
     :param path_im: the path where the image should be saved
     :param ikle_orr: the orginial ikle
     :param point_all_orr: the orginal point_all
     """
     if not os.path.isdir(path_im):
         print('Error: No directory found to save the figures \n')
+        return
 
     # prepare grid
     xlist = []
@@ -1036,20 +1044,20 @@ def main():
     Used to test this module.
     """
 
-    # path = r'D:\Diane_work\output_hydro\substrate'
-    # filename = 'mytest.shp'
-    # filetxt = 'sub_test.txt'
+    path = r'D:\Diane_work\output_hydro\substrate'
+    #filename = 'mytest.shp'
+    filetxt = 'sub_txt2.txt'
     # # load shp file
     # [coord_p, ikle_sub, sub_info] = load_sub_shp(filename, path, 'VELOCITY')
     # fig_substrate(coord_p, ikle_sub, sub_info, path)
     # # load txt file
-    # [coord_pt, ikle_subt, sub_infot,  x, y, sub] = load_sub_txt(filetxt, path,)
-    #fig_substrate(coord_pt, ikle_subt, sub_infot, path, x, y, sub)
-    path1 = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    hdf5_name_hyd = os.path.join(path1, r'my_test4_HECRAS1D_18_11_2016_at_15_45_19.h5' )
-    hdf5_name_sub = os.path.join(path1, r'my_test4_substrate_18_11_2016_at_15_25_21.h5')
-    [ikle_both, point_all_both, sub_data, vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,0)
-    fig_merge_grid(point_all_both[0], ikle_both[0], path1)
+    [coord_pt, ikle_subt, sub_infot,  x, y, sub] = load_sub_txt(filetxt, path,)
+    fig_substrate(coord_pt, ikle_subt, sub_infot, path, x, y, sub)
+    #path1 = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    #hdf5_name_hyd = os.path.join(path1, r'my_test4_HECRAS1D_18_11_2016_at_15_45_19.h5' )
+    #hdf5_name_sub = os.path.join(path1, r'my_test4_substrate_18_11_2016_at_15_25_21.h5')
+    #[ikle_both, point_all_both, sub_data, vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,0)
+    #fig_merge_grid(point_all_both[0], ikle_both[0], path1)
 
 
 if __name__ == '__main__':

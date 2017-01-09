@@ -456,7 +456,7 @@ class SubHydroW(QWidget):
         """
         This function save the hydrological data in the hdf5 format.
 
-        **Techincal comments**
+        **Technical comments**
 
         This function cannot be used outside of the class, so it needs to be re-written if used from the command line.
 
@@ -2095,7 +2095,7 @@ class SubstrateW(SubHydroW):
         l3 = QLabel(self.tr('If text file used as input:'))
         l7 = QLabel(self.tr('Attribute name:'))
         l6 = QLabel(self.tr('(only for shapefile)'))
-        l5 = QLabel(self.tr('A Delaunay triangulation will be applied.'))
+        l5 = QLabel(self.tr('A Voronoi transformation will be applied.'))
         self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
@@ -2310,8 +2310,14 @@ class SubstrateW(SubHydroW):
         ikleg = file.create_group('ikle_sub')
         coordpg = file.create_group('coord_p_sub')
         if len(self.ikle_sub) > 0:
-            ikleg.create_dataset(h5name, [len(self.ikle_sub), len(self.ikle_sub[0])], data=self.ikle_sub)
+            adict = dict()  # because the grid might not be triangular here
+            for p in range(0, len(self.ikle_sub)):
+                ns = 'p' + str(p)
+                adict[ns] = self.ikle_sub[p]
+            for k, v in adict.items():
+                ikleg.create_dataset(k, data=v)
         coordpg.create_dataset(h5name, [len(self.coord_p), 2], data=self.coord_p)
+        
         # CAREFUL: Data sub is not save yet in the substrate hdf5
         # because we do not know yet the form of the substrate data
         datasubg = file.create_group('data_sub')
