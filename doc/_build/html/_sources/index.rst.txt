@@ -106,7 +106,7 @@ Conceptually, the regressions R are of two types:
 Where Q is the discharge, m1 and m2 are coefficients which depend on the fish type, and C is a
 constant which depends on the stream characteristic and the fish type. 
 
-The constant C is of the form C = a + ∑ ai * ln(Si) where a and ai are coefficients which depend on 
+The constant C is of the form C = a + \sum ai * ln(Si) where a and ai are coefficients which depend on 
 the fish type. Si are particular stream characteristics. Which characteristics should be used is a 
 function of the fish type and is so given in the xml file. The value of S i is a function of the stream
 and is calculated by the program.
@@ -178,6 +178,7 @@ This module contains the functions used to load the outputs from the hec-ras mod
 
 Mascaret
 -------------------------
+in src/mascaret.py
 
 This module contains the functions used to load the outputs from the mascaret model.
 
@@ -187,7 +188,7 @@ This module contains the functions used to load the outputs from the mascaret mo
 
 River 2D
 -------------------------
-
+in src/river2D.py
 
 This module contains the functions used to load the outputs from the River2D model.
 
@@ -197,6 +198,7 @@ This module contains the functions used to load the outputs from the River2D mod
 
 Rubar
 ---------------------------
+in src/rubar.py
 
 This module contains the functions used to load the Rubar data in 2D and 1D.
 
@@ -206,8 +208,9 @@ This module contains the functions used to load the Rubar data in 2D and 1D.
 
 Telemac
 --------------------------
+in src/selafin_habby1.py
 
-This module contains the function used to load the Telemac data.
+This module contains the functions used to load the Telemac data.
 
 .. automodule:: src.selafin_habby1
    :members:
@@ -216,6 +219,8 @@ This module contains the function used to load the Telemac data.
 
 Load HABBY hdf5 file
 --------------------------------------
+in src/load_hdf5.py
+
 This module contains some functions to load and manage hdf5 input/outputs. This is still in progress.
 
 .. automodule:: src.load_hdf5
@@ -245,24 +250,276 @@ Here is the actual form of the hdf5 containing the substrate data.
 
 Velocity distribution
 --------------------------------
+in src/dist_vitesse2.py
+
+The goal of this list of function is to distribute the velocity along the cross-section 
+for 1D model such as mascaret or Rubar BE. Hec-Ras outputs do not need to uses this type 
+of function as they are already distributed along the profiles.
+
+The method of velocity distribution in HABBY is similar to the one used by Hec-Ras to distribute 
+velocity.  
+
+
 .. automodule:: src.dist_vistess2
    :members:
    :undoc-members:
 
-.. automodule:: src.manage_grid_8.py
+Create a grid
+--------------------
+in src/manage_grid_8
+
+This module is composed of the functions used to manage the grid, 
+notably to create 2D grid from the output from 1D model.
+
+There are two main way to go from data in 1.5D in a profile form to a 2D grid:
+
+*	through the usage of the triangle module in create_grid().
+*	through the definition of a middle profile used as a guide to create the grid in create_grid_only_one_profile(). 
+
+For an in-depth explanation on how to create the grids, please see the pdf document :download:`More info on the grid <Grid_info.pdf>`
+
+
+.. automodule:: src.manage_grid_8
    :members:
    :undoc-members:
+
+Estimhab -source
+---------------------
+in src/estimhab.py
+
+The module contains the Estimhab model. For an explanation on the estimhab model, please see 
+the pdf document :download:`estimhab2008 <estimhab2008.pdf>`
+
+
 .. automodule:: src.estimhab
    :members:
    :undoc-members:
+
+Stathab - source
+-------------------------
+in src/stathab_c
+
+This module contains the function used to run the model stathab.For an explanation on 
+the form of the stathab input, please see the pdf document :download:`stathabinfo <stathabinfo.pdf>`
+
+
 .. automodule:: src.stathab_c
    :members:
    :undoc-members:
+
+Substrate
+-------------------
+in src/substrate.py
+
+This module contains the function to manage the substrate data. This is still a work in progress.
+
 .. automodule:: src.substrate
    :members:
    :undoc-members:
+   
+Various notes
+===============
+
+Translation of HABBY
+------------------------
+
+In HABBY, it is possible to translate all strings which are in a python file (.py) 
+which is in the src_GUI folder. It should be possible to translate also strings which 
+are in a .py file which is in the .src folder if one modifies the .pro file, 
+but this is not done yet. Also, it might not be necessary because ./src contains 
+code which is not linked with the graphical interface. Hence, English might be sufficient here.
+
+To add a new string to translate:
+
+*	Code as usual and write the string in English. 
+*	Add self.tr() around the string  a = Qlabel(self.tr(“My message”))
+*	If the code is in a new python file (like the .py was just created), open the habby_trans.pro file which is src_GUI. Then add the line SOURCES+= new_file.py where new_file.py is the new python file. 
+*	If you want to add a new language, add the line TRANSLATIONS += Zen_ES.ts in the case you want to add Spanish or any other language.
+*	Copy the files ZEN_EN.ts and ZEN_FR.ts from HABBY/translation to /src_GUI
+*	In the src_GUI folder, run the following command on the cmd: pylupdate5 habby_trans.pro. it will work if pylupdate is installed.
+*	It should update the .ts file (which is an xml file)
+*	Copy both .ts file back to HABBY/translation
+*	Open Qt  linguist. This is a program that you need to install before. Open the French .ts file. The English should not need translation.
+*	Translate as needed and save in Qt Linguist.
+*	A .qm file is the binary representing the .ts file with all the translation. To create .qm file, type (in the cmd) lrelease  file.ts. It will create a file.qm file
+*	Run HABBY. The string should be updated.
+
+**In the code**
+
+If the user asked for a new language, we need to reload the translator with the following lines:
+
+	*app = QApplication.instance()*
+
+	*self.languageTranslator.load(file.qm, self.path_trans)*
+
+ 	*app.installTranslator(self.languageTranslator)*
+
+with the appropriate name for “file.qm”. 
+
+In HABBY, the list of the name of all qm file are in the variable self.file_langue 
+in class MainWindows. Hence, we can follow the selected language using an integer self.lang 
+(0 for English and 1 for French). We can now call self.file_langue[self.lang] to get the qm 
+file in the right language. If a new language is added, it is necessary to add one string to this 
+list and to modify the menu. 
+
+When the translator has been created, it is necessary to re-do all Widgets and Windows. This is not a problem when we open HABBY, but it can be a bit of work if the user asks for a change in language when HABBY is running. This is the function of the setlangue function. This function would work for all language (it takes an integer as input to know which language to use), but it needs to be modified if one modifies the Main_Windows Class strongly (notably if one add signals).
+The language should be saved in the user setting using Qsettings as it is done at the end of the 
+setlangue function.
+
+Create a .exe
+--------------------
+
+Here are step to create a .exe using PyInstaller
+
+*	install Pyinstaller (pip install pyinstaller)
+*	cd "folder with source code"
+*	pyinstaller.exe [option] habby.py, with the option --onefile to get only one .exe and --windowed to not have the cmd which opens with the application.
+
+Here are some common problems:
+
+*	ImportError: (No module named 'PyQt5.QtGui'): Copy the folder platform with qwindows.dll and add to the set_up.py  "includes": ["PyQt5.QtCore", "PyQt5.QtGui"]
+*	This application fails to start because ... the Qt platform pugin windows: Copy the folder platform with qwindows.dll in it
+*	ImportError: h5Py "includes": ["h5py","h5py.defs", "h5py.utils", "h5py.h5ac", 'h5py._proxy' ] etc if necessary
+*	Intel MKL fatal error copy the .dll missing (or just find an old dist and copy all mkl stuff) AND the libiomp5md.dll
+*	The translation does not work: Add the translation folder into the dist folder
+*	Do not find log0.txt (or crash when saving project): create a folder called src_GUI, copy the files log0.txt and restart_log0.txt from the src_GUI folder in the python module
+
+Logging
+--------------
+
+**General information**
+
+There are two different logs for HABBY. By default, the first one is called “name_projet”.log and 
+the second is called restart/_'name_project'.log. Their name and path can be changed in the xml 
+project file. Both file are text file.
+
+The first log is in the form of a python file with comments. If python and the necessary modules 
+are installed on the machine, this log can be renamed “name.py” and started as a python file. 
+In the command line, the following command should be used: python name.py. This file can be 
+modified to create a new script to use HABBY in a different ways. For this, python syntax should be used.
+
+The second log, called restart/_’name_project’.log, has limited functionalities but allows to 
+re-start the HABBY simulation from the command line, without the need for python. 
+Format of this file is described below. It is aimed to be readable and easily modifiable. 
+To use the restart file, type in the command line: habby restart/_’name_project’.log. (not done yet)
+
+**Type of log and format**
+
+Currently, there are five types of outputs, which can be sent to the log:
+
+*	Comment, which should start with #. They will be sent to the python-type log file and to the GUI of Habby.
+*	Errors, which should start with word “Error”. They will be sent to the python-type log file and to the GUI of Habby. In the GUI, they will appear in red. 
+*	Warnings, which should start with the word “Warning”. They will be sent to the python-type log file and to the GUI of Habby. In the GUI, they will appear in orange.
+*	Restart info, which should start with the word “restart’. They will be sent to the restart\_’name_project’.log. The format will be developed afterwards.
+*	All types of text which do not start with these code words are only shown to the GUI of Habby.
+*	Python code, which should start with the line py followed by four spaces.  It will be sent to the python-type log file. It is usually a function which is part of Habby code. The different arguments of the function should be given in the preceding lines.
+
+**Example** 
+
+Let’s write to the log a function which takes an integer and a string as input. The function 
+is in the module called habby1, which is imported by default in the .log file. The strings to send
+as log would be:
+
+*	"#  this my fancy function"
+*	"py    my_int = " + str(my_int_in_code)
+*	"py    my_string = ’” + my_string_in_the _code+ "'“
+*	"py    habby1.myfunc(my_int, my_string)"
+
+A comment should be added before each chunk of python code to improve the readability. 
+
+**Update the log**
+
+Let’s consider a scenario where a new function has been written in a non-GUI module (class or 
+function) and has to be called in the GUI in a method of a class. Let’s call the new function 
+new_func and the class in the GUI my_class.
+
+To create a new line of log for new_func, one should follow these steps:
+
+*	A PyQtsignal with a string as argument should be added to my_class: send_log = pyqtSignal(str, name='send_log')
+*	If a log should be sent directly from my_class (for example, to say that new_func  has been called), the signal should be emitted: self.send_log.emit('# new_func has been called'))
+*	In the new function,  error and warning are written as follows: print(“Error: here is an error.\n”) or print(“Warning:  This is just a warning.\n”)
+*	In my_class, error and warning are collected by redirecting stdout to a string. The following lines of code should be added around the calling of my_func():
+
+	*	sys.stdout = mystdout = StringIO()  # redirect stdout
+	*	my_func(my_int,my_string)
+	*	sys.stdout = sys.__stdout__   # re-sent stdout to the cmd
+	*	str_found = mystdout.getvalue()   # get all warning, error, text,…
+	*	str_found = str_found.split('\n')  # separate each message
+	*	for i in range(0, len(str_found)):
+
+		*	if len(str_found[i]) > 1:
+
+			*	self.send_log.emit(str_found[i])  #send the text
+
+*	To import StringIO, the following statement is needed at the start of the code: from io import StringIO
+*	If new_func is called from the command line, stdout will not be redirected and the errors or warnings will be printed on the cmd as usual.  Stderr should be re-directed in a similar manner if needed. 
+*	The signal should be collected in the function connect_signal_log in the Main_Windows_1.py.  For this, a line should be added in the function:
+	*	self.my_class.send_log.connect(self.write_log)
+
+**Format of the restart file**
+
+To be determined.
 
 
+Git - code management
+------------------------------
+
+**Pour commencer:**
+
+*	Choisir un dossier sur l’ordinateur local ou va se trouver les fichiers sources. 
+*	cd  « dossier avec les codes source»
+*	git config - - global user.name « username »
+*	git config - - global user.email  « mail »
+*	git init 
+*	lier le repertoire local avec le repertoire distant sur forge.irstea.fr
+
+**Pour mettre une nouvelle version sur le site web**
+
+*	cd « dossier avec les codes source»
+*	git pull (prend la dernière version à jour sur le site et mets tous les fichiers ensemble) ou git fetch (prend juste les derniers fichiers sans mettre tous les fichiers ensemble).
+*	git add ‘my_file.py ou .pyc’ (choisit les fichiers qui doivent être envoyé), le signe * fonctionne.
+*	git log (donne l’historique)
+*	git status (donne les nouveaux fichiers locals)
+*	git commit –m « description » (commit localement)
+*	git push
+
+**Pour ajouter une nouvelle branche**
+
+*	Donc pour avoir une partie du travail sépare du reste
+*	git checkout –b [branchname] pour créer la branche et y travailler
+*	git checkout [branchname] pour y travailler
+
+Write the documentation
+-------------------------------
+Habby uses Sphinx to document the code. Sphinx uses the docstring given in each function. Hence, it is necessary to write a docstring for each function which has to be documented.
+
+To update the html documentation, go to the doc folder and execute the command: “make html”. 
+
+To update the Latex documentation, use the commande "make latex" and use Miketex to create the pdf. rts2pdf does not work with Python 3.
+
+To add text in the documentation, modify the index.rst file in the doc folder. To add a new module to the 
+documentation, add the module as written in the index.rts file in the doc folder. To add text comment, the index.rts file can also be direclty modified.
+
+It is important to keep the formatting and the alignment. 
+
+If the module is in a new folder, the address of the folder must be added to the config.py file. 
+It is better to not use absolute path for this, so it is possible to move the documentation on another 
+computer. If the documentation does not run on a new computer, check the path given in the config.py file. 
+
+In the docstring, add as many blank lines as possible (in reasonable limit). This is easier for the 
+formatting. To make a bullet list, one should use a tab and the symbol “*”.  Using only the symbol * will 
+fail. 
+
+To add a new title, do not start the title or the line of symbol under the title with a blank space.
+
+License of used python modules
+------------------------------------
+
+*	h5py: BSD License
+*	Element tree (XML): MIT License
+*	numpy: BSD License
+*	matplotlib: BSD License
+*	PyQt5: GNU License
 
 
 

@@ -14,11 +14,12 @@ import triangle
 def load_sub_shp(filename, path, name_att='SUBSTRATE'):
     """
     A function to load the substrate in form of shapefile.
-    :param filename the name of the shapefile
-    :param path the path where the shapefile is
-    :param name_att the name of the substrate column in the attribute table
-    :return grid in form of list of coordinate and connectivity table (two list)
-    and an array with substrate type
+
+    :param filename: the name of the shapefile
+    :param path: the path where the shapefile is
+    :param name_att: the name of the substrate column in the attribute table
+    :return: grid in form of list of coordinate and connectivity table (two list)
+            and an array with substrate type
     """
     # THINK ABOUT START AT ZERO OR ONE
     # test extension and if the file exist
@@ -71,12 +72,13 @@ def load_sub_shp(filename, path, name_att='SUBSTRATE'):
 
 def load_sub_txt(filename, path):
     """
-    A function to load the substrate in form of a text file
-    the text file must have 3 column x,y corrdinate and substrate info, no header or title
-    :param filename the name of the shapefile
-    :param path the path where the shapefile is
-    :return grid in form of list of coordinate and connectivity table (two list)
-    and an array with substrate type and (x,y,sub) of the orginal data
+    A function to load the substrate in form of a text file. The text file must have 3 column x,y coordinate and
+    substrate info, no header or title.
+
+    :param filename: the name of the shapefile
+    :param path: the path where the shapefile is
+    :return: grid in form of list of coordinate and connectivity table (two list)
+             and an array with substrate type and (x,y,sub) of the orginal data
     """
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
@@ -121,10 +123,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
     """
     After the data for the substrate and the hydrological data are loaded, they are still in different grids.
     This functions will merge both grid together. This is done for all time step and all reaches
+
     :param hdf5_name_hyd: the path and name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the path and the name of the hdf5 with the substrate data
     :param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
-    :return:
+    :return: the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
     """
     sub_data = []
     ikle_both = []
@@ -190,13 +193,14 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
 def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub):
     """
     A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
-    hydrological grid which cross with a side of the substrate grid
-    the algo based on finding if points of one elements are in the same polygon using a ray casting method
+    hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
+    are in the same polygon using a ray casting method
+
     :param ikle: the connectivity table for the hydrological data
     :param coord_p: the coordinates of the points of the hydrological grid
     :param ikle_sub: the connecity vity table of the substrate
     :param coord_p_sub: the coordinates of the points of the substrate grid
-    :return:
+    :return: intersection
     """
 
     nb_tri = len(ikle)
@@ -342,12 +346,13 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub):
 def point_cross_bis(ikle, coord_p, ikle_sub, coord_p_sub):
     """
         A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
-        hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow.
+        hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow, so it is not used.
+
         :param ikle: the connectivity table for the hydrological data
         :param coord_p: the coordinates of the points of the hydrological grid
         :param ikle_sub: the connecity vity table of the substrate
         :param coord_p_sub: the coordinates of the points of the substrate grid
-        :return:
+        :return: intersection
     """
     nb_tri = len(ikle[:, 0])
     nb_poly = len(ikle_sub)
@@ -393,17 +398,18 @@ def point_cross_bis(ikle, coord_p, ikle_sub, coord_p_sub):
 
 def intersec_cross(hyd1, hyd2, sub1, sub2, e=-99, nx=[], ny=[]):
     """
-    small function to calculate the intersection, segment are not parrallel,
-    in case where we know that the intersection exists
+    A function function to calculate the intersection, segment are not parrallel,
+    used in case where we know that the intersection exists
     Also save various info with the intersection (element, direction, etc.)
+
     :param hyd1: the first hydrological point
     :param hyd2: the second
     :param sub1: the first substrate point
     :param sub2: the second
     :param e: the element of the hydrological grid (optional)
-    :param nx the direction of the cutting part of the substrate grid (x dir)
-    :param ny the direction of the cutting part of the substrate grid (y dir)
-    :return:
+    :param nx: the direction of the cutting part of the substrate grid (x dir)
+    :param ny: the direction of the cutting part of the substrate grid (y dir)
+    :return: intersection and the direction of cutting part.
     """
 
     sub1 = np.array(sub1)
@@ -433,12 +439,13 @@ def intersec_cross(hyd1, hyd2, sub1, sub2, e=-99, nx=[], ny=[]):
 def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub):
     """
     A function to update the grid after finding the crossing points
+
     :param ikle:  the hydrological grid to be merge with the substrate grid
     :param coord_p: the coordinate of the point of the hydrological grid
     :param point_crossing: the crossing point, with the elemtn of the hydrological grid linked with it and the
-    direction (nx,ny) of the substrate line at this point
-    :param coord_sub the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-    cell of the hydrological grid
+           direction (nx,ny) of the substrate line at this point
+    :param coord_sub: the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
+            cell of the hydrological grid
     :return: the new grid
     """
 
@@ -687,13 +694,14 @@ def grid_update_sub2(ikle, coord_p, point_crossing, coord_sub):
     """
     A function to find the updated grid with the substrate. More complicated than grid_update3 because it tries to makes
     new cell based on the lines linkes the centroid and the side of the trianlge. Looks more elegant at first but
-    quite complicated and do not work for all cases
+    quite complicated and do not work for all cases. So it is not used.
+
     :param ikle:  the hydrological grid to be merge with the substrate grid
     :param coord_p: the coordinate of the point of the hydrological grid
     :param point_crossing: the crossing point, with the elemtn of the hydrological grid linked with it and the
-    direction (nx,ny) of the substrate line at this point
-    :param coord_sub the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-    cell of the hydrological grid
+           direction (nx,ny) of the substrate line at this point
+    :param coord_sub: the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
+           cell of the hydrological grid
     :return: the new grid
     """
 
@@ -877,14 +885,14 @@ def grid_update_sub2(ikle, coord_p, point_crossing, coord_sub):
 def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], subtxt= [-99]):
     """
     The function to plot the raw substrate data, which was loaded before
+
     :param coord_p: the coordinate of the point
     :param ikle: the connectivity table
     :param sub_info: the information on subtrate by element
-    :param xtxt if the data was given in txt form, the orignal x data
-    :param ytxt if the data was given in txt form, the orignal y data
-    :param subtxt if the data was given in txt form, the orignal sub data
-    :param path_im the path where to save the figure
-    :return: figure
+    :param xtxt: if the data was given in txt form, the orignal x data
+    :param ytxt: if the data was given in txt form, the orignal y data
+    :param subtxt: if the data was given in txt form, the orignal sub data
+    :param path_im: the path where to save the figure
     """
     # pass sub_info to float
     # TO BE DONE!!!!
@@ -971,14 +979,14 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
 
 def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr= [], point_all_orr = []):
     """
-    A function to plot the grid after it was merged with the substrate data
-    plot one time step at the time
+    A function to plot the grid after it was merged with the substrate data.
+    It plots one time step at the time.
+
     :param point_all_both: the coordinate of the points of the updated grid
     :param ikle_both: the connectivity table
     :param path_im: the path where the image should be saved
-    :param ikle_orr the orginial ikle
-    :param point_all_orr the orginal point_all
-    :return:
+    :param ikle_orr: the orginial ikle
+    :param point_all_orr: the orginal point_all
     """
     if not os.path.isdir(path_im):
         print('Error: No directory found to save the figures \n')
@@ -1024,6 +1032,9 @@ def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr= [], point_a
 
 
 def main():
+    """
+    Used to test this module.
+    """
 
     # path = r'D:\Diane_work\output_hydro\substrate'
     # filename = 'mytest.shp'

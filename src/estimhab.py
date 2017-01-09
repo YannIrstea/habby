@@ -7,18 +7,40 @@ import time
 
 def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False):
     """
-    A function to run the estimhab model. Unit in meter amd m^3/sec
-    :param qmes the two measured discharge
-    :param width the two measured width
-    :param height the two measured height
-    :param q50 the natural median discharge
-    :param qrange the range of discharge
-    :param substrat mean height of substrat
-    :param pict if true the figure is shown. If false, the figure is not shown
-    :param path_im, the path where the image should be saved
-    :param path_bio the path to the xml file with the information on the fishes
-    :param fish_name the name of the fish which have to be analyzed
-    :return Habitat value and useful surface (VH and SPU) as a function of discharge
+    This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
+    forms the original Estimhab model.. Unit in meter amd m^3/sec
+
+    :param qmes: the two measured discharge
+    :param width: the two measured width
+    :param height: the two measured height
+    :param q50: the natural median discharge
+    :param qrange: the range of discharge
+    :param substrat: mean height of substrat
+    :param pict: if true the figure is shown. If false, the figure is not shown
+    :param path_im: the path where the image should be saved
+    :param path_bio: the path to the xml file with the information on the fishes
+    :param fish_name: the name of the fish which have to be analyzed
+    :return: habitat value and useful surface (VH and SPU) as a function of discharge
+
+    **Technical comments and walk-through**
+
+    First, we get all the discharges on which we want to calculate the SPU (surface ponderée utile),
+    using the inputs from the user.
+
+    Next we use hydrological rating curves (info on google if needed) to get the height and the width of the river for
+    all discharge. The calculation is based on the width and height of the river measured at two discharges (given by the
+    user).
+
+    Next, we get other parameters which are used in the preference curves such as the Froude number of
+    the mean discharge or the Reynolds number.
+
+    Next, we load the fish data contains in the xml files in the biology folder. Careful, this is not the xml project
+    file. This are the xml files described above in the “Class EstimhabW” section. There are one xml file per fish and
+    they described the preference curves. For the argumentation on the form of the relationship, report yourself to the
+    documentation of Estimhab (one pdf file should in the folder “doc “ in HABBY).
+
+    Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
+    a text file.
     """
 
     # Q
@@ -137,7 +159,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
 
 def pass_to_float_estimhab(var_name, root):
     """
-    a small function to pass from xml element to float
+    This is a function to pass from an xml element to a float
+
     :param root: the root of the open xml file
     :param var_name: the name of the attribute in the xml file
     :return: the float data
@@ -151,6 +174,9 @@ def pass_to_float_estimhab(var_name, root):
 
 
 def main():
+    """
+    Used to test this module.
+    """
 
     # data from the estimahab2008.xls found in http://www.irstea.fr/en/estimhab
     q = [2, 60]

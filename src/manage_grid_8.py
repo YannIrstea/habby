@@ -17,32 +17,37 @@ import bisect
 def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], q=[], pnew_add=1):
     """
     It creates a grid from the coord_pro data using the triangle module.
-    It creates the grid up to the end of the profile or up to the water limti uif vh_pro_t is present
+    It creates the grid up to the end of the profile if vh_pro_t is not present
+    or up to the water limit if vh_pro_t is present
 
-    The function has the following form:
-    if vh_pro_t:
-         find cordinate under water -> update coord_pro
-         see if there is islands, find the island limits and the holes indicating the inside/outside of the islands
-    find the point which give the end/start of the segment defining the grid limit
-    find all point which need to be added to the grid and add extra profile if needed
-    based on the start/end points and the island limits, create the segments which gives the grid limit
-    triangulate and so create the grid
-    flag point which are overlapping in two grids
     :param q: used in the secondary process (like in hydro_gui2) when we do not call this function direclty, but we
-    call it in a second process so that the GUI do not crash if something go wrong
+           call it in a second process so that the GUI do not crash if something go wrong
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param extra_pro: the number of "extra" profiles to be added between profile to simplify the grid
     :param coord_sub: (not used anymore)
-      the coordainte of the point forming the substrate layer (often created with substrate.load_sub)
+           the coordinate of the point forming the substrate layer (often created with substrate.load_sub)
     :param ikle_sub: (not used anymore)
-      the connectivity table of the substrate grid (often created with substrate.load_sub)
+           the connectivity table of the substrate grid (often created with substrate.load_sub)
     :param nb_pro_reach: the number of reach by profile starting with 0
     :param vh_pro_t: the velocity and height of the water (used to cut the limit of the river).
-    :param pnew_add: (not used anymore)
-     a parameter to cut the substrate side in smaller part (improve grid quality)
-    in the form dist along profile, h , v for the analyzed time step
-    If not given, gird is contructed on the whole profile.
+    :param pnew_add: (not used anymore) a parameter to cut the substrate side in smaller part (improve grid quality)
+            in the form dist along profile, h , v for the analyzed time step. f not given, gird is contructed on the whole profile.
     :return: connectivity table and grid point
+
+    **Form of the function in summary**
+
+    *   if vh_pro_t:
+
+        *   find cordinate under water and used this to update coord_pro
+        *   see if there is islands, find the island limits and the holes indicating the inside/outside of the islands
+
+    *   find the point which give the end/start of the segment defining the grid limit
+    *   find all point which need to be added to the grid and add extra profile if needed
+    *   based on the start/end points and the island limits, create the segments which gives the grid limit
+    *   triangulate and so create the grid
+    *   flag point which are overlapping in two grids
+
+    For more info, see the document "More info on the grid".
     """
 
     all_straight = False
@@ -547,12 +552,16 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
 
 def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
     """
-    It creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
-    The data interpolation is done in this function also.
+    This function creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
+    The interpolation of the data is done in this function also, contrarily to create_grid().
+
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param nb_pro_reach: the number of profile by reach
     :param vh_pro_t: the data with heigh and velocity, giving the river limits
-    :return:
+    :return: the connevtivity table, the coordinate of the grid, the centroid of the grid, the velocity data on this
+             grid, the height data on this grid.
+
+    For more info on this function, see the document "More info on the grid".
     """
     point_all_reach = []
     ikle_all = []
@@ -656,16 +665,20 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
 
 def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_mid_y, point_all, ikle, point_c, dir):
     """
-     create the grid for one profile (one "line")
-    :param coord_pro_p: the coordinated of the profile
-    :param vh_pro_t_p the height and velocity data of the profile analysed
-    :param point_mid_x the x coodinate of the points forming the middle profile
-    :param point_mid_y the y coordinate of the points forming the middle profile
-    :param point_all the point of the grid
-    :param ikle the connectivity table of the grif
-    :param point_c the central point of each cell
-    :param dir: in which direction are we going arounf the profile (upstream/downstram)
-    :return: point_all, ikle. point_c
+    This function is use by create_grid_one_profile. It creates the grid for one profile (one "line" of triangle).
+    To create the whole grod this function is called for each profile.
+
+    :param coord_pro_p: the coordinates of the profile
+    :param vh_pro_t_p: the height and velocity data of the profile analysed
+    :param point_mid_x: the x coodinate of the points forming the middle profile
+    :param point_mid_y: the y coordinate of the points forming the middle profile
+    :param point_all: the point of the grid
+    :param ikle: the connectivity table of the grid
+    :param point_c: the central point of each cell
+    :param dir: in which direction are we going around the profile (upstream/downstram)
+    :return: point_all, ikle, point_c (the centroid of the cell)
+
+    For more info, see the document "More info on the grid".
     """
 
     p_not_found = []
@@ -762,12 +775,14 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
 def cut_2d_grid(ikle, point_all, water_height,velocity):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
-    with h>0, this function cut the cells to find the wetted perimeter. it functions for one time steps and for one reach
+    with h>0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
+    This function works for one time steps and for one reach
+
     :param ikle: the connectivity table of the 2D grid
     :param point_all: the coordinate of the point
     :param water_height: the water height data given on the nodes
     :param velocity: the velcoity given on the nodes
-    :return:
+    :return: the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
     """
     # prep
     at = time.time()
@@ -863,12 +878,14 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
 
 def linear_h_cross(p1,p2,h1,h2):
     """
-    a small function called by cut_2D_grid. It find the intersection point if part of the cells is dry
+    This function is called by cut_2D_grid. It find the intersection point along a side of the triangle if part of a
+    cells is dry.
+
     :param p1: the coordinate (x,y) of the first point
     :param p2: the coordinate (x,y) of the first point
     :param h1: the water height at p1 (might be negative or positive)
     :param h2: the water height at p2 (might be negative or positive)
-    :return:
+    :return: the intersection point
     """
     pc = []
 
@@ -886,12 +903,17 @@ def linear_h_cross(p1,p2,h1,h2):
 
 def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
     """
-    The points decribing the profile and the points where velocity is measured might not be the same. Additional,
-    part of the profile might be dry and we have adde point giving the river limits which are not in the original
-    profil. In this function coord_pro is recalculated to account for these modicfications. Only used if vh_pro_t exists.
+    The points describing the profile elevation and the points where velocity is measured might not be the same.
+    Additionally,part of the profile might be dry and we have added points giving the wetted limit in vh_pro_t. They were
+    are not in the original profil (coord_pro). In this function,
+    coord_pro is recalculated to account for these modicfications. It is used by create_grid() and
+    create_grid_one_profile, but only if vh_pro_t exists.
+
     :param coord_pro: the original coord_pro
     :param vh_pro_t: the value and position of h and velcoity measurement with the river limits
     :return: updated coord_pro
+
+    More information in the document "More info on the grid" (linked above)
     """
     coord_pro_new = []
     coord_change = []
@@ -943,11 +965,15 @@ def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
 
 def newp(p0, p1, extra_pro):
     """
-    a small utility function to find start/end of extra profil.
+    This function find the start/end of the added profile. If only one profile is needed, it is just the
+    point in the middle of the start/end of the profile. If mroe than one profile is needed, there are linearly
+    distributed. This function only give the start and the end of the profile, the profile in full are constructed using
+    find_profile_between()
+
     :param p0: the point at the profile p
     :param p1: the point at the profile p-1
-    :param extra_pro the number of extra profile needed
-    :return:
+    :param extra_pro: the number of extra profile needed
+    :return: the start/end of the new profile
     """
     new_p = np.zeros((extra_pro+1, 2))  # why +1?????
 
@@ -967,7 +993,8 @@ def newp(p0, p1, extra_pro):
 
 def inside_polygon(seg_poly, point):
     """
-    a function to find if a piont is inside a polygon, using ray casting
+    This function find if a point is inside a polygon, using a ray casting algorythm. It is called by various functions.
+
     :param seg_poly: the segment forming the polygon
     :param point: the point which is indide or outside the polygon
     :return: True is the point is inside the polygon, false otherwise
@@ -988,17 +1015,18 @@ def inside_polygon(seg_poly, point):
 
 def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     """
-    find if there is an intersection between two segment (AB and CD). Idea from :
+    This function finds if there is an intersection between two segment (AB and CD). Idea from :
     http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
-    based on the caluclaion of the cross-product z= 0 for 2D
-    careful there is many function using this function, so change here should be thought about.
-    return the crossing point if true
+    It is based on the caluclaion of the cross-product z= 0 for 2D
+
+    Careful there is many function using this function, so change here should be thought about.
+
     :param p1hyd: point A
     :param p2hyd: point B
     :param p1sub: point C
     :param p2sub: point D
-    :param col: if True, colinear segment crossed. If false they do not
-    :return: intersect and the crossing point
+    :param col: if True, colinear segment crossed. If false, they do not cross
+    :return: intersect (True or False) and the crossing point (if True, empty is False)
     """
     inter = False
     x1hyd = p1hyd[0]
@@ -1044,10 +1072,14 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
 
 def add_point(point_all, point):
     """
-    add one point to point all in the part concerned with the substrate
-    :param point_all: all the point
-    :param point:
-    :return: point_all, position of the new point
+    To manage the substrate data, we modify the hydrological grid to avoid to have cells with two substrate type.
+    This function add one coordinate point to the list of coordinates which compose the hydrological grid. This point
+    is the intersection between one side of one triangluar cell of the hydrological grid and one side of the
+    sibstrate layer (which is a shp). It only adds this intersection point if it is not already in point_all.
+
+    :param point_all: the coordinates of the hydrological grid
+    :param point: one intersection point between substrat and hydrological grids
+    :return: the updated point_all (the coordinates of the hydrological grid)
     """
 
     sum_sub = np.sum(abs(point_all - point), axis=1)
@@ -1056,22 +1088,27 @@ def add_point(point_all, point):
         return point_all, len(point_all)-1
     else:
         ind = np.where(sum_sub == 0)[0]
+
         return point_all, ind[0]
 
 
 def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, island, ind_seg_sub_ini=[0]):
     """
-    This function looks at one substrate segment and find the crossing points of this semgnet with the different
-     river segment. If island switch is True, lim_here is the limit of the island, so inside the polygon is outside the river
-     If island is false, lim_here is the limiy of the reach under investigation
+    This function looks at one substrate segment and find the crossing points of this semgent with the different
+    segment which composed the hydrological grid. This function is useful to cut the grid as a function of the form
+    of the substrate layer (to avoid having cells in the hydrological grid which have two substrate value).
+
+    If island switch is True, lim_here is the limit of the island, so
+    inside the polygon is outside the river. If island is false, lim_here is the limit of the reach under investigation
+
     :param p1sub: the start point of the substrate semgent
     :param p2sub: the end point of the substrate segment
     :param lim_here: the reach?island limit given in the coordinate system
     :param lim_by_reachr: the limits for reach r which will be given to triangle given by point_all indices.
     :param point_all: all the point (ccordinates) which will be given to triangle
-    :param island a boolena indicating if we are on an island or not
+    :param island: a boolean indicating if we are on an island or not
     :param ind_seg_sub_ini: the indices of the first segment add by p1sub et p2sub by the reach. Only used island = true
-    :return: the update point_all and lim_by_reach
+    :return: the updated point_all and lim_by_reach
     """
 
     for seg in ind_seg_sub_ini:
@@ -1200,10 +1237,12 @@ def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, i
 def interpo_linear(point_all, coord_pro, vh_pro_t):
     """
     Using scipy.gridata, this function interpolates the 1.5 D velocity and height to the new grid
-    can be used for only one time step - linear
+    It can be used for only one time step. The interpolation is linear.
+    It is usually called after create_grid have been called.
+
     :param point_all: the coordinate of the grid point
-    :param coord_pro: the coordinate of the profile (should be coherent with the coordinate from vh_pro).
-    To insure this pass coord_pro through the function "create_grid" with the same vh_pro as input
+    :param coord_pro: the coordinate of the profile. It should be coherent with the coordinate from vh_pro.
+           To insure this, pass coord_pro through the function "create_grid" with the same vh_pro as input
     :param vh_pro_t: for each profile, dist along the profile, water height and velocity at a particular time step
     :return: the new interpolated data for velocity and water height
     """
@@ -1252,10 +1291,12 @@ def interpo_linear(point_all, coord_pro, vh_pro_t):
 def interpo_nearest(point_all, coord_pro, vh_pro_t):
     """
     Using scipy.gridata, this function interpolates the 1.5 D velocity and height to the new grid
-    can be used for only one time step - nearest neighbors
+    It can be used for only one time step. The interpolation is nearest neighbours.
+    It is usually called after create_grid have been called.
+
     :param point_all: the coordinate of the grid point
-    :param coord_pro: the coordinate of the profile (should be coherent with the coordinate from vh_pro).
-    To insure this pass coord_pro through the function "create_grid" with the same vh_pro as input
+    :param coord_pro: the coordinate of the profile. It should be coherent with the coordinate from vh_pro.
+           To insure this, pass coord_pro through the function "create_grid" with the same vh_pro as input
     :param vh_pro_t: for each profile, dist along the profile, water height and velocity at a particular time step
     :return: the new interpolated data for velocity and water height
     """
@@ -1303,12 +1344,14 @@ def interpo_nearest(point_all, coord_pro, vh_pro_t):
 
 def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     """
-    Find n profile between two profiles which are not straight
+    Find n profile between two profiles which are not straight. This functions is useful to create the grid from 1D model
+    as profile in 1D model are often far away from another.
+
     :param coord_pro_p0: the coord_pro (x,y,h, z) of the first profile
     :param coord_pro_p1: the coord_pro (x,y,h, z) of the second profile
-    :param nb_pro the number of profile to add
-    :param Trim cut the end and start of profile to avoid to have part of the grid outside of limit
-    :return: a list with the updated profile
+    :param nb_pro: the number of profile to add
+    :param Trim: If True cut the end and start of profile to avoid to have part of the grid outside of the water limit
+    :return: a list with the updated profiles
     """
 
     mid_point_x = []
@@ -1535,9 +1578,11 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
 def create_dummy_substrate(coord_pro, sqrtnp):
     """
     For testing purposes, it can be useful to create a substrate input even if one does not exist.
-    This substrate is compose of n triangle situated on the rivers in the same coodinates system
+    This substrate is compose of n triangle situated on the rivers in the same coodinates system.
+
     :param coord_pro: the coordinate of each profile
-    :param: sqrtnp the number of point which will compose one side of the new substrate grid
+    :param sqrtnp: the number of point which will compose one side of the new substrate grid (so the total number
+            of point is sqrtnb squared).
     :return: dummy coord_sub, ikle_sub
     """
 
@@ -1583,17 +1628,17 @@ def create_dummy_substrate(coord_pro, sqrtnp):
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[], inter_h_all=[], path_im = [], coord_pro2 = []):
     """
-    Function to plot a grid, copied from hec-ras2D
+    This is a function to plot a grid, it is very similar to the one from hec-ras2D.
+
     :param point_all_reach: the grid point by reach
     :param ikle_all: the connectivity table by reach
-    :param lim_by_reach the segment giving the limits of the grid
+    :param lim_by_reach: the segment giving the limits of the grid
     :param hole_all: the coordinates of the holes
     :param overlap: the point of each reach which are also on an other reach
     :param point_c_all: the centroid of each element
     :param inter_vel_all: the interpolated velocity for each reach
     :param inter_h_all: the interpolated height
-    :param path_im the path where to save the image
-    :return:
+    :param path_im: the path where to save the image
     """
     #plt.close()
 
@@ -1715,124 +1760,128 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
 
 
 def main():
+    """
+    Used to test this module
+    """
 
-        # #create grid mascaret
-        # path = r'D:\Diane_work\output_hydro\mascaret'
-        # path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
-        # #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
-        # file_geo = r'mascaret0.geo'
-        # file_res = r'mascaret0_ecr.opt'
-        # file_gen = 'mascaret0.xcas'
-        # [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
-        #                     mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
-        # #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
-        # manning_value = 0.025
-        # manning = []
-        # nb_point = 20
-        # for p in range(0, len(coord_pro)):
-        #     manning.append([manning_value] * nb_point)
-        #
-        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
-        # inter_vel_all = []
-        # inter_height_all = []
-        # for t in range(0, len(vh_pro)):
-        #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
-        #         = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
-        #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all]= \
-        #     #create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
-        # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
-        # plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
-        #
-        # #create grid RUBAR
-        # a = time.time()
-        # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
-        # mail = 'mail.LE13'
-        # geofile = 'LE13.rbe'
-        # data = 'profil.LE13'
-        # [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, True)
-        # coord_sub = [[0.0,0.0], [2.0,2.0],[1.5,1.5]]
-        # ikle_sub = [[0, 1, 2]]
-        #
-        # manning_value_center = 0.025
-        # manning_value_border = 0.06
-        # manning = []
-        # nb_point = len(coord_pro)
-        # # write this function better
-        # for p in range(0, len(coord_pro)):
-        #     x_manning = coord_pro[p][0]
-        #     manning_p = [manning_value_border] * nb_point
-        #     lim1 = lim_riv[p][0]
-        #     lim2 = lim_riv[p][2]
-        #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
-        #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
-        #     ind = ind[0]
-        #
-        #     for i in range(0, len(ind)):
-        #         manning_p[ind[i]] = manning_value_center
-        #     manning.append(manning_p)
-        # manning = []
-        # nb_point = 100
-        # manning = dist_vistess2.get_manning(manning_value_center, nb_point, len(coord_pro))
-        #
-        # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point, 1)
-        # #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
-        # [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-        #     = create_grid(coord_pro, 10, [], [], [0, len(coord_pro)], vh_pro[1])
-        # #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = create_grid_only_1_profile(coord_pro, [0, len(coord_pro)], vh_pro[0])
-        # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path, coord_pro2)
-        # #plot_grid(point_all_reach, ikle_all, [], [], [], [], [], [], path, [])
 
-        # #plt.figure()
-        # #for p in range(0, len(coord_pro2)):
-        #   #  plt.plot(coord_pro[p][0], coord_pro[p][1], 'r.', markersize=4)
-        #   # plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=4)
-        # #plt.show()
-        # b = time.time()
-        # print(b-a)
-        #
-        # #test hec-ras
-        #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
-        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        path_test = r'D:\Diane_work\version\file_test'
-        name = 'CRITCREK'  # CRITCREK (22), LOOP
-        name_xml = name + '.O02.xml'
-        name_geo = name + '.g02'
-        path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
-        #ikle_sub = [[0, 1, 2]]
+    # #create grid mascaret
+    # path = r'D:\Diane_work\output_hydro\mascaret'
+    # path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
+    # #path = r'D:\Diane_work\output_hydro\mascaret\large_fichier'
+    # file_geo = r'mascaret0.geo'
+    # file_res = r'mascaret0_ecr.opt'
+    # file_gen = 'mascaret0.xcas'
+    # [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
+    #                     mascaret.load_mascaret(file_gen, file_geo, file_res, path, path, path)
+    # #mascaret.figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach,'.', [0, 1, 2], [-1], [0])
+    # manning_value = 0.025
+    # manning = []
+    # nb_point = 20
+    # for p in range(0, len(coord_pro)):
+    #     manning.append([manning_value] * nb_point)
+    #
+    # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning, nb_point, 1.0, on_profile)
+    # inter_vel_all = []
+    # inter_height_all = []
+    # for t in range(0, len(vh_pro)):
+    #     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all]\
+    #         = create_grid(coord_pro, 2, [], [], nb_pro_reach, vh_pro[t])
+    #     #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all]= \
+    #     #create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
+    # #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path)
+    # plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path)
+    #
+    # #create grid RUBAR
+    # a = time.time()
+    # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\1D\LE2013\LE2013\LE13'
+    # mail = 'mail.LE13'
+    # geofile = 'LE13.rbe'
+    # data = 'profil.LE13'
+    # [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, True)
+    # coord_sub = [[0.0,0.0], [2.0,2.0],[1.5,1.5]]
+    # ikle_sub = [[0, 1, 2]]
+    #
+    # manning_value_center = 0.025
+    # manning_value_border = 0.06
+    # manning = []
+    # nb_point = len(coord_pro)
+    # # write this function better
+    # for p in range(0, len(coord_pro)):
+    #     x_manning = coord_pro[p][0]
+    #     manning_p = [manning_value_border] * nb_point
+    #     lim1 = lim_riv[p][0]
+    #     lim2 = lim_riv[p][2]
+    #     ind = np.where((coord_pro[p][0] < lim2[0]) & (coord_pro[p][1] < lim2[1]) &\
+    #               (coord_pro[p][0] > lim1[0]) & (coord_pro[p][1] > lim1[1]))
+    #     ind = ind[0]
+    #
+    #     for i in range(0, len(ind)):
+    #         manning_p[ind[i]] = manning_value_center
+    #     manning.append(manning_p)
+    # manning = []
+    # nb_point = 100
+    # manning = dist_vistess2.get_manning(manning_value_center, nb_point, len(coord_pro))
+    #
+    # vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data_all, manning, nb_point, 1)
+    # #dist_vistess2.plot_dist_vit(vh_pro, coord_pro, xhzv_data_all, [0],[0,1])
+    # [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+    #     = create_grid(coord_pro, 10, [], [], [0, len(coord_pro)], vh_pro[1])
+    # #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = create_grid_only_1_profile(coord_pro, [0, len(coord_pro)], vh_pro[0])
+    # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, [], [], [], path, coord_pro2)
+    # #plot_grid(point_all_reach, ikle_all, [], [], [], [], [], [], path, [])
 
-        [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-        # whole profile
-        #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
-         #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
-        #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
-        #
-        # [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
-        #
-        for t in range(0, len(vh_pro)):
-            which_pro = vh_pro[t]
-            #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-             #  = create_grid(coord_pro, 5,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
-            [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-                create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
-            if which_pro:
-                #[inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
-                #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
-                plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
-            else:
-                pass
-                #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+    # #plt.figure()
+    # #for p in range(0, len(coord_pro2)):
+    #   #  plt.plot(coord_pro[p][0], coord_pro[p][1], 'r.', markersize=4)
+    #   # plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=4)
+    # #plt.show()
+    # b = time.time()
+    # print(b-a)
+    #
+    # #test hec-ras
+    #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
+    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    path_test = r'D:\Diane_work\version\file_test'
+    name = 'CRITCREK'  # CRITCREK (22), LOOP
+    name_xml = name + '.O02.xml'
+    name_geo = name + '.g02'
+    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
+    #ikle_sub = [[0, 1, 2]]
 
-        # cut 2D grid
-        # namefile = r'mersey.res'
-        # pathfile = r'C:\Users\diane.von-gunten\HABBY\test_data'
-        # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-        # [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(namefile, pathfile)
-        # h = np.array(h)
-        # h[-1][1:50] = -10
-        # [ikle, point_all, water_height, velocity] = cut_2d_grid(ikle, coord_p, h[-1], v[-1])
-        # print(ikle)
-        # plot_grid([point_all], [ikle], [], [], [], [], [],[], path_im)
+    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+    # whole profile
+    #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
+     #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
+    #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+    #
+    # [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
+    #
+    for t in range(0, len(vh_pro)):
+        which_pro = vh_pro[t]
+        #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+         #  = create_grid(coord_pro, 5,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
+        [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+            create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
+        if which_pro:
+            #[inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
+            #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
+            plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
+        else:
+            pass
+            #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+
+    # cut 2D grid
+    # namefile = r'mersey.res'
+    # pathfile = r'C:\Users\diane.von-gunten\HABBY\test_data'
+    # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    # [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(namefile, pathfile)
+    # h = np.array(h)
+    # h[-1][1:50] = -10
+    # [ikle, point_all, water_height, velocity] = cut_2d_grid(ikle, coord_p, h[-1], v[-1])
+    # print(ikle)
+    # plot_grid([point_all], [ikle], [], [], [], [], [],[], path_im)
 
 
 

@@ -1,8 +1,4 @@
-"""
-    Selafin file format reader for Telemac 2D
-    Adapted from the original script 'parserSELAFIN.py'
-        from the open Telemac distribution
-"""
+
 
 from struct import unpack, pack
 import numpy as np
@@ -15,9 +11,10 @@ import time
 def load_telemac(namefilet, pathfilet):
     """
     A function which load the telemac data using the Selafin class
-    :param namefilet: the name of the selafin file
-    :param pathfilet: the path to this file
-    :return: velocity, height, coord_p, ikle
+
+    :param namefilet: the name of the selafin file (string)
+    :param pathfilet: the path to this file (string)
+    :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
     """
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
@@ -61,12 +58,13 @@ def load_telemac(namefilet, pathfilet):
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
     """
-    a function to plot the velocity and height which are the output from TELEMAC
-     :param coord_p2 the coordinates of the point froming the grid
-     :param h the  water heigh
-     :param v the velocity
-     :param path_im the path where the image should be saved
-     :param timestep, which time step should be plotted
+     a function to plot the velocity and height which are the output from TELEMAC
+
+     :param coord_p2: the coordinates of the point forming the grid
+     :param h: the  water height
+     :param v: the velocity
+     :param path_im: the path where the image should be saved (string)
+     :param timestep: which time step should be plotted
     """
     #plt.rcParams['figure.figsize'] = 7, 3
     #plt.close()
@@ -145,9 +143,10 @@ def getfloattypefromfloat(fileslf, endian, nfloat):
 
 class Selafin(object):
     """
-    Selafin reader
-    Create an object for reading data from a slf file
-    :param 'filename': the name of the binary Selafin file
+    Selafin file format reader for Telemac 2D. Create an object for reading data from a slf file.
+    Adapted from the original script 'parserSELAFIN.py' from the open Telemac distribution.
+
+    :param filename: the name of the binary Selafin file
     """
     def __init__(self, filename):
         self.file = {}

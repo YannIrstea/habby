@@ -49,10 +49,11 @@ class Stathab:
         All files should be in the same folder.
         The file Pref.txt is read in run_stathab.
         If self.fish_chosen is not present, all fish in the preference file are read.
-        :param reachname_file the file with the name of the reaches to study (usually listirv.txt)
-        :param end_file_reach the ending of the files whose names depends on the reach
-        :param name_file_allreach the name of the file common to all reaches
-        :param path the path to the file
+
+        :param reachname_file: the file with the name of the reaches to study (usually listirv.txt)
+        :param end_file_reach: the ending of the files whose names depends on the reach
+        :param name_file_allreach: the name of the file common to all reaches
+        :param path: the path to the file
         :return: the inputs needed for run_stathab
         """
         self.load_ok = False
@@ -148,8 +149,7 @@ class Stathab:
 
     def load_stathab_from_hdf5(self):
         """
-        A function to load the file from an hdf5 whose name is given  in the xml project file
-        :return:
+        A function to load the file from an hdf5 whose name is given in the xml project file
         """
         self.load_ok = False
         # find the path to the h5 file
@@ -244,8 +244,8 @@ class Stathab:
 
     def create_hdf5(self):
         """
-        A function to create an hdf5 file from the loaded txt
-        :return: the "name_prj"_STATHAB.h5 an hdf5 file with the info from stathab
+        A function to create an hdf5 file from the loaded txt. It creates "name_prj"_STATHAB.h5, an hdf5 file with the
+        info from stathab
         """
         self.load_ok = False
         # create an empty hdf5 file using all default prop.
@@ -327,11 +327,11 @@ class Stathab:
 
     def stathab_calc(self, path_pref='.', name_pref='Pref.txt'):
         """
-        The function to calculate stathab output
+        The function to calculate stathab output.
+
         :param path_pref: the path to the preference file
         :param name_pref: the name of the preference file
-        :return: the biological preferrence index (np.array of [reach, specices, nbclaq] size)
-        , surface or volume by class, etc.
+        :return: the biological preferrence index (np.array of [reach, specices, nbclaq] size), surface or volume by class, etc.
         """
 
         self.load_ok = False
@@ -436,7 +436,8 @@ class Stathab:
         """
         The function to calculate power law for discharge and width
         ln(h0 = a1 + a2 ln(Q)
-        :param qwh_r, an array where each line in one observatino of Q, width and height
+
+        :param qwh_r: an array where each line in one observatino of Q, width and height
         :return: the coeff of the regression
         """
         # input
@@ -452,10 +453,11 @@ class Stathab:
 
     def find_sh0(self, disthmesr, h0):
         """
-        the function to find sh0, using a minimzation technique (NOT USE!!)
-        !!!!!! possibly an error on the bornes?!!!!!!
+        the function to find sh0, using a minimzation technique. Not used because the output was string.
+        Possibly an error on the bornes? We remplaced this function by the function find_sh0_maxvrais().
+
         :param disthmesr: the measured distribution of height
-        :param h0 the measured mean height
+        :param h0: the measured mean height
         :return: the optimized sh0
         """
 
@@ -469,9 +471,10 @@ class Stathab:
     def find_sh0_maxvrais(self, disthmesr, h0):
         """
         the function to find sh0, using the maximum of vraisemblance.
-        This function aims at reproducing the results from the c++ code. hence, no use of scipy
+        This function aims at reproducing the results from the c++ code. Hence, no use of scipy
+
         :param disthmesr: the measured distribution of height
-        :param h0 the measured mean height
+        :param h0: the measured mean height
         :return: the optimized sh0
         """
         nbclaemp = 20
@@ -500,11 +503,12 @@ class Stathab:
         """
         The calculation of height distribution  acrros the river
         The distribution is a mix of an exponential and guassian.
+
         :param sh0: the sh of the original data
-        sh is the parameter of the distribution, gives the relative importance of ganussian and exp distrbution
-        :param h the mean height data
-        :param h0 the mean height
-        :param bornh the limits of each class of height
+               sh is the parameter of the distribution, gives the relative importance of ganussian and exp distrbution
+        :param h: the mean height data
+        :param h0: the mean height
+        :param bornh: the limits of each class of height
         :return: disth the distribution of heights across the river for the mean height h.
 
         """
@@ -535,10 +539,11 @@ class Stathab:
     def dengauss(self, x):
         """
         gaussian density, used only for debugging purposes.
-        NOT USED IN Habby, but can be useful if scipy is not available
-        (remplace all stat.norm.cdf with dengauss -> no need for scipy)
+        This is not used in Habby, but can be useful if scipy is not available (remplace all stat.norm.cdf with
+        dengauss)
+
         :param x: the parameter of the gaussian
-        :return:
+        :return: the gaussian density
         """
         n = 0
         if x > 3.72:
@@ -566,10 +571,11 @@ class Stathab:
 
     def dist_v(self, h, d, bornv, v):
         """
-        The calculation of velocity distribution  acrros the river
+        The calculation of velocity distribution across the river
         The distribution is a mix of an exponential and guassian.
+
         :param h: the height which is related to the mean velocity v
-        :param d granulo moyenne
+        :param d: granulo moyenne
         :param bornv: the born of the velocity
         :param v: the mean velocity
         :return: the distribution of velocity across the river
@@ -602,8 +608,7 @@ class Stathab:
 
     def savefig_stahab(self):
         """
-        A fucntion to save the results in ascii and the figure
-        :return: 2 figures
+        A function to save the results in text and the figure
         """
         plt.rcParams['figure.figsize'] = 10, 8
         plt.rcParams['font.size'] = 8
@@ -669,7 +674,6 @@ class Stathab:
     def savetxt_stathab(self):
         """
         A function to save the stathab result in .txt form
-        :return: .txt files
         """
 
         for r in range(0, len(self.name_reach)):
@@ -697,9 +701,9 @@ class Stathab:
     def test_stathab(self, path_ori):
         """
         A short function to test part of the outputs against the C++ code,
-        NOT USED in Habby but practical anyways to debug
+        It is not used in Habby but it is practical to debug.
+
         :param path_ori: the path to the files from stathab based on the c++ code
-        :return:
         """
 
         # stathab.txt
@@ -780,8 +784,9 @@ class Stathab:
 def load_float_stathab(filename, check_neg):
     """
     A function to load float with extra checks
+
     :param filename: the file to load with the path
-    :param check_neg, if true negative value are not allowed in the data
+    :param check_neg: if true negative value are not allowed in the data
     :return: data if ok, -99 if failed
     """
     myfloatdata = [-99]
@@ -820,6 +825,7 @@ def load_float_stathab(filename, check_neg):
 def load_pref(filepref, path):
     """
     The function loads the different pref coeffficient contained in filepref
+
     :param filepref: the name of the file (usually Pref.txt)
     :param path: the path to this file
     :return: the name of the fish, a np.array with the differen coeff
@@ -855,7 +861,8 @@ def load_pref(filepref, path):
 def load_namereach(path, name_file_reach='listriv.txt'):
     """
     A function to only load the reach names (useful for the GUI)
-    :param path : the path th the listriv.txt
+
+    :param path : the path to the file listriv.txt
     :param name_file_reach: In case the file name is not listriv.txt
     :return: the list of reach name
     """
@@ -876,6 +883,9 @@ def load_namereach(path, name_file_reach='listriv.txt'):
 
 
 def main():
+    """
+    used to test this module.
+    """
 
     path = 'D:\Diane_work\model_stat\input_test'
     path_ori = 'D:\Diane_work\model_stat\stathab_t(1)'

@@ -1491,7 +1491,7 @@ whose format is given here.</p>
 </ul>
 <p>Where Q is the discharge, m1 and m2 are coefficients which depend on the fish type, and C is a
 constant which depends on the stream characteristic and the fish type.</p>
-<p>The constant C is of the form C = a + ∑ ai * ln(Si) where a and ai are coefficients which depend on
+<p>The constant C is of the form C = a + sum ai * ln(Si) where a and ai are coefficients which depend on
 the fish type. Si are particular stream characteristics. Which characteristics should be used is a
 function of the fish type and is so given in the xml file. The value of S i is a function of the stream
 and is calculated by the program.</p>
@@ -2148,6 +2148,7 @@ plot data by cells.</p>
 </div>
 <div class="section" id="mascaret">
 <h2>Mascaret<a class="headerlink" href="#mascaret" title="Permalink to this headline">¶</a></h2>
+<p>in src/mascaret.py</p>
 <p>This module contains the functions used to load the outputs from the mascaret model.</p>
 <span class="target" id="module-src.mascaret"></span><dl class="function">
 <dt id="src.mascaret.correct_duplicate">
@@ -2528,6 +2529,7 @@ managed using the define_stream_network function and the information in the .xca
 </div>
 <div class="section" id="river-2d">
 <h2>River 2D<a class="headerlink" href="#river-2d" title="Permalink to this headline">¶</a></h2>
+<p>in src/river2D.py</p>
 <p>This module contains the functions used to load the outputs from the River2D model.</p>
 <span class="target" id="module-src.river2d"></span><dl class="function">
 <dt id="src.river2d.figure_river2d">
@@ -2608,107 +2610,187 @@ Hence, this function read only one timeste. HABBY read all time step by calling 
 </div>
 <div class="section" id="rubar">
 <h2>Rubar<a class="headerlink" href="#rubar" title="Permalink to this headline">¶</a></h2>
+<p>in src/rubar.py</p>
 <p>This module contains the functions used to load the Rubar data in 2D and 1D.</p>
 <span class="target" id="module-src.rubar"></span><dl class="function">
 <dt id="src.rubar.correct_duplicate_xy">
 <code class="descclassname">src.rubar.</code><code class="descname">correct_duplicate_xy</code><span class="sig-paren">(</span><em>seq3D</em>, <em>send_warn</em>, <em>idfun=None</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.correct_duplicate_xy" title="Permalink to this definition">¶</a></dt>
-<dd><p>it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
-So this function correct this case for rubar. A similiar function exists in mascaret.py, for the case where input
-is the distance along the profile and not (x,y) coordinates.
-inspired by <a class="reference external" href="https://www.peterbe.com/plog/uniqifiers-benchmark">https://www.peterbe.com/plog/uniqifiers-benchmark</a>
-:param seq3D: the list to be corrected in this case (x,y,z,dist along the profile)
-:param send_warn a bool to avoid printing the warning too many time
-:param idfun: support an optional transform function (not tested)
-:return:</p>
+<dd><p>It is possible to have a vertical line on a profile (different h, identical x). This is not possible for HABBY and
+the 2D grid. So this function correct duplicates along the profile.</p>
+<p>A similiar function exists in mascaret, for the case where the input is the distance along the profile and not
+(x,y) coordinates. This function is inspired by <a class="reference external" href="https://www.peterbe.com/plog/uniqifiers-benchmark">https://www.peterbe.com/plog/uniqifiers-benchmark</a>.</p>
+<p>It should be tested more as manage_grid sometime still send warning about duplicate data in profile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>seq3D</strong> &#8211; the list to be corrected in this case (x,y,z,dist along the profile)</li>
+<li><strong>send_warn</strong> &#8211; a bool to avoid printing the warning too many time</li>
+<li><strong>idfun</strong> &#8211; support an optional transform function (not tested)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the list wihtout duplicate and the boolean which helps manage the warnings</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.figure_rubar1d">
 <code class="descclassname">src.rubar.</code><code class="descname">figure_rubar1d</code><span class="sig-paren">(</span><em>coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, plot_timestep, nb_pro_reach=[0, 10000000000]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.figure_rubar1d" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function to plot the loaded RUBAR 1D data
-:param coord_pro: the cooedinate of the profile (x, y, z, dist along the river)
-:param lim_riv: the right bank, river center, left bank
-:param data_xhzv the data by time step with x the distance along the river, h the water height and v the vlocity
-:param cote: the altitude of the river center
-:param name_profile the name of the profile
-:param path_im: the path where to save the image
-:param pro: the profile number which should be plotted
-:param plot_timestep: which timestep should be plotted
-:param nb_pro_reach: the number of profile by reach
-:return: none</p>
+<dd><p>The function to plot the loaded RUBAR 1D data (Rubar BE).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_pro</strong> &#8211; the coordinate of the profile (x, y, z, dist along the river)</li>
+<li><strong>lim_riv</strong> &#8211; the right bank, river center, left bank</li>
+<li><strong>data_xhzv</strong> &#8211; the data by time step with x the distance along the river, h the water height and v the vlocity</li>
+<li><strong>cote</strong> &#8211; the altitude of the river center</li>
+<li><strong>name_profile</strong> &#8211; the name of the profile</li>
+<li><strong>path_im</strong> &#8211; the path where to save the image</li>
+<li><strong>pro</strong> &#8211; the profile number which should be plotted</li>
+<li><strong>plot_timestep</strong> &#8211; which timestep should be plotted</li>
+<li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">none</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.figure_rubar2d">
 <code class="descclassname">src.rubar.</code><code class="descname">figure_rubar2d</code><span class="sig-paren">(</span><em>xy, coord_c, ikle, v, h, path_im, time_step=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.figure_rubar2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to plot the rubar 2d data
-:param xy: coordinates of the points
-:param coord_c: the center of the point
-:param ikle: connectivity table
-:param v: speed
-:param h: height
-:param path_im where to save the figure
-;param time_step which will be plotted
-:return:</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.rubar.get_triangular_grid">
-<code class="descclassname">src.rubar.</code><code class="descname">get_triangular_grid</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_c</em>, <em>xy</em>, <em>h</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.get_triangular_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>In Rubar it is possible to have non-triangular cells. You can have a grid composed a mixed of pentagonal, 4-sided
-and triangluar cells. This function transform the grid to a triangular grid
-:param ikle: the connectivity table
-:param coord_c: the coordinate of the centroid of the cell
-:param xy the points of the grid
-:param h data on water height
-:param v data on velocity
-:return: the updated ikle, point_c and xy</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.rubar.load_coord_1d">
-<code class="descclassname">src.rubar.</code><code class="descname">load_coord_1d</code><span class="sig-paren">(</span><em>name_rbe</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_coord_1d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to load the rbe file, which is an xml file.
-:param name_rbe: The name fo the rbe files
-:param path: the path to this file
-:return: the coordinates of the profiles and the coordinates of the right bank, center of the river, left bank
-(list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
-number of cells (int)</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.rubar.load_dat_2d">
-<code class="descclassname">src.rubar.</code><code class="descname">load_dat_2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_dat_2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to load the geomtery info for the 2D case, using the .dat file
-it is close to the .mai file but with more information (number of side and more complicated connectivity table)
-:param geofile: the .mai file which contain the connectivity table and the (x,y)
-:param path: the path to this file
-:return: connectivity table, point coordinates, coodinantes of the cell centers</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.rubar.load_data_1d">
-<code class="descclassname">src.rubar.</code><code class="descname">load_data_1d</code><span class="sig-paren">(</span><em>name_data_vh</em>, <em>path</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_data_1d" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>This functions plots the rubar 2d data</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name_data_vh</strong> &#8211; the name of the profile.ETUDE file</li>
-<li><strong>path</strong> &#8211; the path to this file</li>
+<li><strong>xy</strong> &#8211; coordinates of the points</li>
+<li><strong>coord_c</strong> &#8211; the center of the point</li>
+<li><strong>ikle</strong> &#8211; connectivity table</li>
+<li><strong>v</strong> &#8211; speed</li>
+<li><strong>h</strong> &#8211; height</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+<li><strong>time_step</strong> &#8211; The time step which will be plotted</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>:param x the distance along the river
-:return: data x, velocity height, cote for each time step (list of np.array), time step</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.get_triangular_grid">
+<code class="descclassname">src.rubar.</code><code class="descname">get_triangular_grid</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_c</em>, <em>xy</em>, <em>h</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.get_triangular_grid" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>In Rubar it is possible to have non-triangular cells. It is possible to have a grid composed of a mix of pentagonal,</dt>
+<dd>4-sided and triangualr cells. This function transform the &#8220;mixed&#8221; grid to a triangular grid. For this, it uses the
+centroid of each cell with more than three side and it create a triangle by side (linked with the center of the cell)</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the connectivity table</li>
+<li><strong>coord_c</strong> &#8211; the coordinate of the centroid of the cell</li>
+<li><strong>xy</strong> &#8211; the points of the grid</li>
+<li><strong>h</strong> &#8211; data on water height</li>
+<li><strong>v</strong> &#8211; data on velocity</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_coord_1d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_coord_1d</code><span class="sig-paren">(</span><em>name_rbe</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_coord_1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>the function to load the rbe file, which is an xml file. The gives the geometry of the river system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name_rbe</strong> &#8211; The name fo the rbe file (string)</li>
+<li><strong>path</strong> &#8211; the path to this file (string)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the coordinates of the profiles and the coordinates of the right bank, center of the river, left bank
+(list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
+number of cells (int)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_dat_2d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_dat_2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_dat_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>This  function is used to load the geomtery info for the 2D case, using the .dat file
+The .dat file has the same role than the .mai file but with more information (number of side and more
+complicated connectivity table).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>geofile</strong> &#8211; the .dat file which contain the connectivity table and the (x,y)</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">connectivity table, point coordinates, coordinates of the cell centers</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_data_1d">
+<code class="descclassname">src.rubar.</code><code class="descname">load_data_1d</code><span class="sig-paren">(</span><em>name_data_vh</em>, <em>path</em>, <em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_data_1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the output data for Rubar BE (in 1D). The geometry data should be loaded before using this function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name_data_vh</strong> &#8211; the name of the profile.ETUDE file (string)</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+<li><strong>x</strong> &#8211; the distance along the river (from the .geo file)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">data x, velocity height, cote for each time step (list of np.array), time step</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.load_mai_1d">
 <code class="descclassname">src.rubar.</code><code class="descname">load_mai_1d</code><span class="sig-paren">(</span><em>mailfile</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_mai_1d" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>This function is not used anymore. It was used to load the coordinate of the 1D data. It might become useful again
+in the case where we found a Rubar model with more than one reach (which we do not have yet).</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
@@ -2728,85 +2810,148 @@ it is close to the .mai file but with more information (number of side and more 
 <dl class="function">
 <dt id="src.rubar.load_mai_2d">
 <code class="descclassname">src.rubar.</code><code class="descname">load_mai_2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_mai_2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to load the geomtery info for the 2D case
-:param geofile: the .mai file which contain the connectivity table and the (x,y)
-:param path: the path to this file
-:return: connectivity table, point coordinates, coodinantes of the cell centers</p>
+<dd><p>The function to load the geomtery info for the 2D case when we use the .mai file. It would also be possible
+to use the .dat file. In fact, it is advised to use the dat file when possible as there are more info in the .dat file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>geofile</strong> &#8211; the .mai file which contain the connectivity table and the (x,y)</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">connectivity table, point coordinates, coordinates of the cell centers</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.load_rubar1d">
 <code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d</code><span class="sig-paren">(</span><em>geofile</em>, <em>data_vh</em>, <em>pathgeo</em>, <em>pathdata</em>, <em>path_im</em>, <em>savefig</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to load the RUBAR data in 1D
-:param geofile: the name of .rbe file which gives the coordinates of each profile - string
-#(:param mail: the name of the file which given the position of the data point )
-:param data_vh: the profile.ETUDE file which contains the height and velocity data
-:param pathgeo the path to the geofile - string
-:param pathdata the path to the data_vh file
-:param path_im the file where to save the image
-:param savefig: a boolean. If True create and save the figure.
-:return: coordinates of the profile (x,y,z dist along the profile) coordinates (x,y) of the river and the bed,
+<dd><p>the function to load the RUBAR BE data (in 1D).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>geofile</strong> &#8211; the name of .rbe file which gives the coordinates of each profile (string)</li>
+<li><strong>data_vh</strong> &#8211; the name of the profile.ETUDE file which contains the height and velocity data (string)</li>
+<li><strong>pathgeo</strong> &#8211; the path to the geofile - string</li>
+<li><strong>pathdata</strong> &#8211; the path to the data_vh file</li>
+<li><strong>path_im</strong> &#8211; the file where to save the image</li>
+<li><strong>savefig</strong> &#8211; a boolean. If True create and save the figure.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coordinates of the profile (x,y,z dist along the profile) coordinates (x,y) of the river and the bed,
 data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
 and v the velocity</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.load_rubar2d">
 <code class="descclassname">src.rubar.</code><code class="descname">load_rubar2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>tpsfile</em>, <em>pathgeo</em>, <em>pathtps</em>, <em>path_im</em>, <em>save_fig</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to load the RUBAR data in 2D
-:param geofile: the name of the .mai or .dat file which contains the connectivity table and the (x,y)
-:param tpsfile: the name of the .tps file
-:param pathgeo : path to the geo file
-:param pathtps : path to the tps file
-:param path_im: the path where to save the figure
-:param save_fig: boolean indicated if the figures should be created or not
-all strings input
-:return: (x,y), ikle velocity and height at the center of the cells, the coordinate of the point of the cells,
+<dd><p>This is the function used to load the RUBAR data in 2D</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>geofile</strong> &#8211; the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)</li>
+<li><strong>tpsfile</strong> &#8211; the name of the .tps file (string)</li>
+<li><strong>pathgeo</strong> &#8211; path to the geo file (string)</li>
+<li><strong>pathtps</strong> &#8211; path to the tps file which contains the outputs (string)</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure (string)</li>
+<li><strong>save_fig</strong> &#8211; a boolean indicating if the figures should be created or not</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">velocity and height at the center of the cells, the coordinate of the point of the cells,
 the coordinates of the center of the cells and the connectivity table.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.load_tps_2d">
 <code class="descclassname">src.rubar.</code><code class="descname">load_tps_2d</code><span class="sig-paren">(</span><em>tpsfile</em>, <em>path</em>, <em>nb_cell</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_tps_2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to load the data in the 2D rubar case
-:param tpsfile: the name of the file with the data for the 2d case
-:param path:
-:param nb_cell the number of cell extracted from the .mai file
-:return: v, h, timestep (all in list of np.array)</p>
+<dd><p>The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>tpsfile</strong> &#8211; the name of the file with the data for the 2d case</li>
+<li><strong>path</strong> &#8211; the path to the tps file.</li>
+<li><strong>nb_cell</strong> &#8211; the number of cell extracted from the .mai file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">v, h, timestep (all in list of np.array)</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.m_file_load_coord_1d">
 <code class="descclassname">src.rubar.</code><code class="descname">m_file_load_coord_1d</code><span class="sig-paren">(</span><em>geofile_name</em>, <em>pathgeo</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.m_file_load_coord_1d" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to load the m.ETUDE file which is based on .st format from cemagref. When we use the M.ETUDE file
+<dd><p>This function loads the m.ETUDE file which is based on .st format from cemagref. When we use the M.ETUDE file
 instead of the rbe file, more than one reach can be studied but the center and side of the river is not
-indicated anymore
-:param geofile_name: The name to the file
-:param pathgeo: the path to this file
-:return: the coordinates of the profiles
-(list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
-number of profile by reach</p>
+indicated anymore.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>geofile_name</strong> &#8211; The name to the m.ETUDE file (string)</li>
+<li><strong>pathgeo</strong> &#8211; the path to this file (string)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the coordinates of the profiles (list of np.array with x,y,z coordinate), name of the profile
+(list of string), dist along the river (list of float), number of profile by reach</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.rubar.main">
 <code class="descclassname">src.rubar.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Used to test this module</p>
+</dd></dl>
 
 </div>
 <div class="section" id="telemac">
 <h2>Telemac<a class="headerlink" href="#telemac" title="Permalink to this headline">¶</a></h2>
-<p>This module contains the function used to load the Telemac data.</p>
-<span class="target" id="module-src.selafin_habby1"></span><p>Selafin file format reader for Telemac 2D
-Adapted from the original script &#8216;parserSELAFIN.py&#8217;</p>
-<blockquote>
-<div>from the open Telemac distribution</div></blockquote>
-<dl class="class">
+<p>in src/selafin_habby1.py</p>
+<p>This module contains the functions used to load the Telemac data.</p>
+<span class="target" id="module-src.selafin_habby1"></span><dl class="class">
 <dt id="src.selafin_habby1.Selafin">
 <em class="property">class </em><code class="descclassname">src.selafin_habby1.</code><code class="descname">Selafin</code><span class="sig-paren">(</span><em>filename</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Selafin reader
-Create an object for reading data from a slf file
-:param &#8216;filename&#8217;: the name of the binary Selafin file</p>
+<dd><p>Selafin file format reader for Telemac 2D. Create an object for reading data from a slf file.
+Adapted from the original script &#8216;parserSELAFIN.py&#8217; from the open Telemac distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> &#8211; the name of the binary Selafin file</td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="src.selafin_habby1.Selafin.addcontent">
 <code class="descname">addcontent</code><span class="sig-paren">(</span><em>fileName</em>, <em>times</em>, <em>values</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.Selafin.addcontent" title="Permalink to this definition">¶</a></dt>
@@ -2890,28 +3035,49 @@ Create an object for reading data from a slf file
 <dl class="function">
 <dt id="src.selafin_habby1.load_telemac">
 <code class="descclassname">src.selafin_habby1.</code><code class="descname">load_telemac</code><span class="sig-paren">(</span><em>namefilet</em>, <em>pathfilet</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.load_telemac" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function which load the telemac data using the Selafin class
-:param namefilet: the name of the selafin file
-:param pathfilet: the path to this file
-:return: velocity, height, coord_p, ikle</p>
+<dd><p>A function which load the telemac data using the Selafin class</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>namefilet</strong> &#8211; the name of the selafin file (string)</li>
+<li><strong>pathfilet</strong> &#8211; the path to this file (string)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the velocity, the height, the coordinate of the points of the grid, the connectivity table.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.selafin_habby1.plot_vel_h">
 <code class="descclassname">src.selafin_habby1.</code><code class="descname">plot_vel_h</code><span class="sig-paren">(</span><em>coord_p2, h, v, path_im, timestep=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.plot_vel_h" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>a function to plot the velocity and height which are the output from TELEMAC</dt>
-<dd>:param coord_p2 the coordinates of the point froming the grid
-:param h the  water heigh
-:param v the velocity
-:param path_im the path where the image should be saved
-:param timestep, which time step should be plotted</dd>
-</dl>
+<dd><p>a function to plot the velocity and height which are the output from TELEMAC</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coord_p2</strong> &#8211; the coordinates of the point forming the grid</li>
+<li><strong>h</strong> &#8211; the  water height</li>
+<li><strong>v</strong> &#8211; the velocity</li>
+<li><strong>path_im</strong> &#8211; the path where the image should be saved (string)</li>
+<li><strong>timestep</strong> &#8211; which time step should be plotted</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
 <div class="section" id="load-habby-hdf5-file">
 <h2>Load HABBY hdf5 file<a class="headerlink" href="#load-habby-hdf5-file" title="Permalink to this headline">¶</a></h2>
+<p>in src/load_hdf5.py</p>
 <p>This module contains some functions to load and manage hdf5 input/outputs. This is still in progress.</p>
 <span class="target" id="module-src.load_hdf5"></span><dl class="function">
 <dt id="src.load_hdf5.get_all_filename">
@@ -2994,120 +3160,721 @@ files.
 </ul>
 </div>
 </div>
-<div class="section" id="module-src.dist_vistess2">
-<span id="velocity-distribution"></span><h2>Velocity distribution<a class="headerlink" href="#module-src.dist_vistess2" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
+<div class="section" id="velocity-distribution">
+<h2>Velocity distribution<a class="headerlink" href="#velocity-distribution" title="Permalink to this headline">¶</a></h2>
+<p>in src/dist_vitesse2.py</p>
+<p>The goal of this list of function is to distribute the velocity along the cross-section
+for 1D model such as mascaret or Rubar BE. Hec-Ras outputs do not need to uses this type
+of function as they are already distributed along the profiles.</p>
+<p>The method of velocity distribution in HABBY is similar to the one used by Hec-Ras to distribute
+velocity.</p>
+<span class="target" id="module-src.dist_vistess2"></span><dl class="function">
 <dt id="src.dist_vistess2.dist_velocity_hecras">
 <code class="descclassname">src.dist_vistess2.</code><code class="descname">dist_velocity_hecras</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>xhzv_data_all</em>, <em>manning_pro</em>, <em>nb_point=-99</em>, <em>eng=1.0</em>, <em>on_profile=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.dist_velocity_hecras" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function distribute the velocity along the profile using the method from hec-ras
-described in the hydraulic reference manual p 4-20 (Flow distribtion calculation)
-:param coord_pro: the coordinates and elevation of the river bed for each profile (x,y, h, dist along the profile)
-this list is flatten No reach info.
-:param xhzv_data_all: water height and velocity at each profile, 1D
-:param manning_pro the manning coefficient for zone between point of each profile
-for a particular profile, the length of manning_pro is the length of coord_pro[0]
-:param nb_point: number of velocity points (-99 takes the profil form as the velocity points)
-:param on_profile: Mascaret also gives outputs in poitns between profile. on_profile is true if the results are</p>
-<blockquote>
-<div>close or on the profile (les than 3cm of difference), not important for rubar or other</div></blockquote>
+which is described in the hydraulic reference manual p 4-20 (Flow distribtion calculation)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>eng</strong> &#8211; in case the output from hec-ras are in US unit (eng=1 for SI unit and 1.486 for US unit)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_pro</strong> &#8211; the coordinates and elevation of the river bed for each profile (x,y, h, dist along the profile)
+this list is flatten No reach info.</li>
+<li><strong>xhzv_data_all</strong> &#8211; water height and velocity at each profile, 1D</li>
+<li><strong>manning_pro</strong> &#8211; the manning coefficient for zone between point of each profile.
+For a particular profile, the length of manning_pro is the length of coord_pro[0]</li>
+<li><strong>nb_point</strong> &#8211; number of velocity points (-99 takes the number of measured elevation as the number of velocity points).</li>
+<li><strong>eng</strong> &#8211; in case the output from hec-ras are in US unit (eng=1 for SI unit and 1.486 for US unit)</li>
+<li><strong>on_profile</strong> &#8211; Mascaret also gives outputs in poitns between profile. on_profile is true if the results are
+close or on the profile (les than 3cm of difference). This is not important for rubar or other models</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the velocity for each profile by time step (x,v)</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the velocity for each profile by time step (x,v)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comment and walk-through</strong></p>
+<p>First, we decide on which point along the profile we will calculate the velocity. This is controlled by the
+variable nb_point. If nb_point=-99, we will calculate the velocity at the same point than the profile (i.e., the
+velocity will be calculated at each point on which the elevation of the profile was measured). There are cases where
+this is not adequate. Let’s imagine for example a rectangular canal. The calculation would only give two velocity
+points, which is not enough. So, it is possible to give the number of velocity point on which the calculation must
+be made, using the variable nb_point.</p>
+<p>Currently, the velocity points are determined by dividing the whole profile in nb_point segments. This means that
+some velocity point are not used afterwards because they are in the dry part of the profile and that it is not
+possible to select for a part of the profile where more velocity points would be calculated. This could be modified
+in the future if it is judged necessary.</p>
+<p>To determine the point where velocity should be calculated we need to get two array: one “x” array, the distance
+along the profile and one “h” array, the elevation of the profile at this point. As we choose the position of the
+velocity point as regularly placed along the profile, the “x” array is easy to determine using linespace. For the
+“h” array, we use the hypothesis that the elevation of the profile changes linearly between the measured elevation
+points. We find between which elevation point are the new point and we use a linear interpolation to find the new”h”.
+To find between which points we are, we use the bisect.bisect function. It is a bit like the np.where function,
+but it is quicker when the array is ordered (as it is the case here).</p>
+<p>Then, we get the manning array as created by the get_manning_arr and the get_manning function. It should be a float.</p>
+<p>Next, we cut the profile to keep only the part under water. For this, we do two things: First we had a point on the
+profile where h==0. We should account for the fact that we might have  “islands” (part of the profile which are
+dry, but surrounded by water on both side.). So we cannot only looked which part are dry, we need to look
+for each point where we pass from “wet to dry” or from “dry to wet”. At this place, we add one point where h= 0.
+For these new points water height is obviously known, but x (the distlance along profile) should be determined.
+It is determined assuming a linear change between the measured points of the profile.</p>
+<p>If the profile is not entirely dry, we will now distribute the velocity along the profile. First, for each part of
+the profile where velocity will be calculated, it looks where is the higher height (like if this part of the profile
+is going up or down). Next, we calculate the area, the wetted perimeter and the hydraulic radius of each part of the
+profile. By combining this geometrical information with the manning parameter, we can calculate the conveyance
+of each part of the profile. See manual of hec-ras p.4-20 for the conveyance definition.</p>
+<p>We now calculate the conveyance of the whole profile. Normally, the sum of the conveyance of the part is higher
+than the total conveyance. The next part of the script corrects for this, using the ratio of the total conveyance
+and the sum of the parts of the conveyance. Next, we calculate the velocity using the modelled energy slope (Sf)
+and the manning equation. We then then add a velocity of zero where there are no water (velocity is not defined
+at his point).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.get_manning">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">get_manning</code><span class="sig-paren">(</span><em>manning1</em>, <em>nb_point</em>, <em>nb_profil</em>, <em>coord_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.get_manning" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates an array with the manning value when a single float is given, so when the manning value
+is a constant for the whole river.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>manning1</strong> &#8211; the manning value (can be a value or an array)</li>
+<li><strong>nb_point</strong> &#8211; the number of velocity point by profile</li>
+<li><strong>nb_profil</strong> &#8211; the number of profile</li>
+<li><strong>coord_pro</strong> &#8211; necessary if the number is -99 as we need to know the length of each profile</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments</strong></p>
+<p>The function dist_velcoity_hec_ras needs a manning array with a length equal to the number of profile, where each
+row (representing a profile) have one value by velocity point which will be calculated. This function creates an
+array of this form based on a float. It creates a list of manning value which is identical for each point of the
+river. It can be used for the cases where the same number of point is asked for each profile or for the case where
+the number of point is defined by the form of the profile (nb_point = -99).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.get_manning_arr">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">get_manning_arr</code><span class="sig-paren">(</span><em>manning_arr</em>, <em>nb_point</em>, <em>coord_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.get_manning_arr" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function create the manning array when manning data is loaded using a text file. In this case, the manning
+value do not needs to be a constant.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>manning_arr</strong> &#8211; the data for manning</li>
+<li><strong>nb_point</strong> &#8211; the number of velocity point by profile</li>
+<li><strong>coord_pro</strong> &#8211; x,y,dist</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comment</strong></p>
+<p>The user creates a txt file with a list of manning info. Each manning value is given the following way:
+the profile, the distance along the profile and the manning value. One value by line in SI unit.</p>
+<p>This function automatically fills the missing value, so that the user do not needs to give each manning value.
+He can describe one profile and this profile will be replicated until the next profile written in the text file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.main">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to test this module.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.plot_dist_vit">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">plot_dist_vit</code><span class="sig-paren">(</span><em>v_pro</em>, <em>coord_pro</em>, <em>xhzv_data</em>, <em>plot_timestep</em>, <em>pro</em>, <em>name_pro=[]</em>, <em>on_profile=[]</em>, <em>zone_v_all=[]</em>, <em>data_profile=[]</em>, <em>xy_h_all=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.plot_dist_vit" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function to plot the distribution of velocity and the elevation of the profile. It is quite close to the
+similar function which is in hec-ras (see this function for a more detailed explanation)</p>
+<p>It can be used to test the program if we provide the variable zone_v_all where zone_v_all is an hec-ras output with a
+velocity distribution. In this case, it would plot the comparison between the output from this script and the
+output from hec-ras. Of course, for this, it is necessary to have prepared the 1D output from hec-ras
+(using the function preparetest_velocity) and to have the same points on which to calculate the velocity.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>v_pro</strong> &#8211; the calculated velcocity distribution by time step</li>
+<li><strong>coord_pro</strong> &#8211; the coordinate of the profiles</li>
+<li><strong>xhzv_data</strong> &#8211; the output data from the model, before the velocity distrbution</li>
+<li><strong>plot_timestep</strong> &#8211; which time step to be plottied</li>
+<li><strong>name_pro</strong> &#8211; the name of the profile (optionnal just for the title)</li>
+<li><strong>pro</strong> &#8211; which porfile to be plotted</li>
+<li><strong>on_profile</strong> &#8211; select the data which is on the profile</li>
+<li><strong>zone_v</strong> &#8211; output from hec-ras used to test dist_vitesse</li>
+<li><strong>data_profile</strong> &#8211; output from hec-ras used to test dist_vitesse</li>
+<li><strong>xy_h</strong> &#8211; output from hec-ras used to test dist_vitesse</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="function">
-<dt id="src.dist_vistess2.get_manning">
-<code class="descclassname">src.dist_vistess2.</code><code class="descname">get_manning</code><span class="sig-paren">(</span><em>manning1</em>, <em>nb_point</em>, <em>nb_profil</em>, <em>coord_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.get_manning" title="Permalink to this definition">¶</a></dt>
-<dd><p>A fucntion to create an array with the manning value when a single float is given as info.
-:param manning1: the manning value (can be a value or an array)
-:param nb_point: the number of velocity point by profile
-:param nb_profil: the number of profile
-:param coord_pro: necessary if the number is -99 as we needs to know the length of each profile
-:return:</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.dist_vistess2.get_manning_arr">
-<code class="descclassname">src.dist_vistess2.</code><code class="descname">get_manning_arr</code><span class="sig-paren">(</span><em>manning_arr</em>, <em>nb_point</em>, <em>coord_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.get_manning_arr" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to create the manning array when manning data is loaded using a text file, the form of the array is
-p, dist, n where p is the profile, dist is the distance along the profile and n is manning
-:param manning_arr: the data for manning
-:param nb_point: the number of velocity point by profile
-:param coord_pro: x,y,dist
-:return:</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.dist_vistess2.main">
-<code class="descclassname">src.dist_vistess2.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="src.dist_vistess2.plot_dist_vit">
-<code class="descclassname">src.dist_vistess2.</code><code class="descname">plot_dist_vit</code><span class="sig-paren">(</span><em>v_pro</em>, <em>coord_pro</em>, <em>xhzv_data</em>, <em>plot_timestep</em>, <em>pro</em>, <em>name_pro=[]</em>, <em>on_profile=[]</em>, <em>zone_v_all=[]</em>, <em>data_profile=[]</em>, <em>xy_h_all=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.plot_dist_vit" title="Permalink to this definition">¶</a></dt>
-<dd><p>this function plot the calculated velocity distribution
-:param v_pro: the calculated velcocity distribution by time step
-:param coord_pro: the coordinate of the profiles
-:param xhzv_data: the output data from the model, before the velocity distrbution
-:param plot_timestep: which time step to be plottied
-:param name_pro: the name of the profile (optionnal just for the title)
-:param pro: which porfile to be plotted
-:param on_profile, select the data which is on the profile
-:param zone_v: output from hec-ras used to test dist_vitesse
-:param data_profile: output from hec-ras used to test dist_vitesse
-:param xy_h: output from hec-ras used to test dist_vitesse
-:return: figures</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="src.dist_vistess2.preparetest_velocity">
 <code class="descclassname">src.dist_vistess2.</code><code class="descname">preparetest_velocity</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>vh_pro_orr</em>, <em>v_in</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.preparetest_velocity" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function takes the output from hec-ras, with the velocity distrbution already present, and
-transform these output into input for dist_vel.
-:param coord_pro: the coordinate of the profile (x,y,h,dist along profile)
-:param vh_pro_orr: the velocity distribution which is the output from hec ras (produced by hec-ras06.py)
-:param v_in the uni-dimensional velocity
-:return:</p>
+<dd><p>This is a debugging function. It takes as input the output from the hec-ras model and gives a 1D velocity as
+output. This is only to test this program. It will not be used by HABBY directly. To use this function, it is
+necessary to use the function to load hec-ras data from HABBY, so that the hec-ras data is in the right form.
+The 1D-velocity is assumed to be the velocity as the lowest part of the profile. This is where a 1D-model would
+estimate the position of the river (the lowest part of the river bed).</p>
+<p>A complicated point to test the program is to put the velocity point at the same point than hec-ras. As hec-ras
+calculate velocity between zones and not on one point, this is more or less impossible to do with precision.
+However, one can count the number of velocity zone and give this as an input to dist_velocity_hecras() for the
+variable nb_point. However, both line will not be exactly at the same place. The results should however be close
+enough.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coord_pro</strong> &#8211; the coordinate of the profile (x,y,h,dist along profile)</li>
+<li><strong>vh_pro_orr</strong> &#8211; the velocity distribution which is the output from hec ras (produced by hec-ras06.py)</li>
+<li><strong>v_in</strong> &#8211; the uni-dimensional velocity</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
+</div>
+<div class="section" id="create-a-grid">
+<h2>Create a grid<a class="headerlink" href="#create-a-grid" title="Permalink to this headline">¶</a></h2>
+<p>in src/manage_grid_8</p>
+<p>This module is composed of the functions used to manage the grid,
+notably to create 2D grid from the output from 1D model.</p>
+<p>There are two main way to go from data in 1.5D in a profile form to a 2D grid:</p>
+<ul class="simple">
+<li>through the usage of the triangle module in create_grid().</li>
+<li>through the definition of a middle profile used as a guide to create the grid in create_grid_only_one_profile().</li>
+</ul>
+<p>For an in-depth explanation on how to create the grids, please see the pdf document <a class="reference download internal" href="_downloads/Grid_info.pdf" download=""><code class="xref download docutils literal"><span class="pre">More</span> <span class="pre">info</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">grid</span></code></a></p>
+<span class="target" id="module-src.manage_grid_8"></span><dl class="function">
+<dt id="src.manage_grid_8.add_point">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">add_point</code><span class="sig-paren">(</span><em>point_all</em>, <em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.add_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>To manage the substrate data, we modify the hydrological grid to avoid to have cells with two substrate type.
+This function add one coordinate point to the list of coordinates which compose the hydrological grid. This point
+is the intersection between one side of one triangluar cell of the hydrological grid and one side of the
+sibstrate layer (which is a shp). It only adds this intersection point if it is not already in point_all.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>point_all</strong> &#8211; the coordinates of the hydrological grid</li>
+<li><strong>point</strong> &#8211; one intersection point between substrat and hydrological grids</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the updated point_all (the coordinates of the hydrological grid)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.create_dummy_substrate">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">create_dummy_substrate</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>sqrtnp</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.create_dummy_substrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>For testing purposes, it can be useful to create a substrate input even if one does not exist.
+This substrate is compose of n triangle situated on the rivers in the same coodinates system.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_pro</strong> &#8211; the coordinate of each profile</li>
+<li><strong>sqrtnp</strong> &#8211; the number of point which will compose one side of the new substrate grid (so the total number
+of point is sqrtnb squared).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">dummy coord_sub, ikle_sub</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.create_grid">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">create_grid</code><span class="sig-paren">(</span><em>coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 10000000000.0], vh_pro_t=[], q=[], pnew_add=1</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.create_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>It creates a grid from the coord_pro data using the triangle module.
+It creates the grid up to the end of the profile if vh_pro_t is not present
+or up to the water limit if vh_pro_t is present</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>q</strong> &#8211; used in the secondary process (like in hydro_gui2) when we do not call this function direclty, but we
+call it in a second process so that the GUI do not crash if something go wrong</li>
+<li><strong>coord_pro</strong> &#8211; the profile coordinates (x,y, h, dist along) the profile</li>
+<li><strong>extra_pro</strong> &#8211; the number of &#8220;extra&#8221; profiles to be added between profile to simplify the grid</li>
+<li><strong>coord_sub</strong> &#8211; (not used anymore)
+the coordinate of the point forming the substrate layer (often created with substrate.load_sub)</li>
+<li><strong>ikle_sub</strong> &#8211; (not used anymore)
+the connectivity table of the substrate grid (often created with substrate.load_sub)</li>
+<li><strong>nb_pro_reach</strong> &#8211; the number of reach by profile starting with 0</li>
+<li><strong>vh_pro_t</strong> &#8211; the velocity and height of the water (used to cut the limit of the river).</li>
+<li><strong>pnew_add</strong> &#8211; (not used anymore) a parameter to cut the substrate side in smaller part (improve grid quality)
+in the form dist along profile, h , v for the analyzed time step. f not given, gird is contructed on the whole profile.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">connectivity table and grid point</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Form of the function in summary</strong></p>
+<ul class="simple">
+<li>if vh_pro_t:<ul>
+<li>find cordinate under water and used this to update coord_pro</li>
+<li>see if there is islands, find the island limits and the holes indicating the inside/outside of the islands</li>
+</ul>
+</li>
+<li>find the point which give the end/start of the segment defining the grid limit</li>
+<li>find all point which need to be added to the grid and add extra profile if needed</li>
+<li>based on the start/end points and the island limits, create the segments which gives the grid limit</li>
+<li>triangulate and so create the grid</li>
+<li>flag point which are overlapping in two grids</li>
+</ul>
+<p>For more info, see the document &#8220;More info on the grid&#8221;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.create_grid_only_1_profile">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">create_grid_only_1_profile</code><span class="sig-paren">(</span><em>coord_pro, nb_pro_reach=[0, 10000000000.0], vh_pro_t=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.create_grid_only_1_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
+The interpolation of the data is done in this function also, contrarily to create_grid().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_pro</strong> &#8211; the profile coordinates (x,y, h, dist along) the profile</li>
+<li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach</li>
+<li><strong>vh_pro_t</strong> &#8211; the data with heigh and velocity, giving the river limits</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the connevtivity table, the coordinate of the grid, the centroid of the grid, the velocity data on this
+grid, the height data on this grid.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>For more info on this function, see the document &#8220;More info on the grid&#8221;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.cut_2d_grid">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">cut_2d_grid</code><span class="sig-paren">(</span><em>ikle</em>, <em>point_all</em>, <em>water_height</em>, <em>velocity</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.cut_2d_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function cut the grid of the 2D model to have correct wet surface. If we have a node with h&lt;0 and other node(s)
+with h&gt;0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
+This function works for one time steps and for one reach</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the connectivity table of the 2D grid</li>
+<li><strong>point_all</strong> &#8211; the coordinate of the point</li>
+<li><strong>water_height</strong> &#8211; the water height data given on the nodes</li>
+<li><strong>velocity</strong> &#8211; the velcoity given on the nodes</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.find_profile_between">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">find_profile_between</code><span class="sig-paren">(</span><em>coord_pro_p0</em>, <em>coord_pro_p1</em>, <em>nb_pro</em>, <em>trim=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.find_profile_between" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find n profile between two profiles which are not straight. This functions is useful to create the grid from 1D model
+as profile in 1D model are often far away from another.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_pro_p0</strong> &#8211; the coord_pro (x,y,h, z) of the first profile</li>
+<li><strong>coord_pro_p1</strong> &#8211; the coord_pro (x,y,h, z) of the second profile</li>
+<li><strong>nb_pro</strong> &#8211; the number of profile to add</li>
+<li><strong>Trim</strong> &#8211; If True cut the end and start of profile to avoid to have part of the grid outside of the water limit</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list with the updated profiles</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.get_crossing_segment_sub">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">get_crossing_segment_sub</code><span class="sig-paren">(</span><em>p1sub, p2sub, lim_here, lim_by_reachr, point_all, island, ind_seg_sub_ini=[0]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.get_crossing_segment_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function looks at one substrate segment and find the crossing points of this semgent with the different
+segment which composed the hydrological grid. This function is useful to cut the grid as a function of the form
+of the substrate layer (to avoid having cells in the hydrological grid which have two substrate value).</p>
+<p>If island switch is True, lim_here is the limit of the island, so
+inside the polygon is outside the river. If island is false, lim_here is the limit of the reach under investigation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p1sub</strong> &#8211; the start point of the substrate semgent</li>
+<li><strong>p2sub</strong> &#8211; the end point of the substrate segment</li>
+<li><strong>lim_here</strong> &#8211; the reach?island limit given in the coordinate system</li>
+<li><strong>lim_by_reachr</strong> &#8211; the limits for reach r which will be given to triangle given by point_all indices.</li>
+<li><strong>point_all</strong> &#8211; all the point (ccordinates) which will be given to triangle</li>
+<li><strong>island</strong> &#8211; a boolean indicating if we are on an island or not</li>
+<li><strong>ind_seg_sub_ini</strong> &#8211; the indices of the first segment add by p1sub et p2sub by the reach. Only used island = true</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the updated point_all and lim_by_reach</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.get_new_point_and_cell_1_profil">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">get_new_point_and_cell_1_profil</code><span class="sig-paren">(</span><em>coord_pro_p</em>, <em>vh_pro_t_p</em>, <em>point_mid_x</em>, <em>point_mid_y</em>, <em>point_all</em>, <em>ikle</em>, <em>point_c</em>, <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.get_new_point_and_cell_1_profil" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is use by create_grid_one_profile. It creates the grid for one profile (one &#8220;line&#8221; of triangle).
+To create the whole grod this function is called for each profile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_pro_p</strong> &#8211; the coordinates of the profile</li>
+<li><strong>vh_pro_t_p</strong> &#8211; the height and velocity data of the profile analysed</li>
+<li><strong>point_mid_x</strong> &#8211; the x coodinate of the points forming the middle profile</li>
+<li><strong>point_mid_y</strong> &#8211; the y coordinate of the points forming the middle profile</li>
+<li><strong>point_all</strong> &#8211; the point of the grid</li>
+<li><strong>ikle</strong> &#8211; the connectivity table of the grid</li>
+<li><strong>point_c</strong> &#8211; the central point of each cell</li>
+<li><strong>dir</strong> &#8211; in which direction are we going around the profile (upstream/downstram)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">point_all, ikle, point_c (the centroid of the cell)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>For more info, see the document &#8220;More info on the grid&#8221;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.inside_polygon">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">inside_polygon</code><span class="sig-paren">(</span><em>seg_poly</em>, <em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.inside_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function find if a point is inside a polygon, using a ray casting algorythm. It is called by various functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>seg_poly</strong> &#8211; the segment forming the polygon</li>
+<li><strong>point</strong> &#8211; the point which is indide or outside the polygon</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True is the point is inside the polygon, false otherwise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.interpo_linear">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">interpo_linear</code><span class="sig-paren">(</span><em>point_all</em>, <em>coord_pro</em>, <em>vh_pro_t</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.interpo_linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Using scipy.gridata, this function interpolates the 1.5 D velocity and height to the new grid
+It can be used for only one time step. The interpolation is linear.
+It is usually called after create_grid have been called.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>point_all</strong> &#8211; the coordinate of the grid point</li>
+<li><strong>coord_pro</strong> &#8211; the coordinate of the profile. It should be coherent with the coordinate from vh_pro.
+To insure this, pass coord_pro through the function &#8220;create_grid&#8221; with the same vh_pro as input</li>
+<li><strong>vh_pro_t</strong> &#8211; for each profile, dist along the profile, water height and velocity at a particular time step</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new interpolated data for velocity and water height</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.interpo_nearest">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">interpo_nearest</code><span class="sig-paren">(</span><em>point_all</em>, <em>coord_pro</em>, <em>vh_pro_t</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.interpo_nearest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Using scipy.gridata, this function interpolates the 1.5 D velocity and height to the new grid
+It can be used for only one time step. The interpolation is nearest neighbours.
+It is usually called after create_grid have been called.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>point_all</strong> &#8211; the coordinate of the grid point</li>
+<li><strong>coord_pro</strong> &#8211; the coordinate of the profile. It should be coherent with the coordinate from vh_pro.
+To insure this, pass coord_pro through the function &#8220;create_grid&#8221; with the same vh_pro as input</li>
+<li><strong>vh_pro_t</strong> &#8211; for each profile, dist along the profile, water height and velocity at a particular time step</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new interpolated data for velocity and water height</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.intersection_seg">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">intersection_seg</code><span class="sig-paren">(</span><em>p1hyd</em>, <em>p2hyd</em>, <em>p1sub</em>, <em>p2sub</em>, <em>col=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.intersection_seg" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function finds if there is an intersection between two segment (AB and CD). Idea from :
+<a class="reference external" href="http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect">http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect</a>
+It is based on the caluclaion of the cross-product z= 0 for 2D</p>
+<p>Careful there is many function using this function, so change here should be thought about.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p1hyd</strong> &#8211; point A</li>
+<li><strong>p2hyd</strong> &#8211; point B</li>
+<li><strong>p1sub</strong> &#8211; point C</li>
+<li><strong>p2sub</strong> &#8211; point D</li>
+<li><strong>col</strong> &#8211; if True, colinear segment crossed. If false, they do not cross</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersect (True or False) and the crossing point (if True, empty is False)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.linear_h_cross">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">linear_h_cross</code><span class="sig-paren">(</span><em>p1</em>, <em>p2</em>, <em>h1</em>, <em>h2</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.linear_h_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is called by cut_2D_grid. It find the intersection point along a side of the triangle if part of a
+cells is dry.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p1</strong> &#8211; the coordinate (x,y) of the first point</li>
+<li><strong>p2</strong> &#8211; the coordinate (x,y) of the first point</li>
+<li><strong>h1</strong> &#8211; the water height at p1 (might be negative or positive)</li>
+<li><strong>h2</strong> &#8211; the water height at p2 (might be negative or positive)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the intersection point</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.main">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to test this module</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.newp">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">newp</code><span class="sig-paren">(</span><em>p0</em>, <em>p1</em>, <em>extra_pro</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.newp" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function find the start/end of the added profile. If only one profile is needed, it is just the
+point in the middle of the start/end of the profile. If mroe than one profile is needed, there are linearly
+distributed. This function only give the start and the end of the profile, the profile in full are constructed using
+find_profile_between()</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p0</strong> &#8211; the point at the profile p</li>
+<li><strong>p1</strong> &#8211; the point at the profile p-1</li>
+<li><strong>extra_pro</strong> &#8211; the number of extra profile needed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the start/end of the new profile</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.plot_grid">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">plot_grid</code><span class="sig-paren">(</span><em>point_all_reach</em>, <em>ikle_all</em>, <em>lim_by_reach</em>, <em>hole_all</em>, <em>overlap</em>, <em>point_c_all=[]</em>, <em>inter_vel_all=[]</em>, <em>inter_h_all=[]</em>, <em>path_im=[]</em>, <em>coord_pro2=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.plot_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function to plot a grid, it is very similar to the one from hec-ras2D.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>point_all_reach</strong> &#8211; the grid point by reach</li>
+<li><strong>ikle_all</strong> &#8211; the connectivity table by reach</li>
+<li><strong>lim_by_reach</strong> &#8211; the segment giving the limits of the grid</li>
+<li><strong>hole_all</strong> &#8211; the coordinates of the holes</li>
+<li><strong>overlap</strong> &#8211; the point of each reach which are also on an other reach</li>
+<li><strong>point_c_all</strong> &#8211; the centroid of each element</li>
+<li><strong>inter_vel_all</strong> &#8211; the interpolated velocity for each reach</li>
+<li><strong>inter_h_all</strong> &#8211; the interpolated height</li>
+<li><strong>path_im</strong> &#8211; the path where to save the image</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.update_coord_pro_with_vh_pro">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">update_coord_pro_with_vh_pro</code><span class="sig-paren">(</span><em>coord_pro</em>, <em>vh_pro_t</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.update_coord_pro_with_vh_pro" title="Permalink to this definition">¶</a></dt>
+<dd><p>The points describing the profile elevation and the points where velocity is measured might not be the same.
+Additionally,part of the profile might be dry and we have added points giving the wetted limit in vh_pro_t. They were
+are not in the original profil (coord_pro). In this function,
+coord_pro is recalculated to account for these modicfications. It is used by create_grid() and
+create_grid_one_profile, but only if vh_pro_t exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coord_pro</strong> &#8211; the original coord_pro</li>
+<li><strong>vh_pro_t</strong> &#8211; the value and position of h and velcoity measurement with the river limits</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">updated coord_pro</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>More information in the document &#8220;More info on the grid&#8221; (linked above)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="estimhab-source">
+<h2>Estimhab -source<a class="headerlink" href="#estimhab-source" title="Permalink to this headline">¶</a></h2>
+<p>in src/estimhab.py</p>
+<p>The module contains the Estimhab model. For an explanation on the estimhab model, please see
+the pdf document <a class="reference download internal" href="_downloads/estimhab2008.pdf" download=""><code class="xref download docutils literal"><span class="pre">estimhab2008</span></code></a></p>
 <span class="target" id="module-src.estimhab"></span><dl class="function">
 <dt id="src.estimhab.estimhab">
 <code class="descclassname">src.estimhab.</code><code class="descname">estimhab</code><span class="sig-paren">(</span><em>qmes</em>, <em>width</em>, <em>height</em>, <em>q50</em>, <em>qrange</em>, <em>substrat</em>, <em>path_bio</em>, <em>fish_name</em>, <em>path_im</em>, <em>pict=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.estimhab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to run the estimhab model. Unit in meter amd m^3/sec
-:param qmes the two measured discharge
-:param width the two measured width
-:param height the two measured height
-:param q50 the natural median discharge
-:param qrange the range of discharge
-:param substrat mean height of substrat
-:param pict if true the figure is shown. If false, the figure is not shown
-:param path_im, the path where the image should be saved
-:param path_bio the path to the xml file with the information on the fishes
-:param fish_name the name of the fish which have to be analyzed
-:return Habitat value and useful surface (VH and SPU) as a function of discharge</p>
+<dd><p>This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
+forms the original Estimhab model.. Unit in meter amd m^3/sec</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>qmes</strong> &#8211; the two measured discharge</li>
+<li><strong>width</strong> &#8211; the two measured width</li>
+<li><strong>height</strong> &#8211; the two measured height</li>
+<li><strong>q50</strong> &#8211; the natural median discharge</li>
+<li><strong>qrange</strong> &#8211; the range of discharge</li>
+<li><strong>substrat</strong> &#8211; mean height of substrat</li>
+<li><strong>pict</strong> &#8211; if true the figure is shown. If false, the figure is not shown</li>
+<li><strong>path_im</strong> &#8211; the path where the image should be saved</li>
+<li><strong>path_bio</strong> &#8211; the path to the xml file with the information on the fishes</li>
+<li><strong>fish_name</strong> &#8211; the name of the fish which have to be analyzed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">habitat value and useful surface (VH and SPU) as a function of discharge</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments and walk-through</strong></p>
+<p>First, we get all the discharges on which we want to calculate the SPU (surface ponderée utile),
+using the inputs from the user.</p>
+<p>Next we use hydrological rating curves (info on google if needed) to get the height and the width of the river for
+all discharge. The calculation is based on the width and height of the river measured at two discharges (given by the
+user).</p>
+<p>Next, we get other parameters which are used in the preference curves such as the Froude number of
+the mean discharge or the Reynolds number.</p>
+<p>Next, we load the fish data contains in the xml files in the biology folder. Careful, this is not the xml project
+file. This are the xml files described above in the “Class EstimhabW” section. There are one xml file per fish and
+they described the preference curves. For the argumentation on the form of the relationship, report yourself to the
+documentation of Estimhab (one pdf file should in the folder “doc “ in HABBY).</p>
+<p>Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
+a text file.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.estimhab.main">
 <code class="descclassname">src.estimhab.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Used to test this module.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="src.estimhab.pass_to_float_estimhab">
 <code class="descclassname">src.estimhab.</code><code class="descname">pass_to_float_estimhab</code><span class="sig-paren">(</span><em>var_name</em>, <em>root</em><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.pass_to_float_estimhab" title="Permalink to this definition">¶</a></dt>
-<dd><p>a small function to pass from xml element to float
-:param root: the root of the open xml file
-:param var_name: the name of the attribute in the xml file
-:return: the float data</p>
+<dd><p>This is a function to pass from an xml element to a float</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>root</strong> &#8211; the root of the open xml file</li>
+<li><strong>var_name</strong> &#8211; the name of the attribute in the xml file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the float data</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
+</div>
+<div class="section" id="stathab-source">
+<h2>Stathab - source<a class="headerlink" href="#stathab-source" title="Permalink to this headline">¶</a></h2>
+<p>in src/stathab_c</p>
+<p>This module contains the function used to run the model stathab.For an explanation on
+the form of the stathab input, please see the pdf document <a class="reference download internal" href="_downloads/stathabinfo.pdf" download=""><code class="xref download docutils literal"><span class="pre">stathabinfo</span></code></a></p>
 <span class="target" id="module-src.stathab_c"></span><dl class="class">
 <dt id="src.stathab_c.Stathab">
 <em class="property">class </em><code class="descclassname">src.stathab_c.</code><code class="descname">Stathab</code><span class="sig-paren">(</span><em>name_prj</em>, <em>path_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab" title="Permalink to this definition">¶</a></dt>
@@ -3115,70 +3882,125 @@ transform these output into input for dist_vel.
 <dl class="method">
 <dt id="src.stathab_c.Stathab.create_hdf5">
 <code class="descname">create_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.create_hdf5" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to create an hdf5 file from the loaded txt
-:return: the &#8220;name_prj&#8221;_STATHAB.h5 an hdf5 file with the info from stathab</p>
+<dd><p>A function to create an hdf5 file from the loaded txt. It creates &#8220;name_prj&#8221;_STATHAB.h5, an hdf5 file with the
+info from stathab</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.dengauss">
 <code class="descname">dengauss</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dengauss" title="Permalink to this definition">¶</a></dt>
 <dd><p>gaussian density, used only for debugging purposes.
-NOT USED IN Habby, but can be useful if scipy is not available
-(remplace all stat.norm.cdf with dengauss -&gt; no need for scipy)
-:param x: the parameter of the gaussian
-:return:</p>
+This is not used in Habby, but can be useful if scipy is not available (remplace all stat.norm.cdf with
+dengauss)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> &#8211; the parameter of the gaussian</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the gaussian density</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.dist_h">
 <code class="descname">dist_h</code><span class="sig-paren">(</span><em>sh0</em>, <em>h0</em>, <em>bornh</em>, <em>h</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dist_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>The calculation of height distribution  acrros the river
-The distribution is a mix of an exponential and guassian.
-:param sh0: the sh of the original data
-sh is the parameter of the distribution, gives the relative importance of ganussian and exp distrbution
-:param h the mean height data
-:param h0 the mean height
-:param bornh the limits of each class of height
-:return: disth the distribution of heights across the river for the mean height h.</p>
+The distribution is a mix of an exponential and guassian.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sh0</strong> &#8211; the sh of the original data
+sh is the parameter of the distribution, gives the relative importance of ganussian and exp distrbution</li>
+<li><strong>h</strong> &#8211; the mean height data</li>
+<li><strong>h0</strong> &#8211; the mean height</li>
+<li><strong>bornh</strong> &#8211; the limits of each class of height</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">disth the distribution of heights across the river for the mean height h.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.dist_v">
 <code class="descname">dist_v</code><span class="sig-paren">(</span><em>h</em>, <em>d</em>, <em>bornv</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dist_v" title="Permalink to this definition">¶</a></dt>
-<dd><p>The calculation of velocity distribution  acrros the river
-The distribution is a mix of an exponential and guassian.
-:param h: the height which is related to the mean velocity v
-:param d granulo moyenne
-:param bornv: the born of the velocity
-:param v: the mean velocity
-:return: the distribution of velocity across the river</p>
+<dd><p>The calculation of velocity distribution across the river
+The distribution is a mix of an exponential and guassian.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>h</strong> &#8211; the height which is related to the mean velocity v</li>
+<li><strong>d</strong> &#8211; granulo moyenne</li>
+<li><strong>bornv</strong> &#8211; the born of the velocity</li>
+<li><strong>v</strong> &#8211; the mean velocity</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the distribution of velocity across the river</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.find_sh0">
 <code class="descname">find_sh0</code><span class="sig-paren">(</span><em>disthmesr</em>, <em>h0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.find_sh0" title="Permalink to this definition">¶</a></dt>
-<dd><p>the function to find sh0, using a minimzation technique (NOT USE!!)
-!!!!!! possibly an error on the bornes?!!!!!!
-:param disthmesr: the measured distribution of height
-:param h0 the measured mean height
-:return: the optimized sh0</p>
+<dd><p>the function to find sh0, using a minimzation technique. Not used because the output was string.
+Possibly an error on the bornes? We remplaced this function by the function find_sh0_maxvrais().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>disthmesr</strong> &#8211; the measured distribution of height</li>
+<li><strong>h0</strong> &#8211; the measured mean height</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the optimized sh0</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.find_sh0_maxvrais">
 <code class="descname">find_sh0_maxvrais</code><span class="sig-paren">(</span><em>disthmesr</em>, <em>h0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.find_sh0_maxvrais" title="Permalink to this definition">¶</a></dt>
 <dd><p>the function to find sh0, using the maximum of vraisemblance.
-This function aims at reproducing the results from the c++ code. hence, no use of scipy
-:param disthmesr: the measured distribution of height
-:param h0 the measured mean height
-:return: the optimized sh0</p>
+This function aims at reproducing the results from the c++ code. Hence, no use of scipy</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>disthmesr</strong> &#8211; the measured distribution of height</li>
+<li><strong>h0</strong> &#8211; the measured mean height</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the optimized sh0</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.load_stathab_from_hdf5">
 <code class="descname">load_stathab_from_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.load_stathab_from_hdf5" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load the file from an hdf5 whose name is given  in the xml project file
-:return:</p>
+<dd><p>A function to load the file from an hdf5 whose name is given in the xml project file</p>
 </dd></dl>
 
 <dl class="method">
@@ -3187,54 +4009,89 @@ This function aims at reproducing the results from the c++ code. hence, no use o
 <dd><p>A function to read and check the input from stathab based on the text files.
 All files should be in the same folder.
 The file Pref.txt is read in run_stathab.
-If self.fish_chosen is not present, all fish in the preference file are read.
-:param reachname_file the file with the name of the reaches to study (usually listirv.txt)
-:param end_file_reach the ending of the files whose names depends on the reach
-:param name_file_allreach the name of the file common to all reaches
-:param path the path to the file
-:return: the inputs needed for run_stathab</p>
+If self.fish_chosen is not present, all fish in the preference file are read.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>reachname_file</strong> &#8211; the file with the name of the reaches to study (usually listirv.txt)</li>
+<li><strong>end_file_reach</strong> &#8211; the ending of the files whose names depends on the reach</li>
+<li><strong>name_file_allreach</strong> &#8211; the name of the file common to all reaches</li>
+<li><strong>path</strong> &#8211; the path to the file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the inputs needed for run_stathab</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.power_law">
 <code class="descname">power_law</code><span class="sig-paren">(</span><em>qwh_r</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.power_law" title="Permalink to this definition">¶</a></dt>
 <dd><p>The function to calculate power law for discharge and width
-ln(h0 = a1 + a2 ln(Q)
-:param qwh_r, an array where each line in one observatino of Q, width and height
-:return: the coeff of the regression</p>
+ln(h0 = a1 + a2 ln(Q)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>qwh_r</strong> &#8211; an array where each line in one observatino of Q, width and height</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the coeff of the regression</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.savefig_stahab">
 <code class="descname">savefig_stahab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.savefig_stahab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A fucntion to save the results in ascii and the figure
-:return: 2 figures</p>
+<dd><p>A function to save the results in text and the figure</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.savetxt_stathab">
 <code class="descname">savetxt_stathab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.savetxt_stathab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to save the stathab result in .txt form
-:return: .txt files</p>
+<dd><p>A function to save the stathab result in .txt form</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.stathab_calc">
 <code class="descname">stathab_calc</code><span class="sig-paren">(</span><em>path_pref='.'</em>, <em>name_pref='Pref.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.stathab_calc" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function to calculate stathab output
-:param path_pref: the path to the preference file
-:param name_pref: the name of the preference file
-:return: the biological preferrence index (np.array of [reach, specices, nbclaq] size)
-, surface or volume by class, etc.</p>
+<dd><p>The function to calculate stathab output.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path_pref</strong> &#8211; the path to the preference file</li>
+<li><strong>name_pref</strong> &#8211; the name of the preference file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the biological preferrence index (np.array of [reach, specices, nbclaq] size), surface or volume by class, etc.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="src.stathab_c.Stathab.test_stathab">
 <code class="descname">test_stathab</code><span class="sig-paren">(</span><em>path_ori</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.test_stathab" title="Permalink to this definition">¶</a></dt>
 <dd><p>A short function to test part of the outputs against the C++ code,
-NOT USED in Habby but practical anyways to debug
-:param path_ori: the path to the files from stathab based on the c++ code
-:return:</p>
+It is not used in Habby but it is practical to debug.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_ori</strong> &#8211; the path to the files from stathab based on the c++ code</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -3242,17 +4099,29 @@ NOT USED in Habby but practical anyways to debug
 <dl class="function">
 <dt id="src.stathab_c.load_float_stathab">
 <code class="descclassname">src.stathab_c.</code><code class="descname">load_float_stathab</code><span class="sig-paren">(</span><em>filename</em>, <em>check_neg</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_float_stathab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load float with extra checks
-:param filename: the file to load with the path
-:param check_neg, if true negative value are not allowed in the data
-:return: data if ok, -99 if failed</p>
+<dd><p>A function to load float with extra checks</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; the file to load with the path</li>
+<li><strong>check_neg</strong> &#8211; if true negative value are not allowed in the data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">data if ok, -99 if failed</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.stathab_c.load_namereach">
 <code class="descclassname">src.stathab_c.</code><code class="descname">load_namereach</code><span class="sig-paren">(</span><em>path</em>, <em>name_file_reach='listriv.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_namereach" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to only load the reach names (useful for the GUI)
-:param path : the path th the listriv.txt
+<dd><p>A function to only load the reach names (useful for the GUI)</p>
+<p>:param path : the path to the file listriv.txt
 :param name_file_reach: In case the file name is not listriv.txt
 :return: the list of reach name</p>
 </dd></dl>
@@ -3260,42 +4129,78 @@ NOT USED in Habby but practical anyways to debug
 <dl class="function">
 <dt id="src.stathab_c.load_pref">
 <code class="descclassname">src.stathab_c.</code><code class="descname">load_pref</code><span class="sig-paren">(</span><em>filepref</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_pref" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function loads the different pref coeffficient contained in filepref
-:param filepref: the name of the file (usually Pref.txt)
-:param path: the path to this file
-:return: the name of the fish, a np.array with the differen coeff</p>
+<dd><p>The function loads the different pref coeffficient contained in filepref</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filepref</strong> &#8211; the name of the file (usually Pref.txt)</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the name of the fish, a np.array with the differen coeff</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.stathab_c.main">
 <code class="descclassname">src.stathab_c.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>used to test this module.</p>
+</dd></dl>
 
+</div>
+<div class="section" id="substrate">
+<h2>Substrate<a class="headerlink" href="#substrate" title="Permalink to this headline">¶</a></h2>
+<p>in src/substrate.py</p>
+<p>This module contains the function to manage the substrate data. This is still a work in progress.</p>
 <span class="target" id="module-src.substrate"></span><dl class="function">
 <dt id="src.substrate.fig_merge_grid">
 <code class="descclassname">src.substrate.</code><code class="descname">fig_merge_grid</code><span class="sig-paren">(</span><em>point_all_both_t</em>, <em>ikle_both_t</em>, <em>path_im</em>, <em>ikle_orr=[]</em>, <em>point_all_orr=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_merge_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to plot the grid after it was merged with the substrate data
-plot one time step at the time
-:param point_all_both: the coordinate of the points of the updated grid
-:param ikle_both: the connectivity table
-:param path_im: the path where the image should be saved
-:param ikle_orr the orginial ikle
-:param point_all_orr the orginal point_all
-:return:</p>
+<dd><p>A function to plot the grid after it was merged with the substrate data.
+It plots one time step at the time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>point_all_both</strong> &#8211; the coordinate of the points of the updated grid</li>
+<li><strong>ikle_both</strong> &#8211; the connectivity table</li>
+<li><strong>path_im</strong> &#8211; the path where the image should be saved</li>
+<li><strong>ikle_orr</strong> &#8211; the orginial ikle</li>
+<li><strong>point_all_orr</strong> &#8211; the orginal point_all</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.fig_substrate">
 <code class="descclassname">src.substrate.</code><code class="descname">fig_substrate</code><span class="sig-paren">(</span><em>coord_p, ikle, sub_info, path_im, xtxt=[-99], ytxt=[-99], subtxt=[-99]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_substrate" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function to plot the raw substrate data, which was loaded before
-:param coord_p: the coordinate of the point
-:param ikle: the connectivity table
-:param sub_info: the information on subtrate by element
-:param xtxt if the data was given in txt form, the orignal x data
-:param ytxt if the data was given in txt form, the orignal y data
-:param subtxt if the data was given in txt form, the orignal sub data
-:param path_im the path where to save the figure
-:return: figure</p>
+<dd><p>The function to plot the raw substrate data, which was loaded before</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>coord_p</strong> &#8211; the coordinate of the point</li>
+<li><strong>ikle</strong> &#8211; the connectivity table</li>
+<li><strong>sub_info</strong> &#8211; the information on subtrate by element</li>
+<li><strong>xtxt</strong> &#8211; if the data was given in txt form, the orignal x data</li>
+<li><strong>ytxt</strong> &#8211; if the data was given in txt form, the orignal y data</li>
+<li><strong>subtxt</strong> &#8211; if the data was given in txt form, the orignal sub data</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -3303,108 +4208,386 @@ plot one time step at the time
 <code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the updated grid with the substrate. More complicated than grid_update3 because it tries to makes
 new cell based on the lines linkes the centroid and the side of the trianlge. Looks more elegant at first but
-quite complicated and do not work for all cases
-:param ikle:  the hydrological grid to be merge with the substrate grid
-:param coord_p: the coordinate of the point of the hydrological grid
-:param point_crossing: the crossing point, with the elemtn of the hydrological grid linked with it and the
-direction (nx,ny) of the substrate line at this point
-:param coord_sub the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-cell of the hydrological grid
-:return: the new grid</p>
+quite complicated and do not work for all cases. So it is not used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the hydrological grid to be merge with the substrate grid</li>
+<li><strong>coord_p</strong> &#8211; the coordinate of the point of the hydrological grid</li>
+<li><strong>point_crossing</strong> &#8211; the crossing point, with the elemtn of the hydrological grid linked with it and the
+direction (nx,ny) of the substrate line at this point</li>
+<li><strong>coord_sub</strong> &#8211; the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
+cell of the hydrological grid</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new grid</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.grid_update_sub3">
 <code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub3</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub3" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to update the grid after finding the crossing points
-:param ikle:  the hydrological grid to be merge with the substrate grid
-:param coord_p: the coordinate of the point of the hydrological grid
-:param point_crossing: the crossing point, with the elemtn of the hydrological grid linked with it and the
-direction (nx,ny) of the substrate line at this point
-:param coord_sub the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-cell of the hydrological grid
-:return: the new grid</p>
+<dd><p>A function to update the grid after finding the crossing points</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the hydrological grid to be merge with the substrate grid</li>
+<li><strong>coord_p</strong> &#8211; the coordinate of the point of the hydrological grid</li>
+<li><strong>point_crossing</strong> &#8211; the crossing point, with the elemtn of the hydrological grid linked with it and the
+direction (nx,ny) of the substrate line at this point</li>
+<li><strong>coord_sub</strong> &#8211; the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
+cell of the hydrological grid</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new grid</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.intersec_cross">
 <code class="descclassname">src.substrate.</code><code class="descname">intersec_cross</code><span class="sig-paren">(</span><em>hyd1</em>, <em>hyd2</em>, <em>sub1</em>, <em>sub2</em>, <em>e=-99</em>, <em>nx=[]</em>, <em>ny=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.intersec_cross" title="Permalink to this definition">¶</a></dt>
-<dd><p>small function to calculate the intersection, segment are not parrallel,
-in case where we know that the intersection exists
-Also save various info with the intersection (element, direction, etc.)
-:param hyd1: the first hydrological point
-:param hyd2: the second
-:param sub1: the first substrate point
-:param sub2: the second
-:param e: the element of the hydrological grid (optional)
-:param nx the direction of the cutting part of the substrate grid (x dir)
-:param ny the direction of the cutting part of the substrate grid (y dir)
-:return:</p>
+<dd><p>A function function to calculate the intersection, segment are not parrallel,
+used in case where we know that the intersection exists
+Also save various info with the intersection (element, direction, etc.)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hyd1</strong> &#8211; the first hydrological point</li>
+<li><strong>hyd2</strong> &#8211; the second</li>
+<li><strong>sub1</strong> &#8211; the first substrate point</li>
+<li><strong>sub2</strong> &#8211; the second</li>
+<li><strong>e</strong> &#8211; the element of the hydrological grid (optional)</li>
+<li><strong>nx</strong> &#8211; the direction of the cutting part of the substrate grid (x dir)</li>
+<li><strong>ny</strong> &#8211; the direction of the cutting part of the substrate grid (y dir)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersection and the direction of cutting part.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.load_sub_shp">
 <code class="descclassname">src.substrate.</code><code class="descname">load_sub_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em>, <em>name_att='SUBSTRATE'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_shp" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load the substrate in form of shapefile.
-:param filename the name of the shapefile
-:param path the path where the shapefile is
-:param name_att the name of the substrate column in the attribute table
-:return grid in form of list of coordinate and connectivity table (two list)
+<dd><p>A function to load the substrate in form of shapefile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; the name of the shapefile</li>
+<li><strong>path</strong> &#8211; the path where the shapefile is</li>
+<li><strong>name_att</strong> &#8211; the name of the substrate column in the attribute table</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">grid in form of list of coordinate and connectivity table (two list)
 and an array with substrate type</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.load_sub_txt">
 <code class="descclassname">src.substrate.</code><code class="descname">load_sub_txt</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_txt" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load the substrate in form of a text file
-the text file must have 3 column x,y corrdinate and substrate info, no header or title
-:param filename the name of the shapefile
-:param path the path where the shapefile is
-:return grid in form of list of coordinate and connectivity table (two list)
+<dd><p>A function to load the substrate in form of a text file. The text file must have 3 column x,y coordinate and
+substrate info, no header or title.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; the name of the shapefile</li>
+<li><strong>path</strong> &#8211; the path where the shapefile is</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">grid in form of list of coordinate and connectivity table (two list)
 and an array with substrate type and (x,y,sub) of the orginal data</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.main">
 <code class="descclassname">src.substrate.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.main" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Used to test this module.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.merge_grid_hydro_sub">
 <code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>default_data</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>After the data for the substrate and the hydrological data are loaded, they are still in different grids.
-This functions will merge both grid together. This is done for all time step and all reaches
-:param hdf5_name_hyd: the path and name of the hdf5 file with the hydrological data
-:param hdf5_name_sub: the path and the name of the hdf5 with the substrate data
-:param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
-:return:</p>
+This functions will merge both grid together. This is done for all time step and all reaches</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hdf5_name_hyd</strong> &#8211; the path and name of the hdf5 file with the hydrological data</li>
+<li><strong>hdf5_name_sub</strong> &#8211; the path and the name of the hdf5 with the substrate data</li>
+<li><strong>default_data</strong> &#8211; The substrate data given in the region of the hydrological grid where no substrate is given</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.point_cross2">
 <code class="descclassname">src.substrate.</code><code class="descname">point_cross2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
-hydrological grid which cross with a side of the substrate grid
-the algo based on finding if points of one elements are in the same polygon using a ray casting method
-:param ikle: the connectivity table for the hydrological data
-:param coord_p: the coordinates of the points of the hydrological grid
-:param ikle_sub: the connecity vity table of the substrate
-:param coord_p_sub: the coordinates of the points of the substrate grid
-:return:</p>
+hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
+are in the same polygon using a ray casting method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the connectivity table for the hydrological data</li>
+<li><strong>coord_p</strong> &#8211; the coordinates of the points of the hydrological grid</li>
+<li><strong>ikle_sub</strong> &#8211; the connecity vity table of the substrate</li>
+<li><strong>coord_p_sub</strong> &#8211; the coordinates of the points of the substrate grid</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersection</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.substrate.point_cross_bis">
 <code class="descclassname">src.substrate.</code><code class="descname">point_cross_bis</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross_bis" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
-hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow.
-:param ikle: the connectivity table for the hydrological data
-:param coord_p: the coordinates of the points of the hydrological grid
-:param ikle_sub: the connecity vity table of the substrate
-:param coord_p_sub: the coordinates of the points of the substrate grid
-:return:</p>
+hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow, so it is not used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the connectivity table for the hydrological data</li>
+<li><strong>coord_p</strong> &#8211; the coordinates of the points of the hydrological grid</li>
+<li><strong>ikle_sub</strong> &#8211; the connecity vity table of the substrate</li>
+<li><strong>coord_p_sub</strong> &#8211; the coordinates of the points of the substrate grid</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersection</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
+</div>
+</div>
+<div class="section" id="various-notes">
+<h1>Various notes<a class="headerlink" href="#various-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="translation-of-habby">
+<h2>Translation of HABBY<a class="headerlink" href="#translation-of-habby" title="Permalink to this headline">¶</a></h2>
+<p>In HABBY, it is possible to translate all strings which are in a python file (.py)
+which is in the src_GUI folder. It should be possible to translate also strings which
+are in a .py file which is in the .src folder if one modifies the .pro file,
+but this is not done yet. Also, it might not be necessary because ./src contains
+code which is not linked with the graphical interface. Hence, English might be sufficient here.</p>
+<p>To add a new string to translate:</p>
+<ul class="simple">
+<li>Code as usual and write the string in English.</li>
+<li>Add self.tr() around the string  a = Qlabel(self.tr(“My message”))</li>
+<li>If the code is in a new python file (like the .py was just created), open the habby_trans.pro file which is src_GUI. Then add the line SOURCES+= new_file.py where new_file.py is the new python file.</li>
+<li>If you want to add a new language, add the line TRANSLATIONS += Zen_ES.ts in the case you want to add Spanish or any other language.</li>
+<li>Copy the files ZEN_EN.ts and ZEN_FR.ts from HABBY/translation to /src_GUI</li>
+<li>In the src_GUI folder, run the following command on the cmd: pylupdate5 habby_trans.pro. it will work if pylupdate is installed.</li>
+<li>It should update the .ts file (which is an xml file)</li>
+<li>Copy both .ts file back to HABBY/translation</li>
+<li>Open Qt  linguist. This is a program that you need to install before. Open the French .ts file. The English should not need translation.</li>
+<li>Translate as needed and save in Qt Linguist.</li>
+<li>A .qm file is the binary representing the .ts file with all the translation. To create .qm file, type (in the cmd) lrelease  file.ts. It will create a file.qm file</li>
+<li>Run HABBY. The string should be updated.</li>
+</ul>
+<p><strong>In the code</strong></p>
+<p>If the user asked for a new language, we need to reload the translator with the following lines:</p>
+<blockquote>
+<div><p><em>app = QApplication.instance()</em></p>
+<p><em>self.languageTranslator.load(file.qm, self.path_trans)</em></p>
+<p><em>app.installTranslator(self.languageTranslator)</em></p>
+</div></blockquote>
+<p>with the appropriate name for “file.qm”.</p>
+<p>In HABBY, the list of the name of all qm file are in the variable self.file_langue
+in class MainWindows. Hence, we can follow the selected language using an integer self.lang
+(0 for English and 1 for French). We can now call self.file_langue[self.lang] to get the qm
+file in the right language. If a new language is added, it is necessary to add one string to this
+list and to modify the menu.</p>
+<p>When the translator has been created, it is necessary to re-do all Widgets and Windows. This is not a problem when we open HABBY, but it can be a bit of work if the user asks for a change in language when HABBY is running. This is the function of the setlangue function. This function would work for all language (it takes an integer as input to know which language to use), but it needs to be modified if one modifies the Main_Windows Class strongly (notably if one add signals).
+The language should be saved in the user setting using Qsettings as it is done at the end of the
+setlangue function.</p>
+</div>
+<div class="section" id="create-a-exe">
+<h2>Create a .exe<a class="headerlink" href="#create-a-exe" title="Permalink to this headline">¶</a></h2>
+<p>Here are step to create a .exe using PyInstaller</p>
+<ul class="simple">
+<li>install Pyinstaller (pip install pyinstaller)</li>
+<li>cd &#8220;folder with source code&#8221;</li>
+<li>pyinstaller.exe [option] habby.py, with the option &#8211;onefile to get only one .exe and &#8211;windowed to not have the cmd which opens with the application.</li>
+</ul>
+<p>Here are some common problems:</p>
+<ul class="simple">
+<li>ImportError: (No module named &#8216;PyQt5.QtGui&#8217;): Copy the folder platform with qwindows.dll and add to the set_up.py  &#8220;includes&#8221;: [&#8220;PyQt5.QtCore&#8221;, &#8220;PyQt5.QtGui&#8221;]</li>
+<li>This application fails to start because ... the Qt platform pugin windows: Copy the folder platform with qwindows.dll in it</li>
+<li>ImportError: h5Py &#8220;includes&#8221;: [&#8220;h5py&#8221;,&#8221;h5py.defs&#8221;, &#8220;h5py.utils&#8221;, &#8220;h5py.h5ac&#8221;, &#8216;h5py._proxy&#8217; ] etc if necessary</li>
+<li>Intel MKL fatal error copy the .dll missing (or just find an old dist and copy all mkl stuff) AND the libiomp5md.dll</li>
+<li>The translation does not work: Add the translation folder into the dist folder</li>
+<li>Do not find log0.txt (or crash when saving project): create a folder called src_GUI, copy the files log0.txt and restart_log0.txt from the src_GUI folder in the python module</li>
+</ul>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p><strong>General information</strong></p>
+<p>There are two different logs for HABBY. By default, the first one is called “name_projet”.log and
+the second is called restart/_&#8217;name_project&#8217;.log. Their name and path can be changed in the xml
+project file. Both file are text file.</p>
+<p>The first log is in the form of a python file with comments. If python and the necessary modules
+are installed on the machine, this log can be renamed “name.py” and started as a python file.
+In the command line, the following command should be used: python name.py. This file can be
+modified to create a new script to use HABBY in a different ways. For this, python syntax should be used.</p>
+<p>The second log, called restart/_’name_project’.log, has limited functionalities but allows to
+re-start the HABBY simulation from the command line, without the need for python.
+Format of this file is described below. It is aimed to be readable and easily modifiable.
+To use the restart file, type in the command line: habby restart/_’name_project’.log. (not done yet)</p>
+<p><strong>Type of log and format</strong></p>
+<p>Currently, there are five types of outputs, which can be sent to the log:</p>
+<ul class="simple">
+<li>Comment, which should start with #. They will be sent to the python-type log file and to the GUI of Habby.</li>
+<li>Errors, which should start with word “Error”. They will be sent to the python-type log file and to the GUI of Habby. In the GUI, they will appear in red.</li>
+<li>Warnings, which should start with the word “Warning”. They will be sent to the python-type log file and to the GUI of Habby. In the GUI, they will appear in orange.</li>
+<li>Restart info, which should start with the word “restart’. They will be sent to the restart_’name_project’.log. The format will be developed afterwards.</li>
+<li>All types of text which do not start with these code words are only shown to the GUI of Habby.</li>
+<li>Python code, which should start with the line py followed by four spaces.  It will be sent to the python-type log file. It is usually a function which is part of Habby code. The different arguments of the function should be given in the preceding lines.</li>
+</ul>
+<p><strong>Example</strong></p>
+<p>Let’s write to the log a function which takes an integer and a string as input. The function
+is in the module called habby1, which is imported by default in the .log file. The strings to send
+as log would be:</p>
+<ul class="simple">
+<li>&#8220;#  this my fancy function&#8221;</li>
+<li>&#8220;py    my_int = &#8221; + str(my_int_in_code)</li>
+<li>&#8220;py    my_string = ’” + my_string_in_the _code+ &#8220;&#8217;“</li>
+<li>&#8220;py    habby1.myfunc(my_int, my_string)&#8221;</li>
+</ul>
+<p>A comment should be added before each chunk of python code to improve the readability.</p>
+<p><strong>Update the log</strong></p>
+<p>Let’s consider a scenario where a new function has been written in a non-GUI module (class or
+function) and has to be called in the GUI in a method of a class. Let’s call the new function
+new_func and the class in the GUI my_class.</p>
+<p>To create a new line of log for new_func, one should follow these steps:</p>
+<ul class="simple">
+<li>A PyQtsignal with a string as argument should be added to my_class: send_log = pyqtSignal(str, name=&#8217;send_log&#8217;)</li>
+<li>If a log should be sent directly from my_class (for example, to say that new_func  has been called), the signal should be emitted: self.send_log.emit(&#8216;# new_func has been called&#8217;))</li>
+<li>In the new function,  error and warning are written as follows: print(“Error: here is an error.n”) or print(“Warning:  This is just a warning.n”)</li>
+<li>In my_class, error and warning are collected by redirecting stdout to a string. The following lines of code should be added around the calling of my_func():<ul>
+<li>sys.stdout = mystdout = StringIO()  # redirect stdout</li>
+<li>my_func(my_int,my_string)</li>
+<li>sys.stdout = sys.__stdout__   # re-sent stdout to the cmd</li>
+<li>str_found = mystdout.getvalue()   # get all warning, error, text,…</li>
+<li>str_found = str_found.split(&#8216;n&#8217;)  # separate each message</li>
+<li>for i in range(0, len(str_found)):<ul>
+<li>if len(str_found[i]) &gt; 1:<ul>
+<li>self.send_log.emit(str_found[i])  #send the text</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>To import StringIO, the following statement is needed at the start of the code: from io import StringIO</li>
+<li>If new_func is called from the command line, stdout will not be redirected and the errors or warnings will be printed on the cmd as usual.  Stderr should be re-directed in a similar manner if needed.</li>
+<li>The signal should be collected in the function connect_signal_log in the Main_Windows_1.py.  For this, a line should be added in the function:
+*       self.my_class.send_log.connect(self.write_log)</li>
+</ul>
+<p><strong>Format of the restart file</strong></p>
+<p>To be determined.</p>
+</div>
+<div class="section" id="git-code-management">
+<h2>Git - code management<a class="headerlink" href="#git-code-management" title="Permalink to this headline">¶</a></h2>
+<p><strong>Pour commencer:</strong></p>
+<ul class="simple">
+<li>Choisir un dossier sur l’ordinateur local ou va se trouver les fichiers sources.</li>
+<li>cd  « dossier avec les codes source»</li>
+<li>git config - - global user.name « username »</li>
+<li>git config - - global user.email  « mail »</li>
+<li>git init</li>
+<li>lier le repertoire local avec le repertoire distant sur forge.irstea.fr</li>
+</ul>
+<p><strong>Pour mettre une nouvelle version sur le site web</strong></p>
+<ul class="simple">
+<li>cd « dossier avec les codes source»</li>
+<li>git pull (prend la dernière version à jour sur le site et mets tous les fichiers ensemble) ou git fetch (prend juste les derniers fichiers sans mettre tous les fichiers ensemble).</li>
+<li>git add ‘my_file.py ou .pyc’ (choisit les fichiers qui doivent être envoyé), le signe * fonctionne.</li>
+<li>git log (donne l’historique)</li>
+<li>git status (donne les nouveaux fichiers locals)</li>
+<li>git commit –m « description » (commit localement)</li>
+<li>git push</li>
+</ul>
+<p><strong>Pour ajouter une nouvelle branche</strong></p>
+<ul class="simple">
+<li>Donc pour avoir une partie du travail sépare du reste</li>
+<li>git checkout –b [branchname] pour créer la branche et y travailler</li>
+<li>git checkout [branchname] pour y travailler</li>
+</ul>
+</div>
+<div class="section" id="write-the-documentation">
+<h2>Write the documentation<a class="headerlink" href="#write-the-documentation" title="Permalink to this headline">¶</a></h2>
+<p>Habby uses Sphinx to document the code. Sphinx uses the docstring given in each function. Hence, it is necessary to write a docstring for each function which has to be documented.</p>
+<p>To update the html documentation, go to the doc folder and execute the command: “make html”.</p>
+<p>To update the Latex documentation, use the commande &#8220;make latex&#8221; and use Miketex to create the pdf. rts2pdf does not work with Python 3.</p>
+<p>To add text in the documentation, modify the index.rst file in the doc folder. To add a new module to the
+documentation, add the module as written in the index.rts file in the doc folder. To add text comment, the index.rts file can also be direclty modified.</p>
+<p>It is important to keep the formatting and the alignment.</p>
+<p>If the module is in a new folder, the address of the folder must be added to the config.py file.
+It is better to not use absolute path for this, so it is possible to move the documentation on another
+computer. If the documentation does not run on a new computer, check the path given in the config.py file.</p>
+<p>In the docstring, add as many blank lines as possible (in reasonable limit). This is easier for the
+formatting. To make a bullet list, one should use a tab and the symbol “*”.  Using only the symbol * will
+fail.</p>
+<p>To add a new title, do not start the title or the line of symbol under the title with a blank space.</p>
+</div>
+<div class="section" id="license-of-used-python-modules">
+<h2>License of used python modules<a class="headerlink" href="#license-of-used-python-modules" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>h5py: BSD License</li>
+<li>Element tree (XML): MIT License</li>
+<li>numpy: BSD License</li>
+<li>matplotlib: BSD License</li>
+<li>PyQt5: GNU License</li>
+</ul>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -3452,7 +4635,20 @@ hydrological grid which cross with a side of the substrate grid. Easier than poi
 <li><a class="reference internal" href="#form-of-the-hdf5-files">Form of the hdf5 files</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#module-src.dist_vistess2">Velocity distribution</a></li>
+<li><a class="reference internal" href="#velocity-distribution">Velocity distribution</a></li>
+<li><a class="reference internal" href="#create-a-grid">Create a grid</a></li>
+<li><a class="reference internal" href="#estimhab-source">Estimhab -source</a></li>
+<li><a class="reference internal" href="#stathab-source">Stathab - source</a></li>
+<li><a class="reference internal" href="#substrate">Substrate</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#various-notes">Various notes</a><ul>
+<li><a class="reference internal" href="#translation-of-habby">Translation of HABBY</a></li>
+<li><a class="reference internal" href="#create-a-exe">Create a .exe</a></li>
+<li><a class="reference internal" href="#logging">Logging</a></li>
+<li><a class="reference internal" href="#git-code-management">Git - code management</a></li>
+<li><a class="reference internal" href="#write-the-documentation">Write the documentation</a></li>
+<li><a class="reference internal" href="#license-of-used-python-modules">License of used python modules</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>

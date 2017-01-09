@@ -1,0 +1,28 @@
+\select@language {english}
+\contentsline {chapter}{\numberline {1}How to execute HABBY}{3}{chapter.1}
+\contentsline {chapter}{\numberline {2}Main( ) and source code}{5}{chapter.2}
+\contentsline {chapter}{\numberline {3}Graphical interface}{7}{chapter.3}
+\contentsline {section}{\numberline {3.1}Main\_windows of HABBY}{7}{section.3.1}
+\contentsline {section}{\numberline {3.2}Hydrological information - GUI}{12}{section.3.2}
+\contentsline {section}{\numberline {3.3}Figure Option - GUI}{20}{section.3.3}
+\contentsline {section}{\numberline {3.4}The Stathab model - GUI}{20}{section.3.4}
+\contentsline {section}{\numberline {3.5}Estimhab - GUI}{23}{section.3.5}
+\contentsline {subsection}{\numberline {3.5.1}Biological data - Estimhab}{24}{subsection.3.5.1}
+\contentsline {chapter}{\numberline {4}Calculation of fish's habitat}{27}{chapter.4}
+\contentsline {section}{\numberline {4.1}Hec-ras model 1D}{27}{section.4.1}
+\contentsline {subsection}{\numberline {4.1.1}Notes on hec-ras outputs}{33}{subsection.4.1.1}
+\contentsline {section}{\numberline {4.2}Hec-ras model 2D}{34}{section.4.2}
+\contentsline {section}{\numberline {4.3}Mascaret}{36}{section.4.3}
+\contentsline {section}{\numberline {4.4}River 2D}{40}{section.4.4}
+\contentsline {section}{\numberline {4.5}Rubar}{41}{section.4.5}
+\contentsline {section}{\numberline {4.6}Telemac}{44}{section.4.6}
+\contentsline {section}{\numberline {4.7}Load HABBY hdf5 file}{45}{section.4.7}
+\contentsline {subsection}{\numberline {4.7.1}Form of the hdf5 files}{46}{subsection.4.7.1}
+\contentsline {section}{\numberline {4.8}Velocity distribution}{46}{section.4.8}
+\contentsline {section}{\numberline {4.9}Create a grid}{49}{section.4.9}
+\contentsline {section}{\numberline {4.10}Estimhab -source}{54}{section.4.10}
+\contentsline {section}{\numberline {4.11}Stathab - source}{55}{section.4.11}
+\contentsline {section}{\numberline {4.12}Substrate}{58}{section.4.12}
+\contentsline {section}{\numberline {4.13}Translation of HABBY}{61}{section.4.13}
+\contentsline {chapter}{\numberline {5}Indices and tables}{63}{chapter.5}
+\contentsline {chapter}{Python Module Index}{65}{section*.280}

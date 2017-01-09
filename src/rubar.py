@@ -11,17 +11,17 @@ import xml.etree.ElementTree as Etree
 
 def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
     """
-    the function to load the RUBAR data in 1D
-    :param geofile: the name of .rbe file which gives the coordinates of each profile - string
-    #(:param mail: the name of the file which given the position of the data point )
-    :param data_vh: the profile.ETUDE file which contains the height and velocity data
-    :param pathgeo the path to the geofile - string
-    :param pathdata the path to the data_vh file
-    :param path_im the file where to save the image
+    the function to load the RUBAR BE data (in 1D).
+
+    :param geofile: the name of .rbe file which gives the coordinates of each profile (string)
+    :param data_vh: the name of the profile.ETUDE file which contains the height and velocity data (string)
+    :param pathgeo: the path to the geofile - string
+    :param pathdata: the path to the data_vh file
+    :param path_im: the file where to save the image
     :param savefig: a boolean. If True create and save the figure.
     :return: coordinates of the profile (x,y,z dist along the profile) coordinates (x,y) of the river and the bed,
-    data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
-    and v the velocity
+            data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
+            and v the velocity
     """
     failload = [-99], [-99], [-99]
 
@@ -55,6 +55,9 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
 
 def load_mai_1d(mailfile, path):
     """
+    This function is not used anymore. It was used to load the coordinate of the 1D data. It might become useful again
+    in the case where we found a Rubar model with more than one reach (which we do not have yet).
+
     :param mailfile: the name of the file which contain the (x,z) data
     :param path: the path to this file
     :return: x of the river, np.array and the number of mail
@@ -95,9 +98,11 @@ def load_mai_1d(mailfile, path):
 
 def load_data_1d(name_data_vh, path, x):
     """
-    :param name_data_vh: the name of the profile.ETUDE file
+    This function loads the output data for Rubar BE (in 1D). The geometry data should be loaded before using this function.
+
+    :param name_data_vh: the name of the profile.ETUDE file (string)
     :param path: the path to this file
-    :param x the distance along the river
+    :param x: the distance along the river (from the .geo file)
     :return: data x, velocity height, cote for each time step (list of np.array), time step
     """
     failload = [-99], [-99]
@@ -169,14 +174,14 @@ def load_data_1d(name_data_vh, path, x):
 
 def m_file_load_coord_1d(geofile_name, pathgeo):
     """
-        the function to load the m.ETUDE file which is based on .st format from cemagref. When we use the M.ETUDE file
+        This function loads the m.ETUDE file which is based on .st format from cemagref. When we use the M.ETUDE file
         instead of the rbe file, more than one reach can be studied but the center and side of the river is not
-        indicated anymore
-        :param geofile_name: The name to the file
-        :param pathgeo: the path to this file
-        :return: the coordinates of the profiles
-        (list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
-        number of profile by reach
+        indicated anymore.
+
+        :param geofile_name: The name to the m.ETUDE file (string)
+        :param pathgeo: the path to this file (string)
+        :return: the coordinates of the profiles (list of np.array with x,y,z coordinate), name of the profile
+                (list of string), dist along the river (list of float), number of profile by reach
         """
     failload = [-99], [-99], [-99], [-99]
 
@@ -303,12 +308,13 @@ def m_file_load_coord_1d(geofile_name, pathgeo):
 
 def load_coord_1d(name_rbe, path):
     """
-    the function to load the rbe file, which is an xml file.
-    :param name_rbe: The name fo the rbe files
-    :param path: the path to this file
+    the function to load the rbe file, which is an xml file. The gives the geometry of the river system.
+
+    :param name_rbe: The name fo the rbe file (string)
+    :param path: the path to this file (string)
     :return: the coordinates of the profiles and the coordinates of the right bank, center of the river, left bank
-    (list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
-    number of cells (int)
+            (list of np.array with x,y,z coordinate), name of the profile (list of string), dist along the river (list of float)
+            number of cells (int)
     """
     warn_riv = True
     filename_path = os.path.join(path, name_rbe)
@@ -392,7 +398,6 @@ def load_coord_1d(name_rbe, path):
         lim_riv.append(lim_riv_sect)
 
     # geometry on cell border, hydraulique center of cell for the data (more intesting for us)
-
     x = [(a + b) / 2 for a, b in zip(dist_riv[:], dist_riv[1:])]
     x = np.concatenate(([dist_riv[0]], x, [dist_riv[-1]]))
 
@@ -406,14 +411,18 @@ def load_coord_1d(name_rbe, path):
 
 def correct_duplicate_xy(seq3D, send_warn, idfun=None):
     """
-    it is possible to have a vertical line on a profile (different h, identical x). This is not good for the 2D grid.
-    So this function correct this case for rubar. A similiar function exists in mascaret.py, for the case where input
-    is the distance along the profile and not (x,y) coordinates.
-    inspired by https://www.peterbe.com/plog/uniqifiers-benchmark
+    It is possible to have a vertical line on a profile (different h, identical x). This is not possible for HABBY and
+    the 2D grid. So this function correct duplicates along the profile.
+
+    A similiar function exists in mascaret, for the case where the input is the distance along the profile and not
+    (x,y) coordinates. This function is inspired by https://www.peterbe.com/plog/uniqifiers-benchmark.
+
+    It should be tested more as manage_grid sometime still send warning about duplicate data in profile.
+
     :param seq3D: the list to be corrected in this case (x,y,z,dist along the profile)
-    :param send_warn a bool to avoid printing the warning too many time
+    :param send_warn: a bool to avoid printing the warning too many time
     :param idfun: support an optional transform function (not tested)
-    :return:
+    :return: the list wihtout duplicate and the boolean which helps manage the warnings
     """
 
     def find_point(seqf, result2, c2):
@@ -493,12 +502,13 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
 
 def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, plot_timestep, nb_pro_reach = [0,10**10]):
     """
-    The function to plot the loaded RUBAR 1D data
-    :param coord_pro: the cooedinate of the profile (x, y, z, dist along the river)
+    The function to plot the loaded RUBAR 1D data (Rubar BE).
+
+    :param coord_pro: the coordinate of the profile (x, y, z, dist along the river)
     :param lim_riv: the right bank, river center, left bank
-    :param data_xhzv the data by time step with x the distance along the river, h the water height and v the vlocity
+    :param data_xhzv: the data by time step with x the distance along the river, h the water height and v the vlocity
     :param cote: the altitude of the river center
-    :param name_profile the name of the profile
+    :param name_profile: the name of the profile
     :param path_im: the path where to save the image
     :param pro: the profile number which should be plotted
     :param plot_timestep: which timestep should be plotted
@@ -568,16 +578,16 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
 
 def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     """
-    the function to load the RUBAR data in 2D
-    :param geofile: the name of the .mai or .dat file which contains the connectivity table and the (x,y)
-    :param tpsfile: the name of the .tps file
-    :param pathgeo : path to the geo file
-    :param pathtps : path to the tps file
-    :param path_im: the path where to save the figure
-    :param save_fig: boolean indicated if the figures should be created or not
-    all strings input
-    :return: (x,y), ikle velocity and height at the center of the cells, the coordinate of the point of the cells,
-    the coordinates of the center of the cells and the connectivity table.
+    This is the function used to load the RUBAR data in 2D
+
+    :param geofile: the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)
+    :param tpsfile: the name of the .tps file (string)
+    :param pathgeo: path to the geo file (string)
+    :param pathtps: path to the tps file which contains the outputs (string)
+    :param path_im: the path where to save the figure (string)
+    :param save_fig: a boolean indicating if the figures should be created or not
+    :return: velocity and height at the center of the cells, the coordinate of the point of the cells,
+             the coordinates of the center of the cells and the connectivity table.
     """
 
     blob, ext = os.path.splitext(geofile)
@@ -597,10 +607,12 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
 
 def load_mai_2d(geofile, path):
     """
-    the function to load the geomtery info for the 2D case
+    The function to load the geomtery info for the 2D case when we use the .mai file. It would also be possible
+    to use the .dat file. In fact, it is advised to use the dat file when possible as there are more info in the .dat file.
+
     :param geofile: the .mai file which contain the connectivity table and the (x,y)
     :param path: the path to this file
-    :return: connectivity table, point coordinates, coodinantes of the cell centers
+    :return: connectivity table, point coordinates, coordinates of the cell centers
     """
     filename_path = os.path.join(path, geofile)
     # check extension
@@ -686,11 +698,13 @@ def load_mai_2d(geofile, path):
 
 def load_dat_2d(geofile, path):
     """
-       the function to load the geomtery info for the 2D case, using the .dat file
-       it is close to the .mai file but with more information (number of side and more complicated connectivity table)
-       :param geofile: the .mai file which contain the connectivity table and the (x,y)
+       This  function is used to load the geomtery info for the 2D case, using the .dat file
+       The .dat file has the same role than the .mai file but with more information (number of side and more
+       complicated connectivity table).
+
+       :param geofile: the .dat file which contain the connectivity table and the (x,y)
        :param path: the path to this file
-       :return: connectivity table, point coordinates, coodinantes of the cell centers
+       :return: connectivity table, point coordinates, coordinates of the cell centers
        """
     filename_path = os.path.join(path, geofile)
     # check extension
@@ -792,10 +806,11 @@ def load_dat_2d(geofile, path):
 
 def load_tps_2d(tpsfile, path, nb_cell):
     """
-    the function to load the data in the 2D rubar case
+    The function to load the output data in the 2D rubar case. The geometry file (.mai or .dat) should be loaded before.
+
     :param tpsfile: the name of the file with the data for the 2d case
-    :param path:
-    :param nb_cell the number of cell extracted from the .mai file
+    :param path: the path to the tps file.
+    :param nb_cell: the number of cell extracted from the .mai file
     :return: v, h, timestep (all in list of np.array)
     """
     filename_path = os.path.join(path, tpsfile)
@@ -846,14 +861,16 @@ def load_tps_2d(tpsfile, path, nb_cell):
 
 def get_triangular_grid(ikle, coord_c, xy, h, v):
     """
-    In Rubar it is possible to have non-triangular cells. You can have a grid composed a mixed of pentagonal, 4-sided
-    and triangluar cells. This function transform the grid to a triangular grid
+    In Rubar it is possible to have non-triangular cells. It is possible to have a grid composed of a mix of pentagonal,
+     4-sided and triangualr cells. This function transform the "mixed" grid to a triangular grid. For this, it uses the
+     centroid of each cell with more than three side and it create a triangle by side (linked with the center of the cell)
+
     :param ikle: the connectivity table
     :param coord_c: the coordinate of the centroid of the cell
-    :param xy the points of the grid
-    :param h data on water height
-    :param v data on velocity
-    :return: the updated ikle, point_c and xy
+    :param xy: the points of the grid
+    :param h: data on water height
+    :param v: data on velocity
+    :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)
     """
 
     # this is important for speed. np.array are slow to append value
@@ -912,15 +929,15 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
 
 def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
     """
-    the function to plot the rubar 2d data
+    This functions plots the rubar 2d data
+
     :param xy: coordinates of the points
     :param coord_c: the center of the point
     :param ikle: connectivity table
     :param v: speed
     :param h: height
-    :param path_im where to save the figure
-    ;param time_step which will be plotted
-    :return:
+    :param path_im: the path where to save the figure
+    :param time_step: The time step which will be plotted
     """
     coord_p = np.array(xy)
     coord_c = np.array(coord_c)
@@ -981,6 +998,9 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
 
 
 def main():
+    """
+    Used to test this module
+    """
 
     # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\Gregoire\2D\120_K35_K25_K20\120_K35_K25_K20'
     # geofile2d='BS15a6.mai'
