@@ -23,6 +23,12 @@
 \contentsline {section}{\numberline {4.10}Estimhab -source}{54}{section.4.10}
 \contentsline {section}{\numberline {4.11}Stathab - source}{55}{section.4.11}
 \contentsline {section}{\numberline {4.12}Substrate}{58}{section.4.12}
-\contentsline {section}{\numberline {4.13}Translation of HABBY}{61}{section.4.13}
-\contentsline {chapter}{\numberline {5}Indices and tables}{63}{chapter.5}
-\contentsline {chapter}{Python Module Index}{65}{section*.280}
+\contentsline {chapter}{\numberline {5}Various notes}{63}{chapter.5}
+\contentsline {section}{\numberline {5.1}Translation of HABBY}{63}{section.5.1}
+\contentsline {section}{\numberline {5.2}Create a .exe}{64}{section.5.2}
+\contentsline {section}{\numberline {5.3}Logging}{64}{section.5.3}
+\contentsline {section}{\numberline {5.4}Git - code management}{66}{section.5.4}
+\contentsline {section}{\numberline {5.5}Write the documentation}{67}{section.5.5}
+\contentsline {section}{\numberline {5.6}License of used python modules}{67}{section.5.6}
+\contentsline {chapter}{\numberline {6}Indices and tables}{69}{chapter.6}
+\contentsline {chapter}{Python Module Index}{71}{section*.280}
