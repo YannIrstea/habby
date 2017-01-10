@@ -1261,12 +1261,17 @@ class Rubar2D(SubHydroW):
         path_im = self.find_path_im()
         if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
+
         # load rubar 2d data
+        a = time.time()
         sys.stdout = self.mystdout = StringIO()
-        [self.inter_vel_all_t, self.inter_h_all_t, self.point_all_t, self.point_c_all_t, self.ikle_all_t] \
+        [vel_cell, height_cell, self.point_all_t, self.point_c_all_t, self.ikle_all_t] \
             = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1],
                                  path_im, self.save_fig)
         sys.stdout = sys.__stdout__
+        b = time.time()
+        print('Time to load data:')
+        print(b-a)
 
         # log info
         self.send_log.emit(self.tr('# Load: Rubar 2D data.'))
@@ -1275,7 +1280,7 @@ class Rubar2D(SubHydroW):
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = rubar.load_rubar2d(file1,"
+        self.send_log.emit("py    [v_c, h_c, coord_p, coord_c, ikle] = rubar.load_rubar2d(file1,"
                            " file2, path1, path2, '.', False)\n")
         self.send_log.emit("restart LOAD_RUBAR_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
@@ -1289,6 +1294,25 @@ class Rubar2D(SubHydroW):
         self.point_all_t = [[self.point_all_t]]
         self.point_c_all_t = [[self.point_c_all_t]]
         self.ikle_all_t = [[self.ikle_all_t]]
+
+        # pass from cell data to node data
+        a = time.time()
+        sys.stdout = self.mystdout = StringIO()
+        warn1 = True
+        for t in range(0, len(vel_cell)):
+            [vel_node, height_node] = manage_grid_8.pass_grid_cell_to_node_lin(self.point_all_t[0],
+                                                            self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+            warn1 = False
+            self.inter_h_all_t.append(height_node)
+            self.inter_vel_all_t.append(vel_node)
+        sys.stdout = sys.__stdout__
+        b = time.time()
+        print('Time to interpolate')
+        print(b-a)
+        self.send_log.emit(self.tr('# Pass from cell data to node data by linear interpolation'))
+        self.send_err_log()
+        self.send_log.emit("py    [v,h] = manage_grid_8.pass_grid_cell_to_node_lin(coord_p, coord_c, v_c, h_c) ")
+        self.send_log.emit("restart  INTERPOLATE_CELL_TO_NODE")
 
         self.save_hdf5()
 
@@ -1921,17 +1945,18 @@ class HEC_RAS2D(SubHydroW):
         self.save_xml(0)
         path_im = self.find_path_im()
         # load the hec_ras data
+        a = time.time()
         sys.stdout = self.mystdout = StringIO()
-        [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(self.namefile[0], self.pathfile[0])
+        [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(self.namefile[0], self.pathfile[0])
         sys.stdout = sys.__stdout__
+        b = time.time()
+        print('Time to load data:')
+        print(b-a)
 
         # TEMPORARY correction because we have only one grid for all time step
         self.point_all_t = [coord_p]
         self.point_c_all_t = [coord_c]
         self.ikle_all_t = [ikle]   # carefil ikle not corrected for non-triangular cells
-        self.inter_h_all_t = v
-        self.inter_vel_all_t = h
-
         # log info
         self.send_log.emit(self.tr('# Load: HEC-RAS 2D.'))
         self.send_err_log()
@@ -1941,17 +1966,47 @@ class HEC_RAS2D(SubHydroW):
         self.send_log.emit("restart LOAD_HECRAS_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
 
-        if isinstance(v[0], int):
-            if v == [-99]:
+        if isinstance(vel_cell[0], int):
+            if vel_cell == [-99]:
                 self.send_log.emit("Error: HEC-RAS2D data could not be loaded.")
                 return
+        sys.stdout = self.mystdout = StringIO()
+        warn1 = True
+        a = time.time()
+        for t in range(0, len(vel_cell)): #l
+            [v_node, h_node] = manage_grid_8.pass_grid_cell_to_node_lin(
+                self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+            warn1 = False
+            self.inter_h_all_t.append(h_node)
+            self.inter_vel_all_t.append(v_node)
+        sys.stdout = sys.__stdout__
+        b = time.time()
+        self.send_log.emit(self.tr('# Pass from cell data to node data by linear interpolation'))
+        self.send_err_log()
+        self.send_log.emit("py    [v,h] = manage_grid_8.pass_grid_cell_to_node_lin(coord_p, coord_c, v_c, h_c) ")
+        self.send_log.emit("restart  INTERPOLATE_CELL_TO_NODE")
+
+        print('Time to interpolate data:')
+        print(b - a)
 
         # save
+        a = time.time()
         self.save_hdf5()
+        b = time.time()
+        print('time to save data')
+        print(b-a)
 
         if self.cb.isChecked() and path_im != 'no_path':
-            hec_ras2D.figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [-1], [0])
+            # plot output
+            a = time.time()
+            # hec_ras2D.figure_hec_ras2d(vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, path_im, [-1], [0])
+            manage_grid_8.plot_grid_simple(self.point_all_t[0], self.ikle_all_t[0], self.inter_vel_all_t[-1],
+                                           self.inter_h_all_t[-1], path_im)
+            b = time.time()
+            print('time to do figures')
+            print(b-a)
             self.show_fig.emit()
+
 
 
 class TELEMAC(SubHydroW):
@@ -2317,7 +2372,7 @@ class SubstrateW(SubHydroW):
             for k, v in adict.items():
                 ikleg.create_dataset(k, data=v)
         coordpg.create_dataset(h5name, [len(self.coord_p), 2], data=self.coord_p)
-        
+
         # CAREFUL: Data sub is not save yet in the substrate hdf5
         # because we do not know yet the form of the substrate data
         datasubg = file.create_group('data_sub')

@@ -861,13 +861,15 @@ def load_tps_2d(tpsfile, path, nb_cell):
 
 def get_triangular_grid(ikle, coord_c, xy, h, v):
     """
-    In Rubar it is possible to have non-triangular cells. It is possible to have a grid composed of a mix of pentagonal,
-     4-sided and triangualr cells. This function transform the "mixed" grid to a triangular grid. For this, it uses the
-     centroid of each cell with more than three side and it create a triangle by side (linked with the center of the cell)
+    In Rubar, it is possible to have non-triangular cells. It is possible to have a grid composed of a mix
+    of pentagonal, 4-sided and triangualr cells. This function transform the "mixed" grid to a triangular grid. For this,
+    it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
+    center of the cell). A similar function exists in hec-ras2D.py, but, as there is only one reach in rubar
+    and because ikle is different in hec-ras, it was hard to marge both functions together.
 
-    :param ikle: the connectivity table
-    :param coord_c: the coordinate of the centroid of the cell
-    :param xy: the points of the grid
+    :param ikle: the connectivity table (list)
+    :param coord_c: the coordinate of the centroid of the cell (list)
+    :param xy: the points of the grid (np.array)
     :param h: data on water height
     :param v: data on velocity
     :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)
@@ -881,6 +883,7 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
     for t in range(0, nbtime):
         h2.append(list(h[t]))
         v2.append(list(v[t]))
+
 
     # now create the triangular grid
     likle = len(ikle)
@@ -902,7 +905,7 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
             p1 = xy[len(xy)-1]
             coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1)/3
             # next triangular cell
-            for s in range(1, len(ikle[c])-1):
+            for s in range(1, len(ikle_c)-1):
                 ikle.append([ikle_c[s], ikle_c[s+1], len(xy) - 1])
                 coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s+1]] + p1) / 3)
                 for t in range(0, nbtime):
@@ -986,8 +989,8 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
         #plt.close()
 
         # plot velocity
-        vel_c0 = v[t][0]
-        hec_ras2D.scatter_plot(coord_c, h_t, 'Vel. [m/sec]', 'gist_ncar', 8, t)
+        vel_c0 = np.array(v[t][0])
+        hec_ras2D.scatter_plot(coord_c, vel_c0, 'Vel. [m/sec]', 'gist_ncar', 8, t)
         plt.savefig(
                 os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(

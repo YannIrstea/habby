@@ -1342,6 +1342,44 @@ def interpo_nearest(point_all, coord_pro, vh_pro_t):
     return inter_vel_all, inter_height_all
 
 
+def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True):
+    """
+    HABBY uses nodal information. Some hydraulic models have only ouput on the cells. This function pass
+    from cells information to nodal information. The interpolation is linear and the cell centroid is used as the
+    point where the cell information is carried. it can be used for one time step only.
+
+    :param point_all: the coordinates of grid points
+    :param coord_c: the coordintesof the centroid of the cells
+    :param vel_in: the velocity data by cell
+    :param height_in: the height data by cell
+    :param warn1: if True , show the warning (usually warn1 is True for t=0, False afterwards)
+    :return: velocity and height data by node
+    """
+
+    vel_node = []
+    height_node = []
+
+    for r in range(0, len(point_all)):  # reaches
+        # velocity
+        inter_vel = scipy.interpolate.griddata(coord_c[r], vel_in[r], point_all[r], method='linear')
+        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_vel[np.isnan(inter_vel)] = 0
+        inter_vel[inter_vel < 0] = 0
+        vel_node.append(inter_vel)
+
+        # height
+        inter_height = scipy.interpolate.griddata(coord_c[r], height_in[r], point_all[r], method='linear')
+        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        inter_height[np.isnan(inter_height)] = 0
+        inter_height[inter_height < 0] = 0
+        height_node.append(inter_height)
+
+    if warn1:
+        print('Warning: The outputs data from the model were passed from cells to node by linear interpolation.\n')
+
+    return vel_node, height_node
+
+
 def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     """
     Find n profile between two profiles which are not straight. This functions is useful to create the grid from 1D model
@@ -1626,9 +1664,103 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     return ikle_sub, coord_sub
 
 
+def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[], path_im = []):
+    """
+    This is the function to plot grid output for one time step. The data is one the node. A more complicated function
+    exists to plot the grid and additional information (manage-grid_8.plot_grid()) in case there are needed to debug.
+    The present function only plot the grid and output without more information.
+
+    :param point_all_reach: the coordinate of the point. This is given by reaches.
+    :param ikle_all:  the connectivity table. This is given by reaches.
+    :param inter_vel_all: the velcoity data. This is given by reaches.
+    :param inter_h_all: the height data. This is given by reaches.
+    :param path_im: the path where the figure should be saved
+    """
+
+    # plot only the grid
+    plt.figure()
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    for r in range(0, len(ikle_all)):
+        # get data for this reach
+        ikle = ikle_all[r]
+        coord_p = point_all_reach[r]
+
+        # prepare the grid
+        if ikle is not None:  # case empty grid
+            xlist = []
+            ylist = []
+            for i in range(0, len(ikle) - 1):
+                pi = 0
+                ikle_i = ikle[i]
+                while pi < len(ikle_i) - 1:  # we have all sort of xells, max eight sides
+                    # The conditions should be tested in this order to avoid to go out of the array
+                    p = ikle_i[pi]  # we start at 0 in python, careful about -1 or not
+                    p2 = ikle_i[pi + 1]
+                    xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+                    xlist.append(None)
+                    ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+                    ylist.append(None)
+                    pi += 1
+
+                p = ikle_i[pi]
+                p2 = ikle_i[0]
+                xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+                xlist.append(None)
+                ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+                ylist.append(None)
+
+            plt.plot(xlist, ylist, '-b', linewidth=0.1)
+    plt.title('Computational Grid')
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+
+    # plot the interpolated velocity
+    if len(inter_vel_all) > 0:  # 0
+        cm = plt.cm.get_cmap('coolwarm')
+        plt.figure()
+        for r in range(0, len(inter_vel_all)):
+            point_here = np.array(point_all_reach[r])
+            inter_vel = inter_vel_all[r]
+            if len(point_here[:, 0]) == len(inter_vel):
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel
+                                     , min=0, max=np.nanmax(inter_vel), cmap=cm)
+                if r == len(inter_vel_all) - 1:
+                    # plt.clim(0, np.nanmax(inter_vel))
+                    cbar = plt.colorbar(sc)
+                    cbar.ax.set_ylabel('Velocity [m/sec]')
+            else:
+                print('Warning: One reach could not be drawn. \n')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title('Interpolated velocity')
+
+    # plot the interpolated height
+    if len(inter_h_all) > 0:  # 0
+        cm = plt.cm.get_cmap('jet')
+        plt.figure()
+        for r in range(0, len(inter_h_all)):
+            point_here = np.array(point_all_reach[r])
+            inter_h = inter_h_all[r]
+            if len(point_here) == len(inter_h):
+                inter_h[inter_h < 0] = 0
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h
+                                     , min=0, max=np.nanmax(inter_h), cmap=cm)
+                if r == len(inter_h_all) - 1:
+                    cbar = plt.colorbar(sc)
+                    cbar.ax.set_ylabel('Water height [m]')
+            else:
+                print('Warning: One reach could not be drawn. \n')
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        plt.title('Interpolated water height')
+
+
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[], inter_h_all=[], path_im = [], coord_pro2 = []):
     """
-    This is a function to plot a grid, it is very similar to the one from hec-ras2D.
+    This is a function to plot a grid and the output. It is mosty used to debug the grid creation. Contrarily to the more
+    simple function plot_grid_simple, it is posible to plot the position of the holes (which indicates the dry area),
+    the limits of the reaches used by triangle, the overlap between two reaches, and so on.
 
     :param point_all_reach: the grid point by reach
     :param ikle_all: the connectivity table by reach
@@ -1640,7 +1772,6 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     :param inter_h_all: the interpolated height
     :param path_im: the path where to save the image
     """
-    #plt.close()
 
     # plot only the grid
     plt.figure()
@@ -1741,8 +1872,8 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
             inter_h = inter_h_all[r]
             if len(point_here) == len(inter_h):
                 inter_h[inter_h < 0] = 0
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h
-                                     , min=0, max=np.nanmax(inter_h), cmap=cm)
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r],
+                                     inter_h, min=0, max=np.nanmax(inter_h), cmap=cm)
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
                     cbar.ax.set_ylabel('Water height [m]')

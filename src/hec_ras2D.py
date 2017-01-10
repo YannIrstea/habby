@@ -27,8 +27,7 @@ def load_hec_ras2d(filename, path):
     as an hdf5 input for HABBY. Indeed, even if they are both in hdf5, the formats of the hdf5 files are different
     (and would miss some important info for HABBY).  So we still need to load the HEC-RAS data in HABBY even if in 2D.
 
-    This function should be modified because currently it gets the data by cells. However, we should get the
-    data by node. So this function should be changed.
+    This function call the function get_trianglar grid which is in rubar.py.
 
     **Walk-through**
 
@@ -37,17 +36,17 @@ def load_hec_ras2d(filename, path):
 
     Then we can read different part of the hdf5 file when we know the address of it (this is a bit like a file system).
     In hdf5 file of Hec-RAS, this first thing is to get the names of the flow area in “Geometry/2D Flow Area”. In
-    general, this is the name of each reach, but it could be lake or pond also.
+    general, this is the name of each reach, but it could be lake or pond also. In an hdf5 file, to see the name of
+    the member in a group, use: list("group".keys())
 
     Then, we go to “Geometry/2D Flow Area/<name>/FacePoint Coordinates” to get the points forming the grid.
     We can also get the connectivity table (or ikle) to the path “Geometry/2D Flow Area/<name>/Cells Face Point Indexes”
-    We also get the elevations of the cells. Currently, this is just the minimum elevation of the cells, but it should
-    be modified to get the elevation by node (in the vocabulary of HEC-RAS by “FacePoints”). We then get the water depth
-    by cell. Somethings should be done to get it by node. I think that we did have the elevation by node somewhere in
-    the hdf5 file. For there, water height can be found.
-    The velocity is given by face of the cells. It should be averaged differently to get it on the point and
-    not on the side.
+    We also get the elevations of the cells. However, this is just the minimum elevation of the cells, so it is
+    to be used only for a quick estimation. We then get the water depth by cell.
+    The velocity is given by face of the cells and is averaged to get it on the middle of the cells.
 
+    To get Hec-Ras data by nodes, it is necessary to intepolate the data. There is a function to do this in
+    manage_grid_8.
     """
     filename_path = os.path.join(path, filename)
 
@@ -64,7 +63,9 @@ def load_hec_ras2d(filename, path):
     elev_all = []
     ikle_all = []
     vel_c_all = []
-    water_depth_all = []
+    water_depth_c_all = []
+    vel_t_all = []
+    water_depth_t_all = []
 
     # open file
     if os.path.isfile(filename_path):
@@ -90,13 +91,15 @@ def load_hec_ras2d(filename, path):
             name_area_i = str(name_area[i].strip())
             path_h5_geo = "Geometry/2D Flow Areas" + '/' + name_area_i[2:-1]
             geometry = file2D[path_h5_geo]
+            # print(list(geometry.keys()))
+            # basic geometry
             coord_p = np.array(geometry["FacePoints Coordinate"])
             coord_c = np.array(geometry["Cells Center Coordinate"])
-            elev = np.array(geometry["Cells Minimum Elevation"])  # might introduce a bias NEED MODIFICATIONS
             ikle = np.array(geometry["Cells FacePoint Indexes"])
+            elev = np.array(geometry["Cells Minimum Elevation"])
+            elev_all.append(elev)
             coord_p_all.append(coord_p)
             coord_c_all.append(coord_c)
-            elev_all.append(elev)
             ikle_all.append(ikle)
     except KeyError:
         print('Error: Geometry data could not be extracted. Check format of the hdf file.')
@@ -109,9 +112,10 @@ def load_hec_ras2d(filename, path):
                       + '/' + name_area_i[2:-1]
         result = file2D[path_h5_geo]
         water_depth = np.array(result['Depth'])
-        water_depth_all.append(water_depth)
+        water_depth_c_all.append(water_depth)
 
     # velocity
+    nbtstep = 0
     for i in range(0, len(name_area)):
         # velocity is given on the side of the cells.
         # It is to be averaged to find the norm of speed in the middle of the cells.
@@ -125,8 +129,8 @@ def load_hec_ras2d(filename, path):
         new_vel = np.hstack((face_unit_vec, velocity.T))  # for optimization (looking for face is slow)
         lim_b = 0
         nbtstep = velocity.shape[0]
-        vel_c = np.zeros((len(coord_c), nbtstep))
-        for c in range(0, len(coord_c)):
+        vel_c = np.zeros((len(coord_c_all[i]), nbtstep))
+        for c in range(0, len(coord_c_all[i])):
             # find face
             nb_face = where_is_cells_face1[c]
             lim_a = lim_b
@@ -139,13 +143,115 @@ def load_hec_ras2d(filename, path):
             vel_c[c, :] = (1.0/nb_face) * np.sqrt(add_vec_x**2 + add_vec_y**2)
         vel_c_all.append(vel_c)
 
-    return vel_c_all, water_depth_all, elev_all, coord_p_all, coord_c_all, ikle_all
+    # get data time step by time step
+    for t in range(0, nbtstep):
+        water_depth_t = []
+        vel_t = []
+        for i in range(0, len(name_area)):
+            water_depth_t.append(water_depth_c_all[i][t])
+            vel_t.append(vel_c_all[i][:, t])
+        water_depth_t_all.append(water_depth_t)
+        vel_t_all.append(vel_t)
+
+    # get a triangular grid as hec-ras output are not triangular
+    [ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all] = get_triangular_grid_hecras(
+        ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
+
+    return vel_t_all, water_depth_t_all, elev_all, coord_p_all, coord_c_all, ikle_all
+
+
+def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
+    """
+    In Hec-ras, it is possible to have non-triangular cells, often rectangular cells This function transform the
+    "mixed" grid to a triangular grid. For this,
+    it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
+    center of the cell). A similar function exists in rubar.py, but, as there are only one reach in rubar
+    and because ikle is different in hec-ras, it was hard to marge both functions together.
+
+    :param ikle_all: the connectivity table by reach (list of np.array)
+    :param coord_c_all: the coordinate of the centroid of the cell by reach
+    :param point_all: the points of the grid
+    :param h: data on water height by reach by time step
+    :param v: data on velocity by reach by time step
+    :return: the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)
+    """
+
+    nb_reach = len(ikle_all)
+    nbtime = len(v)
+    v_all = []
+    h_all = []
+
+    # initilization
+    for t in range(0, nbtime):
+        empty = [None] * nb_reach
+        v_all.append(empty)
+        h_all.append(empty)
+
+    # create the new grid for each reach
+    for r in range(0, nb_reach):
+        coord_c = list(coord_c_all[r])
+        ikle = list(ikle_all[r])
+        xy = list(point_all[r])
+        h2 = []
+        v2 = []
+
+        nbtime = len(v)
+        for t in range(0, nbtime):
+            h2.append(list(h[t][r]))
+            v2.append(list(v[t][r]))
+
+        # now create the triangular grid
+        likle = len(ikle)
+        to_be_delete = []
+        for c in range(0, likle):
+            ikle[c] = [item for item in ikle[c] if item >= 0]  # get rid of the minus 1 in ikle
+            ikle_c = ikle[c]
+
+            # in hec-ras, the permieter cells are in the ikle, so we have cells with only two point
+            if len(ikle_c) < 3:
+                to_be_delete.append(c)
+            # we neglect it here
+            if len(ikle_c) > 3:
+                # the new cell is compose of triangle where one point is the centroid and two points are side of
+                # the polygon which composed the cells before. The first new triangular cell take the place of the
+                # old one (to avoid changing the order of ikle), the other are added at the end
+                # no change to v and h for the first triangular data, change afterwards
+                xy.append(coord_c[c])
+                # first triangular cell
+                ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
+                p1 = xy[len(xy)-1]
+                coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1)/3
+                # next triangular cell
+                for s in range(1, len(ikle_c)-1):
+                    ikle.append([ikle_c[s], ikle_c[s+1], len(xy) - 1])
+                    coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s+1]] + p1) / 3)
+                    for t in range(0, nbtime):
+                        v2[t].append(v[t][r][c])
+                        h2[t].append(h[t][r][c])
+                # last triangular cells
+                ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
+                coord_c.append((xy[ikle_c[-1]] + xy[ikle_c[0]] + p1) / 3)
+                for t in range(0, nbtime):
+                    v2[t].append(v[t][r][c])
+                    h2[t].append(h[t][r][c])
+
+        # no empty cell
+        for i in sorted(to_be_delete, reverse=True):
+            del ikle[i]
+        # add grid by reach
+        ikle_all[r] = np.array(ikle)
+        point_all[r] = np.array(xy)
+        coord_c_all[r] = np.array(coord_c)
+        # add data bt time step
+        for t in range(0, nbtime):
+            v_all[t][r] = np.array(v2[t])  # list of np.array
+            h_all[t][r] = np.array(h2[t])
+    return ikle_all, coord_c_all, point_all, v_all, h_all
 
 
 def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im,  time_step=[0], flow_area=[0], max_point=-99):
     """
     This is a function to plot figure of the output from hec-ras 2D.
-
 
     :param v_all: a list of np array representing the velocity at the center of the cells
     :param h_all:  a list of np array representing the water depth at the center of the cells
@@ -182,8 +288,6 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         coord_p = coord_p_all[f]
         coord_c = coord_c_all[f]
         elev = elev_all[f]
-        vel_c = v_all[f]
-        water_depth = h_all[f]
 
         # plot grid
         [xlist, ylist] = prepare_grid(ikle, coord_p)
@@ -191,6 +295,7 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         # sc2 = plt.scatter(coord_p[:, 0], coord_p[:, 1], s=0.07, color='r')
         # sc1 = plt.scatter(point_dam_levee[:, 0], point_dam_levee[:, 1], s=0.07, color='k')
         plt.plot(xlist, ylist, c='b', linewidth=0.2)
+        plt.plot(coord_c[:,0], coord_c[:,1], '*b')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Grid ')
@@ -207,36 +312,38 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         s1 = 3.1 * (d1* transf)**2 / 2  # markersize is given as an area
         s2 = s1/10
 
-        # elevation
-        fig = plt.figure()
-        cm = plt.cm.get_cmap('terrain')
-        sc = plt.scatter(coord_c[:, 0], coord_c[:, 1], c=elev, vmin=np.nanmin(elev), vmax=np.nanmax(elev), s=s1,cmap=cm, edgecolors='none')
-        cbar = plt.colorbar(sc)
-        cbar.ax.set_ylabel('Elev. [m]')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        plt.title('Elevation above sea level')
-        plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-        plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        #plt.close()
+        # # elevation
+        # fig = plt.figure()
+        # cm = plt.cm.get_cmap('terrain')
+        # sc = plt.scatter(coord_c[:, 0], coord_c[:, 1], c=elev, vmin=np.nanmin(elev), vmax=np.nanmax(elev), s=s1,cmap=cm, edgecolors='none')
+        # cbar = plt.colorbar(sc)
+        # cbar.ax.set_ylabel('Elev. [m]')
+        # plt.xlabel('x coord []')
+        # plt.ylabel('y coord []')
+        # plt.title('Elevation above sea level')
+        # plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+        # plt.savefig(os.path.join(path_im, "HEC2D_elev_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        # #plt.close()
 
         # for each chosen time step
         for t in time_step:
+            vel_c = v_all[t][f]
+            water_depth = h_all[t][f]
             # plot water depth
-            water_deptht = np.squeeze(water_depth[t, :])
-            scatter_plot(coord_c, water_deptht, 'Water Depth [m]', 'terrain', 8, t)
+            #water_deptht = np.squeeze(water_depth[t, :])
+            scatter_plot(coord_c, water_depth, 'Water Depth [m]', 'terrain', 8, t)
             plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
             plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
             #plt.close()
 
              # plot velocity
-            vel_c0 = vel_c[:, t]
-            scatter_plot(coord_c,vel_c0, 'Vel. [m3/sec]', 'gist_ncar', 8, t)
+            #vel_c0 = vel_c[:, t]
+            scatter_plot(coord_c,vel_c, 'Vel. [m3/sec]', 'gist_ncar', 8, t)
             plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
             plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
             #plt.close()
 
-    #plt.show()
+    plt.show()
 
 
 def prepare_grid(ikle, coord_p, max_point=-99):
@@ -252,27 +359,28 @@ def prepare_grid(ikle, coord_p, max_point=-99):
     :param max_point: if the grid is very big, it is possible to only plot the first points, up to max_points (int)
     :return: a list of x and y coordinates ordered.
     """
-    if max_point < 0 or max_point > len(ikle[:, 0]):
-        max_point = len(ikle[:, 0])
+    if max_point < 0 or max_point > len(ikle):
+        max_point = len(ikle)
 
     # prepare grid
     xlist = []
     ylist = []
-    col_ikle = ikle.shape[1]
     for i in range(0, max_point):
         pi = 0
-        while pi < col_ikle - 1 and ikle[i, pi + 1] > 0:  # we have all sort of xells, max eight sides
+        # get rid of the minus 1 in ikle useful to plot the initial squared grid
+        # ikle2 = [item for item in ikle[i] if item >= 0]
+        while pi < len(ikle[i]) - 1:
             # The conditions should be tested in this order to avoid to go out of the array
-            p = ikle[i, pi]  # we start at 0 in python, careful about -1 or not
-            p2 = ikle[i, pi + 1]
+            p = ikle[i][pi]  # we start at 0 in python, careful about -1 or not
+            p2 = ikle[i][pi + 1]
             xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
             xlist.append(None)
             ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
             ylist.append(None)
             pi += 1
 
-        p = ikle[i, pi]
-        p2 = ikle[i, 0]
+        p = ikle[i][pi]
+        p2 = ikle[i][0]
         xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
         xlist.append(None)
         ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
@@ -327,7 +435,7 @@ def main():
     [v, h, elev, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
     b = time.clock()
     print('Time to load data:' + str(b-a) + 'sec')
-    figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [0], [0])
+    figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [50], [0])
 
 
 if __name__ == '__main__':

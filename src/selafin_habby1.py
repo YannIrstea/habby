@@ -58,8 +58,7 @@ def load_telemac(namefilet, pathfilet):
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
     """
-     a function to plot the velocity and height which are the output from TELEMAC
-
+     a function to plot the velocity and height which are the output from TELEMAC.
      :param coord_p2: the coordinates of the point forming the grid
      :param h: the  water height
      :param v: the velocity
@@ -74,6 +73,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
         plt.figure()
         cm = plt.cm.get_cmap('terrain')
         sc = plt.scatter(coord_p2[:,0], coord_p2[:,1], c=h[i], vmin=np.nanmin(h[i]), vmax=np.nanmax(h[i]), s=6, cmap=cm, edgecolors='none')
+        #sc = plt.tricontourf(coord_p2[:,0], coord_p2[:,1], ikle_all[r], h[i], min=0, max=np.nanmax(h[i]), cmap=cm)
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Telemac data - water height at time step '+str(i))
