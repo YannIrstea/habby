@@ -223,6 +223,8 @@ def load_fig_option(path_prj, name_prj):
     fname = os.path.join(path_prj, name_prj + '.xml')
     if not os.path.isfile(fname) and name_prj != '':  # no project exists
         pass
+    elif name_prj == '':
+        pass
     elif not os.path.isfile(fname):  # the project is not found
         print('Error: No project file (.xml) found.\n')
     else:

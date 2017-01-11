@@ -154,6 +154,7 @@ class MainWindows(QMainWindow):
 
         # connect the signals with the different functions
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.open_project())
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # create the new menu
@@ -180,11 +181,11 @@ class MainWindows(QMainWindow):
         openprj = QAction(self.tr('Open Project'), self)
         openprj.setShortcut('Ctrl+O')
         openprj.setStatusTip(self.tr('Open an exisiting project'))
-        openprj.triggered.connect(open_project)
+        openprj.triggered.connect(self.open_project)
         newprj = QAction(self.tr('New Project'), self)
         newprj.setShortcut('Ctrl+N')
         newprj.setStatusTip(self.tr('Create a new project'))
-        newprj.triggered.connect(new_project)
+        newprj.triggered.connect(self.new_project)
         saveprj = QAction(self.tr('Save Project'), self)
         saveprj.setShortcut('Ctrl+S')
         saveprj.setStatusTip(self.tr('Save the project'))
@@ -297,6 +298,7 @@ class MainWindows(QMainWindow):
 
         Finally the log is written (see “log and HABBY in the command line).
         """
+
         # saved path
         e2here = self.central_widget.welcome_tab.e2
         if not os.path.isdir(e2here.text()):  # if the directoy do not exist
@@ -349,8 +351,9 @@ class MainWindows(QMainWindow):
             savelog_child.text = str(self.central_widget.logon)
 
             # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
-            shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj + '.log'))
-            shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'), os.path.join(self.path_prj,
+            if self.name_prj != '':
+                shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj + '.log'))
+                shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'), os.path.join(self.path_prj,
                                                                                   'restart_' + self.name_prj + '.log'))
             # more precise info
             user_child = ET.SubElement(general_element, "User_Name")
@@ -361,8 +364,9 @@ class MainWindows(QMainWindow):
             pathbio_child.text = "./biologie\\"
 
             # save new xml file
-            fname = os.path.join(self.path_prj, self.name_prj+'.xml')
-            tree.write(fname)
+            if self.name_prj != '':
+                fname = os.path.join(self.path_prj, self.name_prj+'.xml')
+                tree.write(fname)
             # create a default directory for the figures
             path_im = os.path.join(self.path_prj, 'figures_habby')
             if not os.path.exists(path_im):
@@ -393,11 +397,12 @@ class MainWindows(QMainWindow):
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
 
-        # send the new name to all widget
+        # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
         self.setCentralWidget(self.central_widget)
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.open_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # write log
@@ -412,6 +417,84 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log("restart    name_prj= " + self.name_prj)
 
         return
+
+    def open_project(self):
+        """
+        This function is used to open an existing habby project by selecting an xml project file. Called by
+        my_menu_bar()
+        """
+
+        # open an xml file
+        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
+        if not filename_path:  # cancel
+            return
+        blob, ext_xml = os.path.splitext(filename_path)
+        if ext_xml == '.xml':
+            pass
+        else:
+            self.central_widget.write_log("Error: File should be of type XML\n")
+            return
+
+        # load the xml file
+        try:
+            try:
+                docxml = ET.parse(filename_path)
+                root = docxml.getroot()
+            except IOError:
+                self.central_widget.write_log("Error: the selected xml file does not exist\n")
+                return
+        except ET.ParseError:
+            self.central_widget.write_log('Error: the XML is not well-formed.\n')
+            return
+
+        # get the project name and path. Write it in the QWiddet.
+        # the text in the Qwidget will be used to save the project
+        self.name_prj = root.find(".//Project_Name").text
+        self.path_prj = root.find(".//Path_Projet").text
+        self.username_prj = root.find(".//User_Name").text
+        self.descri_prj = root.find(".//Description").text
+        self.central_widget.welcome_tab.e1.setText(self.name_prj)
+        self.central_widget.welcome_tab.e2.setText(self.path_prj)
+        self.central_widget.welcome_tab.e4.setText(self.username_prj)
+        self.central_widget.welcome_tab.e3.setText(self.descri_prj)
+        self.central_widget.write_log('# Project opened sucessfully. \n')
+
+        # save the project
+        self.save_project()
+
+    def new_project(self):
+        """
+        This function open a new empty project
+        """
+
+        # load the xml file
+        filename_empty = r'src_GUI/empty_proj.xml'
+        with open(filename_empty, 'rt') as f:
+            data_geo = f.read()
+
+        try:
+            try:
+                docxml = ET.parse(filename_empty)
+                root = docxml.getroot()
+            except IOError:
+                self.central_widget.write_log("Error: no empty project. \n")
+                return
+        except ET.ParseError:
+            self.central_widget.write_log('Error: the XML is not well-formed.\n')
+            return
+
+        # get the project name and path. Write it in the QWiddet.
+        # the text in the Qwidget will be used to save the project
+        self.name_prj = root.find(".//Project_Name").text
+        self.path_prj = root.find(".//Path_Projet").text
+        self.central_widget.welcome_tab.e1.setText(self.name_prj)
+        self.central_widget.welcome_tab.e2.setText(self.path_prj)
+        self.central_widget.welcome_tab.e4.setText('')
+        self.central_widget.welcome_tab.e3.setText('')
+        self.central_widget.write_log('# Empty project was opened. \n')
+
+        # save the project
+        self.save_project()
 
     def save_project_estimhab(self):
         """
@@ -883,6 +966,9 @@ class CentralW(QWidget):
 
         if logon = false, do not write in log.txt
         """
+
+        if self.name_prj_c == '':
+            return
         # read xml file to find the path to the log file
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(fname):
@@ -948,6 +1034,8 @@ class CentralW(QWidget):
             if os.path.isfile(pathname_logfile):
                 with open(pathname_logfile, "a") as myfile:
                     myfile.write('\n' + text_log)
+            elif self.name_prj_c == '':
+                return
             else:
                 t = self.l2.text()
                 self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
@@ -975,13 +1063,17 @@ class WelcomeW(QWidget):
 
     save_signal = pyqtSignal()
     """
-    A PyQt signal used to save the figure
+        A PyQt signal used to save the project
     """
-
+    new_proj_signal = pyqtSignal()
+    """
+        A PyQt signal used to open a new project
+    """
     send_log = pyqtSignal(str, name='send_log')
     """
        A PyQt signal used to write the log
     """
+
 
 
     def __init__(self):
@@ -1008,7 +1100,7 @@ class WelcomeW(QWidget):
 
         # save and load button
         buttono = QPushButton(self.tr('Open Project'), self)
-        buttono.clicked.connect(open_project)
+        buttono.clicked.connect(self.new_proj_signal.emit)
         buttons = QPushButton(self.tr('Save Project'), self)
         buttons.clicked.connect(self.save_signal.emit)
         spacer = QSpacerItem(50, 50)
@@ -1257,9 +1349,4 @@ class ShowImageW(QWidget):
 #         self.fig = plt.gcf()
 
 
-def open_project():
-    print('I wish to open a project')
-
-def new_project():
-    print('I wish to create a new project')
 
