@@ -18,10 +18,10 @@ def main():
     but you need to change manning value also
     """
     # option pour le test
-    which_mod = [False, False, True, True]  # change to False to not test a model type
+    which_mod = [True, True, True, True]  # change to False to not test a model type
     max_timestep = 10
     path_im = r"D:\Diane_work\version\file_test\fig_test"
-    interp_method = 2  # can be 1 (by block),2 (interpolation linear)
+    interp_method = 1  # can be 1 (by block),2 (interpolation linear)
     colorama.init()  # for fun color on the cmd
     pro_add = 5
 

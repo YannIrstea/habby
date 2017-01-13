@@ -9,7 +9,7 @@ from src import Hec_ras06
 from src import selafin_habby1
 import scipy.interpolate
 import copy
-#np.set_printoptions(threshold=np.inf)
+np.set_printoptions(threshold=np.inf)
 import os
 import bisect
 
@@ -70,8 +70,9 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         # get all the point for the grid
     for p in range(1, len(coord_pro)):  # len(coord_pro) nb_pro_reach[1]
         # because of the if afterwards, p = 0 is accounted for.
-        coord_pro_p0 = coord_pro[p - 1]
-        coord_pro_p1 = coord_pro[p]
+        coord_pro_p0 = np.array(coord_pro[p - 1])
+        coord_pro_p1 = np.array(coord_pro[p])
+
         # add known point
         # manage segment and holes to give the constraint to Delauney
         pro_orr = np.array([coord_pro_p0[0], coord_pro_p0[1]]).transpose()
@@ -118,7 +119,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                         #point_all.extend(point_all_i)
                         ind_p.extend([len(point_all)])
                 else:
-                    [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, extra_pro)
+                    [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, extra_pro, True)
                     for pr in range(0, extra_pro):
                         point_all_i = np.array([point_mid_x[pr], point_mid_y[pr]]).T
                         point_all = np.concatenate((point_all, point_all_i), axis=0)
@@ -132,6 +133,14 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
             point_all = np.concatenate((point_all, pro_orr), axis=0)
             ind_e.extend([len(point_all) - 1])  # end
             ind_p.extend([len(point_all)])
+
+    # show the created profile, used to debug
+    # plt.figure()
+    # plt.plot(point_all[:, 0], point_all[:, 1], '.m')
+    # for p in range(0, len(coord_pro)):
+    #     plt.plot(coord_pro[p][0], coord_pro[p][1], '.b')
+    # plt.axis('equal')
+    # plt.show()
 
     # manage islands
     hole_all_i = []
@@ -194,7 +203,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                     #     if dist_here < 0.001:
                     #         isl_del.append(isl)
                     #         isl_del.append(isl + 1)
-                    # ind_lim = np.delete(ind_lim, isl_del)
+                    ind_lim = np.delete(ind_lim, isl_del)
                     x = coord_pro[p][0]
                     y = coord_pro[p][1]
                     # find the end and start indices of the extra-profile before and after
@@ -225,36 +234,26 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                         # add the six segments (start and end of each segment), so 12 points
                         beg_len = len(seg_island)
                         if ind2 != ind1:
-                            seg_island.append([ind1, r, p_here+bef, isl2])
-                            seg_island.append([ind2, r,p_here+bef, isl2])
+                            for mi in range(min(ind1, ind2), max(ind1,ind2)):
+                                seg_island.append([mi, r, p_here+bef, isl2])
+                                seg_island.append([mi+1, r,p_here+bef, isl2])
                             seg_island.append([ind2, r, -99, isl2])
                             seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
                         else:
-                            #if ind1 < len(point_bef)-1+ind_bef_s:
-                             #  seg_island.append([ind1, r, p_here+bef, isl2])
-                              # seg_island.append([ind2+1, r, p_here+bef, isl2])
-                              # seg_island.append([ind2+1, r, -99, isl2])
-                              # seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
-                            #else:
-                               seg_island.append([ind2, r, -99, isl2])
-                               seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
+                              seg_island.append([ind2, r, -99, isl2])
+                              seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
                         seg_island.append([ind1, r, -99, isl2])
                         seg_island.append([ind_p[p_here] + ind_lim[i], r, -99, isl2])
 
                         seg_island.append([ind_p[p_here] + ind_lim[i], r, -99, isl2])
                         seg_island.append([ind3, r, -99, isl2])
                         if ind3 != ind4:
-                            seg_island.append([ind3, r, p_here+af, isl2])
-                            seg_island.append([ind4, r, p_here+af, isl2])
+                            for mi in range(min(ind3, ind4), max(ind3,ind4)):
+                                seg_island.append([mi, r, p_here+af, isl2])
+                                seg_island.append([mi+1, r, p_here+af, isl2])
                             seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
                             seg_island.append([ind4, r, -99, isl2])
                         else:
-                           # if ind3 < len(point_af) - 1 + ind_af_s:
-                           #    seg_island.append([ind3, r, p_here + af, isl2])
-                           #   seg_island.append([ind4+1, r, p_here + af, isl2])
-                            #    seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
-                            #    seg_island.append([ind4+1, r, -99, isl2])
-                            #else:
                                 seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
                                 seg_island.append([ind4, r, -99, isl2])
                         isl2 += 1
@@ -291,6 +290,50 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                 r += 1
         seg_island = np.array(seg_island)
 
+        # correct for crossing segment (not used, just if check needed)
+        check_cross = False
+        if check_cross:
+            if len(seg_island) > 1:
+                to_be_delete = []
+                to_be_delete_hole = []
+                for s1 in range(0, len(seg_island), 2):
+                    seg11 = point_all[seg_island[s1, 0]]
+                    seg12 = point_all[seg_island[s1 + 1, 0]]
+                    for s2 in range(s1+2, len(seg_island), 2):
+                        seg21 = point_all[seg_island[s2, 0]]
+                        seg22 = point_all[seg_island[s2 + 1, 0]]
+                        if np.sum(seg11 - seg21) != 0 and np.sum(seg11 - seg22) !=0 and np.sum(seg12 - seg21) != 0 \
+                                and np.sum(seg12 - seg22) != 0:
+                            [inter, pc] = intersection_seg(seg11, seg12, seg21, seg22, False)
+                            if inter:
+                                if seg_island[s2, 2] != seg_island[s1, 2]:  # pro
+                                    if seg_island[s2, 3] != seg_island[s1, 3]:  # island
+                                        # plt.figure()
+                                        # plt.plot(seg11[0], seg11[1], '.b')
+                                        # plt.plot(seg12[0], seg12[1], '.r')
+                                        # plt.plot(seg21[0], seg21[1], '.m')
+                                        # plt.plot(seg22[0], seg22[1], '.m')
+                                        # plt.show()
+                                        seg4 = [seg11, seg12, seg21, seg22]
+                                        ind4 = [s1, s1+1, s2, s2+1]
+                                        close = False
+                                        for da in range(0, 4):
+                                            dist = np.sqrt((seg4[da][0] - pc[0][0])**2 + (seg4[da][1] - pc[0][1])**2)
+                                            if dist < 10**-1:
+                                                print('blob')
+                                                point_all[seg_island[ind4[da], 0]] = pc[0]
+                                                close = True
+                                        if not close:
+                                            isl_here = seg_island[s1, 3]
+                                            ind_all = np.where(seg_island[:, 3] == isl_here)[0]
+                                            to_be_delete.extend(list(ind_all))
+                                            to_be_delete_hole.append(isl_here)
+                                            to_be_delete_hole.append(isl_here)
+            to_be_delete = list(set(to_be_delete))
+            print(to_be_delete)
+            seg_island = np.delete(seg_island, to_be_delete, axis=0)
+            hole_all_i = list(np.delete(hole_all_i, to_be_delete_hole, axis=0))
+
         # correct for colinear segments as triangle has difficulties with them
         colinear = True
         if len(seg_island) > 1 and colinear:
@@ -309,39 +352,6 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                                                                       point_all[:, 1]) < point_all[0, 0] * 1e-7)[0]
                 point_all[ind, :] = point_all[ind, :] * 0.99
 
-        # correct for crossing segment (not used, just if check needed)
-        check_cross = False
-        hole_isl = np.array(hole_isl)
-        if check_cross:
-            new_seg_island = []
-            if len(seg_island) > 1:
-                for i in range(0, isl2):
-                    inter = False
-                    count = 0
-                    ind_all = np.where(seg_island[:, 3] == i)[0]
-                    for ind in ind_all[::2]:
-                        for s2 in range(0, len(seg_island[:,0]), 2):
-                            if np.all(s2 != ind_all) and np.all(s2+1 != ind_all) and np.all(s2 != ind_all + 1)  and np.all(s2+1 != ind_all + 1):
-                                seg11 = point_all[seg_island[ind, 0]]
-                                seg12 = point_all[seg_island[ind+1, 0]]
-                                seg21 = point_all[seg_island[s2, 0]]
-                                seg22 = point_all[seg_island[s2+1, 0]]
-                                [inter_here, pc] = intersection_seg(seg11, seg12, seg21, seg22, False)
-                                if inter_here:
-                                    inter = True
-                            if inter:
-                                break
-                    if not inter:
-                        print(ind_all)
-                        for indhere in ind_all:
-                            new_seg_island.append(seg_island[indhere, :])
-                    if inter:
-                        print('Warning: An island was erased because it crossed with another island')
-                        #ind2 = np.where(hole_isl == i)[0]
-                        #if ind2:
-                            #del hole_all_i[ind2]
-                seg_island = np.array(new_seg_island)
-
     # check if they here identical points and send a warning if yes
     # using an idea from http://stackoverflow.com/questions/31097247/remove-duplicate-rows-of-a-numpy-array
     # should be reasonlaby quick
@@ -352,8 +362,6 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     if len(test_unique) != len(point_all):
         print('Warning: There is duplicate points. The triangulation might fail.'
               ' Correction will be slow and unprecise.\n')
-        print(len(test_unique))
-        print(len(point_all))
         # this is slow , but it might solve problems
         j = 0
         unique_find = []
@@ -362,12 +370,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
             if p not in unique_find:
                 unique_find.append(p)
             else:
-                point_all[j] = [p[0]+0.000001*j, p[1]+0.000001*j]
-                print('duplicate found')
-                print(j)
-                print(p)
+                point_all[j] = [p[0]+0.01*j, p[1]+0.01*j]
             j += 1
-
 
     # put data in order and find the limits
     seg_to_be_added2 = []
@@ -383,8 +387,12 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
             lim_by_reach_r.append([ind_s[i], ind_s[i+1]])
             lim_by_reach_r.append([ind_e[i], ind_e[i+1]])
         # start and end of each reach
-        lim_by_reach_r.append([ind_s[ind_r], ind_e[ind_r]])
-        lim_by_reach_r.append([ind_s[ind_r2-1], ind_e[ind_r2-1]])
+        for sta in range(ind_s[ind_r], ind_e[ind_r]):
+            lim_by_reach_r.append([sta, sta+1])
+        for endr in range(ind_s[ind_r2-1], ind_e[ind_r2-1]):
+            lim_by_reach_r.append([endr, endr + 1])
+        #lim_by_reach_r.append([ind_s[ind_r], ind_e[ind_r]])
+        #lim_by_reach_r.append([ind_s[ind_r2-1], ind_e[ind_r2-1]])
         blob = copy.deepcopy(lim_by_reach_r)  # classic, classic, but still annoying
         lim_by_reach_for_sub.append(blob)
         # add the segments realted to the island
@@ -495,12 +503,11 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         # But overlapping points are often at the end/start of the reach.
         # Performance might depend on the criteria chosen to test the points.
         # the current version is actually the quickest one which I know. Might not be the quickest.
-
         if hole_all_i:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)  #
         else:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r])
-        grid_dict = triangle.triangulate(dict_point, 'p')  # 'p' allows for constraint V for verbose
+        grid_dict = triangle.triangulate(dict_point, 'p')  # 'p' allows for constraint V for verbose q for angle (mesh improvement)
 
         try:
             ikle_r = grid_dict['triangles']
@@ -950,7 +957,7 @@ def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
                                (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
                 if norm == 0:
                     print('Warning: Two identical point in profile. Profile will be modified.\n')
-                    coord_pro_p1[0][w] += 0.0001  # add absolute value because Yann
+                    coord_pro_p1[0][w] += 0.0001
                     coord_pro_p1[1][w] += 0.0001
                     norm = np.sqrt((coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) ** 2 +
                                    (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
@@ -995,7 +1002,7 @@ def inside_polygon(seg_poly, point):
     """
     This function find if a point is inside a polygon, using a ray casting algorythm. It is called by various functions.
 
-    :param seg_poly: the segment forming the polygon
+    :param seg_poly: the segmentS forming the polygon
     :param point: the point which is indide or outside the polygon
     :return: True is the point is inside the polygon, false otherwise
     """
@@ -1026,6 +1033,7 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     :param p1sub: point C
     :param p2sub: point D
     :param col: if True, colinear segment crossed. If false, they do not cross
+    :param uncer: if True, two segment with a distance lower than 10**-8 will be crossing, otherwise no precision change.
     :return: intersect (True or False) and the crossing point (if True, empty is False)
     """
     inter = False
@@ -1346,7 +1354,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
     """
     HABBY uses nodal information. Some hydraulic models have only ouput on the cells. This function pass
     from cells information to nodal information. The interpolation is linear and the cell centroid is used as the
-    point where the cell information is carried. it can be used for one time step only.
+    point where the cell information is carried. It can be used for one time step only.
 
     :param point_all: the coordinates of grid points
     :param coord_c: the coordintesof the centroid of the cells
@@ -1354,6 +1362,11 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
     :param height_in: the height data by cell
     :param warn1: if True , show the warning (usually warn1 is True for t=0, False afterwards)
     :return: velocity and height data by node
+
+    **Technical Comment**
+
+    This function can be very slow when a lot of time step needs to be interpolated. Possible optimization:
+    http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple-interpolations-between-two-irregular-grids
     """
 
     vel_node = []
@@ -1388,7 +1401,7 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     :param coord_pro_p0: the coord_pro (x,y,h, z) of the first profile
     :param coord_pro_p1: the coord_pro (x,y,h, z) of the second profile
     :param nb_pro: the number of profile to add
-    :param Trim: If True cut the end and start of profile to avoid to have part of the grid outside of the water limit
+    :param trim: If True cut the end and start of profile to avoid to have part of the grid outside of the water limit
     :return: a list with the updated profiles
     """
 
@@ -1419,13 +1432,18 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     nx = (y2-y1) / norm
     ny = -(x2-x1) / norm
 
+    # !!! test!!!
+    norm = np.sqrt((x1all[0]-x1)**2+(y1all[0]-y1)**2)
+    nx = (x1all[0] - x1)/norm
+    ny = (y1all[0] - y1) / norm
+
     # project points from both profil perpendiculary on the line
     # from https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
     if a**2 + b**2 > 0:
         xpro0 = (b * (b * x0all - a * y0all) - a*c) / (a**2 + b**2)
-        # ypro0 = (a * (-1*b* x0all + a * y0all) - b*c) / (a**2 + b**2)
+        #ypro0 = (a * (-1*b* x0all + a * y0all) - b*c) / (a**2 + b**2)
         xpro1 = (b * (b * x1all - a * y1all) - a*c) / (a**2 + b**2)
-        # ypro1 = (a * (-1*b * x1all + a * y1all) - b*c) / (a**2 + b**2)
+        #ypro1 = (a * (-1*b * x1all + a * y1all) - b*c) / (a**2 + b**2)
     else:
         xpro0 = xpro1 = 10e10
 
@@ -1500,8 +1518,6 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     # intersection second profile
     for j in range(0, len(x1all)):
         inter = False
-        #p1 = [x1all[j], y1all[j]]
-        #p2 = [xpro1[j], ypro1[j]]
         p1 = [xstart1[j], ystart1[j]]
         p2 = [xend1[j], yend1[j]]
         for j2 in range(0, len(x0all)-1):
@@ -1593,7 +1609,10 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
                 p4 = pm_all[w2 + 1]
                 [inter, pc] = intersection_seg(p1seg, p2seg, p3, p4, False)
                 if inter:
-                    pm_all = pm_all[w2 + 1:, :]
+                    if x1 > x2:
+                        pm_all = pm_all[w2 + 1:, :]
+                    if x1 < x2:
+                        pm_all = pm_all[:w2+1, :]
                     break
             p1seg = [x0all[0], y0all[0]]
             p2seg = [x1all[0], y1all[0]]
@@ -1602,10 +1621,51 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
                 p4 = pm_all[w+1]
                 [inter, pc] = intersection_seg(p1seg, p2seg, p3, p4, False)
                 if inter:
-                    pm_all = pm_all[:w+1, :]
+                    if x1 > x2:
+                        pm_all = pm_all[:w+1, :]
+                    if x1 < x2:
+                        pm_all = pm_all[w+1:, :]
                     break
 
-        pm_all = pm_all[pm_all[:, 0].argsort(), :]
+        # sort the points
+        x1m = pm_all[0, 0]
+        x2m = pm_all[-1, 0]
+        y1m = pm_all[0, 1]
+        y2m = pm_all[-1, 1]
+        if x1m != x2m:
+            a = (y1m - y2m) / (x1m - x2m)
+        else:
+            a = 1
+        b = -1
+        c = y1m - a * x1m
+        xprojmid = (b * (b * pm_all[:, 0] - a * pm_all[:, 1]) - a * c) / (a ** 2 + b ** 2)
+        pm_all = pm_all[xprojmid.argsort()]
+
+        # control for the risk of a crossing segments
+        norma = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+        normb = np.sqrt((x1all[-1] - x1all[0])**2 + (y1all[-1] - y1all[0])**2)
+        # cos(theta) = a.b / (norm(a) * norm(b))
+        dota = ((x2-x1)*(x1all[-1] - x1all[0]) + (y2 - y1)*(y1all[-1] - y1all[0]))/ (norma*normb)
+        theta = np.arccos(dota)
+        inter1 = True
+        inter2 = True
+        warn_here = True
+        while (inter1 or inter2) and len(pm_all[:,1]) > 3 and abs(theta) > 0.4:
+            p3a = [pm_all[0, 0], pm_all[0, 1]]
+            p4a = [pm_all[-1, 0], pm_all[-1, 1]]
+            for i in range(0, min(len(x0all), len(x1all))-1):
+                p1a = [x0all[i], y0all[i]]
+                p2a = [x0all[i+1], y0all[i+1]]
+                [inter1, pc] = intersection_seg(p1a, p2a, p3a, p4a, False)
+                p1a = [x1all[i], y1all[i]]
+                p2a = [x1all[i+1], y1all[i+1]]
+                [inter2, pc] = intersection_seg(p1a, p2a, p3a, p4a, False)
+                if inter1 or inter2:
+                    if warn_here:
+                        print('Warning: Correction for crossing middle profile')
+                        warn_here = False
+                    pm_all = pm_all[1:-1, :]
+                    break
 
         mid_point_x.append(pm_all[:, 0])
         mid_point_y.append(pm_all[:, 1])
@@ -1821,14 +1881,11 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
                         m = 'g'
                     else:
                         m = 'y'
-                    #plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m, linewidth=1)
+                    plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m, linewidth=1)
                 overlap_r = overlap[r]
                 #if len(overlap_r) > 0:
                     #for i in range(0, len(overlap_r)):
                        # plt.plot(coord_p[overlap_r[i], 0],coord_p[overlap_r[i], 1], 'k.')
-            #for i in range(0, int(len(seg_island)/2)):
-             #seg = [int(seg_island[2*i, 2]), int(seg_island[2*i+1, 2])]
-             # plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], 'g', linewidth=1)
     #plt.plot(xlist, ylist, 'g.', markersize=1)
     #if coord_pro2:
     #   for p in range(0, len(coord_pro2)):
@@ -1973,10 +2030,11 @@ def main():
     # #test hec-ras
     #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    path_test = r'D:\Diane_work\version\file_test'
-    name = 'CRITCREK'  # CRITCREK (22), LOOP
-    name_xml = name + '.O02.xml'
-    name_geo = name + '.g02'
+    path_test = r'D:\Diane_work\version\file_test\hecrasv5'
+    name = 'BaldEagle'  # CRITCREK (22), LOOP (12)
+    name_xml = name + '.O01.xml'
+    name_xml = 'BaldEagle.RASexport.sdf'
+    name_geo = name + '.g01'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
     #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
     #ikle_sub = [[0, 1, 2]]
@@ -1989,16 +2047,16 @@ def main():
     #
     # [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
     #
-    for t in range(0, len(vh_pro)):
+    for t in range(1, len(vh_pro)):
         which_pro = vh_pro[t]
-        #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-         #  = create_grid(coord_pro, 5,[], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
-        [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-            create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
+        [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
+           = create_grid(coord_pro, 1, [], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
+        #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+           # create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
         if which_pro:
-            #[inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
-            #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
-            plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
+            [inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
+            plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
+            #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
         else:
             pass
             #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
