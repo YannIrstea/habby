@@ -363,15 +363,15 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         print('Warning: There is duplicate points. The triangulation might fail.'
               ' Correction will be slow and unprecise.\n')
         # this is slow , but it might solve problems
-        j = 0
-        unique_find = []
-        for p in point_all:
-            p = list(p)
-            if p not in unique_find:
-                unique_find.append(p)
-            else:
-                point_all[j] = [p[0]+0.01*j, p[1]+0.01*j]
-            j += 1
+        # j = 0
+        # unique_find = []
+        # for p in point_all:
+        #     p = list(p)
+        #     if p not in unique_find:
+        #         unique_find.append(p)
+        #     else:
+        #         point_all[j] = [p[0]+0.00001*j, p[1]+0.000001*j]
+        #     j += 1
 
     # put data in order and find the limits
     seg_to_be_added2 = []
@@ -507,7 +507,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)  #
         else:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r])
-        grid_dict = triangle.triangulate(dict_point, 'p')  # 'p' allows for constraint V for verbose q for angle (mesh improvement)
+        grid_dict = triangle.triangulate(dict_point,'p')  # 'p' allows for constraint V for verbose q for angle (mesh improvement)
 
         try:
             ikle_r = grid_dict['triangles']
@@ -1869,7 +1869,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
                 ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                 ylist.append(None)
 
-            plt.plot(xlist, ylist, '-b', linewidth=0.1)
+            #plt.plot(xlist, ylist, '-b', linewidth=0.1)
             if lim_by_reach:
                 for hh in range(0, len(h)):
                      plt.plot(h[hh][0], h[hh][1], "g*", markersize=3)
@@ -1895,7 +1895,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
     #plt.close()
-    #plt.show()
+    plt.show()
 
     # plot the interpolated velocity
     if len(inter_vel_all) >0: #0

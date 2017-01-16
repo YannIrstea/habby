@@ -932,7 +932,7 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
 
 def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
     """
-    This functions plots the rubar 2d data
+    This functions plots the rubar 2d data. This function is only used to debug. It is not used direclty by Habby.
 
     :param xy: coordinates of the points
     :param coord_c: the center of the point

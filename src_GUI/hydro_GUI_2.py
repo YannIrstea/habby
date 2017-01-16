@@ -710,8 +710,9 @@ class SubHydroW(QWidget):
                 [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                     manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach, self.vh_pro[t])
                 if cb_im and path_im != 'no_path':
-                    manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
-                                            inter_vel_all, inter_height_all, path_im)
+                    #manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
+                                            #inter_vel_all, inter_height_all, path_im)
+                    manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 self.inter_vel_all_t.append(inter_vel_all)
@@ -803,8 +804,9 @@ class SubHydroW(QWidget):
             self.point_all_t.append(point_all_reach)
             self.point_c_all_t.append(point_c_all)
             if cb_im and path_im != 'no_path':
-                manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                                        hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+                manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
+                #manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                                        #hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
             self.send_err_log()
             self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
             self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
@@ -880,10 +882,12 @@ class SubHydroW(QWidget):
                     p.terminate()
                 self.send_err_log()
                 sys.stdout = self.mystdout = StringIO()
-                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_all_reach, coord_pro2, self.vh_pro[t])
+                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_all_reach, coord_pro2,
+                                                                                  self.vh_pro[t])
                 if cb_im and path_im != 'no_path':
-                    manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                                            hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+                    manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
+                    #manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                                            #hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 self.inter_vel_all_t.append(inter_vel_all)
@@ -1299,6 +1303,8 @@ class Rubar2D(SubHydroW):
         a = time.time()
         sys.stdout = self.mystdout = StringIO()
         warn1 = True
+        self.inter_h_all_t.append([])  # because we have a "whole" grid for 1D model before the actual time step
+        self.inter_vel_all_t.append([])
         for t in range(0, len(vel_cell)):
             [vel_node, height_node] = manage_grid_8.pass_grid_cell_to_node_lin(self.point_all_t[0],
                                                             self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
@@ -1693,10 +1699,16 @@ class River2D(SubHydroW):
             self.point_all_t.append(xyzhv_i[:, :2])
             self.ikle_all_t.append(ikle_i)
             self.point_c_all_t.append(coord_c)
+            if i == 0:  # mimic empty grid for t = 0 for 1 D model
+                self.inter_h_all_t.append([])
+                self.inter_vel_all_t.append([])
             self.inter_h_all_t.append(xyzhv_i[:, 3])
             self.inter_vel_all_t.append(xyzhv_i[:, 4])
+            # for the moment plot the first time step
             if self.cb.isChecked() and path_im != 'no_path' and i == 0:
-                river2d.figure_river2d(xyzhv_i, ikle_i, path_im, i)
+                manage_grid_8.plot_grid_simple([self.point_all_t[i]], [self.ikle_all_t[i]],
+                                               [self.inter_vel_all_t[i]], [self.inter_h_all_t[i]], path_im)
+                #river2d.figure_river2d(xyzhv_i, ikle_i, path_im, i)
 
             # log
             self.send_log.emit("py    file1='" + self.namefile[i] + "'")
@@ -1973,7 +1985,10 @@ class HEC_RAS2D(SubHydroW):
         sys.stdout = self.mystdout = StringIO()
         warn1 = True
         a = time.time()
-        for t in range(0, len(vel_cell)): #l
+        # mimic the "whole" profile for 1D model
+        self.inter_h_all_t.append([])
+        self.inter_vel_all_t.append([])
+        for t in range(0, len(vel_cell)):
             [v_node, h_node] = manage_grid_8.pass_grid_cell_to_node_lin(
                 self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
             warn1 = False
@@ -2006,7 +2021,6 @@ class HEC_RAS2D(SubHydroW):
             print('time to do figures')
             print(b-a)
             self.show_fig.emit()
-
 
 
 class TELEMAC(SubHydroW):
@@ -2086,9 +2100,15 @@ class TELEMAC(SubHydroW):
         # TEMPORARY correction because we have only one grid for all time step and all reach
         self.point_all_t = [[coord_p]]
         self.point_c_all_t = [[coord_c]]
-        self.ikle_all_t = [[ikle] ]  # carefil ikle not corrected for non-triangular cells
-        self.inter_h_all_t = [v]
-        self.inter_vel_all_t = [h]
+        self.ikle_all_t = [[ikle]]
+        self.inter_h_all_t = []
+        self.inter_vel_all_t = []
+        # mimic the whole grid for 1D model
+        self.inter_h_all_t.append([])
+        self.inter_vel_all_t.append([])
+        for t in range(0, len(v)):
+            self.inter_h_all_t.append([h[t]])
+            self.inter_vel_all_t.append([v[t]])
 
         # log info
         self.send_log.emit(self.tr('# Load: TELEMAC data.'))
@@ -2106,7 +2126,9 @@ class TELEMAC(SubHydroW):
         self.save_hdf5()
 
         if self.cb.isChecked() and path_im != 'no_path':
-            selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
+            #selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
+            manage_grid_8.plot_grid_simple(self.point_all_t[-1], self.ikle_all_t[-1],
+                                           self.inter_vel_all_t[-1], self.inter_h_all_t[-1], path_im)
             self.show_fig.emit()
 
 

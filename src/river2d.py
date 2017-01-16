@@ -173,7 +173,7 @@ def get_rid_of_lines(datahere, nb_data):
 def figure_river2d(xyzhv, ikle, path_im, t=0):
     """
     A function to plot the output from river 2d. Need hec-ras2d as import because it re-used most of the plot from this
-    script.
+    script. It is only used to debug. It is not used directly by HABBY.
 
     Plot only one time step because river 2d output have one file by time step.
 

@@ -251,7 +251,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
 
 def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im,  time_step=[0], flow_area=[0], max_point=-99):
     """
-    This is a function to plot figure of the output from hec-ras 2D.
+    This is a function to plot figure of the output from hec-ras 2D. This function is only used to debug, not directly by HABBY.
 
     :param v_all: a list of np array representing the velocity at the center of the cells
     :param h_all:  a list of np array representing the water depth at the center of the cells

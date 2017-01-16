@@ -10,7 +10,7 @@ import time
 
 def load_telemac(namefilet, pathfilet):
     """
-    A function which load the telemac data using the Selafin class
+    A function which load the telemac data using the Selafin class.
 
     :param namefilet: the name of the selafin file (string)
     :param pathfilet: the path to this file (string)
@@ -58,7 +58,9 @@ def load_telemac(namefilet, pathfilet):
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
     """
-     a function to plot the velocity and height which are the output from TELEMAC.
+     a function to plot the velocity and height which are the output from TELEMAC. It is used to debug.
+     It is not used direclty by HABBY.
+
      :param coord_p2: the coordinates of the point forming the grid
      :param h: the  water height
      :param v: the velocity
