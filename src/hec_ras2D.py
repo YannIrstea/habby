@@ -217,7 +217,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
                 # old one (to avoid changing the order of ikle), the other are added at the end
                 # no change to v and h for the first triangular data, change afterwards
                 xy.append(coord_c[c])
-                # first triangular cell
+                # first triangular cell (erase the old one)
                 ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
                 p1 = xy[len(xy)-1]
                 coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1)/3

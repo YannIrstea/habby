@@ -1269,7 +1269,7 @@ class Rubar2D(SubHydroW):
         # load rubar 2d data
         a = time.time()
         sys.stdout = self.mystdout = StringIO()
-        [vel_cell, height_cell, self.point_all_t, self.point_c_all_t, self.ikle_all_t] \
+        [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
             = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1],
                                  path_im, self.save_fig)
         sys.stdout = sys.__stdout__
@@ -1295,19 +1295,31 @@ class Rubar2D(SubHydroW):
             return
 
         # TEMPORARY correction because we have only one grid for all time step
-        self.point_all_t = [[self.point_all_t]]
-        self.point_c_all_t = [[self.point_c_all_t]]
-        self.ikle_all_t = [[self.ikle_all_t]]
+        #self.point_all_t = [[self.point_all_t]]
+        #self.point_c_all_t = [[self.point_c_all_t]]
+        #self.ikle_all_t = [[self.ikle_all_t]]
 
         # pass from cell data to node data
         a = time.time()
         sys.stdout = self.mystdout = StringIO()
         warn1 = True
-        self.inter_h_all_t.append([])  # because we have a "whole" grid for 1D model before the actual time step
-        self.inter_vel_all_t.append([])
+        # because we have a "whole" grid for 1D model before the actual time step
+        self.inter_h_all_t.append([[]])
+        self.inter_vel_all_t.append([[]])
+        self.point_all_t.append([coord_p])
+        self.point_c_all_t.append([coord_c])
+        self.ikle_all_t.append([ikle_base])
+
         for t in range(0, len(vel_cell)):
-            [vel_node, height_node] = manage_grid_8.pass_grid_cell_to_node_lin(self.point_all_t[0],
-                                                            self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+            [vel_node, height_node] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
+                                                            [coord_c], vel_cell[t], height_cell[t], warn1)
+            [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p,
+                                                                                 vel_node[0], height_node[0])
+            self.inter_h_all_t.append([water_height])
+            self.inter_vel_all_t.append([velocity])
+            self.point_all_t.append([point_all])
+            self.point_c_all_t.append([[]])
+            self.ikle_all_t.append([ikle])
             warn1 = False
             self.inter_h_all_t.append(height_node)
             self.inter_vel_all_t.append(vel_node)
@@ -1695,19 +1707,23 @@ class River2D(SubHydroW):
                 if xyzhv_i[0] == -99:
                     self.send_log.emit('Error: River2D data could not be loaded')
                     return
-            xyzhv.append(xyzhv_i)
-            self.point_all_t.append(xyzhv_i[:, :2])
-            self.ikle_all_t.append(ikle_i)
-            self.point_c_all_t.append(coord_c)
+            [ikle_i,  point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:,:2],
+                                                                                  xyzhv_i[:, 3], xyzhv_i[:, 4])
             if i == 0:  # mimic empty grid for t = 0 for 1 D model
+                self.point_all_t.append([xyzhv_i[:, :2]])
+                self.ikle_all_t.append([ikle_i])
+                self.point_c_all_t.append([coord_c])
                 self.inter_h_all_t.append([])
                 self.inter_vel_all_t.append([])
-            self.inter_h_all_t.append(xyzhv_i[:, 3])
-            self.inter_vel_all_t.append(xyzhv_i[:, 4])
+            self.point_all_t.append([point_all])
+            self.ikle_all_t.append([ikle_i])
+            self.point_c_all_t.append([[]])
+            self.inter_h_all_t.append([water_height])
+            self.inter_vel_all_t.append([velocity])
             # for the moment plot the first time step
-            if self.cb.isChecked() and path_im != 'no_path' and i == 0:
-                manage_grid_8.plot_grid_simple([self.point_all_t[i]], [self.ikle_all_t[i]],
-                                               [self.inter_vel_all_t[i]], [self.inter_h_all_t[i]], path_im)
+            if self.cb.isChecked() and path_im != 'no_path' and i ==0:
+                manage_grid_8.plot_grid_simple(self.point_all_t[i+1], self.ikle_all_t[i+1],
+                                               self.inter_vel_all_t[i+1], self.inter_h_all_t[i+1], path_im)
                 #river2d.figure_river2d(xyzhv_i, ikle_i, path_im, i)
 
             # log
@@ -1716,13 +1732,6 @@ class River2D(SubHydroW):
             self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = river2d.load_river2d_cdg(file1, path1) \n")
             self.send_log.emit("restart LOAD_RIVER_2D")
             self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[i], self.namefile[i]))
-
-        # TEMPORARY correction because we have only one grid for all reaches
-        self.point_all_t = [self.point_all_t]
-        self.point_c_all_t = [self.point_c_all_t]
-        self.ikle_all_t = [self.ikle_all_t]
-        self.inter_h_all_t = [self.inter_h_all_t]
-        self.inter_vel_all_t = [self.inter_vel_all_t]
 
         self.save_hdf5()
 
@@ -1965,10 +1974,6 @@ class HEC_RAS2D(SubHydroW):
         print('Time to load data:')
         print(b-a)
 
-        # TEMPORARY correction because we have only one grid for all time step
-        self.point_all_t = [coord_p]
-        self.point_c_all_t = [coord_c]
-        self.ikle_all_t = [ikle]   # carefil ikle not corrected for non-triangular cells
         # log info
         self.send_log.emit(self.tr('# Load: HEC-RAS 2D.'))
         self.send_err_log()
@@ -1982,19 +1987,42 @@ class HEC_RAS2D(SubHydroW):
             if vel_cell == [-99]:
                 self.send_log.emit("Error: HEC-RAS2D data could not be loaded.")
                 return
-        sys.stdout = self.mystdout = StringIO()
         warn1 = True
         a = time.time()
-        # mimic the "whole" profile for 1D model
+
+        # mimic the "whole" profile for 1D model (t=0)
+        self.point_all_t = [coord_p]
+        self.point_c_all_t = [coord_c]
+        self.ikle_all_t = [ikle]
         self.inter_h_all_t.append([])
         self.inter_vel_all_t.append([])
-        for t in range(0, len(vel_cell)):
+
+        # create node grid with only wetted area
+        for t in range(len(vel_cell)-2, len(vel_cell)):
+            # cell to node data
+            sys.stdout = self.mystdout = StringIO()
             [v_node, h_node] = manage_grid_8.pass_grid_cell_to_node_lin(
                 self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+            sys.stdout = sys.__stdout__
             warn1 = False
-            self.inter_h_all_t.append(h_node)
-            self.inter_vel_all_t.append(v_node)
-        sys.stdout = sys.__stdout__
+            ikle_f = []
+            point_f = []
+            v_f = []
+            h_f = []
+            for f in range(0, len(self.ikle_all_t[0])):  # by reach (or water area)
+                # cut grid to wet area
+                [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(self.ikle_all_t[0][f],
+                                                                        self.point_all_t[0][f], h_node[f], v_node[f])
+                ikle_f.append(ikle2)
+                point_f.append(point_all)
+                h_f.append(water_height)
+                v_f.append(velocity)
+            self.inter_h_all_t.append(h_f)
+            self.inter_vel_all_t.append(v_f)
+            self.point_all_t.append(point_f)
+            self.point_c_all_t.append([[]])
+            self.ikle_all_t.append(ikle_f)
+
         b = time.time()
         self.send_log.emit(self.tr('# Pass from cell data to node data by linear interpolation'))
         self.send_err_log()
@@ -2015,7 +2043,7 @@ class HEC_RAS2D(SubHydroW):
             # plot output
             a = time.time()
             # hec_ras2D.figure_hec_ras2d(vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, path_im, [-1], [0])
-            manage_grid_8.plot_grid_simple(self.point_all_t[0], self.ikle_all_t[0], self.inter_vel_all_t[-1],
+            manage_grid_8.plot_grid_simple(self.point_all_t[-1], self.ikle_all_t[-1], self.inter_vel_all_t[-1],
                                            self.inter_h_all_t[-1], path_im)
             b = time.time()
             print('time to do figures')
@@ -2097,18 +2125,20 @@ class TELEMAC(SubHydroW):
         [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
         sys.stdout = sys.__stdout__
 
-        # TEMPORARY correction because we have only one grid for all time step and all reach
+        # cut the grid to have the precise wet area and put data in new form
         self.point_all_t = [[coord_p]]
-        self.point_c_all_t = [[coord_c]]
         self.ikle_all_t = [[ikle]]
-        self.inter_h_all_t = []
-        self.inter_vel_all_t = []
-        # mimic the whole grid for 1D model
-        self.inter_h_all_t.append([])
-        self.inter_vel_all_t.append([])
+        self.point_c_all_t = [[coord_c]]
+        self.inter_h_all_t = [[]]
+        self.inter_vel_all_t = [[]]
         for t in range(0, len(v)):
-            self.inter_h_all_t.append([h[t]])
-            self.inter_vel_all_t.append([v[t]])
+            [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t],  v[t])
+            self.point_all_t.append([point_all])  # only one reach
+            self.ikle_all_t.append([ikle2])
+            self.point_c_all_t.append([[]])
+            self.inter_vel_all_t.append([velocity])
+            self.inter_h_all_t.append([water_height])
+
 
         # log info
         self.send_log.emit(self.tr('# Load: TELEMAC data.'))
@@ -2121,14 +2151,17 @@ class TELEMAC(SubHydroW):
 
         if len(v) == 1 and v[0] == [-99]:
             self.send_log.emit('Error: Telemac data not loaded.')
+            return
 
         # save
         self.save_hdf5()
 
+        #plot image
         if self.cb.isChecked() and path_im != 'no_path':
             #selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
-            manage_grid_8.plot_grid_simple(self.point_all_t[-1], self.ikle_all_t[-1],
-                                           self.inter_vel_all_t[-1], self.inter_h_all_t[-1], path_im)
+            for t in range(1, len(self.point_all_t)):
+                manage_grid_8.plot_grid_simple(self.point_all_t[t], self.ikle_all_t[t],
+                                                   self.inter_vel_all_t[t], self.inter_h_all_t[t], path_im)
             self.show_fig.emit()
 
 

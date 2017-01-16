@@ -795,6 +795,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     at = time.time()
     c_dry = []
     water_height = np.array(water_height)
+    ikle = np.array(ikle)
 
     # get all cells with at least one node with h < 0
     ind_neg = np.where(water_height <= 0)[0]
@@ -836,14 +837,16 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     which_side = np.array(which_side)
     i = 0
     for c in c_dry:
-        if len(pc_all[i]) == 2:
+        if len(pc_all[i]) == 2:  # just a check?
             # add new point
             pc1 = pc_all[i][0]
             pc2 = pc_all[i][1]
             point_all = np.vstack((point_all, pc2))  # order matters
             point_all = np.vstack((point_all, pc1))
             water_height = np.hstack((water_height, [0]))
-            velocity = np.hstack((water_height, [0]))
+            water_height = np.hstack((water_height, [0]))
+            velocity = np.hstack((velocity, [0]))
+            velocity = np.hstack((velocity, [0]))
             # seg1 = [0,1] and seg2 = [1,2] in ikle order
             if np.sum(which_side[i]) == 1:
                 ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 1]]))
@@ -873,8 +876,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
                     ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 0]]))
         i += 1
 
-
-    # rease the old cells
+    # erease the old cells
     ikle = np.delete(ikle, c_dry, axis=0)
 
     bt = time.time()
@@ -898,9 +900,13 @@ def linear_h_cross(p1,p2,h1,h2):
 
     if h1 <= 0 and h2 > 0 or h1 >0 and h2 <= 0:
         # h is linear, i.e., h = a*x +b pc == x(h==0) and y = a2*x + b2
-        a1 = (h1-h2)/(p1[0]-p2[0])
+        if p1[0] != p2[0]:
+            a1 = (h1-h2)/(p1[0]-p2[0])
+            a2 = (p1[1] - p2[1]) / (p1[0] - p2[0])
+        else:
+            a1 = 10**10
+            a2 = 10**10
         pcx = p1[0] - h1/a1
-        a2 = (p1[1]-p2[1])/(p1[0]-p2[0])
         b2 = p1[1] - a2 * p1[0]
         pcy = a2 * pcx + b2
         pc = [pcx, pcy]
@@ -1753,22 +1759,23 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             for i in range(0, len(ikle) - 1):
                 pi = 0
                 ikle_i = ikle[i]
-                while pi < len(ikle_i) - 1:  # we have all sort of xells, max eight sides
-                    # The conditions should be tested in this order to avoid to go out of the array
-                    p = ikle_i[pi]  # we start at 0 in python, careful about -1 or not
-                    p2 = ikle_i[pi + 1]
+                if len(ikle_i) == 3:
+                    while pi < 2:  # we have all sort of xells, max eight sides
+                        # The conditions should be tested in this order to avoid to go out of the array
+                        p = ikle_i[pi]  # we start at 0 in python, careful about -1 or not
+                        p2 = ikle_i[pi + 1]
+                        xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+                        xlist.append(None)
+                        ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+                        ylist.append(None)
+                        pi += 1
+
+                    p = ikle_i[pi]
+                    p2 = ikle_i[0]
                     xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
                     xlist.append(None)
                     ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                     ylist.append(None)
-                    pi += 1
-
-                p = ikle_i[pi]
-                p2 = ikle_i[0]
-                xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
-                xlist.append(None)
-                ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
-                ylist.append(None)
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
     plt.title('Computational Grid')
@@ -1783,8 +1790,7 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
             if len(point_here[:, 0]) == len(inter_vel):
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel
-                                     , min=0, max=np.nanmax(inter_vel), cmap=cm)
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm)
                 if r == len(inter_vel_all) - 1:
                     # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
@@ -1804,8 +1810,7 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             inter_h = inter_h_all[r]
             if len(point_here) == len(inter_h):
                 inter_h[inter_h < 0] = 0
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h
-                                     , min=0, max=np.nanmax(inter_h), cmap=cm)
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm)
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
                     cbar.ax.set_ylabel('Water height [m]')
