@@ -8,6 +8,8 @@ from src import rubar
 from src import Hec_ras06
 from src import selafin_habby1
 import scipy.interpolate
+import scipy.spatial.qhull as qhull
+import itertools
 import copy
 np.set_printoptions(threshold=np.inf)
 import os
@@ -792,16 +794,20 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     :return: the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
     """
     # prep
-    at = time.time()
+
     c_dry = []
     water_height = np.array(water_height)
     ikle = np.array(ikle)
-
     # get all cells with at least one node with h < 0
-    ind_neg = np.where(water_height <= 0)[0]
+    ind_neg = set(np.where(water_height <= 0.0)[0])  # set because it is quicker to search in a set
     for c in range(0, len(ikle)):
-        if np.any(ikle[c, 0] == ind_neg) or np.any(ikle[c, 1] == ind_neg) or np.any(ikle[c, 2] == ind_neg):
+        iklec = ikle[c,:]
+        if iklec[0] in ind_neg or iklec[1] in ind_neg or iklec[2] in ind_neg:
             c_dry.append(c)
+    # for c in range(0, len(ikle)):
+    #     if np.any(ikle[c, 0] == ind_neg) or np.any(ikle[c, 1] == ind_neg) or np.any(ikle[c, 2] == ind_neg):
+    #         c_dry.append(c)
+
 
     # find the intersection point for cells particlally dry
     pc_all = []
@@ -836,51 +842,57 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     # create new cells
     which_side = np.array(which_side)
     i = 0
+    # list is more efficient
+    ikle = list(ikle)
+    point_all = list(point_all)
+    water_height = list(water_height)
+    velocity = list(velocity)
     for c in c_dry:
         if len(pc_all[i]) == 2:  # just a check?
             # add new point
             pc1 = pc_all[i][0]
             pc2 = pc_all[i][1]
-            point_all = np.vstack((point_all, pc2))  # order matters
-            point_all = np.vstack((point_all, pc1))
-            water_height = np.hstack((water_height, [0]))
-            water_height = np.hstack((water_height, [0]))
-            velocity = np.hstack((velocity, [0]))
-            velocity = np.hstack((velocity, [0]))
+            point_all.append(pc2)  # order matters
+            point_all.append(pc1)
+            lenp = len(point_all)
+            water_height.extend([0, 0])
+            velocity.extend([0,0])
+            iklec = ikle[c]
             # seg1 = [0,1] and seg2 = [1,2] in ikle order
             if np.sum(which_side[i]) == 1:
-                ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 1]]))
+                ikle.append([lenp - 1, lenp - 2, iklec[1]])
                 if which_side[i][1] == 1:  # seg = [1, 2]
-                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 0]]))
-                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 2], ikle[c, 0]]))
+                    ikle.append([lenp - 1, lenp - 2, iklec[0]])
+                    ikle.append([lenp - 2, iklec[2], iklec[0]])
                 else:
-                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 2]]))
-                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 2], ikle[c, 0]]))
+                    ikle.append([lenp - 1, lenp - 2,iklec[2]])
+                    ikle.append([lenp - 2, iklec[2], iklec[0]])
             # seg1 = [0,1] and seg2 = [0,2]
             if np.sum(which_side[i]) == 2:
-                ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 0]]))
+                ikle.append([lenp - 1, lenp - 2,iklec[0]])
                 if which_side[i][1] == 0:  # seg = [1, 0]
-                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 2]]))
-                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 2]]))
+                    ikle.append([lenp - 1, lenp - 2, iklec[2]])
+                    ikle.append([lenp - 2, iklec[1], iklec[2]])
                 else:
-                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 1]]))
-                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 2]]))
+                    ikle.append([lenp - 1, lenp - 2, iklec[1]])
+                    ikle.append([lenp - 2, iklec[1], iklec[2]])
             # seg1 = [2,1] and seg2 = [0,2]
             if np.sum(which_side[i]) == 3:
-                ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 2]]))
+                ikle.append([lenp - 1, lenp - 2, iklec[2]])
                 if which_side[i][1] == 2:  # seg = [2, 0]
-                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 1]]))
-                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 0]]))
+                    ikle.append([lenp - 1, lenp - 2, iklec[1]])
+                    ikle.append([lenp - 2, iklec[1], iklec[0]])
                 else:
-                    ikle = np.vstack((ikle, [len(point_all) - 1, len(point_all) - 2, ikle[c, 0]]))
-                    ikle = np.vstack((ikle, [len(point_all) - 2, ikle[c, 1], ikle[c, 0]]))
+                    ikle.append([lenp - 1, lenp - 2, iklec[0]])
+                    ikle.append([lenp - 2, iklec[1], iklec[0]])
         i += 1
+    ikle = np.array(ikle)
+    point_all = np.array(point_all)
+    water_height = np.array(water_height)
+    velocity = np.array(velocity)
 
     # erease the old cells
     ikle = np.delete(ikle, c_dry, axis=0)
-
-    bt = time.time()
-    #print(bt-at)
 
     return ikle, point_all, water_height, velocity
 
@@ -1356,38 +1368,58 @@ def interpo_nearest(point_all, coord_pro, vh_pro_t):
     return inter_vel_all, inter_height_all
 
 
-def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True):
+def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):
     """
     HABBY uses nodal information. Some hydraulic models have only ouput on the cells. This function pass
     from cells information to nodal information. The interpolation is linear and the cell centroid is used as the
     point where the cell information is carried. It can be used for one time step only.
 
-    :param point_all: the coordinates of grid points
-    :param coord_c: the coordintesof the centroid of the cells
+    :param point_all: the coordinates of grid points (new grid here)
+    :param coord_c: the coordintesof the centroid of the cells (old grid here)
     :param vel_in: the velocity data by cell
     :param height_in: the height data by cell
     :param warn1: if True , show the warning (usually warn1 is True for t=0, False afterwards)
+    :param vtx_all, if it exists it means than the same grid was interpolated before. This info can be reused to
+           speed up the interpolation of mulitple time step. (optional, need wts)
+    :param wts_all: if it exists it means than the same grid was interpolated before. This info can be reused to
+           speed up the interpolation of mulitple time step. (optional, need vtx)
     :return: velocity and height data by node
 
     **Technical Comment**
 
-    This function can be very slow when a lot of time step needs to be interpolated. Possible optimization:
-    http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple-interpolations-between-two-irregular-grids
+    This function can be very slow when a lot of time step needs to be interpolated if done directlty with
+     scipy.interpolate. It was optimized for this case:
+    http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple-
+    interpolations-between-two-irregular-grids
     """
 
     vel_node = []
     height_node = []
+    vtx_new = []
+    wts_new = []
 
     for r in range(0, len(point_all)):  # reaches
+
+        # this part is copied from http://stackoverflow.com/questions/20915502/speedup-scipy-griddata
+        # -for-multiple-interpolations-between-two-irregular-grids. No sure on how it works
+        # if no interpolation info was sent, re-start the whole interpolatin on a new grid
+        if vtx_all == [] and wts_all == []:
+            vtx, wts = interp_weights(coord_c[r], point_all[r])
+        else:
+            vtx = vtx_all[r]
+            wts = wts_all[r]
+        vtx_new.append(vtx)
+        wts_new.append(wts)
+
         # velocity
-        inter_vel = scipy.interpolate.griddata(coord_c[r], vel_in[r], point_all[r], method='linear')
+        inter_vel = interpolate_opti(vel_in[r], vtx, wts)
         # sometime value like -1e17 is added because of the maching precision, we do no want this
         inter_vel[np.isnan(inter_vel)] = 0
         inter_vel[inter_vel < 0] = 0
         vel_node.append(inter_vel)
 
         # height
-        inter_height = scipy.interpolate.griddata(coord_c[r], height_in[r], point_all[r], method='linear')
+        inter_height = interpolate_opti(height_in[r], vtx, wts)
         # sometime value like -1e17 is added because of the maching precision, we do no want this
         inter_height[np.isnan(inter_height)] = 0
         inter_height[inter_height < 0] = 0
@@ -1396,7 +1428,37 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
     if warn1:
         print('Warning: The outputs data from the model were passed from cells to node by linear interpolation.\n')
 
-    return vel_node, height_node
+    return vel_node, height_node, vtx_new, wts_new
+
+
+def interp_weights(xyz, uvw):
+    """
+    This fucntion is used by the function pass_grid_cell_to_node_lin(). To optimize the interpolation when more than one time step
+    is done on the same grid, the first step of scipy.griddata.interolate are done here and are called only once for all
+    time step. Hence, this function is the first part of a quicker "scipy.interpolate.griddata"
+
+    :param xyz:
+    :param uvw:
+    """
+    d=2
+    tri = qhull.Delaunay(xyz)
+    simplex = tri.find_simplex(uvw)
+    vertices = np.take(tri.simplices, simplex, axis=0)
+    temp = np.take(tri.transform, simplex, axis=0)
+    delta = uvw - temp[:, d]
+    bary = np.einsum('njk,nk->nj', temp[:, :d, :], delta)
+    return vertices, np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
+
+def interpolate_opti(values, vtx, wts):
+    """
+    This fucntion is called by interp_weights(). It is used in the optimization of the function pass_grid_cell_to_node_lin().
+    This idea of this optimization is to not re-do some calculation when many interpolation are done one the same grid
+
+    :param values:
+    :param vtx:
+    :param wts:
+    """
+    return np.einsum('nj,nj->n', np.take(values, vtx), wts)
 
 
 def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
@@ -1790,7 +1852,7 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
             if len(point_here[:, 0]) == len(inter_vel):
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm)
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, min = 0, cmap=cm)
                 if r == len(inter_vel_all) - 1:
                     # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
@@ -1810,7 +1872,7 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             inter_h = inter_h_all[r]
             if len(point_here) == len(inter_h):
                 inter_h[inter_h < 0] = 0
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm)
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, min=0, cmap=cm)
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
                     cbar.ax.set_ylabel('Water height [m]')

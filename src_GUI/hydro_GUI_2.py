@@ -1263,15 +1263,15 @@ class Rubar2D(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
         path_im = self.find_path_im()
-        if self.cb.isChecked() and path_im != 'no_path':
-            self.save_fig = True
+        # if self.cb.isChecked() and path_im != 'no_path':
+        #     self.save_fig = True
 
         # load rubar 2d data
         a = time.time()
         sys.stdout = self.mystdout = StringIO()
         [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
             = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1],
-                                 path_im, self.save_fig)
+                                 path_im, False)  # True to get figure
         sys.stdout = sys.__stdout__
         b = time.time()
         print('Time to load data:')
@@ -1294,14 +1294,9 @@ class Rubar2D(SubHydroW):
             self.send_log.emit('Error: Rubar data not loaded.')
             return
 
-        # TEMPORARY correction because we have only one grid for all time step
-        #self.point_all_t = [[self.point_all_t]]
-        #self.point_c_all_t = [[self.point_c_all_t]]
-        #self.ikle_all_t = [[self.ikle_all_t]]
-
         # pass from cell data to node data
         a = time.time()
-        sys.stdout = self.mystdout = StringIO()
+        #sys.stdout = self.mystdout = StringIO()
         warn1 = True
         # because we have a "whole" grid for 1D model before the actual time step
         self.inter_h_all_t.append([[]])
@@ -1311,8 +1306,13 @@ class Rubar2D(SubHydroW):
         self.ikle_all_t.append([ikle_base])
 
         for t in range(0, len(vel_cell)):
-            [vel_node, height_node] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
-                                                            [coord_c], vel_cell[t], height_cell[t], warn1)
+            if t == 0:
+                [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
+                                                                [coord_c], vel_cell[t], height_cell[t], warn1)
+            else:
+                [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
+                                                         [coord_c], vel_cell[t],height_cell[t], warn1, vtx_all, wts_all)
+
             [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p,
                                                                                  vel_node[0], height_node[0])
             self.inter_h_all_t.append([water_height])
@@ -1323,7 +1323,7 @@ class Rubar2D(SubHydroW):
             warn1 = False
             self.inter_h_all_t.append(height_node)
             self.inter_vel_all_t.append(vel_node)
-        sys.stdout = sys.__stdout__
+        #sys.stdout = sys.__stdout__
         b = time.time()
         print('Time to interpolate')
         print(b-a)
@@ -1335,6 +1335,9 @@ class Rubar2D(SubHydroW):
         self.save_hdf5()
 
         if self.cb.isChecked():
+            for t in [-1]:#range(0, len(vel_cell)):
+                manage_grid_8.plot_grid_simple(self.point_all_t[t], self.ikle_all_t[t], self.inter_vel_all_t[t],
+                                               self.inter_h_all_t[t], path_im)
             self.show_fig.emit()
 
     def propose_next_file(self):
@@ -1998,11 +2001,15 @@ class HEC_RAS2D(SubHydroW):
         self.inter_vel_all_t.append([])
 
         # create node grid with only wetted area
-        for t in range(len(vel_cell)-2, len(vel_cell)):
+        for t in range(0, len(vel_cell)):
             # cell to node data
             sys.stdout = self.mystdout = StringIO()
-            [v_node, h_node] = manage_grid_8.pass_grid_cell_to_node_lin(
-                self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+            if t == 0:
+                [v_node, h_node,  vtx_all, wts_all ] = manage_grid_8.pass_grid_cell_to_node_lin(
+                    self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+            else:
+                [v_node, h_node,vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(
+                    self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
             sys.stdout = sys.__stdout__
             warn1 = False
             ikle_f = []
