@@ -114,7 +114,7 @@ class MainWindows(QMainWindow):
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # set geometry
-        self.setGeometry(300, 400, 700, 400)
+        self.setGeometry(200, 200, 1024, 768)
         self.setCentralWidget(self.central_widget)
         self.show()
 
