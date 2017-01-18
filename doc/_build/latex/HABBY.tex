@@ -431,7 +431,7 @@ In addition, it would create a lot of problems on where to store the data create
 before using HABBY. If the project exists already (i.e. the name and the path of the project have not been
 modified), the xml file is just updated to change its attributes as needed.
 
-Interesting path are a) the biologie path (named ``biologie'' by default) which contains the biological information
+Interesting path are a) the biology path (named ``biology'' by default) which contains the biological information
 such as the preference curve and b) the path\_im which is the path where all figures and most outputs of HABBY
 is saved. If path\_im is not given, HABBY automatically create a folder called figure\_habby when the
 user creates a new project. The user can however change this path if he wants. The next step is to communicate
@@ -1617,7 +1617,7 @@ contains in the hdf5 file are now in the memory in various variables called self
 HABBY used them to update the GUI. First, it updates the list which contains the name of the reaches
 (self.list\_re.). Next, it checks that each of the variable needed exists and that they contain some data.
 Afterwards, HABBY looks which preference file to use. Either, it will use the default preference file
-(contained in HABBY/biologie) or a custom preference prepared by the user. This custom preference
+(contained in HABBY/biology) or a custom preference prepared by the user. This custom preference
 file should be in the same folder than the hdf5 file. When the preference file was found, HABBY reads all
 the fish type which are described and add their name to the self.list\_f list which show the available fish
 to the user in the GUI. Finally it checks if all the variables were found or if some were missing

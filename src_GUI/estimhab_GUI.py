@@ -34,7 +34,7 @@ class EstimhabW(QWidget):
 
     def __init__(self, path_prj, name_prj):
 
-        self.path_bio = './/biologie'
+        self.path_bio = './/biology'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
         self.eh1 = QLineEdit()
