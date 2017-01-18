@@ -11,9 +11,9 @@ import scipy.interpolate
 import scipy.spatial.qhull as qhull
 import itertools
 import copy
-np.set_printoptions(threshold=np.inf)
 import os
 import bisect
+np.set_printoptions(threshold=np.inf)
 
 
 def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], q=[], pnew_add=1):
@@ -794,20 +794,15 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     :return: the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
     """
     # prep
-
     c_dry = []
     water_height = np.array(water_height)
     ikle = np.array(ikle)
     # get all cells with at least one node with h < 0
     ind_neg = set(np.where(water_height <= 0.0)[0])  # set because it is quicker to search in a set
     for c in range(0, len(ikle)):
-        iklec = ikle[c,:]
+        iklec = ikle[c, :]
         if iklec[0] in ind_neg or iklec[1] in ind_neg or iklec[2] in ind_neg:
             c_dry.append(c)
-    # for c in range(0, len(ikle)):
-    #     if np.any(ikle[c, 0] == ind_neg) or np.any(ikle[c, 1] == ind_neg) or np.any(ikle[c, 2] == ind_neg):
-    #         c_dry.append(c)
-
 
     # find the intersection point for cells particlally dry
     pc_all = []
@@ -855,7 +850,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
             point_all.append(pc2)  # order matters
             point_all.append(pc1)
             lenp = len(point_all)
-            water_height.extend([0, 0])
+            water_height.extend([0,0])
             velocity.extend([0,0])
             iklec = ikle[c]
             # seg1 = [0,1] and seg2 = [1,2] in ikle order
@@ -1413,14 +1408,14 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
 
         # velocity
         inter_vel = interpolate_opti(vel_in[r], vtx, wts)
-        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_vel[np.isnan(inter_vel)] = 0
         inter_vel[inter_vel < 0] = 0
         vel_node.append(inter_vel)
 
         # height
         inter_height = interpolate_opti(height_in[r], vtx, wts)
-        # sometime value like -1e17 is added because of the maching precision, we do no want this
+        # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_height[np.isnan(inter_height)] = 0
         inter_height[inter_height < 0] = 0
         height_node.append(inter_height)
@@ -1449,16 +1444,17 @@ def interp_weights(xyz, uvw):
     bary = np.einsum('njk,nk->nj', temp[:, :d, :], delta)
     return vertices, np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
 
+
 def interpolate_opti(values, vtx, wts):
     """
     This fucntion is called by interp_weights(). It is used in the optimization of the function pass_grid_cell_to_node_lin().
-    This idea of this optimization is to not re-do some calculation when many interpolation are done one the same grid
+    This idea of this optimization is to not re-do some calculation when many interpolation are done on the same grid.
 
     :param values:
     :param vtx:
     :param wts:
     """
-    return np.einsum('nj,nj->n', np.take(values, vtx), wts)
+    return np.einsum('nj,nj->n', np.take(values, vtx), wts)  # summation based on einstein notation
 
 
 def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
@@ -1852,7 +1848,10 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
             if len(point_here[:, 0]) == len(inter_vel):
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, min = 0, cmap=cm)
+                mh = np.median(inter_vel[inter_vel>0]) *5
+                bounds = np.linspace(0, mh, 10)
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm, vmin=0,
+                                     vmax=mh, levels=bounds, extend='both')
                 if r == len(inter_vel_all) - 1:
                     # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
@@ -1872,7 +1871,10 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             inter_h = inter_h_all[r]
             if len(point_here) == len(inter_h):
                 inter_h[inter_h < 0] = 0
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, min=0, cmap=cm)
+                mh = np.median(inter_h[inter_h>0]) * 10
+                bounds = np.linspace(0, mh, 10)
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, vmin=0, vmax =mh,
+                                     cmap=cm, levels=bounds, extend='both')
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
                     cbar.ax.set_ylabel('Water height [m]')

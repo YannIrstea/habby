@@ -1271,7 +1271,7 @@ class Rubar2D(SubHydroW):
         sys.stdout = self.mystdout = StringIO()
         [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
             = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1],
-                                 path_im, False)  # True to get figure
+                                 path_im, True)  # True to get figure
         sys.stdout = sys.__stdout__
         b = time.time()
         print('Time to load data:')
@@ -1314,15 +1314,14 @@ class Rubar2D(SubHydroW):
                                                          [coord_c], vel_cell[t],height_cell[t], warn1, vtx_all, wts_all)
 
             [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p,
-                                                                                 vel_node[0], height_node[0])
+                                                                                 height_node[0], vel_node[0])
+
             self.inter_h_all_t.append([water_height])
             self.inter_vel_all_t.append([velocity])
             self.point_all_t.append([point_all])
             self.point_c_all_t.append([[]])
             self.ikle_all_t.append([ikle])
             warn1 = False
-            self.inter_h_all_t.append(height_node)
-            self.inter_vel_all_t.append(vel_node)
         #sys.stdout = sys.__stdout__
         b = time.time()
         print('Time to interpolate')
