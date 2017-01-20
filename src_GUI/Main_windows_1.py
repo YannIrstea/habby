@@ -291,7 +291,7 @@ class MainWindows(QMainWindow):
         before using HABBY. If the project exists already (i.e. the name and the path of the project have not been
         modified), the xml file is just updated to change its attributes as needed.
 
-        Interesting path are a) the biologie path (named "biologie" by default) which contains the biological information
+        Interesting path are a) the biology path (named "biology" by default) which contains the biological information
         such as the preference curve and b) the path_im which is the path where all figures and most outputs of HABBY
         is saved. If path_im is not given, HABBY automatically create a folder called figure_habby when the
         user creates a new project. The user can however change this path if he wants. The next step is to communicate
@@ -362,7 +362,8 @@ class MainWindows(QMainWindow):
             des_child = ET.SubElement(general_element, "Description")
             des_child.text = self.descri_prj
             pathbio_child = ET.SubElement(root_element, "Path_Bio")
-            pathbio_child.text = "./biologie/estimhab\\"
+            pathbio_child.text = "./biology\\"
+
 
             # save new xml file
             if self.name_prj != '':
@@ -388,7 +389,7 @@ class MainWindows(QMainWindow):
                     pathim_child.text = os.path.join(self.path_prj, 'figures_habby')
             child.text = self.name_prj
             path_child.text = self.path_prj
-            pathbio_child.text = "./biologie"
+            pathbio_child.text = "./biology"
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')

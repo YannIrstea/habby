@@ -186,7 +186,8 @@ def main():
     qrange = [1, 38]
     substrat = 0.25
     fish = ['TRF_ADU', 'TRF_JUV', 'BAF', 'CHA', 'GOU']
-    path =  os.path.join('.', 'biologie/estimhab')
+    path =  os.path.join('.', 'biology')
+
 
     [VH, SPU] = estimhab(q, w, h, q50, qrange, substrat, path, fish, True, True)
 

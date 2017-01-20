@@ -58,7 +58,7 @@ class StathabW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_im = os.path.join(self.path_prj, 'figures_habby')
-        self.path_bio_stathab = './/biologie'
+        self.path_bio_stathab = './/biology'
         self.fish_selected = []
         self.dir_name = self.tr("No directory selected")
         self.mystdout = StringIO()
@@ -325,7 +325,7 @@ class StathabW(QWidget):
 
         # all reach
         # first choice> Pref.txt in dir_name is used.
-        # default choice: Pref.txt in the biologie folder.
+        # default choice: Pref.txt in the biology folder.
         for i in range(0,len(self.name_file_allreach)):
             file = os.path.join(self.dir_name, self.name_file_allreach[i])
             if os.path.isfile(file):
@@ -473,7 +473,7 @@ class StathabW(QWidget):
         HABBY used them to update the GUI. First, it updates the list which contains the name of the reaches
         (self.list_re.). Next, it checks that each of the variable needed exists and that they contain some data.
         Afterwards, HABBY looks which preference file to use. Either, it will use the default preference file
-        (contained in HABBY/biologie) or a custom preference prepared by the user. This custom preference
+        (contained in HABBY/biology) or a custom preference prepared by the user. This custom preference
         file should be in the same folder than the hdf5 file. When the preference file was found, HABBY reads all
         the fish type which are described and add their name to the self.list_f list which show the available fish
         to the user in the GUI. Finally it checks if all the variables were found or if some were missing
