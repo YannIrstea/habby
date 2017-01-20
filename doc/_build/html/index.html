@@ -311,6 +311,19 @@ are too many of them.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.new_project">
+<code class="descname">new_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.new_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open a new empty project</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.open_project">
+<code class="descname">open_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.open_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to open an existing habby project by selecting an xml project file. Called by
+my_menu_bar()</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.open_rech">
 <code class="descname">open_rech</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.open_rech" title="Permalink to this definition">¶</a></dt>
 <dd><p>Open the additional research tab, which can be used to create Tab with more experimental contents.</p>
@@ -464,9 +477,15 @@ a new project or to change the name, path, etc. of a project.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="src_GUI.Main_windows_1.WelcomeW.new_proj_signal">
+<code class="descname">new_proj_signal</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.new_proj_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQt signal used to open a new project</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="src_GUI.Main_windows_1.WelcomeW.save_signal">
 <code class="descname">save_signal</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.save_signal" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQt signal used to save the figure</p>
+<dd><p>A PyQt signal used to save the project</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -482,16 +501,6 @@ a new project or to change the name, path, etc. of a project.</p>
 </dd></dl>
 
 </dd></dl>
-
-<dl class="function">
-<dt id="src_GUI.Main_windows_1.new_project">
-<code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">new_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.new_project" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="src_GUI.Main_windows_1.open_project">
-<code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">open_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.open_project" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </div>
 <div class="section" id="hydrological-information-gui">
@@ -937,7 +946,7 @@ along the profile in meter and n is the manning value (in SI unit). One point pe
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.save_hdf5">
 <code class="descname">save_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.save_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function save the hydrological data in the hdf5 format.</p>
-<p><strong>Techincal comments</strong></p>
+<p><strong>Technical comments</strong></p>
 <p>This function cannot be used outside of the class, so it needs to be re-written if used from the command line.</p>
 <p>This function creates an hdf5 file which contains the hydrological data. First it creates an empty hdf5.
 Then it fill the hdf5 with data. For 1D model, it fill the data in 1D (the original data), then the 1.5D data
@@ -2012,7 +2021,7 @@ load the data: 1) the river profile are straight and perpendicular to the river.
 <span class="target" id="module-src.hec_ras2D"></span><dl class="function">
 <dt id="src.hec_ras2D.figure_hec_ras2d">
 <code class="descclassname">src.hec_ras2D.</code><code class="descname">figure_hec_ras2d</code><span class="sig-paren">(</span><em>v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im, time_step=[0], flow_area=[0], max_point=-99</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.figure_hec_ras2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a function to plot figure of the output from hec-ras 2D.</p>
+<dd><p>This is a function to plot figure of the output from hec-ras 2D. This function is only used to debug, not directly by HABBY.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2044,6 +2053,34 @@ separately, it would be very long to draw. To optimize the process, we use the p
 </dd></dl>
 
 <dl class="function">
+<dt id="src.hec_ras2D.get_triangular_grid_hecras">
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">get_triangular_grid_hecras</code><span class="sig-paren">(</span><em>ikle_all</em>, <em>coord_c_all</em>, <em>point_all</em>, <em>h</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.get_triangular_grid_hecras" title="Permalink to this definition">¶</a></dt>
+<dd><p>In Hec-ras, it is possible to have non-triangular cells, often rectangular cells This function transform the
+&#8220;mixed&#8221; grid to a triangular grid. For this,
+it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
+center of the cell). A similar function exists in rubar.py, but, as there are only one reach in rubar
+and because ikle is different in hec-ras, it was hard to marge both functions together.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle_all</strong> &#8211; the connectivity table by reach (list of np.array)</li>
+<li><strong>coord_c_all</strong> &#8211; the coordinate of the centroid of the cell by reach</li>
+<li><strong>point_all</strong> &#8211; the points of the grid</li>
+<li><strong>h</strong> &#8211; data on water height by reach by time step</li>
+<li><strong>v</strong> &#8211; data on velocity by reach by time step</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the updated ikle, coord_c (the center of the cell , must be updated ) and xy (the grid coordinate)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.hec_ras2D.load_hec_ras2d">
 <code class="descclassname">src.hec_ras2D.</code><code class="descname">load_hec_ras2d</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.load_hec_ras2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>The goal of this function is to load 2D data from Hec-RAS in the version 5.</p>
@@ -2072,22 +2109,21 @@ the results folder.</p>
 <p>Outputs from HEC-RAS in 2D are in the hdf5 format. However, it is not possible to directly use the output of HEC-RAS
 as an hdf5 input for HABBY. Indeed, even if they are both in hdf5, the formats of the hdf5 files are different
 (and would miss some important info for HABBY).  So we still need to load the HEC-RAS data in HABBY even if in 2D.</p>
-<p>This function should be modified because currently it gets the data by cells. However, we should get the
-data by node. So this function should be changed.</p>
+<p>This function call the function get_trianglar grid which is in rubar.py.</p>
 <p><strong>Walk-through</strong></p>
 <p>The name and path of the file is given as input to the load_hec_ras_2D function. Usually this is done by the class
 HEC_RAS() in the GUI.  We load the file using the h5py module. This module opens and reads hdf5 file.</p>
 <p>Then we can read different part of the hdf5 file when we know the address of it (this is a bit like a file system).
 In hdf5 file of Hec-RAS, this first thing is to get the names of the flow area in “Geometry/2D Flow Area”. In
-general, this is the name of each reach, but it could be lake or pond also.</p>
+general, this is the name of each reach, but it could be lake or pond also. In an hdf5 file, to see the name of
+the member in a group, use: list(&#8220;group&#8221;.keys())</p>
 <p>Then, we go to “Geometry/2D Flow Area/&lt;name&gt;/FacePoint Coordinates” to get the points forming the grid.
 We can also get the connectivity table (or ikle) to the path “Geometry/2D Flow Area/&lt;name&gt;/Cells Face Point Indexes”
-We also get the elevations of the cells. Currently, this is just the minimum elevation of the cells, but it should
-be modified to get the elevation by node (in the vocabulary of HEC-RAS by “FacePoints”). We then get the water depth
-by cell. Somethings should be done to get it by node. I think that we did have the elevation by node somewhere in
-the hdf5 file. For there, water height can be found.
-The velocity is given by face of the cells. It should be averaged differently to get it on the point and
-not on the side.</p>
+We also get the elevations of the cells. However, this is just the minimum elevation of the cells, so it is
+to be used only for a quick estimation. We then get the water depth by cell.
+The velocity is given by face of the cells and is averaged to get it on the middle of the cells.</p>
+<p>To get Hec-Ras data by nodes, it is necessary to intepolate the data. There is a function to do this in
+manage_grid_8.</p>
 </dd></dl>
 
 <dl class="function">
@@ -2535,7 +2571,7 @@ managed using the define_stream_network function and the information in the .xca
 <dt id="src.river2d.figure_river2d">
 <code class="descclassname">src.river2d.</code><code class="descname">figure_river2d</code><span class="sig-paren">(</span><em>xyzhv</em>, <em>ikle</em>, <em>path_im</em>, <em>t=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.figure_river2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to plot the output from river 2d. Need hec-ras2d as import because it re-used most of the plot from this
-script.</p>
+script. It is only used to debug. It is not used directly by HABBY.</p>
 <p>Plot only one time step because river 2d output have one file by time step.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2669,7 +2705,7 @@ the 2D grid. So this function correct duplicates along the profile.</p>
 <dl class="function">
 <dt id="src.rubar.figure_rubar2d">
 <code class="descclassname">src.rubar.</code><code class="descname">figure_rubar2d</code><span class="sig-paren">(</span><em>xy, coord_c, ikle, v, h, path_im, time_step=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.figure_rubar2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>This functions plots the rubar 2d data</p>
+<dd><p>This functions plots the rubar 2d data. This function is only used to debug. It is not used direclty by Habby.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2692,19 +2728,19 @@ the 2D grid. So this function correct duplicates along the profile.</p>
 <dl class="function">
 <dt id="src.rubar.get_triangular_grid">
 <code class="descclassname">src.rubar.</code><code class="descname">get_triangular_grid</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_c</em>, <em>xy</em>, <em>h</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.get_triangular_grid" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>In Rubar it is possible to have non-triangular cells. It is possible to have a grid composed of a mix of pentagonal,</dt>
-<dd>4-sided and triangualr cells. This function transform the &#8220;mixed&#8221; grid to a triangular grid. For this, it uses the
-centroid of each cell with more than three side and it create a triangle by side (linked with the center of the cell)</dd>
-</dl>
+<dd><p>In Rubar, it is possible to have non-triangular cells. It is possible to have a grid composed of a mix
+of pentagonal, 4-sided and triangualr cells. This function transform the &#8220;mixed&#8221; grid to a triangular grid. For this,
+it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
+center of the cell). A similar function exists in hec-ras2D.py, but, as there is only one reach in rubar
+and because ikle is different in hec-ras, it was hard to marge both functions together.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ikle</strong> &#8211; the connectivity table</li>
-<li><strong>coord_c</strong> &#8211; the coordinate of the centroid of the cell</li>
-<li><strong>xy</strong> &#8211; the points of the grid</li>
+<li><strong>ikle</strong> &#8211; the connectivity table (list)</li>
+<li><strong>coord_c</strong> &#8211; the coordinate of the centroid of the cell (list)</li>
+<li><strong>xy</strong> &#8211; the points of the grid (np.array)</li>
 <li><strong>h</strong> &#8211; data on water height</li>
 <li><strong>v</strong> &#8211; data on velocity</li>
 </ul>
@@ -3035,7 +3071,7 @@ Adapted from the original script &#8216;parserSELAFIN.py&#8217; from the open Te
 <dl class="function">
 <dt id="src.selafin_habby1.load_telemac">
 <code class="descclassname">src.selafin_habby1.</code><code class="descname">load_telemac</code><span class="sig-paren">(</span><em>namefilet</em>, <em>pathfilet</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.load_telemac" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function which load the telemac data using the Selafin class</p>
+<dd><p>A function which load the telemac data using the Selafin class.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3056,7 +3092,8 @@ Adapted from the original script &#8216;parserSELAFIN.py&#8217; from the open Te
 <dl class="function">
 <dt id="src.selafin_habby1.plot_vel_h">
 <code class="descclassname">src.selafin_habby1.</code><code class="descname">plot_vel_h</code><span class="sig-paren">(</span><em>coord_p2, h, v, path_im, timestep=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.plot_vel_h" title="Permalink to this definition">¶</a></dt>
-<dd><p>a function to plot the velocity and height which are the output from TELEMAC</p>
+<dd><p>a function to plot the velocity and height which are the output from TELEMAC. It is used to debug.
+It is not used direclty by HABBY.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3518,7 +3555,7 @@ as profile in 1D model are often far away from another.</p>
 <li><strong>coord_pro_p0</strong> &#8211; the coord_pro (x,y,h, z) of the first profile</li>
 <li><strong>coord_pro_p1</strong> &#8211; the coord_pro (x,y,h, z) of the second profile</li>
 <li><strong>nb_pro</strong> &#8211; the number of profile to add</li>
-<li><strong>Trim</strong> &#8211; If True cut the end and start of profile to avoid to have part of the grid outside of the water limit</li>
+<li><strong>trim</strong> &#8211; If True cut the end and start of profile to avoid to have part of the grid outside of the water limit</li>
 </ul>
 </td>
 </tr>
@@ -3597,12 +3634,32 @@ To create the whole grod this function is called for each profile.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>seg_poly</strong> &#8211; the segment forming the polygon</li>
+<li><strong>seg_poly</strong> &#8211; the segmentS forming the polygon</li>
 <li><strong>point</strong> &#8211; the point which is indide or outside the polygon</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True is the point is inside the polygon, false otherwise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.interp_weights">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">interp_weights</code><span class="sig-paren">(</span><em>xyz</em>, <em>uvw</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.interp_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>This fucntion is used by the function pass_grid_cell_to_node_lin(). To optimize the interpolation when more than one time step
+is done on the same grid, the first step of scipy.griddata.interolate are done here and are called only once for all
+time step. Hence, this function is the first part of a quicker &#8220;scipy.interpolate.griddata&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>xyz</strong> &#8211; </li>
+<li><strong>uvw</strong> &#8211; </li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -3660,6 +3717,26 @@ To insure this, pass coord_pro through the function &#8220;create_grid&#8221; wi
 </dd></dl>
 
 <dl class="function">
+<dt id="src.manage_grid_8.interpolate_opti">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">interpolate_opti</code><span class="sig-paren">(</span><em>values</em>, <em>vtx</em>, <em>wts</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.interpolate_opti" title="Permalink to this definition">¶</a></dt>
+<dd><p>This fucntion is called by interp_weights(). It is used in the optimization of the function pass_grid_cell_to_node_lin().
+This idea of this optimization is to not re-do some calculation when many interpolation are done on the same grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>values</strong> &#8211; </li>
+<li><strong>vtx</strong> &#8211; </li>
+<li><strong>wts</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.manage_grid_8.intersection_seg">
 <code class="descclassname">src.manage_grid_8.</code><code class="descname">intersection_seg</code><span class="sig-paren">(</span><em>p1hyd</em>, <em>p2hyd</em>, <em>p1sub</em>, <em>p2sub</em>, <em>col=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.intersection_seg" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function finds if there is an intersection between two segment (AB and CD). Idea from :
@@ -3676,6 +3753,7 @@ It is based on the caluclaion of the cross-product z= 0 for 2D</p>
 <li><strong>p1sub</strong> &#8211; point C</li>
 <li><strong>p2sub</strong> &#8211; point D</li>
 <li><strong>col</strong> &#8211; if True, colinear segment crossed. If false, they do not cross</li>
+<li><strong>uncer</strong> &#8211; if True, two segment with a distance lower than 10**-8 will be crossing, otherwise no precision change.</li>
 </ul>
 </td>
 </tr>
@@ -3742,9 +3820,48 @@ find_profile_between()</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.manage_grid_8.pass_grid_cell_to_node_lin">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">pass_grid_cell_to_node_lin</code><span class="sig-paren">(</span><em>point_all</em>, <em>coord_c</em>, <em>vel_in</em>, <em>height_in</em>, <em>warn1=True</em>, <em>vtx_all=[]</em>, <em>wts_all=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.pass_grid_cell_to_node_lin" title="Permalink to this definition">¶</a></dt>
+<dd><p>HABBY uses nodal information. Some hydraulic models have only ouput on the cells. This function pass
+from cells information to nodal information. The interpolation is linear and the cell centroid is used as the
+point where the cell information is carried. It can be used for one time step only.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>point_all</strong> &#8211; the coordinates of grid points (new grid here)</li>
+<li><strong>coord_c</strong> &#8211; the coordintesof the centroid of the cells (old grid here)</li>
+<li><strong>vel_in</strong> &#8211; the velocity data by cell</li>
+<li><strong>height_in</strong> &#8211; the height data by cell</li>
+<li><strong>warn1</strong> &#8211; if True , show the warning (usually warn1 is True for t=0, False afterwards)</li>
+<li><strong>vtx_all</strong> &#8211; if it exists it means than the same grid was interpolated before. This info can be reused to
+speed up the interpolation of mulitple time step. (optional, need wts)</li>
+<li><strong>wts_all</strong> &#8211; if it exists it means than the same grid was interpolated before. This info can be reused to
+speed up the interpolation of mulitple time step. (optional, need vtx)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">velocity and height data by node</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical Comment</strong></p>
+<dl class="docutils">
+<dt>This function can be very slow when a lot of time step needs to be interpolated if done directlty with</dt>
+<dd>scipy.interpolate. It was optimized for this case:</dd>
+</dl>
+<p><a class="reference external" href="http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple">http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple</a>-
+interpolations-between-two-irregular-grids</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.manage_grid_8.plot_grid">
 <code class="descclassname">src.manage_grid_8.</code><code class="descname">plot_grid</code><span class="sig-paren">(</span><em>point_all_reach</em>, <em>ikle_all</em>, <em>lim_by_reach</em>, <em>hole_all</em>, <em>overlap</em>, <em>point_c_all=[]</em>, <em>inter_vel_all=[]</em>, <em>inter_h_all=[]</em>, <em>path_im=[]</em>, <em>coord_pro2=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.plot_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a function to plot a grid, it is very similar to the one from hec-ras2D.</p>
+<dd><p>This is a function to plot a grid and the output. It is mosty used to debug the grid creation. Contrarily to the more
+simple function plot_grid_simple, it is posible to plot the position of the holes (which indicates the dry area),
+the limits of the reaches used by triangle, the overlap between two reaches, and so on.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3759,6 +3876,29 @@ find_profile_between()</p>
 <li><strong>inter_vel_all</strong> &#8211; the interpolated velocity for each reach</li>
 <li><strong>inter_h_all</strong> &#8211; the interpolated height</li>
 <li><strong>path_im</strong> &#8211; the path where to save the image</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.plot_grid_simple">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">plot_grid_simple</code><span class="sig-paren">(</span><em>point_all_reach</em>, <em>ikle_all</em>, <em>inter_vel_all=[]</em>, <em>inter_h_all=[]</em>, <em>path_im=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.plot_grid_simple" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the function to plot grid output for one time step. The data is one the node. A more complicated function
+exists to plot the grid and additional information (manage-grid_8.plot_grid()) in case there are needed to debug.
+The present function only plot the grid and output without more information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>point_all_reach</strong> &#8211; the coordinate of the point. This is given by reaches.</li>
+<li><strong>ikle_all</strong> &#8211; the connectivity table. This is given by reaches.</li>
+<li><strong>inter_vel_all</strong> &#8211; the velcoity data. This is given by reaches.</li>
+<li><strong>inter_h_all</strong> &#8211; the height data. This is given by reaches.</li>
+<li><strong>path_im</strong> &#8211; the path where the figure should be saved</li>
 </ul>
 </td>
 </tr>
@@ -4168,8 +4308,8 @@ It plots one time step at the time.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>point_all_both</strong> &#8211; the coordinate of the points of the updated grid</li>
-<li><strong>ikle_both</strong> &#8211; the connectivity table</li>
+<li><strong>point_all_both_t</strong> &#8211; the coordinate of the points of the updated grid</li>
+<li><strong>ikle_both_t</strong> &#8211; the connectivity table</li>
 <li><strong>path_im</strong> &#8211; the path where the image should be saved</li>
 <li><strong>ikle_orr</strong> &#8211; the orginial ikle</li>
 <li><strong>point_all_orr</strong> &#8211; the orginal point_all</li>
@@ -4310,7 +4450,7 @@ and an array with substrate type</p>
 <dt id="src.substrate.load_sub_txt">
 <code class="descclassname">src.substrate.</code><code class="descname">load_sub_txt</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_txt" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the substrate in form of a text file. The text file must have 3 column x,y coordinate and
-substrate info, no header or title.</p>
+substrate info, no header or title. It is transform to a grid using a voronoi transformation</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

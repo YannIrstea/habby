@@ -24,7 +24,7 @@ from src import manage_grid_8
 from src import dist_vistess2
 from src import load_hdf5
 np.set_printoptions(threshold=np.inf)
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Pool
 #import matplotlib.pyplot as plt
 
 class Hydro2W(QWidget):
@@ -691,10 +691,10 @@ class SubHydroW(QWidget):
         if self.interpo_choice == 0:
             self.send_log.emit(self.tr('# Create grid by block.'))
             # first whole profile
-            #sys.stdout = self.mystdout = StringIO()
+            sys.stdout = self.mystdout = StringIO()
             [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                 manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach)
-            #sys.stdout = sys.__stdout__
+            sys.stdout = sys.__stdout__
             self.send_err_log()
             self.inter_vel_all_t.append([])
             self.inter_h_all_t.append([])
@@ -1248,6 +1248,7 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addItem(self.spacer, 4, 1)
         self.setLayout(self.layout_hec)
 
+
     def load_rubar(self):
         """
         A function to execture the loading and saving the the rubar file using rubar.py. It is similar to the
@@ -1259,6 +1260,7 @@ class Rubar2D(SubHydroW):
         Another problem is that the data of Rubar2D is given on the cells of the grid and not the nodes.
         This will need to be corrected as data in HABBY is centered on the node.
         """
+
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
@@ -1271,7 +1273,7 @@ class Rubar2D(SubHydroW):
         sys.stdout = self.mystdout = StringIO()
         [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
             = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1],
-                                 path_im, True)  # True to get figure
+                                 path_im, False)  # True to get figure
         sys.stdout = sys.__stdout__
         b = time.time()
         print('Time to load data:')
@@ -1296,7 +1298,7 @@ class Rubar2D(SubHydroW):
 
         # pass from cell data to node data
         a = time.time()
-        #sys.stdout = self.mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()
         warn1 = True
         # because we have a "whole" grid for 1D model before the actual time step
         self.inter_h_all_t.append([[]])
@@ -1322,7 +1324,7 @@ class Rubar2D(SubHydroW):
             self.point_c_all_t.append([[]])
             self.ikle_all_t.append([ikle])
             warn1 = False
-        #sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
         b = time.time()
         print('Time to interpolate')
         print(b-a)
@@ -1338,6 +1340,7 @@ class Rubar2D(SubHydroW):
                 manage_grid_8.plot_grid_simple(self.point_all_t[t], self.ikle_all_t[t], self.inter_vel_all_t[t],
                                                self.inter_h_all_t[t], path_im)
             self.show_fig.emit()
+
 
     def propose_next_file(self):
         """
@@ -2503,3 +2506,7 @@ class SubstrateW(SubHydroW):
             self.show_fig.emit()
 
         # save the data in a new hdf5
+
+
+
+

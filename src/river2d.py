@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from src import hec_ras2D
 import time
+from src import manage_grid_8
+from io import StringIO
+import sys
 
 
 def load_river2d_cdg(file_cdg, path):

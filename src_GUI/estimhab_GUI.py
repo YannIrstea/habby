@@ -34,7 +34,7 @@ class EstimhabW(QWidget):
 
     def __init__(self, path_prj, name_prj):
 
-        self.path_bio = './/biologie'
+        self.path_bio = './/biologie/estimhab'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
         self.eh1 = QLineEdit()
@@ -163,7 +163,7 @@ class EstimhabW(QWidget):
         button1.clicked.connect(self.run_estmihab)
         button2 = QPushButton(self.tr('Change folder (fish data)'), self)
         button2.clicked.connect(self.change_folder)
-        button3 = QPushButton(self.tr('Save Data'), self)
+        button3 = QPushButton(self.tr('Save Selected Fish'), self)
         button3.clicked.connect(self.save_signal_estimhab.emit)
         self.layout3 = QGridLayout()
         self.layout3.addWidget(l1, 0, 0)

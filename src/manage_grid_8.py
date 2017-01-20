@@ -1374,7 +1374,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
     :param vel_in: the velocity data by cell
     :param height_in: the height data by cell
     :param warn1: if True , show the warning (usually warn1 is True for t=0, False afterwards)
-    :param vtx_all, if it exists it means than the same grid was interpolated before. This info can be reused to
+    :param vtx_all: if it exists it means than the same grid was interpolated before. This info can be reused to
            speed up the interpolation of mulitple time step. (optional, need wts)
     :param wts_all: if it exists it means than the same grid was interpolated before. This info can be reused to
            speed up the interpolation of mulitple time step. (optional, need vtx)
@@ -1386,6 +1386,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
      scipy.interpolate. It was optimized for this case:
     http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple-
     interpolations-between-two-irregular-grids
+
     """
 
     vel_node = []
@@ -1873,7 +1874,7 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
                 inter_h[inter_h < 0] = 0
                 mh = np.median(inter_h[inter_h>0]) * 10
                 bounds = np.linspace(0, mh, 10)
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, vmin=0, vmax =mh,
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, vmin=0, vmax=mh,
                                      cmap=cm, levels=bounds, extend='both')
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)

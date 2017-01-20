@@ -23,6 +23,7 @@ from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
 from src_GUI import output_fig_GUI
+from src_GUI import bio_info_GUI
 
 
 class MainWindows(QMainWindow):
@@ -361,7 +362,7 @@ class MainWindows(QMainWindow):
             des_child = ET.SubElement(general_element, "Description")
             des_child.text = self.descri_prj
             pathbio_child = ET.SubElement(root_element, "Path_Bio")
-            pathbio_child.text = "./biologie\\"
+            pathbio_child.text = "./biologie/estimhab\\"
 
             # save new xml file
             if self.name_prj != '':
@@ -781,6 +782,7 @@ class CentralW(QWidget):
         self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
         self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
         self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
+        self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
         self.scroll = QScrollArea()
@@ -813,6 +815,7 @@ class CentralW(QWidget):
         self.stathab_tab.show_fig.connect(self.showfig)
         self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
         self.hydro_tab.mascar.show_fig.connect(self.showfig)
+
         # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
         self.hydro_tab.hecras1D.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
         self.hydro_tab.hecras2D.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
@@ -821,6 +824,7 @@ class CentralW(QWidget):
         self.hydro_tab.rubar1d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
         self.hydro_tab.riverhere2d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
         self.hydro_tab.mascar.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+
         # connect signal for the log
         self.connect_signal_log()
 
@@ -853,8 +857,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
             self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
             self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-            self.tab_widget.addTab(bioinfo_tab, self.tr("Biology Info"))
-            self.tab_widget.addTab(biorun_tab, self.tr("Run the model"))
+            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Biology Info"))
             self.tab_widget.addTab(self.output_tab, self.tr("Output"))
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
@@ -949,6 +952,7 @@ class CentralW(QWidget):
         self.child_win.send_log.connect(self.write_log)
         self.welcome_tab.send_log.connect(self.write_log)
         self.output_tab.send_log.connect(self.write_log)
+        self.bioinfo_tab.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """
