@@ -34,11 +34,7 @@ class EstimhabW(QWidget):
 
     def __init__(self, path_prj, name_prj):
 
-<<<<<<< HEAD
-        self.path_bio = './/biologie/estimhab'
-=======
         self.path_bio = './/biology'
->>>>>>> 937d3e4951d2fe0e3a31d8ef76d7dcfbb93a8a5f
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
         self.eh1 = QLineEdit()

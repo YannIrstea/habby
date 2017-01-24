@@ -7,11 +7,11 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, QRect, Qt
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
-    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy
-from PyQt5.QtGui import QPixmap
+    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog
+from PyQt5.QtGui import QPixmap, QFont
 import h5py
 import matplotlib
 matplotlib.use("Qt5Agg")
@@ -110,12 +110,15 @@ class MainWindows(QMainWindow):
         # create the menu bar
         self.my_menu_bar()
 
-        # connect the signals with the different functions
+        # connect the signals of the welcome tab with the different functions (careful if changes this copy 3 times
+        # in set_langue and save_proje
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # set geometry
-        self.setGeometry(200, 200, 1024, 768)
+        self.setGeometry(200, 200, 800, 600)
         self.setCentralWidget(self.central_widget)
         self.show()
 
@@ -155,7 +158,8 @@ class MainWindows(QMainWindow):
 
         # connect the signals with the different functions
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
-        self.central_widget.welcome_tab.new_proj_signal.connect(self.open_project())
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # create the new menu
@@ -364,7 +368,6 @@ class MainWindows(QMainWindow):
             pathbio_child = ET.SubElement(root_element, "Path_Bio")
             pathbio_child.text = "./biology\\"
 
-
             # save new xml file
             if self.name_prj != '':
                 fname = os.path.join(self.path_prj, self.name_prj+'.xml')
@@ -404,9 +407,9 @@ class MainWindows(QMainWindow):
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
         self.setCentralWidget(self.central_widget)
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
-        self.central_widget.welcome_tab.new_proj_signal.connect(self.open_project)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
-
         # write log
         if len(t) > 26:
             # no need to write #log of habby started two times
@@ -418,6 +421,9 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log("restart Name_project")
         self.central_widget.write_log("restart    name_prj= " + self.name_prj)
 
+        # enabled lowest part
+        self.central_widget.welcome_tab.lowpart.setEnabled(True)
+
         return
 
     def open_project(self):
@@ -425,6 +431,7 @@ class MainWindows(QMainWindow):
         This function is used to open an existing habby project by selecting an xml project file. Called by
         my_menu_bar()
         """
+
 
         # open an xml file
         filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
@@ -465,6 +472,52 @@ class MainWindows(QMainWindow):
         self.save_project()
 
     def new_project(self):
+        """
+        This function open an empty project and guide the user to create a new project, using a new Windows
+        of the class CreateNewProject
+        """
+        # create an empty project
+        self.empty_project()
+
+        # open a new Windows to
+        self.createnew = CreateNewProject(self.lang, self.path_trans, self.file_langue)
+        self.createnew.show()
+        self.createnew.save_project.connect(self.save_project_if_new_project)
+
+    def save_project_if_new_project(self):
+        """
+        This function is used to save a project when the project is created from the other Windows CreateNewProject
+        """
+
+        # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by save_project)
+        name_prj_here = self.createnew.e1.text()
+        self.central_widget.welcome_tab.e1.setText(name_prj_here)
+        self.central_widget.welcome_tab.e2.setText(self.createnew.e2.text())
+
+        # check if there is not another project with the same path_name
+        fname = os.path.join(self.createnew.e2.text(), name_prj_here+'.xml')
+        if os.path.isfile(fname):
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Erase old project?"))
+            self.msg2.setText(
+                self.tr("A project with an identical name exists. Should this project be erased definitively? "))
+            self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            self.msg2.setDefaultButton(QMessageBox.No)
+            ret = self.msg2.exec_()
+            if ret == QMessageBox.Yes:
+                os.remove(fname)
+                os.remove(os.path.join(self.createnew.e2.text(), name_prj_here+'.log'))
+                os.remove(os.path.join(self.createnew.e2.text(), 'restart_'+name_prj_here+'.log'))
+                self.save_project()
+                self.createnew.close()
+            else:
+                return
+        # save project if unique name in the selected folder
+        else:
+            self.save_project()
+            self.createnew.close()
+
+    def empty_project(self):
         """
         This function open a new empty project
         """
@@ -726,6 +779,62 @@ class MainWindows(QMainWindow):
         self.central_widget.l2.setText(t + self.tr('Images deleted. <br>'))
 
 
+class CreateNewProject(QWidget):
+    """
+    A class which is used to help the user to create a new project
+    """
+    save_project = pyqtSignal()
+
+    def __init__(self, lang, path_trans, file_langue):
+
+        self.default_fold = r'C:\Users\diane.von-gunten\HABBY'
+        self.default_name = 'DefaultProj'
+        super().__init__()
+        #translation
+        self.languageTranslator = QTranslator()
+        app = QApplication.instance()
+        app.removeTranslator(self.languageTranslator)
+        self.languageTranslator = QTranslator()
+        self.languageTranslator.load(file_langue[int(lang)], path_trans)
+        app.installTranslator(self.languageTranslator)
+
+
+        self.init_iu()
+
+
+    def init_iu(self):
+        lg = QLabel(self.tr(" <b> Create a new project </b>"))
+        l1 = QLabel(self.tr('Project Name: '))
+        self.e1 = QLineEdit(self.default_name)
+        l2 = QLabel(self.tr('Main Folder: '))
+        self.e2 = QLineEdit(self.default_fold)
+        button2 = QPushButton(self.tr('Set Folder'), self)
+        button2.clicked.connect(self.setfolder)
+        self.button3 = QPushButton(self.tr('Save project'))
+        self.button3.clicked.connect(self.save_project)
+
+        layoutl = QGridLayout()
+        layoutl.addWidget(lg, 0, 0)
+        layoutl.addWidget(l1, 1, 0)
+        layoutl.addWidget(self.e1, 1, 1)
+        layoutl.addWidget(l2, 2, 0)
+        layoutl.addWidget(self.e2, 2, 1)
+        layoutl.addWidget(button2, 2, 2)
+        layoutl.addWidget(self.button3, 3, 1)
+        self.setLayout(layoutl)
+
+        self.setWindowTitle(self.tr('HABBY- NEW PROJECT'))
+
+    def setfolder(self):
+        """
+        This function is used by the user to select the folder where the xml project file will be located.
+        """
+        dir_name = QFileDialog.getExistingDirectory(None)  # check for invalid null parameter on Linuxgit
+        if dir_name != '':  # cancel case
+            self.e2.setText(dir_name)
+            self.send_log.emit('New folder selected for the project. \n')
+
+
 class CentralW(QWidget):
     """
     This class create the different tabs of the programm, which are then used as the central widget by the class
@@ -855,7 +964,7 @@ class CentralW(QWidget):
 
         # add the widgets to the list of tab if a project exist
         if os.path.isfile(fname) and self.name_prj_c != '':
-            self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
             self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
             self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
             self.tab_widget.addTab(self.bioinfo_tab, self.tr("Biology Info"))
@@ -865,15 +974,11 @@ class CentralW(QWidget):
             if self.rech:
                 self.tab_widget.addTab(other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(other_tab2, self.tr("Research 2"))
+            self.welcome_tab.lowpart.setEnabled(True)
         # if the project do not exist, do nmot add new tab
         else:
-            self.tab_widget.addTab(self.welcome_tab, self.tr("General"))
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Create project"))
-            self.msg2.setText( \
-                self.tr("Create and save a project to use HABBY further."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
+            self.welcome_tab.lowpart.setEnabled(False)
 
         # Area to show the log
         # add two Qlabel l1 ad l2 , with one scroll for the log in l2
@@ -1070,6 +1175,8 @@ class WelcomeW(QWidget):
     """
         A PyQt signal used to save the project
     """
+    open_proj = pyqtSignal()
+    " A signal for MainWindows to open an exisiting project"
     new_proj_signal = pyqtSignal()
     """
         A PyQt signal used to open a new project
@@ -1079,11 +1186,10 @@ class WelcomeW(QWidget):
        A PyQt signal used to write the log
     """
 
-
-
     def __init__(self):
 
         super().__init__()
+        self.imname = r'\src_GUI\test3.jpg'  # image shoulfd in the src_GUI folder
         self.init_iu()
 
     def init_iu(self):
@@ -1091,7 +1197,26 @@ class WelcomeW(QWidget):
         Used in the initialization of a new instance of the class WelcomeW()
         """
 
+        # Welcome windows
+        l0 = QLabel(self.tr('<b>Start working with HABBY </b>'))
+        l0.setAlignment(Qt.AlignCenter)
+        font = QFont()
+        font.setPointSize(20)
+        l0.setFont(font)
+        buttono = QPushButton(self.tr('Open Exisiting Project'), self)
+        buttono.clicked.connect(self.open_proj.emit)
+        buttons = QPushButton(self.tr('New Project'), self)
+        buttons.clicked.connect(self.new_proj_signal.emit)
+        buttone = QPushButton(self.tr('Open Example'), self)
+        buttone.clicked.connect(self.open_example)
+        spacerleft = QSpacerItem(200, 1)
+        spacerright = QSpacerItem(120, 1)
+        spacer2 = QSpacerItem(1, 50)
+        # color
+        highpart = QWidget()  # used to regroup all QWidgt in the first part of the Windows
+
         # general into to put in the xml .prj file
+        lg = QLabel(self.tr(" <b> Current Project </b>"))
         l1 = QLabel(self.tr('Project Name: '))
         self.e1 = QLineEdit()
         l2 = QLabel(self.tr('Main Folder: '))
@@ -1102,30 +1227,53 @@ class WelcomeW(QWidget):
         self.e3 = QTextEdit()
         l4 = QLabel(self.tr('User Name: '))
         self.e4 = QLineEdit()
+        self.buttonm = QPushButton(self.tr('Save Project Info'))
+        self.buttonm.clicked.connect(self.save_signal.emit)
+        self.lowpart = QWidget()
 
-        # save and load button
-        buttono = QPushButton(self.tr('Open Project'), self)
-        buttono.clicked.connect(self.new_proj_signal.emit)
-        buttons = QPushButton(self.tr('Save Project'), self)
-        buttons.clicked.connect(self.save_signal.emit)
-        spacer = QSpacerItem(50, 50)
+        # background image
+        pic = QLabel()
+        pic.setMaximumSize(1000, 200)
+        # use full ABSOLUTE path to the image, not relative
+        pic.setPixmap(QPixmap(os.getcwd() + self.imname).scaled(800, 500))  # 800 500
 
+        # layout (in two parts)
         layout2 = QGridLayout()
-        layout2.addWidget(l1, 0, 0)
-        layout2.addWidget(self.e1, 0, 1)
-        layout2.addWidget(l2, 1, 0)
-        layout2.addWidget(self.e2, 1, 1)
-        layout2.addWidget(button2, 1, 2)
-        layout2.addWidget(l4, 2, 0)
-        layout2.addWidget(self.e4, 2, 1)
-        layout2.addWidget(l3, 3, 0)
-        layout2.addWidget(self.e3, 3, 1)
-        # layout2.addWidget(buttonn, 4, 2)
-        layout2.addWidget(buttono, 4, 2)
-        layout2.addWidget(buttons, 4, 1)
-        layout2.addItem(spacer, 5, 1)
+        layouth = QGridLayout()
+        layoutl = QGridLayout()
+
+        layouth.addItem(spacerleft, 1, 0)
+        layouth.addItem(spacerright, 1, 5)
+        layouth.addWidget(l0, 0, 1)
+        layouth.addWidget(buttono, 2, 1)
+        layouth.addWidget(buttons, 3, 1)
+        layouth.addWidget(buttone, 4, 1)
+        layouth.addItem(spacer2, 5, 2)
+        highpart.setLayout(layouth)
+
+        layoutl.addWidget(lg, 0, 0)
+        layoutl.addWidget(l1, 1, 0)
+        layoutl.addWidget(self.e1, 1, 1)
+        layoutl.addWidget(l2, 2, 0)
+        layoutl.addWidget(self.e2, 2, 1)
+        layoutl.addWidget(button2, 2, 2)
+        layoutl.addWidget(l4, 3, 0)
+        layoutl.addWidget(self.e4, 3, 1)
+        layoutl.addWidget(l3, 4, 0)
+        layoutl.addWidget(self.e3, 4, 1)
+        layoutl.addWidget(self.buttonm, 4, 2)
+        self.lowpart.setLayout(layoutl)
+
+        layout2.addWidget(pic, 0, 0)
+        layout2.addWidget(highpart, 0, 0)
+        layout2.addWidget(self.lowpart, 1, 0)
         self.setLayout(layout2)
 
+    def open_example(self):
+        """
+        This function will be used to open a project example for HABBY, but the example is not prepared yet
+        """
+        self.send_log.emit('Warning: No example prepared yet')
 
     def setfolder(self):
         """
