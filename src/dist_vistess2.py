@@ -1,6 +1,5 @@
 import numpy as np
 from src import mascaret
-from src import rubar
 import matplotlib.pyplot as plt
 from src import Hec_ras06
 import time

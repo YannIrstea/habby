@@ -1,6 +1,11 @@
 import h5py
 import os
 import numpy as np
+import time
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 
 def open_hdf5(hdf5_name):
@@ -151,7 +156,7 @@ def load_hdf5_hyd(hdf5_name_hyd):
                     'Error: the dataset for velocity is missing from the hdf5 file. \n')
                 return failload
             vel = list(gen_dataset.values())[0]
-            vel = np.array(vel)
+            vel = np.array(vel).flatten()
             vel_all.append(vel)
             try:
                 gen_dataset = file_hydro[name_he]
@@ -160,7 +165,7 @@ def load_hdf5_hyd(hdf5_name_hyd):
                     'Error: the dataset for water height is missing from the hdf5 file. \n')
                 return failload
             heigh = list(gen_dataset.values())[0]
-            heigh = np.array(heigh)
+            heigh = np.array(heigh).flatten()
             h_all.append(heigh)
         inter_vel_all.append(vel_all)
         inter_height_all.append(h_all)
@@ -227,3 +232,191 @@ def get_all_filename(dirname, ext):
         if file.endswith(ext):
             filenames.append(file)
     return filenames
+
+
+def get_hdf5_name(model_name, name_prj, path_prj):
+    """
+    This function get the name of the hdf5 file containg the hydrological data for an hydrological model
+
+    :param model_name: the name of the hydrological model as written in the attribute of the xml project file
+    :param name_prj: the name of the project
+    :param path_prj: the path to the project
+    :return: the name of the hdf5 file
+    """
+
+    # open the xml project file
+    filename_path_pro = os.path.join(path_prj, name_prj + '.xml')
+    if os.path.isfile(filename_path_pro):
+        doc = ET.parse(filename_path_pro)
+        root = doc.getroot()
+        child = root.find(".//" + model_name)
+        if child is not None:
+            child = root.find(".//" + model_name + '/hdf5_hydrodata')
+        else:
+            print('Error: the data fro the model was not found')
+            return ''
+    else:
+        print('Error: no project found')
+        return ''
+
+    return child.text
+
+
+def save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
+              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[]):
+    """
+    This function save the hydrological data in the hdf5 format.
+
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
+    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
+    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
+    :param ikle_all_t: the connectivity table for all discharge, for all reaches and all time steps
+    :param point_all_t: the point forming the grid, for all reaches and all time steps
+    :param point_c_all_t: the point at the center of the cells, for all reaches and all time steps
+    :param inter_vel_all_t: the velocity for all grid point, for all reaches and all time steps (by node)
+    :param inter_h_all_t: the height for all grid point, for all reaches and all time steps (by node)
+    :param xhzv_data: data linked with 1D model (only used when a 1D model was transformed to a 2D)
+    :param coord_pro: data linked with 1.5D model or data created by dist_vist from a 1D model (profile data)
+    :param vh_pro: data linked with 1.5D model or data created by dist_vist from a 1D model (velcoity and height data)
+    :param nb_pro_reach: data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)
+
+
+    **Technical comments**
+
+    This function could look better inside the class SubHydroW where it was before. However, it was not possible
+    to use it on the command line and it was not pratical for having two thread (it is impossible to have a method
+    as a second thread)
+
+    This function creates an hdf5 file which contains the hydrological data. First it creates an empty hdf5.
+    Then it fill the hdf5 with data. For 1D model, it fill the data in 1D (the original data), then the 1.5D data
+    created by dist_vitess2.py and finally the 2D data. For model in 2D it only saved 2D data. Hence, the 2D data
+    is the data which is common to all model and which can always be loaded from a hydrological hdf5 created by
+    HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
+    created hdf5:
+
+    *   Name of the file: name_projet  +  ’_’ +  name model + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
+    *   Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)
+    *   Format of the hdf5 file:
+
+        *   Dats_gen:  number of time step and number of reach
+        *   Data_1D:  xhzv_data_all (given profile by profile)
+        *   Data_15D :  vh_pro, coord_pro (given profile by profile in a dict) and nb_pro_reach.
+        *   Data_2D : For each time step, for each reach: ikle, point, point_c, inter_h, inter_vel
+
+    If a list has elements with a changing number of variables, it is necessary to create a dictionary to save
+    this list in hdf5. For example, a dictionary will be needed to save the following list: [[1,2,3,4], [1,2,3]].
+    This is used for example, to save data by profile as we can have profile with more or less points. We also note
+    in the hdf5 attribute some important info such as the project name, path to the project, hdf5 version.
+    This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
+    hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.
+
+    Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.
+    """
+
+    # create hdf5 name
+    h5name = name_prj + '_' + model_type + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+
+    # create a new hdf5
+    fname = os.path.join(path_hdf5, h5name)
+    file = h5py.File(fname, 'w')
+
+    # create attributes
+    file.attrs['path_projet'] = path_prj
+    file.attrs['name_projet'] = name_prj
+    file.attrs['HDF5_version'] = h5py.version.hdf5_version
+    file.attrs['h5py_version'] = h5py.version.version
+
+    # create all datasets and group
+    data_all = file.create_group('Data_gen')
+    timeg = data_all.create_group('Nb_timestep')
+    timeg.create_dataset(h5name, data=len(ikle_all_t) - 1)  # the first time step is for the whole profile
+    nreachg = data_all.create_group('Nb_reach')
+    nreachg.create_dataset(h5name, data=len(ikle_all_t[0]))
+    # data by type of model (1D, 1.5D, 2D)
+    if nb_dim == 1:
+        Data_1D = file.create_group('Data_1D')
+        xhzv_datag = Data_1D.create_group('xhzv_data')
+        xhzv_datag.create_dataset(h5name, data=xhzv_data)
+    if nb_dim < 2:
+        Data_15D = file.create_group('Data_15D')
+        adict = dict()
+        for p in range(0, len(coord_pro)):
+            ns = 'p' + str(p)
+            adict[ns] = coord_pro[p]
+        coord_prog = Data_15D.create_group('coord_pro')
+        for k, v in adict.items():
+            coord_prog.create_dataset(k, data=v)
+            # coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
+        for t in range(0, len(vh_pro)):
+            there = Data_15D.create_group('Timestep_' + str(t))
+            adict = dict()
+            for p in range(0, len(vh_pro[t])):
+                ns = 'p' + str(p)
+                adict[ns] = vh_pro[t][p]
+            for k, v in adict.items():
+                there.create_dataset(k, data=v)
+        nbproreachg = Data_15D.create_group('Number_profile_by_reach')
+        nb_pro_reach2 = list(map(float, nb_pro_reach))
+        nbproreachg.create_dataset(h5name, [len(nb_pro_reach2), 1], data=nb_pro_reach2)
+    if nb_dim <= 2:
+        Data_2D = file.create_group('Data_2D')
+        for t in range(0, len(ikle_all_t)):
+            if t == 0:
+                there = Data_2D.create_group('Whole_Profile')
+            else:
+                there = Data_2D.create_group('Timestep_' + str(t - 1))
+            for r in range(0, len(ikle_all_t[t])):
+                rhere = there.create_group('Reach_' + str(r))
+                ikleg = rhere.create_group('ikle')
+                if len(ikle_all_t[t][r]) > 0:
+                    ikleg.create_dataset(h5name, [len(ikle_all_t[t][r]), len(ikle_all_t[t][r][0])],
+                                         data=ikle_all_t[t][r])
+                else:
+                    print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
+                    ikleg.create_dataset(h5name, [len(ikle_all_t[t][r])], data=ikle_all_t[t][r])
+                point_allg = rhere.create_group('point_all')
+                point_allg.create_dataset(h5name, [len(point_all_t[t][r]), 2], data=point_all_t[t][r])
+                point_cg = rhere.create_group('point_c_all')
+                point_cg.create_dataset(h5name, [len(point_c_all_t[t][r]), 2], data=point_c_all_t[t][r])
+                if len(inter_vel_all_t[t]) > 0:
+                    inter_velg = rhere.create_group('inter_vel_all')
+                    inter_velg.create_dataset(h5name, [len(inter_vel_all_t[t][r]), 1],
+                                              data=inter_vel_all_t[t][r])
+                else:
+                    rhere.create_group('inter_vel_all')
+                if len(inter_h_all_t[t]) > 0:
+                    inter_hg = rhere.create_group('inter_h_all')
+                    inter_hg.create_dataset(h5name, [len(inter_h_all_t[t][r]), 1],
+                                            data=inter_h_all_t[t][r])
+                else:
+                    rhere.create_group('inter_h_all')
+    file.close()
+
+    # save the file to the xml of the project
+    filename_prj = os.path.join(path_prj, name_prj + '.xml')
+    if not os.path.isfile(filename_prj):
+        print('Error: No project saved. Please create a project first in the General tab.\n')
+        return
+    else:
+        doc = ET.parse(filename_prj)
+        root = doc.getroot()
+        child = root.find(".//" + model_type)
+        if child is None:
+            stathab_element = ET.SubElement(root, model_type)
+            hdf5file = ET.SubElement(stathab_element, "hdf5_hydrodata")
+            hdf5file.text = fname
+        else:
+            hdf5file = root.find(".//" + model_type + "/hdf5_hydrodata")
+            if hdf5file is None:
+                hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+                hdf5file.text = fname
+            else:
+                # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
+                hdf5file.text = fname  # keep only the new file
+        doc.write(filename_prj)
+
+    # # send a signal to the substrate tab so it can account for the new info
+    # self.drop_hydro.emit()
+    return

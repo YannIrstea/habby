@@ -21,7 +21,7 @@ def main():
     which_mod = [True, True, True, True]  # change to False to not test a model type
     max_timestep = 10
     path_im = r"D:\Diane_work\version\file_test\fig_test"
-    interp_method = 1  # can be 1 (by block),2 (interpolation linear)
+    interp_method = 0 # can be 0 (by block),1 (interpolation linear), 2 interpolation cut gr
     colorama.init()  # for fun color on the cmd
     pro_add = 5
 
@@ -46,17 +46,16 @@ def main():
             [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(geo_name[i], output_name[i],dirwithtest, dirwithtest,path_im, False)
             for t in range(0, min(max_timestep, len(vh_pro))):
                 # create grid
-                if interp_method == 1:
+                if interp_method == 0:
                     [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                         manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
-                elif interp_method == 2:
+                elif interp_method == 1:
                     [point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro2, point_c_all] = \
                         manage_grid_8.create_grid(coord_pro, pro_add,[],[], nb_pro_reach, vh_pro[t])
                     [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_all_reach, coord_pro2,vh_pro[t])
 
                 # do figure
-                manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
-                                        inter_vel_all, inter_height_all,path_im)
+                manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
             b = time.time()
             print('The following test was done: ' + geo_name[i])
             print( 'Time spend: ' + str((b - a)/(t+1)) + 'sec for' + str(len(ikle_all[0])) + ' cells\n')
@@ -87,16 +86,15 @@ def main():
             for t in range(0, min(max_timestep, len(vh_pro))):
                 # create grid
                 a = time.time()
-                if interp_method == 1:
+                if interp_method == 0:
                     [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                         manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
-                elif interp_method == 2:
+                elif interp_method == 1:
                     [point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro2, point_c_all] = \
                         manage_grid_8.create_grid(coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
                     [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_all_reach, coord_pro2,
                                                                                      vh_pro[t])
-                manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
-                                        inter_vel_all, inter_height_all, path_im)
+                manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
                 print('Time step: ' + str(t))
                 if t % 30 == 0:
                     plt.show()
@@ -133,16 +131,15 @@ def main():
             vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning_array, np_point_vel, 1,on_profile)
             # create grid
             for t in range(0, min(max_timestep, len(vh_pro))):
-                if interp_method == 1:
+                if interp_method == 0:
                     [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                         manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
-                elif interp_method == 2:
+                elif interp_method == 1:
                     [point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro2, point_c_all] = \
                         manage_grid_8.create_grid(coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
                     [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_all_reach, coord_pro2,
                                                                                      vh_pro[t])
-                manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
-                                        inter_vel_all, inter_height_all, path_im)
+                manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
             b = time.time()
             print('The following test was done: ' + geo_name[i] + '\n')
             print('Time spend per time step: ' + str((b - a)/(t+1)) + 'sec for ' + str(len(ikle_all[0])) + ' cells\n')
@@ -170,18 +167,26 @@ def main():
             # distribute velcoity
             manning_array = dist_vistess2.get_manning(manning, np_point_vel, len(coord_pro), coord_pro)
             vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning_array, np_point_vel, 1)
+            if interp_method == 2:
+                [point_whole, ikle_whole, lim_by_reach, hole_all_i, overlap, blob, point_c_all] = \
+                    manage_grid_8.create_grid(coord_pro, pro_add, [], [], nb_pro_reach,vh_pro[0])
             # create grid
             for t in range(0, min(max_timestep, len(vh_pro))):
-                if interp_method == 1:
+                if interp_method == 0:
                     [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                         manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
-                elif interp_method == 2:
+                elif interp_method == 1:
                     [point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro2, point_c_all] = \
                         manage_grid_8.create_grid(coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
                     [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_all_reach, coord_pro2,
                                                                                      vh_pro[t])
-                manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
-                                        inter_vel_all, inter_height_all, path_im)
+                elif interp_method == 2: # just a random test
+                    coord_pro2 = manage_grid_8.update_coord_pro_with_vh_pro(coord_pro, vh_pro[t])
+                    [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_whole, coord_pro2,vh_pro[t])
+                    [ikle_all, point_all_reach, inter_height_all, inter_vel_all] = manage_grid_8.cut_2d_grid_all_reach(
+                        ikle_whole, point_whole, inter_height_all, inter_vel_all)
+                manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
+            plt.show()
             b = time.time()
             print('The following test was done: ' + geo_name[i] + '\n')
             print('Time spend per time step: ' + str((b - a)/(t+1)) + 'sec for ' + str(len(ikle_all[0])) + ' cells\n')

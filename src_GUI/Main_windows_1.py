@@ -479,10 +479,11 @@ class MainWindows(QMainWindow):
         # create an empty project
         self.empty_project()
 
-        # open a new Windows to
+        # open a new Windows to ask for the info for the project
         self.createnew = CreateNewProject(self.lang, self.path_trans, self.file_langue)
         self.createnew.show()
         self.createnew.save_project.connect(self.save_project_if_new_project)
+        self.createnew.send_log.connect(self.central_widget.write_log)
 
     def save_project_if_new_project(self):
         """
@@ -784,6 +785,13 @@ class CreateNewProject(QWidget):
     A class which is used to help the user to create a new project
     """
     save_project = pyqtSignal()
+    """
+    a signal to save the project
+    """
+    send_log = pyqtSignal(str, name='send_log')
+    """
+       A PyQt signal used to write the log
+    """
 
     def __init__(self, lang, path_trans, file_langue):
 
@@ -798,9 +806,7 @@ class CreateNewProject(QWidget):
         self.languageTranslator.load(file_langue[int(lang)], path_trans)
         app.installTranslator(self.languageTranslator)
 
-
         self.init_iu()
-
 
     def init_iu(self):
         lg = QLabel(self.tr(" <b> Create a new project </b>"))

@@ -1,12 +1,8 @@
 import numpy as np
-from src import mascaret
 from src import dist_vistess2
 import triangle
 import matplotlib.pyplot as plt
 import time
-from src import rubar
-from src import Hec_ras06
-from src import selafin_habby1
 import scipy.interpolate
 import scipy.spatial.qhull as qhull
 import itertools
@@ -362,8 +358,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     row_mask = np.append([True], np.any(np.diff(sorted_data, axis=0), 1))
     test_unique = sorted_data[row_mask]
     if len(test_unique) != len(point_all):
-        print('Warning: There is duplicate points. The triangulation might fail.'
-              ' Correction will be slow and unprecise.\n')
+        print('Warning: There is duplicate points. The triangulation might fail.\n')
         # this is slow , but it might solve problems
         # j = 0
         # unique_find = []
@@ -781,6 +776,35 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     return point_all, ikle,  point_c, p_not_found
 
 
+def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all):
+    """
+    This function si just use to call cut_2d-grid for all reach. So that if we have a river with more than reach, we
+    do not need to add a for loops to call for all reach. Sometime it can save place. This can be only use for one
+    time step.
+
+    :param ikle_all: the connectivity table of the 2D grid for all reach
+    :param point_all: the coordinate of the points for all reach
+    :param inter_height_all: the water height data given on the nodes for all reach
+    :param inter_vel_all: the velcoity given on the nodes for all reach
+    :return: the update connectivity table, the coodinate of the point, the height of the water and the
+             velocity on the updated grid fro all reaches
+    """
+
+    ikle_all_new = []
+    point_all_new = []
+    inter_height_all_new = []
+    inter_vel_all_new = []
+    for r in range(0, len(ikle_all)):
+        [ikle, point_reach, inter_height, inter_vel] = cut_2d_grid(ikle_all[r], point_all[r],
+                                                                                inter_height_all[r], inter_vel_all[r])
+        ikle_all_new.append(ikle)
+        point_all_new.append(point_reach)
+        inter_height_all_new.append(inter_height)
+        inter_vel_all_new.append(inter_vel)
+
+    return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
+
+
 def cut_2d_grid(ikle, point_all, water_height,velocity):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
@@ -788,7 +812,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     This function works for one time steps and for one reach
 
     :param ikle: the connectivity table of the 2D grid
-    :param point_all: the coordinate of the point
+    :param point_all: the coordinate of the points
     :param water_height: the water height data given on the nodes
     :param velocity: the velcoity given on the nodes
     :return: the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
@@ -1408,17 +1432,21 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
         wts_new.append(wts)
 
         # velocity
+        max_vel = max(vel_in[r])
         inter_vel = interpolate_opti(vel_in[r], vtx, wts)
         # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_vel[np.isnan(inter_vel)] = 0
         inter_vel[inter_vel < 0] = 0
+        inter_vel[inter_vel > max_vel] = max_vel
         vel_node.append(inter_vel)
 
         # height
+        max_height = max(height_in[r])
         inter_height = interpolate_opti(height_in[r], vtx, wts)
         # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_height[np.isnan(inter_height)] = 0
         inter_height[inter_height < 0] = 0
+        inter_height[inter_height > max_height] = max_height
         height_node.append(inter_height)
 
     if warn1:
@@ -1872,7 +1900,7 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
             inter_h = inter_h_all[r]
             if len(point_here) == len(inter_h):
                 inter_h[inter_h < 0] = 0
-                mh = np.median(inter_h[inter_h>0]) * 10
+                mh = np.median(inter_h[inter_h > 0]) * 10
                 bounds = np.linspace(0, mh, 10)
                 sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, vmin=0, vmax=mh,
                                      cmap=cm, levels=bounds, extend='both')

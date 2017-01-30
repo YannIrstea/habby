@@ -1,11 +1,13 @@
 
 import os
-import re
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 from src import hec_ras2D
-from src import mascaret
+from io import StringIO
+from src import load_hdf5
+from src import manage_grid_8
 import xml.etree.ElementTree as Etree
 
 
@@ -576,9 +578,86 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     # plt.show()
 
 
+def load_rubar2d_and_create_grid(geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,
+                                 nb_dim, path_hdf5, q=[]):
+    """
+    This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
+    interpolation and to save the whole in an hdf5 format
+
+    :param geofile: the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)
+    :param tpsfile: the name of the .tps file (string)
+    :param pathgeo: path to the geo file (string)
+    :param pathtps: path to the tps file which contains the outputs (string)
+    :param path_im: the path where to save the figure (string)
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
+    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
+    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
+    :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    :return: velocity and height at the node, the coordinate of the point of the cells,
+             the coordinates of the center of the cells and the connectivity table.
+    """
+
+    # create the empy output
+    inter_vel_all_t = []
+    inter_h_all_t = []
+    ikle_all_t = []
+    point_all_t = []
+    point_c_all_t = []
+
+    # load data
+    sys.stdout = mystdout = StringIO()
+    [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
+        = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
+
+    if vel_cell == [-99]:
+        print('Error: Rubar data not loaded.')
+        return
+
+    # create grid
+    # first, the grid for the whole profile (no velcoity or height data)
+    # because we have a "whole" grid for 1D model before the actual time step
+    inter_h_all_t.append([[]])
+    inter_vel_all_t.append([[]])
+    point_all_t.append([coord_p])
+    point_c_all_t.append([coord_c])
+    ikle_all_t.append([ikle_base])
+
+    # the grid data for each time step
+    warn1 = False
+    for t in range(0, len(vel_cell)):
+        # get data no the node (and not on the cells) by linear interpolation
+        if t == 0:
+            [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
+                                                                        [coord_c], vel_cell[t],height_cell[t], warn1)
+        else:
+            [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p], [coord_c],
+                                                                 vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
+        # cut the grid to the water limit
+        [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p, height_node[0], vel_node[0])
+
+        inter_h_all_t.append([water_height])
+        inter_vel_all_t.append([velocity])
+        point_all_t.append([point_all])
+        point_c_all_t.append([[]])
+        ikle_all_t.append([ikle])
+        warn1 = False
+
+    # save data
+    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+                        inter_vel_all_t, inter_h_all_t)
+
+    sys.stdout = sys.__stdout__
+    if q:
+        q.put(mystdout)
+    else:
+        return
+
+
 def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     """
-    This is the function used to load the RUBAR data in 2D
+    This is the function used to load the RUBAR data in 2D.
 
     :param geofile: the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)
     :param tpsfile: the name of the .tps file (string)

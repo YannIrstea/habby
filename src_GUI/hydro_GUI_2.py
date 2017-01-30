@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import shutil
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread
+from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, QTimer
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox
@@ -280,6 +280,11 @@ class SubHydroW(QWidget):
     """
     A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.
     """
+    show_fig = pyqtSignal()
+    """
+    A PyQtsignal to show the figure.
+    """
+
 
     def __init__(self, path_prj, name_prj):
 
@@ -309,7 +314,10 @@ class SubHydroW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
+        self.timer = QTimer()
         self.mystdout = None
+        self.p = None  # second process
+        self.q = None
         super().__init__()
 
     def was_model_loaded_before(self, i=0, many_file=False):
@@ -671,8 +679,15 @@ class SubHydroW(QWidget):
         the "loading' function of hec-ras 1D, Mascaret and Rubar BE.
         :param cb_im: A boolean if true, the figures are created and shown.
 
-        *Technical comment to be added*
+        *Technical comments*
 
+        Here are the list of the interpolatin choice:
+
+        *0: Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.
+        *1: Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation
+        *2: Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation
+        *3: Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step
+        and use the cut_2d_grid to get a grid with only the wet profile for all time step
         """
         # preparation
         if not isinstance(self.interpo_choice, int):
@@ -901,6 +916,68 @@ class SubHydroW(QWidget):
                 self.send_log.emit("py    [inter_vel_all, inter_height_all] = "
                                    "manage_grid_8.interpo_nearest(point_c_all, coord_pro2, vh_pro_t))\n")
                 self.send_log.emit("restart INTERPOLATE_NEAREST")
+        elif self.interpo_choice == 3:
+            # linear interpolatin again but using the function cut_grid instead of create_grid for all time step
+            try:
+                self.pro_add = int(self.nb_extrapro_text.text())
+            except ValueError:
+                self.send_log.emit('Error: Number of profile not recognized.\n')
+                return
+            self.send_log.emit(self.tr('# Create grid by nearest neighbors interpolation.'))
+            if 1 > self.pro_add > 500:
+                self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
+                return
+            # grid for the whole profile,
+            q = Queue()
+            ok = 0
+            k = self.pro_add
+            while ok == 0:
+                # [], [] is used to add the substrate as a condition directly
+                p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
+                                                                    [], self.nb_pro_reach, [], q))
+                self.send_err_log()
+                p.start()
+                time.sleep(1)
+                if p.exitcode == None:
+                    point_all_reach = q.get()
+                    ikle_all = q.get()
+                    lim_by_reach = q.get()
+                    hole_all = q.get()
+                    overlap = q.get()
+                    blob = q.get()
+                    point_c_all = q.get()
+                    ok = 1
+                else:
+                    return
+                p.terminate()
+            self.send_err_log()
+            self.inter_vel_all_t.append([])
+            self.inter_h_all_t.append([])
+            self.ikle_all_t.append(ikle_all)
+            self.point_all_t.append(point_all_reach)
+            self.point_c_all_t.append(point_c_all)
+            self.send_err_log()
+            # update coord, interpolate on this grid for all time step linearly and cut the grid
+            for t in range(0, len(self.vh_pro)):
+                coord_pro2 = manage_grid_8.update_coord_pro_with_vh_pro(self.coord_pro, self.vh_pro[t])
+                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(self.point_all_t[0], coord_pro2,
+                                                                                 self.vh_pro[t])
+                [ikle_all, point_all_reach, inter_height_all, inter_vel_all] = manage_grid_8.cut_2d_grid_all_reach(
+                    self.ikle_all_t[0], self.point_all_t[0], inter_height_all,inter_vel_all)
+            # create grid for the wet area by time steps
+                self.send_err_log()
+                self.inter_vel_all_t.append(inter_vel_all)
+                self.inter_h_all_t.append(inter_height_all)
+                self.ikle_all_t.append(ikle_all)
+                self.point_all_t.append(point_all_reach)
+                self.point_c_all_t.append(point_c_all)
+                if cb_im and path_im != 'no_path':
+                    manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
+                    # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                    # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+                self.send_err_log()
+            self.send_log.emit("py    interpolate_cut_linear (to be redone in cmd)\n")
+            self.send_log.emit("restart INTERPOLATE_CUT_LINEAR")
         else:
             self.send_log.emit('Error: Interpolation method is not recognized (Num).\n')
         return
@@ -1005,6 +1082,32 @@ class SubHydroW(QWidget):
         self.save_xml(3)
 
         self.manning_arr = manning
+
+    def send_data(self):
+        """
+        This function is call regularly by the methods which have a second thread (so moslty the function
+        to load the hydrological data). This function just wait while the thread is alive. When it has terminated, it
+        shows the figure and the error messages.
+        """
+        if not self.q.empty():
+            self.mystdout = self.q.get()
+            self.send_err_log()
+
+            # create the figure and show them
+            if self.cb.isChecked():
+                path_im = self.find_path_im()
+                name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
+                if name_hdf5:
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5)
+                    for t in [-1]:  # range(0, len(vel_cell)):
+                        manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], inter_vel_all_t[t], inter_h_all_t[t],
+                                                       path_im)
+                    self.show_fig.emit()
+                else:
+                    self.send_log.emit("The hydrological model ws not found. Figures could not be shown")
+            self.timer.stop()
+
+
 
 
 class HEC_RAS1D(SubHydroW):
@@ -1184,10 +1287,6 @@ class Rubar2D(SubHydroW):
     the class SubHydroW(). The form of the function is similar to hec-ras, but it does not have the part about the grid
     creation as we look here as the data created in 2D by RUBAR.
     """
-    show_fig = pyqtSignal()
-    """
-    A PyQtsignal to show the figure.
-    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -1198,6 +1297,10 @@ class Rubar2D(SubHydroW):
         """
         used by ___init__() in the initialization.
         """
+        # update error or show figure every 3 second
+        self.timer.setInterval(3000)
+        self.timer.timeout.connect(self.send_data)
+
         # update attibute for rubar 2d
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
@@ -1248,99 +1351,48 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addItem(self.spacer, 4, 1)
         self.setLayout(self.layout_hec)
 
-
     def load_rubar(self):
         """
         A function to execture the loading and saving the the rubar file using rubar.py. It is similar to the
         load_hec_ras_gui() function. Obviously, it calls rubar and not hec_ras this time. A small difference is that
-        the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it will be
+        the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it is
         necessary to cut the grid for each time step as a function of the wetted area and maybe to separate the
-        grid by reaches. This have not be done yet.
+        grid by reaches.  Another problem is that the data of Rubar2D is given on the cells of the grid and not the
+        nodes. So we use linear interpolation to correct for this.
 
-        Another problem is that the data of Rubar2D is given on the cells of the grid and not the nodes.
-        This will need to be corrected as data in HABBY is centered on the node.
+        A second thread is used to avoid "freezing" the GUI.
+
         """
+        # for error management andfigures
+        self.timer.start(1000)
 
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
+        # the path where to save the image
         path_im = self.find_path_im()
-        # if self.cb.isChecked() and path_im != 'no_path':
-        #     self.save_fig = True
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_im()
 
-        # load rubar 2d data
-        a = time.time()
-        sys.stdout = self.mystdout = StringIO()
-        [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
-            = rubar.load_rubar2d(self.namefile[0], self.namefile[1],  self.pathfile[0], self.pathfile[1],
-                                 path_im, False)  # True to get figure
-        sys.stdout = sys.__stdout__
-        b = time.time()
-        print('Time to load data:')
-        print(b-a)
+        # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
+        self.q = Queue()
+        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.namefile[0], self.namefile[1],
+                                self.pathfile[0], self.pathfile[1], path_im, self.name_prj,
+                                self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+        self.p.start()
 
         # log info
         self.send_log.emit(self.tr('# Load: Rubar 2D data.'))
-        self.send_err_log()
+        #self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    [v_c, h_c, coord_p, coord_c, ikle] = rubar.load_rubar2d(file1,"
-                           " file2, path1, path2, '.', False)\n")
+        self.send_log.emit("py    load_rubar2d_and_create_grid(file1, file2, path1, path2, path2, True, "
+                           "name_projet, path_projet, 'RUBAR_2D', 2, '.', )\n")
         self.send_log.emit("restart LOAD_RUBAR_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
-
-        if self.inter_vel_all_t == [-99]:
-            self.send_log.emit('Error: Rubar data not loaded.')
-            return
-
-        # pass from cell data to node data
-        a = time.time()
-        sys.stdout = self.mystdout = StringIO()
-        warn1 = True
-        # because we have a "whole" grid for 1D model before the actual time step
-        self.inter_h_all_t.append([[]])
-        self.inter_vel_all_t.append([[]])
-        self.point_all_t.append([coord_p])
-        self.point_c_all_t.append([coord_c])
-        self.ikle_all_t.append([ikle_base])
-
-        for t in range(0, len(vel_cell)):
-            if t == 0:
-                [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
-                                                                [coord_c], vel_cell[t], height_cell[t], warn1)
-            else:
-                [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
-                                                         [coord_c], vel_cell[t],height_cell[t], warn1, vtx_all, wts_all)
-
-            [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p,
-                                                                                 height_node[0], vel_node[0])
-
-            self.inter_h_all_t.append([water_height])
-            self.inter_vel_all_t.append([velocity])
-            self.point_all_t.append([point_all])
-            self.point_c_all_t.append([[]])
-            self.ikle_all_t.append([ikle])
-            warn1 = False
-        sys.stdout = sys.__stdout__
-        b = time.time()
-        print('Time to interpolate')
-        print(b-a)
-        self.send_log.emit(self.tr('# Pass from cell data to node data by linear interpolation'))
-        self.send_err_log()
-        self.send_log.emit("py    [v,h] = manage_grid_8.pass_grid_cell_to_node_lin(coord_p, coord_c, v_c, h_c) ")
-        self.send_log.emit("restart  INTERPOLATE_CELL_TO_NODE")
-
-        self.save_hdf5()
-
-        if self.cb.isChecked():
-            for t in [-1]:#range(0, len(vel_cell)):
-                manage_grid_8.plot_grid_simple(self.point_all_t[t], self.ikle_all_t[t], self.inter_vel_all_t[t],
-                                               self.inter_h_all_t[t], path_im)
-            self.show_fig.emit()
-
 
     def propose_next_file(self):
         """
