@@ -1195,7 +1195,7 @@ class WelcomeW(QWidget):
     def __init__(self):
 
         super().__init__()
-        self.imname = r'\src_GUI\test3.jpg'  # image shoulfd in the src_GUI folder
+        self.imname = r'\translation\test3.jpg'  # image shoulfd in the src_GUI folder
         self.init_iu()
 
     def init_iu(self):
