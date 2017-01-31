@@ -5,8 +5,79 @@ import matplotlib.pyplot as plt
 from src import hec_ras2D
 import time
 from src import manage_grid_8
+from src import load_hdf5
 from io import StringIO
 import sys
+
+
+def load_river2d_and_cut_grid(namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+    """
+    This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
+    River2D() in hydro_GUI_2. This function was added as it was practical to have a second thread to avoid freezing
+    the GUI.
+
+    :param namefiles: the names of all the cdg file (list of string)
+    :param paths: the path to the files (list of string).
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
+    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
+    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
+    :param q: used to send the error back from the second thread (can be used to send other variable too)
+    """
+
+    # creation of array
+    xyzhv = []
+    ikle_all_t = []
+    point_c_all_t = []
+    point_all_t = []
+    inter_h_all_t = []
+    inter_vel_all_t = []
+    print('blob2')
+
+    # for all time step
+    sys.stdout = mystdout = StringIO()
+    for i in range(0, len(namefiles)):
+        # load river 2d data
+        [xyzhv_i, ikle_i, coord_c] = load_river2d_cdg(namefiles[i], paths[i])
+        if isinstance(xyzhv_i[0], int):
+            if xyzhv_i[0] == -99:
+                print('Error: River2D data could not be loaded')
+                if q:
+                    sys.stdout = sys.__stdout__
+                    q.put(mystdout)
+                    return
+                else:
+                    return
+
+        # cut grid to wet area
+        [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2],
+                                                                                xyzhv_i[:, 3], xyzhv_i[:, 4])
+
+        # mimic empty grid for t = 0 for 1 D model
+        if i == 0:
+            point_all_t.append([xyzhv_i[:, :2]])
+            ikle_all_t.append([ikle_i])
+            point_c_all_t.append([coord_c])
+            inter_h_all_t.append([])
+            inter_vel_all_t.append([])
+        point_all_t.append([point_all])
+        ikle_all_t.append([ikle_i])
+        point_c_all_t.append([[]])
+        inter_h_all_t.append([water_height])
+        inter_vel_all_t.append([velocity])
+
+    # save data
+    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+                        inter_vel_all_t, inter_h_all_t)
+
+    sys.stdout = sys.__stdout__
+    print('blob')
+    if q:
+        q.put(mystdout)
+        return
+    else:
+        return
 
 
 def load_river2d_cdg(file_cdg, path):
@@ -17,7 +88,7 @@ def load_river2d_cdg(file_cdg, path):
 
     :param file_cdg: the name of the cdg file (string)
     :param path: the path to this file (string).
-    :return: the velcoity and height data, the coordinate and the connectivity table.
+    :return: the velocity and height data, the coordinate and the connectivity table.
     """
 
     failload = [-99], [-99], [-99]

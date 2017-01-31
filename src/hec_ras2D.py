@@ -3,6 +3,93 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import sys
+from io import StringIO
+from src import manage_grid_8
+from src import load_hdf5
+
+
+def load_hec_ras_2d_and_cut_grid(filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+    """
+    This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
+     pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
+    get only the wetted area. This was done before in the HEC_RAS2D Class in hydro_gui_2.py, but it was necessary to
+    create a separate function to called this task in a second thread to avoid freezing the GUI.
+
+    :param filename: the name of the file containg the results of HEC-RAS in 2D. (string)
+    :param path: the path where the file is (string)
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
+    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
+    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
+    :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    """
+
+    # create the empy output
+    inter_vel_all_t = []
+    inter_h_all_t = []
+
+    # load hec-ras data
+    sys.stdout = mystdout = StringIO()
+    [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
+    if isinstance(vel_cell[0], int):
+        if vel_cell == [-99]:
+            print("Error: HEC-RAS2D data could not be loaded.")
+            if q:
+                sys.stdout = sys.__stdout__
+                q.put(mystdout)
+                return
+            else:
+                return
+
+    # mimic the "whole" profile for 1D model (t=0)
+    point_all_t = [coord_p]
+    point_c_all_t = [coord_c]
+    ikle_all_t = [ikle]
+    inter_h_all_t.append([])
+    inter_vel_all_t.append([])
+
+    # cut the data and pass it to node
+    warn1 = True
+    for t in range(0, len(vel_cell)):
+        # cell to node data
+        if t == 0:
+            [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
+                                                                point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+        else:
+            [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
+                                        point_c_all_t[0], vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
+        warn1 = False
+        ikle_f = []
+        point_f = []
+        v_f = []
+        h_f = []
+        for f in range(0, len(ikle_all_t[0])):  # by reach (or water area)
+            # cut grid to wet area
+            [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_all_t[0][f],
+                                                                                   point_all_t[0][f], h_node[f],
+                                                                                   v_node[f])
+            ikle_f.append(ikle2)
+            point_f.append(point_all)
+            h_f.append(water_height)
+            v_f.append(velocity)
+        inter_h_all_t.append(h_f)
+        inter_vel_all_t.append(v_f)
+        point_all_t.append(point_f)
+        point_c_all_t.append([[]])
+        ikle_all_t.append(ikle_f)
+
+    # save data
+    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+                        inter_vel_all_t, inter_h_all_t)
+
+    sys.stdout = sys.__stdout__
+    if q:
+        q.put(mystdout)
+        return
+    else:
+        return
 
 
 def load_hec_ras2d(filename, path):
@@ -55,7 +142,7 @@ def load_hec_ras2d(filename, path):
     if ext == '.hdf' or ext == '.h5':
         pass
     else:
-        print('Warning: The fils does not seem to be of hdf type.')
+        print('Warning: The file does not seem to be of Hec-ras2D (hdf) type.')
 
     # initialization
     coord_p_all = []

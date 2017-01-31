@@ -236,7 +236,8 @@ def get_all_filename(dirname, ext):
 
 def get_hdf5_name(model_name, name_prj, path_prj):
     """
-    This function get the name of the hdf5 file containg the hydrological data for an hydrological model
+    This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
+    model_name
 
     :param model_name: the name of the hydrological model as written in the attribute of the xml project file
     :param name_prj: the name of the project
@@ -252,14 +253,18 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         child = root.find(".//" + model_name)
         if child is not None:
             child = root.find(".//" + model_name + '/hdf5_hydrodata')
+            if child is not None:
+                return child.text
+            else:
+                print('Error: the data for the model was not found')
+                return ''
         else:
-            print('Error: the data fro the model was not found')
+            print('Error: the data for the model was not found')
             return ''
     else:
         print('Error: no project found')
         return ''
 
-    return child.text
 
 
 def save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
@@ -417,6 +422,4 @@ def save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, poi
                 hdf5file.text = fname  # keep only the new file
         doc.write(filename_prj)
 
-    # # send a signal to the substrate tab so it can account for the new info
-    # self.drop_hydro.emit()
     return

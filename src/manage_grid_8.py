@@ -1437,7 +1437,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
         # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_vel[np.isnan(inter_vel)] = 0
         inter_vel[inter_vel < 0] = 0
-        inter_vel[inter_vel > max_vel] = max_vel
+        inter_vel[inter_vel > max_vel] = 0
         vel_node.append(inter_vel)
 
         # height
@@ -1446,7 +1446,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
         # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_height[np.isnan(inter_height)] = 0
         inter_height[inter_height < 0] = 0
-        inter_height[inter_height > max_height] = max_height
+        inter_height[inter_height > max_height] = 0
         height_node.append(inter_height)
 
     if warn1:

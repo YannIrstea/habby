@@ -595,8 +595,6 @@ def load_rubar2d_and_create_grid(geofile, tpsfile, pathgeo, pathtps, path_im,  n
     :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
-    :return: velocity and height at the node, the coordinate of the point of the cells,
-             the coordinates of the center of the cells and the connectivity table.
     """
 
     # create the empy output
@@ -613,7 +611,12 @@ def load_rubar2d_and_create_grid(geofile, tpsfile, pathgeo, pathtps, path_im,  n
 
     if vel_cell == [-99]:
         print('Error: Rubar data not loaded.')
-        return
+        sys.stdout = sys.__stdout__
+        if q:
+            q.put(mystdout)
+            return
+        else:
+            return
 
     # create grid
     # first, the grid for the whole profile (no velcoity or height data)

@@ -80,7 +80,7 @@ class MainWindows(QMainWindow):
         self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
         app.installTranslator(self.languageTranslator)
 
-        # prepare the attributes
+        # prepare the attributes, careful if change the Qsetting!
         self.msg2 = QMessageBox()
         self.rechmain = False
         if name_path_set:
@@ -1195,7 +1195,7 @@ class WelcomeW(QWidget):
     def __init__(self):
 
         super().__init__()
-        self.imname = r'\translation\test3.jpg'  # image shoulfd in the src_GUI folder
+        self.imname = r'\translation\test3.jpg'  # image shoulfd in the translation folder
         self.init_iu()
 
     def init_iu(self):

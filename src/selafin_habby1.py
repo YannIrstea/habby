@@ -1,11 +1,69 @@
 
-
 from struct import unpack, pack
 import numpy as np
 import os
+import sys
 import warnings
 import matplotlib.pyplot as plt
 import time
+from io import StringIO
+from src import manage_grid_8
+from src import load_hdf5
+
+
+def load_telemac_and_cut_grid(namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+    """
+    This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
+    was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
+    is useful to avoid freezing the GUI.
+
+    :param namefilet: the name of the selafin file (string)
+    :param pathfilet: the path to this file (string)
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
+    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
+    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
+    :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    """
+
+    sys.stdout = mystdout = StringIO()
+
+    #load data
+    [v, h, coord_p, ikle, coord_c] = load_telemac(namefilet, pathfilet)
+    if len(v) == 1 and v == [-99]:
+        print('Error: Telemac data not loaded.')
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put(mystdout)
+            return
+        else:
+            return
+
+    # cut the grid to have the precise wet area and put data in new form
+    point_all_t = [[coord_p]]
+    ikle_all_t = [[ikle]]
+    point_c_all_t = [[coord_c]]
+    inter_h_all_t = [[]]
+    inter_vel_all_t = [[]]
+    for t in range(0, len(v)):
+        [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t])
+        point_all_t.append([point_all])  # only one reach
+        ikle_all_t.append([ikle2])
+        point_c_all_t.append([[]])
+        inter_vel_all_t.append([velocity])
+        inter_h_all_t.append([water_height])
+
+    # save data
+    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+                        inter_vel_all_t, inter_h_all_t)
+
+    sys.stdout = sys.__stdout__
+    if q:
+        q.put(mystdout)
+        return
+    else:
+        return
 
 
 def load_telemac(namefilet, pathfilet):
@@ -18,17 +76,17 @@ def load_telemac(namefilet, pathfilet):
     """
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
-    if not filename_path_res:
+    if not os.path.isfile(filename_path_res):
         print('Error: The telemac file does not exist. Cannot be loaded.')
-        return [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99]
     blob, ext = os.path.splitext(namefilet)
     if ext != '.res' and ext != '.slf':
         print('Warning: The extension of the telemac file is not .res or .slf')
     try:
         telemac_data = Selafin(filename_path_res)
-    except ValueError:
+    except ValueError or KeyError:
         print('Error: The telemac file cannot be loaded.')
-        return [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99]
     # put the data in the array and list
     nbtimes = telemac_data.tags['times'].size
     v = []

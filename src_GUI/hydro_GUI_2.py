@@ -285,7 +285,6 @@ class SubHydroW(QWidget):
     A PyQtsignal to show the figure.
     """
 
-
     def __init__(self, path_prj, name_prj):
 
         self.namefile = ['unknown file', 'unknown file']  # for children, careful with list index out of range
@@ -319,6 +318,10 @@ class SubHydroW(QWidget):
         self.p = None  # second process
         self.q = None
         super().__init__()
+
+        # update error or show figure every second
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.send_data)
 
     def was_model_loaded_before(self, i=0, many_file=False):
         """
@@ -667,7 +670,10 @@ class SubHydroW(QWidget):
         This function sends the errors and the warnings to the logs.
         The stdout was redirected to self.mystdout.
         """
-        str_found = self.mystdout.getvalue()
+        if self.mystdout is not None:
+            str_found = self.mystdout.getvalue()
+        else:
+            return
         str_found = str_found.split('\n')
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
@@ -1086,10 +1092,15 @@ class SubHydroW(QWidget):
     def send_data(self):
         """
         This function is call regularly by the methods which have a second thread (so moslty the function
-        to load the hydrological data). This function just wait while the thread is alive. When it has terminated, it
-        shows the figure and the error messages.
+        to load the hydrological data). To call this functin regularly, the variable self.timer of QTimer type is used.
+
+        This function just wait while the thread is alive. When it has terminated, it creates the figure and the error messages.
         """
+
+        # when the loading is finished
         if not self.q.empty():
+            # manage error
+            self.timer.stop()
             self.mystdout = self.q.get()
             self.send_err_log()
 
@@ -1104,10 +1115,10 @@ class SubHydroW(QWidget):
                                                        path_im)
                     self.show_fig.emit()
                 else:
-                    self.send_log.emit("The hydrological model ws not found. Figures could not be shown")
-            self.timer.stop()
-
-
+                    self.send_log.emit(self.tr("The hydrological model was not found. Figures could not be shown"))
+            self.send_log.emit(self.tr("Loading of hydrological data finished."))
+            # # send a signal to the substrate tab so it can account for the new info
+            self.drop_hydro.emit()
 
 
 class HEC_RAS1D(SubHydroW):
@@ -1116,10 +1127,6 @@ class HEC_RAS1D(SubHydroW):
    src/hec_ras06.py which loads the hec-ras data in 1D. The class HEC_RAS1D inherits from SubHydroW() so it have all
    the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
    the user is on the hydrological tab and click on hec-ras1D as hydrological model.
-    """
-    show_fig = pyqtSignal()
-    """
-    PyQtsignal to show the figure.
     """
 
     def __init__(self, path_prj, name_prj):
@@ -1297,9 +1304,6 @@ class Rubar2D(SubHydroW):
         """
         used by ___init__() in the initialization.
         """
-        # update error or show figure every 3 second
-        self.timer.setInterval(3000)
-        self.timer.timeout.connect(self.send_data)
 
         # update attibute for rubar 2d
         self.attributexml = ['rubar_geodata', 'tpsdata']
@@ -1363,7 +1367,7 @@ class Rubar2D(SubHydroW):
         A second thread is used to avoid "freezing" the GUI.
 
         """
-        # for error management andfigures
+        # for error management and figures
         self.timer.start(1000)
 
         # update the xml file of the project
@@ -1382,7 +1386,7 @@ class Rubar2D(SubHydroW):
         self.p.start()
 
         # log info
-        self.send_log.emit(self.tr('# Load: Rubar 2D data.'))
+        self.send_log.emit(self.tr('# Loading: Rubar 2D data.'))
         #self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
@@ -1423,10 +1427,6 @@ class Mascaret(SubHydroW):
     a text file with a serie of lines with the following info: p, dist, n where p is the profile number
     (starting at zero), dist is the distance in meter along the profile and n in the manning value (see the method
     load_manning_text of the class SubHydroW for more information)
-    """
-    show_fig = pyqtSignal()
-    """
-    A PyQtsignal to show the figure.
     """
 
     def __init__(self, path_prj, name_prj):
@@ -1608,11 +1608,6 @@ class River2D(SubHydroW):
     Data in River2D is given on the nodes as in HABBY.
      """
 
-    show_fig = pyqtSignal()
-    """
-    A PyQtsignal to show the figure.
-    """
-
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
         self.mystdout = None
@@ -1734,66 +1729,37 @@ class River2D(SubHydroW):
 
     def load_river2d_gui(self):
         """
-        This function is used to load the river 2d data.
+        This function is used to load the river 2d data. It use a second thread to avoid freezing the GUI
         """
+        # for error management and figures
+        self.timer.start(1000)
 
-        xyzhv = []
-        self.ikle_all_t = []
-        self.point_c_all_t = []
-        self.point_all_t = []
-        self.inter_h_all_t = []
-        self.inter_vel_all_t = []
-        self.send_log.emit(self.tr('# Load: River2D data.'))
+        path_hdf5 = self.find_path_im()
 
-        path_im = self.find_path_im()
         if len(self.namefile) == 0:
             self.send_log.emit("Warning: No file chosen.")
+            return
+
         for i in range(0, len(self.namefile)):
             # save each name in the project file, empty list on i == 0
             if i == 0:
                 self.save_xml(i, False)
             else:
                 self.save_xml(i, True)
-            # load
-            sys.stdout = self.mystdout = StringIO()
-            [xyzhv_i, ikle_i, coord_c] = river2d.load_river2d_cdg(self.namefile[i], self.pathfile[i])
-            sys.stdout = sys.__stdout__
-            # if fail
-            self.send_err_log()
-            if isinstance(xyzhv_i[0], int):
-                if xyzhv_i[0] == -99:
-                    self.send_log.emit('Error: River2D data could not be loaded')
-                    return
-            [ikle_i,  point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:,:2],
-                                                                                  xyzhv_i[:, 3], xyzhv_i[:, 4])
-            if i == 0:  # mimic empty grid for t = 0 for 1 D model
-                self.point_all_t.append([xyzhv_i[:, :2]])
-                self.ikle_all_t.append([ikle_i])
-                self.point_c_all_t.append([coord_c])
-                self.inter_h_all_t.append([])
-                self.inter_vel_all_t.append([])
-            self.point_all_t.append([point_all])
-            self.ikle_all_t.append([ikle_i])
-            self.point_c_all_t.append([[]])
-            self.inter_h_all_t.append([water_height])
-            self.inter_vel_all_t.append([velocity])
-            # for the moment plot the first time step
-            if self.cb.isChecked() and path_im != 'no_path' and i ==0:
-                manage_grid_8.plot_grid_simple(self.point_all_t[i+1], self.ikle_all_t[i+1],
-                                               self.inter_vel_all_t[i+1], self.inter_h_all_t[i+1], path_im)
-                #river2d.figure_river2d(xyzhv_i, ikle_i, path_im, i)
 
-            # log
-            self.send_log.emit("py    file1='" + self.namefile[i] + "'")
-            self.send_log.emit("py    path1='" + self.pathfile[i] + "'")
-            self.send_log.emit("py    [v, h, coord_p, coord_c, ikle] = river2d.load_river2d_cdg(file1, path1) \n")
-            self.send_log.emit("restart LOAD_RIVER_2D")
-            self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[i], self.namefile[i]))
+        self.q = Queue()
+        self.p = Process(target=river2d.load_river2d_and_cut_grid, args=(self.namefile, self.pathfile,
+                                self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+        self.p.start()
 
-        self.save_hdf5()
-
-        if self.cb.isChecked():
-            self.show_fig.emit()
+        # log
+        self.send_log.emit(self.tr('# Loading : River2D data.'))
+        self.send_log.emit("py    file1='" + self.namefile[i] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[i] + "'")
+        self.send_log.emit("py    river2d.load_river2d_and_cut_grid(file1, path1, name_prj, path_prj, 'RIVER2D', "
+                           "2, '.') \n")
+        self.send_log.emit("restart LOAD_RIVER_2D")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[i], self.namefile[i]))
 
 
 class Rubar1D(SubHydroW):
@@ -1801,10 +1767,6 @@ class Rubar1D(SubHydroW):
     The class Rubar1D is there to manage the link between the graphical interface and the functions in src/rubar.py
     which loads the Rubar1D data in 1D. It inherits from SubHydroW() so it have all the methods and the variables
     from the class SubHydroW(). It is very similar to Mascaret class.
-    """
-    show_fig = pyqtSignal()
-    """
-    A PyQtsignal to show the figures.
     """
 
     def __init__(self, path_prj, name_prj):
@@ -1956,10 +1918,6 @@ class HEC_RAS2D(SubHydroW):
     from the class SubHydroW(). It is very similar to RUBAR2D class and it has the same problem about node/cell
     which will need to be corrected.
     """
-    show_fig = pyqtSignal()
-    """
-    PyQtsignal to show the figures.
-    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -2018,98 +1976,35 @@ class HEC_RAS2D(SubHydroW):
     def load_hec_2d_gui(self):
         """
         This function calls the function which load hecras 2d and save the names of file in the project file.
-        It is similar to the function to load_rubar2D.
+        It is similar to the function to load_rubar2D. It open a second thread to avoid freezing the GUI.
+
+        When this function starts, it also starts a timer. Every three seconds, the timer run the function send_data()
+        which is the class SubHydroW(). This function checks if the thread is finished and, it is finished, manage
+        figure and errors.
         """
+        # save the name of the file in the xml project file
         self.save_xml(0)
-        path_im = self.find_path_im()
-        # load the hec_ras data
-        a = time.time()
-        sys.stdout = self.mystdout = StringIO()
-        [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(self.namefile[0], self.pathfile[0])
-        sys.stdout = sys.__stdout__
-        b = time.time()
-        print('Time to load data:')
-        print(b-a)
+
+        # for error management and figures
+        self.timer.start(1000)
+
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_im()
+
+        # load the hec_ras data and cut the grid to the needed side
+        self.q = Queue()
+        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.namefile[0], self.pathfile[0],
+                                     self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+        self.p.start()
 
         # log info
-        self.send_log.emit(self.tr('# Load: HEC-RAS 2D.'))
-        self.send_err_log()
+        self.send_log.emit(self.tr('# Loading: HEC-RAS 2D.'))
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    [v, h, elev, coord_p, coord_c, ikle] = hec_ras2D.load_hec_ras2d(file1, path1)\n")
+        self.send_log.emit("py  hec_ras2D.load_hec_ras_2d_and_cut_grid(file1, path1, name_prj, path_prj,"
+                           " 'HECRAS2D', 2, '.')\n")
         self.send_log.emit("restart LOAD_HECRAS_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-
-        if isinstance(vel_cell[0], int):
-            if vel_cell == [-99]:
-                self.send_log.emit("Error: HEC-RAS2D data could not be loaded.")
-                return
-        warn1 = True
-        a = time.time()
-
-        # mimic the "whole" profile for 1D model (t=0)
-        self.point_all_t = [coord_p]
-        self.point_c_all_t = [coord_c]
-        self.ikle_all_t = [ikle]
-        self.inter_h_all_t.append([])
-        self.inter_vel_all_t.append([])
-
-        # create node grid with only wetted area
-        for t in range(0, len(vel_cell)):
-            # cell to node data
-            sys.stdout = self.mystdout = StringIO()
-            if t == 0:
-                [v_node, h_node,  vtx_all, wts_all ] = manage_grid_8.pass_grid_cell_to_node_lin(
-                    self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
-            else:
-                [v_node, h_node,vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(
-                    self.point_all_t[0], self.point_c_all_t[0], vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
-            sys.stdout = sys.__stdout__
-            warn1 = False
-            ikle_f = []
-            point_f = []
-            v_f = []
-            h_f = []
-            for f in range(0, len(self.ikle_all_t[0])):  # by reach (or water area)
-                # cut grid to wet area
-                [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(self.ikle_all_t[0][f],
-                                                                        self.point_all_t[0][f], h_node[f], v_node[f])
-                ikle_f.append(ikle2)
-                point_f.append(point_all)
-                h_f.append(water_height)
-                v_f.append(velocity)
-            self.inter_h_all_t.append(h_f)
-            self.inter_vel_all_t.append(v_f)
-            self.point_all_t.append(point_f)
-            self.point_c_all_t.append([[]])
-            self.ikle_all_t.append(ikle_f)
-
-        b = time.time()
-        self.send_log.emit(self.tr('# Pass from cell data to node data by linear interpolation'))
-        self.send_err_log()
-        self.send_log.emit("py    [v,h] = manage_grid_8.pass_grid_cell_to_node_lin(coord_p, coord_c, v_c, h_c) ")
-        self.send_log.emit("restart  INTERPOLATE_CELL_TO_NODE")
-
-        print('Time to interpolate data:')
-        print(b - a)
-
-        # save
-        a = time.time()
-        self.save_hdf5()
-        b = time.time()
-        print('time to save data')
-        print(b-a)
-
-        if self.cb.isChecked() and path_im != 'no_path':
-            # plot output
-            a = time.time()
-            # hec_ras2D.figure_hec_ras2d(vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, path_im, [-1], [0])
-            manage_grid_8.plot_grid_simple(self.point_all_t[-1], self.ikle_all_t[-1], self.inter_vel_all_t[-1],
-                                           self.inter_h_all_t[-1], path_im)
-            b = time.time()
-            print('time to do figures')
-            print(b-a)
-            self.show_fig.emit()
 
 
 class TELEMAC(SubHydroW):
@@ -2179,51 +2074,27 @@ class TELEMAC(SubHydroW):
         """
         The function which call the function which load telemac and save the name of files in the project file
         """
+        # for error management and figures
+        self.timer.start(1000)
+        # write the new file name in the project file
         self.save_xml(0)
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_im()
         # load the telemac data
-        path_im = self.find_path_im()
-        sys.stdout = self.mystdout = StringIO()
-        [v, h, coord_p, ikle, coord_c] = selafin_habby1.load_telemac(self.namefile[0], self.pathfile[0])
-        sys.stdout = sys.__stdout__
-
-        # cut the grid to have the precise wet area and put data in new form
-        self.point_all_t = [[coord_p]]
-        self.ikle_all_t = [[ikle]]
-        self.point_c_all_t = [[coord_c]]
-        self.inter_h_all_t = [[]]
-        self.inter_vel_all_t = [[]]
-        for t in range(0, len(v)):
-            [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t],  v[t])
-            self.point_all_t.append([point_all])  # only one reach
-            self.ikle_all_t.append([ikle2])
-            self.point_c_all_t.append([[]])
-            self.inter_vel_all_t.append([velocity])
-            self.inter_h_all_t.append([water_height])
-
+        self.q = Queue()
+        self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.namefile[0],self.pathfile[0],
+                                          self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+        self.p.start()
 
         # log info
-        self.send_log.emit(self.tr('# Load: TELEMAC data.'))
+        self.send_log.emit(self.tr('# Loading: TELEMAC data.'))
         self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    [[v, h, coord_p, ikle] = selafin_habby1.load_telemac(file1, path1)\n")
+        self.send_log.emit("py   selafin_habby1.load_telemac_and_cut_grid(file1, path1, name_prj, path_prj, 'TELEMAC', "
+                           "2, '.' )\n")
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-
-        if len(v) == 1 and v[0] == [-99]:
-            self.send_log.emit('Error: Telemac data not loaded.')
-            return
-
-        # save
-        self.save_hdf5()
-
-        #plot image
-        if self.cb.isChecked() and path_im != 'no_path':
-            #selafin_habby1.plot_vel_h(coord_p, h, v, path_im)
-            for t in range(1, len(self.point_all_t)):
-                manage_grid_8.plot_grid_simple(self.point_all_t[t], self.ikle_all_t[t],
-                                                   self.inter_vel_all_t[t], self.inter_h_all_t[t], path_im)
-            self.show_fig.emit()
 
 
 class SubstrateW(SubHydroW):
