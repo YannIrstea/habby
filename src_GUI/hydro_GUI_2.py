@@ -2013,10 +2013,6 @@ class TELEMAC(SubHydroW):
     which loads the Telemac data in 2D. It inherits from SubHydroW() so it have all the methods and the variables
     from the class SubHydroW(). It is very similar to RUBAR2D class, but data from Telemac is on the node as in HABBY.
     """
-    show_fig = pyqtSignal()
-    """
-    A PyQtsignal to show the figure.
-    """
 
     def __init__(self, path_prj, name_prj):
 
@@ -2101,10 +2097,6 @@ class SubstrateW(SubHydroW):
     """
     This is the widget used to load the substrate. It is practical to re-use some of the method from SubHydroW.
     So this class inherit from SubHydroW.
-    """
-    show_fig = pyqtSignal()
-    """
-    A PyQtsignal to show the figures.
     """
 
     def __init__(self, path_prj, name_prj):
@@ -2203,11 +2195,16 @@ class SubstrateW(SubHydroW):
     def update_hydro_hdf5_name(self):
         """
         This is a short function used to read all the hydrological data contained in an hdf5 files and available in
-        one project. When these files are read, they are added to the drop-down menu;
+        one project.
+
+        When these files are read, they are added to the drop-down menu. If we have more than one hdf5 file, the first
+        item is blank to insure that the user actively choose the hdf5 to reduce the risk of error (Otherwise the user
+        might create the merge hdf5 without seeing that he needs to select the right hydrological hdf5).
         This should be a function because an update to this list can be triggered by the loading of a new hydrological
         data. The class SubstrateW() noticed this through the signal drop_hydro send by the hydrological class.
-        The signal drop_hydro is connected to this function in the class CentralW in MainWindows.py. Indeed, it is not
+        The signal drop_hydro is connected to this function is in the class CentralW in MainWindows.py. Indeed, it is not
         possible to do it in SubstrateW().
+
         """
         self.hyd_name = self.read_attribute_xml('hdf5_hydrodata')
         self.hyd_name = self.hyd_name.split(',')
@@ -2217,8 +2214,11 @@ class SubstrateW(SubHydroW):
                 hyd_name2.append(self.hyd_name[i])
         self.hyd_name = hyd_name2
         for i in range(0, len(self.hyd_name)):
-            if os.path.isfile(self.hyd_name[i]):
-                self.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+            if i == 0 and len(self.hyd_name)>1:
+                self.drop_hyd.addItem(' ')
+            else:
+                if os.path.isfile(self.hyd_name[i]):
+                    self.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
     def load_sub_gui(self):
         """
