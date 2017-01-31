@@ -266,11 +266,12 @@ class MainWindows(QMainWindow):
         # add the status bar
         self.statusBar()
 
+        # add the title of the windows
+        # let it here as it should be changes if language changes
+        self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
+
         # in case we need a tool bar
         # self.toolbar = self.addToolBar('')
-
-        # add the title of the windows
-        self.setWindowTitle(self.tr('HABBY- FISH HABITAT'))
 
     def save_project(self):
         """
@@ -300,6 +301,9 @@ class MainWindows(QMainWindow):
         is saved. If path_im is not given, HABBY automatically create a folder called figure_habby when the
         user creates a new project. The user can however change this path if he wants. The next step is to communicate
         to all the children widget than the name and path of the project have changed.
+
+        This function also changes the title of the Windows to reflect the project name (noc hange if the project do not change
+        name).
 
         Finally the log is written (see “log and HABBY in the command line).
         """
@@ -423,6 +427,9 @@ class MainWindows(QMainWindow):
 
         # enabled lowest part
         self.central_widget.welcome_tab.lowpart.setEnabled(True)
+
+        # update name project
+        self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
 
         return
 
