@@ -100,7 +100,6 @@ class Hydro2W(QWidget):
         self.button1 = QPushButton(self.tr('?'), self)
         self.button1.clicked.connect(self.give_info_model)
         spacer2 = QSpacerItem(50, 1)
-        spacer = QSpacerItem(1, 50)
 
         # add the widgets representing the available models to a stack of widget
         self.free = FreeSpace()
@@ -123,17 +122,20 @@ class Hydro2W(QWidget):
         self.stack.addWidget(self.habbyhdf5)
         self.stack.setCurrentIndex(self.mod_act)
 
+        # list with available hdf5
+        l4 = QLabel(self.tr('<b> Avalaible hdf5 files </b>'))
+        self.drop_hyd = QComboBox()
+
         # layout
         self.layout4 = QGridLayout()
         self.layout4.addWidget(l3, 0, 0)
         self.layout4.addWidget(self.mod, 1, 0)
         self.layout4.addItem(spacer2, 1, 1)
         self.layout4.addWidget(self.button1, 1, 2)
-        #self.layout4.addWidget(self.button2, 2, 2)
         self.layout4.addWidget(self.stack, 2, 0)
-        #self.layout4.addWidget(self.l1, 3, 0)
-        #self.layout4.addWidget(self.mod_loaded, 4, 0)
-        self.layout4.addItem(spacer, 3, 1)
+        self.layout4.addWidget(l4, 3, 0)
+        self.layout4.addWidget(self.drop_hyd, 4, 0)
+
         self.setLayout(self.layout4)
 
     def selectionchange(self, i):
@@ -1045,6 +1047,7 @@ class SubHydroW(QWidget):
             self.send_log.emit("restart INTERPOLATE_CUT_LINEAR")
         else:
             self.send_log.emit('Error: Interpolation method is not recognized (Num).\n')
+
         return
 
     def distribute_velocity(self):
@@ -2210,12 +2213,6 @@ class SubstrateW(SubHydroW):
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
-        self.init_iu()
-
-    def init_iu(self):
-        """
-        Used in the initialization by __init__().
-        """
         # update attribute
         self.attributexml = ['substrate_data', 'att_name']
         self.model_type = 'SUBSTRATE'
@@ -2224,6 +2221,13 @@ class SubstrateW(SubHydroW):
         self.coord_p = []
         self.ikle_sub = []
         self.sub_info = []
+        self.hyd_name = []
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        Used in the initialization by __init__().
+        """
 
         # if there was substrate info before, update the label and attibutes
         self.e2 = QLineEdit()
@@ -2261,7 +2265,7 @@ class SubstrateW(SubHydroW):
         self.drop_sub = QComboBox()
         self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
         self.load_b2.clicked.connect(self.send_merge_grid)
-        self.spacer2 = QSpacerItem(1, 80)
+        self.spacer2 = QSpacerItem(1, 180)
         self.cb2 = QCheckBox(self.tr('Show figures'), self)
 
         # get possible substrate and hydro hdf5 from the project file
@@ -2275,7 +2279,6 @@ class SubstrateW(SubHydroW):
         for i in range(0, len(self.sub_name)):
             if os.path.isfile(self.sub_name[i]):
                 self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
-        self.update_hydro_hdf5_name()
 
         # layout
         self.layout_sub = QGridLayout()
@@ -2304,36 +2307,6 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addItem(self.spacer2, 10, 1)
 
         self.setLayout(self.layout_sub)
-
-    def update_hydro_hdf5_name(self):
-        """
-        This is a short function used to read all the hydrological data contained in an hdf5 files and available in
-        one project.
-
-        When these files are read, they are added to the drop-down menu. If we have more than one hdf5 file, the first
-        item is blank to insure that the user actively choose the hdf5 to reduce the risk of error (Otherwise the user
-        might merge the substrate and hydrological hdf5 without seeing that he needs to select the right hydrological
-         hdf5).
-
-        This tasks should be in a function because an update to this list can be triggered by the loading of a new
-        hydrological data. The class SubstrateW() noticed this through the signal drop_hydro send by the hydrological class.
-        The signal drop_hydro is connected to this function is in the class CentralW in MainWindows.py. Indeed, it is not
-        possible to do it in SubstrateW().
-
-        """
-        self.hyd_name = self.read_attribute_xml('hdf5_hydrodata')
-        self.hyd_name = self.hyd_name.split(',')
-        hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
-        for i in range(0, len(self.hyd_name)):
-            if os.path.isfile(self.hyd_name[i]):
-                hyd_name2.append(self.hyd_name[i])
-        self.hyd_name = hyd_name2
-        for i in range(0, len(self.hyd_name)):
-            if i == 0 and len(self.hyd_name) > 1:
-                self.drop_hyd.addItem(' ')
-            else:
-                if os.path.isfile(self.hyd_name[i]):
-                    self.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
     def load_sub_gui(self):
         """

@@ -564,7 +564,6 @@ class MainWindows(QMainWindow):
         # save the project
         self.save_project()
 
-
     def new_project(self):
         """
         This function open an empty project and guide the user to create a new project, using a new Windows
@@ -1027,16 +1026,19 @@ class CentralW(QWidget):
         self.hydro_tab.mascar.show_fig.connect(self.showfig)
 
         # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
-        self.hydro_tab.hecras1D.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
-        self.hydro_tab.hecras2D.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
-        self.hydro_tab.telemac.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
-        self.hydro_tab.rubar2d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
-        self.hydro_tab.rubar1d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
-        self.hydro_tab.riverhere2d.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
-        self.hydro_tab.mascar.drop_hydro.connect(self.substrate_tab.update_hydro_hdf5_name)
+        self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.telemac.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.rubar2d.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
 
         # connect signal for the log
         self.connect_signal_log()
+
+        # fill the QComboBox on the substrate and hydro tab
+        self.update_hydro_hdf5_name()
 
         # fill the general tab
         self.welcome_tab.e1.setText(self.name_prj_c)
@@ -1261,6 +1263,44 @@ class CentralW(QWidget):
                     myfile.write('\n' + text_log)
 
         return
+
+    def update_hydro_hdf5_name(self):
+        """
+        This is a short function used to read all the hydrological data (contained in an hdf5 files) available in
+        one project.
+
+        When these files are read, they are added to the drop-down menu on the hydrological tab an on the substrate tab.
+        On the substrate Tab, if we have more than one hdf5 file, the first item is blank to insure that the user
+        actively choose the hdf5 to reduce the risk of error (Otherwise the user might merge the substrate and
+        an hydrological hdf5 without seeing that he needs to select the right hydrological hdf5).
+
+        This tasks should be in a function because an update to this list can be triggered by the loading of a new
+        hydrological data. The class Hydro2W() and substrateW() noticed this through the signal drop_hydro
+        send by the hydrological class. The signal drop_hydro is connected to this function is in the class
+         CentralW in MainWindows.py.
+
+        """
+        # clear QCombox from Hydro2W() and Substratew()
+        self.substrate_tab.drop_hyd.clear()
+        self.hydro_tab.drop_hyd.clear()
+
+        # read name
+        self.hyd_name = self.substrate_tab.read_attribute_xml('hdf5_hydrodata')
+        self.hyd_name = self.hyd_name.split(',')
+        hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
+        for i in range(0, len(self.hyd_name)):
+            if os.path.isfile(self.hyd_name[i]):
+                hyd_name2.append(self.hyd_name[i])
+        self.hyd_name = hyd_name2
+        self.substrate_tab.hyd_name = self.hyd_name
+
+        # add new name to the QComboBox()
+        for i in range(0, len(self.hyd_name)):
+            if i == 0 and len(self.hyd_name) > 1:
+                self.substrate_tab.drop_hyd.addItem(' ')
+            if os.path.isfile(self.hyd_name[i]):
+                self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+                self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
 
 class WelcomeW(QWidget):
