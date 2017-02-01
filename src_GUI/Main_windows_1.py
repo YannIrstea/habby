@@ -65,7 +65,11 @@ class MainWindows(QMainWindow):
         name_path_set = self.settings.value('path_prj')
         print(name_path_set)
         language_set = self.settings.value('language_code')
+        # recent project: list of string
+        recent_projects_set = self.settings.value('recent_project_name')
+        recent_projects_path_set = self.settings.value('recent_project_path')
         del self.settings
+
         # set up tranlsation
         self.languageTranslator = QTranslator()
         self.path_trans = r'.\translation'
@@ -91,9 +95,19 @@ class MainWindows(QMainWindow):
             self.path_prj = name_path_set
         else:
             self.path_prj = '.'
+        if recent_projects_set:
+            self.recent_project = recent_projects_set
+        else:
+            self.recent_project = []
+        if recent_projects_path_set:
+            self.recent_project_path = recent_projects_path_set
+        else:
+            self.recent_project_path = []
         self.username_prj = "NoUserName"
         self.descri_prj = ""
         self.does_it_work = True
+        # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
+        self.nb_recent = 5
 
         # create the central widget
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)
@@ -187,6 +201,21 @@ class MainWindows(QMainWindow):
         openprj.setShortcut('Ctrl+O')
         openprj.setStatusTip(self.tr('Open an exisiting project'))
         openprj.triggered.connect(self.open_project)
+        recent_proj_menu = []
+        for j in range(0, min(self.nb_recent, len(self.recent_project))):
+            recent_proj_menu.append(QAction(self.recent_project[j], self))
+            # I just do not understand this, but really writing with j just do not work
+            # should be changed if self.nb_recent is changed
+            if j == 0:
+                recent_proj_menu[0].triggered.connect(lambda: self.open_recent_project(0))
+            elif j == 1:
+                recent_proj_menu[1].triggered.connect(lambda: self.open_recent_project(1))
+            elif j == 2:
+                recent_proj_menu[2].triggered.connect(lambda: self.open_recent_project(2))
+            elif j == 3:
+                recent_proj_menu[3].triggered.connect(lambda: self.open_recent_project(3))
+            elif j == 4:
+                recent_proj_menu[4].triggered.connect(lambda: self.open_recent_project(4))
         newprj = QAction(self.tr('New Project'), self)
         newprj.setShortcut('Ctrl+N')
         newprj.setStatusTip(self.tr('Create a new project'))
@@ -243,6 +272,9 @@ class MainWindows(QMainWindow):
         fileMenu = self.menubar.addMenu(self.tr('&File'))
         fileMenu.addAction(saveprj)
         fileMenu.addAction(openprj)
+        recentpMenu = fileMenu.addMenu(self.tr('Recent Project'))
+        for j in range(0, len(recent_proj_menu)):
+            recentpMenu.addAction(recent_proj_menu[j])
         fileMenu.addAction(newprj)
         fileMenu.addAction(exitAction)
         fileMenu4 = self.menubar.addMenu(self.tr('Options'))
@@ -302,8 +334,9 @@ class MainWindows(QMainWindow):
         user creates a new project. The user can however change this path if he wants. The next step is to communicate
         to all the children widget than the name and path of the project have changed.
 
-        This function also changes the title of the Windows to reflect the project name (noc hange if the project do not change
-        name).
+        This function also changes the title of the Windows to reflect the project name and it adds the saved
+        project to the list of recent project if it is not part of the list already. Because of this the menu must
+        updated.
 
         Finally the log is written (see “log and HABBY in the command line).
         """
@@ -333,11 +366,25 @@ class MainWindows(QMainWindow):
 
         fname = os.path.join(self.path_prj, self.name_prj+'.xml')
 
-        # update user option
+        # update user option and re-do (the whole) menu
         self.settings = QSettings('HABBY', 'irstea')
         self.settings.setValue('name_prj', self.name_prj)
         self.settings.setValue('path_prj', self.path_prj)
+
+        # save name and path of project
+        if self.name_prj not in self.recent_project:
+            self.recent_project.append(self.name_prj)
+            self.recent_project_path.append(self.path_prj)
+        else:
+            ind = np.where(self.recent_project == self.name_prj)[0]
+            if ind:
+                if os.path.normpath(self.path_prj) != os.path.normpath(self.recent_project_path[ind[0]]):  # linux windows path
+                    self.recent_project.append(self.name_prj)
+                    self.recent_project_path.append(self.path_prj)
+        self.settings.setValue('recent_project_name', self.recent_project)
+        self.settings.setValue('recent_project_path', self.recent_project_path)
         del self.settings
+        self.my_menu_bar()
 
         # if new projet
         if not os.path.isfile(fname):
@@ -431,6 +478,7 @@ class MainWindows(QMainWindow):
         # update name project
         self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
 
+
         return
 
     def open_project(self):
@@ -438,7 +486,6 @@ class MainWindows(QMainWindow):
         This function is used to open an existing habby project by selecting an xml project file. Called by
         my_menu_bar()
         """
-
 
         # open an xml file
         filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
@@ -477,6 +524,46 @@ class MainWindows(QMainWindow):
 
         # save the project
         self.save_project()
+
+    def open_recent_project(self, j):
+        """
+        This function open a recent project of the user. The recent project are listed in the menu and can be
+        selected by the user. When the user select a recent project to open, this function is called. Then, the name of
+        the recent project is selected and the method save_project() is called.
+
+        :param j: This indicates which project should be open, based on the order given in the menu
+        """
+
+        # get the project file
+        filename_path = os.path.join(self.recent_project_path[j], self.recent_project[j] +'.xml')
+
+        # load the xml file
+        try:
+            try:
+                docxml = ET.parse(filename_path)
+                root = docxml.getroot()
+            except IOError:
+                self.central_widget.write_log("Error: the selected xml file does not exist\n")
+                return
+        except ET.ParseError:
+            self.central_widget.write_log('Error: the XML is not well-formed.\n')
+            return
+
+        # get the project name and path. Write it in the QWiddet.
+        # the text in the Qwidget will be used to save the project
+        self.name_prj = root.find(".//Project_Name").text
+        self.path_prj = root.find(".//Path_Projet").text
+        self.username_prj = root.find(".//User_Name").text
+        self.descri_prj = root.find(".//Description").text
+        self.central_widget.welcome_tab.e1.setText(self.name_prj)
+        self.central_widget.welcome_tab.e2.setText(self.path_prj)
+        self.central_widget.welcome_tab.e4.setText(self.username_prj)
+        self.central_widget.welcome_tab.e3.setText(self.descri_prj)
+        self.central_widget.write_log('# Project opened sucessfully. \n')
+
+        # save the project
+        self.save_project()
+
 
     def new_project(self):
         """

@@ -2199,9 +2199,11 @@ class SubstrateW(SubHydroW):
 
         When these files are read, they are added to the drop-down menu. If we have more than one hdf5 file, the first
         item is blank to insure that the user actively choose the hdf5 to reduce the risk of error (Otherwise the user
-        might create the merge hdf5 without seeing that he needs to select the right hydrological hdf5).
-        This should be a function because an update to this list can be triggered by the loading of a new hydrological
-        data. The class SubstrateW() noticed this through the signal drop_hydro send by the hydrological class.
+        might merge the substrate and hydrological hdf5 without seeing that he needs to select the right hydrological
+         hdf5).
+
+        This tasks should be in a function because an update to this list can be triggered by the loading of a new
+        hydrological data. The class SubstrateW() noticed this through the signal drop_hydro send by the hydrological class.
         The signal drop_hydro is connected to this function is in the class CentralW in MainWindows.py. Indeed, it is not
         possible to do it in SubstrateW().
 
@@ -2214,7 +2216,7 @@ class SubstrateW(SubHydroW):
                 hyd_name2.append(self.hyd_name[i])
         self.hyd_name = hyd_name2
         for i in range(0, len(self.hyd_name)):
-            if i == 0 and len(self.hyd_name)>1:
+            if i == 0 and len(self.hyd_name) > 1:
                 self.drop_hyd.addItem(' ')
             else:
                 if os.path.isfile(self.hyd_name[i]):
