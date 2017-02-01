@@ -252,7 +252,10 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         root = doc.getroot()
         child = root.find(".//" + model_name)
         if child is not None:
-            child = root.find(".//" + model_name + '/hdf5_hydrodata')
+            if model_name == 'SUBSTRATE':
+                child = root.find(".//" + model_name + '/hdf5_substrate')
+            else:
+                child = root.find(".//" + model_name + '/hdf5_hydrodata')
             if child is not None:
                 return child.text
             else:
@@ -264,7 +267,6 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     else:
         print('Error: no project found')
         return ''
-
 
 
 def save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,

@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import shutil
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, QTimer
+from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, QTimer, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox
@@ -351,6 +351,8 @@ class SubHydroW(QWidget):
         self.msg2 = QMessageBox()
         self.timer = QTimer()
         self.mystdout = None
+        self.name_hdf5 = ''
+        self.hname = QLineEdit(' ')
         self.p = None  # second process
         self.q = None
         super().__init__()
@@ -375,7 +377,8 @@ class SubHydroW(QWidget):
         Widget related to the hydrological model. Now, there are often more than one data loaded. This method allows
         choosing what should be written. There are two different case to be separated: a) We have loaded two different
         models (like two rivers modeled by HEC-RAS) b) One model type needs two data file (like HEC-RAS would need a
-        geometry and output data). For the case a), the default is to write only the first model loaded. If we wish to
+        geometry and output data). For the case a), the default is to write only the first model loaded. If this
+        default behaviour is changed, the behaviour of gethdf5_name_GUI should also be changed. If we wish to
         write all data, the switch “many_file” should be True. This switch is also useful for the river2D model, because
         this model create one output file per time step. For the case b), the argument “i”(which is an int) allows us to
         choose which data type should be shown. “i” is in the order of the self.attributexml variable. The definition of
@@ -414,11 +417,27 @@ class SubHydroW(QWidget):
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
 
+    def gethdf5_name_gui(self):
+        """
+        This function get the name of the hdf5 file for the hydrological and write down in the QLineEdit on the GUI.
+        It is possible to have more than one hdf5 file for a model type. For example, we could have created two hdf5
+        based on hec-ras output. The default here is to write the first model loaded. It is the same default behaviour
+        than for the function was_model_loaded_before(). To keep the coherence between the filename and hdf5 name,
+        a change in this behaviour should be reflected in both function.
+
+        This function calls the function get_hdf5_name in the load_hdf5.py file
+        """
+
+        pathname_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
+        self.name_hdf5 = os.path.basename(pathname_hdf5)
+        self.hname.setText(self.name_hdf5)
+
     def show_dialog(self, i=0):
         """
         A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
         a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
-        is then used to loaded the file in other function, which are different for each children class.
+        is then used to loaded the file in other function, which are different for each children class. Based on the
+        name of the chosen file, a name is proposed for the hdf5 file.
 
         :param i: a int for the case where there is more than one file to load
         """
@@ -433,7 +452,7 @@ class SubHydroW(QWidget):
             filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[i])[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
-            pass
+            return
         else:
             filename = os.path.basename(filename_path)
             # check extension
@@ -447,6 +466,7 @@ class SubHydroW(QWidget):
                 self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
                 self.msg2.setStandardButtons(QMessageBox.Ok)
                 self.msg2.show()
+                self.msg2.show()
             # keep the name in an attribute until we save it
             if i >= len(self.pathfile) or len(self.pathfile) == 0:
                 self.pathfile.append(os.path.dirname(filename_path))
@@ -454,6 +474,15 @@ class SubHydroW(QWidget):
             else:
                 self.pathfile[i] = os.path.dirname(filename_path)
                 self.namefile[i] = filename
+
+            # add the default name of the hdf5 file to the QLineEdit
+            filename2, ext = os.path.splitext(filename)
+            if len(filename) > 9:
+                self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2[:9]+'_'+time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.h5'
+            else:
+                self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2+'_'+time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.h5'
+            #self.hname.setAlignment(Qt.AlignRight)
+            self.hname.setText(self.name_hdf5)
 
     def save_xml(self, i=0, append_name = False):
         """
@@ -692,12 +721,6 @@ class SubHydroW(QWidget):
                         data += ',' + child[i].text
         else:
             pass
-            # self.msg2.setIcon(QMessageBox.Warning)
-            # self.msg2.setWindowTitle(self.tr("Read attributes"))
-            # self.msg2.setText(
-            #     self.tr("The project is not saved. Save the project in the General tab."))
-            # self.msg2.setStandardButtons(QMessageBox.Ok)
-            # self.msg2.show()
 
         return data
 
@@ -1190,6 +1213,8 @@ class HEC_RAS1D(SubHydroW):
         Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. The user can choose the interpolation
         type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
         profile will always be one. See manage_grid.py for more information on how to create a grid.
+
+        We add a QLineEdit with the proposed name for the created hdf5 file. The user can modified this name if wished so.
         """
 
         # update attibute for hec-ras 1d
@@ -1226,11 +1251,16 @@ class HEC_RAS1D(SubHydroW):
         self.inter.addItems(self.interpo)
         self.nb_extrapro_text = QLineEdit('1')
 
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_hec_ras_gui)
-        self.spacer1 = QSpacerItem(1, 20)
-        self.spacer2 = QSpacerItem(1, 20)
+        self.spacer1 = QSpacerItem(1, 30)
+        self.spacer2 = QSpacerItem(1, 80)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -1249,10 +1279,12 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(self.inter, 5, 2, 1, 2)
         self.layout_hec.addWidget(l5, 6, 1)
         self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
-        self.layout_hec.addItem(self.spacer2, 7, 1)
+        self.layout_hec.addItem(self.spacer1, 7, 1)
+        self.layout_hec.addWidget(lh,8,0)
+        self.layout_hec.addWidget(self.hname, 8, 1)
         self.layout_hec.addWidget(self.load_b, 8, 3)
-        self.layout_hec.addWidget(self.cb, 8, 2)
-        #self.layout_hec.addItem(spacer, 4, 1)
+        self.layout_hec.addWidget(self.cb, 9, 3)
+        self.layout_hec.addItem(self.spacer2, 10, 1)
         self.setLayout(self.layout_hec)
 
     def load_hec_ras_gui(self):
@@ -1370,10 +1402,15 @@ class Rubar2D(SubHydroW):
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_rubar)
-        self.spacer = QSpacerItem(1, 80)
+        self.spacer = QSpacerItem(1, 200)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -1386,9 +1423,11 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addWidget(self.out_b, 1, 2)
         self.layout_hec.addWidget(l2D1, 2, 0)
         self.layout_hec.addWidget(l2D2, 2, 1, 1, 2)
+        self.layout_hec.addWidget(lh, 3, 0)
+        self.layout_hec.addWidget(self.hname, 3, 1)
         self.layout_hec.addWidget(self.load_b, 3, 2)
-        self.layout_hec.addWidget(self.cb, 3, 1)
-        self.layout_hec.addItem(self.spacer, 4, 1)
+        self.layout_hec.addWidget(self.cb, 4, 2)
+        self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
     def load_rubar(self):
@@ -1523,10 +1562,15 @@ class Mascaret(SubHydroW):
         self.manningb = QPushButton(self.tr('Load .txt'))
         self.manningb.clicked.connect(self.load_manning_text)
 
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_mascaret_gui)
-        #spacer = QSpacerItem(1, 20)
+        spacer = QSpacerItem(1, 30)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -1540,23 +1584,24 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(l2, 2, 0)
         self.layout.addWidget(self.out_t2, 2, 1)
         self.layout.addWidget(self.out_b, 2, 2)
-        #self.layout.addItem(spacer, 2, 1)
         self.layout.addWidget(l6, 3, 0)
-        self.layout.addWidget(l3, 4, 1)
-        self.layout.addWidget(l32, 4, 2, 1, 2)
-        self.layout.addWidget(l7, 5, 1)
-        self.layout.addWidget(self.nb_vel_text, 5, 2)
-        self.layout.addWidget(l8, 6, 1)
-        self.layout.addWidget(self.manning_text, 6, 2)
-        self.layout.addWidget(self.ltest, 6, 3)
-        self.layout.addWidget(self.manningb, 6, 4)
-        self.layout.addWidget(l4, 7, 1)
-        self.layout.addWidget(self.inter, 7, 2, 1, 2)
-        self.layout.addWidget(l5, 8, 1)
-        self.layout.addWidget(self.nb_extrapro_text, 8, 2)
-        #self.layout.addItem(spacer, 7, 1)
+        self.layout.addWidget(l3, 3, 1)
+        self.layout.addWidget(l32, 3, 2, 1, 2)
+        self.layout.addWidget(l7, 4, 1)
+        self.layout.addWidget(self.nb_vel_text, 4, 2)
+        self.layout.addWidget(l8, 5, 1)
+        self.layout.addWidget(self.manning_text, 5, 2)
+        self.layout.addWidget(self.ltest, 5, 3)
+        self.layout.addWidget(self.manningb, 5, 4)
+        self.layout.addWidget(l4, 6, 1)
+        self.layout.addWidget(self.inter, 6, 2, 1, 2)
+        self.layout.addWidget(l5, 7, 1)
+        self.layout.addWidget(self.nb_extrapro_text, 7, 2)
+        self.layout.addWidget(lh, 8, 0)
+        self.layout.addWidget(self.hname, 8, 1)
         self.layout.addWidget(self.load_b, 9, 2)
         self.layout.addWidget(self.cb, 9, 1)
+        self.layout.addItem(spacer, 10, 1)
         self.setLayout(self.layout)
 
     def load_mascaret_gui(self):
@@ -1606,7 +1651,6 @@ class Mascaret(SubHydroW):
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
             self.send_log.emit("Error: The number of velocity point is not understood.")
-
 
         # grid and interpolation
         self.distribute_velocity()
@@ -1686,6 +1730,12 @@ class River2D(SubHydroW):
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+        spacer = QSpacerItem(1, 100)
+
         # layout
         self.layout = QGridLayout()
         self.layout.addWidget(self.l1, 0, 0)
@@ -1696,8 +1746,11 @@ class River2D(SubHydroW):
         self.layout.addWidget(self.removeallfileb, 3, 3)
         self.layout.addWidget(l2D1, 4, 0)
         self.layout.addWidget(l2D2, 4, 1, 1, 2)
-        self.layout.addWidget(self.loadb, 5, 1)
-        self.layout.addWidget(self.cb, 5, 0)
+        self.layout.addWidget(lh, 5, 0)
+        self.layout.addWidget(self.hname, 5, 1)
+        self.layout.addWidget(self.loadb, 5, 2)
+        self.layout.addWidget(self.cb, 6, 2)
+        self.layout.addItem(spacer, 7, 0)
         self.setLayout(self.layout)
 
     def remove_file(self):
@@ -1825,6 +1878,7 @@ class Rubar1D(SubHydroW):
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
         self.was_model_loaded_before(1)
+        self.gethdf5_name_gui()
 
         # label with the file name
         self.geo_t2 = QLabel(self.namefile[0], self)
@@ -1856,11 +1910,15 @@ class Rubar1D(SubHydroW):
         self.manningb = QPushButton(self.tr('Load .txt'))
         self.manningb.clicked.connect(self.load_manning_text)
 
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_rubar1d)
-        self.spacer1 = QSpacerItem(1, 20)
-        self.spacer2 = QSpacerItem(1, 20)
+        self.spacer1 = QSpacerItem(100, 100)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -1871,23 +1929,24 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(l2, 1, 0)
         self.layout_hec.addWidget(self.out_t2, 1, 1)
         self.layout_hec.addWidget(self.out_b, 1, 2)
-        self.layout_hec.addItem(self.spacer1, 2, 1)
         self.layout_hec.addWidget(l6, 2, 0)
-        self.layout_hec.addWidget(l3, 3, 1)
-        self.layout_hec.addWidget(l32, 3, 2, 1, 2)
-        self.layout_hec.addWidget(l7, 4, 1)
-        self.layout_hec.addWidget(self.nb_vel_text, 4, 2)
-        self.layout_hec.addWidget(l8, 5, 1)
-        self.layout_hec.addWidget(self.manning_text, 5, 2)
-        self.layout_hec.addWidget(self.ltest, 5, 3)
-        self.layout_hec.addWidget(self.manningb, 5, 4)
-        self.layout_hec.addWidget(l4, 6, 1)
-        self.layout_hec.addWidget(self.inter, 6, 2)
-        self.layout_hec.addWidget(l5, 7, 1)
-        self.layout_hec.addWidget(self.nb_extrapro_text, 7, 2)
-        #self.layout_hec.addItem(self.spacer2, 7, 1)
+        self.layout_hec.addWidget(l3, 2, 1)
+        self.layout_hec.addWidget(l32, 2, 2, 1, 2)
+        self.layout_hec.addWidget(l7, 3, 1)
+        self.layout_hec.addWidget(self.nb_vel_text, 3, 2)
+        self.layout_hec.addWidget(l8, 4, 1)
+        self.layout_hec.addWidget(self.manning_text, 4, 2)
+        self.layout_hec.addWidget(self.ltest, 4, 3)
+        self.layout_hec.addWidget(self.manningb, 4, 4)
+        self.layout_hec.addWidget(l4, 5, 1)
+        self.layout_hec.addWidget(self.inter, 5, 2)
+        self.layout_hec.addWidget(l5, 6, 1)
+        self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2)
+        self.layout_hec.addWidget(lh, 7, 0)
+        self.layout_hec.addWidget(self.hname, 7, 1)
         self.layout_hec.addWidget(self.load_b, 8, 2)
         self.layout_hec.addWidget(self.cb, 8, 1)
+        self.layout_hec.addItem(self.spacer1, 9, 1)
         self.setLayout(self.layout_hec)
 
     def load_rubar1d(self):
@@ -1988,10 +2047,15 @@ class HEC_RAS2D(SubHydroW):
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+
         # load button
         load_b = QPushButton('Load data and create hdf5', self)
         load_b.clicked.connect(self.load_hec_2d_gui)
-        self.spacer = QSpacerItem(1, 80)
+        self.spacer = QSpacerItem(1, 250)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
@@ -2004,9 +2068,11 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(l4, 1, 2)
         self.layout_hec2.addWidget(l2D1, 2, 0)
         self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
-        self.layout_hec2.addWidget(load_b, 3, 2)
-        self.layout_hec2.addWidget(self.cb, 3, 1)
-        self.layout_hec2.addItem(self.spacer, 4, 1)
+        self.layout_hec2.addWidget(lh, 3, 0)
+        self.layout_hec2.addWidget(self.hname, 3, 1)
+        self.layout_hec2.addWidget(load_b, 4, 2)
+        self.layout_hec2.addWidget(self.cb, 4, 1)
+        self.layout_hec2.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec2)
 
     def load_hec_2d_gui(self):
@@ -2082,24 +2148,31 @@ class TELEMAC(SubHydroW):
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+
         # load button
         load_b = QPushButton('Load data and create hdf5', self)
         load_b.clicked.connect(self.load_telemac_gui)
-        self.spacer = QSpacerItem(1, 80)
+        self.spacer = QSpacerItem(1, 250)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
         self.layout_hec2 = QGridLayout()
         self.layout_hec2.addWidget(l1, 0, 0)
-        self.layout_hec2.addWidget(self.h2d_t2,0 , 1)
+        self.layout_hec2.addWidget(self.h2d_t2, 0, 1)
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         self.layout_hec2.addWidget(l2, 1, 0)
         self.layout_hec2.addWidget(l3, 1, 1)
         self.layout_hec2.addWidget(l2D1, 2, 0)
         self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
-        self.layout_hec2.addWidget(load_b, 3, 2)
-        self.layout_hec2.addItem(self.spacer, 4, 1)
-        self.layout_hec2.addWidget(self.cb, 3, 1)
+        self.layout_hec2.addWidget(lh, 3, 0)
+        self.layout_hec2.addWidget(self.hname, 3, 1)
+        self.layout_hec2.addWidget(load_b, 4, 2)
+        self.layout_hec2.addWidget(self.cb, 4, 1)
+        self.layout_hec2.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec2)
 
     def load_telemac_gui(self):
@@ -2159,7 +2232,7 @@ class SubstrateW(SubHydroW):
         self.h2d_t2 = QLabel(self.namefile[0], self)
         self.e2.setText(self.name_att)
 
-        # label and button
+        # label
         l1 = QLabel(self.tr('<b> Load substrate data </b>'))
         l2 = QLabel(self.tr('File'))
         l3 = QLabel(self.tr('If text file used as input:'))
@@ -2171,7 +2244,11 @@ class SubstrateW(SubHydroW):
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
         l4 = QLabel(self.tr('Default substrate:'))
         self.e1 = QLineEdit()
-        # e1.setValidator(QIntValidator())
+        # hdf5 name
+        lh = QLabel(self.tr('hdf5 file name'))
+        self.hname = QLineEdit(self.name_hdf5)
+        self.gethdf5_name_gui()
+        # load button
         load_b = QPushButton('Load data and save', self)
         load_b.clicked.connect(self.load_sub_gui)
         self.cb = QCheckBox(self.tr('Show figures'), self)
@@ -2184,7 +2261,7 @@ class SubstrateW(SubHydroW):
         self.drop_sub = QComboBox()
         self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
         self.load_b2.clicked.connect(self.send_merge_grid)
-        self.spacer2 = QSpacerItem(1, 120)
+        self.spacer2 = QSpacerItem(1, 80)
         self.cb2 = QCheckBox(self.tr('Show figures'), self)
 
         # get possible substrate and hydro hdf5 from the project file
@@ -2209,22 +2286,22 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(l7, 2, 0)
         self.layout_sub.addWidget(self.e2, 2, 1)
         self.layout_sub.addWidget(l6, 2, 2)
-        self.layout_sub.addWidget(l3, 4, 0)
-        self.layout_sub.addWidget(l5, 4, 1)
+        self.layout_sub.addWidget(l3, 5, 0)
+        self.layout_sub.addWidget(l5, 5, 1)
         self.layout_sub.addWidget(l4, 3, 0)
+        self.layout_sub.addWidget(lh, 4, 0)
+        self.layout_sub.addWidget(self.hname, 4, 1)
         self.layout_sub.addWidget(self.e1, 3, 1)
-        self.layout_sub.addWidget(load_b, 3, 2)
-        #self.layout_sub.addItem(spacer, 5, 0)
-        #self.layout_sub.addItem(spacer2, 5, 3)
-        self.layout_sub.addWidget(self.cb, 3, 3)
-        self.layout_sub.addWidget(l8, 5, 0)
-        self.layout_sub.addWidget(l9, 6, 0)
-        self.layout_sub.addWidget(self.drop_hyd, 6, 1)
-        self.layout_sub.addWidget(l10, 7, 0)
-        self.layout_sub.addWidget(self.drop_sub, 7, 1)
-        self.layout_sub.addWidget(self.load_b2, 8, 2)
-        self.layout_sub.addWidget(self.cb2, 8, 1)
-        self.layout_sub.addItem(self.spacer2, 9, 1)
+        self.layout_sub.addWidget(load_b, 4, 2)
+        self.layout_sub.addWidget(self.cb, 4, 3)
+        self.layout_sub.addWidget(l8, 6, 0)
+        self.layout_sub.addWidget(l9, 7, 0)
+        self.layout_sub.addWidget(self.drop_hyd, 7, 1)
+        self.layout_sub.addWidget(l10, 8, 0)
+        self.layout_sub.addWidget(self.drop_sub, 8, 1)
+        self.layout_sub.addWidget(self.load_b2, 9, 2)
+        self.layout_sub.addWidget(self.cb2, 9, 1)
+        self.layout_sub.addItem(self.spacer2, 10, 1)
 
         self.setLayout(self.layout_sub)
 
