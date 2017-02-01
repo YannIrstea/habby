@@ -78,7 +78,7 @@ class Hydro2W(QWidget):
         #self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20", "TELEMAC"]  # "MAGE"
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20", "TELEMAC", "HABBY HDF5"]  # "MAGE"
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -97,10 +97,8 @@ class Hydro2W(QWidget):
         #self.mod_loaded.addItems([""])
         self.mod.addItems(self.name_model)
         self.mod.currentIndexChanged.connect(self.selectionchange)
-        self.button1 = QPushButton(self.tr('Model Info'), self)
+        self.button1 = QPushButton(self.tr('?'), self)
         self.button1.clicked.connect(self.give_info_model)
-        self.button2 = QPushButton(self.tr('Load data from hdf5'))
-        self.button2.clicked.connect(self.get_new_hydro_hdf5)
         spacer2 = QSpacerItem(50, 1)
         spacer = QSpacerItem(1, 50)
 
@@ -113,6 +111,7 @@ class Hydro2W(QWidget):
         self.rubar1d = Rubar1D(self.path_prj, self.name_prj)
         self.mascar = Mascaret(self.path_prj, self.name_prj)
         self.riverhere2d = River2D(self.path_prj, self.name_prj)
+        self.habbyhdf5 = HabbyHdf5(self.path_prj, self.name_prj)
         self.stack.addWidget(self.free)  # order matters in the next lines!
         self.stack.addWidget(self.hecras1D)
         self.stack.addWidget(self.hecras2D)
@@ -121,6 +120,7 @@ class Hydro2W(QWidget):
         self.stack.addWidget(self.rubar1d)
         self.stack.addWidget(self.rubar2d)
         self.stack.addWidget(self.telemac)
+        self.stack.addWidget(self.habbyhdf5)
         self.stack.setCurrentIndex(self.mod_act)
 
         # layout
@@ -129,7 +129,7 @@ class Hydro2W(QWidget):
         self.layout4.addWidget(self.mod, 1, 0)
         self.layout4.addItem(spacer2, 1, 1)
         self.layout4.addWidget(self.button1, 1, 2)
-        self.layout4.addWidget(self.button2, 2, 2)
+        #self.layout4.addWidget(self.button2, 2, 2)
         self.layout4.addWidget(self.stack, 2, 0)
         #self.layout4.addWidget(self.l1, 3, 0)
         #self.layout4.addWidget(self.mod_loaded, 4, 0)
@@ -173,6 +173,41 @@ class Hydro2W(QWidget):
         self.msgi.setEscapeButton(QMessageBox.Ok)  # detailed text erase the red x
         self.msgi.show()
 
+
+class HabbyHdf5(QWidget):
+    """
+    This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
+    it is there possible to just add a along hdf5 file to the current project without having to pass to the original
+    hydrological files.
+    """
+    send_log = pyqtSignal(str, name='send_log')
+    """
+    A PyQt signal to send the log.
+    """
+
+    def __init__(self, path_prj, name_prj):
+
+        super().__init__()
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        Used in the initialization by __init__()
+        """
+
+        l0 = QLabel(self.tr('Select the hdf5 created by HABBY to be loaded:'))
+        self.button2 = QPushButton(self.tr('Load data from hdf5'))
+        self.button2.clicked.connect(self.get_new_hydro_hdf5)
+        spacer1 = QSpacerItem(200, 1)
+        spacer2 = QSpacerItem(1, 300)
+
+        self.layout2 = QGridLayout()
+        self.layout2.addWidget(l0, 0, 0)
+        self.layout2.addWidget(self.button2, 0, 1)
+        self.layout2.addItem(spacer1, 0, 2)
+        self.layout2.addItem(spacer2, 2, 0)
+        self.setLayout(self.layout2)
+
     def get_new_hydro_hdf5(self):
         """
         This is a function which allows the user to select an hdf5 file containing the hydrological
@@ -199,10 +234,11 @@ class Hydro2W(QWidget):
 
         # copy the file and update the attribute
         if os.path.isdir(self.path_prj):
-            new_name = os.path.join(self.path_prj,'COPY_' + os.path.basename(fname_h5))
+            new_name = os.path.join(self.path_prj, 'COPY_' + os.path.basename(fname_h5))
             shutil.copyfile(fname_h5, new_name)
         else:
             self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
+            return
         try:
             file_hydro2 = h5py.File(new_name, 'r+')
         except OSError:
