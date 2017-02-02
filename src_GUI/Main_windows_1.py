@@ -489,16 +489,14 @@ class MainWindows(QMainWindow):
         # update name project
         self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
 
-
     def open_project(self):
         """
         This function is used to open an existing habby project by selecting an xml project file. Called by
         my_menu_bar()
         """
 
-
         # open an xml file
-        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
+        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj, self.tr("XML (*.xml)"))[0]
         if not filename_path:  # cancel
             return
         blob, ext_xml = os.path.splitext(filename_path)

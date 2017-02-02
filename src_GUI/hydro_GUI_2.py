@@ -2586,7 +2586,10 @@ class SubstrateW(SubHydroW):
         if constsub: # constant value of substrate
 
             # create hdf5 name
-            h5name = self.name_hdf5 + '_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            if self.name_hdf5:
+                h5name = self.name_hdf5 + '_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            else:
+                h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
             path_hdf5 = self.find_path_im()
 
             # create a new hdf5

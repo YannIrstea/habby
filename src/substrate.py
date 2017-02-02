@@ -990,8 +990,8 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title('Substrate Grid')
-    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=1000)
+    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=1000)
     #plt.close()
 
     # if we start with txt data, plot the original data
@@ -1011,8 +1011,8 @@ def fig_substrate(coord_p, ikle, sub_info, path_im, xtxt = [-99], ytxt= [-99], s
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Original Substrate Data (x,y)')
-        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=1000)
+        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=1000)
         plt.show()
         #plt.close()
 

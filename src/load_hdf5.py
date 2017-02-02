@@ -265,7 +265,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
                 child = root.findall(".//" + model_name + '/hdf5_substrate')
             else:
                 child = root.findall(".//" + model_name + '/hdf5_hydrodata')
-            if child is not None:
+            if len(child)>0:
                 return child[-1].text
             else:
                 print('Warning: the data for the model '+ model_name + ' was not found (1)')

@@ -1866,8 +1866,8 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
     plt.title('Computational Grid')
-    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
 
     # plot the interpolated velocity
     if len(inter_vel_all) > 0:  # 0
@@ -1890,6 +1890,8 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated velocity')
+        plt.savefig(os.path.join(path_im, "Velocity_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
+        plt.savefig(os.path.join(path_im, "Velocity_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
@@ -1912,6 +1914,8 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
+        plt.savefig(os.path.join(path_im, "Height_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
+        plt.savefig(os.path.join(path_im, "Height_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[], inter_h_all=[], path_im = [], coord_pro2 = []):
