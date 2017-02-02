@@ -12,6 +12,53 @@ from src import manage_grid_8
 import triangle
 
 
+def open_shp(filename, path):
+    """
+    This function open a ArcGIS shpaefile.
+
+    :param filename: the name of the shapefile
+    :param path: the path to this shapefile
+    :return: a shapefile object as define in the model
+    """
+
+    # test extension and if the file exist
+    blob, ext = os.path.splitext(filename)
+    if ext != '.shp':
+        print('Warning: the file does not have a .shp extension.')
+    file = os.path.join(path, filename)
+    if not os.path.isfile(file):
+        print("Error: The shapefile " + filename + " does not exist.")
+        return [-99], [-99], [-99]
+    # read shp
+    try:
+        sf = shapefile.Reader(file)
+    except shapefile.ShapefileException:
+        print('Error: Cannot open the shapefile ' + filename + ', or one of the associated files (.shx, .dbf)')
+        return [-99], [-99], [-99]
+
+    return sf
+
+
+def get_all_attribute(filename, path):
+    """
+    This function open a shapefile and get the list of all the attibute which is contains in it.
+
+    :param filename: the name of the shpae file
+    :param path: the path to this shapefile
+    :return: a list with the name and information of all attribute. The form of each element of the list
+             is [name(str), type (F,N), int, int]
+    """
+
+    sf = open_shp(filename, path)
+    fields = sf.fields
+    if len(fields) > 1:
+        fields = fields[1:]
+    else:
+        print('Warning: No attibute found in the shapefile given for the substrate.')
+
+    return fields
+
+
 def load_sub_shp(filename, path, name_att='SUBSTRATE'):
     """
     A function to load the substrate in form of shapefile.
@@ -23,20 +70,7 @@ def load_sub_shp(filename, path, name_att='SUBSTRATE'):
             and an array with substrate type
     """
     # THINK ABOUT START AT ZERO OR ONE
-    # test extension and if the file exist
-    blob, ext = os.path.splitext(filename)
-    if ext != '.shp':
-        print('Warning: the file does not have a .shp extension.')
-    file = os.path.join(path, filename)
-    if not os.path.isfile(file):
-        print("Error: The shapefile "+filename+" does not exist.")
-        return [-99], [-99], [-99]
-    # read shp
-    try:
-        sf = shapefile.Reader(file)
-    except shapefile.ShapefileException:
-        print('Error: Cannot open the shapefile ' + filename + ', or one of the associated files (.shx, .dbf)')
-        return [-99], [-99], [-99]
+    sf = open_shp(filename, path)
 
     # get point coordinates and connectivity table in two lists
     shapes = sf.shapes()
@@ -128,7 +162,8 @@ def load_sub_txt(filename, path):
 def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
     """
     After the data for the substrate and the hydrological data are loaded, they are still in different grids.
-    This functions will merge both grid together. This is done for all time step and all reaches
+    This functions will merge both grid together. This is done for all time step and all reaches. If a
+    constnat substrate is there, the hydrological hdf5 is just copied.
 
     :param hdf5_name_hyd: the path and name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the path and the name of the hdf5 with the substrate data
@@ -151,8 +186,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
     # load hdf5 sub
     [ikle_sub, point_all_sub, data_sub] = load_hdf5.load_hdf5_sub(hdf5_name_sub)
 
-    m2 = time.time()
-
     # find the additional crossing points for each time step and each reach
     # and modify the grid
 
@@ -170,6 +203,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
         elif len(ikle_sub) == 1 and ikle_sub[0][0] == [-99]:
             print('Error: Substrate data could not be loaded.')
             break
+        elif len(ikle_sub) == 1 and ikle_sub[0][0] == [0]:
+            print('Warning: Constant substrate.')
+            # if constant substrate, the hydrological grid is used
+            ikle_both.append(ikle_all)
+            point_all_both.append(point_all)
         else:
             if len(ikle_all[t]) > 0:
                 for r in range(0, len(ikle_all[t])):
@@ -189,9 +227,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
         ikle_both.append(ikle_all2)
         point_all_both.append(point_all2)
 
-    print(m2-m)
-    print(b-a)
-    print(c -b)
 
     return ikle_both, point_all_both, sub_data, vel_both, height_both
 

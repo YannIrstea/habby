@@ -175,7 +175,8 @@ def load_hdf5_hyd(hdf5_name_hyd):
 
 def load_hdf5_sub(hdf5_name_sub):
     """
-    A function to load the substrate data contained in the hdf5 file.
+    A function to load the substrate data contained in the hdf5 file. it also manage
+    the constant cases.
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
     """
@@ -189,6 +190,14 @@ def load_hdf5_sub(hdf5_name_sub):
     if file_sub is None:
         print('Error: hdf5 file could not be open. \n')
         return failload
+
+    # manage the constant case
+    constname = 'constant_sub'
+    if constname in file_sub:
+        # read a constant data
+        # NOT DONE YET AS SUBSTRATE FORM IS NOT CHOSEN YET
+        data_sub = 1
+        return [0], [0], data_sub
 
     # read the ikle data
     basename1 = 'ikle_sub'
@@ -237,7 +246,7 @@ def get_all_filename(dirname, ext):
 def get_hdf5_name(model_name, name_prj, path_prj):
     """
     This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
-    model_name
+    model_name. if there is more than one hdf5 file, it choose the last one.
 
     :param model_name: the name of the hydrological model as written in the attribute of the xml project file
     :param name_prj: the name of the project
@@ -253,11 +262,11 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         child = root.find(".//" + model_name)
         if child is not None:
             if model_name == 'SUBSTRATE':
-                child = root.find(".//" + model_name + '/hdf5_substrate')
+                child = root.findall(".//" + model_name + '/hdf5_substrate')
             else:
-                child = root.find(".//" + model_name + '/hdf5_hydrodata')
+                child = root.findall(".//" + model_name + '/hdf5_hydrodata')
             if child is not None:
-                return child.text
+                return child[-1].text
             else:
                 print('Error: the data for the model was not found')
                 return ''

@@ -379,7 +379,7 @@ class SubHydroW(QWidget):
         Widget related to the hydrological model. Now, there are often more than one data loaded. This method allows
         choosing what should be written. There are two different case to be separated: a) We have loaded two different
         models (like two rivers modeled by HEC-RAS) b) One model type needs two data file (like HEC-RAS would need a
-        geometry and output data). For the case a), the default is to write only the first model loaded. If this
+        geometry and output data). For the case a), the default is to write only the last model loaded. If this
         default behaviour is changed, the behaviour of gethdf5_name_GUI should also be changed. If we wish to
         write all data, the switch “many_file” should be True. This switch is also useful for the river2D model, because
         this model create one output file per time step. For the case b), the argument “i”(which is an int) allows us to
@@ -423,7 +423,7 @@ class SubHydroW(QWidget):
         """
         This function get the name of the hdf5 file for the hydrological and write down in the QLineEdit on the GUI.
         It is possible to have more than one hdf5 file for a model type. For example, we could have created two hdf5
-        based on hec-ras output. The default here is to write the first model loaded. It is the same default behaviour
+        based on hec-ras output. The default here is to write the last model loaded. It is the same default behaviour
         than for the function was_model_loaded_before(). To keep the coherence between the filename and hdf5 name,
         a change in this behaviour should be reflected in both function.
 
@@ -2228,33 +2228,41 @@ class SubstrateW(SubHydroW):
         """
         Used in the initialization by __init__().
         """
-
-        # if there was substrate info before, update the label and attibutes
-        self.e2 = QLineEdit()
-        self.was_model_loaded_before()
-        self.get_att_name()
-        self.h2d_t2 = QLabel(self.namefile[0], self)
-        self.e2.setText(self.name_att)
-
         # label
         l1 = QLabel(self.tr('<b> Load substrate data </b>'))
         l2 = QLabel(self.tr('File'))
         l3 = QLabel(self.tr('If text file used as input:'))
-        l7 = QLabel(self.tr('Attribute name:'))
-        l6 = QLabel(self.tr('(only for shapefile)'))
+        l7 = QLabel(self.tr('Attribute name (for shapefile):'))
         l5 = QLabel(self.tr('A Voronoi transformation will be applied.'))
-        self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
-        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
         l4 = QLabel(self.tr('Default substrate:'))
         self.e1 = QLineEdit()
+
+        # if there was substrate info before, update the label and attibutes
+        self.was_model_loaded_before()
+        self.get_att_name()
+        self.h2d_t2 = QLabel(self.namefile[0], self)
+        # type of substrate available
+        self.e2 = QComboBox()
+        blob, ext = os.path.splitext(self.namefile[0])
+        if ext == '.txt' or ext == '.asc':
+           self.e2.setDisabled(True)
+        elif ext == '.shp':
+            self.e2.addItem(self.name_att)
+
+        self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
+        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
+        self.h2d_b.clicked.connect(self.get_attribute_from_shp)
+
         # hdf5 name
         lh = QLabel(self.tr('hdf5 file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.gethdf5_name_gui()
+
         # load button
-        load_b = QPushButton('Load data and save', self)
-        load_b.clicked.connect(self.load_sub_gui)
+        self.constsub = QRadioButton(self.tr('Set default everywhere'))
+        self.constsub.toggled.connect(self.enabledisable_const)
+        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.clicked.connect(self.load_sub_gui)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # label and button for the part to merge the grid
@@ -2277,6 +2285,8 @@ class SubstrateW(SubHydroW):
                 sub_name2.append(self.sub_name[i])
         self.sub_name = sub_name2
         for i in range(0, len(self.sub_name)):
+            if i == 0 and len(self.sub_name) > 1:
+                self.drop_sub.addItem(' ')
             if os.path.isfile(self.sub_name[i]):
                 self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
 
@@ -2288,15 +2298,15 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(self.h2d_b, 1, 2)
         self.layout_sub.addWidget(l7, 2, 0)
         self.layout_sub.addWidget(self.e2, 2, 1)
-        self.layout_sub.addWidget(l6, 2, 2)
         self.layout_sub.addWidget(l3, 5, 0)
         self.layout_sub.addWidget(l5, 5, 1)
         self.layout_sub.addWidget(l4, 3, 0)
+        self.layout_sub.addWidget(self.constsub,3 ,2 )
+        self.layout_sub.addWidget(self.e1, 3, 1)
         self.layout_sub.addWidget(lh, 4, 0)
         self.layout_sub.addWidget(self.hname, 4, 1)
-        self.layout_sub.addWidget(self.e1, 3, 1)
-        self.layout_sub.addWidget(load_b, 4, 2)
-        self.layout_sub.addWidget(self.cb, 4, 3)
+        self.layout_sub.addWidget(self.load_b, 5, 2)
+        self.layout_sub.addWidget(self.cb, 5, 3)
         self.layout_sub.addWidget(l8, 6, 0)
         self.layout_sub.addWidget(l9, 7, 0)
         self.layout_sub.addWidget(self.drop_hyd, 7, 1)
@@ -2308,61 +2318,91 @@ class SubstrateW(SubHydroW):
 
         self.setLayout(self.layout_sub)
 
+    def enabledisable_const(self):
+        """
+        This function enable and disable the loading of shapefile and text file in the substrate. Notably
+        the user can choose to have a constant substrate everywhere. In this case, the choice to load the file is
+        disabled.
+        """
+
+        if self.constsub.isChecked():
+            # all disable, only constant value
+            self.h2d_t2.setDisabled(True)
+            self.h2d_b.setDisabled(True)
+            self.e2.setDisabled(True)
+        if not self.constsub.isChecked():
+            # all open
+            self.h2d_t2.setEnabled(True)
+            self.h2d_b.setEnabled(True)
+            blob, ext = os.path.splitext(self.namefile[0])
+            if ext == '.shp':
+                self.e2.setDisabled(False)
+
     def load_sub_gui(self):
         """
         This function is used to load the substrate data. The substrate data can be in two forms: a) in the form of a shp
         file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line).
         Generally this function has some similarities to the functions used to load the hydrological data and it re-uses
         some of the methods developed for them.
+
+        It is possible to have a constant substrate if the self.constsub variable is on (it is a QRadioButton). In this
+        case, an hdf5 is created with only the default value marked. This form of hdf5 file is then managed by the merge
+        function.
         """
-
-        # save path and name substrate
-        self.save_xml(0)
-        # only save attribute name if shapefile
-        self.name_att = self.e2.text()
-        blob, ext = os.path.splitext(self.namefile[0])
-        path_im = self.find_path_im()
-        # if the substrate is in the shp form
-        if ext == '.shp':
-            if not self.name_att:
-                self.send_log.emit("Error: No attribute name was given to load the shapefile.")
-                return
-            self.pathfile[1] = ''
-            self.namefile[1] = self.name_att  # avoid to code things again
-            self.save_xml(1)
-        # load substrate
-            sys.stdout = self.mystdout = StringIO()
-            [self.coord_p, self.ikle_sub, self.sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
-            # log info
-            self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
-            self.send_err_log()
-            self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-            self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-            self.send_log.emit("py    attr='" + self.name_att + "'")
-            self.send_log.emit("py    [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(file1, path1, attr)\n")
-            self.send_log.emit("restart LOAD_SUB_SHP")
-            self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-            self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[0], self.namefile[0]))
-            self.send_log.emit("restart    attr: " + self.name_att)
-
-            if self.cb.isChecked():
-                substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im)
-        # if the substrate data is a text form
-        elif ext == '.txt' or ext == ".asc":
-            sys.stdout = self.mystdout = StringIO()
-            [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
-            self.log_txt()
-            if self.cb.isChecked():
-                substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
-        # case unknown
+        if self.constsub.isChecked():
+            if self.namefile[0] != 'unknown file':
+                self.send_log.emit('Warning: Constant substrate data. Data from '+self.namefile[0] +
+                                   ' not taken into account.')
+            data_sub = self.e1.text()
+            self.save_hdf5_sub(True)
         else:
-            self.send_log.emit("Warning: Unknown extension for substrate data, the model will try to load as .txt")
-            sys.stdout = self.mystdout = StringIO()
-            [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
-            if self.cb.isChecked():
-                substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
-            self.log_txt()
-        self.save_hdf5_sub()
+            # save path and name substrate
+            self.save_xml(0)
+            blob, ext = os.path.splitext(self.namefile[0])
+            path_im = self.find_path_im()
+            # if the substrate is in the shp form
+            if ext == '.shp':
+                # get attribute name from the actual list
+                self.name_att = self.e2.currentText()
+                if not self.name_att:
+                    self.send_log.emit("Error: No attribute name was given to load the shapefile.")
+                    return
+                self.pathfile[1] = ''
+                self.namefile[1] = self.name_att  # avoid to code things again
+                self.save_xml(1)
+            # load substrate
+                sys.stdout = self.mystdout = StringIO()
+                [self.coord_p, self.ikle_sub, self.sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
+                # log info
+                self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
+                self.send_err_log()
+                self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+                self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+                self.send_log.emit("py    attr='" + self.name_att + "'")
+                self.send_log.emit("py    [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(file1, path1, attr)\n")
+                self.send_log.emit("restart LOAD_SUB_SHP")
+                self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+                self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[0], self.namefile[0]))
+                self.send_log.emit("restart    attr: " + self.name_att)
+
+                if self.cb.isChecked():
+                    substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im)
+            # if the substrate data is a text form
+            elif ext == '.txt' or ext == ".asc":
+                sys.stdout = self.mystdout = StringIO()
+                [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
+                self.log_txt()
+                if self.cb.isChecked():
+                    substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
+            # case unknown
+            else:
+                self.send_log.emit("Warning: Unknown extension for substrate data, the model will try to load as .txt")
+                sys.stdout = self.mystdout = StringIO()
+                [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
+                if self.cb.isChecked():
+                    substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
+                self.log_txt()
+            self.save_hdf5_sub()
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
         self.sub_name = self.read_attribute_xml('hdf5_substrate')
@@ -2374,11 +2414,30 @@ class SubstrateW(SubHydroW):
         self.sub_name = sub_name2
         self.drop_sub.clear()
         for i in range(0, len(self.sub_name)):
+            if i == 0 and len(self.sub_name) > 1:
+                self.drop_sub.addItem(' ')
             self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
 
         # show figure
-        if self.cb.isChecked() and path_im != 'no_path':
+        if self.cb.isChecked() and path_im != 'no_path' and not self.constsub.isChecked():
             self.show_fig.emit()
+
+    def get_attribute_from_shp(self):
+        """
+        This function opens a shapefile and obtain the attribute. It then update the GUI
+        to reflect this and also update the label as needed.
+        """
+        self.h2d_t2.setText(self.namefile[0])
+        lob, ext = os.path.splitext(self.namefile[0])
+        if ext == '.shp':
+            self.e2.clear()
+            att_list = substrate.get_all_attribute(self.namefile[0], self.pathfile[0])  # list of attribute with info []
+            for i in range(0, len(att_list)):
+                self.e2.addItem(str(att_list[i][0]))
+            self.e2.setEnabled(True)
+        else:
+            self.e2.setDisabled(True)
+            self.e2.clear()
 
     def log_txt(self):
         """
@@ -2414,44 +2473,71 @@ class SubstrateW(SubHydroW):
                 if child is not None:
                     self.name_att = child.text
 
-    def save_hdf5_sub(self):
+    def save_hdf5_sub(self, constsub=False):
         """
         This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
         xml project file. The format of the hdf5 file is not finalzed yet so it is not documented.
+
+        :param constsub: If constsub is True, the hdf5 created will only account for a constant value
         """
 
         self.send_log.emit('# Save data for the substrate in an hdf5 file.')
 
-        # create hdf5 name
-        h5name = self.name_prj + '_' + 'substrate' + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
-        path_hdf5 = self.find_path_im()
+        if constsub: # constant value of substrate
 
-        # create a new hdf5
-        fname = os.path.join(path_hdf5, h5name)
-        file = h5py.File(fname, 'w')
+            # create hdf5 name
+            h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            path_hdf5 = self.find_path_im()
 
-        # create attributes
-        file.attrs['path_projet'] = self.path_prj
-        file.attrs['name_projet'] = self.name_prj
-        file.attrs['HDF5_version'] = h5py.version.hdf5_version
-        file.attrs['h5py_version'] = h5py.version.version
+            # create a new hdf5
+            fname = os.path.join(path_hdf5, h5name)
+            file = h5py.File(fname, 'w')
 
-        # save ikle, coordonate and data
-        ikleg = file.create_group('ikle_sub')
-        coordpg = file.create_group('coord_p_sub')
-        if len(self.ikle_sub) > 0:
-            adict = dict()  # because the grid might not be triangular here
-            for p in range(0, len(self.ikle_sub)):
-                ns = 'p' + str(p)
-                adict[ns] = self.ikle_sub[p]
-            for k, v in adict.items():
-                ikleg.create_dataset(k, data=v)
-        coordpg.create_dataset(h5name, [len(self.coord_p), 2], data=self.coord_p)
+            # create attributes
+            file.attrs['path_projet'] = self.path_prj
+            file.attrs['name_projet'] = self.name_prj
+            file.attrs['HDF5_version'] = h5py.version.hdf5_version
+            file.attrs['h5py_version'] = h5py.version.version
 
-        # CAREFUL: Data sub is not save yet in the substrate hdf5
-        # because we do not know yet the form of the substrate data
-        datasubg = file.create_group('data_sub')
-        file.close()
+            # add the constant value
+            # CAREFUL: Data sub is not save yet in the substrate hdf5
+            # because we do not know yet the form of the substrate data
+            constsub = file.create_group('constant_sub')
+            file.close()
+
+        else: # grid
+
+            # create hdf5 name
+            fileshort, ext = os.path.splitext(self.namefile[0])
+            h5name = 'Substrate_' + fileshort + '_' + ext[1:] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            path_hdf5 = self.find_path_im()
+
+            # create a new hdf5
+            fname = os.path.join(path_hdf5, h5name)
+            file = h5py.File(fname, 'w')
+
+            # create attributes
+            file.attrs['path_projet'] = self.path_prj
+            file.attrs['name_projet'] = self.name_prj
+            file.attrs['HDF5_version'] = h5py.version.hdf5_version
+            file.attrs['h5py_version'] = h5py.version.version
+
+            # save ikle, coordonate and data
+            ikleg = file.create_group('ikle_sub')
+            coordpg = file.create_group('coord_p_sub')
+            if len(self.ikle_sub) > 0:
+                adict = dict()  # because the grid might not be triangular here
+                for p in range(0, len(self.ikle_sub)):
+                    ns = 'p' + str(p)
+                    adict[ns] = self.ikle_sub[p]
+                for k, v in adict.items():
+                    ikleg.create_dataset(k, data=v)
+            coordpg.create_dataset(h5name, [len(self.coord_p), 2], data=self.coord_p)
+
+            # CAREFUL: Data sub is not save yet in the substrate hdf5
+            # because we do not know yet the form of the substrate data
+            datasubg = file.create_group('data_sub')
+            file.close()
 
         # save the file to the xml of the project
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
