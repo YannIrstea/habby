@@ -10,12 +10,13 @@ from io import StringIO
 import sys
 
 
-def load_river2d_and_cut_grid(namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
     """
     This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
     River2D() in hydro_GUI_2. This function was added as it was practical to have a second thread to avoid freezing
     the GUI.
 
+    :param name_hdf5: the base name of the created hdf5 (string)
     :param namefiles: the names of all the cdg file (list of string)
     :param paths: the path to the files (list of string).
     :param name_prj: the name of the project (string)
@@ -68,7 +69,7 @@ def load_river2d_and_cut_grid(namefiles, paths, name_prj, path_prj, model_type, 
         inter_vel_all_t.append([velocity])
 
     # save data
-    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
 
     sys.stdout = sys.__stdout__

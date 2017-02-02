@@ -268,21 +268,22 @@ def get_hdf5_name(model_name, name_prj, path_prj):
             if child is not None:
                 return child[-1].text
             else:
-                print('Error: the data for the model was not found')
+                print('Warning: the data for the model '+ model_name + ' was not found (1)')
                 return ''
         else:
-            print('Error: the data for the model was not found')
+            print('Warning: the data for the model '+ model_name + ' was not found (2)')
             return ''
     else:
         print('Error: no project found')
         return ''
 
 
-def save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
+def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
               inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[]):
     """
     This function save the hydrological data in the hdf5 format.
 
+    :param the base name for the hdf5 file to be created (string)
     :param name_prj: the name of the project (string)
     :param path_prj: the path of the project
     :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
@@ -312,7 +313,7 @@ def save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, poi
     HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
     created hdf5:
 
-    *   Name of the file: name_projet  +  ’_’ +  name model + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
+    *   Name of the file: name_hdf5  + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
     *   Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)
     *   Format of the hdf5 file:
 
@@ -332,7 +333,7 @@ def save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, poi
     """
 
     # create hdf5 name
-    h5name = name_prj + '_' + model_type + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+    h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
 
     # create a new hdf5
     fname = os.path.join(path_hdf5, h5name)

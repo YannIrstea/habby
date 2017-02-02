@@ -11,12 +11,13 @@ from src import manage_grid_8
 from src import load_hdf5
 
 
-def load_telemac_and_cut_grid(namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
     was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
     is useful to avoid freezing the GUI.
 
+    :param name_hdf5: the base name of the created hdf5 (string)
     :param namefilet: the name of the selafin file (string)
     :param pathfilet: the path to this file (string)
     :param name_prj: the name of the project (string)
@@ -55,7 +56,7 @@ def load_telemac_and_cut_grid(namefilet, pathfilet, name_prj, path_prj, model_ty
         inter_h_all_t.append([water_height])
 
     # save data
-    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
 
     sys.stdout = sys.__stdout__

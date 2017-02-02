@@ -1033,6 +1033,7 @@ class CentralW(QWidget):
         self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
         self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
         self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
 
         # connect signal for the log
         self.connect_signal_log()
@@ -1161,6 +1162,7 @@ class CentralW(QWidget):
         self.welcome_tab.send_log.connect(self.write_log)
         self.output_tab.send_log.connect(self.write_log)
         self.bioinfo_tab.send_log.connect(self.write_log)
+        self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """

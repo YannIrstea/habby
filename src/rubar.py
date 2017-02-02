@@ -578,12 +578,13 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     # plt.show()
 
 
-def load_rubar2d_and_create_grid(geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,
+def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,
                                  nb_dim, path_hdf5, q=[]):
     """
     This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
     interpolation and to save the whole in an hdf5 format
 
+     :param name_hdf5: the base name of the created hdf5 (string)
     :param geofile: the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)
     :param tpsfile: the name of the .tps file (string)
     :param pathgeo: path to the geo file (string)
@@ -648,7 +649,7 @@ def load_rubar2d_and_create_grid(geofile, tpsfile, pathgeo, pathtps, path_im,  n
         warn1 = False
 
     # save data
-    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
 
     sys.stdout = sys.__stdout__

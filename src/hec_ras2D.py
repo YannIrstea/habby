@@ -9,13 +9,14 @@ from src import manage_grid_8
 from src import load_hdf5
 
 
-def load_hec_ras_2d_and_cut_grid(filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
     """
     This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
      pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
     get only the wetted area. This was done before in the HEC_RAS2D Class in hydro_gui_2.py, but it was necessary to
     create a separate function to called this task in a second thread to avoid freezing the GUI.
 
+    :param name_hdf5: the base name of the created hdf5 (string)
     :param filename: the name of the file containg the results of HEC-RAS in 2D. (string)
     :param path: the path where the file is (string)
     :param name_prj: the name of the project (string)
@@ -81,7 +82,7 @@ def load_hec_ras_2d_and_cut_grid(filename, path, name_prj, path_prj, model_type,
         ikle_all_t.append(ikle_f)
 
     # save data
-    load_hdf5.save_hdf5(name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
 
     sys.stdout = sys.__stdout__

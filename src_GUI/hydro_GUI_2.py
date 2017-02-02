@@ -186,10 +186,17 @@ class HabbyHdf5(QWidget):
     """
     A PyQt signal to send the log.
     """
+    drop_hydro = pyqtSignal()
+    """
+    A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.
+    """
 
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.model_type = 'Imported_hydro'
         self.init_iu()
 
     def init_iu(self):
@@ -259,18 +266,19 @@ class HabbyHdf5(QWidget):
             # as long s loded in the right format, it would not be a problem
             child = root.find(".//Imported_hydro")
             if child is None:
-                stathab_element = ET.SubElement(root, "Imported_hydro")
-                hdf5file = ET.SubElement(stathab_element, "hdf5import")
+                here_element = ET.SubElement(root, "Imported_hydro")
+                hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
                 hdf5file.text = new_name
             else:
-                hdf5file = root.find(".//hdf5import")
+                hdf5file = root.find(".//Imported_hydro/hdf5_hydrodata")
                 if hdf5file is None:
-                    hdf5file = ET.SubElement(child, "hdf5import")
+                    hdf5file = ET.SubElement(child, "Imported_hydro/hdf5_hydrodata")
                     hdf5file.text = new_name
                 else:
                     hdf5file.text += '\n' + new_name
             doc.write(filename_prj)
         self.send_log.emit('# hdf5 file sucessfully loaded to the current project.')
+        self.drop_hydro.emit()
         return
 
 
@@ -430,8 +438,14 @@ class SubHydroW(QWidget):
         This function calls the function get_hdf5_name in the load_hdf5.py file
         """
 
+        sys.stdout = self.mystdout = StringIO()
         pathname_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
+
         self.name_hdf5 = os.path.basename(pathname_hdf5)
+        if len(self.name_hdf5) > 26: # careful this number should be changed if name change
+            self.name_hdf5 = self.name_hdf5[:-26]
         self.hname.setText(self.name_hdf5)
 
     def show_dialog(self, i=0):
@@ -479,10 +493,16 @@ class SubHydroW(QWidget):
 
             # add the default name of the hdf5 file to the QLineEdit
             filename2, ext = os.path.splitext(filename)
-            if len(filename) > 9:
-                self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2[:9]+'_'+time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.h5'
+            if self.model_type == 'SUBSTRATE':
+                if len(filename) > 9:
+                    self.name_hdf5 = 'Substrate_' + filename2[:9] + '_' + ext[1:]
+                else:
+                    self.name_hdf5 = 'Substrate_' + filename2 + '_' + ext[1:]
             else:
-                self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2+'_'+time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.h5'
+                if len(filename) > 9:
+                    self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2[:9]
+                else:
+                    self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2
             #self.hname.setAlignment(Qt.AlignRight)
             self.hname.setText(self.name_hdf5)
 
@@ -545,7 +565,7 @@ class SubHydroW(QWidget):
         HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
         created hdf5:
 
-        *   Name of the file: name_projet  +  ’_’ +  name model + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
+        *   Name of the file: self.name_hdf5 + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
         *   Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)
         *   Format of the hdf5 file:
 
@@ -566,7 +586,8 @@ class SubHydroW(QWidget):
         self.send_log.emit('# Save hdf5 hydrological data')
 
         # create hdf5 name
-        h5name = self.name_prj + '_' + self.model_type + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        self.name_hdf5 = self.hname.text()
+        h5name = self.name_hdf5 + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
         path_hdf5 = self.find_path_im()
 
         # create a new hdf5
@@ -714,7 +735,7 @@ class SubHydroW(QWidget):
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
-            child = root.findall('.//' +att_here)
+            child = root.findall('.//' + att_here)
             if child is not None:
                 for i in range(0, len(child)):
                     if i == 0:
@@ -1166,10 +1187,16 @@ class SubHydroW(QWidget):
             self.mystdout = self.q.get()
             self.send_err_log()
 
+            # enable to loading of another model
+            self.load_b.setDisabled(False)
+
             # create the figure and show them
             if self.cb.isChecked():
                 path_im = self.find_path_im()
+                sys.stdout = self.mystdout = StringIO()
                 name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
                 if name_hdf5:
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5)
                     for t in [-1]:  # range(0, len(vel_cell)):
@@ -1233,17 +1260,22 @@ class HEC_RAS1D(SubHydroW):
 
         # label with the file name
         self.geo_t2 = QLabel(self.namefile[0], self)
+        self.geo_t2.setToolTip(self.pathfile[0])
         self.out_t2 = QLabel(self.namefile[1], self)
+        self.out_t2.setToolTip(self.pathfile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
         self.geo_b = QPushButton('Choose file (.g0x)', self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
+
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (.xml, .sdf, or .res file)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+        self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
 
         # # grid creation options
         l6 = QLabel(self.tr('<b>Grid creation </b>'))
@@ -1309,14 +1341,17 @@ class HEC_RAS1D(SubHydroW):
         This signal is collected in the MainWindow() class.
 
         """
+
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
         path_im = self.find_path_im()
+        self.load_b.setDisabled(True)
 
         # load hec_ras data
         if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
+
         # redirect the out stream to my output
         a = time.time()
         sys.stdout = self.mystdout = StringIO()
@@ -1357,6 +1392,8 @@ class HEC_RAS1D(SubHydroW):
         if self.cb.isChecked():
             self.show_fig.emit()
 
+        self.load_b.setDisabled(False)
+
 
 class Rubar2D(SubHydroW):
     """
@@ -1389,6 +1426,8 @@ class Rubar2D(SubHydroW):
         # label with the file name
         self.geo_t2 = QLabel(self.namefile[0], self)
         self.out_t2 = QLabel(self.namefile[1], self)
+        self.geo_t2.setToolTip(self.pathfile[0])
+        self.out_t2.setToolTip(self.pathfile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
@@ -1396,10 +1435,12 @@ class Rubar2D(SubHydroW):
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (.tps)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+        self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
 
         # grid creation
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
@@ -1451,6 +1492,7 @@ class Rubar2D(SubHydroW):
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
+        self.load_b.setDisabled(True)
         # the path where to save the image
         path_im = self.find_path_im()
         # the path where to save the hdf5
@@ -1458,7 +1500,7 @@ class Rubar2D(SubHydroW):
 
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
-        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.namefile[0], self.namefile[1],
+        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.name_hdf5,self.namefile[0], self.namefile[1],
                                 self.pathfile[0], self.pathfile[1], path_im, self.name_prj,
                                 self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
@@ -1549,6 +1591,14 @@ class Mascaret(SubHydroW):
         self.out_b.clicked.connect(lambda: self.show_dialog(2))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[2]))
 
+        # tooltip (give the folder of the chosen file)
+        self.gen_t2.setToolTip(self.pathfile[0])
+        self.geo_t2.setToolTip(self.pathfile[1])
+        self.out_t2.setToolTip(self.pathfile[2])
+        self.gen_b.clicked.connect(lambda: self.gen_t2.setToolTip(self.pathfile[0]))
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[1]))
+        self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[2]))
+
         # grid creation options
         l6 = QLabel(self.tr('<b>Grid creation </b>'))
         l3 = QLabel(self.tr('Velocity distribution'))
@@ -1615,6 +1665,7 @@ class Mascaret(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
         self.save_xml(2)
+        self.load_b.setDisabled(True)
         path_im = self.find_path_im()
         self.send_log.emit(self.tr('# Load: Mascaret data.'))
         sys.stdout = self.mystdout = StringIO()
@@ -1664,6 +1715,8 @@ class Mascaret(SubHydroW):
 
         if self.cb.isChecked():
             self.show_fig.emit()
+
+        self.load_b.setDisabled(False)
 
 
 class River2D(SubHydroW):
@@ -1726,8 +1779,8 @@ class River2D(SubHydroW):
         self.removeallfileb.clicked.connect(self.remove_all_file)
         self.addfileb = QPushButton(self.tr("Add file"))
         self.addfileb.clicked.connect(self.add_file_river2d)
-        self.loadb = QPushButton(self.tr("Load all files and create hdf5"))
-        self.loadb.clicked.connect(self.load_river2d_gui)
+        self.load_b = QPushButton(self.tr("Load all files and create hdf5"))
+        self.load_b.clicked.connect(self.load_river2d_gui)
 
         # grid creation
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
@@ -1751,7 +1804,7 @@ class River2D(SubHydroW):
         self.layout.addWidget(l2D2, 4, 1, 1, 2)
         self.layout.addWidget(lh, 5, 0)
         self.layout.addWidget(self.hname, 5, 1)
-        self.layout.addWidget(self.loadb, 5, 2)
+        self.layout.addWidget(self.load_b, 5, 2)
         self.layout.addWidget(self.cb, 6, 2)
         self.layout.addItem(spacer, 7, 0)
         self.setLayout(self.layout)
@@ -1799,6 +1852,16 @@ class River2D(SubHydroW):
         for i in range(0, len(self.namefile)):
                 self.list_f.addItem(self.namefile[i])
 
+        # add all path from the files as a QToolTip
+        # only unique path is added to the Tooltip for the QComboBox
+        # not possible to add a ToolTip for item in QComboBox
+        pathname_unique = list(set(self.pathfile))
+        pathname_unique2 = ''
+        for i in range(0, len(pathname_unique)):
+            pathname_unique2 += pathname_unique[i] + '\n'
+        self.list_f.setToolTip(pathname_unique2[:-1])
+
+
     def add_all_file(self):
         """
         The function finds all .cdg file in one directory to add there names to the list of files to be loaded
@@ -1818,6 +1881,15 @@ class River2D(SubHydroW):
         self.pathfile = self.pathfile + [dir_name] * len(listcdf)
         # update list
         self.add_file_to_list()
+        # add proposed hdf5 name to the QLineEdit
+        filename2, ext = os.path.splitext(self.namefile[0])
+        if len(self.namefile[0]) > 9:
+            self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2[:9]
+        else:
+            self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
+
+        # self.hname.setAlignment(Qt.AlignRight)
+        self.hname.setText(self.name_hdf5)
 
     def load_river2d_gui(self):
         """
@@ -1825,6 +1897,7 @@ class River2D(SubHydroW):
         """
         # for error management and figures
         self.timer.start(1000)
+        self.load_b.setDisabled(True)
 
         path_hdf5 = self.find_path_im()
 
@@ -1840,7 +1913,7 @@ class River2D(SubHydroW):
                 self.save_xml(i, True)
 
         self.q = Queue()
-        self.p = Process(target=river2d.load_river2d_and_cut_grid, args=(self.namefile, self.pathfile,
+        self.p = Process(target=river2d.load_river2d_and_cut_grid, args=(self.name_hdf5,self.namefile, self.pathfile,
                                 self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
 
@@ -1896,6 +1969,12 @@ class Rubar1D(SubHydroW):
         self.out_b = QPushButton('Choose file \n (profil.X)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+
+        # ToolTip for the path to the files
+        self.geo_t2.setToolTip(self.pathfile[0])
+        self.out_t2.setToolTip(self.pathfile[1])
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
+        self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
 
         # grid creation options
         l6 = QLabel(self.tr('<b>Grid creation </b>'))
@@ -1961,6 +2040,7 @@ class Rubar1D(SubHydroW):
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
+        self.load_b.setDisabled(True)
         path_im = self.find_path_im()
         if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
@@ -2008,6 +2088,8 @@ class Rubar1D(SubHydroW):
         if self.cb.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
 
+        self.load_b.setDisabled(False)
+
 
 class HEC_RAS2D(SubHydroW):
     """
@@ -2050,14 +2132,18 @@ class HEC_RAS2D(SubHydroW):
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
+        # ToolTip to indicated in which folder are the files
+        self.h2d_t2.setToolTip(self.pathfile[0])
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
         self.gethdf5_name_gui()
 
         # load button
-        load_b = QPushButton('Load data and create hdf5', self)
-        load_b.clicked.connect(self.load_hec_2d_gui)
+        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.clicked.connect(self.load_hec_2d_gui)
         self.spacer = QSpacerItem(1, 250)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
@@ -2073,7 +2159,7 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
         self.layout_hec2.addWidget(lh, 3, 0)
         self.layout_hec2.addWidget(self.hname, 3, 1)
-        self.layout_hec2.addWidget(load_b, 4, 2)
+        self.layout_hec2.addWidget(self.load_b, 4, 2)
         self.layout_hec2.addWidget(self.cb, 4, 1)
         self.layout_hec2.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec2)
@@ -2089,6 +2175,7 @@ class HEC_RAS2D(SubHydroW):
         """
         # save the name of the file in the xml project file
         self.save_xml(0)
+        self.load_b.setDisabled(True)
 
         # for error management and figures
         self.timer.start(1000)
@@ -2098,7 +2185,7 @@ class HEC_RAS2D(SubHydroW):
 
         # load the hec_ras data and cut the grid to the needed side
         self.q = Queue()
-        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.namefile[0], self.pathfile[0],
+        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.name_hdf5,self.namefile[0], self.pathfile[0],
                                      self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
 
@@ -2147,6 +2234,10 @@ class TELEMAC(SubHydroW):
         l2 = QLabel(self.tr('<b> Options </b>'))
         l3 = QLabel('All time steps', self)
 
+        # ToolTip to indicated in which folder are the files
+        self.h2d_t2.setToolTip(self.pathfile[0])
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+
         # grid creation
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
@@ -2157,8 +2248,8 @@ class TELEMAC(SubHydroW):
         self.gethdf5_name_gui()
 
         # load button
-        load_b = QPushButton('Load data and create hdf5', self)
-        load_b.clicked.connect(self.load_telemac_gui)
+        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 250)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
@@ -2173,7 +2264,7 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
         self.layout_hec2.addWidget(lh, 3, 0)
         self.layout_hec2.addWidget(self.hname, 3, 1)
-        self.layout_hec2.addWidget(load_b, 4, 2)
+        self.layout_hec2.addWidget(self.load_b, 4, 2)
         self.layout_hec2.addWidget(self.cb, 4, 1)
         self.layout_hec2.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec2)
@@ -2186,11 +2277,12 @@ class TELEMAC(SubHydroW):
         self.timer.start(1000)
         # write the new file name in the project file
         self.save_xml(0)
+        self.load_b.setDisabled(True)
         # the path where to save the hdf5
         path_hdf5 = self.find_path_im()
         # load the telemac data
         self.q = Queue()
-        self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.namefile[0],self.pathfile[0],
+        self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],self.pathfile[0],
                                           self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
 
@@ -2241,6 +2333,7 @@ class SubstrateW(SubHydroW):
         self.was_model_loaded_before()
         self.get_att_name()
         self.h2d_t2 = QLabel(self.namefile[0], self)
+        self.h2d_t2.setToolTip(self.pathfile[0])
         # type of substrate available
         self.e2 = QComboBox()
         blob, ext = os.path.splitext(self.namefile[0])
@@ -2252,6 +2345,8 @@ class SubstrateW(SubHydroW):
         self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
         self.h2d_b.clicked.connect(self.get_attribute_from_shp)
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+
 
         # hdf5 name
         lh = QLabel(self.tr('hdf5 file name'))
@@ -2349,6 +2444,8 @@ class SubstrateW(SubHydroW):
         case, an hdf5 is created with only the default value marked. This form of hdf5 file is then managed by the merge
         function.
         """
+
+        self.load_b.setDisabled(True)
         if self.constsub.isChecked():
             if self.namefile[0] != 'unknown file':
                 self.send_log.emit('Warning: Constant substrate data. Data from '+self.namefile[0] +
@@ -2422,6 +2519,8 @@ class SubstrateW(SubHydroW):
         if self.cb.isChecked() and path_im != 'no_path' and not self.constsub.isChecked():
             self.show_fig.emit()
 
+        self.load_b.setDisabled(False)
+
     def get_attribute_from_shp(self):
         """
         This function opens a shapefile and obtain the attribute. It then update the GUI
@@ -2482,11 +2581,12 @@ class SubstrateW(SubHydroW):
         """
 
         self.send_log.emit('# Save data for the substrate in an hdf5 file.')
+        self.name_hdf5 = self.hname.text()
 
         if constsub: # constant value of substrate
 
             # create hdf5 name
-            h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            h5name = self.name_hdf5 + '_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
             path_hdf5 = self.find_path_im()
 
             # create a new hdf5
@@ -2509,7 +2609,7 @@ class SubstrateW(SubHydroW):
 
             # create hdf5 name
             fileshort, ext = os.path.splitext(self.namefile[0])
-            h5name = 'Substrate_' + fileshort + '_' + ext[1:] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            h5name = self.name_hdf5 + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
             path_hdf5 = self.find_path_im()
 
             # create a new hdf5
