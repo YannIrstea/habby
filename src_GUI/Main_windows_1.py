@@ -3,6 +3,7 @@ import glob
 import os
 import shutil
 import numpy as np
+import time
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -224,6 +225,10 @@ class MainWindows(QMainWindow):
         saveprj.setShortcut('Ctrl+S')
         saveprj.setStatusTip(self.tr('Save the project'))
         saveprj.triggered.connect(self.save_project)
+        closeprj = QAction(self.tr('Close Project'), self)
+        closeprj.setShortcut('Ctrl+W')
+        closeprj.setStatusTip(self.tr('Close the cuurent project without opening a new one'))
+        closeprj.triggered.connect(self.close_project)
 
         # Menu to open menu research
         logc = QAction(self.tr("Clear Log Windows"), self)
@@ -272,9 +277,10 @@ class MainWindows(QMainWindow):
         fileMenu = self.menubar.addMenu(self.tr('&File'))
         fileMenu.addAction(saveprj)
         fileMenu.addAction(openprj)
-        recentpMenu = fileMenu.addMenu(self.tr('Recent Project'))
+        recentpMenu = fileMenu.addMenu(self.tr('Open Recent Project'))
         for j in range(0, len(recent_proj_menu)):
             recentpMenu.addAction(recent_proj_menu[j])
+        fileMenu.addAction(closeprj)
         fileMenu.addAction(newprj)
         fileMenu.addAction(exitAction)
         fileMenu4 = self.menubar.addMenu(self.tr('Options'))
@@ -371,7 +377,7 @@ class MainWindows(QMainWindow):
         self.settings.setValue('name_prj', self.name_prj)
         self.settings.setValue('path_prj', self.path_prj)
 
-        # save name and path of project
+        # save name and path of project in the list of recent project
         if self.name_prj not in self.recent_project:
             self.recent_project.append(self.name_prj)
             self.recent_project_path.append(self.path_prj)
@@ -385,6 +391,7 @@ class MainWindows(QMainWindow):
         self.settings.setValue('recent_project_path', self.recent_project_path)
         del self.settings
         self.my_menu_bar()
+
 
         # if new projet
         if not os.path.isfile(fname):
@@ -455,12 +462,15 @@ class MainWindows(QMainWindow):
 
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
-        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
-        self.setCentralWidget(self.central_widget)
-        self.central_widget.welcome_tab.save_signal.connect(self.save_project)
-        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
-        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
-        self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+        #self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
+        #self.setCentralWidget(self.central_widget)
+        #self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        #self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        #self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
+        #self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+        for i in range(self.central_widget.tab_widget.count(), 0, -1):
+            self.central_widget.tab_widget.removeTab(i)
+        self.central_widget.add_all_tab()
         # write log
         if len(t) > 26:
             # no need to write #log of habby started two times
@@ -472,6 +482,7 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log("restart Name_project")
         self.central_widget.write_log("restart    name_prj= " + self.name_prj)
 
+
         # enabled lowest part
         self.central_widget.welcome_tab.lowpart.setEnabled(True)
 
@@ -479,13 +490,12 @@ class MainWindows(QMainWindow):
         self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
 
 
-        return
-
     def open_project(self):
         """
         This function is used to open an existing habby project by selecting an xml project file. Called by
         my_menu_bar()
         """
+
 
         # open an xml file
         filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
@@ -501,8 +511,8 @@ class MainWindows(QMainWindow):
         # load the xml file
         try:
             try:
-                docxml = ET.parse(filename_path)
-                root = docxml.getroot()
+                docxml2 = ET.parse(filename_path)
+                root2 = docxml2.getroot()
             except IOError:
                 self.central_widget.write_log("Error: the selected xml file does not exist\n")
                 return
@@ -512,10 +522,10 @@ class MainWindows(QMainWindow):
 
         # get the project name and path. Write it in the QWiddet.
         # the text in the Qwidget will be used to save the project
-        self.name_prj = root.find(".//Project_Name").text
-        self.path_prj = root.find(".//Path_Projet").text
-        self.username_prj = root.find(".//User_Name").text
-        self.descri_prj = root.find(".//Description").text
+        self.name_prj = root2.find(".//Project_Name").text
+        self.path_prj = root2.find(".//Path_Projet").text
+        self.username_prj = root2.find(".//User_Name").text
+        self.descri_prj = root2.find(".//Description").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
@@ -524,6 +534,8 @@ class MainWindows(QMainWindow):
 
         # save the project
         self.save_project()
+
+        return
 
     def open_recent_project(self, j):
         """
@@ -578,6 +590,21 @@ class MainWindows(QMainWindow):
         self.createnew.save_project.connect(self.save_project_if_new_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
 
+    def close_project(self):
+        """
+        This function close the current project wihout opening a new project
+        """
+        # open an empty project (so it close the old one)
+        self.empty_project()
+
+        # remove tab 9as we have no project anymore)
+        for i in range(self.central_widget.tab_widget.count(),0,-1):
+            self.central_widget.tab_widget.removeTab(i)
+
+        # add the welcome Widget
+        self.central_widget.tab_widget.addTab(self.central_widget.welcome_tab, self.tr("Start"))
+        self.central_widget.welcome_tab.lowpart.setEnabled(False)
+
     def save_project_if_new_project(self):
         """
         This function is used to save a project when the project is created from the other Windows CreateNewProject
@@ -617,14 +644,12 @@ class MainWindows(QMainWindow):
         """
 
         # load the xml file
-        filename_empty = r'src_GUI/empty_proj.xml'
-        with open(filename_empty, 'rt') as f:
-            data_geo = f.read()
+        filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
 
         try:
             try:
-                docxml = ET.parse(filename_empty)
-                root = docxml.getroot()
+                docxml2 = ET.parse(filename_empty)
+                root2 = docxml2.getroot()
             except IOError:
                 self.central_widget.write_log("Error: no empty project. \n")
                 return
@@ -634,16 +659,16 @@ class MainWindows(QMainWindow):
 
         # get the project name and path. Write it in the QWiddet.
         # the text in the Qwidget will be used to save the project
-        self.name_prj = root.find(".//Project_Name").text
-        self.path_prj = root.find(".//Path_Projet").text
+        self.name_prj = root2.find(".//Project_Name").text
+        self.path_prj = root2.find(".//Path_Projet").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText('')
         self.central_widget.welcome_tab.e3.setText('')
-        self.central_widget.write_log('# Empty project was opened. \n')
 
         # save the project
         self.save_project()
+
 
     def save_project_estimhab(self):
         """
@@ -1008,10 +1033,8 @@ class CentralW(QWidget):
         """
 
         # create all the widgets
-        biorun_tab = EmptyTab()
-        bioinfo_tab = EmptyTab()
-        other_tab = EmptyTab()
-        other_tab2 = EmptyTab()
+        self.other_tab = EmptyTab()
+        self.other_tab2 = EmptyTab()
 
         # connect signals save figures
         self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
@@ -1066,22 +1089,7 @@ class CentralW(QWidget):
                 self.logon = False  # is True by default
 
         # add the widgets to the list of tab if a project exist
-        if os.path.isfile(fname) and self.name_prj_c != '':
-            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
-            self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
-            self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Biology Info"))
-            self.tab_widget.addTab(self.output_tab, self.tr("Output"))
-            self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
-            self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
-            if self.rech:
-                self.tab_widget.addTab(other_tab, self.tr("Research 1"))
-                self.tab_widget.addTab(other_tab2, self.tr("Research 2"))
-            self.welcome_tab.lowpart.setEnabled(True)
-        # if the project do not exist, do nmot add new tab
-        else:
-            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
-            self.welcome_tab.lowpart.setEnabled(False)
+        self.add_all_tab()
 
         # Area to show the log
         # add two Qlabel l1 ad l2 , with one scroll for the log in l2
@@ -1110,6 +1118,28 @@ class CentralW(QWidget):
         Move the scroll bar to the bottow if the ScollArea is getting bigger
         """
         self.vbar.setValue(self.vbar.maximum())
+
+    def add_all_tab(self):
+        """
+        This function add the different tab to habby (used by init and by save_project)
+        """
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        if os.path.isfile(fname) and self.name_prj_c != '':
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
+            self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
+            self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
+            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Biology Info"))
+            self.tab_widget.addTab(self.output_tab, self.tr("Output"))
+            self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
+            self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
+            if self.rech:
+                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
+                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
+            self.welcome_tab.lowpart.setEnabled(True)
+        # if the project do not exist, do not add new tab
+        else:
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
+            self.welcome_tab.lowpart.setEnabled(False)
 
     def showfig(self):
         """
