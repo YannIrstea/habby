@@ -198,7 +198,7 @@ class EstimhabW(QWidget):
         A small method to change the folder which indicates where is the biological data
         """
         # user find new path
-        self.path_bio = QFileDialog.getExistingDirectory()
+        self.path_bio = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         # update list
         self.list_f.clear()
         all_file = glob.glob(os.path.join(self.path_bio,r'*.xml'))

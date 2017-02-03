@@ -200,7 +200,7 @@ class StathabW(QWidget):
 
         """
         # get the directory
-        self.dir_name = QFileDialog.getExistingDirectory()
+        self.dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if self.dir_name == '':  # cancel case
             self.send_log.emit("Warning: No selected directory for stathab\n")
             return

@@ -123,7 +123,7 @@ class Hydro2W(QWidget):
         self.stack.setCurrentIndex(self.mod_act)
 
         # list with available hdf5
-        l4 = QLabel(self.tr('<b> Avalaible hdf5 files </b>'))
+        l4 = QLabel(self.tr('<b> Available hdf5 files </b>'))
         self.drop_hyd = QComboBox()
 
         # layout
@@ -1868,7 +1868,7 @@ class River2D(SubHydroW):
         """
 
         # get the directory
-        dir_name = QFileDialog.getExistingDirectory()
+        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if dir_name == '':  # cancel case
             self.send_log.emit("Warning: No selected directory for river 2d\n")
             return

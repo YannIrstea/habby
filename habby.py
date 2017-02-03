@@ -15,6 +15,6 @@ def main():
     #os._exit()
 
 if __name__ == '__main__':
-    main()
     # necessarry to freeze the application with parrallel process
     multiprocessing.freeze_support()
+    main()

@@ -8,7 +8,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
     QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog
@@ -130,6 +130,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
+        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # set geometry
@@ -168,14 +169,11 @@ class MainWindows(QMainWindow):
         app.installTranslator(self.languageTranslator)
 
         # set the central widget
-        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
-        self.setCentralWidget(self.central_widget)
-
-        # connect the signals with the different functions
-        self.central_widget.welcome_tab.save_signal.connect(self.save_project)
-        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
-        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
-        self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+        for i in range(self.central_widget.tab_widget.count(), 0, -1):
+            self.central_widget.tab_widget.removeTab(i)
+        self.central_widget.name_prj_c = self.name_prj
+        self.central_widget.path_prj_c = self.path_prj
+        self.central_widget.add_all_tab()
 
         # create the new menu
         self.my_menu_bar()
@@ -364,6 +362,7 @@ class MainWindows(QMainWindow):
         # name
         e1here = self.central_widget.welcome_tab.e1
         self.name_prj = e1here.text()
+
         # username and description
         e4here = self.central_widget.welcome_tab.e4
         self.username_prj = e4here.text()
@@ -392,8 +391,7 @@ class MainWindows(QMainWindow):
         del self.settings
         self.my_menu_bar()
 
-
-        # if new projet
+        # if new projet or project move
         if not os.path.isfile(fname):
             # create the root <root> and general tab
             root_element = ET.Element("root")
@@ -462,14 +460,10 @@ class MainWindows(QMainWindow):
 
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
-        #self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # False is not research mode
-        #self.setCentralWidget(self.central_widget)
-        #self.central_widget.welcome_tab.save_signal.connect(self.save_project)
-        #self.central_widget.welcome_tab.open_proj.connect(self.open_project)
-        #self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
-        #self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
             self.central_widget.tab_widget.removeTab(i)
+        self.central_widget.name_prj_c = self.name_prj
+        self.central_widget.path_prj_c = self.path_prj
         self.central_widget.add_all_tab()
         # write log
         if len(t) > 26:
@@ -512,7 +506,8 @@ class MainWindows(QMainWindow):
                 docxml2 = ET.parse(filename_path)
                 root2 = docxml2.getroot()
             except IOError:
-                self.central_widget.write_log("Error: the selected xml file does not exist\n")
+                self.central_widget.write_log("Error: the selected project file does not exist\n.")
+                self.close_project()
                 return
         except ET.ParseError:
             self.central_widget.write_log('Error: the XML is not well-formed.\n')
@@ -522,6 +517,15 @@ class MainWindows(QMainWindow):
         # the text in the Qwidget will be used to save the project
         self.name_prj = root2.find(".//Project_Name").text
         self.path_prj = root2.find(".//Path_Projet").text
+        # check coherence
+        if self.name_prj + '.xml' != os.path.basename(filename_path):
+            self.central_widget.write_log('Warning: xml file name is not coherent with project name. '
+                                          'New project name: ' + os.path.basename(filename_path))
+            self.name_prj = os.path.basename(filename_path)
+        if self.path_prj != os.path.dirname(filename_path):
+            self.central_widget.write_log('Warning: xml file path is not coherent with project path. '
+                                          'New project path: ' + os.path.dirname(filename_path))
+            self.path_prj = os.path.dirname(filename_path)
         self.username_prj = root2.find(".//User_Name").text
         self.descri_prj = root2.find(".//Description").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
@@ -531,6 +535,8 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log('# Project opened sucessfully. \n')
 
         # save the project
+        self.central_widget.path_prj_c = self.path_prj
+        self.central_widget.name_prj_c = self.name_prj
         self.save_project()
 
         return
@@ -553,7 +559,8 @@ class MainWindows(QMainWindow):
                 docxml = ET.parse(filename_path)
                 root = docxml.getroot()
             except IOError:
-                self.central_widget.write_log("Error: the selected xml file does not exist\n")
+                self.central_widget.write_log("Error: the selected project file does not exist\n")
+                self.close_project()
                 return
         except ET.ParseError:
             self.central_widget.write_log('Error: the XML is not well-formed.\n')
@@ -636,6 +643,65 @@ class MainWindows(QMainWindow):
             self.save_project()
             self.createnew.close()
 
+    def change_name_project(self):
+        """
+        This function is used to change the name of the current project. To do this, it copies the xml
+        project with a new name and copy the file for the log with a new name
+        """
+        fname_old = os.path.join(self.path_prj, self.name_prj +'.xml')
+
+        # get new name from the user
+        text, ok = QInputDialog.getText(self, self.tr('Change Project name'),
+                                        self.tr('Enter the new project name:'))
+        if ok:
+            name_prj_here = str(text)
+            # check if file already exist
+            fname = os.path.join(self.path_prj, name_prj_here + '.xml')
+            if os.path.isfile(fname):
+                self.msg2.setIcon(QMessageBox.Warning)
+                self.msg2.setWindowTitle(self.tr("Erase old project?"))
+                self.msg2.setText(
+                    self.tr("A project with an identical name exists. Should this project be erased definitively? "))
+                self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                self.msg2.setDefaultButton(QMessageBox.No)
+                ret = self.msg2.exec_()
+                if ret == QMessageBox.Yes:
+                    os.remove(fname)
+                    os.remove(os.path.join(self.createnew.e2.text(), name_prj_here + '.log'))
+                    os.remove(os.path.join(self.createnew.e2.text(), 'restart_' + name_prj_here + '.log'))
+                else:
+                    return
+            # change label name
+            self.central_widget.welcome_tab.e1.setText(name_prj_here)
+            # copy the xml
+            try:
+                shutil.copyfile(fname_old, fname)
+            except FileNotFoundError:
+                self.central_widget.write_log("Error: the old project file does not exist\n.")
+                return
+            # write the new name in the copied xml
+            doc = ET.parse(fname)
+            root = doc.getroot()
+            path_child = root.find(".//Project_Name")
+            path_child.text = name_prj_here
+            # update log name in the new xml
+            child_logfile1 = root.find(".//File_Log")
+            log1_old = child_logfile1.text
+            child_logfile1.text = os.path.join(self.path_prj, name_prj_here + '.log')
+            child_logfile2 = root.find(".//File_Restart")
+            log2_old = child_logfile2.text
+            child_logfile2.text = os.path.join(self.path_prj, 'restart_'+ name_prj_here + '.log')
+            # copy the xml
+            try:
+                shutil.copyfile(log1_old, child_logfile1.text)
+                shutil.copyfile(log2_old, child_logfile2.text)
+            except FileNotFoundError:
+                self.central_widget.write_log("Error: the old project file does not exist\n.")
+                return
+            doc.write(fname)
+            # save project, just in case
+            self.save_project()
+
     def empty_project(self):
         """
         This function open a new empty project
@@ -666,7 +732,6 @@ class MainWindows(QMainWindow):
 
         # save the project
         self.save_project()
-
 
     def save_project_estimhab(self):
         """
@@ -911,7 +976,7 @@ class CreateNewProject(QWidget):
 
     def __init__(self, lang, path_trans, file_langue):
 
-        self.default_fold = r'C:\Users\diane.von-gunten\HABBY'
+        self.default_fold = os.getcwd()
         self.default_name = 'DefaultProj'
         super().__init__()
         #translation
@@ -946,12 +1011,13 @@ class CreateNewProject(QWidget):
         self.setLayout(layoutl)
 
         self.setWindowTitle(self.tr('HABBY- NEW PROJECT'))
+        self.setGeometry(300, 300, 450, 100)
 
     def setfolder(self):
         """
         This function is used by the user to select the folder where the xml project file will be located.
         """
-        dir_name = QFileDialog.getExistingDirectory(None)  # check for invalid null parameter on Linuxgit
+        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))  # check for invalid null parameter on Linuxgit
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project. \n')
@@ -1008,7 +1074,7 @@ class CentralW(QWidget):
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
-        self.welcome_tab = WelcomeW()
+        self.welcome_tab = WelcomeW(path_prj, name_prj)
         self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
         self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
         self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
@@ -1065,17 +1131,19 @@ class CentralW(QWidget):
         # fill the general tab
         self.welcome_tab.e1.setText(self.name_prj_c)
         self.welcome_tab.e2.setText(self.path_prj_c)
+
         # if the directoy to the project do not exist, leave the general tab empty
-        if not os.path.isdir(self.path_prj_c):
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        if not os.path.isdir(self.path_prj_c) \
+                or not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Path to project"))
+            self.msg2.setWindowTitle(self.tr("Project file not found"))
             self.msg2.setText( \
-                self.tr("The directory indicated by the project path does not exists. Correction needed."))
+                self.tr("The xml project file does not exists. Create a new project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
-        fname = os.path.join(self.path_prj_c, self.name_prj_c+'.xml')
         # otherwise, fill it
-        if os.path.isfile(fname):
+        else:
             doc = ET.parse(fname)
             root = doc.getroot()
             user_child = root.find(".//User_Name")
@@ -1235,9 +1303,11 @@ class CentralW(QWidget):
                                     "restart file is not indicated in the xml file. No log written. </br> <br>")
                 return
         else:
-            t = self.l2.text()
-            self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
-                                "found. no Log written. </br> <br>")
+            # if only one tab, project not open, so it is normal that no log can be written.
+            if self.tab_widget.count() > 1:
+                t = self.l2.text()
+                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
+                                    "found. no Log written. </br> <br>")
             return
 
         # add comments to Qlabel and .log file
@@ -1355,11 +1425,17 @@ class WelcomeW(QWidget):
     """
        A PyQt signal used to write the log
     """
+    change_name = pyqtSignal()
+    """
+    A signal to change the name of the project for MainWindows
+    """
 
-    def __init__(self):
+    def __init__(self, path_prj, name_prj):
 
         super().__init__()
         self.imname = r'\translation\test3.jpg'  # image shoulfd in the translation folder
+        self.path_prj = path_prj
+        self.name_prj = name_prj
         self.init_iu()
 
     def init_iu(self):
@@ -1388,11 +1464,13 @@ class WelcomeW(QWidget):
         # general into to put in the xml .prj file
         lg = QLabel(self.tr(" <b> Current Project </b>"))
         l1 = QLabel(self.tr('Project Name: '))
-        self.e1 = QLineEdit()
+        self.e1 = QLabel()
         l2 = QLabel(self.tr('Main Folder: '))
-        self.e2 = QLineEdit()
+        self.e2 = QLabel()
         button2 = QPushButton(self.tr('Set Folder'), self)
         button2.clicked.connect(self.setfolder)
+        button3 = QPushButton(self.tr('Change Project Name'), self)
+        button3.clicked.connect(self.change_name.emit)
         l3 = QLabel(self.tr('Description: '))
         self.e3 = QTextEdit()
         l4 = QLabel(self.tr('User Name: '))
@@ -1426,6 +1504,7 @@ class WelcomeW(QWidget):
         layoutl.addWidget(self.e1, 1, 1)
         layoutl.addWidget(l2, 2, 0)
         layoutl.addWidget(self.e2, 2, 1)
+        layoutl.addWidget(button3, 1, 2)
         layoutl.addWidget(button2, 2, 2)
         layoutl.addWidget(l4, 3, 0)
         layoutl.addWidget(self.e4, 3, 1)
@@ -1448,11 +1527,37 @@ class WelcomeW(QWidget):
     def setfolder(self):
         """
         This function is used by the user to select the folder where the xml project file will be located.
+        This is used in the case where the project exist already. A similar function is in the class CreateNewProject()
+        for the case where the project is new.
         """
-        dir_name = QFileDialog.getExistingDirectory(None)  # check for invalid null parameter on Linuxgit
+        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))  # check for invalid null parameter on Linuxgit
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project. \n')
+
+        # if the project exist and the project name has not changed
+        # , change the project path in the xml file and copy the xml at the chosen location
+        fname_old = os.path.join(self.path_prj, self.name_prj +'.xml')
+        if os.path.isfile(fname_old) and self.e1.text() == self.name_prj:
+            # write new project name
+            if not os.path.isfile(os.path.join(dir_name, self.name_prj +'.xml')):
+                self.path_prj = dir_name
+                doc = ET.parse(fname_old)
+                root = doc.getroot()
+                path_child = root.find(".//Path_Projet")
+                path_child.text = self.path_prj
+                fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+                doc.write(fname)
+                shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj +'.xml'))
+                self.save_signal.emit()
+            else:
+                self.send_log.emit('Error: A project with the same name exists at the new location. '
+                                   'Project not saved \n')
+                self.e2.setText(self.path_prj)
+                return
+        # if the project do not exist or has a different name than before, save a new project
+        else:
+            self.save_signal.emit()
 
 
 class EmptyTab(QWidget):
@@ -1525,8 +1630,8 @@ class ShowImageW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.label_im = QLabel()
-        # self.w = 200  #size of the image (see if we let some options for this)
-        # self.h = 200
+        self.w = 200  #size of the image (see if we let some options for this)
+        self.h = 200
         self.imtype = '*.png'
         self.path_im = os.path.join(self.path_prj, 'figures_habby')
         self.msg2 = QMessageBox()
@@ -1551,12 +1656,14 @@ class ShowImageW(QWidget):
         self.image_list.activated.connect(self.selectionchange)
 
         # create the label which will show the figure
-        # self.label_im.setGeometry(QRect(0, 0, self.w, self.h))
+        self.label_im.setGeometry(QRect(0, 0, self.w, self.h))
         self.label_im.setScaledContents(True)
         self.but1 = QPushButton('Change Folder')
         self.but1.clicked.connect(self.change_folder)
 
         self.setWindowTitle(self.tr('ALL FIGURES'))
+        self.setGeometry(200, 200, 500, 300)
+        #self.setMaximumSize(100, 100)
 
         # layout
         self.layout4 = QGridLayout()
@@ -1576,7 +1683,7 @@ class ShowImageW(QWidget):
             return
         else:
             namefile_im = os.path.join(self.path_im, self.all_file[i])
-            pixmap = QPixmap(namefile_im)
+            pixmap = QPixmap(namefile_im).scaled(800, 500)
             self.label_im.setPixmap(pixmap)
             self.label_im.show()
 
@@ -1585,7 +1692,7 @@ class ShowImageW(QWidget):
         A function to change the folder where are stored the image (i.e., the path_im)
         """
 
-        self.path_im = QFileDialog.getExistingDirectory(None)
+        self.path_im = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if self.path_im == '':
             return
         self.update_namefig()
