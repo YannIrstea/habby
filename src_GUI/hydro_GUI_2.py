@@ -506,6 +506,28 @@ class SubHydroW(QWidget):
             #self.hname.setAlignment(Qt.AlignRight)
             self.hname.setText(self.name_hdf5)
 
+    def dis_enable_nb_profile(self):
+        """
+        This function enable and disable the QLineEdit where the user gives the number of additional profile needed to
+        create the gird and the related QLabel. If the user choose the interpolation by bloc, the QLineEdit will be
+        disable. If it chooses linear or nearest neighbour interpolation, it will be enabled. Careful, this function
+        only works with 1D and 1.5D model.
+        """
+        if self.nb_dim >= 2:
+            return
+
+        if self.inter.currentIndex() == 0:
+            # disable
+            self.nb_extrapro_text.setDisabled(True)
+            self.l5.setDisabled(True)
+        else:
+            # enable
+            self.nb_extrapro_text.setDisabled(False)
+            self.l5.setDisabled(False)
+
+
+
+
     def save_xml(self, i=0, append_name = False):
         """
         A function to save the loaded data in the xml file.
@@ -776,6 +798,8 @@ class SubHydroW(QWidget):
         *2: Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation
         *3: Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step
         and use the cut_2d_grid to get a grid with only the wet profile for all time step
+
+        I'm not sure why there is a parameter to this method. Can we not use self.cb.isckeched?? To be checked.
         """
         # preparation
         if not isinstance(self.interpo_choice, int):
@@ -1282,9 +1306,11 @@ class HEC_RAS1D(SubHydroW):
         l3 = QLabel(self.tr('Velocity distribution'))
         l31 = QLabel(self.tr('Model 1.5D: No dist. needed'))
         l4 = QLabel(self.tr('Interpolation of the data'))
-        l5 = QLabel(self.tr('Number of additional profiles'))
+        self.l5 = QLabel(self.tr('Number of additional profiles'))
         self.inter.addItems(self.interpo)
         self.nb_extrapro_text = QLineEdit('1')
+        self.dis_enable_nb_profile()
+        self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
@@ -1298,6 +1324,7 @@ class HEC_RAS1D(SubHydroW):
         self.spacer1 = QSpacerItem(1, 30)
         self.spacer2 = QSpacerItem(1, 80)
         self.cb = QCheckBox(self.tr('Show figures'), self)
+
 
         # layout
         self.layout_hec = QGridLayout()
@@ -1313,7 +1340,7 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(l31, 4, 2, 1, 2)
         self.layout_hec.addWidget(l4, 5, 1)
         self.layout_hec.addWidget(self.inter, 5, 2, 1, 2)
-        self.layout_hec.addWidget(l5, 6, 1)
+        self.layout_hec.addWidget(self.l5, 6, 1)
         self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
         self.layout_hec.addItem(self.spacer1, 7, 1)
         self.layout_hec.addWidget(lh,8,0)
@@ -1350,7 +1377,8 @@ class HEC_RAS1D(SubHydroW):
         self.load_b.setDisabled(True)
 
         # load hec_ras data
-        if self.cb.isChecked() and path_im != 'no_path':
+        show_all_fig = False
+        if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
 
         # redirect the out stream to my output
@@ -1608,7 +1636,7 @@ class Mascaret(SubHydroW):
         l7 = QLabel(self.tr("Nb. of velocity points by profile"))
         l8 = QLabel(self.tr("Manning coefficient"))
         l4 = QLabel(self.tr('Interpolation of the data'))
-        l5 = QLabel(self.tr('Nb. of additional profiles'))
+        self.l5 = QLabel(self.tr('Nb. of additional profiles'))
         self.inter.addItems(self.interpo)
         self.nb_extrapro_text = QLineEdit('1')
         self.nb_vel_text = QLineEdit('70')
@@ -1616,6 +1644,8 @@ class Mascaret(SubHydroW):
         self.ltest = QLabel(self.tr('or'))
         self.manningb = QPushButton(self.tr('Load .txt'))
         self.manningb.clicked.connect(self.load_manning_text)
+        self.dis_enable_nb_profile()
+        self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
@@ -1651,7 +1681,7 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(self.manningb, 5, 4)
         self.layout.addWidget(l4, 6, 1)
         self.layout.addWidget(self.inter, 6, 2, 1, 2)
-        self.layout.addWidget(l5, 7, 1)
+        self.layout.addWidget(self.l5, 7, 1)
         self.layout.addWidget(self.nb_extrapro_text, 7, 2)
         self.layout.addWidget(lh, 8, 0)
         self.layout.addWidget(self.hname, 8, 1)
@@ -1694,7 +1724,8 @@ class Mascaret(SubHydroW):
             print('Error: Mascaret data not loaded. \n')
             return
 
-        if self.cb.isChecked() and path_im != 'no_path':
+        show_all_fig = False
+        if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             mascaret.figure_mascaret(self.coord_pro, coord_r, self.xhzv_data, self.on_profile, self.nb_pro_reach,
                                      name_pro, name_reach, path_im, [0, 1], [-1], [0])
         # velocity distibution
@@ -1988,7 +2019,7 @@ class Rubar1D(SubHydroW):
         l7 = QLabel(self.tr("Nb. of velocity points by profile"))
         l8 = QLabel(self.tr("Manning coefficient"))
         l4 = QLabel(self.tr('Interpolation of the data'))
-        l5 = QLabel(self.tr('Nb. of additional profiles'))
+        self.l5 = QLabel(self.tr('Nb. of additional profiles'))
         self.inter.addItems(self.interpo)
         self.nb_extrapro_text = QLineEdit('1')
         self.nb_vel_text = QLineEdit('50')
@@ -1996,11 +2027,14 @@ class Rubar1D(SubHydroW):
         self.ltest = QLabel(self.tr('or'))
         self.manningb = QPushButton(self.tr('Load .txt'))
         self.manningb.clicked.connect(self.load_manning_text)
+        self.dis_enable_nb_profile()
+        self.inter.currentIndexChanged.connect(self.dis_enable_nb_profile)
 
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -2027,7 +2061,7 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(self.manningb, 4, 4)
         self.layout_hec.addWidget(l4, 5, 1)
         self.layout_hec.addWidget(self.inter, 5, 2)
-        self.layout_hec.addWidget(l5, 6, 1)
+        self.layout_hec.addWidget(self.l5, 6, 1)
         self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2)
         self.layout_hec.addWidget(lh, 7, 0)
         self.layout_hec.addWidget(self.hname, 7, 1)
@@ -2047,7 +2081,8 @@ class Rubar1D(SubHydroW):
         self.save_xml(1)
         self.load_b.setDisabled(True)
         path_im = self.find_path_im()
-        if self.cb.isChecked() and path_im != 'no_path':
+        show_all_fig = False
+        if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         #load rubar 1D
         sys.stdout = self.mystdout = StringIO()
@@ -2322,6 +2357,7 @@ class SubstrateW(SubHydroW):
         self.sub_info = []
         self.hyd_name = []
         self.init_iu()
+        self.nb_dim = 10  # just to ckeck
 
     def init_iu(self):
         """
