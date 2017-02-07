@@ -247,7 +247,7 @@ class MainWindows(QMainWindow):
         showim.triggered.connect(self.central_widget.showfig2)
         optim = QAction(self.tr("More Options"), self)
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
-        # optim.triggered.connect(self.central_widget.optfig)
+        optim.triggered.connect(self.central_widget.optfig)
 
         rech = QAction(self.tr("Show Research Options"), self)
         rech.setShortcut('Ctrl+R')
@@ -405,9 +405,9 @@ class MainWindows(QMainWindow):
             # log
             log_element = ET.SubElement(general_element, "Log_Info")
             pathlog_child = ET.SubElement(log_element, "File_Log")
-            pathlog_child.text = os.path.join(self.path_prj, self.name_prj + '.log')
+            pathlog_child.text = os.path.join(self.name_prj + '.log')
             pathlog_child = ET.SubElement(log_element, "File_Restart")
-            pathlog_child.text = os.path.join(self.path_prj, 'restart_'+self.name_prj + '.log')
+            pathlog_child.text = os.path.join('restart_'+self.name_prj + '.log')
             savelog_child = ET.SubElement(log_element, "Save_Log")
             savelog_child.text = str(self.central_widget.logon)
 
@@ -429,7 +429,7 @@ class MainWindows(QMainWindow):
                 fname = os.path.join(self.path_prj, self.name_prj+'.xml')
                 tree.write(fname)
             # create a default directory for the figures
-            path_im = os.path.join(self.path_prj, 'figures_habby')
+            path_im = os.path.join(self.path_prj, self.name_prj)
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
         # project exist
@@ -444,8 +444,8 @@ class MainWindows(QMainWindow):
             pathbio_child = root.find(".//Path_Bio")
             #  if pathim is the default one, change it. Otherwise keep the user chosen directory
             if pathim_child is not None:
-                if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, 'figures_habby')):
-                    pathim_child.text = os.path.join(self.path_prj, 'figures_habby')
+                if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, self.name_prj)):
+                    pathim_child.text = os.path.join(self.path_prj, self.name_prj)
             child.text = self.name_prj
             path_child.text = self.path_prj
             pathbio_child.text = "./biology"
@@ -453,10 +453,11 @@ class MainWindows(QMainWindow):
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
             doc.write(fname)
-            # create a default directory for the figures
-            path_im = os.path.join(self.path_prj, 'figures_habby')
+            # path_im = os.path.join(self.path_prj, 'figures_habby')
+            path_im = self.path_prj
             if not os.path.exists(path_im):
-                os.makedirs(path_im)
+                os.makedirs(self.path_prj)
+                os.makedirs(os.path.join(self.path_prj, 'figues_habby'))
 
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
@@ -464,6 +465,39 @@ class MainWindows(QMainWindow):
             self.central_widget.tab_widget.removeTab(i)
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
+        self.central_widget.welcome_tab.name_prj = self.name_prj
+        self.central_widget.statmod_tab.name_prj = self.name_prj
+        self.central_widget.hydro_tab.name_prj = self.name_prj
+        self.central_widget.substrate_tab.name_prj = self.name_prj
+        self.central_widget.stathab_tab.name_prj = self.name_prj
+        self.central_widget.output_tab.name_prj = self.name_prj
+        self.central_widget.bioinfo_tab.name_prj = self.name_prj
+        self.central_widget.welcome_tab.path_prj = self.path_prj
+        self.central_widget.statmod_tab.path_prj = self.path_prj
+        self.central_widget.hydro_tab.path_prj = self.path_prj
+        self.central_widget.substrate_tab.path_prj = self.path_prj
+        self.central_widget.stathab_tab.path_prj = self.path_prj
+        self.central_widget.output_tab.path_prj = self.path_prj
+        self.central_widget.bioinfo_tab.path_prj= self.path_prj
+        self.central_widget.hydro_tab.hecras1D.name_prj = self.name_prj
+        self.central_widget.hydro_tab.hecras2D.name_prj = self.name_prj
+        self.central_widget.hydro_tab.telemac.name_prj = self.name_prj
+        self.central_widget.hydro_tab.rubar2d.name_prj = self.name_prj
+        self.central_widget.hydro_tab.rubar1d.name_prj = self.name_prj
+        self.central_widget.hydro_tab.mascar.name_prj = self.name_prj
+        self.central_widget.hydro_tab.riverhere2d.name_prj = self.name_prj
+        self.central_widget.hydro_tab.habbyhdf5.name_prj = self.name_prj
+        self.central_widget.hydro_tab.hecras1D.path_prj = self.path_prj
+        self.central_widget.hydro_tab.hecras2D.path_prj = self.path_prj
+        self.central_widget.hydro_tab.telemac.path_prj = self.path_prj
+        self.central_widget.hydro_tab.rubar2d.path_prj = self.path_prj
+        self.central_widget.hydro_tab.rubar1d.path_prj = self.path_prj
+        self.central_widget.hydro_tab.mascar.path_prj = self.path_prj
+        self.central_widget.hydro_tab.riverhere2d.path_prj = self.path_prj
+        self.central_widget.hydro_tab.habbyhdf5.path_prj= self.path_prj
+        self.central_widget.stathab_tab.mystathab.path_prj = self.path_prj
+        self.central_widget.stathab_tab.mystathab.name_prj = self.name_prj
+
         self.central_widget.add_all_tab()
         # write log
         if len(t) > 26:
@@ -475,7 +509,6 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log("py    path_prj= '" + self.path_prj + "'")
         self.central_widget.write_log("restart Name_project")
         self.central_widget.write_log("restart    name_prj= " + self.name_prj)
-
 
         # enabled lowest part
         self.central_widget.welcome_tab.lowpart.setEnabled(True)
@@ -522,10 +555,13 @@ class MainWindows(QMainWindow):
             self.central_widget.write_log('Warning: xml file name is not coherent with project name. '
                                           'New project name: ' + os.path.basename(filename_path))
             self.name_prj = os.path.basename(filename_path)
+            root2.find(".//Project_Name").text = self.name_prj
         if self.path_prj != os.path.dirname(filename_path):
             self.central_widget.write_log('Warning: xml file path is not coherent with project path. '
                                           'New project path: ' + os.path.dirname(filename_path))
             self.path_prj = os.path.dirname(filename_path)
+            root2.find(".//Path_Projet").text = self.path_prj
+            root2.find(".//Path_Figure").text = self.path_prj
         self.username_prj = root2.find(".//User_Name").text
         self.descri_prj = root2.find(".//Description").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
@@ -533,11 +569,20 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
         self.central_widget.welcome_tab.e3.setText(self.descri_prj)
         self.central_widget.write_log('# Project opened sucessfully. \n')
+        docxml2.write(filename_path)
 
         # save the project
         self.central_widget.path_prj_c = self.path_prj
         self.central_widget.name_prj_c = self.name_prj
         self.save_project()
+
+        # update estimhab and stathab
+        self.central_widget.stathab_tab.load_from_hdf5_gui()
+        self.central_widget.statmod_tab.open_estimhab_hdf5()
+
+        # update hydro
+        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         return
 
@@ -581,6 +626,14 @@ class MainWindows(QMainWindow):
         # save the project
         self.save_project()
 
+        # update hydro
+        self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.substrate_tab.update_sub_hdf5_name()
+
+        # update stathab and estimhab
+        self.central_widget.stathab_tab.load_from_hdf5_gui()
+        self.central_widget.statmod_tab.open_estimhab_hdf5()
+
     def new_project(self):
         """
         This function open an empty project and guide the user to create a new project, using a new Windows
@@ -612,13 +665,19 @@ class MainWindows(QMainWindow):
 
     def save_project_if_new_project(self):
         """
-        This function is used to save a project when the project is created from the other Windows CreateNewProject
+        This function is used to save a project when the project is created from the other Windows CreateNewProject. It
+        can not be in the new_project function as the new_project function call CreateNewProject().
         """
+        name_prj_here = self.createnew.e1.text()
+
+        # add a new folder
+        path_new_fold = os.path.join(self.createnew.e2.text(), name_prj_here)
+        if not os.path.isdir(path_new_fold):
+            os.makedirs(path_new_fold)
 
         # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by save_project)
-        name_prj_here = self.createnew.e1.text()
         self.central_widget.welcome_tab.e1.setText(name_prj_here)
-        self.central_widget.welcome_tab.e2.setText(self.createnew.e2.text())
+        self.central_widget.welcome_tab.e2.setText(path_new_fold)
 
         # check if there is not another project with the same path_name
         fname = os.path.join(self.createnew.e2.text(), name_prj_here+'.xml')
@@ -642,6 +701,20 @@ class MainWindows(QMainWindow):
         else:
             self.save_project()
             self.createnew.close()
+
+        # change the path_im
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        self.path_im = self.path_prj
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        # geo data
+        child1 = root.find('.//Path_Figure')
+        if child1 is None:
+            child1 = ET.SubElement(root, 'Path_Figure')
+            child1.text = self.path_im
+        else:
+            child1.text = self.path_im
+        doc.write(fname)
 
     def change_name_project(self):
         """
@@ -929,7 +1002,7 @@ class MainWindows(QMainWindow):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = os.path.join(self.path_prj, 'figures_habby')
+                path_im = os.path.join(self.path_prj, self.name_prj)
             else:
                 path_im = child.text
         else:
@@ -1139,7 +1212,7 @@ class CentralW(QWidget):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Project file not found"))
             self.msg2.setText( \
-                self.tr("The xml project file does not exists. Create a new project."))
+                self.tr("The xml project file does not exists. \n Create or open a new project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         # otherwise, fill it
@@ -1234,9 +1307,9 @@ class CentralW(QWidget):
     def optfig(self):
         """
         A small function which open the output tab. It contains the different options for the figures.
-        Output should be the 6th tab, otherwise it will not work.
+        Output should be the 5th tab, otherwise it will not work.
         """
-        self.tab_widget.setCurrentIndex(5)
+        self.tab_widget.setCurrentIndex(4)
 
     def connect_signal_log(self):
         """
@@ -1287,7 +1360,7 @@ class CentralW(QWidget):
             # python-based log
             child_logfile = root.find(".//File_Log")
             if child_logfile is not None:
-                pathname_logfile = child_logfile.text
+                pathname_logfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
                 t = self.l2.text()
                 self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The "
@@ -1296,7 +1369,7 @@ class CentralW(QWidget):
             # restart log
             child_logfile = root.find(".//File_Restart")
             if child_logfile is not None:
-                pathname_restartfile = child_logfile.text
+                pathname_restartfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
                 t = self.l2.text()
                 self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The "
@@ -1387,6 +1460,9 @@ class CentralW(QWidget):
         # read name
         self.hyd_name = self.substrate_tab.read_attribute_xml('hdf5_hydrodata')
         self.hyd_name = self.hyd_name.split(',')
+        if not os.path.isabs(self.hyd_name[0]):
+            for i in range(0, len(self.hyd_name)):
+                self.hyd_name[i] = os.path.join(self.path_prj_c, self.hyd_name[i])
         hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
         for i in range(0, len(self.hyd_name)):
             if os.path.isfile(self.hyd_name[i]):
@@ -1433,7 +1509,7 @@ class WelcomeW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        self.imname = r'\translation\test3.jpg'  # image shoulfd in the translation folder
+        self.imname = os.path.join('translation','test3.jpg') # image shoulfd in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.init_iu()
@@ -1483,7 +1559,7 @@ class WelcomeW(QWidget):
         pic = QLabel()
         pic.setMaximumSize(1000, 200)
         # use full ABSOLUTE path to the image, not relative
-        pic.setPixmap(QPixmap(os.getcwd() + self.imname).scaled(800, 500))  # 800 500
+        pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
 
         # layout (in two parts)
         layout2 = QGridLayout()
@@ -1534,22 +1610,38 @@ class WelcomeW(QWidget):
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project. \n')
+        else:
+            return
 
         # if the project exist and the project name has not changed
-        # , change the project path in the xml file and copy the xml at the chosen location
-        fname_old = os.path.join(self.path_prj, self.name_prj +'.xml')
+        # ,change the project path in the xml file and copy the xml at the chosen location
+        # if a project directory exist copy it as long as no project directory exist at the end location
+        fname_old = os.path.join(self.path_prj, self.name_prj + '.xml')
         if os.path.isfile(fname_old) and self.e1.text() == self.name_prj:
-            # write new project name
+            # write new project path
             if not os.path.isfile(os.path.join(dir_name, self.name_prj +'.xml')):
                 self.path_prj = dir_name
                 doc = ET.parse(fname_old)
                 root = doc.getroot()
                 path_child = root.find(".//Path_Projet")
+                path_im_child = root.find(".//Path_Figure")
+                path_im = path_im_child.text
                 path_child.text = self.path_prj
                 fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+                if path_im is not None:
+                    if os.path.isdir(path_im):
+                        path_here = os.path.join(self.path_prj, self.name_prj)
+                        if not os.path.isdir(path_here):
+                            shutil.copytree(path_im, path_here)
+                            self.send_log.emit(' The file in the project folder have been copied to the new location')
+                            shutil.copyfile(fname_old, os.path.join(path_here, self.name_prj + '.xml'))
+                            self.path_prj = path_here
+                            path_child.text = self.path_prj
+                else:
+                    shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.xml'))
                 doc.write(fname)
-                shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj +'.xml'))
-                self.save_signal.emit()
+                self.e2.setText(self.path_prj)
+                self.save_signal.emit()  # if not project folder, will create one
             else:
                 self.send_log.emit('Error: A project with the same name exists at the new location. '
                                    'Project not saved \n')
@@ -1633,7 +1725,7 @@ class ShowImageW(QWidget):
         self.w = 200  #size of the image (see if we let some options for this)
         self.h = 200
         self.imtype = '*.png'
-        self.path_im = os.path.join(self.path_prj, 'figures_habby')
+        self.path_im = os.path.join(self.path_prj, self.name_prj)
         self.msg2 = QMessageBox()
         self.init_iu()
         self.all_file = []
@@ -1726,7 +1818,7 @@ class ShowImageW(QWidget):
 
         self.image_list.clear()
         if not self.path_im:
-            self.path_im = os.path.join(self.path_prj, 'figures_habby')
+            self.path_im = os.path.join(self.path_prj, self.name_prj)
         self.all_file = glob.glob(os.path.join(self.path_im, self.imtype))
         if not self.all_file:
             self.send_log.emit('Warning: No figure was found at the path:' + self.path_im + '\n')

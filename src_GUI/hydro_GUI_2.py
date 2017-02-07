@@ -566,7 +566,7 @@ class SubHydroW(QWidget):
         created hdf5:
 
         *   Name of the file: self.name_hdf5 + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
-        *   Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)
+        *   Position of the file: in the project folder
         *   Format of the hdf5 file:
 
             *   Dats_gen:  number of time step and number of reach
@@ -678,15 +678,15 @@ class SubHydroW(QWidget):
             if child is None:
                 stathab_element = ET.SubElement(root, self.model_type)
                 hdf5file = ET.SubElement(stathab_element, "hdf5_hydrodata")
-                hdf5file.text = fname
+                hdf5file.text = h5name
             else:
                 hdf5file = root.find(".//"+self.model_type + "/hdf5_hydrodata")
                 if hdf5file is None:
                     hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-                    hdf5file.text = fname
+                    hdf5file.text = h5name
                 else:
                     # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
-                    hdf5file.text = fname   # keep only the new file
+                    hdf5file.text = h5name   # keep only the new file
             doc.write(filename_prj)
 
         # send a signal to the substrate tab so it can account for the new info
@@ -699,7 +699,7 @@ class SubHydroW(QWidget):
     def find_path_im(self):
         """
         A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py. By default,
-        path_im is in a folder calls "Figure_Habby".
+        path_im is in the project folder.
         """
 
         path_im = 'no_path'
@@ -710,7 +710,7 @@ class SubHydroW(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = os.path.join(self.path_prj, 'figures_habby')
+                path_im = os.path.join(self.path_prj, self.name_prj)
             else:
                 path_im = child.text
         else:
@@ -1198,7 +1198,7 @@ class SubHydroW(QWidget):
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 if name_hdf5:
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5)
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5, self.path_prj)
                     for t in [-1]:  # range(0, len(vel_cell)):
                         manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], inter_vel_all_t[t], inter_h_all_t[t],
                                                        path_im)
@@ -1289,7 +1289,8 @@ class HEC_RAS1D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -1449,7 +1450,8 @@ class Rubar2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -1618,7 +1620,8 @@ class Mascaret(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -1789,7 +1792,8 @@ class River2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
         spacer = QSpacerItem(1, 100)
 
         # layout
@@ -1954,7 +1958,8 @@ class Rubar1D(SubHydroW):
         # if there is the project file with rubar geo info, update the label and attibutes
         self.was_model_loaded_before(0)
         self.was_model_loaded_before(1)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # label with the file name
         self.geo_t2 = QLabel(self.namefile[0], self)
@@ -2139,7 +2144,8 @@ class HEC_RAS2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -2245,7 +2251,8 @@ class TELEMAC(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
@@ -2347,11 +2354,11 @@ class SubstrateW(SubHydroW):
         self.h2d_b.clicked.connect(self.get_attribute_from_shp)
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
 
-
         # hdf5 name
         lh = QLabel(self.tr('hdf5 file name'))
         self.hname = QLineEdit(self.name_hdf5)
-        self.gethdf5_name_gui()
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
 
         # load button
         self.constsub = QRadioButton(self.tr('Set default everywhere'))
@@ -2372,18 +2379,7 @@ class SubstrateW(SubHydroW):
         self.cb2 = QCheckBox(self.tr('Show figures'), self)
 
         # get possible substrate and hydro hdf5 from the project file
-        self.sub_name = self.read_attribute_xml('hdf5_substrate')
-        self.sub_name = self.sub_name.split(',')
-        sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
-        for i in range(0, len(self.sub_name)):
-            if os.path.isfile(self.sub_name[i]):
-                sub_name2.append(self.sub_name[i])
-        self.sub_name = sub_name2
-        for i in range(0, len(self.sub_name)):
-            if i == 0 and len(self.sub_name) > 1:
-                self.drop_sub.addItem(' ')
-            if os.path.isfile(self.sub_name[i]):
-                self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+        self.update_sub_hdf5_name()
 
         # layout
         self.layout_sub = QGridLayout()
@@ -2452,6 +2448,7 @@ class SubstrateW(SubHydroW):
                                    ' not taken into account.')
             data_sub = self.e1.text()
             self.save_hdf5_sub(True)
+            path_im = self.find_path_im()
         else:
             # save path and name substrate
             self.save_xml(0)
@@ -2508,6 +2505,9 @@ class SubstrateW(SubHydroW):
         for i in range(0, len(self.sub_name)):
             if os.path.isfile(self.sub_name[i]):
                 sub_name2.append(self.sub_name[i])
+            if os.path.isfile(os.path.join(self.path_prj, self.sub_name[i])):
+                print('blob')
+                sub_name2.append(self.sub_name[i])
         self.sub_name = sub_name2
         self.drop_sub.clear()
         for i in range(0, len(self.sub_name)):
@@ -2520,6 +2520,25 @@ class SubstrateW(SubHydroW):
             self.show_fig.emit()
 
         self.load_b.setDisabled(False)
+
+    def update_sub_hdf5_name(self):
+        """
+        This function update the QComBox on substrate data which is on the stubstrate tab.
+        """
+        self.sub_name = self.read_attribute_xml('hdf5_substrate')
+        self.sub_name = self.sub_name.split(',')
+        sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
+        for i in range(0, len(self.sub_name)):
+            if os.path.isfile(self.sub_name[i]):
+                sub_name2.append(self.sub_name[i])
+            if os.path.isfile(os.path.join(self.path_prj, self.sub_name[i])):
+                sub_name2.append(self.sub_name[i])
+        self.sub_name = sub_name2
+        for i in range(0, len(self.sub_name)):
+            if i == 0 and len(self.sub_name) > 1:
+                self.drop_sub.addItem(' ')
+            self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+
 
     def get_attribute_from_shp(self):
         """
@@ -2655,15 +2674,15 @@ class SubstrateW(SubHydroW):
             if child is None:
                 stathab_element = ET.SubElement(root, self.model_type)
                 hdf5file = ET.SubElement(stathab_element, "hdf5_substrate")
-                hdf5file.text = fname
+                hdf5file.text = h5name
             else:
                 hdf5file = root.find(".//" + 'substrate_data' + "/hdf5_substrate")
                 if hdf5file is None:
                     hdf5file = ET.SubElement(child, "hdf5_substrate")
-                    hdf5file.text = fname
+                    hdf5file.text = h5name
                 else:
                     # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
-                    hdf5file.text = fname  # keep only the new file
+                    hdf5file.text = h5name  # keep only the new file
             doc.write(filename_prj)
 
         self.send_log.emit('restart SAVE_HYDRO_HDF5')
@@ -2683,7 +2702,7 @@ class SubstrateW(SubHydroW):
         # check inputs in the function
         sys.stdout = self.mystdout = StringIO()
         [ikle_both, point_all_both, sub_data, vel, height] = substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
-                                                                                default_data)
+                                                                                default_data, self.path_prj)
         sys.stdout = sys.__stdout__
         # figure
         path_im = self.find_path_im()
@@ -2706,6 +2725,7 @@ class SubstrateW(SubHydroW):
             self.show_fig.emit()
 
         # save the data in a new hdf5
+
 
 
 

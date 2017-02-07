@@ -159,7 +159,7 @@ def load_sub_txt(filename, path):
     return xy, ikle, sub_grid, x, y, sub
 
 
-def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
+def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj =''):
     """
     After the data for the substrate and the hydrological data are loaded, they are still in different grids.
     This functions will merge both grid together. This is done for all time step and all reaches. If a
@@ -168,8 +168,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
     :param hdf5_name_hyd: the path and name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the path and the name of the hdf5 with the substrate data
     :param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
+    :param path_prj
     :return: the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
     """
+    failload = [-99], [-99], [-99], [-99], [-99]
     sub_data = []
     ikle_both = []
     point_all_both = []
@@ -181,10 +183,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
 
     m = time.time()
     # load hdf5 hydro
-    [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd)
+    [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd, path_prj)
 
     # load hdf5 sub
-    [ikle_sub, point_all_sub, data_sub] = load_hdf5.load_hdf5_sub(hdf5_name_sub)
+    [ikle_sub, point_all_sub, data_sub] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
 
     # find the additional crossing points for each time step and each reach
     # and modify the grid
@@ -195,38 +197,40 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data):
     # ikle_sub = np.array([[0, 1, 2]])
     # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35], [1, 1]])
 
+    if len(ikle_all) == 1 and ikle_all[0][0][0][0] == [-99]:
+        print('Error: hydrological data could not be loaded.')
+        return failload
+    elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
+        print('Error: Substrate data could not be loaded.')
+        return failload
+    elif len(ikle_sub) == 1 and ikle_sub[0][0] == 0:
+        # if constant substrate, the hydrological grid is used
+        print('Warning: Constant substrate.')
+        # not done yet
+        sub_data = None
+        return ikle_all, point_all, sub_data, inter_vel_all, inter_height_all
+
     for t in range(0, len(ikle_all)):
         ikle_all2 = []
         point_all2 = []
-        if len(ikle_all) == 1 and ikle_all[0][0][0][0] == [-99]:
-            print('Error: hydrological data could not be loaded.')
-        elif len(ikle_sub) == 1 and ikle_sub[0][0] == [-99]:
-            print('Error: Substrate data could not be loaded.')
-            break
-        elif len(ikle_sub) == 1 and ikle_sub[0][0] == [0]:
-            print('Warning: Constant substrate.')
-            # if constant substrate, the hydrological grid is used
-            ikle_both.append(ikle_all)
-            point_all_both.append(point_all)
-        else:
-            if len(ikle_all[t]) > 0:
-                for r in range(0, len(ikle_all[t])):
-                    point_before = np.array(point_all[t][r])
-                    ikle_before = np.array(ikle_all[t][r])
-                    a = time.time()
-                    pc = point_cross2(ikle_before, point_before, ikle_sub, point_all_sub)
-                    pc = np.array(pc)
-                    if len(pc) < 1:
-                        print('Warning: No intersection between the grid and the substrate.\n')
-                        return ikle_all, point_all, sub_data, vel_both, height_both
-                    b = time.time()
-                    [ikle_here, point_all_here] = grid_update_sub3(ikle_before, point_before, pc, point_all_sub)
-                    c = time.time()
-                    ikle_all2.append(ikle_here)
-                    point_all2.append(point_all_here)
+
+        if len(ikle_all[t]) > 0:
+            for r in range(0, len(ikle_all[t])):
+                point_before = np.array(point_all[t][r])
+                ikle_before = np.array(ikle_all[t][r])
+                a = time.time()
+                pc = point_cross2(ikle_before, point_before, ikle_sub, point_all_sub)
+                pc = np.array(pc)
+                if len(pc) < 1:
+                    print('Warning: No intersection between the grid and the substrate.\n')
+                    return ikle_all, point_all, sub_data, vel_both, height_both
+                b = time.time()
+                [ikle_here, point_all_here] = grid_update_sub3(ikle_before, point_before, pc, point_all_sub)
+                c = time.time()
+                ikle_all2.append(ikle_here)
+                point_all2.append(point_all_here)
         ikle_both.append(ikle_all2)
         point_all_both.append(point_all2)
-
 
     return ikle_both, point_all_both, sub_data, vel_both, height_both
 

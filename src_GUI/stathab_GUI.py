@@ -57,7 +57,7 @@ class StathabW(QWidget):
 
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.path_im = os.path.join(self.path_prj, 'figures_habby')
+        self.path_im = self.path_prj
         self.path_bio_stathab = './/biology'
         self.fish_selected = []
         self.dir_name = self.tr("No directory selected")

@@ -89,42 +89,7 @@ class EstimhabW(QWidget):
         """
 
         # load the data if it exist already
-        fname = os.path.join(self.path_prj, self.name_prj+'.xml')
-        if os.path.isfile(fname):
-            doc = ET.parse(fname)
-            root = doc.getroot()
-            child = root.find(".//ESTIMHAB_data")
-            if child is not None: # if there is data for ESTIHAB
-                fname_h5 = child.text
-                fname_h5 = os.path.join(self.path_prj, fname_h5)
-                if os.path.isfile(fname_h5):
-                    file_estimhab = h5py.File(fname_h5,'r+')
-                    # hydrological data
-                    dataset_name = ['qmes', 'hmes', 'wmes', 'q50', 'qrange', 'substrate']
-                    list_qline = [self.eq1,self.eq2,self.eh1,self.eh2,self.ew1,self.ew2,self.eq50, self.eqmin, self.eqmax, self.esub]
-                    c = 0
-                    for i in range(0, len(dataset_name)):
-                        dataset = file_estimhab[dataset_name[i]]
-                        dataset = list(dataset.values())[0]
-                        for j in range(0, len(dataset)):
-                            data_str = str(dataset[j])
-                            list_qline[c].setText(data_str[1:-1])  # get rid of []
-                            c += 1
-                    # chosen fish
-                    dataset = file_estimhab['fish_type']
-                    dataset = list(dataset.values())[0]
-                    for i in range(0,len(dataset)):
-                        dataset_i = str(dataset[i])
-                        self.list_s.addItem(dataset_i[3:-2])
-                        self.fish_selected.append(dataset_i[3:-2])
-
-                    file_estimhab.close()
-                else:
-                    self.msge.setIcon(QMessageBox.Warning)
-                    self.msge.setWindowTitle(self.tr("hdf5 ESTIMHAB"))
-                    self.msge.setText(self.tr("The hdf5 file related to ESTIMHAB does not exist"))
-                    self.msge.setStandardButtons(QMessageBox.Ok)
-                    self.msge.show()
+        self.open_estimhab_hdf5()
 
         # Data hydrological
         l1 = QLabel(self.tr('<b>Hydrological Data</b>'))
@@ -192,6 +157,49 @@ class EstimhabW(QWidget):
         self.layout3.addWidget(button3, 10, 1)
         self.layout3.addWidget(button2, 10, 0)
         self.setLayout(self.layout3)
+
+    def open_estimhab_hdf5(self):
+        """
+        This function opens the hdf5 data created by estimhab
+        """
+
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(fname):
+            doc = ET.parse(fname)
+            root = doc.getroot()
+            child = root.find(".//ESTIMHAB_data")
+            if child is not None:  # if there is data for ESTIHAB
+                fname_h5 = child.text
+                fname_h5 = os.path.join(self.path_prj, fname_h5)
+                if os.path.isfile(fname_h5):
+                    file_estimhab = h5py.File(fname_h5, 'r+')
+                    # hydrological data
+                    dataset_name = ['qmes', 'hmes', 'wmes', 'q50', 'qrange', 'substrate']
+                    list_qline = [self.eq1, self.eq2, self.eh1, self.eh2, self.ew1, self.ew2, self.eq50, self.eqmin,
+                                  self.eqmax, self.esub]
+                    c = 0
+                    for i in range(0, len(dataset_name)):
+                        dataset = file_estimhab[dataset_name[i]]
+                        dataset = list(dataset.values())[0]
+                        for j in range(0, len(dataset)):
+                            data_str = str(dataset[j])
+                            list_qline[c].setText(data_str[1:-1])  # get rid of []
+                            c += 1
+                    # chosen fish
+                    dataset = file_estimhab['fish_type']
+                    dataset = list(dataset.values())[0]
+                    for i in range(0, len(dataset)):
+                        dataset_i = str(dataset[i])
+                        self.list_s.addItem(dataset_i[3:-2])
+                        self.fish_selected.append(dataset_i[3:-2])
+
+                    file_estimhab.close()
+                else:
+                    self.msge.setIcon(QMessageBox.Warning)
+                    self.msge.setWindowTitle(self.tr("hdf5 ESTIMHAB"))
+                    self.msge.setText(self.tr("The hdf5 file related to ESTIMHAB does not exist"))
+                    self.msge.setStandardButtons(QMessageBox.Ok)
+                    self.msge.show()
 
     def change_folder(self):
         """
@@ -359,7 +367,7 @@ class EstimhabW(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = os.path.join(self.path_prj, 'figures_habby')
+                path_im = os.path.join(self.path_prj, self.name_prj)
             else:
                 path_im = child.text
         else:

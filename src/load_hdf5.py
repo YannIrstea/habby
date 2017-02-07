@@ -31,11 +31,14 @@ def open_hdf5(hdf5_name):
     return file
 
 
-def load_hdf5_hyd(hdf5_name_hyd):
+def load_hdf5_hyd(hdf5_name_hyd, path_prj = ''):
     """
-    A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY.
+    A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5_name_sub
+    is an absolute path, the path_prj is not used. If it is a relative path, the path is composed of the path to the
+    project (path_prj) composed with hdf5_name_sub.
 
     :param hdf5_name_hyd: path and filename of the hdf5 file (string)
+    :param path_prj: the path to the project
     :return: the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.
 
     """
@@ -47,8 +50,15 @@ def load_hdf5_hyd(hdf5_name_hyd):
     inter_height_all = []
     failload = [[-99]], [[-99]], [[-99]], [[-99]]
 
-    # open the file
-    file_hydro = open_hdf5(hdf5_name_hyd)
+    # open the file with checking ofr the path
+    if os.path.isabs(hdf5_name_hyd):
+        file_hydro = open_hdf5(hdf5_name_hyd)
+    else:
+        if path_prj:
+            file_hydro = open_hdf5(os.path.join(path_prj, hdf5_name_hyd))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return failload
     if file_hydro is None:
         print('Error: hdf5 file could not be open. \n')
         return failload
@@ -173,20 +183,29 @@ def load_hdf5_hyd(hdf5_name_hyd):
     return ikle_all_t, point_all, inter_vel_all, inter_height_all
 
 
-def load_hdf5_sub(hdf5_name_sub):
+def load_hdf5_sub(hdf5_name_sub, path_prj):
     """
-    A function to load the substrate data contained in the hdf5 file. it also manage
-    the constant cases.
+    A function to load the substrate data contained in the hdf5 file. It also manage
+    the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
+    the path is composed of the path to the project (path_prj) composed with hdf5_name_sub.
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
+    :param path_prj: the path to the project
     """
 
     # correct all change to the hdf5 form in the doc!
     data_sub = []
-    failload = [-99], [-99], [-99]
+    failload = [[-99]], [[-99]], [[-99]]
 
     # open the file
-    file_sub = open_hdf5(hdf5_name_sub)
+    if os.path.isabs(hdf5_name_sub):
+        file_sub = open_hdf5(hdf5_name_sub)
+    else:
+        if path_prj:
+            file_sub = open_hdf5(os.path.join(path_prj, hdf5_name_sub))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return failload
     if file_sub is None:
         print('Error: hdf5 file could not be open. \n')
         return failload
@@ -197,7 +216,7 @@ def load_hdf5_sub(hdf5_name_sub):
         # read a constant data
         # NOT DONE YET AS SUBSTRATE FORM IS NOT CHOSEN YET
         data_sub = 1
-        return [0], [0], data_sub
+        return [[0]], [[0]], data_sub
 
     # read the ikle data
     basename1 = 'ikle_sub'
@@ -246,7 +265,8 @@ def get_all_filename(dirname, ext):
 def get_hdf5_name(model_name, name_prj, path_prj):
     """
     This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
-    model_name. if there is more than one hdf5 file, it choose the last one.
+    model_name. If there is more than one hdf5 file, it choose the last one. Tha path is the path from the
+    project folder. Hencem, it is not the absolute path.
 
     :param model_name: the name of the hydrological model as written in the attribute of the xml project file
     :param name_prj: the name of the project
@@ -255,6 +275,8 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     """
 
     # open the xml project file
+    print(path_prj)
+    print(name_prj)
     filename_path_pro = os.path.join(path_prj, name_prj + '.xml')
     if os.path.isfile(filename_path_pro):
         doc = ET.parse(filename_path_pro)
@@ -265,16 +287,16 @@ def get_hdf5_name(model_name, name_prj, path_prj):
                 child = root.findall(".//" + model_name + '/hdf5_substrate')
             else:
                 child = root.findall(".//" + model_name + '/hdf5_hydrodata')
-            if len(child)>0:
+            if len(child) > 0:
                 return child[-1].text
             else:
-                print('Warning: the data for the model '+ model_name + ' was not found (1)')
+                print('Warning: the data for the model ' + model_name + ' was not found (1)')
                 return ''
         else:
-            print('Warning: the data for the model '+ model_name + ' was not found (2)')
+            print('Warning: the data for the model ' + model_name + ' was not found (2)')
             return ''
     else:
-        print('Error: no project found')
+        print('Error: no project found by load_hdf5')
         return ''
 
 
@@ -283,7 +305,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     """
     This function save the hydrological data in the hdf5 format.
 
-    :param the base name for the hdf5 file to be created (string)
+    :param name_hdf5: the base name for the hdf5 file to be created (string)
     :param name_prj: the name of the project (string)
     :param path_prj: the path of the project
     :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
@@ -423,15 +445,25 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
         if child is None:
             stathab_element = ET.SubElement(root, model_type)
             hdf5file = ET.SubElement(stathab_element, "hdf5_hydrodata")
-            hdf5file.text = fname
+            if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
+                hdf5file.text = h5name
+            else:
+                hdf5file.text = fname
         else:
             hdf5file = root.find(".//" + model_type + "/hdf5_hydrodata")
             if hdf5file is None:
                 hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-                hdf5file.text = fname
+                if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
+                    hdf5file.text = h5name
+                else:
+                    hdf5file.text = fname
             else:
                 # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
-                hdf5file.text = fname  # keep only the new file
+                # keep only the new file
+                if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
+                    hdf5file.text = h5name
+                else:
+                    hdf5file.text = fname
         doc.write(filename_prj)
 
     return

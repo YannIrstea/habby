@@ -149,13 +149,15 @@ class Stathab:
 
     def load_stathab_from_hdf5(self):
         """
-        A function to load the file from an hdf5 whose name is given in the xml project file
+        A function to load the file from an hdf5 whose name is given in the xml project file. If the name of the
+        file is a relative path, use the path_prj to create an absolute path.
         """
         self.load_ok = False
         # find the path to the h5 file
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(fname):
             print('Error: The xml project file was not found. Save the project in the General Tab. \n')
+            return
         doc = ET.parse(fname)
         root = doc.getroot()
         child = root.find(".//hdf5Stathab")
@@ -165,9 +167,17 @@ class Stathab:
 
         # load the h5 file
         fname_h5 = child.text
-        if os.path.isfile(fname_h5):
+        full_fname_hdf5 = os.path.join(self.path_prj, fname_h5)
+        if os.path.isfile(fname_h5) or os.path.isfile(full_fname_hdf5):
             try:
-                file_stathab = h5py.File(fname_h5, 'r+')
+                if os.path.isabs(fname_h5):
+                    file_stathab = h5py.File(fname_h5, 'r+')
+                else:
+                    if self.path_prj:
+                        file_stathab = h5py.File(full_fname_hdf5, 'r+')
+                    else:
+                        print('Error" No path to the project given although a relative path was provided')
+                        return
             except OSError:
                 print('Error: the hdf5 file could not be loaded.\n')
         else:
@@ -305,7 +315,7 @@ class Stathab:
         # write info in the xml project file
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(filename_prj):
-            print('Error: No project saved. Please create a project first in the General tab.\n')
+            print('Error: No project saved. Please create a project first in the Start tab.\n')
             return
         else:
             doc = ET.parse(filename_prj)
@@ -314,14 +324,14 @@ class Stathab:
             if child is None:
                 stathab_element = ET.SubElement(root, "Stathab")
                 hdf5file = ET.SubElement(stathab_element, "hdf5Stathab")
-                hdf5file.text = fname
+                hdf5file.text = fname_no_path
             else:
                 hdf5file = root.find(".//hdf5Stathab")
                 if hdf5file is None:
                     hdf5file = ET.SubElement(child, "hdf5Stathab")
-                    hdf5file.text = fname
+                    hdf5file.text = fname_no_path
                 else:
-                    hdf5file.text = fname
+                    hdf5file.text = fname_no_path
             doc.write(filename_prj)
         self.load_ok = True
 
@@ -608,7 +618,7 @@ class Stathab:
 
     def savefig_stahab(self):
         """
-        A function to save the results in text and the figure
+        A function to save the results in text and the figure.
         """
         plt.rcParams['figure.figsize'] = 10, 8
         plt.rcParams['font.size'] = 8
