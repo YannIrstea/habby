@@ -6,7 +6,7 @@ from io import StringIO
 from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, QTimer, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
-    QStackedWidget, QRadioButton, QCheckBox
+    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView
 import h5py
 import time
 try:
@@ -459,7 +459,7 @@ class SubHydroW(QWidget):
         """
 
         # find the filename based on user choice
-        if len(self.pathfile) == 0:
+        if len(self.pathfile) == 0: # case where no file was open before
             filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
         elif i >= len(self.pathfile):
             filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[0])[0]
@@ -524,9 +524,6 @@ class SubHydroW(QWidget):
             # enable
             self.nb_extrapro_text.setDisabled(False)
             self.l5.setDisabled(False)
-
-
-
 
     def save_xml(self, i=0, append_name = False):
         """
@@ -1801,6 +1798,7 @@ class River2D(SubHydroW):
         # geometry and output data
         self.l1 = QLabel(self.tr('<b> Geometry and Output data </.b>'))
         self.list_f = QListWidget()
+        self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.add_file_to_list()
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
@@ -1846,13 +1844,25 @@ class River2D(SubHydroW):
 
     def remove_file(self):
         """
-        This is small function to remove a .cdg file from the list of files to be loaded and from the QlistWidget.
+        This is small function to remove one or more .cdg file from the list of files to be loaded and from
+        the QlistWidget.
+
+        **Technical Comments**
+
+        The function selectedIndexes does not return an int but an object called QModelIndex. We should start removing
+        object from the end of the list to avoid problem. However, it is not possible to sort QModelIndex. Hence,
+        It is necessary to use the row() function to get the index as int.
         """
-        i = self.list_f.currentRow()
-        item = self.list_f.takeItem(i)
-        item = None
-        del self.namefile[i]
-        del self.pathfile[i]
+        ind = self.list_f.selectedIndexes()  # QModelIndex Object
+        int_ind = []  # int
+        for i in ind:
+            int_ind.append(i.row())
+        int_ind = sorted(int_ind)
+
+        for i in range(len(int_ind)-1, -1, -1):
+            self.list_f.takeItem(int_ind[i])
+            del self.namefile[int_ind[i]]
+            del self.pathfile[int_ind[i]]
 
     def remove_all_file(self):
         """
@@ -1866,13 +1876,42 @@ class River2D(SubHydroW):
     def add_file_river2d(self):
         """
         This function is used to add one file to the list of file to be loaded.
-        It calls show_dialog, prepare some data for it and update the QWidgetList with
+        It let the user select one or more than one file, prepare some data for it and update the QWidgetList with
         the name of the file containted in the variable self.namefile.
+
+        We can not call show_dialog() direclty here as the user can select more than one file
         """
+        # update attribute xml
         if len(self.extension) == len(self.namefile):
             self.extension.append(self.extension[0])
             self.attributexml.append(self.attributexml[0])
-        self.show_dialog(len(self.namefile))
+        # the user select file or files
+
+        if len(self.pathfile) == 0: # no file opened before
+            filename_path = QFileDialog.getOpenFileNames(self, 'Open File', self.path_prj)[0]
+        else:
+            filename_path = QFileDialog.getOpenFileNames(self, 'Open File', self.pathfile[0])[0]
+        if not filename_path: #cancel case
+            return
+        # manage the found file
+        for j in range(0, len(filename_path)):
+            filename = os.path.basename(filename_path[j])
+            # check extension
+            extension_i = self.extension[0]
+            blob, ext = os.path.splitext(filename)
+            if any(e in ext for e in extension_i):
+                pass
+            else:
+                self.msg2.setIcon(QMessageBox.Warning)
+                self.msg2.setWindowTitle(self.tr("File type"))
+                self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
+                self.msg2.setStandardButtons(QMessageBox.Ok)
+                self.msg2.show()
+                self.msg2.show()
+            # add the filename to the variable
+            self.pathfile.append(os.path.dirname(filename_path[j]))
+            self.namefile.append(filename)
+        # add the files to the list on the GUI
         self.add_file_to_list()
 
     def add_file_to_list(self):
@@ -1895,7 +1934,6 @@ class River2D(SubHydroW):
         for i in range(0, len(pathname_unique)):
             pathname_unique2 += pathname_unique[i] + '\n'
         self.list_f.setToolTip(pathname_unique2[:-1])
-
 
     def add_all_file(self):
         """

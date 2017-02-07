@@ -967,12 +967,13 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
         h2.append(list(h[t]))
         v2.append(list(v[t]))
 
-
     # now create the triangular grid
     likle = len(ikle)
     for c in range(0, likle):
         ikle_c = ikle[c]
-        if len(ikle_c) < 3:
+        if len(ikle_c) == 0:
+            del ikle[c]
+        elif len(ikle_c) < 3:
             print('Error: A cell with an area of 0 is found.\n')
             print(ikle_c)
             return [-99], [-99], [-99], [-99], [-99]
