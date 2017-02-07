@@ -444,8 +444,8 @@ class SubHydroW(QWidget):
         self.send_err_log()
 
         self.name_hdf5 = os.path.basename(pathname_hdf5)
-        if len(self.name_hdf5) > 26: # careful this number should be changed if name change
-            self.name_hdf5 = self.name_hdf5[:-26]
+        if len(self.name_hdf5) > 25: # careful this number should be changed if the form of the hdf5 name change
+            self.name_hdf5 = self.name_hdf5[:-25]
         self.hname.setText(self.name_hdf5)
 
     def show_dialog(self, i=0):
@@ -2538,7 +2538,6 @@ class SubstrateW(SubHydroW):
             if i == 0 and len(self.sub_name) > 1:
                 self.drop_sub.addItem(' ')
             self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
-
 
     def get_attribute_from_shp(self):
         """

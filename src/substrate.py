@@ -1072,10 +1072,10 @@ def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr=[], point_al
     plt.title('Computational grid, updated for substrate data')
     plt.xlabel('x coordinate')
     plt.ylabel('y coordinate')
-    plt.show()
-    #plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-    #plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-    #plt.close()
+    #plt.show()
+    plt.savefig(os.path.join(path_im, "Grid_merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
+    plt.savefig(os.path.join(path_im, "Grid_merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
+
 
 
 def main():

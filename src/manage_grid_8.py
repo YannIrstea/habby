@@ -9,7 +9,7 @@ import itertools
 import copy
 import os
 import bisect
-np.set_printoptions(threshold=np.inf)
+#np.set_printoptions(threshold=np.inf)
 
 
 def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], q=[], pnew_add=1):
@@ -1817,7 +1817,7 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     return ikle_sub, coord_sub
 
 
-def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[], path_im = []):
+def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[], path_im=[]):
     """
     This is the function to plot grid output for one time step. The data is one the node. A more complicated function
     exists to plot the grid and additional information (manage-grid_8.plot_grid()) in case there are needed to debug.
@@ -1830,8 +1830,12 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
     :param path_im: the path where the figure should be saved
     """
 
-    # plot only the grid
-    plt.figure()
+    # plot the grid, the velcoity and the water height
+    plt.figure(figsize=(8, 12))
+    plt.rcParams.update({'font.size': 9})
+
+    # the grid
+    plt.subplot(3,1,1) # nb_fig, nb_fig, position
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     for r in range(0, len(ikle_all)):
@@ -1866,13 +1870,11 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
     plt.title('Computational Grid')
-    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
-    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
 
     # plot the interpolated velocity
     if len(inter_vel_all) > 0:  # 0
         cm = plt.cm.get_cmap('coolwarm')
-        plt.figure()
+        plt.subplot(3, 1, 2)
         for r in range(0, len(inter_vel_all)):
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
@@ -1890,13 +1892,11 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated velocity')
-        plt.savefig(os.path.join(path_im, "Velocity_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
-        plt.savefig(os.path.join(path_im, "Velocity_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
         cm = plt.cm.get_cmap('jet')
-        plt.figure()
+        plt.subplot(3, 1, 3)
         for r in range(0, len(inter_h_all)):
             point_here = np.array(point_all_reach[r])
             inter_h = inter_h_all[r]
@@ -1914,8 +1914,8 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
-        plt.savefig(os.path.join(path_im, "Height_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
-        plt.savefig(os.path.join(path_im, "Height_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
+    plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=800)
+    plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=800)
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[], inter_h_all=[], path_im = [], coord_pro2 = []):

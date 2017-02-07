@@ -275,8 +275,6 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     """
 
     # open the xml project file
-    print(path_prj)
-    print(name_prj)
     filename_path_pro = os.path.join(path_prj, name_prj + '.xml')
     if os.path.isfile(filename_path_pro):
         doc = ET.parse(filename_path_pro)
