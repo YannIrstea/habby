@@ -9,6 +9,69 @@ from io import StringIO
 from src import load_hdf5
 from src import manage_grid_8
 import xml.etree.ElementTree as Etree
+from src import dist_vistess2
+
+
+def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
+                                                ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.'):
+    """
+    This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
+    by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
+    Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.
+
+    :param name_hdf5: the name of the hdf5 to be created (string)
+    :param path_hdf5: the path to the hdf5 to be created (string)
+    :param model_type: the name of the model (rubar in most case, but given as argument in case we change
+           the form of the name)
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param namefile: the name of the geo file and the data file, which contains respectively geographical data and
+           the ouput data (see open_hec_ras() for more precision) -> list of string
+    :param pathfile: the absolute path to the file chosen into namefile -> list of string
+    :param show_fig_1D: A boolean. If True, image from the 1D data are created and savec
+    :param q: used by the second thread.
+    :param path_im: the path where to save the figure
+
+    ** Technical comments**
+
+    This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+    by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+    If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
+    """
+
+    # load the rubar 1D
+    sys.stdout = mystdout = StringIO()
+    [xhzv_data, coord_pro, lim_riv] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im, show_fig_1D)
+    if show_fig_1D:
+        plt.close() # just save the figure do not show them
+
+    if xhzv_data == [-99]:
+        print("Rubar data could not be loaded.")
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put(mystdout)
+            return
+        else:
+            return
+
+    nb_pro_reach = [0, len(coord_pro)]  # should be corrected? (only one reach for the moment)
+
+    # distribute the velocity
+    vh_pro = dist_vistess2.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data)
+
+    # create the grid
+    [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \
+        = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
+
+    # save the hdf5 file
+    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
+                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
+    sys.stdout = sys.__stdout__
+    if q:
+        q.put(mystdout)
+        return
+    else:
+        return
 
 
 def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):

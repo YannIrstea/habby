@@ -1,9 +1,37 @@
 import numpy as np
-from src import mascaret
 import matplotlib.pyplot as plt
-from src import Hec_ras06
 import time
 import bisect
+
+
+def distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile=[]):
+    """
+    This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
+    notably rubar and masacret.
+
+    Dist vitess needs a manning parameters. It can be given by the user in two forms: a constant (float) or an array
+    created by the function load_manning_text.
+
+    :param manning_data: the manning data as a float (constant) or as an array (variable)
+    :param nb_point_vel: the number of velcoity point asked (if -99, the same number of point than the profile
+           will be used)
+    :param coord_pro: the form of the profil (x,y, h, dist along the profile)
+    :param xhzv_data: the vecoity and height data
+    :param on_profile: Mascaret also gives outputs in poitns between profile. on_profile is true if the results are
+             close or on the profile (les than 3cm of difference). This is not important for rubar or other models
+
+    """
+
+    if isinstance(manning_data, float):
+        # distribution of velocity using a float as a manning value (same value for all place)
+        manning_array = get_manning(manning_data, nb_point_vel, len(coord_pro), coord_pro)
+        vh_pro = dist_velocity_hecras(coord_pro, xhzv_data, manning_array, nb_point_vel, 1, on_profile)
+    else:
+        # distribution of velocity using txt file as input for manning
+        manning_array = get_manning_arr(manning_data, nb_point_vel, coord_pro)
+        vh_pro = dist_velocity_hecras(coord_pro, xhzv_data, manning_array, nb_point_vel, 1, on_profile)
+
+    return vh_pro
 
 
 def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, eng=1.0, on_profile=[]):

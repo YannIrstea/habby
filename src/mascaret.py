@@ -1,12 +1,81 @@
 
 import os
+import sys
 import re
+from io import StringIO
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 from struct import unpack
 from struct import error as errstruct
 from src import Hec_ras06
+from src import manage_grid_8
+from src import load_hdf5
+from src import dist_vistess2
+
+
+def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
+                                                ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.'):
+    """
+    This function is used to load the mascaret data by calling the load_mascaret() function and to create the grid
+    by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
+    Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.
+
+    :param name_hdf5: the name of the hdf5 to be created (string)
+    :param path_hdf5: the path to the hdf5 to be created (string)
+    :param model_type: the name of the model (mascaret in most case, but given as argument in case we change
+           the form of the name)
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param namefile: the name of the geo file and the data file, which contains respectively geographical data and
+           the ouput data (see open_hec_ras() for more precision) -> list of string
+    :param pathfile: the absolute path to the file chosen into namefile -> list of string
+    :param show_fig_1D: A boolean. If True, image from the 1D data are created and savec
+    :param q: used by the second thread.
+    :param path_im: the path where to save the figure
+
+    ** Technical comments**
+
+    This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+    by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+    If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
+    """
+
+    # load mascaret
+    sys.stdout = mystdout = StringIO()
+    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] \
+        = load_mascaret(namefile[0], namefile[1], namefile[2], pathfile[0], pathfile[1], pathfile[2])
+    if coord_pro == [-99]:
+        print('Error: Mascaret data not loaded. \n')
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put(mystdout)
+            return
+        else:
+            return
+
+    # image if necessary
+    if show_fig_1D:
+        figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im,
+                        [0, 1], [-1], [0])
+        plt.close()  # only saved the image, do not show them
+
+    # distribute the velocity
+    vh_pro = dist_vistess2.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile)
+
+    # create the grid
+    [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \
+        = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
+
+    # save the hdf5 file
+    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
+                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
+    sys.stdout = sys.__stdout__
+    if q:
+        q.put(mystdout)
+        return
+    else:
+        return
 
 
 def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):

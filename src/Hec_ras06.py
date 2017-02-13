@@ -14,13 +14,13 @@ from src import load_hdf5
 
 
 def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
-                                     interpo_choice, path_im, save_fig2D, save_fig1D, pro_add=1, q=[]):
+                                     interpo_choice, path_im, save_fig1D, pro_add=1, q=[]):
     """
     This function open the hec_ras data and creates the 2D grid from the 1.5 data. It is called by the class HEC_RAS1D
     in a second thread to not freeze the GUI.
 
-    :param name_hdf5: the name of the hdf5 to be created
-    :param path_hdf5: the path to the hdf5 to be created
+    :param name_hdf5: the name of the hdf5 to be created (string)
+    :param path_hdf5: the path to the hdf5 to be created (string)
     :param model_type: the name of the model (hec_ras in most case, but given as argument in case we change
            the form of the name)
     :param name_prj: the name of the project (string)
@@ -30,25 +30,31 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     :param pathfile: the absolute path to the file chosen into namefile
     :param interpo_choice: the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.
     :param path_im: the path to where to save the image
-    :param save_fig2D: create and save the figure related to the grid creation
-    :param save_fig1D: create and save the figure related to the loading of the data
+    :param save_fig1D: create and save the figure related to the loading of the data (profile and so on)
     :param pro_add: the number of addictional profile (one used for interpolation_choice 1 and 2)
     :param q: used in the second thread
 
     ** Technical comments**
 
     This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
-    by the cmd. If it is called by the GUI, we want the output to be redirected to the windoows for the log under HABBY.
-    If it is called by the cmd, we want the print function to be sent to the command line.
+    by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+    If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
 
     """
     sys.stdout = mystdout = StringIO()
     # load the hec-ra data (the function is just below)
     [coord_pro, vh_pro, nb_pro_reach] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
                                                    save_fig1D)
+    if save_fig1D:
+        close()
     if coord_pro == [-99]:
         print('Error: HEC-RAS data not loaded')
-        return
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put(mystdout)
+            return
+        else:
+            return
 
     # create the grid
     [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \

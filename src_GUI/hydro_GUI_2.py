@@ -569,152 +569,6 @@ class SubHydroW(QWidget):
                     child.text = filename_path_file
             doc.write(filename_path_pro, method="xml")
 
-    def save_hdf5(self):
-        """
-        This function save the hydrological data in the hdf5 format.
-
-        **Technical comments**
-
-        This function cannot be used outside of the class, so it needs to be re-written if used from the command line.
-
-        This function creates an hdf5 file which contains the hydrological data. First it creates an empty hdf5.
-        Then it fill the hdf5 with data. For 1D model, it fill the data in 1D (the original data), then the 1.5D data
-        created by dist_vitess2.py and finally the 2D data. For model in 2D it only saved 2D data. Hence, the 2D data
-        is the data which is common to all model and which can always be loaded from a hydrological hdf5 created by
-        HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
-        created hdf5:
-
-        *   Name of the file: self.name_hdf5 + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
-        *   Position of the file: in the project folder
-        *   Format of the hdf5 file:
-
-            *   Dats_gen:  number of time step and number of reach
-            *   Data_1D:  xhzv_data_all (given profile by profile)
-            *   Data_15D :  vh_pro, coord_pro (given profile by profile in a dict) and nb_pro_reach.
-            *   Data_2D : For each time step, for each reach: ikle, point, point_c, inter_h, inter_vel
-
-        If a list has elements with a changing number of variables, it is necessary to create a dictionary to save
-        this list in hdf5. For example, a dictionary will be needed to save the following list: [[1,2,3,4], [1,2,3]].
-        This is used for example, to save data by profile as we can have profile with more or less points. We also note
-        in the hdf5 attribute some important info such as the project name, path to the project, hdf5 version.
-        This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
-        hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.
-
-        Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.
-        """
-        self.send_log.emit('# Save hdf5 hydrological data')
-
-        # create hdf5 name
-        self.name_hdf5 = self.hname.text()
-        h5name = self.name_hdf5 + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
-        path_hdf5 = self.find_path_im()
-
-        # create a new hdf5
-        fname = os.path.join(path_hdf5, h5name)
-        file = h5py.File(fname, 'w')
-
-        # create attributes
-        file.attrs['path_projet'] = self.path_prj
-        file.attrs['name_projet'] = self.name_prj
-        file.attrs['HDF5_version'] = h5py.version.hdf5_version
-        file.attrs['h5py_version'] = h5py.version.version
-
-        # create all datasets and group
-        data_all = file.create_group('Data_gen')
-        timeg = data_all.create_group('Nb_timestep')
-        timeg.create_dataset(h5name, data=len(self.ikle_all_t)-1) # the first time step is for the whole profile
-        nreachg = data_all.create_group('Nb_reach')
-        nreachg.create_dataset(h5name, data=len(self.ikle_all_t[0]))
-        # data by type of model (1D, 1.5D, 2D)
-        if self.nb_dim == 1:
-            Data_1D = file.create_group('Data_1D')
-            xhzv_datag = Data_1D.create_group('xhzv_data')
-            xhzv_datag.create_dataset(h5name, data=self.xhzv_data)
-        if self.nb_dim < 2:
-            Data_15D = file.create_group('Data_15D')
-            adict = dict()
-            for p in range(0, len(self.coord_pro)):
-                ns = 'p' + str(p)
-                adict[ns] = self.coord_pro[p]
-            coord_prog = Data_15D.create_group('coord_pro')
-            for k, v in adict.items():
-                coord_prog.create_dataset(k, data=v)
-                #coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
-            for t in range(0, len(self.vh_pro)):
-                there = Data_15D.create_group('Timestep_' + str(t))
-                adict = dict()
-                for p in range(0, len(self.vh_pro[t])):
-                    ns = 'p' + str(p)
-                    adict[ns] = self.vh_pro[t][p]
-                for k, v in adict.items():
-                    there.create_dataset(k, data=v)
-            nbproreachg = Data_15D.create_group('Number_profile_by_reach')
-            nb_pro_reach2 = list(map(float, self.nb_pro_reach))
-            nbproreachg.create_dataset(h5name, [len(nb_pro_reach2), 1], data=nb_pro_reach2)
-        if self.nb_dim <= 2:
-            Data_2D = file.create_group('Data_2D')
-            for t in range(0, len(self.ikle_all_t)):
-                if t == 0:
-                    there = Data_2D.create_group('Whole_Profile')
-                else:
-                    there = Data_2D.create_group('Timestep_'+str(t-1))
-                for r in range(0, len(self.ikle_all_t[t])):
-                    rhere = there.create_group('Reach_' + str(r))
-                    ikleg = rhere.create_group('ikle')
-                    if len(self.ikle_all_t[t][r]) > 0:
-                        ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r]), len(self.ikle_all_t[t][r][0])],
-                                             data=self.ikle_all_t[t][r])
-                    else:
-                        self.send_log.emit('Warning: Reach number ' + str(r) + ' has an empty grid. '
-                                                                               'It might be entierely dry.')
-                        ikleg.create_dataset(h5name, [len(self.ikle_all_t[t][r])], data=self.ikle_all_t[t][r])
-                    point_allg = rhere.create_group('point_all')
-                    point_allg.create_dataset(h5name, [len(self.point_all_t[t][r]), 2], data=self.point_all_t[t][r])
-                    point_cg = rhere.create_group('point_c_all')
-                    point_cg.create_dataset(h5name, [len(self.point_c_all_t[t][r]), 2], data=self.point_c_all_t[t][r])
-                    if len(self.inter_vel_all_t[t]) > 0:
-                        inter_velg = rhere.create_group('inter_vel_all')
-                        inter_velg.create_dataset(h5name, [len(self.inter_vel_all_t[t][r]), 1], data=self.inter_vel_all_t[t][r])
-                    else:
-                        rhere.create_group('inter_vel_all')
-                    if len(self.inter_h_all_t[t]) > 0:
-                        inter_hg = rhere.create_group('inter_h_all')
-                        inter_hg.create_dataset(h5name, [len(self.inter_h_all_t[t][r]), 1],
-                                                data=self.inter_h_all_t[t][r])
-                    else:
-                        rhere.create_group('inter_h_all')
-        file.close()
-
-        # save the file to the xml of the project
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if not os.path.isfile(filename_prj):
-            print('Error: No project saved. Please create a project first in the General tab.\n')
-            return
-        else:
-            doc = ET.parse(filename_prj)
-            root = doc.getroot()
-            child = root.find(".//"+self.model_type)
-            if child is None:
-                stathab_element = ET.SubElement(root, self.model_type)
-                hdf5file = ET.SubElement(stathab_element, "hdf5_hydrodata")
-                hdf5file.text = h5name
-            else:
-                hdf5file = root.find(".//"+self.model_type + "/hdf5_hydrodata")
-                if hdf5file is None:
-                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-                    hdf5file.text = h5name
-                else:
-                    # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
-                    hdf5file.text = h5name   # keep only the new file
-            doc.write(filename_prj)
-
-        # send a signal to the substrate tab so it can account for the new info
-        self.drop_hydro.emit()
-        # log info
-        self.send_log.emit('restart SAVE_HYDRO_HDF5')
-        self.send_log.emit('py    # save_hdf5 (function needs to be re-written to be used in cmd)')
-        return
-
     def find_path_im(self):
         """
         A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py. By default,
@@ -779,350 +633,6 @@ class SubHydroW(QWidget):
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-
-    def grid_and_interpo(self, cb_im):
-        """
-        This function forms the link between GUI and the various grid and interpolation functions. Is called by
-        the "loading" function of hec-ras 1D, Mascaret and Rubar BE.
-
-        :param cb_im: A boolean if true, the figures are created and shown.
-
-        **Technical comments**
-
-        Here are the list of the interpolatin choice:
-
-        * 0 Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.
-        * 1 Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation
-        * 2 Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation
-        * 3 Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step
-            and use the cut_2d_grid to get a grid with only the wet profile for all time step
-
-        I'm not sure why there is a parameter to this method. Can we use self.cb.isckeched. To be checked.
-        """
-        # preparation
-        if not isinstance(self.interpo_choice, int):
-            self.send_log.emit('Error: Interpolation method is not recognized (Type).\n')
-            return
-        if cb_im:
-            path_im = self.find_path_im()
-        if len(self.vh_pro) == 0:
-            self.send_log.emit('Warning: Velocity and height data is empty (from grid_and_interpo)')
-            return
-        if len(self.vh_pro) == 1 and self.vh_pro == [-99]:
-            self.send_log.emit('Error: Velocity and height data were not created.')
-            return
-
-        # each interpolations type
-        if self.interpo_choice == 0:
-            self.send_log.emit(self.tr('# Create grid by block.'))
-            # first whole profile
-            sys.stdout = self.mystdout = StringIO()
-            [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-                manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
-            self.inter_vel_all_t.append([])
-            self.inter_h_all_t.append([])
-            self.ikle_all_t.append(ikle_all)
-            self.point_all_t.append(point_all_reach)
-            self.point_c_all_t.append(point_c_all)
-            self.send_log.emit("py    [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-                    manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach)\n")
-            self.send_log.emit("restart INTERPOLATE_BLOCK")
-            # by time step
-            for t in range(0, len(self.vh_pro)):
-                sys.stdout = self.mystdout = StringIO()
-                [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-                    manage_grid_8.create_grid_only_1_profile(self.coord_pro, self.nb_pro_reach, self.vh_pro[t])
-                if cb_im and path_im != 'no_path':
-                    #manage_grid_8.plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all,
-                                            #inter_vel_all, inter_height_all, path_im)
-                    manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
-                self.inter_vel_all_t.append(inter_vel_all)
-                self.inter_h_all_t.append(inter_height_all)
-                self.ikle_all_t.append(ikle_all)
-                self.point_all_t.append(point_all_reach)
-                self.point_c_all_t.append(point_c_all)
-                self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
-                self.send_log.emit("py    [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-                    manage_grid_8.create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro_t)\n")
-                self.send_log.emit("restart INTERPOLATE_BLOCK")
-
-        elif self.interpo_choice == 1:
-            try:
-                self.pro_add = int(self.nb_extrapro_text.text())
-            except ValueError:
-                self.send_log.emit('Error: Number of profile not recognized.\n')
-                return
-            self.send_log.emit(self.tr('# Create grid by linear interpolation.'))
-            if not isinstance(self.pro_add, int):
-                self.send_log.emit('Error: Number of profile not recognized.\n')
-                return
-            if 1 > self.pro_add > 500:
-                self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
-                return
-            # grid for the whole profile,
-            q = Queue()
-            ok = 0
-            k = self.pro_add
-            while ok == 0:
-                # [], [] is used to add the substrate as a condition directly
-                p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
-                                                                    [], self.nb_pro_reach, [], q))
-                # sys.stdout = self.mystdout = StringIO()
-                # [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = \
-                #     manage_grid_8.create_grid(self.coord_pro, self.pro_add, [], [], self.nb_pro_reach)
-                # sys.stdout = sys.__stdout__
-                self.send_err_log()
-                p.start()
-                time.sleep(1)
-                if p.exitcode == None:
-                    point_all_reach = q.get()
-                    ikle_all = q.get()
-                    lim_by_reach = q.get()
-                    hole_all = q.get()
-                    overlap = q.get()
-                    coord_pro2 = q.get()
-                    point_c_all = q.get()
-                    ok = 1
-                else:
-                    k += 5
-                p.terminate()
-            self.send_err_log()
-            self.inter_vel_all_t.append([])
-            self.inter_h_all_t.append([])
-            self.ikle_all_t.append(ikle_all)
-            self.point_all_t.append(point_all_reach)
-            self.point_c_all_t.append(point_c_all)
-            # only the wet area, by time step
-            for t in range(0, len(self.vh_pro)):
-                q = Queue()
-                ok = 0
-                k = self.pro_add
-                while ok == 0:
-                    # [], [] is used to add the substrate as a condition directly
-                    p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k,[],
-                                                                        [], self.nb_pro_reach, self.vh_pro[t],q))
-                    self.send_err_log()
-                    p.start()
-                    time.sleep(1)
-                    if p.exitcode == None:
-                        point_all_reach = q.get()
-                        ikle_all = q.get()
-                        lim_by_reach = q.get()
-                        hole_all = q.get()
-                        overlap = q.get()
-                        coord_pro2 = q.get()
-                        point_c_all = q.get()
-                        [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_all_reach, coord_pro2,
-                                                                                         self.vh_pro[t])
-                        ok = 1
-                    else:
-                        k += 5
-                    p.terminate()
-            self.send_err_log()
-            self.inter_vel_all_t.append(inter_vel_all)
-            self.inter_h_all_t.append(inter_height_all)
-            self.ikle_all_t.append(ikle_all)
-            self.point_all_t.append(point_all_reach)
-            self.point_c_all_t.append(point_c_all)
-            if cb_im and path_im != 'no_path':
-                manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
-                #manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                                        #hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
-            self.send_err_log()
-            self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
-            self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
-                               " point_c_all] = manage_grid_8.create_grid(coord_pro, nb_pro_reach, vh_pro_t)\n")
-            self.send_log.emit("py    [inter_vel_all, inter_height_all] = "
-                               "manage_grid_8.interpo_linear(point_c_all, coord_pro2, vh_pro_t))\n")
-            self.send_log.emit("restart INTERPOLATE_LINEAR")
-
-        elif self.interpo_choice == 2:
-            try:
-                self.pro_add = int(self.nb_extrapro_text.text())
-            except ValueError:
-                self.send_log.emit('Error: Number of profile not recognized.\n')
-                return
-            self.send_log.emit(self.tr('# Create grid by nearest neighbors interpolation.'))
-            if 1 > self.pro_add > 500:
-                self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
-                return
-            # grid for the whole profile,
-            q = Queue()
-            ok = 0
-            k = self.pro_add
-            while ok == 0:
-                # [], [] is used to add the substrate as a condition directly
-                p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
-                                                                    [], self.nb_pro_reach, [], q))
-                self.send_err_log()
-                p.start()
-                time.sleep(1)
-                if p.exitcode == None:
-                    point_all_reach = q.get()
-                    ikle_all = q.get()
-                    lim_by_reach = q.get()
-                    hole_all = q.get()
-                    overlap = q.get()
-                    coord_pro2 = q.get()
-                    point_c_all = q.get()
-                    ok = 1
-                else:
-                    k += 5
-                p.terminate()
-            self.send_err_log()
-            self.inter_vel_all_t.append([])
-            self.inter_h_all_t.append([])
-            self.ikle_all_t.append(ikle_all)
-            self.point_all_t.append(point_all_reach)
-            self.point_c_all_t.append(point_c_all)
-            # create grid for the wet area by time steps
-            for t in range(0, len(self.vh_pro)):
-                q = Queue()
-                ok = 0
-                k = self.pro_add
-                while ok == 0:
-                    # [], [] is used to add the substrate as a condition directly
-                    p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
-                                                                        [], self.nb_pro_reach, self.vh_pro[t], q))
-                    self.send_err_log()
-                    p.start()
-                    time.sleep(1)
-                    if p.exitcode == None:
-                        point_all_reach = q.get()
-                        ikle_all = q.get()
-                        lim_by_reach = q.get()
-                        hole_all = q.get()
-                        overlap = q.get()
-                        coord_pro2 = q.get()
-                        point_c_all = q.get()
-                        [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(point_c_all, coord_pro2,
-                                                                                         self.vh_pro[t])
-                        ok = 1
-                    else:
-                        k += 5
-                    p.terminate()
-                self.send_err_log()
-                sys.stdout = self.mystdout = StringIO()
-                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_nearest(point_all_reach, coord_pro2,
-                                                                                  self.vh_pro[t])
-                if cb_im and path_im != 'no_path':
-                    manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
-                    #manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                                            #hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
-                self.inter_vel_all_t.append(inter_vel_all)
-                self.inter_h_all_t.append(inter_height_all)
-                self.ikle_all_t.append(ikle_all)
-                self.point_all_t.append(point_all_reach)
-                self.point_c_all_t.append(point_c_all)
-                self.send_log.emit("py    vh_pro_t = vh_pro[" + str(t) + "]\n")
-                self.send_log.emit("py    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2,"
-                                   " point_c_all] = manage_grid_8.create_grid(coord_pro, nb_pro_reach, vh_pro_t)\n")
-                self.send_log.emit("py    [inter_vel_all, inter_height_all] = "
-                                   "manage_grid_8.interpo_nearest(point_c_all, coord_pro2, vh_pro_t))\n")
-                self.send_log.emit("restart INTERPOLATE_NEAREST")
-        elif self.interpo_choice == 3:
-            # linear interpolatin again but using the function cut_grid instead of create_grid for all time step
-            try:
-                self.pro_add = int(self.nb_extrapro_text.text())
-            except ValueError:
-                self.send_log.emit('Error: Number of profile not recognized.\n')
-                return
-            self.send_log.emit(self.tr('# Create grid by nearest neighbors interpolation.'))
-            if 1 > self.pro_add > 500:
-                self.send_log.emit('Error: Number of add. profiles should be between 1 and 500.\n')
-                return
-            # grid for the whole profile,
-            q = Queue()
-            ok = 0
-            k = self.pro_add
-            while ok == 0:
-                # [], [] is used to add the substrate as a condition directly
-                p = Process(target=manage_grid_8.create_grid, args=(self.coord_pro, k, [],
-                                                                    [], self.nb_pro_reach, [], q))
-                self.send_err_log()
-                p.start()
-                time.sleep(1)
-                if p.exitcode == None:
-                    point_all_reach = q.get()
-                    ikle_all = q.get()
-                    lim_by_reach = q.get()
-                    hole_all = q.get()
-                    overlap = q.get()
-                    blob = q.get()
-                    point_c_all = q.get()
-                    ok = 1
-                else:
-                    return
-                p.terminate()
-            self.send_err_log()
-            self.inter_vel_all_t.append([])
-            self.inter_h_all_t.append([])
-            self.ikle_all_t.append(ikle_all)
-            self.point_all_t.append(point_all_reach)
-            self.point_c_all_t.append(point_c_all)
-            self.send_err_log()
-            # update coord, interpolate on this grid for all time step linearly and cut the grid
-            for t in range(0, len(self.vh_pro)):
-                coord_pro2 = manage_grid_8.update_coord_pro_with_vh_pro(self.coord_pro, self.vh_pro[t])
-                [inter_vel_all, inter_height_all] = manage_grid_8.interpo_linear(self.point_all_t[0], coord_pro2,
-                                                                                 self.vh_pro[t])
-                [ikle_all, point_all_reach, inter_height_all, inter_vel_all] = manage_grid_8.cut_2d_grid_all_reach(
-                    self.ikle_all_t[0], self.point_all_t[0], inter_height_all,inter_vel_all)
-            # create grid for the wet area by time steps
-                self.send_err_log()
-                self.inter_vel_all_t.append(inter_vel_all)
-                self.inter_h_all_t.append(inter_height_all)
-                self.ikle_all_t.append(ikle_all)
-                self.point_all_t.append(point_all_reach)
-                self.point_c_all_t.append(point_c_all)
-                if cb_im and path_im != 'no_path':
-                    manage_grid_8.plot_grid_simple(point_all_reach, ikle_all, inter_vel_all, inter_height_all, path_im)
-                    # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                    # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
-                self.send_err_log()
-            self.send_log.emit("py    interpolate_cut_linear (to be redone in cmd)\n")
-            self.send_log.emit("restart INTERPOLATE_CUT_LINEAR")
-        else:
-            self.send_log.emit('Error: Interpolation method is not recognized (Num).\n')
-
-        return
-
-    def distribute_velocity(self):
-        """
-        This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
-        notably rubar and masacret.
-
-        Dist vitess needs a manning parameters. It can be given by the user in two forms: a constant (float) or an array
-        created by the function load_manning_text.
-        """
-
-        self.send_log.emit("# Velocity distribution")
-        sys.stdout = self.mystdout = StringIO()
-        if len(self.manning_arr) < 1:
-            # distribution of velocity using a float as a manning value (same value for all place)
-            manning_array = dist_vistess2.get_manning(self.manning1, self.np_point_vel, len(self.coord_pro), self.coord_pro)
-            self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
-                                                         self.np_point_vel, 1, self.on_profile)
-        else:
-            # distribution of velocity using txt file as input for manning
-            manning_array = dist_vistess2.get_manning_arr(self.manning_arr, self.np_point_vel, self.coord_pro)
-            self.vh_pro = dist_vistess2.dist_velocity_hecras(self.coord_pro, self.xhzv_data, manning_array,
-                                                             self.np_point_vel, 1, self.on_profile)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-        self.send_log.emit("restart GET_MANNING")
-        self.send_log.emit("restart DISTRIBUTE VELOCITY")
-        self.send_log.emit("py    manning1 = " + str(self.manning1))
-        self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
-        self.send_log.emit("py    manning_array = dist_vistess2.get_manning(manning1, np_point_vel, len(coord_pro))")
-        self.send_log.emit("py    vh_pro = dist_vistess2.dist_velocity_hecras(coord_pro, xhzv_data, manning_array, "
-                           "np_point_vel, 1, on_profile)")
 
     def load_manning_text(self):
         """
@@ -1218,10 +728,10 @@ class SubHydroW(QWidget):
                 # add here the call to the interpolatin method 0 to automatize this correction. TO BE DONE.
                 # if a new thread is created, join it to wait (The GUI would freeze,
                 # but it will get too complicated otherwise)
-                #return
+                return
             if self.interpo_choice == 0 and self.p.exitcode is None:
                 self.send_log.emit("Error: Grid creation failed. Try with the interpolation method 'Linear Interpolation'")
-                #return
+                return
 
             # enable to loading of another model
             self.load_b.setDisabled(False)
@@ -1418,7 +928,7 @@ class HEC_RAS1D(SubHydroW):
                                                                                   self.name_prj,self.path_prj,
                                                                                   self.model_type, self.namefile,
                                                                                   self.pathfile, self.interpo_choice,
-                                                                                  path_im, self.save_fig, show_all_fig,
+                                                                                  path_im, show_all_fig,
                                                                                   self.pro_add, self.q))
         self.p.start()
 
@@ -1429,13 +939,16 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.semd_log.emit("py    files = [file1, file2]")
+        self.semd_log.emit("py    paths = [path1, path2]")
+        self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
+        self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
         self.send_log.emit(
             "py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hec_hec_ras_and_create_grid(new_filename,new_path"
-            ", name_prj, path_prj, 'HECRAS1D', file1, file2, path1, path2, inter, '.', False, False, pro_add)\n")
+            ", name_prj, path_prj, 'HECRAS1D', files, paths, interp, '.', False, False, pro_add)\n")
         self.send_log.emit("restart LOAD_HECRAS_1D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
-
 
 
 class Rubar2D(SubHydroW):
@@ -1707,47 +1220,36 @@ class Mascaret(SubHydroW):
 
     def load_mascaret_gui(self):
         """
-        The function is used to load the mascaret data, calling the function contained in the script mascaret.py
+        The function is used to load the mascaret data, calling the function contained in the script mascaret.py.
+        It also create a 2D grid from the 1D data and distribute the velocity.
+        All of theses tasks are done on a second thread to avoid freezing the GUI.
         """
+
+        self.load_b.setDisabled(True)
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
         self.save_xml(2)
-        self.load_b.setDisabled(True)
+
+        # for error management and figures (when time finsiehed call the self.send_data function)
+        self.timer.start(1000)
+
+        # get the image and load option
         path_im = self.find_path_im()
-        self.send_log.emit(self.tr('# Load: Mascaret data.'))
-        sys.stdout = self.mystdout = StringIO()
-        [self.coord_pro, coord_r, self.xhzv_data, name_pro, name_reach, self.on_profile, self.nb_pro_reach]\
-            = mascaret.load_mascaret(self.namefile[0], self.namefile[1], self.namefile[2], self.pathfile[0],\
-                                     self.pathfile[1], self.pathfile[2])
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    file3='" + self.namefile[2] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    path3='" + self.pathfile[2] + "'")
-        self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
-                           " =  mascaret.load_mascaret(file1, file2, file3, path1, path2, path3)\n")
-        self.send_log.emit("restart LOAD_MASCARET")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
-        self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
-
-        if self.coord_pro == [-99]:
-            print('Error: Mascaret data not loaded. \n')
-            return
-
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_im()
+        self.load_b.setDisabled(True)
+        self.name_hdf5 = self.hname.text()
         show_all_fig = False
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
-            mascaret.figure_mascaret(self.coord_pro, coord_r, self.xhzv_data, self.on_profile, self.nb_pro_reach,
-                                     name_pro, name_reach, path_im, [0, 1], [-1], [0])
-        # velocity distibution
+            self.save_fig = True
+        self.interpo_choice = self.inter.currentIndex()
+
+        # preparation for the velocity distibution
         try:
             # we have two cases possible: a manning array or a manning float. here we take the case manning as float
             if not self.manning_arr:
-                self.manning1 = float(self.manning_text.text())
+                self.manning_arr = float(self.manning_text.text())
         except ValueError:
             self.send_log.emit("Error: The manning value is not understood.")
         try:
@@ -1755,17 +1257,37 @@ class Mascaret(SubHydroW):
         except ValueError:
             self.send_log.emit("Error: The number of velocity point is not understood.")
 
-        # grid and interpolation
-        self.distribute_velocity()
-        self.interpo_choice = self.inter.currentIndex()
-        self.grid_and_interpo(self.cb.isChecked())
+        # load hec_ras data, distribute the velocity and create the grid in a second thread
+        self.q = Queue()
+        self.p = Process(target=mascaret.load_mascaret_and_create_grid, args=(self.name_hdf5, path_hdf5,self.name_prj,
+                                                                              self.path_prj,self.model_type, self.namefile,
+                                                                              self.pathfile, self.interpo_choice,
+                                                                              self.manning_arr, self.np_point_vel,
+                                                                              show_all_fig,self.pro_add, self.q))
+        self.p.start()
 
-        #self.save_hdf5()
-
-        if self.cb.isChecked():
-            self.show_fig.emit()
-
-        self.load_b.setDisabled(False)
+        #log info
+        self.send_log.emit(self.tr('# Loading: Mascaret data.'))
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
+        self.send_log.emit("py    file3='" + self.namefile[2] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    path3='" + self.pathfile[2] + "'")
+        self.send_log.emit("py    files = [file1, file2, file3]")
+        self.send_log.emit("py    paths = [path1, path2, path3]")
+        self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
+        self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
+        self.send_log.emit("py    manning1 = " + str(self.manning1))
+        self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
+        self.send_log.emit("py    manning_array = dist_vistess2.get_manning(manning1, np_point_vel, len(coord_pro))")
+        self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
+                           " = mascaret.load_mascaret_and_create_grid(filename_new, pathname_new, name_prj, path_prj,"
+                           " 'mascaret',files, paths, interp,manning_array, np_point_vel,'.', False, pro_add)\n")
+        self.send_log.emit("restart LOAD_MASCARET")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
 
 
 class River2D(SubHydroW):
@@ -2135,56 +1657,61 @@ class Rubar1D(SubHydroW):
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
-        self.load_b.setDisabled(True)
+
+        # for error management and figures (when time finsiehed call the self.send_data function)
+        self.timer.start(1000)
+
+        # get the image and load option
         path_im = self.find_path_im()
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_im()
+        self.load_b.setDisabled(True)
+        self.name_hdf5 = self.hname.text()
         show_all_fig = False
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
-        #load rubar 1D
-        sys.stdout = self.mystdout = StringIO()
-        [self.xhzv_data, self.coord_pro, lim_riv] = rubar.load_rubar1d(self.namefile[0],
-                                         self.namefile[1], self.pathfile[0], self.pathfile[1], path_im, self.save_fig)
-        self.nb_pro_reach = [0, len(self.coord_pro)]   # should be corrected?
-        sys.stdout = sys.__stdout__
-        # log info
-        self.send_log.emit(self.tr('# Load: Rubar 1D data.'))
-        self.send_err_log()
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    [data_xhzv, coord_pro, lim_riv] = rubar.load_rubar1d(file1,"
-                           " file2, path1, path2, '.', False)\n")
-        self.send_log.emit("restart LOAD_RUBAR_1D")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        self.interpo_choice = self.inter.currentIndex()
 
-        if self.xhzv_data == [-99]:
-            self.send_log.emit("Rubar data could not be loaded.")
-            return
-
-        # velocity distibution
+        # preparation for the velocity distibution
         try:
             # we have two cases possible: a manning array or a manning float. here we take the case manning as float
             if not self.manning_arr:
-                self.manning1 = float(self.manning_text.text())
+                self.manning_arr = float(self.manning_text.text())
         except ValueError:
             self.send_log.emit("Error: The manning value is not understood.")
         try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
             self.send_log.emit("Error: The number of velocity point is not understood.")
-        # velcoity distribution
-        self.distribute_velocity()
-        # grid and interpolation
-        self.interpo_choice = self.inter.currentIndex()
-        self.grid_and_interpo(self.cb.isChecked())
-        self.save_hdf5()
 
-        if self.cb.isChecked() and path_im != 'no_path':
-            self.show_fig.emit()
+        # load rubar 1D, distribute velcoity and create the grid
+        self.q = Queue()
+        self.p = Process(target=rubar.load_rubar1d_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
+                                                                        self.path_prj, self.model_type, self.namefile,
+                                                                        self.pathfile, self.interpo_choice,
+                                                                        self.manning_arr, self.np_point_vel,
+                                                                        show_all_fig, self.pro_add, self.q))
+        self.p.start()
 
-        self.load_b.setDisabled(False)
+        # log info
+        self.send_log.emit(self.tr('# Loading: Rubar 1D data.'))
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    files = [file1, file2]")
+        self.send_log.emit("py    paths = [path1, path2]")
+        self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
+        self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
+        self.send_log.emit("py    manning1 = " + str(self.manning1))
+        self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
+        self.send_log.emit("py    manning_array = dist_vistess2.get_manning(manning1, np_point_vel, len(coord_pro))")
+        self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
+                           " = rubar.load_rubar1d_and_create_grid(filename_new, pathname_new, name_prj, path_prj,"
+                           " 'RUBAR1D',files, paths, interp,manning_array, np_point_vel,'.', False, pro_add)\n")
+        self.send_log.emit("restart LOAD_RUBAR_1D")
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
 
 
 class HEC_RAS2D(SubHydroW):
