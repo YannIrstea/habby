@@ -168,8 +168,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
     :param hdf5_name_hyd: the path and name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the path and the name of the hdf5 with the substrate data
     :param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
-    :param path_prj
+    :param path_prj: the path to the project
     :return: the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
+
     """
     failload = [-99], [-99], [-99], [-99], [-99]
     sub_data = []

@@ -584,7 +584,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
     interpolation and to save the whole in an hdf5 format
 
-     :param name_hdf5: the base name of the created hdf5 (string)
+    :param name_hdf5: the base name of the created hdf5 (string)
     :param geofile: the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)
     :param tpsfile: the name of the .tps file (string)
     :param pathgeo: path to the geo file (string)

@@ -1,5 +1,4 @@
 import numpy as np
-from src import dist_vistess2
 import triangle
 import matplotlib.pyplot as plt
 import time
@@ -12,14 +11,167 @@ import bisect
 #np.set_printoptions(threshold=np.inf)
 
 
+def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1):
+    """
+    This function forms the link between GUI and the various grid and interpolation functions. Is called by
+    the "loading" function of hec-ras 1D, Mascaret and Rubar BE. It used to be a method in hydro_GUI2, but we have
+    to move it as a function to create a second thread. Hence, the high amount of parameter.
+
+    :param vh_pro: Velcoity and height data
+    :param coord_pro: the position of the profile
+    : nb_pro-reach: the number of profile by reach
+    :param interpo_choice: an int which gives the choice of interpolatin (see below)
+    :param pro_add: the number of profile for be added (for interpoation method 1 and 2)
+
+    **Technical comments**
+
+    Here are the list of the interpolation choice:
+
+    * 0 Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.
+    * 1 Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation
+    * 2 Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation
+    * 3 Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step
+        and use the cut_2d_grid to get a grid with only the wet profile for all time step (This part was only started.
+        It was not finished.)
+
+    For the interpolation case 1 and 2, it is possible that the triangle module crashes if the geometry of the
+    river is too complicated. Generally, the interpolation method 1 and 2 gives smoother results with more control
+    over the interpolation option and the size of the cells. However, these two interpolation methods are more sensitive
+    to the inputs, especially if the river has a lot of "island" (strongly anastomotic). So the interpoliation method 0
+    is mroe adequate in this case.
+
+    """
+    # check input
+    if not isinstance(interpo_choice, int):
+        print('Error: Interpolation method is not recognized (Type).\n')
+        return
+    if len(vh_pro) == 0:
+        print('Warning: Velocity and height data is empty (from grid_and_interpo).\n')
+        return
+    if len(vh_pro) == 1 and vh_pro == [-99]:
+        print('Error: Velocity and height data were not created.\n')
+        return
+    if interpo_choice > 0 and not isinstance(pro_add, int):
+        print('Error: Number of added profile is not recognized (Type).\n')
+        return
+    if interpo_choice > 0 and (pro_add < 1 or pro_add > 100):
+        print('Error: a number of added profile between 1 and 100 must be given.\n')
+        return
+
+    # prepare outputs for all reaches and all time steps
+    inter_vel_all_t = []
+    inter_h_all_t = []
+    ikle_all_t = []
+    point_all_t = []
+    point_c_all_t = []
+
+    # each interpolations type
+    if interpo_choice == 0:
+
+        # first whole profile (no need for velcoity and height data)
+        [ikle_all, point_all_reach, point_c_all, blob, blob] =\
+            create_grid_only_1_profile(coord_pro, nb_pro_reach)
+        inter_vel_all_t.append([])
+        inter_h_all_t.append([])
+        ikle_all_t.append(ikle_all)
+        point_all_t.append(point_all_reach)
+        point_c_all_t.append(point_c_all)
+
+        # by time step
+        for t in range(0, len(vh_pro)):
+            [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+                                           create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
+            inter_vel_all_t.append(inter_vel_all)
+            inter_h_all_t.append(inter_height_all)
+            ikle_all_t.append(ikle_all)
+            point_all_t.append(point_all_reach)
+            point_c_all_t.append(point_c_all)
+
+    elif interpo_choice == 1:
+        # grid for the whole profile
+        # it is in an extra thread because the triangle module might crash for too complicated cases
+        [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
+                                                                        coord_pro, pro_add, [], [], nb_pro_reach, [])
+
+        inter_vel_all_t.append([])
+        inter_h_all_t.append([])
+        ikle_all_t.append(ikle_all)
+        point_all_t.append(point_all_reach)
+        point_c_all_t.append(point_c_all)
+
+        # only the wet area, by time step
+        for t in range(0, len(vh_pro)):
+            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
+                                                                    coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
+            [inter_vel_all, inter_height_all] = interpo_linear(point_all_reach, coord_pro2,vh_pro[t])
+
+            inter_vel_all_t.append(inter_vel_all)
+            inter_h_all_t.append(inter_height_all)
+            ikle_all_t.append(ikle_all)
+            point_all_t.append(point_all_reach)
+            point_c_all_t.append(point_c_all)
+
+    elif interpo_choice == 2:
+        # grid for the whole profile
+        [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
+            coord_pro, pro_add, [], [], nb_pro_reach, [])
+        inter_vel_all_t.append([])
+        inter_h_all_t.append([])
+        ikle_all_t.append(ikle_all)
+        point_all_t.append(point_all_reach)
+        point_c_all_t.append(point_c_all)
+
+        # create grid for the wet area by time steps
+        for t in range(0, len(vh_pro)):
+            [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
+                coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
+            [inter_vel_all, inter_height_all] = interpo_nearest(point_all_reach, coord_pro2, vh_pro[t])
+            inter_vel_all_t.append(inter_vel_all)
+            inter_h_all_t.append(inter_height_all)
+            ikle_all_t.append(ikle_all)
+            point_all_t.append(point_all_reach)
+            point_c_all_t.append(point_c_all)
+
+    elif interpo_choice == 3:
+        # NOT DONE (DEBUGGING NEEDED -> do not pass test_habby.py)
+        # linear interpolatin again but using the function cut_grid instead of create_grid for all time step
+        [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
+            coord_pro, pro_add, [], [], nb_pro_reach, [])
+
+        inter_vel_all_t.append([])
+        inter_h_all_t.append([])
+        ikle_all_t.append(ikle_all)
+        point_all_t.append(point_all_reach)
+        point_c_all_t.append(point_c_all)
+
+        # update coord, interpolate on this grid for all time step linearly and cut the grid
+        for t in range(0, len(vh_pro)):
+            coord_pro2 = update_coord_pro_with_vh_pro(coord_pro, vh_pro[t])
+            # interpolation on the whole grid
+            [inter_vel_all, inter_height_all] = interpo_linear(point_all_t[0], coord_pro2, vh_pro[t])
+            # cut grid for the wet area by time steps
+            [ikle_all, point_all_reach, inter_height_all, inter_vel_all] = cut_2d_grid_all_reach(
+                ikle_all_t[0], point_all_t[0], inter_height_all, inter_vel_all)
+            inter_vel_all_t.append(inter_vel_all)
+            inter_h_all_t.append(inter_height_all)
+            ikle_all_t.append(ikle_all)
+            point_all_t.append(point_all_reach)
+            point_c_all_t.append(point_c_all)
+
+    else:
+        print('Error: Interpolation method is not recognized (Num).\n')
+
+    return ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t
+
+
 def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10], vh_pro_t=[], q=[], pnew_add=1):
     """
     It creates a grid from the coord_pro data using the triangle module.
     It creates the grid up to the end of the profile if vh_pro_t is not present
     or up to the water limit if vh_pro_t is present
 
-    :param q: used in the secondary process (like in hydro_gui2) when we do not call this function direclty, but we
-           call it in a second process so that the GUI do not crash if something go wrong
+    :param q: used in the secondary process  when we do not call this function direclty, but we call it in a second
+           process so that the GUI do not crash if something go wrong (not used anymore in this form)
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param extra_pro: the number of "extra" profiles to be added between profile to simplify the grid
     :param coord_sub: (not used anymore)
@@ -1407,7 +1559,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
     **Technical Comment**
 
     This function can be very slow when a lot of time step needs to be interpolated if done directlty with
-     scipy.interpolate. It was optimized for this case:
+    scipy.interpolate. It was optimized for this case:
     http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple-
     interpolations-between-two-irregular-grids
 

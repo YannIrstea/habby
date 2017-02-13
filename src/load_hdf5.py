@@ -417,18 +417,19 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                 point_allg.create_dataset(h5name, [len(point_all_t[t][r]), 2], data=point_all_t[t][r])
                 point_cg = rhere.create_group('point_c_all')
                 point_cg.create_dataset(h5name, [len(point_c_all_t[t][r]), 2], data=point_c_all_t[t][r])
-                if len(inter_vel_all_t[t]) > 0:
+                if len(inter_vel_all_t[t]) > 0 and not isinstance(inter_vel_all_t[t][0], float):
                     inter_velg = rhere.create_group('inter_vel_all')
                     inter_velg.create_dataset(h5name, [len(inter_vel_all_t[t][r]), 1],
                                               data=inter_vel_all_t[t][r])
                 else:
                     rhere.create_group('inter_vel_all')
-                if len(inter_h_all_t[t]) > 0:
+                if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
                     inter_hg = rhere.create_group('inter_h_all')
                     inter_hg.create_dataset(h5name, [len(inter_h_all_t[t][r]), 1],
                                             data=inter_h_all_t[t][r])
                 else:
                     rhere.create_group('inter_h_all')
+
     file.close()
 
     # save the file to the xml of the project

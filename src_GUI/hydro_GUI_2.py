@@ -783,20 +783,21 @@ class SubHydroW(QWidget):
     def grid_and_interpo(self, cb_im):
         """
         This function forms the link between GUI and the various grid and interpolation functions. Is called by
-        the "loading' function of hec-ras 1D, Mascaret and Rubar BE.
+        the "loading" function of hec-ras 1D, Mascaret and Rubar BE.
+
         :param cb_im: A boolean if true, the figures are created and shown.
 
-        *Technical comments*
+        **Technical comments**
 
         Here are the list of the interpolatin choice:
 
-        *0: Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.
-        *1: Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation
-        *2: Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation
-        *3: Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step
-        and use the cut_2d_grid to get a grid with only the wet profile for all time step
+        * 0 Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.
+        * 1 Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation
+        * 2 Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation
+        * 3 Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step
+            and use the cut_2d_grid to get a grid with only the wet profile for all time step
 
-        I'm not sure why there is a parameter to this method. Can we not use self.cb.isckeched?? To be checked.
+        I'm not sure why there is a parameter to this method. Can we use self.cb.isckeched. To be checked.
         """
         # preparation
         if not isinstance(self.interpo_choice, int):
@@ -1197,8 +1198,11 @@ class SubHydroW(QWidget):
         """
         This function is call regularly by the methods which have a second thread (so moslty the function
         to load the hydrological data). To call this functin regularly, the variable self.timer of QTimer type is used.
+        The variable self.timer is connected to this function in the initiation of SubHydroW() and so in the initation
+        of all class which inherits from SubHydroW().
 
-        This function just wait while the thread is alive. When it has terminated, it creates the figure and the error messages.
+        This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
+        messages.
         """
 
         # when the loading is finished
@@ -1207,6 +1211,17 @@ class SubHydroW(QWidget):
             self.timer.stop()
             self.mystdout = self.q.get()
             self.send_err_log()
+
+            # if grid creation fails
+            if self.interpo_choice > 1 and self.p.exitcode is None:  # process terminated
+                self.send_log.emit("Error: Grid creation failed. Try with the interpolation method 'Interpolation by block'")
+                # add here the call to the interpolatin method 0 to automatize this correction. TO BE DONE.
+                # if a new thread is created, join it to wait (The GUI would freeze,
+                # but it will get too complicated otherwise)
+                #return
+            if self.interpo_choice == 0 and self.p.exitcode is None:
+                self.send_log.emit("Error: Grid creation failed. Try with the interpolation method 'Linear Interpolation'")
+                #return
 
             # enable to loading of another model
             self.load_b.setDisabled(False)
@@ -1220,9 +1235,16 @@ class SubHydroW(QWidget):
                 self.send_err_log()
                 if name_hdf5:
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5, self.path_prj)
+                    if ikle_all_t == [[-99]]:
+                        print('Error: No data found in hdf5 (from send_data)')
+                        return
                     for t in [-1]:  # range(0, len(vel_cell)):
                         manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], inter_vel_all_t[t], inter_h_all_t[t],
                                                        path_im)
+                        # to debug
+                        # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                        # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+
                     self.show_fig.emit()
                 else:
                     self.send_log.emit(self.tr("The hydrological model was not found. Figures could not be shown"))
@@ -1322,7 +1344,6 @@ class HEC_RAS1D(SubHydroW):
         self.spacer2 = QSpacerItem(1, 80)
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
-
         # layout
         self.layout_hec = QGridLayout()
         self.layout_hec.addWidget(l1, 0, 0)
@@ -1357,68 +1378,64 @@ class HEC_RAS1D(SubHydroW):
         calls the load function for hec_ras. First, it updates the xml project file. It adds the name of the new file
         to xml project file under the attribute indicated by self.attributexml. It also gets the path_im by reading the
         path_im in the xml project file. Then it check if the user want to create the figure or not
-        (if self.cb.isChecked(), figures should be created). It also manages the log as explained in the section
-        about the log. Notably, it redirects the  outstream to the mystdout stream. Hence, the “print” statement is
-        now sent to the log windows at the bottom of HABBY window. Next, it loads the hec-ras data as explained in
-        the section on hec_ras06.py. It then creates the grid as explained in the manage_grid.py based on the
-        interpolation type wished by the user (linear, nearest neighbor or by block). It creates the hdf5
-        with the loaded data. Finally, if necessary, it shows the figure by emitting a signal.
-        This signal is collected in the MainWindow() class.
-
+        If self.cb.isChecked(), 2D figures should be created. If we want to create the 1D figure, the option show_all_fig
+        should be selected in the figure option. It also manages the log as explained in the section about the log.
+        It loads the hec-ras data as explained in the section on hec_ras06.py and creates the grid as explained
+        in the manage_grid.py based on the interpolation type wished by the user (linear, nearest neighbor or by block).
+        The variable self.name_hdf5() is taken from the GUI.
         """
+        self.load_b.setDisabled(True)
 
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
-        path_im = self.find_path_im()
-        self.load_b.setDisabled(True)
 
-        # load hec_ras data
+        # for error management and figures (when time finsiehed call the self.send_data function)
+        self.timer.start(1000)
+
+        # get the image and load option
+        path_im = self.find_path_im()
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_im()
+        self.load_b.setDisabled(True)
+        self.name_hdf5 = self.hname.text()
         show_all_fig = False
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
+        self.interpo_choice = self.inter.currentIndex()
 
-        # redirect the out stream to my output
-        a = time.time()
-        sys.stdout = self.mystdout = StringIO()
-        [self.coord_pro, self.vh_pro, self.nb_pro_reach] = Hec_ras06.open_hecras(self.namefile[0], self.namefile[1], self.pathfile[0],
-                                               self.pathfile[1], path_im, self.save_fig)
-        sys.stdout = sys.__stdout__
-        b = time.time()
-        print('time to load data: ' + str(b-a))
+        # get the number of addition profile
+        if self.interpo_choice > 0:
+            try:
+                self.pro_add = int(self.nb_extrapro_text.text())
+            except ValueError:
+                self.send_log.emit('Error: Number of profile not recognized.\n')
+                return
+
+        # load hec_ras data and create the grid in a second thread
+        self.q = Queue()
+        self.p = Process(target=Hec_ras06.open_hec_hec_ras_and_create_grid, args=(self.name_hdf5, path_hdf5,
+                                                                                  self.name_prj,self.path_prj,
+                                                                                  self.model_type, self.namefile,
+                                                                                  self.pathfile, self.interpo_choice,
+                                                                                  path_im, self.save_fig, show_all_fig,
+                                                                                  self.pro_add, self.q))
+        self.p.start()
+
         # log info
         self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
         self.send_err_log()
-        self.send_log.emit("py    file1='"+ self.namefile[0] + "'")
+        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(file1, file2, path1, path2, '.', False)\n")
+        self.send_log.emit(
+            "py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hec_hec_ras_and_create_grid(new_filename,new_path"
+            ", name_prj, path_prj, 'HECRAS1D', file1, file2, path1, path2, inter, '.', False, False, pro_add)\n")
         self.send_log.emit("restart LOAD_HECRAS_1D")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0],self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1],self.namefile[1]))
+        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
 
-        if self.coord_pro == [-99]:
-            self.send_log.emit('Error: HEC-RAS data not loaded')
-            return
-
-        # grid and interpolation
-        self.interpo_choice = self.inter.currentIndex()
-        b = time.time()
-        self.grid_and_interpo(self.cb.isChecked())
-        c = time.time()
-        print('time to interpolate velocity ' + str(b-a))
-        print('time to create grid ' + str(c-b))
-
-        # save hdf5 data
-        self.save_hdf5()
-        d = time.time()
-        print('time to create grid ' + str(d-c))
-        # show figure
-        if self.cb.isChecked():
-            self.show_fig.emit()
-
-        self.load_b.setDisabled(False)
 
 
 class Rubar2D(SubHydroW):
@@ -1524,6 +1541,7 @@ class Rubar2D(SubHydroW):
         path_im = self.find_path_im()
         # the path where to save the hdf5
         path_hdf5 = self.find_path_im()
+        self.name_hdf5 = self.hname.text()
 
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
@@ -1539,7 +1557,7 @@ class Rubar2D(SubHydroW):
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    load_rubar2d_and_create_grid(file1, file2, path1, path2, path2, True, "
+        self.send_log.emit("py    load_rubar2d_and_create_grid(new_filename,file1, file2, path1, path2, path2, True, "
                            "name_projet, path_projet, 'RUBAR_2D', 2, '.', )\n")
         self.send_log.emit("restart LOAD_RUBAR_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
@@ -2261,6 +2279,7 @@ class HEC_RAS2D(SubHydroW):
 
         # the path where to save the hdf5
         path_hdf5 = self.find_path_im()
+        self.name_hdf5 = self.hname.text()
 
         # load the hec_ras data and cut the grid to the needed side
         self.q = Queue()
@@ -2360,6 +2379,7 @@ class TELEMAC(SubHydroW):
         self.load_b.setDisabled(True)
         # the path where to save the hdf5
         path_hdf5 = self.find_path_im()
+        self.name_hdf5 = self.hname.text()
         # load the telemac data
         self.q = Queue()
         self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],self.pathfile[0],

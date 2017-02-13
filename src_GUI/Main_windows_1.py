@@ -1450,7 +1450,7 @@ class CentralW(QWidget):
         This tasks should be in a function because an update to this list can be triggered by the loading of a new
         hydrological data. The class Hydro2W() and substrateW() noticed this through the signal drop_hydro
         send by the hydrological class. The signal drop_hydro is connected to this function is in the class
-         CentralW in MainWindows.py.
+        CentralW in MainWindows.py.
 
         """
         # clear QCombox from Hydro2W() and Substratew()
