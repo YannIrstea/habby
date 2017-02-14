@@ -1203,7 +1203,7 @@ def inside_polygon(seg_poly, point):
         [inter, blob] = intersection_seg(seg_poly[s][0], seg_poly[s][1], ray[0], ray[1])
         if inter:
             inter_count +=1
-    if inter_count%2 == 0:
+    if inter_count % 2 == 0:
         return False
     else:
         return True
@@ -1215,14 +1215,14 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
     It is based on the caluclaion of the cross-product z= 0 for 2D
 
-    Careful there is many function using this function, so change here should be thought about.
+    Careful there is many function using this function, so change here should be thought about. There is a precision
+    management, so everythion smaller than 10**-8 is ok
 
     :param p1hyd: point A
     :param p2hyd: point B
     :param p1sub: point C
     :param p2sub: point D
     :param col: if True, colinear segment crossed. If false, they do not cross
-    :param uncer: if True, two segment with a distance lower than 10**-8 will be crossing, otherwise no precision change.
     :return: intersect (True or False) and the crossing point (if True, empty is False)
     """
     inter = False
@@ -2325,7 +2325,6 @@ def main():
     # [ikle, point_all, water_height, velocity] = cut_2d_grid(ikle, coord_p, h[-1], v[-1])
     # print(ikle)
     # plot_grid([point_all], [ikle], [], [], [], [], [],[], path_im)
-
 
 
 if __name__ == '__main__':

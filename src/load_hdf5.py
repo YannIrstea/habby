@@ -43,7 +43,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_prj = ''):
 
     """
 
-    # correct all change to the hdf5 form in the doc!
+    # correct all change to the hdf5 form in the documentation!
     ikle_all_t = []
     point_all = []
     inter_vel_all = []
@@ -226,8 +226,8 @@ def load_hdf5_sub(hdf5_name_sub, path_prj):
         print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
         return failload
 
-    ikle_sub = list(gen_dataset.values())[0]
-    ikle_sub = np.array(ikle_sub)
+    ikle_sub = list(gen_dataset.values())
+    ikle_sub = np.squeeze(np.array(ikle_sub))
 
     # read the coordinate of the point forming the grid
     basename1 = 'coord_p_sub'
@@ -242,6 +242,7 @@ def load_hdf5_sub(hdf5_name_sub, path_prj):
 
     # read the substrate data
     # NOT DONE YET AS THE FORM OF THE SUBSTRATE INFO IS UNKNOWN
+    data_sub = np.zeros(len(ikle_sub),)
 
     return ikle_sub, point_all_sub, data_sub
 
@@ -466,3 +467,23 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
         doc.write(filename_prj)
 
     return
+
+
+def add_sub_to_merge_hdf5(name_hdf5, path_hdf5, substrate):
+    """
+    This function open an existing hydrological hdf5 and add the substrate data to it. Obviously, this only makes sense
+    if the grid was merged before so that the subtrate grid and hydrological grid are coherent. If this function is
+    directly called on an hydrological hdf5 before calling substrate.merge_grid_hydro_sub(), it will not work!
+
+    :param name_hdf5: the name of the hdf5 (string)
+    :param path_hdf5: the path to this hdf5 (path)
+    :param substrate: the substrate data (one data by point0
+    """
+
+    # open the hdf5
+    hdf5_pathname = os.path.join(path_hdf5, name_hdf5)
+    file_hydro = open_hdf5(hdf5_pathname)
+
+    # get point_all_data and check the length
+    # save the new data
+    # NOT FINISHED

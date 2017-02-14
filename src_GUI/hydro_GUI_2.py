@@ -932,6 +932,7 @@ class HEC_RAS1D(SubHydroW):
                                                                                   self.pro_add, self.q))
         self.p.start()
 
+
         # log info
         self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
         self.send_err_log()
@@ -939,8 +940,8 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.semd_log.emit("py    files = [file1, file2]")
-        self.semd_log.emit("py    paths = [path1, path2]")
+        self.send_log.emit("py    files = [file1, file2]")
+        self.send_log.emit("py    paths = [path1, path2]")
         self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
         self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
         self.send_log.emit(
@@ -2321,14 +2322,20 @@ class SubstrateW(SubHydroW):
 
         # check inputs in the function
         sys.stdout = self.mystdout = StringIO()
-        [ikle_both, point_all_both, sub_data, vel, height] = substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
-                                                                                default_data, self.path_prj)
+        [ikle_both, point_all_both, sub_data, inter_vel_all_both, inter_h_all_both] = substrate.merge_grid_hydro_sub(
+            hdf5_name_hyd, hdf5_name_sub,default_data, self.path_prj)
         sys.stdout = sys.__stdout__
         # figure
         path_im = self.find_path_im()
         if self.cb2.isChecked() and path_im != 'no_path':
             # plot the last time step, can be changed if necessary
             substrate.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_im)
+
+        # save hdf5
+        path_hdf5 = self.find_path_im()
+        name_hdf5merge = 'MERGE_' + hdf5_name_hyd
+        load_hdf5.save_hdf5(name_hdf5merge, self.name_prj, self.path_prj, self.model_type, 2, path_hdf5, ikle_both,
+                            point_all_both, [], inter_vel_all_both, inter_h_all_both)
 
         # log
         self.send_err_log()
