@@ -122,6 +122,12 @@ here: a) we should show the end of the scroll area. b) The size of the area shou
 changing even if a lot of text appears. Hence, the setSizePolicy should be fixed.</p>
 <p>The write_log() and write_log_file() method are explained in the section about the log.</p>
 <dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.add_all_tab">
+<code class="descname">add_all_tab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.add_all_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function add the different tab to habby (used by init and by save_project)</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.Main_windows_1.CentralW.connect_signal_log">
 <code class="descname">connect_signal_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.connect_signal_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>connect all the signal linked to the log. This is in a function only to improve lisibility.</p>
@@ -137,7 +143,7 @@ changing even if a lot of text appears. Hence, the setSizePolicy should be fixed
 <dt id="src_GUI.Main_windows_1.CentralW.optfig">
 <code class="descname">optfig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.optfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>A small function which open the output tab. It contains the different options for the figures.
-Output should be the 6th tab, otherwise it will not work.</p>
+Output should be the 5th tab, otherwise it will not work.</p>
 </dd></dl>
 
 <dl class="method">
@@ -156,6 +162,21 @@ Output should be the 6th tab, otherwise it will not work.</p>
 <dt id="src_GUI.Main_windows_1.CentralW.showfig2">
 <code class="descname">showfig2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.showfig2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to see all saved figures without possibility to zoom</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.update_hydro_hdf5_name">
+<code class="descname">update_hydro_hdf5_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.update_hydro_hdf5_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a short function used to read all the hydrological data (contained in an hdf5 files) available in
+one project.</p>
+<p>When these files are read, they are added to the drop-down menu on the hydrological tab an on the substrate tab.
+On the substrate Tab, if we have more than one hdf5 file, the first item is blank to insure that the user
+actively choose the hdf5 to reduce the risk of error (Otherwise the user might merge the substrate and
+an hydrological hdf5 without seeing that he needs to select the right hydrological hdf5).</p>
+<p>This tasks should be in a function because an update to this list can be triggered by the loading of a new
+hydrological data. The class Hydro2W() and substrateW() noticed this through the signal drop_hydro
+send by the hydrological class. The signal drop_hydro is connected to this function is in the class
+CentralW in MainWindows.py.</p>
 </dd></dl>
 
 <dl class="method">
@@ -203,6 +224,35 @@ Output should be the 6th tab, otherwise it will not work.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="src_GUI.Main_windows_1.CreateNewProject">
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">CreateNewProject</code><span class="sig-paren">(</span><em>lang</em>, <em>path_trans</em>, <em>file_langue</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CreateNewProject" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class which is used to help the user to create a new project</p>
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CreateNewProject.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CreateNewProject.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.CreateNewProject.save_project">
+<code class="descname">save_project</code><a class="headerlink" href="#src_GUI.Main_windows_1.CreateNewProject.save_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>a signal to save the project</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.CreateNewProject.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.Main_windows_1.CreateNewProject.send_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQt signal used to write the log</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.CreateNewProject.setfolder">
+<code class="descname">setfolder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CreateNewProject.setfolder" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used by the user to select the folder where the xml project file will be located.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="src_GUI.Main_windows_1.EmptyTab">
 <em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">EmptyTab</code><a class="headerlink" href="#src_GUI.Main_windows_1.EmptyTab" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class is  used to fill empty tabs with something during the developement.
@@ -245,6 +295,13 @@ and should be situated in the path indicated by self.path_prj.</p>
 ESTIMHAB calculation.</p>
 <p>We show the created widget.</p>
 <dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.change_name_project">
+<code class="descname">change_name_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.change_name_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to change the name of the current project. To do this, it copies the xml
+project with a new name and copy the file for the log with a new name</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.clear_log">
 <code class="descname">clear_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.clear_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear the log in the GUI.</p>
@@ -262,6 +319,12 @@ ESTIMHAB calculation.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.close_project">
+<code class="descname">close_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.close_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function close the current project wihout opening a new project</p>
 </dd></dl>
 
 <dl class="method">
@@ -289,6 +352,12 @@ ESTIMHAB calculation.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.empty_project">
+<code class="descname">empty_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.empty_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open a new empty project</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.erase_pict">
 <code class="descname">erase_pict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.erase_pict" title="Permalink to this definition">¶</a></dt>
 <dd><p>All files contained in the folder indicated by path_im will be deleted.</p>
@@ -313,7 +382,8 @@ are too many of them.</p>
 <dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.new_project">
 <code class="descname">new_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.new_project" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function open a new empty project</p>
+<dd><p>This function open an empty project and guide the user to create a new project, using a new Windows
+of the class CreateNewProject</p>
 </dd></dl>
 
 <dl class="method">
@@ -321,6 +391,22 @@ are too many of them.</p>
 <code class="descname">open_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.open_project" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to open an existing habby project by selecting an xml project file. Called by
 my_menu_bar()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.open_recent_project">
+<code class="descname">open_recent_project</code><span class="sig-paren">(</span><em>j</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.open_recent_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open a recent project of the user. The recent project are listed in the menu and can be
+selected by the user. When the user select a recent project to open, this function is called. Then, the name of
+the recent project is selected and the method save_project() is called.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>j</strong> &#8211; This indicates which project should be open, based on the order given in the menu</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -356,6 +442,9 @@ such as the preference curve and b) the path_im which is the path where all figu
 is saved. If path_im is not given, HABBY automatically create a folder called figure_habby when the
 user creates a new project. The user can however change this path if he wants. The next step is to communicate
 to all the children widget than the name and path of the project have changed.</p>
+<p>This function also changes the title of the Windows to reflect the project name and it adds the saved
+project to the list of recent project if it is not part of the list already. Because of this the menu must
+updated.</p>
 <p>Finally the log is written (see “log and HABBY in the command line).</p>
 </dd></dl>
 
@@ -370,6 +459,13 @@ the esimhab.py script, but it was easier to call it from here instead of in the 
 specialty of hdf5 is that is cannot use Unicode. Hence all string have to be passed to ascii using the encode
 function. The size of each data should also be known.</p>
 <p>Finally, we save the name and path of the estimhab file in the xml project file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.save_project_if_new_project">
+<code class="descname">save_project_if_new_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.save_project_if_new_project" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to save a project when the project is created from the other Windows CreateNewProject. It
+can not be in the new_project function as the new_project function call CreateNewProject().</p>
 </dd></dl>
 
 <dl class="method">
@@ -467,9 +563,15 @@ on the user action.</p>
 
 <dl class="class">
 <dt id="src_GUI.Main_windows_1.WelcomeW">
-<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">WelcomeW</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">WelcomeW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW" title="Permalink to this definition">¶</a></dt>
 <dd><p>The class WeLcomeW()  creates the first tab of HABBY (the tab called “General”). This tab is there to create
 a new project or to change the name, path, etc. of a project.</p>
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.WelcomeW.change_name">
+<code class="descname">change_name</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.change_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>A signal to change the name of the project for MainWindows</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="src_GUI.Main_windows_1.WelcomeW.init_iu">
 <code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.init_iu" title="Permalink to this definition">¶</a></dt>
@@ -480,6 +582,18 @@ a new project or to change the name, path, etc. of a project.</p>
 <dt id="src_GUI.Main_windows_1.WelcomeW.new_proj_signal">
 <code class="descname">new_proj_signal</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.new_proj_signal" title="Permalink to this definition">¶</a></dt>
 <dd><p>A PyQt signal used to open a new project</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.WelcomeW.open_example">
+<code class="descname">open_example</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.open_example" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function will be used to open a project example for HABBY, but the example is not prepared yet</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.WelcomeW.open_proj">
+<code class="descname">open_proj</code><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.open_proj" title="Permalink to this definition">¶</a></dt>
+<dd><p>A signal for MainWindows to open an exisiting project</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -497,7 +611,9 @@ a new project or to change the name, path, etc. of a project.</p>
 <dl class="method">
 <dt id="src_GUI.Main_windows_1.WelcomeW.setfolder">
 <code class="descname">setfolder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.WelcomeW.setfolder" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is used by the user to select the folder where the xml project file will be located.</p>
+<dd><p>This function is used by the user to select the folder where the xml project file will be located.
+This is used in the case where the project exist already. A similar function is in the class CreateNewProject()
+for the case where the project is new.</p>
 </dd></dl>
 
 </dd></dl>
@@ -547,6 +663,7 @@ in HABBY in the same project before.</p>
 <p>Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. The user can choose the interpolation
 type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
 profile will always be one. See manage_grid.py for more information on how to create a grid.</p>
+<p>We add a QLineEdit with the proposed name for the created hdf5 file. The user can modified this name if wished so.</p>
 </dd></dl>
 
 <dl class="method">
@@ -565,12 +682,6 @@ the section on hec_ras06.py. It then creates the grid as explained in the manage
 interpolation type wished by the user (linear, nearest neighbor or by block). It creates the hdf5
 with the loaded data. Finally, if necessary, it shows the figure by emitting a signal.
 This signal is collected in the MainWindow() class.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.HEC_RAS1D.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS1D.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>PyQtsignal to show the figure.</p>
 </dd></dl>
 
 </dd></dl>
@@ -593,13 +704,46 @@ which will need to be corrected.</p>
 <dt id="src_GUI.hydro_GUI_2.HEC_RAS2D.load_hec_2d_gui">
 <code class="descname">load_hec_2d_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS2D.load_hec_2d_gui" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calls the function which load hecras 2d and save the names of file in the project file.
-It is similar to the function to load_rubar2D.</p>
+It is similar to the function to load_rubar2D. It open a second thread to avoid freezing the GUI.</p>
+<p>When this function starts, it also starts a timer. Every three seconds, the timer run the function send_data()
+which is the class SubHydroW(). This function checks if the thread is finished and, it is finished, manage
+figure and errors.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.hydro_GUI_2.HabbyHdf5">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">HabbyHdf5</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<p>This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
+it is there possible to just add a along hdf5 file to the current project without having to pass to the original
+hydrological files.</p>
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.HabbyHdf5.drop_hydro">
+<code class="descname">drop_hydro</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.drop_hydro" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.HabbyHdf5.get_new_hydro_hdf5">
+<code class="descname">get_new_hydro_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.get_new_hydro_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a function which allows the user to select an hdf5 file containing the hydrological
+data from a previous project and add it to the current project. It modifies the xml project file and test
+that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
+created by HABBY in the method save_hdf5 of the class SubHydroW.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.HabbyHdf5.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in the initialization by __init__()</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.HEC_RAS2D.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS2D.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>PyQtsignal to show the figures.</p>
+<dt id="src_GUI.hydro_GUI_2.HabbyHdf5.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.send_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQt signal to send the log.</p>
 </dd></dl>
 
 </dd></dl>
@@ -639,15 +783,6 @@ there are models for which no text files have been prepared. The text file shoul
 <p>The second button allows the user to load an hdf5 file containing hydrological data from another project.
 As long as the hdf5 is in the right format, it does not matter from which hydrological model it was loaded from
 or even if this hydrological model is supported by HABBY.</p>
-<dl class="method">
-<dt id="src_GUI.hydro_GUI_2.Hydro2W.get_new_hydro_hdf5">
-<code class="descname">get_new_hydro_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W.get_new_hydro_hdf5" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a function which allows the user to select an hdf5 file containing the hydrological
-data from a previous project and add it to the current project. It modifies the xml project file and test
-that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
-created by HABBY in the method save_hdf5 of the class SubHydroW.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.Hydro2W.give_info_model">
 <code class="descname">give_info_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Hydro2W.give_info_model" title="Permalink to this definition">¶</a></dt>
@@ -712,12 +847,6 @@ load_manning_text of the class SubHydroW for more information)</p>
 <dd><p>The function is used to load the mascaret data, calling the function contained in the script mascaret.py</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.Mascaret.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQtsignal to show the figure.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -755,8 +884,9 @@ Data in River2D is given on the nodes as in HABBY.</p>
 <dt id="src_GUI.hydro_GUI_2.River2D.add_file_river2d">
 <code class="descname">add_file_river2d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.add_file_river2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to add one file to the list of file to be loaded.
-It calls show_dialog, prepare some data for it and update the QWidgetList with
+It let the user select one or more than one file, prepare some data for it and update the QWidgetList with
 the name of the file containted in the variable self.namefile.</p>
+<p>We can not call show_dialog() direclty here as the user can select more than one file</p>
 </dd></dl>
 
 <dl class="method">
@@ -775,7 +905,7 @@ add_all_file.</p>
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.River2D.load_river2d_gui">
 <code class="descname">load_river2d_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.load_river2d_gui" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is used to load the river 2d data.</p>
+<dd><p>This function is used to load the river 2d data. It use a second thread to avoid freezing the GUI</p>
 </dd></dl>
 
 <dl class="method">
@@ -787,13 +917,12 @@ add_all_file.</p>
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.River2D.remove_file">
 <code class="descname">remove_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.remove_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is small function to remove a .cdg file from the list of files to be loaded and from the QlistWidget.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.River2D.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.River2D.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQtsignal to show the figure.</p>
+<dd><p>This is small function to remove one or more .cdg file from the list of files to be loaded and from
+the QlistWidget.</p>
+<p><strong>Technical Comments</strong></p>
+<p>The function selectedIndexes does not return an int but an object called QModelIndex. We should start removing
+object from the end of the list to avoid problem. However, it is not possible to sort QModelIndex. Hence,
+It is necessary to use the row() function to get the index as int.</p>
 </dd></dl>
 
 </dd></dl>
@@ -819,12 +948,6 @@ it distribute the velocity along the profiles by calling self.distribute_velocit
 by calling the method self.grid_and_interpo.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.Rubar1D.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar1D.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQtsignal to show the figures.</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -846,11 +969,11 @@ creation as we look here as the data created in 2D by RUBAR.</p>
 <code class="descname">load_rubar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar2D.load_rubar" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to execture the loading and saving the the rubar file using rubar.py. It is similar to the
 load_hec_ras_gui() function. Obviously, it calls rubar and not hec_ras this time. A small difference is that
-the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it will be
+the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it is
 necessary to cut the grid for each time step as a function of the wetted area and maybe to separate the
-grid by reaches. This have not be done yet.</p>
-<p>Another problem is that the data of Rubar2D is given on the cells of the grid and not the nodes.
-This will need to be corrected as data in HABBY is centered on the node.</p>
+grid by reaches.  Another problem is that the data of Rubar2D is given on the cells of the grid and not the
+nodes. So we use linear interpolation to correct for this.</p>
+<p>A second thread is used to avoid &#8220;freezing&#8221; the GUI.</p>
 </dd></dl>
 
 <dl class="method">
@@ -861,12 +984,6 @@ one file with the geometry data and one file with the simulation results. If the
 function looks if a file with the same name but with the extension of the other file type exists in the
 selected folder. This could be done for all hydrological models, but the function is harder
 to write when more than one extension is possible, so it has not been done yet.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.Rubar2D.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar2D.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQtsignal to show the figure.</p>
 </dd></dl>
 
 </dd></dl>
@@ -883,6 +1000,15 @@ similar functions.</p>
 <p>In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the widget for the
 hydrological Tab and one class by hydrological model to really load the model. The latter classes have various
 methods in common, so they inherit from SubHydroW, this class.</p>
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.dis_enable_nb_profile">
+<code class="descname">dis_enable_nb_profile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.dis_enable_nb_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function enable and disable the QLineEdit where the user gives the number of additional profile needed to
+create the gird and the related QLabel. If the user choose the interpolation by bloc, the QLineEdit will be
+disable. If it chooses linear or nearest neighbour interpolation, it will be enabled. Careful, this function
+only works with 1D and 1.5D model.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.distribute_velocity">
 <code class="descname">distribute_velocity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.distribute_velocity" title="Permalink to this definition">¶</a></dt>
@@ -902,16 +1028,46 @@ created by the function load_manning_text.</p>
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.find_path_im">
 <code class="descname">find_path_im</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.find_path_im" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py. By default,
-path_im is in a folder calls &#8220;Figure_Habby&#8221;.</p>
+path_im is in the project folder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.gethdf5_name_gui">
+<code class="descname">gethdf5_name_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.gethdf5_name_gui" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function get the name of the hdf5 file for the hydrological and write down in the QLineEdit on the GUI.
+It is possible to have more than one hdf5 file for a model type. For example, we could have created two hdf5
+based on hec-ras output. The default here is to write the last model loaded. It is the same default behaviour
+than for the function was_model_loaded_before(). To keep the coherence between the filename and hdf5 name,
+a change in this behaviour should be reflected in both function.</p>
+<p>This function calls the function get_hdf5_name in the load_hdf5.py file</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.grid_and_interpo">
 <code class="descname">grid_and_interpo</code><span class="sig-paren">(</span><em>cb_im</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.grid_and_interpo" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function forms the link between GUI and the various grid and interpolation functions. Is called by
-the &#8220;loading&#8217; function of hec-ras 1D, Mascaret and Rubar BE.
-:param cb_im: A boolean if true, the figures are created and shown.</p>
-<p><em>Technical comment to be added</em></p>
+the &#8220;loading&#8221; function of hec-ras 1D, Mascaret and Rubar BE.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cb_im</strong> &#8211; A boolean if true, the figures are created and shown.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments</strong></p>
+<p>Here are the list of the interpolatin choice:</p>
+<ul class="simple">
+<li>0 Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.</li>
+<li>1 Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation</li>
+<li>2 Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation</li>
+<li><dl class="first docutils">
+<dt>3 Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step</dt>
+<dd>and use the cut_2d_grid to get a grid with only the wet profile for all time step</dd>
+</dl>
+</li>
+</ul>
+<p>I&#8217;m not sure why there is a parameter to this method. Can we use self.cb.isckeched. To be checked.</p>
 </dd></dl>
 
 <dl class="method">
@@ -955,8 +1111,8 @@ is the data which is common to all model and which can always be loaded from a h
 HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
 created hdf5:</p>
 <ul class="simple">
-<li>Name of the file: name_projet  +  ’_’ +  name model + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.</li>
-<li>Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)</li>
+<li>Name of the file: self.name_hdf5 + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.</li>
+<li>Position of the file: in the project folder</li>
 <li>Format of the hdf5 file:<ul>
 <li>Dats_gen:  number of time step and number of reach</li>
 <li>Data_1D:  xhzv_data_all (given profile by profile)</li>
@@ -999,6 +1155,14 @@ instead of remplacing the old name by the new name.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.send_data">
+<code class="descname">send_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is call regularly by the methods which have a second thread (so moslty the function
+to load the hydrological data). To call this functin regularly, the variable self.timer of QTimer type is used.</p>
+<p>This function just wait while the thread is alive. When it has terminated, it creates the figure and the error messages.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.send_err_log">
 <code class="descname">send_err_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_err_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function sends the errors and the warnings to the logs.
@@ -1016,7 +1180,8 @@ The stdout was redirected to self.mystdout.</p>
 <code class="descname">show_dialog</code><span class="sig-paren">(</span><em>i=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.show_dialog" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
 a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
-is then used to loaded the file in other function, which are different for each children class.</p>
+is then used to loaded the file in other function, which are different for each children class. Based on the
+name of the chosen file, a name is proposed for the hdf5 file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1025,6 +1190,12 @@ is then used to loaded the file in other function, which are different for each 
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.show_fig" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PyQtsignal to show the figure.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1051,7 +1222,8 @@ hydrological model have been loaded before. If yes, the name of the data is writ
 Widget related to the hydrological model. Now, there are often more than one data loaded. This method allows
 choosing what should be written. There are two different case to be separated: a) We have loaded two different
 models (like two rivers modeled by HEC-RAS) b) One model type needs two data file (like HEC-RAS would need a
-geometry and output data). For the case a), the default is to write only the first model loaded. If we wish to
+geometry and output data). For the case a), the default is to write only the last model loaded. If this
+default behaviour is changed, the behaviour of gethdf5_name_GUI should also be changed. If we wish to
 write all data, the switch “many_file” should be True. This switch is also useful for the river2D model, because
 this model create one output file per time step. For the case b), the argument “i”(which is an int) allows us to
 choose which data type should be shown. “i” is in the order of the self.attributexml variable. The definition of
@@ -1067,10 +1239,25 @@ this order is given in the definition of the class of each hydrological model.</
 <p>This is the widget used to load the substrate. It is practical to re-use some of the method from SubHydroW.
 So this class inherit from SubHydroW.</p>
 <dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.enabledisable_const">
+<code class="descname">enabledisable_const</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.enabledisable_const" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function enable and disable the loading of shapefile and text file in the substrate. Notably
+the user can choose to have a constant substrate everywhere. In this case, the choice to load the file is
+disabled.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubstrateW.get_att_name">
 <code class="descname">get_att_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.get_att_name" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to get the attribute name of the shapefile which contains the substrate data. it is given by the user
 in the GUI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.get_attribute_from_shp">
+<code class="descname">get_attribute_from_shp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.get_attribute_from_shp" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function opens a shapefile and obtain the attribute. It then update the GUI
+to reflect this and also update the label as needed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1086,6 +1273,9 @@ in the GUI.</p>
 file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line).
 Generally this function has some similarities to the functions used to load the hydrological data and it re-uses
 some of the methods developed for them.</p>
+<p>It is possible to have a constant substrate if the self.constsub variable is on (it is a QRadioButton). In this
+case, an hdf5 is created with only the default value marked. This form of hdf5 file is then managed by the merge
+function.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1097,9 +1287,17 @@ the function load_sub_gui()</p>
 
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub">
-<code class="descname">save_hdf5_sub</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub" title="Permalink to this definition">¶</a></dt>
+<code class="descname">save_hdf5_sub</code><span class="sig-paren">(</span><em>constsub=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
 xml project file. The format of the hdf5 file is not finalzed yet so it is not documented.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constsub</strong> &#8211; If constsub is True, the hdf5 created will only account for a constant value</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -1109,21 +1307,10 @@ xml project file. The format of the hdf5 file is not finalzed yet so it is not d
 data on the same grid. Hence, the hydrological grid will need to be cut to the form of the substrate grid.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.SubstrateW.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQtsignal to show the figures.</p>
-</dd></dl>
-
 <dl class="method">
-<dt id="src_GUI.hydro_GUI_2.SubstrateW.update_hydro_hdf5_name">
-<code class="descname">update_hydro_hdf5_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.update_hydro_hdf5_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is a short function used to read all the hydrological data contained in an hdf5 files and available in
-one project. When these files are read, they are added to the drop-down menu;
-This should be a function because an update to this list can be triggered by the loading of a new hydrological
-data. The class SubstrateW() noticed this through the signal drop_hydro send by the hydrological class.
-The signal drop_hydro is connected to this function in the class CentralW in MainWindows.py. Indeed, it is not
-possible to do it in SubstrateW().</p>
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.update_sub_hdf5_name">
+<code class="descname">update_sub_hdf5_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.update_sub_hdf5_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function update the QComBox on substrate data which is on the stubstrate tab.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1145,12 +1332,6 @@ from the class SubHydroW(). It is very similar to RUBAR2D class, but data from T
 <dt id="src_GUI.hydro_GUI_2.TELEMAC.load_telemac_gui">
 <code class="descname">load_telemac_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.TELEMAC.load_telemac_gui" title="Permalink to this definition">¶</a></dt>
 <dd><p>The function which call the function which load telemac and save the name of files in the project file</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.TELEMAC.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.TELEMAC.show_fig" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQtsignal to show the figure.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1438,6 +1619,12 @@ can write the needed data.</p>
 the save function there, but anyway). So the save button just send a signal to MainWindows
 here, which save the data.</p>
 </div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.EstimhabW.open_estimhab_hdf5">
+<code class="descname">open_estimhab_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.open_estimhab_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function opens the hdf5 data created by estimhab</p>
 </dd></dl>
 
 <dl class="method">
@@ -2127,6 +2314,34 @@ manage_grid_8.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.hec_ras2D.load_hec_ras_2d_and_cut_grid">
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">load_hec_ras_2d_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>filename</em>, <em>path</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.load_hec_ras_2d_and_cut_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
+pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
+get only the wetted area. This was done before in the HEC_RAS2D Class in hydro_gui_2.py, but it was necessary to
+create a separate function to called this task in a second thread to avoid freezing the GUI.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the base name of the created hdf5 (string)</li>
+<li><strong>filename</strong> &#8211; the name of the file containg the results of HEC-RAS in 2D. (string)</li>
+<li><strong>path</strong> &#8211; the path where the file is (string)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>model_type</strong> &#8211; the name of the model such as Rubar, hec-ras, etc. (string)</li>
+<li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
+<li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
+<li><strong>q</strong> &#8211; used by the second thread to get the error back to the GUI at the end of the thread</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.hec_ras2D.main">
 <code class="descclassname">src.hec_ras2D.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to test this module independantly of HABBY.</p>
@@ -2615,6 +2830,33 @@ and the velocity (one data by column, row are node)</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.river2d.load_river2d_and_cut_grid">
+<code class="descclassname">src.river2d.</code><code class="descname">load_river2d_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>namefiles</em>, <em>paths</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.load_river2d_and_cut_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
+River2D() in hydro_GUI_2. This function was added as it was practical to have a second thread to avoid freezing
+the GUI.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the base name of the created hdf5 (string)</li>
+<li><strong>namefiles</strong> &#8211; the names of all the cdg file (list of string)</li>
+<li><strong>paths</strong> &#8211; the path to the files (list of string).</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>model_type</strong> &#8211; the name of the model such as Rubar, hec-ras, etc. (string)</li>
+<li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
+<li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
+<li><strong>q</strong> &#8211; used to send the error back from the second thread (can be used to send other variable too)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.river2d.load_river2d_cdg">
 <code class="descclassname">src.river2d.</code><code class="descname">load_river2d_cdg</code><span class="sig-paren">(</span><em>file_cdg</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.load_river2d_cdg" title="Permalink to this definition">¶</a></dt>
 <dd><p>The file to load the output data from River2D. Careful the input data of River2D has the same ending and nearly
@@ -2630,7 +2872,7 @@ Hence, this function read only one timeste. HABBY read all time step by calling 
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the velcoity and height data, the coordinate and the connectivity table.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the velocity and height data, the coordinate and the connectivity table.</p>
 </td>
 </tr>
 </tbody>
@@ -2895,7 +3137,7 @@ and v the velocity</p>
 <dl class="function">
 <dt id="src.rubar.load_rubar2d">
 <code class="descclassname">src.rubar.</code><code class="descname">load_rubar2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>tpsfile</em>, <em>pathgeo</em>, <em>pathtps</em>, <em>path_im</em>, <em>save_fig</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar2d" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is the function used to load the RUBAR data in 2D</p>
+<dd><p>This is the function used to load the RUBAR data in 2D.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -2912,6 +3154,35 @@ and v the velocity</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">velocity and height at the center of the cells, the coordinate of the point of the cells,
 the coordinates of the center of the cells and the connectivity table.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.rubar.load_rubar2d_and_create_grid">
+<code class="descclassname">src.rubar.</code><code class="descname">load_rubar2d_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>geofile</em>, <em>tpsfile</em>, <em>pathgeo</em>, <em>pathtps</em>, <em>path_im</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar2d_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
+interpolation and to save the whole in an hdf5 format</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the base name of the created hdf5 (string)</li>
+<li><strong>geofile</strong> &#8211; the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)</li>
+<li><strong>tpsfile</strong> &#8211; the name of the .tps file (string)</li>
+<li><strong>pathgeo</strong> &#8211; path to the geo file (string)</li>
+<li><strong>pathtps</strong> &#8211; path to the tps file which contains the outputs (string)</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure (string)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>model_type</strong> &#8211; the name of the model such as Rubar, hec-ras, etc. (string)</li>
+<li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
+<li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
+<li><strong>q</strong> &#8211; used by the second thread to get the error back to the GUI at the end of the thread</li>
+</ul>
 </td>
 </tr>
 </tbody>
@@ -3090,6 +3361,33 @@ Adapted from the original script &#8216;parserSELAFIN.py&#8217; from the open Te
 </dd></dl>
 
 <dl class="function">
+<dt id="src.selafin_habby1.load_telemac_and_cut_grid">
+<code class="descclassname">src.selafin_habby1.</code><code class="descname">load_telemac_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>namefilet</em>, <em>pathfilet</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.load_telemac_and_cut_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
+was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
+is useful to avoid freezing the GUI.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the base name of the created hdf5 (string)</li>
+<li><strong>namefilet</strong> &#8211; the name of the selafin file (string)</li>
+<li><strong>pathfilet</strong> &#8211; the path to this file (string)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>model_type</strong> &#8211; the name of the model such as Rubar, hec-ras, etc. (string)</li>
+<li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
+<li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
+<li><strong>q</strong> &#8211; used by the second thread to get the error back to the GUI at the end of the thread</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.selafin_habby1.plot_vel_h">
 <code class="descclassname">src.selafin_habby1.</code><code class="descname">plot_vel_h</code><span class="sig-paren">(</span><em>coord_p2, h, v, path_im, timestep=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.plot_vel_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>a function to plot the velocity and height which are the output from TELEMAC. It is used to debug.
@@ -3139,16 +3437,47 @@ from one hydraulic model.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="src.load_hdf5.load_hdf5_hyd">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_hyd</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_hyd" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY.</p>
+<dt id="src.load_hdf5.get_hdf5_name">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">get_hdf5_name</code><span class="sig-paren">(</span><em>model_name</em>, <em>name_prj</em>, <em>path_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.get_hdf5_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
+model_name. If there is more than one hdf5 file, it choose the last one. Tha path is the path from the
+project folder. Hencem, it is not the absolute path.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hdf5_name_hyd</strong> &#8211; path and filename of the hdf5 file (string)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>model_name</strong> &#8211; the name of the hydrological model as written in the attribute of the xml project file</li>
+<li><strong>name_prj</strong> &#8211; the name of the project</li>
+<li><strong>path_prj</strong> &#8211; the path to the project</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the name of the hdf5 file</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.load_hdf5.load_hdf5_hyd">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_hyd</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_hyd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5_name_sub
+is an absolute path, the path_prj is not used. If it is a relative path, the path is composed of the path to the
+project (path_prj) composed with hdf5_name_sub.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hdf5_name_hyd</strong> &#8211; path and filename of the hdf5 file (string)</li>
+<li><strong>path_prj</strong> &#8211; the path to the project</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3156,13 +3485,19 @@ from one hydraulic model.</p>
 
 <dl class="function">
 <dt id="src.load_hdf5.load_hdf5_sub">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_sub</code><span class="sig-paren">(</span><em>hdf5_name_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_sub" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load the substrate data contained in the hdf5 file.</p>
+<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_sub</code><span class="sig-paren">(</span><em>hdf5_name_sub</em>, <em>path_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the substrate data contained in the hdf5 file. It also manage
+the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
+the path is composed of the path to the project (path_prj) composed with hdf5_name_sub.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hdf5_name_sub</strong> &#8211; path and file name to the hdf5 file (string)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hdf5_name_sub</strong> &#8211; path and file name to the hdf5 file (string)</li>
+<li><strong>path_prj</strong> &#8211; the path to the project</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -3174,6 +3509,65 @@ from one hydraulic model.</p>
 <dd><p>This is a function which open an hdf5 file and check that it exists. it does not load the data. It only opens the
 files.
 :param hdf5_name: the path and name of the hdf5 file (string)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.load_hdf5.save_hdf5">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function save the hydrological data in the hdf5 format.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the base name for the hdf5 file to be created (string)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>model_type</strong> &#8211; the name of the model such as Rubar, hec-ras, etc. (string)</li>
+<li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
+<li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
+<li><strong>ikle_all_t</strong> &#8211; the connectivity table for all discharge, for all reaches and all time steps</li>
+<li><strong>point_all_t</strong> &#8211; the point forming the grid, for all reaches and all time steps</li>
+<li><strong>point_c_all_t</strong> &#8211; the point at the center of the cells, for all reaches and all time steps</li>
+<li><strong>inter_vel_all_t</strong> &#8211; the velocity for all grid point, for all reaches and all time steps (by node)</li>
+<li><strong>inter_h_all_t</strong> &#8211; the height for all grid point, for all reaches and all time steps (by node)</li>
+<li><strong>xhzv_data</strong> &#8211; data linked with 1D model (only used when a 1D model was transformed to a 2D)</li>
+<li><strong>coord_pro</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (profile data)</li>
+<li><strong>vh_pro</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (velcoity and height data)</li>
+<li><strong>nb_pro_reach</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments</strong></p>
+<p>This function could look better inside the class SubHydroW where it was before. However, it was not possible
+to use it on the command line and it was not pratical for having two thread (it is impossible to have a method
+as a second thread)</p>
+<p>This function creates an hdf5 file which contains the hydrological data. First it creates an empty hdf5.
+Then it fill the hdf5 with data. For 1D model, it fill the data in 1D (the original data), then the 1.5D data
+created by dist_vitess2.py and finally the 2D data. For model in 2D it only saved 2D data. Hence, the 2D data
+is the data which is common to all model and which can always be loaded from a hydrological hdf5 created by
+HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
+created hdf5:</p>
+<ul class="simple">
+<li>Name of the file: name_hdf5  + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.</li>
+<li>Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)</li>
+<li>Format of the hdf5 file:<ul>
+<li>Dats_gen:  number of time step and number of reach</li>
+<li>Data_1D:  xhzv_data_all (given profile by profile)</li>
+<li>Data_15D :  vh_pro, coord_pro (given profile by profile in a dict) and nb_pro_reach.</li>
+<li>Data_2D : For each time step, for each reach: ikle, point, point_c, inter_h, inter_vel</li>
+</ul>
+</li>
+</ul>
+<p>If a list has elements with a changing number of variables, it is necessary to create a dictionary to save
+this list in hdf5. For example, a dictionary will be needed to save the following list: [[1,2,3,4], [1,2,3]].
+This is used for example, to save data by profile as we can have profile with more or less points. We also note
+in the hdf5 attribute some important info such as the project name, path to the project, hdf5 version.
+This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
+hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.</p>
+<p>Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.</p>
 </dd></dl>
 
 <div class="section" id="form-of-the-hdf5-files">
@@ -3529,13 +3923,39 @@ This function works for one time steps and for one reach</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>ikle</strong> &#8211; the connectivity table of the 2D grid</li>
-<li><strong>point_all</strong> &#8211; the coordinate of the point</li>
+<li><strong>point_all</strong> &#8211; the coordinate of the points</li>
 <li><strong>water_height</strong> &#8211; the water height data given on the nodes</li>
 <li><strong>velocity</strong> &#8211; the velcoity given on the nodes</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.manage_grid_8.cut_2d_grid_all_reach">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">cut_2d_grid_all_reach</code><span class="sig-paren">(</span><em>ikle_all</em>, <em>point_all</em>, <em>inter_height_all</em>, <em>inter_vel_all</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.cut_2d_grid_all_reach" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function si just use to call cut_2d-grid for all reach. So that if we have a river with more than reach, we
+do not need to add a for loops to call for all reach. Sometime it can save place. This can be only use for one
+time step.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle_all</strong> &#8211; the connectivity table of the 2D grid for all reach</li>
+<li><strong>point_all</strong> &#8211; the coordinate of the points for all reach</li>
+<li><strong>inter_height_all</strong> &#8211; the water height data given on the nodes for all reach</li>
+<li><strong>inter_vel_all</strong> &#8211; the velcoity given on the nodes for all reach</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the update connectivity table, the coodinate of the point, the height of the water and the
+velocity on the updated grid fro all reaches</p>
 </td>
 </tr>
 </tbody>
@@ -3848,11 +4268,9 @@ speed up the interpolation of mulitple time step. (optional, need vtx)</li>
 </tbody>
 </table>
 <p><strong>Technical Comment</strong></p>
-<dl class="docutils">
-<dt>This function can be very slow when a lot of time step needs to be interpolated if done directlty with</dt>
-<dd>scipy.interpolate. It was optimized for this case:</dd>
-</dl>
-<p><a class="reference external" href="http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple">http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple</a>-
+<p>This function can be very slow when a lot of time step needs to be interpolated if done directlty with
+scipy.interpolate. It was optimized for this case:
+<a class="reference external" href="http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple">http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple</a>-
 interpolations-between-two-irregular-grids</p>
 </dd></dl>
 
@@ -4140,7 +4558,8 @@ This function aims at reproducing the results from the c++ code. Hence, no use o
 <dl class="method">
 <dt id="src.stathab_c.Stathab.load_stathab_from_hdf5">
 <code class="descname">load_stathab_from_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.load_stathab_from_hdf5" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load the file from an hdf5 whose name is given in the xml project file</p>
+<dd><p>A function to load the file from an hdf5 whose name is given in the xml project file. If the name of the
+file is a relative path, use the path_prj to create an absolute path.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4189,7 +4608,7 @@ ln(h0 = a1 + a2 ln(Q)</p>
 <dl class="method">
 <dt id="src.stathab_c.Stathab.savefig_stahab">
 <code class="descname">savefig_stahab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.savefig_stahab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to save the results in text and the figure</p>
+<dd><p>A function to save the results in text and the figure.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4344,6 +4763,28 @@ It plots one time step at the time.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.substrate.get_all_attribute">
+<code class="descclassname">src.substrate.</code><code class="descname">get_all_attribute</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.get_all_attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open a shapefile and get the list of all the attibute which is contains in it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; the name of the shpae file</li>
+<li><strong>path</strong> &#8211; the path to this shapefile</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list with the name and information of all attribute. The form of each element of the list
+is [name(str), type (F,N), int, int]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.substrate.grid_update_sub2">
 <code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the updated grid with the substrate. More complicated than grid_update3 because it tries to makes
@@ -4477,9 +4918,10 @@ and an array with substrate type and (x,y,sub) of the orginal data</p>
 
 <dl class="function">
 <dt id="src.substrate.merge_grid_hydro_sub">
-<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>default_data</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>default_data</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>After the data for the substrate and the hydrological data are loaded, they are still in different grids.
-This functions will merge both grid together. This is done for all time step and all reaches</p>
+This functions will merge both grid together. This is done for all time step and all reaches. If a
+constnat substrate is there, the hydrological hdf5 is just copied.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -4488,10 +4930,32 @@ This functions will merge both grid together. This is done for all time step and
 <li><strong>hdf5_name_hyd</strong> &#8211; the path and name of the hdf5 file with the hydrological data</li>
 <li><strong>hdf5_name_sub</strong> &#8211; the path and the name of the hdf5 with the substrate data</li>
 <li><strong>default_data</strong> &#8211; The substrate data given in the region of the hydrological grid where no substrate is given</li>
+<li><strong>path_prj</strong> &#8211; the path to the project</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.open_shp">
+<code class="descclassname">src.substrate.</code><code class="descname">open_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.open_shp" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open a ArcGIS shpaefile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; the name of the shapefile</li>
+<li><strong>path</strong> &#8211; the path to this shapefile</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a shapefile object as define in the model</p>
 </td>
 </tr>
 </tbody>

@@ -41,7 +41,7 @@
 
 
 \title{HABBY Documentation}
-\date{Jan 09, 2017}
+\date{Feb 07, 2017}
 \release{1}
 \author{Diane von Gunten, Yann Le Coarer and Fabrice Zaoui}
 \newcommand{\sphinxlogo}{}
@@ -59,7 +59,7 @@ HABBY is a program to estimate the habitat of fish using various hydrological mo
 
 
 \chapter{How to execute HABBY}
-\label{\detokenize{index:how-to-execute-habby}}\label{\detokenize{index:welcome-to-habby-s-documentation}}\begin{description}
+\label{\detokenize{index:welcome-to-habby-s-documentation}}\label{\detokenize{index:how-to-execute-habby}}\begin{description}
 \item[{To execute HABBY:}] \leavevmode\begin{itemize}
 \item {} 
 Go to folder which contains habby.py using the command line.
@@ -149,6 +149,14 @@ here: a) we should show the end of the scroll area. b) The size of the area shou
 changing even if a lot of text appears. Hence, the setSizePolicy should be fixed.
 
 The write\_log() and write\_log\_file() method are explained in the section about the log.
+\index{add\_all\_tab() (src\_GUI.Main\_windows\_1.CentralW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.add_all_tab}}\pysiglinewithargsret{\sphinxbfcode{add\_all\_tab}}{}{}
+This function add the different tab to habby (used by init and by save\_project)
+
+\end{fulllineitems}
+
 \index{connect\_signal\_log() (src\_GUI.Main\_windows\_1.CentralW method)}
 
 \begin{fulllineitems}
@@ -170,7 +178,7 @@ A function to initilize an instance of CentralW. Called by \_\_init\_\_\_().
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.optfig}}\pysiglinewithargsret{\sphinxbfcode{optfig}}{}{}
 A small function which open the output tab. It contains the different options for the figures.
-Output should be the 6th tab, otherwise it will not work.
+Output should be the 5th tab, otherwise it will not work.
 
 \end{fulllineitems}
 
@@ -195,6 +203,25 @@ A small function to show the last figure
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.showfig2}}\pysiglinewithargsret{\sphinxbfcode{showfig2}}{}{}
 A function to see all saved figures without possibility to zoom
+
+\end{fulllineitems}
+
+\index{update\_hydro\_hdf5\_name() (src\_GUI.Main\_windows\_1.CentralW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.update_hydro_hdf5_name}}\pysiglinewithargsret{\sphinxbfcode{update\_hydro\_hdf5\_name}}{}{}
+This is a short function used to read all the hydrological data (contained in an hdf5 files) available in
+one project.
+
+When these files are read, they are added to the drop-down menu on the hydrological tab an on the substrate tab.
+On the substrate Tab, if we have more than one hdf5 file, the first item is blank to insure that the user
+actively choose the hdf5 to reduce the risk of error (Otherwise the user might merge the substrate and
+an hydrological hdf5 without seeing that he needs to select the right hydrological hdf5).
+
+This tasks should be in a function because an update to this list can be triggered by the loading of a new
+hydrological data. The class Hydro2W() and substrateW() noticed this through the signal drop\_hydro
+send by the hydrological class. The signal drop\_hydro is connected to this function is in the class
+CentralW in MainWindows.py.
 
 \end{fulllineitems}
 
@@ -258,6 +285,44 @@ A function to write to the .log text. Called by write\_log.
 
 \end{fulllineitems}
 
+\index{CreateNewProject (class in src\_GUI.Main\_windows\_1)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CreateNewProject}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{CreateNewProject}}{\emph{lang}, \emph{path\_trans}, \emph{file\_langue}}{}
+A class which is used to help the user to create a new project
+\index{init\_iu() (src\_GUI.Main\_windows\_1.CreateNewProject method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CreateNewProject.init_iu}}\pysiglinewithargsret{\sphinxbfcode{init\_iu}}{}{}
+\end{fulllineitems}
+
+\index{save\_project (src\_GUI.Main\_windows\_1.CreateNewProject attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CreateNewProject.save_project}}\pysigline{\sphinxbfcode{save\_project}}
+a signal to save the project
+
+\end{fulllineitems}
+
+\index{send\_log (src\_GUI.Main\_windows\_1.CreateNewProject attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CreateNewProject.send_log}}\pysigline{\sphinxbfcode{send\_log}}
+A PyQt signal used to write the log
+
+\end{fulllineitems}
+
+\index{setfolder() (src\_GUI.Main\_windows\_1.CreateNewProject method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CreateNewProject.setfolder}}\pysiglinewithargsret{\sphinxbfcode{setfolder}}{}{}
+This function is used by the user to select the folder where the xml project file will be located.
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
 \index{EmptyTab (class in src\_GUI.Main\_windows\_1)}
 
 \begin{fulllineitems}
@@ -315,6 +380,15 @@ Two signal are connected, one to save the project (i.e to update the xml project
 ESTIMHAB calculation.
 
 We show the created widget.
+\index{change\_name\_project() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.change_name_project}}\pysiglinewithargsret{\sphinxbfcode{change\_name\_project}}{}{}
+This function is used to change the name of the current project. To do this, it copies the xml
+project with a new name and copy the file for the log with a new name
+
+\end{fulllineitems}
+
 \index{clear\_log() (src\_GUI.Main\_windows\_1.MainWindows method)}
 
 \begin{fulllineitems}
@@ -333,6 +407,14 @@ Close the program better than before (where it used to crash about 1 times in te
 \sphinxstyleliteralstrong{event} -- managed by the operating system.
 
 \end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{close\_project() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.close_project}}\pysiglinewithargsret{\sphinxbfcode{close\_project}}{}{}
+This function close the current project wihout opening a new project
 
 \end{fulllineitems}
 
@@ -365,6 +447,14 @@ Save or not save the log
 
 \end{fulllineitems}
 
+\index{empty\_project() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.empty_project}}\pysiglinewithargsret{\sphinxbfcode{empty\_project}}{}{}
+This function open a new empty project
+
+\end{fulllineitems}
+
 \index{erase\_pict() (src\_GUI.Main\_windows\_1.MainWindows method)}
 
 \begin{fulllineitems}
@@ -391,6 +481,39 @@ Used by \_\_init\_\_() to create an instance of the class MainWindows
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.my_menu_bar}}\pysiglinewithargsret{\sphinxbfcode{my\_menu\_bar}}{}{}
 This function creates the menu bar of HABBY.
+
+\end{fulllineitems}
+
+\index{new\_project() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.new_project}}\pysiglinewithargsret{\sphinxbfcode{new\_project}}{}{}
+This function open an empty project and guide the user to create a new project, using a new Windows
+of the class CreateNewProject
+
+\end{fulllineitems}
+
+\index{open\_project() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.open_project}}\pysiglinewithargsret{\sphinxbfcode{open\_project}}{}{}
+This function is used to open an existing habby project by selecting an xml project file. Called by
+my\_menu\_bar()
+
+\end{fulllineitems}
+
+\index{open\_recent\_project() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.open_recent_project}}\pysiglinewithargsret{\sphinxbfcode{open\_recent\_project}}{\emph{j}}{}
+This function open a recent project of the user. The recent project are listed in the menu and can be
+selected by the user. When the user select a recent project to open, this function is called. Then, the name of
+the recent project is selected and the method save\_project() is called.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{j} -- This indicates which project should be open, based on the order given in the menu
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -437,6 +560,10 @@ is saved. If path\_im is not given, HABBY automatically create a folder called f
 user creates a new project. The user can however change this path if he wants. The next step is to communicate
 to all the children widget than the name and path of the project have changed.
 
+This function also changes the title of the Windows to reflect the project name and it adds the saved
+project to the list of recent project if it is not part of the list already. Because of this the menu must
+updated.
+
 Finally the log is written (see “log and HABBY in the command line).
 
 \end{fulllineitems}
@@ -457,6 +584,15 @@ specialty of hdf5 is that is cannot use Unicode. Hence all string have to be pas
 function. The size of each data should also be known.
 
 Finally, we save the name and path of the estimhab file in the xml project file.
+
+\end{fulllineitems}
+
+\index{save\_project\_if\_new\_project() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.save_project_if_new_project}}\pysiglinewithargsret{\sphinxbfcode{save\_project\_if\_new\_project}}{}{}
+This function is used to save a project when the project is created from the other Windows CreateNewProject. It
+can not be in the new\_project function as the new\_project function call CreateNewProject().
 
 \end{fulllineitems}
 
@@ -578,9 +714,17 @@ This function add the different figure name to the drop-down list.
 \index{WelcomeW (class in src\_GUI.Main\_windows\_1)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW}}\pysigline{\sphinxstrong{class }\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{WelcomeW}}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{WelcomeW}}{\emph{path\_prj}, \emph{name\_prj}}{}
 The class WeLcomeW()  creates the first tab of HABBY (the tab called “General”). This tab is there to create
 a new project or to change the name, path, etc. of a project.
+\index{change\_name (src\_GUI.Main\_windows\_1.WelcomeW attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW.change_name}}\pysigline{\sphinxbfcode{change\_name}}
+A signal to change the name of the project for MainWindows
+
+\end{fulllineitems}
+
 \index{init\_iu() (src\_GUI.Main\_windows\_1.WelcomeW method)}
 
 \begin{fulllineitems}
@@ -589,11 +733,35 @@ Used in the initialization of a new instance of the class WelcomeW()
 
 \end{fulllineitems}
 
+\index{new\_proj\_signal (src\_GUI.Main\_windows\_1.WelcomeW attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW.new_proj_signal}}\pysigline{\sphinxbfcode{new\_proj\_signal}}
+A PyQt signal used to open a new project
+
+\end{fulllineitems}
+
+\index{open\_example() (src\_GUI.Main\_windows\_1.WelcomeW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW.open_example}}\pysiglinewithargsret{\sphinxbfcode{open\_example}}{}{}
+This function will be used to open a project example for HABBY, but the example is not prepared yet
+
+\end{fulllineitems}
+
+\index{open\_proj (src\_GUI.Main\_windows\_1.WelcomeW attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW.open_proj}}\pysigline{\sphinxbfcode{open\_proj}}
+A signal for MainWindows to open an exisiting project
+
+\end{fulllineitems}
+
 \index{save\_signal (src\_GUI.Main\_windows\_1.WelcomeW attribute)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW.save_signal}}\pysigline{\sphinxbfcode{save\_signal}}
-A PyQt signal used to save the figure
+A PyQt signal used to save the project
 
 \end{fulllineitems}
 
@@ -610,22 +778,12 @@ A PyQt signal used to write the log
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.WelcomeW.setfolder}}\pysiglinewithargsret{\sphinxbfcode{setfolder}}{}{}
 This function is used by the user to select the folder where the xml project file will be located.
+This is used in the case where the project exist already. A similar function is in the class CreateNewProject()
+for the case where the project is new.
 
 \end{fulllineitems}
 
 
-\end{fulllineitems}
-
-\index{new\_project() (in module src\_GUI.Main\_windows\_1)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.new_project}}\pysiglinewithargsret{\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{new\_project}}{}{}
-\end{fulllineitems}
-
-\index{open\_project() (in module src\_GUI.Main\_windows\_1)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.open_project}}\pysiglinewithargsret{\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{open\_project}}{}{}
 \end{fulllineitems}
 
 
@@ -689,6 +847,8 @@ Hec-Ras is a 1.5D model and so HABBY create a 2D grid based on the 1.5D input. T
 type and the number of extra profile. If the interpolation type is “interpolation by block”, the number of extra
 profile will always be one. See manage\_grid.py for more information on how to create a grid.
 
+We add a QLineEdit with the proposed name for the created hdf5 file. The user can modified this name if wished so.
+
 \end{fulllineitems}
 
 \index{load\_hec\_ras\_gui() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method)}
@@ -710,14 +870,6 @@ the section on hec\_ras06.py. It then creates the grid as explained in the manag
 interpolation type wished by the user (linear, nearest neighbor or by block). It creates the hdf5
 with the loaded data. Finally, if necessary, it shows the figure by emitting a signal.
 This signal is collected in the MainWindow() class.
-
-\end{fulllineitems}
-
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HEC_RAS1D.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-PyQtsignal to show the figure.
 
 \end{fulllineitems}
 
@@ -747,15 +899,58 @@ This method is used to by \_\_init\_\_() during the initialization.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HEC_RAS2D.load_hec_2d_gui}}\pysiglinewithargsret{\sphinxbfcode{load\_hec\_2d\_gui}}{}{}
 This function calls the function which load hecras 2d and save the names of file in the project file.
-It is similar to the function to load\_rubar2D.
+It is similar to the function to load\_rubar2D. It open a second thread to avoid freezing the GUI.
+
+When this function starts, it also starts a timer. Every three seconds, the timer run the function send\_data()
+which is the class SubHydroW(). This function checks if the thread is finished and, it is finished, manage
+figure and errors.
 
 \end{fulllineitems}
 
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.HEC\_RAS2D attribute)}
+
+\end{fulllineitems}
+
+\index{HabbyHdf5 (class in src\_GUI.hydro\_GUI\_2)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HEC_RAS2D.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-PyQtsignal to show the figures.
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.hydro\_GUI\_2.}\sphinxbfcode{HabbyHdf5}}{\emph{path\_prj}, \emph{name\_prj}}{}
+Bases: \sphinxcode{PyQt5.QtWidgets.QWidget}
+
+This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
+it is there possible to just add a along hdf5 file to the current project without having to pass to the original
+hydrological files.
+\index{drop\_hydro (src\_GUI.hydro\_GUI\_2.HabbyHdf5 attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.drop_hydro}}\pysigline{\sphinxbfcode{drop\_hydro}}
+A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.
+
+\end{fulllineitems}
+
+\index{get\_new\_hydro\_hdf5() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.get_new_hydro_hdf5}}\pysiglinewithargsret{\sphinxbfcode{get\_new\_hydro\_hdf5}}{}{}
+This is a function which allows the user to select an hdf5 file containing the hydrological
+data from a previous project and add it to the current project. It modifies the xml project file and test
+that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
+created by HABBY in the method save\_hdf5 of the class SubHydroW.
+
+\end{fulllineitems}
+
+\index{init\_iu() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.init_iu}}\pysiglinewithargsret{\sphinxbfcode{init\_iu}}{}{}
+Used in the initialization by \_\_init\_\_()
+
+\end{fulllineitems}
+
+\index{send\_log (src\_GUI.hydro\_GUI\_2.HabbyHdf5 attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.send_log}}\pysigline{\sphinxbfcode{send\_log}}
+A PyQt signal to send the log.
 
 \end{fulllineitems}
 
@@ -811,17 +1006,6 @@ All other infomation which are needed.
 The second button allows the user to load an hdf5 file containing hydrological data from another project.
 As long as the hdf5 is in the right format, it does not matter from which hydrological model it was loaded from
 or even if this hydrological model is supported by HABBY.
-\index{get\_new\_hydro\_hdf5() (src\_GUI.hydro\_GUI\_2.Hydro2W method)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.Hydro2W.get_new_hydro_hdf5}}\pysiglinewithargsret{\sphinxbfcode{get\_new\_hydro\_hdf5}}{}{}
-This is a function which allows the user to select an hdf5 file containing the hydrological
-data from a previous project and add it to the current project. It modifies the xml project file and test
-that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
-created by HABBY in the method save\_hdf5 of the class SubHydroW.
-
-\end{fulllineitems}
-
 \index{give\_info\_model() (src\_GUI.hydro\_GUI\_2.Hydro2W method)}
 
 \begin{fulllineitems}
@@ -898,14 +1082,6 @@ The function is used to load the mascaret data, calling the function contained i
 
 \end{fulllineitems}
 
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.Mascaret attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.Mascaret.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-A PyQtsignal to show the figure.
-
-\end{fulllineitems}
-
 
 \end{fulllineitems}
 
@@ -960,8 +1136,10 @@ The function finds all .cdg file in one directory to add there names to the list
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.River2D.add_file_river2d}}\pysiglinewithargsret{\sphinxbfcode{add\_file\_river2d}}{}{}
 This function is used to add one file to the list of file to be loaded.
-It calls show\_dialog, prepare some data for it and update the QWidgetList with
+It let the user select one or more than one file, prepare some data for it and update the QWidgetList with
 the name of the file containted in the variable self.namefile.
+
+We can not call show\_dialog() direclty here as the user can select more than one file
 
 \end{fulllineitems}
 
@@ -986,7 +1164,7 @@ used by \_\_init\_\_ in the initialization
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.River2D.load_river2d_gui}}\pysiglinewithargsret{\sphinxbfcode{load\_river2d\_gui}}{}{}
-This function is used to load the river 2d data.
+This function is used to load the river 2d data. It use a second thread to avoid freezing the GUI
 
 \end{fulllineitems}
 
@@ -1002,15 +1180,14 @@ This function removes all files from the list of files to be loaded and from the
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.River2D.remove_file}}\pysiglinewithargsret{\sphinxbfcode{remove\_file}}{}{}
-This is small function to remove a .cdg file from the list of files to be loaded and from the QlistWidget.
+This is small function to remove one or more .cdg file from the list of files to be loaded and from
+the QlistWidget.
 
-\end{fulllineitems}
+\sphinxstylestrong{Technical Comments}
 
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.River2D attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.River2D.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-A PyQtsignal to show the figure.
+The function selectedIndexes does not return an int but an object called QModelIndex. We should start removing
+object from the end of the list to avoid problem. However, it is not possible to sort QModelIndex. Hence,
+It is necessary to use the row() function to get the index as int.
 
 \end{fulllineitems}
 
@@ -1044,14 +1221,6 @@ by calling the method self.grid\_and\_interpo.
 
 \end{fulllineitems}
 
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.Rubar1D attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.Rubar1D.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-A PyQtsignal to show the figures.
-
-\end{fulllineitems}
-
 
 \end{fulllineitems}
 
@@ -1079,12 +1248,12 @@ used by \_\_\_init\_\_() in the initialization.
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.Rubar2D.load_rubar}}\pysiglinewithargsret{\sphinxbfcode{load\_rubar}}{}{}
 A function to execture the loading and saving the the rubar file using rubar.py. It is similar to the
 load\_hec\_ras\_gui() function. Obviously, it calls rubar and not hec\_ras this time. A small difference is that
-the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it will be
+the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it is
 necessary to cut the grid for each time step as a function of the wetted area and maybe to separate the
-grid by reaches. This have not be done yet.
+grid by reaches.  Another problem is that the data of Rubar2D is given on the cells of the grid and not the
+nodes. So we use linear interpolation to correct for this.
 
-Another problem is that the data of Rubar2D is given on the cells of the grid and not the nodes.
-This will need to be corrected as data in HABBY is centered on the node.
+A second thread is used to avoid ``freezing'' the GUI.
 
 \end{fulllineitems}
 
@@ -1097,14 +1266,6 @@ one file with the geometry data and one file with the simulation results. If the
 function looks if a file with the same name but with the extension of the other file type exists in the
 selected folder. This could be done for all hydrological models, but the function is harder
 to write when more than one extension is possible, so it has not been done yet.
-
-\end{fulllineitems}
-
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.Rubar2D attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.Rubar2D.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-A PyQtsignal to show the figure.
 
 \end{fulllineitems}
 
@@ -1126,6 +1287,17 @@ similar functions.
 In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the widget for the
 hydrological Tab and one class by hydrological model to really load the model. The latter classes have various
 methods in common, so they inherit from SubHydroW, this class.
+\index{dis\_enable\_nb\_profile() (src\_GUI.hydro\_GUI\_2.SubHydroW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.dis_enable_nb_profile}}\pysiglinewithargsret{\sphinxbfcode{dis\_enable\_nb\_profile}}{}{}
+This function enable and disable the QLineEdit where the user gives the number of additional profile needed to
+create the gird and the related QLabel. If the user choose the interpolation by bloc, the QLineEdit will be
+disable. If it chooses linear or nearest neighbour interpolation, it will be enabled. Careful, this function
+only works with 1D and 1.5D model.
+
+\end{fulllineitems}
+
 \index{distribute\_velocity() (src\_GUI.hydro\_GUI\_2.SubHydroW method)}
 
 \begin{fulllineitems}
@@ -1151,7 +1323,21 @@ A PyQtsignal signal for the substrate tab so it can account for the new hydrolog
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.find_path_im}}\pysiglinewithargsret{\sphinxbfcode{find\_path\_im}}{}{}
 A function to find the path where to save the figues, careful a simialr one is in estimhab\_GUI.py. By default,
-path\_im is in a folder calls ``Figure\_Habby''.
+path\_im is in the project folder.
+
+\end{fulllineitems}
+
+\index{gethdf5\_name\_gui() (src\_GUI.hydro\_GUI\_2.SubHydroW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.gethdf5_name_gui}}\pysiglinewithargsret{\sphinxbfcode{gethdf5\_name\_gui}}{}{}
+This function get the name of the hdf5 file for the hydrological and write down in the QLineEdit on the GUI.
+It is possible to have more than one hdf5 file for a model type. For example, we could have created two hdf5
+based on hec-ras output. The default here is to write the last model loaded. It is the same default behaviour
+than for the function was\_model\_loaded\_before(). To keep the coherence between the filename and hdf5 name,
+a change in this behaviour should be reflected in both function.
+
+This function calls the function get\_hdf5\_name in the load\_hdf5.py file
 
 \end{fulllineitems}
 
@@ -1160,10 +1346,35 @@ path\_im is in a folder calls ``Figure\_Habby''.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.grid_and_interpo}}\pysiglinewithargsret{\sphinxbfcode{grid\_and\_interpo}}{\emph{cb\_im}}{}
 This function forms the link between GUI and the various grid and interpolation functions. Is called by
-the ``loading' function of hec-ras 1D, Mascaret and Rubar BE.
-:param cb\_im: A boolean if true, the figures are created and shown.
+the ``loading'' function of hec-ras 1D, Mascaret and Rubar BE.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{cb\_im} -- A boolean if true, the figures are created and shown.
 
-\sphinxstyleemphasis{Technical comment to be added}
+\end{description}\end{quote}
+
+\sphinxstylestrong{Technical comments}
+
+Here are the list of the interpolatin choice:
+\begin{itemize}
+\item {} 
+0 Use the function create\_grid\_only\_1\_profile() from manage\_grid\_8.py for all time steps.
+
+\item {} 
+1 Use the function create\_grid() from manage\_grid\_8.py for all time steps followed by a linear interpolation
+
+\item {} 
+2 Use the function create\_grid() from manage\_grid\_8.py for all time steps followed by a nearest neighbour interpolation
+
+\item {} \begin{description}
+\item[{3 Use create\_grid() for the whole profile, make a linear inteporlation on this grid for all time step}] \leavevmode
+and use the cut\_2d\_grid to get a grid with only the wet profile for all time step
+
+\end{description}
+
+\end{itemize}
+
+I'm not sure why there is a parameter to this method. Can we use self.cb.isckeched. To be checked.
 
 \end{fulllineitems}
 
@@ -1206,7 +1417,7 @@ A function to read the text of an attribute in the xml project file.
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.save_hdf5}}\pysiglinewithargsret{\sphinxbfcode{save\_hdf5}}{}{}
 This function save the hydrological data in the hdf5 format.
 
-\sphinxstylestrong{Techincal comments}
+\sphinxstylestrong{Technical comments}
 
 This function cannot be used outside of the class, so it needs to be re-written if used from the command line.
 
@@ -1218,10 +1429,10 @@ HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is 
 created hdf5:
 \begin{itemize}
 \item {} 
-Name of the file: name\_projet  +  ’\_’ +  name model + date/time.h5.  For example, test4\_HEC-RAS\_25\_10\_2016\_12\_23\_23.h5.
+Name of the file: self.name\_hdf5 + date/time.h5.  For example, test4\_HEC-RAS\_25\_10\_2016\_12\_23\_23.h5.
 
 \item {} 
-Position of the file: in the folder  figure\_habby currently (probably in a project folder in the final software)
+Position of the file: in the project folder
 
 \item {} 
 Format of the hdf5 file:
@@ -1279,6 +1490,17 @@ instead of remplacing the old name by the new name.
 
 \end{fulllineitems}
 
+\index{send\_data() (src\_GUI.hydro\_GUI\_2.SubHydroW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.send_data}}\pysiglinewithargsret{\sphinxbfcode{send\_data}}{}{}
+This function is call regularly by the methods which have a second thread (so moslty the function
+to load the hydrological data). To call this functin regularly, the variable self.timer of QTimer type is used.
+
+This function just wait while the thread is alive. When it has terminated, it creates the figure and the error messages.
+
+\end{fulllineitems}
+
 \index{send\_err\_log() (src\_GUI.hydro\_GUI\_2.SubHydroW method)}
 
 \begin{fulllineitems}
@@ -1302,12 +1524,21 @@ A Pyqtsignal to write the log.
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.show_dialog}}\pysiglinewithargsret{\sphinxbfcode{show\_dialog}}{\emph{i=0}}{}
 A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
 a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
-is then used to loaded the file in other function, which are different for each children class.
+is then used to loaded the file in other function, which are different for each children class. Based on the
+name of the chosen file, a name is proposed for the hdf5 file.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
 \sphinxstyleliteralstrong{i} -- a int for the case where there is more than one file to load
 
 \end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{show\_fig (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
+A PyQtsignal to show the figure.
 
 \end{fulllineitems}
 
@@ -1337,7 +1568,8 @@ hydrological model have been loaded before. If yes, the name of the data is writ
 Widget related to the hydrological model. Now, there are often more than one data loaded. This method allows
 choosing what should be written. There are two different case to be separated: a) We have loaded two different
 models (like two rivers modeled by HEC-RAS) b) One model type needs two data file (like HEC-RAS would need a
-geometry and output data). For the case a), the default is to write only the first model loaded. If we wish to
+geometry and output data). For the case a), the default is to write only the last model loaded. If this
+default behaviour is changed, the behaviour of gethdf5\_name\_GUI should also be changed. If we wish to
 write all data, the switch “many\_file” should be True. This switch is also useful for the river2D model, because
 this model create one output file per time step. For the case b), the argument “i”(which is an int) allows us to
 choose which data type should be shown. “i” is in the order of the self.attributexml variable. The definition of
@@ -1356,12 +1588,31 @@ Bases: {\hyperref[\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW}]{\sphinxcross
 
 This is the widget used to load the substrate. It is practical to re-use some of the method from SubHydroW.
 So this class inherit from SubHydroW.
+\index{enabledisable\_const() (src\_GUI.hydro\_GUI\_2.SubstrateW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.enabledisable_const}}\pysiglinewithargsret{\sphinxbfcode{enabledisable\_const}}{}{}
+This function enable and disable the loading of shapefile and text file in the substrate. Notably
+the user can choose to have a constant substrate everywhere. In this case, the choice to load the file is
+disabled.
+
+\end{fulllineitems}
+
 \index{get\_att\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.get_att_name}}\pysiglinewithargsret{\sphinxbfcode{get\_att\_name}}{}{}
 A function to get the attribute name of the shapefile which contains the substrate data. it is given by the user
 in the GUI.
+
+\end{fulllineitems}
+
+\index{get\_attribute\_from\_shp() (src\_GUI.hydro\_GUI\_2.SubstrateW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.get_attribute_from_shp}}\pysiglinewithargsret{\sphinxbfcode{get\_attribute\_from\_shp}}{}{}
+This function opens a shapefile and obtain the attribute. It then update the GUI
+to reflect this and also update the label as needed.
 
 \end{fulllineitems}
 
@@ -1382,6 +1633,10 @@ file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, su
 Generally this function has some similarities to the functions used to load the hydrological data and it re-uses
 some of the methods developed for them.
 
+It is possible to have a constant substrate if the self.constsub variable is on (it is a QRadioButton). In this
+case, an hdf5 is created with only the default value marked. This form of hdf5 file is then managed by the merge
+function.
+
 \end{fulllineitems}
 
 \index{log\_txt() (src\_GUI.hydro\_GUI\_2.SubstrateW method)}
@@ -1396,9 +1651,14 @@ the function load\_sub\_gui()
 \index{save\_hdf5\_sub() (src\_GUI.hydro\_GUI\_2.SubstrateW method)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub}}\pysiglinewithargsret{\sphinxbfcode{save\_hdf5\_sub}}{}{}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub}}\pysiglinewithargsret{\sphinxbfcode{save\_hdf5\_sub}}{\emph{constsub=False}}{}
 This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
 xml project file. The format of the hdf5 file is not finalzed yet so it is not documented.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{constsub} -- If constsub is True, the hdf5 created will only account for a constant value
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1411,24 +1671,11 @@ data on the same grid. Hence, the hydrological grid will need to be cut to the f
 
 \end{fulllineitems}
 
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.SubstrateW attribute)}
+\index{update\_sub\_hdf5\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-A PyQtsignal to show the figures.
-
-\end{fulllineitems}
-
-\index{update\_hydro\_hdf5\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.update_hydro_hdf5_name}}\pysiglinewithargsret{\sphinxbfcode{update\_hydro\_hdf5\_name}}{}{}
-This is a short function used to read all the hydrological data contained in an hdf5 files and available in
-one project. When these files are read, they are added to the drop-down menu;
-This should be a function because an update to this list can be triggered by the loading of a new hydrological
-data. The class SubstrateW() noticed this through the signal drop\_hydro send by the hydrological class.
-The signal drop\_hydro is connected to this function in the class CentralW in MainWindows.py. Indeed, it is not
-possible to do it in SubstrateW().
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubstrateW.update_sub_hdf5_name}}\pysiglinewithargsret{\sphinxbfcode{update\_sub\_hdf5\_name}}{}{}
+This function update the QComBox on substrate data which is on the stubstrate tab.
 
 \end{fulllineitems}
 
@@ -1457,14 +1704,6 @@ Used by \_\_init\_\_() during the initialization.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.TELEMAC.load_telemac_gui}}\pysiglinewithargsret{\sphinxbfcode{load\_telemac\_gui}}{}{}
 The function which call the function which load telemac and save the name of files in the project file
-
-\end{fulllineitems}
-
-\index{show\_fig (src\_GUI.hydro\_GUI\_2.TELEMAC attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.TELEMAC.show_fig}}\pysigline{\sphinxbfcode{show\_fig}}
-A PyQtsignal to show the figure.
 
 \end{fulllineitems}
 
@@ -1549,7 +1788,7 @@ A PyQtsignal used to write the log.
 
 
 \section{The Stathab model - GUI}
-\label{\detokenize{index:the-stathab-model-gui}}\label{\detokenize{index:module-src_GUI.stathab_GUI}}\index{src\_GUI.stathab\_GUI (module)}\index{StathabW (class in src\_GUI.stathab\_GUI)}
+\label{\detokenize{index:module-src_GUI.stathab_GUI}}\label{\detokenize{index:the-stathab-model-gui}}\index{src\_GUI.stathab\_GUI (module)}\index{StathabW (class in src\_GUI.stathab\_GUI)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.stathab_GUI.StathabW}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.stathab\_GUI.}\sphinxbfcode{StathabW}}{\emph{path\_prj}, \emph{name\_prj}}{}
@@ -1825,6 +2064,14 @@ Estimhab model is saved using a function situated in MainWindows\_1.py  (frankly
 the save function there, but anyway). So the save button just send a signal to MainWindows
 here, which save the data.
 \end{quote}
+
+\end{fulllineitems}
+
+\index{open\_estimhab\_hdf5() (src\_GUI.estimhab\_GUI.EstimhabW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.estimhab_GUI.EstimhabW.open_estimhab_hdf5}}\pysiglinewithargsret{\sphinxbfcode{open\_estimhab\_hdf5}}{}{}
+This function opens the hdf5 data created by estimhab
 
 \end{fulllineitems}
 
@@ -2623,7 +2870,7 @@ This module contains the functions used to load the outputs from the hec-ras mod
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.hec_ras2D.figure_hec_ras2d}}\pysiglinewithargsret{\sphinxcode{src.hec\_ras2D.}\sphinxbfcode{figure\_hec\_ras2d}}{\emph{v\_all, h\_all, elev\_all, coord\_p\_all, coord\_c\_all, ikle\_all, path\_im, time\_step={[}0{]}, flow\_area={[}0{]}, max\_point=-99}}{}
-This is a function to plot figure of the output from hec-ras 2D.
+This is a function to plot figure of the output from hec-ras 2D. This function is only used to debug, not directly by HABBY.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -2674,6 +2921,41 @@ separately, it would be very long to draw. To optimize the process, we use the p
 
 \end{fulllineitems}
 
+\index{get\_triangular\_grid\_hecras() (in module src.hec\_ras2D)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.hec_ras2D.get_triangular_grid_hecras}}\pysiglinewithargsret{\sphinxcode{src.hec\_ras2D.}\sphinxbfcode{get\_triangular\_grid\_hecras}}{\emph{ikle\_all}, \emph{coord\_c\_all}, \emph{point\_all}, \emph{h}, \emph{v}}{}
+In Hec-ras, it is possible to have non-triangular cells, often rectangular cells This function transform the
+``mixed'' grid to a triangular grid. For this,
+it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
+center of the cell). A similar function exists in rubar.py, but, as there are only one reach in rubar
+and because ikle is different in hec-ras, it was hard to marge both functions together.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{ikle\_all} -- the connectivity table by reach (list of np.array)
+
+\item {} 
+\sphinxstyleliteralstrong{coord\_c\_all} -- the coordinate of the centroid of the cell by reach
+
+\item {} 
+\sphinxstyleliteralstrong{point\_all} -- the points of the grid
+
+\item {} 
+\sphinxstyleliteralstrong{h} -- data on water height by reach by time step
+
+\item {} 
+\sphinxstyleliteralstrong{v} -- data on velocity by reach by time step
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the updated ikle, coord\_c (the center of the cell , must be updated ) and xy (the grid coordinate)
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{load\_hec\_ras2d() (in module src.hec\_ras2D)}
 
 \begin{fulllineitems}
@@ -2708,8 +2990,7 @@ Outputs from HEC-RAS in 2D are in the hdf5 format. However, it is not possible t
 as an hdf5 input for HABBY. Indeed, even if they are both in hdf5, the formats of the hdf5 files are different
 (and would miss some important info for HABBY).  So we still need to load the HEC-RAS data in HABBY even if in 2D.
 
-This function should be modified because currently it gets the data by cells. However, we should get the
-data by node. So this function should be changed.
+This function call the function get\_trianglar grid which is in rubar.py.
 
 \sphinxstylestrong{Walk-through}
 
@@ -2718,16 +2999,60 @@ HEC\_RAS() in the GUI.  We load the file using the h5py module. This module open
 
 Then we can read different part of the hdf5 file when we know the address of it (this is a bit like a file system).
 In hdf5 file of Hec-RAS, this first thing is to get the names of the flow area in “Geometry/2D Flow Area”. In
-general, this is the name of each reach, but it could be lake or pond also.
+general, this is the name of each reach, but it could be lake or pond also. In an hdf5 file, to see the name of
+the member in a group, use: list(``group''.keys())
 
 Then, we go to “Geometry/2D Flow Area/\textless{}name\textgreater{}/FacePoint Coordinates” to get the points forming the grid.
 We can also get the connectivity table (or ikle) to the path “Geometry/2D Flow Area/\textless{}name\textgreater{}/Cells Face Point Indexes”
-We also get the elevations of the cells. Currently, this is just the minimum elevation of the cells, but it should
-be modified to get the elevation by node (in the vocabulary of HEC-RAS by “FacePoints”). We then get the water depth
-by cell. Somethings should be done to get it by node. I think that we did have the elevation by node somewhere in
-the hdf5 file. For there, water height can be found.
-The velocity is given by face of the cells. It should be averaged differently to get it on the point and
-not on the side.
+We also get the elevations of the cells. However, this is just the minimum elevation of the cells, so it is
+to be used only for a quick estimation. We then get the water depth by cell.
+The velocity is given by face of the cells and is averaged to get it on the middle of the cells.
+
+To get Hec-Ras data by nodes, it is necessary to intepolate the data. There is a function to do this in
+manage\_grid\_8.
+
+\end{fulllineitems}
+
+\index{load\_hec\_ras\_2d\_and\_cut\_grid() (in module src.hec\_ras2D)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.hec_ras2D.load_hec_ras_2d_and_cut_grid}}\pysiglinewithargsret{\sphinxcode{src.hec\_ras2D.}\sphinxbfcode{load\_hec\_ras\_2d\_and\_cut\_grid}}{\emph{name\_hdf5}, \emph{filename}, \emph{path}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{q={[}{]}}}{}
+This function calls load\_hec\_ras\_2d and the cut\_2d\_grid function. Hence, it loads the data,
+pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
+get only the wetted area. This was done before in the HEC\_RAS2D Class in hydro\_gui\_2.py, but it was necessary to
+create a separate function to called this task in a second thread to avoid freezing the GUI.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{name\_hdf5} -- the base name of the created hdf5 (string)
+
+\item {} 
+\sphinxstyleliteralstrong{filename} -- the name of the file containg the results of HEC-RAS in 2D. (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path} -- the path where the file is (string)
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path of the project
+
+\item {} 
+\sphinxstyleliteralstrong{model\_type} -- the name of the model such as Rubar, hec-ras, etc. (string)
+
+\item {} 
+\sphinxstyleliteralstrong{nb\_dim} -- the number of dimension (model, 1D, 1,5D, 2D) in a float
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- A string which gives the adress to the folder in which to save the hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{q} -- used by the second thread to get the error back to the GUI at the end of the thread
+
+\end{itemize}
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -3272,7 +3597,7 @@ This module contains the functions used to load the outputs from the River2D mod
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.river2d.figure_river2d}}\pysiglinewithargsret{\sphinxcode{src.river2d.}\sphinxbfcode{figure\_river2d}}{\emph{xyzhv}, \emph{ikle}, \emph{path\_im}, \emph{t=0}}{}
 A function to plot the output from river 2d. Need hec-ras2d as import because it re-used most of the plot from this
-script.
+script. It is only used to debug. It is not used directly by HABBY.
 
 Plot only one time step because river 2d output have one file by time step.
 \begin{quote}\begin{description}
@@ -3321,6 +3646,48 @@ datahere wihtout the useless lines
 
 \end{fulllineitems}
 
+\index{load\_river2d\_and\_cut\_grid() (in module src.river2d)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.river2d.load_river2d_and_cut_grid}}\pysiglinewithargsret{\sphinxcode{src.river2d.}\sphinxbfcode{load\_river2d\_and\_cut\_grid}}{\emph{name\_hdf5}, \emph{namefiles}, \emph{paths}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{q={[}{]}}}{}
+This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
+River2D() in hydro\_GUI\_2. This function was added as it was practical to have a second thread to avoid freezing
+the GUI.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{name\_hdf5} -- the base name of the created hdf5 (string)
+
+\item {} 
+\sphinxstyleliteralstrong{namefiles} -- the names of all the cdg file (list of string)
+
+\item {} 
+\sphinxstyleliteralstrong{paths} -- the path to the files (list of string).
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path of the project
+
+\item {} 
+\sphinxstyleliteralstrong{model\_type} -- the name of the model such as Rubar, hec-ras, etc. (string)
+
+\item {} 
+\sphinxstyleliteralstrong{nb\_dim} -- the number of dimension (model, 1D, 1,5D, 2D) in a float
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- A string which gives the adress to the folder in which to save the hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{q} -- used to send the error back from the second thread (can be used to send other variable too)
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{load\_river2d\_cdg() (in module src.river2d)}
 
 \begin{fulllineitems}
@@ -3339,7 +3706,7 @@ Hence, this function read only one timeste. HABBY read all time step by calling 
 \end{itemize}
 
 \item[{Returns}] \leavevmode
-the velcoity and height data, the coordinate and the connectivity table.
+the velocity and height data, the coordinate and the connectivity table.
 
 \end{description}\end{quote}
 
@@ -3438,7 +3805,7 @@ none
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.rubar.figure_rubar2d}}\pysiglinewithargsret{\sphinxcode{src.rubar.}\sphinxbfcode{figure\_rubar2d}}{\emph{xy, coord\_c, ikle, v, h, path\_im, time\_step={[}-1{]}}}{}
-This functions plots the rubar 2d data
+This functions plots the rubar 2d data. This function is only used to debug. It is not used direclty by Habby.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -3471,22 +3838,22 @@ This functions plots the rubar 2d data
 \index{get\_triangular\_grid() (in module src.rubar)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.rubar.get_triangular_grid}}\pysiglinewithargsret{\sphinxcode{src.rubar.}\sphinxbfcode{get\_triangular\_grid}}{\emph{ikle}, \emph{coord\_c}, \emph{xy}, \emph{h}, \emph{v}}{}~\begin{description}
-\item[{In Rubar it is possible to have non-triangular cells. It is possible to have a grid composed of a mix of pentagonal,}] \leavevmode
-4-sided and triangualr cells. This function transform the ``mixed'' grid to a triangular grid. For this, it uses the
-centroid of each cell with more than three side and it create a triangle by side (linked with the center of the cell)
-
-\end{description}
+\phantomsection\label{\detokenize{index:src.rubar.get_triangular_grid}}\pysiglinewithargsret{\sphinxcode{src.rubar.}\sphinxbfcode{get\_triangular\_grid}}{\emph{ikle}, \emph{coord\_c}, \emph{xy}, \emph{h}, \emph{v}}{}
+In Rubar, it is possible to have non-triangular cells. It is possible to have a grid composed of a mix
+of pentagonal, 4-sided and triangualr cells. This function transform the ``mixed'' grid to a triangular grid. For this,
+it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
+center of the cell). A similar function exists in hec-ras2D.py, but, as there is only one reach in rubar
+and because ikle is different in hec-ras, it was hard to marge both functions together.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\sphinxstyleliteralstrong{ikle} -- the connectivity table
+\sphinxstyleliteralstrong{ikle} -- the connectivity table (list)
 
 \item {} 
-\sphinxstyleliteralstrong{coord\_c} -- the coordinate of the centroid of the cell
+\sphinxstyleliteralstrong{coord\_c} -- the coordinate of the centroid of the cell (list)
 
 \item {} 
-\sphinxstyleliteralstrong{xy} -- the points of the grid
+\sphinxstyleliteralstrong{xy} -- the points of the grid (np.array)
 
 \item {} 
 \sphinxstyleliteralstrong{h} -- data on water height
@@ -3662,7 +4029,7 @@ and v the velocity
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.rubar.load_rubar2d}}\pysiglinewithargsret{\sphinxcode{src.rubar.}\sphinxbfcode{load\_rubar2d}}{\emph{geofile}, \emph{tpsfile}, \emph{pathgeo}, \emph{pathtps}, \emph{path\_im}, \emph{save\_fig}}{}
-This is the function used to load the RUBAR data in 2D
+This is the function used to load the RUBAR data in 2D.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -3688,6 +4055,56 @@ This is the function used to load the RUBAR data in 2D
 \item[{Returns}] \leavevmode
 velocity and height at the center of the cells, the coordinate of the point of the cells,
 the coordinates of the center of the cells and the connectivity table.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{load\_rubar2d\_and\_create\_grid() (in module src.rubar)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.rubar.load_rubar2d_and_create_grid}}\pysiglinewithargsret{\sphinxcode{src.rubar.}\sphinxbfcode{load\_rubar2d\_and\_create\_grid}}{\emph{name\_hdf5}, \emph{geofile}, \emph{tpsfile}, \emph{pathgeo}, \emph{pathtps}, \emph{path\_im}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{q={[}{]}}}{}
+This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
+interpolation and to save the whole in an hdf5 format
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{name\_hdf5} -- the base name of the created hdf5 (string)
+
+\item {} 
+\sphinxstyleliteralstrong{geofile} -- the name of the .mai or .dat file which contains the connectivity table and the coordinates (string)
+
+\item {} 
+\sphinxstyleliteralstrong{tpsfile} -- the name of the .tps file (string)
+
+\item {} 
+\sphinxstyleliteralstrong{pathgeo} -- path to the geo file (string)
+
+\item {} 
+\sphinxstyleliteralstrong{pathtps} -- path to the tps file which contains the outputs (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- the path where to save the figure (string)
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path of the project
+
+\item {} 
+\sphinxstyleliteralstrong{model\_type} -- the name of the model such as Rubar, hec-ras, etc. (string)
+
+\item {} 
+\sphinxstyleliteralstrong{nb\_dim} -- the number of dimension (model, 1D, 1,5D, 2D) in a float
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- A string which gives the adress to the folder in which to save the hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{q} -- used by the second thread to get the error back to the GUI at the end of the thread
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -3876,7 +4293,7 @@ Get float precision
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.selafin_habby1.load_telemac}}\pysiglinewithargsret{\sphinxcode{src.selafin\_habby1.}\sphinxbfcode{load\_telemac}}{\emph{namefilet}, \emph{pathfilet}}{}
-A function which load the telemac data using the Selafin class
+A function which load the telemac data using the Selafin class.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -3894,11 +4311,54 @@ the velocity, the height, the coordinate of the points of the grid, the connecti
 
 \end{fulllineitems}
 
+\index{load\_telemac\_and\_cut\_grid() (in module src.selafin\_habby1)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.selafin_habby1.load_telemac_and_cut_grid}}\pysiglinewithargsret{\sphinxcode{src.selafin\_habby1.}\sphinxbfcode{load\_telemac\_and\_cut\_grid}}{\emph{name\_hdf5}, \emph{namefilet}, \emph{pathfilet}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{q={[}{]}}}{}
+This function calls the function load\_telemac and call the function cut\_2d\_grid(). Orginally, this function
+was part of the TELEMAC class in Hydro\_GUI\_2.py but it was separated to be able to have a second thread, which
+is useful to avoid freezing the GUI.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{name\_hdf5} -- the base name of the created hdf5 (string)
+
+\item {} 
+\sphinxstyleliteralstrong{namefilet} -- the name of the selafin file (string)
+
+\item {} 
+\sphinxstyleliteralstrong{pathfilet} -- the path to this file (string)
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path of the project
+
+\item {} 
+\sphinxstyleliteralstrong{model\_type} -- the name of the model such as Rubar, hec-ras, etc. (string)
+
+\item {} 
+\sphinxstyleliteralstrong{nb\_dim} -- the number of dimension (model, 1D, 1,5D, 2D) in a float
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- A string which gives the adress to the folder in which to save the hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{q} -- used by the second thread to get the error back to the GUI at the end of the thread
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{plot\_vel\_h() (in module src.selafin\_habby1)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.selafin_habby1.plot_vel_h}}\pysiglinewithargsret{\sphinxcode{src.selafin\_habby1.}\sphinxbfcode{plot\_vel\_h}}{\emph{coord\_p2, h, v, path\_im, timestep={[}-1{]}}}{}
-a function to plot the velocity and height which are the output from TELEMAC
+a function to plot the velocity and height which are the output from TELEMAC. It is used to debug.
+It is not used direclty by HABBY.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -3952,14 +4412,49 @@ a list with the filename (filename+dir) for each extension
 
 \end{fulllineitems}
 
+\index{get\_hdf5\_name() (in module src.load\_hdf5)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.load_hdf5.get_hdf5_name}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{get\_hdf5\_name}}{\emph{model\_name}, \emph{name\_prj}, \emph{path\_prj}}{}
+This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
+model\_name. If there is more than one hdf5 file, it choose the last one. Tha path is the path from the
+project folder. Hencem, it is not the absolute path.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{model\_name} -- the name of the hydrological model as written in the attribute of the xml project file
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path to the project
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the name of the hdf5 file
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{load\_hdf5\_hyd() (in module src.load\_hdf5)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.load_hdf5.load_hdf5_hyd}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{load\_hdf5\_hyd}}{\emph{hdf5\_name\_hyd}}{}
-A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY.
+\phantomsection\label{\detokenize{index:src.load_hdf5.load_hdf5_hyd}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{load\_hdf5\_hyd}}{\emph{hdf5\_name\_hyd}, \emph{path\_prj='`}}{}
+A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5\_name\_sub
+is an absolute path, the path\_prj is not used. If it is a relative path, the path is composed of the path to the
+project (path\_prj) composed with hdf5\_name\_sub.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \sphinxstyleliteralstrong{hdf5\_name\_hyd} -- path and filename of the hdf5 file (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path to the project
+
+\end{itemize}
 
 \item[{Returns}] \leavevmode
 the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.
@@ -3971,11 +4466,19 @@ the connectivity table, the coordinates of the point, the height data, the veloc
 \index{load\_hdf5\_sub() (in module src.load\_hdf5)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.load_hdf5.load_hdf5_sub}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{load\_hdf5\_sub}}{\emph{hdf5\_name\_sub}}{}
-A function to load the substrate data contained in the hdf5 file.
+\phantomsection\label{\detokenize{index:src.load_hdf5.load_hdf5_sub}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{load\_hdf5\_sub}}{\emph{hdf5\_name\_sub}, \emph{path\_prj}}{}
+A function to load the substrate data contained in the hdf5 file. It also manage
+the constant cases. If hdf5\_name\_sub is an absolute path, the path\_prj is not used. If it is a relative path,
+the path is composed of the path to the project (path\_prj) composed with hdf5\_name\_sub.
 \begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
 \sphinxstyleliteralstrong{hdf5\_name\_sub} -- path and file name to the hdf5 file (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path to the project
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -3988,6 +4491,111 @@ A function to load the substrate data contained in the hdf5 file.
 This is a function which open an hdf5 file and check that it exists. it does not load the data. It only opens the
 files.
 :param hdf5\_name: the path and name of the hdf5 file (string)
+
+\end{fulllineitems}
+
+\index{save\_hdf5() (in module src.load\_hdf5)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.load_hdf5.save_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{save\_hdf5}}{\emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{point\_c\_all\_t}, \emph{inter\_vel\_all\_t}, \emph{inter\_h\_all\_t}, \emph{xhzv\_data={[}{]}}, \emph{coord\_pro={[}{]}}, \emph{vh\_pro={[}{]}}, \emph{nb\_pro\_reach={[}{]}}}{}
+This function save the hydrological data in the hdf5 format.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{name\_hdf5} -- the base name for the hdf5 file to be created (string)
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path of the project
+
+\item {} 
+\sphinxstyleliteralstrong{model\_type} -- the name of the model such as Rubar, hec-ras, etc. (string)
+
+\item {} 
+\sphinxstyleliteralstrong{nb\_dim} -- the number of dimension (model, 1D, 1,5D, 2D) in a float
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- A string which gives the adress to the folder in which to save the hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{ikle\_all\_t} -- the connectivity table for all discharge, for all reaches and all time steps
+
+\item {} 
+\sphinxstyleliteralstrong{point\_all\_t} -- the point forming the grid, for all reaches and all time steps
+
+\item {} 
+\sphinxstyleliteralstrong{point\_c\_all\_t} -- the point at the center of the cells, for all reaches and all time steps
+
+\item {} 
+\sphinxstyleliteralstrong{inter\_vel\_all\_t} -- the velocity for all grid point, for all reaches and all time steps (by node)
+
+\item {} 
+\sphinxstyleliteralstrong{inter\_h\_all\_t} -- the height for all grid point, for all reaches and all time steps (by node)
+
+\item {} 
+\sphinxstyleliteralstrong{xhzv\_data} -- data linked with 1D model (only used when a 1D model was transformed to a 2D)
+
+\item {} 
+\sphinxstyleliteralstrong{coord\_pro} -- data linked with 1.5D model or data created by dist\_vist from a 1D model (profile data)
+
+\item {} 
+\sphinxstyleliteralstrong{vh\_pro} -- data linked with 1.5D model or data created by dist\_vist from a 1D model (velcoity and height data)
+
+\item {} 
+\sphinxstyleliteralstrong{nb\_pro\_reach} -- data linked with 1.5D model or data created by dist\_vist from a 1D model (nb profile)
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\sphinxstylestrong{Technical comments}
+
+This function could look better inside the class SubHydroW where it was before. However, it was not possible
+to use it on the command line and it was not pratical for having two thread (it is impossible to have a method
+as a second thread)
+
+This function creates an hdf5 file which contains the hydrological data. First it creates an empty hdf5.
+Then it fill the hdf5 with data. For 1D model, it fill the data in 1D (the original data), then the 1.5D data
+created by dist\_vitess2.py and finally the 2D data. For model in 2D it only saved 2D data. Hence, the 2D data
+is the data which is common to all model and which can always be loaded from a hydrological hdf5 created by
+HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
+created hdf5:
+\begin{itemize}
+\item {} 
+Name of the file: name\_hdf5  + date/time.h5.  For example, test4\_HEC-RAS\_25\_10\_2016\_12\_23\_23.h5.
+
+\item {} 
+Position of the file: in the folder  figure\_habby currently (probably in a project folder in the final software)
+
+\item {} 
+Format of the hdf5 file:
+\begin{itemize}
+\item {} 
+Dats\_gen:  number of time step and number of reach
+
+\item {} 
+Data\_1D:  xhzv\_data\_all (given profile by profile)
+
+\item {} 
+Data\_15D :  vh\_pro, coord\_pro (given profile by profile in a dict) and nb\_pro\_reach.
+
+\item {} 
+Data\_2D : For each time step, for each reach: ikle, point, point\_c, inter\_h, inter\_vel
+
+\end{itemize}
+
+\end{itemize}
+
+If a list has elements with a changing number of variables, it is necessary to create a dictionary to save
+this list in hdf5. For example, a dictionary will be needed to save the following list: {[}{[}1,2,3,4{]}, {[}1,2,3{]}{]}.
+This is used for example, to save data by profile as we can have profile with more or less points. We also note
+in the hdf5 attribute some important info such as the project name, path to the project, hdf5 version.
+This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
+hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.
+
+Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.
 
 \end{fulllineitems}
 
@@ -4471,7 +5079,7 @@ This function works for one time steps and for one reach
 \sphinxstyleliteralstrong{ikle} -- the connectivity table of the 2D grid
 
 \item {} 
-\sphinxstyleliteralstrong{point\_all} -- the coordinate of the point
+\sphinxstyleliteralstrong{point\_all} -- the coordinate of the points
 
 \item {} 
 \sphinxstyleliteralstrong{water\_height} -- the water height data given on the nodes
@@ -4483,6 +5091,37 @@ This function works for one time steps and for one reach
 
 \item[{Returns}] \leavevmode
 the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.cut_2d_grid_all_reach}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{cut\_2d\_grid\_all\_reach}}{\emph{ikle\_all}, \emph{point\_all}, \emph{inter\_height\_all}, \emph{inter\_vel\_all}}{}
+This function si just use to call cut\_2d-grid for all reach. So that if we have a river with more than reach, we
+do not need to add a for loops to call for all reach. Sometime it can save place. This can be only use for one
+time step.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{ikle\_all} -- the connectivity table of the 2D grid for all reach
+
+\item {} 
+\sphinxstyleliteralstrong{point\_all} -- the coordinate of the points for all reach
+
+\item {} 
+\sphinxstyleliteralstrong{inter\_height\_all} -- the water height data given on the nodes for all reach
+
+\item {} 
+\sphinxstyleliteralstrong{inter\_vel\_all} -- the velcoity given on the nodes for all reach
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the update connectivity table, the coodinate of the point, the height of the water and the
+velocity on the updated grid fro all reaches
 
 \end{description}\end{quote}
 
@@ -4506,7 +5145,7 @@ as profile in 1D model are often far away from another.
 \sphinxstyleliteralstrong{nb\_pro} -- the number of profile to add
 
 \item {} 
-\sphinxstyleliteralstrong{Trim} -- If True cut the end and start of profile to avoid to have part of the grid outside of the water limit
+\sphinxstyleliteralstrong{trim} -- If True cut the end and start of profile to avoid to have part of the grid outside of the water limit
 
 \end{itemize}
 
@@ -4610,7 +5249,7 @@ This function find if a point is inside a polygon, using a ray casting algorythm
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\sphinxstyleliteralstrong{seg\_poly} -- the segment forming the polygon
+\sphinxstyleliteralstrong{seg\_poly} -- the segmentS forming the polygon
 
 \item {} 
 \sphinxstyleliteralstrong{point} -- the point which is indide or outside the polygon
@@ -4619,6 +5258,27 @@ This function find if a point is inside a polygon, using a ray casting algorythm
 
 \item[{Returns}] \leavevmode
 True is the point is inside the polygon, false otherwise
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{interp\_weights() (in module src.manage\_grid\_8)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.interp_weights}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{interp\_weights}}{\emph{xyz}, \emph{uvw}}{}
+This fucntion is used by the function pass\_grid\_cell\_to\_node\_lin(). To optimize the interpolation when more than one time step
+is done on the same grid, the first step of scipy.griddata.interolate are done here and are called only once for all
+time step. Hence, this function is the first part of a quicker ``scipy.interpolate.griddata''
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{xyz} -- 
+
+\item {} 
+\sphinxstyleliteralstrong{uvw} -- 
+
+\end{itemize}
 
 \end{description}\end{quote}
 
@@ -4680,6 +5340,29 @@ the new interpolated data for velocity and water height
 
 \end{fulllineitems}
 
+\index{interpolate\_opti() (in module src.manage\_grid\_8)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.interpolate_opti}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{interpolate\_opti}}{\emph{values}, \emph{vtx}, \emph{wts}}{}
+This fucntion is called by interp\_weights(). It is used in the optimization of the function pass\_grid\_cell\_to\_node\_lin().
+This idea of this optimization is to not re-do some calculation when many interpolation are done on the same grid.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{values} -- 
+
+\item {} 
+\sphinxstyleliteralstrong{vtx} -- 
+
+\item {} 
+\sphinxstyleliteralstrong{wts} -- 
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{intersection\_seg() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
@@ -4705,6 +5388,9 @@ Careful there is many function using this function, so change here should be tho
 
 \item {} 
 \sphinxstyleliteralstrong{col} -- if True, colinear segment crossed. If false, they do not cross
+
+\item {} 
+\sphinxstyleliteralstrong{uncer} -- if True, two segment with a distance lower than 10**-8 will be crossing, otherwise no precision change.
 
 \end{itemize}
 
@@ -4780,11 +5466,61 @@ the start/end of the new profile
 
 \end{fulllineitems}
 
+\index{pass\_grid\_cell\_to\_node\_lin() (in module src.manage\_grid\_8)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.pass_grid_cell_to_node_lin}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{pass\_grid\_cell\_to\_node\_lin}}{\emph{point\_all}, \emph{coord\_c}, \emph{vel\_in}, \emph{height\_in}, \emph{warn1=True}, \emph{vtx\_all={[}{]}}, \emph{wts\_all={[}{]}}}{}
+HABBY uses nodal information. Some hydraulic models have only ouput on the cells. This function pass
+from cells information to nodal information. The interpolation is linear and the cell centroid is used as the
+point where the cell information is carried. It can be used for one time step only.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{point\_all} -- the coordinates of grid points (new grid here)
+
+\item {} 
+\sphinxstyleliteralstrong{coord\_c} -- the coordintesof the centroid of the cells (old grid here)
+
+\item {} 
+\sphinxstyleliteralstrong{vel\_in} -- the velocity data by cell
+
+\item {} 
+\sphinxstyleliteralstrong{height\_in} -- the height data by cell
+
+\item {} 
+\sphinxstyleliteralstrong{warn1} -- if True , show the warning (usually warn1 is True for t=0, False afterwards)
+
+\item {} 
+\sphinxstyleliteralstrong{vtx\_all} -- if it exists it means than the same grid was interpolated before. This info can be reused to
+speed up the interpolation of mulitple time step. (optional, need wts)
+
+\item {} 
+\sphinxstyleliteralstrong{wts\_all} -- if it exists it means than the same grid was interpolated before. This info can be reused to
+speed up the interpolation of mulitple time step. (optional, need vtx)
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+velocity and height data by node
+
+\end{description}\end{quote}
+
+\sphinxstylestrong{Technical Comment}
+
+This function can be very slow when a lot of time step needs to be interpolated if done directlty with
+scipy.interpolate. It was optimized for this case:
+\url{http://stackoverflow.com/questions/20915502/speedup-scipy-griddata-for-multiple}-
+interpolations-between-two-irregular-grids
+
+\end{fulllineitems}
+
 \index{plot\_grid() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.manage_grid_8.plot_grid}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{plot\_grid}}{\emph{point\_all\_reach}, \emph{ikle\_all}, \emph{lim\_by\_reach}, \emph{hole\_all}, \emph{overlap}, \emph{point\_c\_all={[}{]}}, \emph{inter\_vel\_all={[}{]}}, \emph{inter\_h\_all={[}{]}}, \emph{path\_im={[}{]}}, \emph{coord\_pro2={[}{]}}}{}
-This is a function to plot a grid, it is very similar to the one from hec-ras2D.
+This is a function to plot a grid and the output. It is mosty used to debug the grid creation. Contrarily to the more
+simple function plot\_grid\_simple, it is posible to plot the position of the holes (which indicates the dry area),
+the limits of the reaches used by triangle, the overlap between two reaches, and so on.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -4813,6 +5549,36 @@ This is a function to plot a grid, it is very similar to the one from hec-ras2D.
 
 \item {} 
 \sphinxstyleliteralstrong{path\_im} -- the path where to save the image
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{plot\_grid\_simple() (in module src.manage\_grid\_8)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.plot_grid_simple}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{plot\_grid\_simple}}{\emph{point\_all\_reach}, \emph{ikle\_all}, \emph{inter\_vel\_all={[}{]}}, \emph{inter\_h\_all={[}{]}}, \emph{path\_im={[}{]}}}{}
+This is the function to plot grid output for one time step. The data is one the node. A more complicated function
+exists to plot the grid and additional information (manage-grid\_8.plot\_grid()) in case there are needed to debug.
+The present function only plot the grid and output without more information.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{point\_all\_reach} -- the coordinate of the point. This is given by reaches.
+
+\item {} 
+\sphinxstyleliteralstrong{ikle\_all} -- the connectivity table. This is given by reaches.
+
+\item {} 
+\sphinxstyleliteralstrong{inter\_vel\_all} -- the velcoity data. This is given by reaches.
+
+\item {} 
+\sphinxstyleliteralstrong{inter\_h\_all} -- the height data. This is given by reaches.
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- the path where the figure should be saved
 
 \end{itemize}
 
@@ -5102,7 +5868,8 @@ the optimized sh0
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.stathab_c.Stathab.load_stathab_from_hdf5}}\pysiglinewithargsret{\sphinxbfcode{load\_stathab\_from\_hdf5}}{}{}
-A function to load the file from an hdf5 whose name is given in the xml project file
+A function to load the file from an hdf5 whose name is given in the xml project file. If the name of the
+file is a relative path, use the path\_prj to create an absolute path.
 
 \end{fulllineitems}
 
@@ -5158,7 +5925,7 @@ the coeff of the regression
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.stathab_c.Stathab.savefig_stahab}}\pysiglinewithargsret{\sphinxbfcode{savefig\_stahab}}{}{}
-A function to save the results in text and the figure
+A function to save the results in text and the figure.
 
 \end{fulllineitems}
 
@@ -5289,10 +6056,10 @@ It plots one time step at the time.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\sphinxstyleliteralstrong{point\_all\_both} -- the coordinate of the points of the updated grid
+\sphinxstyleliteralstrong{point\_all\_both\_t} -- the coordinate of the points of the updated grid
 
 \item {} 
-\sphinxstyleliteralstrong{ikle\_both} -- the connectivity table
+\sphinxstyleliteralstrong{ikle\_both\_t} -- the connectivity table
 
 \item {} 
 \sphinxstyleliteralstrong{path\_im} -- the path where the image should be saved
@@ -5338,6 +6105,29 @@ The function to plot the raw substrate data, which was loaded before
 \sphinxstyleliteralstrong{path\_im} -- the path where to save the figure
 
 \end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{get\_all\_attribute() (in module src.substrate)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.substrate.get_all_attribute}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{get\_all\_attribute}}{\emph{filename}, \emph{path}}{}
+This function open a shapefile and get the list of all the attibute which is contains in it.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{filename} -- the name of the shpae file
+
+\item {} 
+\sphinxstyleliteralstrong{path} -- the path to this shapefile
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+a list with the name and information of all attribute. The form of each element of the list
+is {[}name(str), type (F,N), int, int{]}
 
 \end{description}\end{quote}
 
@@ -5475,7 +6265,7 @@ and an array with substrate type
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.substrate.load_sub_txt}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{load\_sub\_txt}}{\emph{filename}, \emph{path}}{}
 A function to load the substrate in form of a text file. The text file must have 3 column x,y coordinate and
-substrate info, no header or title.
+substrate info, no header or title. It is transform to a grid using a voronoi transformation
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -5505,9 +6295,10 @@ Used to test this module.
 \index{merge\_grid\_hydro\_sub() (in module src.substrate)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.merge_grid_hydro_sub}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{merge\_grid\_hydro\_sub}}{\emph{hdf5\_name\_hyd}, \emph{hdf5\_name\_sub}, \emph{default\_data}}{}
+\phantomsection\label{\detokenize{index:src.substrate.merge_grid_hydro_sub}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{merge\_grid\_hydro\_sub}}{\emph{hdf5\_name\_hyd}, \emph{hdf5\_name\_sub}, \emph{default\_data}, \emph{path\_prj='`}}{}
 After the data for the substrate and the hydrological data are loaded, they are still in different grids.
-This functions will merge both grid together. This is done for all time step and all reaches
+This functions will merge both grid together. This is done for all time step and all reaches. If a
+constnat substrate is there, the hydrological hdf5 is just copied.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -5519,10 +6310,35 @@ This functions will merge both grid together. This is done for all time step and
 \item {} 
 \sphinxstyleliteralstrong{default\_data} -- The substrate data given in the region of the hydrological grid where no substrate is given
 
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path to the project
+
 \end{itemize}
 
 \item[{Returns}] \leavevmode
 the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{open\_shp() (in module src.substrate)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.substrate.open_shp}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{open\_shp}}{\emph{filename}, \emph{path}}{}
+This function open a ArcGIS shpaefile.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{filename} -- the name of the shapefile
+
+\item {} 
+\sphinxstyleliteralstrong{path} -- the path to this shapefile
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+a shapefile object as define in the model
 
 \end{description}\end{quote}
 

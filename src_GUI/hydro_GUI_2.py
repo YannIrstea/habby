@@ -2316,8 +2316,14 @@ class SubstrateW(SubHydroW):
         """
         self.send_log.emit('# Merge substrate and hydrological grid')
 
-        hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()]
-        hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()]
+        if len(self.drop_hyd)>1:
+            hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()-1]
+        else:
+            hdf5_name_hyd = self.hyd_name[0]
+        if len(self.drop_sub)>1:
+            hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()-1]
+        else:
+            hdf5_name_sub = self.sub_name[0]
         default_data = self.e1.text()
 
         # check inputs in the function
@@ -2332,21 +2338,22 @@ class SubstrateW(SubHydroW):
             substrate.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_im)
 
         # save hdf5
-        path_hdf5 = self.find_path_im()
-        name_hdf5merge = 'MERGE_' + hdf5_name_hyd
+        path_hdf5 = os.path.dirname(hdf5_name_hyd)
+        name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
         load_hdf5.save_hdf5(name_hdf5merge, self.name_prj, self.path_prj, self.model_type, 2, path_hdf5, ikle_both,
                             point_all_both, [], inter_vel_all_both, inter_h_all_both)
 
         # log
         self.send_err_log()
-        self.send_log.emit("py    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()] + "'")
-        self.send_log.emit("py    file_sub='" + self.sub_name[self.drop_sub.currentIndex()] + "'")
+        # functions if ind is zero also
+        self.send_log.emit("py    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
+        self.send_log.emit("py    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
         self.send_log.emit("py    defval='" + self.e1.text() + "'")
         self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = substrate.merge_grid_hydro_sub(file_hyd,"
                            " file_sub, defval)\n")
         self.send_log.emit("restart MERGE_GRID_SUB")
-        self.send_log.emit("restart    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()] + "'")
-        self.send_log.emit("restart    file_sub='" + self.sub_name[self.drop_sub.currentIndex()] + "'")
+        self.send_log.emit("restart    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
+        self.send_log.emit("restart    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
         self.send_log.emit("restart    defval='" + self.e1.text() + "'")
         if self.cb2.isChecked() and path_im != 'no_path':
             self.show_fig.emit()

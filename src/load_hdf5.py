@@ -407,6 +407,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                 there = Data_2D.create_group('Timestep_' + str(t - 1))
             for r in range(0, len(ikle_all_t[t])):
                 rhere = there.create_group('Reach_' + str(r))
+                # ikle
                 ikleg = rhere.create_group('ikle')
                 if len(ikle_all_t[t][r]) > 0:
                     ikleg.create_dataset(h5name, [len(ikle_all_t[t][r]), len(ikle_all_t[t][r][0])],
@@ -414,22 +415,30 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                 else:
                     print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
                     ikleg.create_dataset(h5name, [len(ikle_all_t[t][r])], data=ikle_all_t[t][r])
+                # coordinates
                 point_allg = rhere.create_group('point_all')
                 point_allg.create_dataset(h5name, [len(point_all_t[t][r]), 2], data=point_all_t[t][r])
+                # coordinates center
                 point_cg = rhere.create_group('point_c_all')
-                point_cg.create_dataset(h5name, [len(point_c_all_t[t][r]), 2], data=point_c_all_t[t][r])
-                if len(inter_vel_all_t[t]) > 0 and not isinstance(inter_vel_all_t[t][0], float):
-                    inter_velg = rhere.create_group('inter_vel_all')
-                    inter_velg.create_dataset(h5name, [len(inter_vel_all_t[t][r]), 1],
-                                              data=inter_vel_all_t[t][r])
-                else:
-                    rhere.create_group('inter_vel_all')
-                if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
-                    inter_hg = rhere.create_group('inter_h_all')
-                    inter_hg.create_dataset(h5name, [len(inter_h_all_t[t][r]), 1],
-                                            data=inter_h_all_t[t][r])
-                else:
-                    rhere.create_group('inter_h_all')
+                if len(point_c_all_t)>0:
+                    if len(point_c_all_t[t]) > 0 and not isinstance(point_c_all_t[t][0], float):
+                        point_cg.create_dataset(h5name, [len(point_c_all_t[t][r]), 2], data=point_c_all_t[t][r])
+                #velocity
+                rhere.create_group('inter_vel_all')
+                if len(inter_vel_all_t)>0:
+                    if len(inter_vel_all_t[t]) > 0 and not isinstance(inter_vel_all_t[t][0], float):
+                        inter_velg = rhere.create_group('inter_vel_all')
+                        inter_velg.create_dataset(h5name, [len(inter_vel_all_t[t][r]), 1],
+                                                  data=inter_vel_all_t[t][r])
+                # height
+                rhere.create_group('inter_h_all')
+                if len(inter_h_all_t):
+                    if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
+                        inter_hg = rhere.create_group('inter_h_all')
+                        inter_hg.create_dataset(h5name, [len(inter_h_all_t[t][r]), 1],
+                                                data=inter_h_all_t[t][r])
+
+
 
     file.close()
 

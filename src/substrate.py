@@ -178,6 +178,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
     sub_data_all_t = []
     ikle_both = []
     point_all_both = []
+    point_c_all_both = []
     vel_both = []
     height_both = []
 
@@ -248,6 +249,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
         ikle_both.append(ikle_all2)
         point_all_both.append(point_all2)
         sub_data_all_t.append(data_sub2)
+
+
 
     return ikle_both, point_all_both, sub_data_all_t, vel_both, height_both
 
@@ -427,7 +430,7 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
         # we gives three times the same data
         data_sub_1_cell = []
         for mi in range(0,len(sub_num)):
-            if sub_num[mi] == -1:
+            if sub_num[mi] == -1 or sub_num[mi] == -99:
                 data_sub_1_cell.append(default_sub)
             else:
                 data_sub_1_cell.append(data_sub[sub_num[mi]])
