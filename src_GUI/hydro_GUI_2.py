@@ -623,10 +623,10 @@ class SubHydroW(QWidget):
     def send_err_log(self):
         """
         This function sends the errors and the warnings to the logs.
-        The stdout was redirected to self.mystdout before calling this function. It only sends the fifity first error
+        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
         to avoid freezing the GUI.
         """
-        max_send = 50
+        max_send = 100
         if self.mystdout is not None:
             str_found = self.mystdout.getvalue()
         else:
@@ -636,8 +636,7 @@ class SubHydroW(QWidget):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send-1:
-                self.send_log.emit(self.tr('Warning: too many errors for the GUI'))
-
+                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
 
     def load_manning_text(self):
         """
@@ -1962,8 +1961,12 @@ class SubstrateW(SubHydroW):
         l3 = QLabel(self.tr('If text file used as input:'))
         l7 = QLabel(self.tr('Attribute name (for shapefile):'))
         l5 = QLabel(self.tr('A Voronoi transformation will be applied.'))
-        l4 = QLabel(self.tr('Default substrate:'))
-        self.e1 = QLineEdit()
+        self.l4 = QLabel(self.tr('Constant substrate value:'))
+        l11 = QLabel(self.tr('Default substrate:'))
+        self.e1 = QLineEdit()  # constant substrate value
+        self.e3 = QLineEdit('-99')  # default substrate value
+        self.l4.setDisabled(True)
+        self.e1.setDisabled(True)
 
         # if there was substrate info before, update the label and attibutes
         self.was_model_loaded_before()
@@ -1990,7 +1993,7 @@ class SubstrateW(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.constsub = QRadioButton(self.tr('Set default everywhere'))
+        self.constsub = QRadioButton(self.tr('Create constant substrate'))
         self.constsub.toggled.connect(self.enabledisable_const)
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_sub_gui)
@@ -2020,7 +2023,7 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(self.e2, 2, 1)
         self.layout_sub.addWidget(l3, 5, 0)
         self.layout_sub.addWidget(l5, 5, 1)
-        self.layout_sub.addWidget(l4, 3, 0)
+        self.layout_sub.addWidget(self.l4, 3, 0)
         self.layout_sub.addWidget(self.constsub,3 ,2 )
         self.layout_sub.addWidget(self.e1, 3, 1)
         self.layout_sub.addWidget(lh, 4, 0)
@@ -2032,9 +2035,11 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(self.drop_hyd, 7, 1)
         self.layout_sub.addWidget(l10, 8, 0)
         self.layout_sub.addWidget(self.drop_sub, 8, 1)
-        self.layout_sub.addWidget(self.load_b2, 9, 2)
-        self.layout_sub.addWidget(self.cb2, 9, 1)
-        self.layout_sub.addItem(self.spacer2, 10, 1)
+        self.layout_sub.addWidget(l11, 9, 0)
+        self.layout_sub.addWidget(self.e3,9, 1)
+        self.layout_sub.addWidget(self.load_b2, 10, 2)
+        self.layout_sub.addWidget(self.cb2, 10, 1)
+        self.layout_sub.addItem(self.spacer2, 11, 1)
 
         self.setLayout(self.layout_sub)
 
@@ -2050,6 +2055,9 @@ class SubstrateW(SubHydroW):
             self.h2d_t2.setDisabled(True)
             self.h2d_b.setDisabled(True)
             self.e2.setDisabled(True)
+            # get the possiblity of given a constant value
+            self.l4.setDisabled(False)
+            self.e1.setDisabled(False)
         if not self.constsub.isChecked():
             # all open
             self.h2d_t2.setEnabled(True)
@@ -2057,6 +2065,9 @@ class SubstrateW(SubHydroW):
             blob, ext = os.path.splitext(self.namefile[0])
             if ext == '.shp':
                 self.e2.setDisabled(False)
+            # but disable constant
+            self.l4.setDisabled(True)
+            self.e1.setDisabled(True)
 
     def load_sub_gui(self):
         """
@@ -2336,7 +2347,7 @@ class SubstrateW(SubHydroW):
             hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()-1]
         else:
             hdf5_name_sub = self.sub_name[0]
-        default_data = self.e1.text()
+        default_data = self.e3.text()
 
         # check inputs in the function
         sys.stdout = self.mystdout = StringIO()
@@ -2344,7 +2355,7 @@ class SubstrateW(SubHydroW):
             hdf5_name_hyd, hdf5_name_sub, default_data, self.path_prj)
         sys.stdout = sys.__stdout__
         if ikle_both == [-99]:
-            print('Error: data not merged.')
+            self.send_log.emit('Error: data not merged.')
             return
         # figure
         path_im = self.find_path_im()
@@ -2359,15 +2370,15 @@ class SubstrateW(SubHydroW):
         else:
             name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
         load_hdf5.save_hdf5(name_hdf5merge, self.name_prj, self.path_prj, self.model_type, 2, path_hdf5, ikle_both,
-                            point_all_both, [], inter_vel_all_both, inter_h_all_both,[],[],[],[], True)
+                            point_all_both, [], inter_vel_all_both, inter_h_all_both,[],[],[],[], True, sub_data)
 
         # log
         self.send_err_log()
         # functions if ind is zero also
         self.send_log.emit("py    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
         self.send_log.emit("py    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
-        if len(self.e1.text()) > 0:
-            self.send_log.emit("py    defval='" + self.e1.text() + "'")
+        if len(self.e3.text()) > 0:
+            self.send_log.emit("py    defval='" + self.e3.text() + "'")
         else:
             self.send_log.emit("py    defval=-99")
         self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = substrate.merge_grid_hydro_sub(file_hyd,"
@@ -2375,8 +2386,8 @@ class SubstrateW(SubHydroW):
         self.send_log.emit("restart MERGE_GRID_SUB")
         self.send_log.emit("restart    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
         self.send_log.emit("restart    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
-        if  len(self.e1.text()) > 0:
-            self.send_log.emit("restart    defval='" + self.e1.text() + "'")
+        if  len(self.e3.text()) > 0:
+            self.send_log.emit("restart    defval='" + self.e3.text() + "'")
         else:
             self.send_log.emit("restart    defval=-99")
         if self.cb2.isChecked() and path_im != 'no_path':

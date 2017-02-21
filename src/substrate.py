@@ -210,9 +210,18 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
     elif len(point_all_sub) == 1 and ikle_sub[0][0] == 0:
         # if constant substrate, the hydrological grid is used
         print('Warning: Constant substrate.')
-        # not done yet
-        sub_data = None
-        return ikle_all, point_all, sub_data, inter_vel_all, inter_height_all
+        for t in range(0, len(ikle_all)):
+            sub_data_all = []
+            if len(ikle_all[t]) > 0:
+                for r in range(0, len(ikle_all[t])):
+                    try:
+                        sub_data_here = np.zeros(len(ikle_all[t][r]),) + float(default_data) # check if ok for float
+                    except ValueError:
+                        print('Error: no float in substrate. (only float accepted fro now)')
+                        return failload
+                    sub_data_all.append(sub_data_here)
+            sub_data_all_t.append(sub_data_all)
+        return ikle_all, point_all, sub_data_all_t, inter_vel_all, inter_height_all
     elif len(ikle_sub[0]) < 3:
         print('Error: the connectivity table of the substrate is badly formed.')
         return failload
@@ -240,9 +249,13 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
                 pc = np.array(pc)
 
                 if len(pc) < 1:
-                    print('Warning: No intersection between the grid and the substrate.\n')
-                    sub_data_p = [default_data]*len(point_before)
-                    sub_data_all_t.append(sub_data_p)
+                    print('Warning: No intersection between the grid and the substrate for one reach.\n')
+                    try:
+                        sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)  # check if ok for float
+                    except ValueError:
+                        print('Error: no float in substrate. (only float accepted fro now)')
+                        return failload
+                    sub_data_all_t.append(sub_data_here)
                     ikle_all2.append(ikle_before)
                     point_all2.append(point_before)
                     break # next time step
@@ -441,8 +454,9 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
                     pc.append(p_cross)
             # # pc.append(hyd1)
 
-        # give the substrate data
-        # if one hydrological triangle in one substrate cell (sinple case),
+        # prepare the substrate data
+        # three value for each cells (one by triangle)
+        # if one hydrological triangle in one substrate cell (simple case),
         # we gives three times the same data
         data_sub_1_cell = []
         for mi in range(0,len(sub_num)):

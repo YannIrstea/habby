@@ -300,7 +300,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
 
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
-              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False):
+              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_data_all_t=[]):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -319,8 +319,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param coord_pro: data linked with 1.5D model or data created by dist_vist from a 1D model (profile data)
     :param vh_pro: data linked with 1.5D model or data created by dist_vist from a 1D model (velcoity and height data)
     :param nb_pro_reach: data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)
-    :param merge: If True, the data is coming from the merging of substrate and hydrological data. The only difference
-           is the xml attribute.
+    :param merge: If True, the data is coming from the merging of substrate and hydrological data.
+    :param sub_data_all_t: the data of the substrate given on the merged grid by cell. Only used if merge is True.
 
     **Technical comments**
 
@@ -432,10 +432,17 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                                                   data=inter_vel_all_t[t][r])
                 # height
                 inter_hg= rhere.create_group('inter_h_all')
-                if len(inter_h_all_t):
+                if len(inter_h_all_t) >0:
                     if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
                         inter_hg.create_dataset(h5name, [len(inter_h_all_t[t][r]), 1],
                                                 data=inter_h_all_t[t][r])
+                # substrate data in the case it is a merged grid
+                if merge:
+                    data_subg = rhere.create_group('data_substrate')
+                    if len(sub_data_all_t)>0:
+                        if len(sub_data_all_t[t]) > 0 and not isinstance(sub_data_all_t[t][0], float):
+                            data_subg.create_dataset(h5name, [len(sub_data_all_t[t][r]), 1],
+                                                data=sub_data_all_t[t][r])
 
     file.close()
 
