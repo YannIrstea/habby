@@ -300,7 +300,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
 
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
-              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[]):
+              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -319,7 +319,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param coord_pro: data linked with 1.5D model or data created by dist_vist from a 1D model (profile data)
     :param vh_pro: data linked with 1.5D model or data created by dist_vist from a 1D model (velcoity and height data)
     :param nb_pro_reach: data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)
-
+    :param merge: If True, the data is coming from the merging of substrate and hydrological data. The only difference
+           is the xml attribute.
 
     **Technical comments**
 
@@ -423,22 +424,18 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                 if len(point_c_all_t)>0:
                     if len(point_c_all_t[t]) > 0 and not isinstance(point_c_all_t[t][0], float):
                         point_cg.create_dataset(h5name, [len(point_c_all_t[t][r]), 2], data=point_c_all_t[t][r])
-                #velocity
-                rhere.create_group('inter_vel_all')
+                # velocity
+                inter_velg = rhere.create_group('inter_vel_all')
                 if len(inter_vel_all_t)>0:
                     if len(inter_vel_all_t[t]) > 0 and not isinstance(inter_vel_all_t[t][0], float):
-                        inter_velg = rhere.create_group('inter_vel_all')
                         inter_velg.create_dataset(h5name, [len(inter_vel_all_t[t][r]), 1],
                                                   data=inter_vel_all_t[t][r])
                 # height
-                rhere.create_group('inter_h_all')
+                inter_hg= rhere.create_group('inter_h_all')
                 if len(inter_h_all_t):
                     if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
-                        inter_hg = rhere.create_group('inter_h_all')
                         inter_hg.create_dataset(h5name, [len(inter_h_all_t[t][r]), 1],
                                                 data=inter_h_all_t[t][r])
-
-
 
     file.close()
 
@@ -452,16 +449,25 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
         root = doc.getroot()
         child = root.find(".//" + model_type)
         if child is None:
-            stathab_element = ET.SubElement(root, model_type)
-            hdf5file = ET.SubElement(stathab_element, "hdf5_hydrodata")
+            here_element = ET.SubElement(root, model_type)
+            if not merge:
+                hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
+            else:
+                hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
             if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
                 hdf5file.text = h5name
             else:
                 hdf5file.text = fname
         else:
-            hdf5file = root.find(".//" + model_type + "/hdf5_hydrodata")
+            if not merge:
+                hdf5file = root.find(".//" + model_type + "/hdf5_hydrodata")
+            else:
+                hdf5file = root.find(".//" + model_type + "/hdf5_mergedata")
             if hdf5file is None:
-                hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+                if not merge:
+                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+                else:
+                    hdf5file = ET.SubElement(child, "hdf5_mergedata")
                 if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
                     hdf5file.text = h5name
                 else:

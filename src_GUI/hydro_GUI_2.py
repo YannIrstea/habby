@@ -623,16 +623,21 @@ class SubHydroW(QWidget):
     def send_err_log(self):
         """
         This function sends the errors and the warnings to the logs.
-        The stdout was redirected to self.mystdout.
+        The stdout was redirected to self.mystdout before calling this function. It only sends the fifity first error
+        to avoid freezing the GUI.
         """
+        max_send = 50
         if self.mystdout is not None:
             str_found = self.mystdout.getvalue()
         else:
             return
         str_found = str_found.split('\n')
-        for i in range(0, len(str_found)):
+        for i in range(0, min(len(str_found), max_send)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
+            if i == max_send-1:
+                self.send_log.emit(self.tr('Warning: too many errors for the GUI'))
+
 
     def load_manning_text(self):
         """
@@ -1942,8 +1947,10 @@ class SubstrateW(SubHydroW):
         self.ikle_sub = []
         self.sub_info = []
         self.hyd_name = []
-        self.init_iu()
+        self.max_lengthshow = 90  # the maximum length of a file name to be show in full
         self.nb_dim = 10  # just to ckeck
+
+        self.init_iu()
 
     def init_iu(self):
         """
@@ -2000,7 +2007,7 @@ class SubstrateW(SubHydroW):
         self.spacer2 = QSpacerItem(1, 180)
         self.cb2 = QCheckBox(self.tr('Show figures'), self)
 
-        # get possible substrate and hydro hdf5 from the project file
+        # get possible substrate from the project file
         self.update_sub_hdf5_name()
 
         # layout
@@ -2145,7 +2152,8 @@ class SubstrateW(SubHydroW):
 
     def update_sub_hdf5_name(self):
         """
-        This function update the QComBox on substrate data which is on the stubstrate tab.
+        This function update the QComBox on substrate data which is on the stubstrate tab. The similiar function
+        for hydrology is in Main_Windows_1.py as it is more practical to have it there to collect all the signals.
         """
         self.sub_name = self.read_attribute_xml('hdf5_substrate')
         self.sub_name = self.sub_name.split(',')
@@ -2159,7 +2167,10 @@ class SubstrateW(SubHydroW):
         for i in range(0, len(self.sub_name)):
             if i == 0 and len(self.sub_name) > 1:
                 self.drop_sub.addItem(' ')
-            self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+            if len(self.sub_name[i])> self.max_lengthshow:
+                self.drop_sub.addItem(os.path.basename(self.sub_name[i][:self.max_lengthshow]))
+            else:
+                self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
 
     def get_attribute_from_shp(self):
         """
@@ -2215,7 +2226,8 @@ class SubstrateW(SubHydroW):
     def save_hdf5_sub(self, constsub=False):
         """
         This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
-        xml project file. The format of the hdf5 file is not finalzed yet so it is not documented.
+        xml project file. The format of the hdf5 file is not finalzed yet so it is not documented. This hdf5 file
+        is only for the substrate, not for the merged grid.
 
         :param constsub: If constsub is True, the hdf5 created will only account for a constant value
         """
@@ -2329,8 +2341,11 @@ class SubstrateW(SubHydroW):
         # check inputs in the function
         sys.stdout = self.mystdout = StringIO()
         [ikle_both, point_all_both, sub_data, inter_vel_all_both, inter_h_all_both] = substrate.merge_grid_hydro_sub(
-            hdf5_name_hyd, hdf5_name_sub,default_data, self.path_prj)
+            hdf5_name_hyd, hdf5_name_sub, default_data, self.path_prj)
         sys.stdout = sys.__stdout__
+        if ikle_both == [-99]:
+            print('Error: data not merged.')
+            return
         # figure
         path_im = self.find_path_im()
         if self.cb2.isChecked() and path_im != 'no_path':
@@ -2339,26 +2354,35 @@ class SubstrateW(SubHydroW):
 
         # save hdf5
         path_hdf5 = os.path.dirname(hdf5_name_hyd)
-        name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
+        if len(os.path.basename(hdf5_name_hyd)) > 25:
+            name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-25]  # take out the date in most case
+        else:
+            name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
         load_hdf5.save_hdf5(name_hdf5merge, self.name_prj, self.path_prj, self.model_type, 2, path_hdf5, ikle_both,
-                            point_all_both, [], inter_vel_all_both, inter_h_all_both)
+                            point_all_both, [], inter_vel_all_both, inter_h_all_both,[],[],[],[], True)
 
         # log
         self.send_err_log()
         # functions if ind is zero also
         self.send_log.emit("py    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
         self.send_log.emit("py    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
-        self.send_log.emit("py    defval='" + self.e1.text() + "'")
+        if len(self.e1.text()) > 0:
+            self.send_log.emit("py    defval='" + self.e1.text() + "'")
+        else:
+            self.send_log.emit("py    defval=-99")
         self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = substrate.merge_grid_hydro_sub(file_hyd,"
                            " file_sub, defval)\n")
         self.send_log.emit("restart MERGE_GRID_SUB")
         self.send_log.emit("restart    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
         self.send_log.emit("restart    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
-        self.send_log.emit("restart    defval='" + self.e1.text() + "'")
+        if  len(self.e1.text()) > 0:
+            self.send_log.emit("restart    defval='" + self.e1.text() + "'")
+        else:
+            self.send_log.emit("restart    defval=-99")
         if self.cb2.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
 
-        # save the data in a new hdf5
+
 
 
 

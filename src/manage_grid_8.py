@@ -1197,10 +1197,10 @@ def inside_polygon(seg_poly, point):
     """
 
     # the direction of the ray does not matter
-    ray = [point, [point[0], 1e7]]
+    ray = [point, [point[0], 1e5*abs(point[0])]]
     inter_count = 0
     for s in range(0, len(seg_poly)):
-        [inter, blob] = intersection_seg(seg_poly[s][0], seg_poly[s][1], ray[0], ray[1])
+        [inter, blob] = intersection_seg(seg_poly[s][0], seg_poly[s][1], ray[0], ray[1], False, 0)
         if inter:
             inter_count +=1
     if inter_count % 2 == 0:
@@ -1209,7 +1209,7 @@ def inside_polygon(seg_poly, point):
         return True
 
 
-def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
+def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True, wig=10e-8):
     """
     This function finds if there is an intersection between two segment (AB and CD). Idea from :
     http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
@@ -1223,6 +1223,7 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     :param p1sub: point C
     :param p2sub: point D
     :param col: if True, colinear segment crossed. If false, they do not cross
+    :param wig: "wiggle room", how precise should the calculation be (careful, complicated!)
     :return: intersect (True or False) and the crossing point (if True, empty is False)
     """
     inter = False
@@ -1234,7 +1235,6 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True):
     x2sub = p2sub[0]
     y1sub = p1sub[1]
     y2sub = p2sub[1]
-    wig = 10e-8 # uncertainties
     pc = []  # the crossing point
     #if the start or the end of segment are the same, crossing if col is True
     #if col = False not crossing

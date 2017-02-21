@@ -134,7 +134,7 @@ class MainWindows(QMainWindow):
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # set geometry
-        self.setGeometry(200, 200, 800, 600)
+        self.setGeometry(200, 200, 700, 600)
         self.setCentralWidget(self.central_widget)
         self.show()
 
@@ -1162,7 +1162,10 @@ class CentralW(QWidget):
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
         self.vbar = self.scroll.verticalScrollBar()
         self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
+        self.max_lengthshow = 90
+
         self.init_iu()
+
 
     def init_iu(self):
         """
@@ -1475,8 +1478,12 @@ class CentralW(QWidget):
             if i == 0 and len(self.hyd_name) > 1:
                 self.substrate_tab.drop_hyd.addItem(' ')
             if os.path.isfile(self.hyd_name[i]):
-                self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
-                self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+                if len(self.hyd_name[i]) > self.max_lengthshow:
+                    self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
+                    self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
+                else:
+                    self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+                    self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
 
 class WelcomeW(QWidget):
