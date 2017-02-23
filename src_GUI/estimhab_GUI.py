@@ -6,22 +6,19 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
+    QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox
 import h5py
 import sys
 from io import StringIO
 
-class EstimhabW(QWidget):
-    """
-    The Estimhab class provides the graphical interface for the version of the Estimhab model written in HABBY.
-    The Estimhab model is described elsewhere. EstimhabW() just loads the data for Estimhab given by the user.
-    """
 
-    save_signal_estimhab = pyqtSignal()
+class StatModUseful(QWidget):
     """
-    PyQtsignal to save the Estimhab data.
+    This class is not called directly by HABBY, but it is the parent class of EstihabW and FstressW. As fstress and
+    estimhab have a similar graphical user interface, this architecture allows to re-use some functions between the
+    two classes, which saves a bit of coding.
     """
     send_log = pyqtSignal(str, name='send_log')
     """
@@ -32,8 +29,7 @@ class EstimhabW(QWidget):
     PyQtsignal to show the figures.
     """
 
-    def __init__(self, path_prj, name_prj):
-
+    def __init__(self):
         self.path_bio = './/biology'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
@@ -43,23 +39,91 @@ class EstimhabW(QWidget):
         self.eh2 = QLineEdit()
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
-        self.eq50 = QLineEdit()
-        self.esub = QLineEdit()
         self.list_f = QListWidget()
         self.list_s = QListWidget()
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.VH = []
-        self.SPU = []
         self.msge = QMessageBox()
         self.fish_selected = []
 
         super().__init__()
+
+    def add_fish(self):
+        """
+        The function is used to select a new fish species (or inverterbrate)
+        """
+        items = self.list_f.selectedItems()
+        if items:
+            for i in range(0, len(items)):
+                # avoid to have the same fish multiple times
+                if items[i].text() in self.fish_selected:
+                    pass
+                else:
+                    self.list_s.addItem(items[i].text())
+                    self.fish_selected.append(items[i].text())
+
+    def remove_fish(self):
+        """
+        The function is used to remove fish species (or inverterbates species)
+        """
+        item = self.list_s.takeItem(self.list_s.currentRow())
+        self.fish_selected.remove(item.text())
+        item = None
+
+    def find_path_im_est(self):
+        """
+        A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.
+        Do not mix it up
+
+        :return: path_im a string which indicates the path to the folder where are save the images.
+        """
+        # to insure the existence of a path
+        path_im = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Figure")
+            if child is None:
+                path_im = os.path.join(self.path_prj, self.name_prj)
+            else:
+                path_im = child.text
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
+            self.msg2.setText( \
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_im
+
+
+class EstimhabW(StatModUseful):
+    """
+    The Estimhab class provides the graphical interface for the version of the Estimhab model written in HABBY.
+    The Estimhab model is described elsewhere. EstimhabW() just loads the data for Estimhab given by the user.
+    """
+
+    save_signal_estimhab = pyqtSignal()
+    """
+    PyQtsignal to save the Estimhab data.
+    """
+
+    def __init__(self, path_prj, name_prj):
+
+        self.eq50 = QLineEdit()
+        self.esub = QLineEdit()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.VH = []
+        self.SPU = []
+        super().__init__()
         self.init_iu()
+
 
     def init_iu(self):
         """
-        This function is used to initialized an instance of the EstimhabW() class. It is called be __init__().
+        This function is used to initialized an instance of the EstimhabW() class. It is called by __init__().
 
          **Technical comments and walk-through**
 
@@ -69,7 +133,7 @@ class EstimhabW(QWidget):
          file was saved for Estimhab. If yes, the hdf5 file is read.
 
          The format of hdf5 file is relatively simple. Each input data for Estimhab has its own dataset (qmes, hmes,
-         wmes, q50, qrange, and substrate).  Then, we a list of string which are a code for the fish species which
+         wmes, q50, qrange, and substrate).  Then, we have a list of string which are a code for the fish species which
          were analyzed.  All the data contained in hdf5 file is loaded into variable.
 
          The different label are written on the graphical interface. Then, two QListWidget are modified. The first
@@ -91,7 +155,7 @@ class EstimhabW(QWidget):
         # load the data if it exist already
         self.open_estimhab_hdf5()
 
-        # Data hydrological
+        # Data hydrological (QLineEdit in the init of StatModUseful)
         l1 = QLabel(self.tr('<b>Hydrological Data</b>'))
         l2 = QLabel(self.tr('Q [m3/sec]'))
         l3 = QLabel(self.tr('Width [m]'))
@@ -130,6 +194,8 @@ class EstimhabW(QWidget):
         button2.clicked.connect(self.change_folder)
         button3 = QPushButton(self.tr('Save Selected Fish'), self)
         button3.clicked.connect(self.save_signal_estimhab.emit)
+
+        #layout
         self.layout3 = QGridLayout()
         self.layout3.addWidget(l1, 0, 0)
         self.layout3.addWidget(l2, 1, 0)
@@ -329,53 +395,4 @@ class EstimhabW(QWidget):
         if path_im != 'no_path':
             self.show_fig.emit()
 
-    def add_fish(self):
-        """
-        The function is used to select a new fish species
-        """
-        items = self.list_f.selectedItems()
-        if items:
-            for i in range(0,len(items)):
-                # avoid to have the same fish multiple times
-                if items[i].text() in self.fish_selected:
-                    pass
-                else:
-                    self.list_s.addItem(items[i].text())
-                    self.fish_selected.append(items[i].text())
 
-    def remove_fish(self):
-        """
-        The function is used to remove fish species
-        """
-        item = self.list_s.takeItem(self.list_s.currentRow())
-        self.fish_selected.remove(item.text())
-        item = None
-
-    def find_path_im_est(self):
-        """
-        A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.
-        Do not mix it up
-
-        :return: path_im a string which indicates the path to the folder where are save the images.
-        """
-        # to insure the existence of a path
-        path_im = 'no_path'
-
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            child = root.find(".//Path_Figure")
-            if child is None:
-                path_im = os.path.join(self.path_prj, self.name_prj)
-            else:
-                path_im = child.text
-        else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-
-        return path_im

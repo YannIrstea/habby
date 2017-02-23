@@ -620,7 +620,8 @@ class StathabW(QWidget):
 
     def add_all_fish(self):
         """
-        This function add the name of all known fish (the ones in Pref.txt) to the QListWidget.
+        This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. Careful,
+        a similar function exists in Fstress_GUI. Modify both if needed.
         """
         if self.fishall.isChecked():
 

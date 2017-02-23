@@ -25,6 +25,7 @@ from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
 from src_GUI import output_fig_GUI
 from src_GUI import bio_info_GUI
+from src_GUI import fstress_GUI
 
 
 class MainWindows(QMainWindow):
@@ -497,6 +498,8 @@ class MainWindows(QMainWindow):
         self.central_widget.hydro_tab.habbyhdf5.path_prj= self.path_prj
         self.central_widget.stathab_tab.mystathab.path_prj = self.path_prj
         self.central_widget.stathab_tab.mystathab.name_prj = self.name_prj
+        self.central_widget.fstress_tab.path_prj = self.path_prj
+        self.central_widget.fstress_tab.name_prj = self.name_prj
 
         self.central_widget.add_all_tab()
         # write log
@@ -876,7 +879,7 @@ class MainWindows(QMainWindow):
         if not os.path.isfile(fnamep):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save project"))
-            self.msg2.setText(self.tr("The project is not saved. Save the project in the General tab before saving ESTIMHAB data"))
+            self.msg2.setText(self.tr("The project is not saved. Save the project in the start tab before saving ESTIMHAB data"))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
@@ -1154,6 +1157,7 @@ class CentralW(QWidget):
         self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
         self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
         self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj)
+        self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
         self.scroll = QScrollArea()
@@ -1165,7 +1169,6 @@ class CentralW(QWidget):
         self.max_lengthshow = 90
 
         self.init_iu()
-
 
     def init_iu(self):
         """
@@ -1187,6 +1190,7 @@ class CentralW(QWidget):
         self.stathab_tab.show_fig.connect(self.showfig)
         self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
         self.hydro_tab.mascar.show_fig.connect(self.showfig)
+        self.fstress_tab.show_fig.connect(self.showfig)
 
         # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
         self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
@@ -1274,6 +1278,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.output_tab, self.tr("Output"))
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
+            self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
@@ -1335,6 +1340,7 @@ class CentralW(QWidget):
         self.output_tab.send_log.connect(self.write_log)
         self.bioinfo_tab.send_log.connect(self.write_log)
         self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
+        self.fstress_tab.send_log.connect(self.write_log)
 
     def write_log(self, text_log):
         """

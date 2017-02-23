@@ -50,7 +50,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_prj = ''):
     inter_height_all = []
     failload = [[-99]], [[-99]], [[-99]], [[-99]]
 
-    # open the file with checking ofr the path
+    # open the file with checking for the path
     if os.path.isabs(hdf5_name_hyd):
         file_hydro = open_hdf5(hdf5_name_hyd)
     else:
