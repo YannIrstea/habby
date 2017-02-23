@@ -11,6 +11,7 @@ import os
 from io import StringIO
 from src_GUI import estimhab_GUI
 from src import fstress
+import numpy as np
 
 
 class FstressW(estimhab_GUI.StatModUseful):
@@ -82,7 +83,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.list_f.itemClicked.connect(self.add_fish)
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_s.itemClicked.connect(self.remove_fish)
-        self.fishall = QCheckBox(self.tr('Select all fishes'), self)
+        self.fishall = QCheckBox(self.tr('Select all species'), self)
         self.fishall.stateChanged.connect(self.add_all_fish)
 
         # run model
@@ -169,12 +170,16 @@ class FstressW(estimhab_GUI.StatModUseful):
             hdf5_path = self.path_prj
             hdf5_name = hdf5_infoname
 
-        # if yes, loads the hdf5
-        [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress.read_fstress_hdf5(hdf5_name, hdf5_path)
+        # if exists, loads the hdf5
+        if os.path.isfile(os.path.join(hdf5_path,hdf5_name)):
+            [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress.read_fstress_hdf5(hdf5_name, hdf5_path)
+        else:
+            return
 
         # and show the results on the gui if it counld be loaded without problem
         if len(self.qhw) > 0 and self.qhw != [-99]:
             self.show_data_one_river()
+            self.update_list_riv()
 
     def modify_name(self):
         """
@@ -268,7 +273,16 @@ class FstressW(estimhab_GUI.StatModUseful):
         """
         In this function, the user select a qhw.txt or a listriv.txt file. This files are loaded and written on the GUI.
         If a listriv.txt is selected, the river in lisriv.txt are loaded. If a qhw.txt is loaded and if there are
-        more than one qhw.txt in the folder, we ask the user if all files must be loaded.
+        more than one qhw.txt in the folder, we ask the user if all files must be loaded. The needed text files are
+        the following:
+
+        *listriv.txt is a text file with one river name by line (not necessary)
+        *rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
+        2 measureement (necessary)
+        *rivernamedeb.txt is a text file which has two line, The first is min discharge and the second is the maximum
+        discharge to be modelled. It is chosen by the user (necessary to run, but can be given by the user on the GUI)
+
+        All data should be in SI unit.
         """
         self.found_file = []
         self.riv_name = []
@@ -514,44 +528,21 @@ class FstressW(estimhab_GUI.StatModUseful):
         found.
         """
 
-        # open file
-        filenamebio = os.path.join(self.path_bio, self.name_bio)
-        if os.path.isfile(filenamebio):
-            with open(filenamebio, 'rt') as f:
-                data_inv = f.read()
-        else:
-            self.end_log.emit('Error: No preference file for FStress. To use FStress, add a preference file and restart '
-                              'HABBY.')
-            return
-        data_inv = data_inv.split('\n')
+        sys.stdout = mystdout = StringIO()
+        [self.pref_inver, self.all_inv_name] = fstress.read_pref(self.path_bio, self.name_bio)
+        sys.stdout = sys.__stdout__
+        # log
+        str_found = mystdout.getvalue()
+        str_found = str_found.split('\n')
+        for i in range(0, len(str_found)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
 
-        # get the data by invertebrate species
-        if len(data_inv) == 0:
-            self.end_log.emit('Error: No invertebrate found in the preference file for FStress. To use FStress, add a '
-                              'correct preference file and restart HABBY.')
-            return
-        for i in range(0, len(data_inv)):
-            data_this_inv = data_inv[i]
-            if len(data_this_inv)>0:
-                data_this_inv = data_this_inv.split()
-                if len(data_this_inv) != 21:  # number of FStress point + name
-                    self.send_log.emit('Warning: A preference curve for FStress is not composed of 20 data')
-                # get the invertebrate name
-                self.all_inv_name.append(data_this_inv[0].strip())
-                # get the pref
-                try:
-                    data_this_inv = list(map(float,data_this_inv[1:]))
-                except ValueError:
-                    self.end_log.emit(
-                        'Error: The preference file for FStress could not be read. To use FStress, add a correct '
-                        'preference file and restart HABBY.')
-                    return
-                self.pref_inver.append(data_this_inv)
         # show the fish name
         self.list_f.addItems(self.all_inv_name)
 
-        self.pref_found = True
-
+        if self.pref_inver != [-99]:
+            self.pref_found = True
 
     def runsave_fstress(self):
         """
@@ -559,12 +550,100 @@ class FstressW(estimhab_GUI.StatModUseful):
         link between the GUI and fstress.py.
         """
 
-        # WORK IN PROGRESS
+        # get the name of the selected fish
+        fish_list = []
+        for i in range(0, self.list_s.count()):
+            fish_item = self.list_s.item(i)
+            fish_item_str = fish_item.text()
+            fish_list.append(fish_item_str)
 
-        data_hydro = [[self.eq1.text(), self.eh1.text(), self.ew1.text()], [self.eq2.text(), self.eh2.text(),
-                                                                            self.ew2.text()]]
-        qrange = [self.eqmin.text(), self.eqmax.text()]
+        # check internal logic ( a bit like estihab)
+        if not fish_list:
+            self.msge.setIcon(QMessageBox.Warning)
+            self.msge.setWindowTitle(self.tr("run FStress"))
+            self.msge.setText(self.tr("No fish selected. Cannot run FStress."))
+            self.msge.setStandardButtons(QMessageBox.Ok)
+            self.msge.show()
+            return
 
-        fstress.save_fstress(self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                             data_hydro, qrange, fish_list)
-        fstress.read_fstress_hdf5()
+        print(self.riv_name)
+        for i in range(0, len(self.riv_name)):
+            print(i)
+            if len(self.qrange[i]) < 2:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("run FStress"))
+                self.msge.setText(self.tr("No discharge range. Cannot run FStress."))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+                return
+            if self.qrange[i][0] >= self.qrange[i][1]:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("run FStress"))
+                self.msge.setText(self.tr("Minimum dicharge bigger or equal to max discharge. Cannot run FStress."))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+                return
+            if self.qhw[i][1][0] == self.qhw[i][0][0]:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("run FStress"))
+                self.msge.setText(self.tr("Estimhab needs two different measured discharge."))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+                return
+            if self.qhw[i][0][2] == self.qhw[i][1][2]:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("run FStress"))
+                self.msge.setText(self.tr("FStress needs two different measured height."))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+                return
+            if self.qhw[i][0][1] == self.qhw[i][1][1]:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("run FStress"))
+                self.msge.setText(self.tr("FStress needs two different measured width."))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+                return
+
+        # run
+        sys.stdout = mystdout = StringIO()
+        [vh, qmod, inv_select] = fstress.run_fstress(self.qhw, self.qrange, self.riv_name, fish_list, self.pref_inver,
+                                                     self.all_inv_name, self.name_prj, self.path_prj)
+        sys.stdout = sys.__stdout__
+
+        # figure
+        self.path_im = self.find_path_im_est()
+        fstress.figure_fstress(qmod, vh, inv_select, self.path_im, self.riv_name)
+        self.show_fig.emit()
+        fstress.write_txt(qmod, vh, inv_select, self.path_im, self.riv_name)
+
+        # log
+        str_found = mystdout.getvalue()
+        str_found = str_found.split('\n')
+        for i in range(0, len(str_found)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+        self.send_log.emit(self.tr('# Run: FStress'))
+        strhydro = np.array_str(np.array(self.qhw))
+        self.send_log.emit("py    data = " + strhydro)
+        strhydro2 = np.array_str(np.array(self.qrange))
+        self.send_log.emit("py    qrange =" + strhydro2)
+        self.send_log.emit("py    path1='" + self.path_bio + "'")
+        fish_list_str = "py    fish_list = ["
+        for i in range(0, len(fish_list)):
+            fish_list_str += "'" + fish_list[i] + "',"
+        fish_list_str = fish_list_str[:-1] + ']'
+        self.send_log.emit(fish_list_str)
+        riv_name_str = "py    riv_name = ["
+        for i in range(0, len(self.riv_name)):
+            riv_name_str += "'" + fish_list[i] + "',"
+        riv_name_str= riv_name_str[:-1] + ']'
+        self.send_log.emit(riv_name_str)
+        self.send_log.emit("py    [pref_inver, all_inv_name] = read_pref('/biology', 'pref_fstress.txt')")
+        self.send_log.emit("py    [vh, qmod, inv_select] = fstress.run_fstress(data, qrange, riv_name, fish_list, "
+                           "pref_inver, all_inv_name, name_prj, path_prj")
+        self.send_log.emit("py    fstress.figure_fstress(qmod, vh, inv_select,'.', riv_name)")
+        self.send_log.emit("restart FStress")
+
+
+

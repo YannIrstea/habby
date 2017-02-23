@@ -785,7 +785,7 @@ class Stathab:
             plt.plot(q_orr, j[e, :], '-', label=self.fish_chosen[e] + '(Python)')
         plt.xlabel('Q [m$^{3}$3/sec]')
         plt.ylabel('J')
-        plt.title('Suitability index J')
+        plt.title('Suitability index J - STATHAB')
         lgd = plt.legend(bbox_to_anchor=(1, 1), loc='upper right', ncol=1)
     
         plt.show()
