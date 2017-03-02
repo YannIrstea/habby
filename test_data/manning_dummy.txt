@@ -1,0 +1,5 @@
+# dummy data to load manning by text
+0, 34, 0.025
+0, 135, 0.035
+5, 23, 0.025
+5, 200, 0.025

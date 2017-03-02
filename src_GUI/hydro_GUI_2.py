@@ -2155,27 +2155,26 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
                 self.send_log.emit("py    file1='" + self.namefile[0] + "'")
                 self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-                self.send_log.emit("py    attr='" + self.name_att + "'")
-                self.send_log.emit("py    [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(file1, path1, attr)\n")
+                self.send_log.emit("py    type='" + code_type + "'")
+                self.send_log.emit("py    [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(file1, path1, type)\n")
                 self.send_log.emit("restart LOAD_SUB_SHP")
                 self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-                self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[0], self.namefile[0]))
-                self.send_log.emit("restart    attr: " + self.name_att)
+                self.send_log.emit("restart    code_type: " + code_type)
                 # figure
                 if self.cb.isChecked():
                     substrate.fig_substrate(self.coord_p, self.ikle_sub,  sub_dom, self.sub_info, path_im)
 
             # if the substrate data is a text form
             elif ext == '.txt' or ext == ".asc":
-                #sys.stdout = self.mystdout = StringIO()
+                sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, self.sub_info, x, y, sub1, sub2] = \
                     substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type)
-                #sys.stdout = sys.__stdout__
+                sys.stdout = sys.__stdout__
                 if self.ikle_sub == [-99]:
                     self.send_log.emit('Error: Substrate data not loaded')
                     self.load_b.setDisabled(False)
                     return
-                self.log_txt()
+                self.log_txt(code_type)
                 if self.cb.isChecked():
                     substrate.fig_substrate(self.coord_p, self.ikle_sub, sub_dom, self.sub_info, path_im, x, y, sub1)
             # case unknown
@@ -2248,7 +2247,7 @@ class SubstrateW(SubHydroW):
             self.e2.setDisabled(True)
             self.e2.clear()
 
-    def log_txt(self):
+    def log_txt(self, code_type):
         """
         This function gives the log for the substrate in text form. this is in a function because it is used twice in
         the function load_sub_gui()
@@ -2262,9 +2261,12 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit(str_found[i])
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(file1, path1)\n")
+        self.send_log.emit("py    type='" + code_type + "'")
+        self.send_log.emit("py    [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(file1, path1,"
+                           " code_type)\n")
         self.send_log.emit("restart LOAD_SUB_TXT")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    code_type: " + code_type)
 
     def get_att_name(self):
         """
@@ -2323,7 +2325,7 @@ class SubstrateW(SubHydroW):
 
             # create hdf5 name
             fileshort, ext = os.path.splitext(self.namefile[0])
-            h5name = self.name_hdf5 + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            h5name = self.name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
             path_hdf5 = self.find_path_im()
 
             # create a new hdf5

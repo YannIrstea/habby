@@ -433,14 +433,30 @@ def load_sub_txt(filename, path, code_type):
         print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename +'.\n')
         return failload
     # Voronoi
-    point_in = np.array(np.reshape(np.array([x,y]), (len(x), 2)))
-    vor = Voronoi(point_in)  # with the option further_site
+    point_in = np.vstack((np.array(x), np.array(y))).T
+    vor = Voronoi(point_in)
     xy = vor.vertices
     xy = np.reshape(xy, (len(xy), len(xy[0])))
-    xgrid = xy[:,0]
-    ygrid = xy[:,1]
+    xgrid = xy[:, 0]
+    ygrid = xy[:, 1]
     ikle = vor.regions
     ikle = [var for var in ikle if var]  # erase empy element
+    # because Qhul from Vornoi has strange results
+    # it create element with a value -1. this is not the last point!
+    # so we take out all element with -1
+    ikle = [var for var in ikle if len(var) == len([i for i in var if i>0])]
+    # in addition it creates cells which are areally far away for the center
+    ind_bad = []
+    maxxy = [max(x), max(y)]
+    minxy = [min(x), min(y)]
+    i = 0
+    for xyi in xy:
+        if xyi[0] > maxxy[0] or xyi[1] >maxxy[1]:
+            ind_bad.append(i)
+        if xyi[0] < minxy[0] or xyi[1] < minxy[1]:
+            ind_bad.append(i)
+        i+=1
+    ikle = [var for var in ikle if len(var) == len([i for i in var if i not in ind_bad])]
     #voronoi_plot_2d(vor) # figure to debug
     #plt.show()
     # find one sub data by triangle ?
