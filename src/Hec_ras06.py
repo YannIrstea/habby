@@ -14,7 +14,7 @@ from src import load_hdf5
 
 
 def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
-                                     interpo_choice, path_im, save_fig1D, pro_add=1, q=[]):
+                                     interpo_choice, path_im, save_fig1D, pro_add=1, q=[], print_cmd=False):
     """
     This function open the hec_ras data and creates the 2D grid from the 1.5 data. It is called by the class HEC_RAS1D
     in a second thread to not freeze the GUI.
@@ -33,6 +33,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     :param save_fig1D: create and save the figure related to the loading of the data (profile and so on)
     :param pro_add: the number of addictional profile (one used for interpolation_choice 1 and 2)
     :param q: used in the second thread
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
 
     ** Technical comments**
 
@@ -41,7 +42,8 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
 
     """
-    sys.stdout = mystdout = StringIO()
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
     # load the hec-ra data (the function is just below)
     [coord_pro, vh_pro, nb_pro_reach] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
                                                    save_fig1D)
@@ -63,7 +65,8 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     # save the hdf5 file
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
                         point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
-    sys.stdout = sys.__stdout__
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
         return

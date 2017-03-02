@@ -73,8 +73,17 @@ Figure Option - GUI
    
 The Stathab model - GUI
 ------------------------------
+in src_GUI/stathab_GUI.py
 
 .. automodule:: src_GUI.stathab_GUI
+   :members:
+   :undoc-members:
+   
+FStress model - GUI
+------------------------------------
+in src_GUI/fstress_GUI.py
+
+.. automodule:: src_GUI.fstress_GUI
    :members:
    :undoc-members:
    
@@ -306,6 +315,19 @@ the form of the stathab input, please see the pdf document :download:`stathabinf
 .. automodule:: src.stathab_c
    :members:
    :undoc-members:
+   
+FStress - source
+-------------------------
+in src/fstress.py
+
+This module contains the function used to run the model FStress.For an explanation on 
+the form of the FStress text input, please see the last page of the pdf document :download:`stathabinfo <stathabinfo.pdf>`
+ 
+ 
+.. automodule:: src.fstress
+   :members:
+   :undoc-members:
+   
 
 Substrate
 -------------------

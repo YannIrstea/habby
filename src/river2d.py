@@ -10,7 +10,8 @@ from io import StringIO
 import sys
 
 
-def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
+                              print_cmd=False):
     """
     This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
     River2D() in hydro_GUI_2. This function was added as it was practical to have a second thread to avoid freezing
@@ -25,6 +26,7 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
     :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used to send the error back from the second thread (can be used to send other variable too)
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     """
 
     # creation of array
@@ -37,7 +39,8 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
     print('blob2')
 
     # for all time step
-    sys.stdout = mystdout = StringIO()
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
     for i in range(0, len(namefiles)):
         # load river 2d data
         [xyzhv_i, ikle_i, coord_c] = load_river2d_cdg(namefiles[i], paths[i])
@@ -71,9 +74,9 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
     # save data
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
 
-    sys.stdout = sys.__stdout__
-    print('blob')
     if q:
         q.put(mystdout)
         return

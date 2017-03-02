@@ -92,68 +92,81 @@
 \indexentry{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.Rubar2D method)|hyperpage}{18}
 \indexentry{SubHydroW (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{18}
 \indexentry{dis\_enable\_nb\_profile() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{18}
-\indexentry{distribute\_velocity() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{18}
 \indexentry{drop\_hydro (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{18}
 \indexentry{find\_path\_im() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{18}
 \indexentry{gethdf5\_name\_gui() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{18}
-\indexentry{grid\_and\_interpo() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{18}
-\indexentry{load\_manning\_text() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
-\indexentry{read\_attribute\_xml() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
-\indexentry{save\_hdf5() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
-\indexentry{save\_xml() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
-\indexentry{send\_data() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
-\indexentry{send\_err\_log() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
-\indexentry{send\_log (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{20}
-\indexentry{show\_dialog() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
-\indexentry{show\_fig (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{20}
-\indexentry{was\_model\_loaded\_before() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
-\indexentry{SubstrateW (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{21}
-\indexentry{enabledisable\_const() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{get\_att\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{get\_attribute\_from\_shp() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{load\_sub\_gui() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{log\_txt() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{save\_hdf5\_sub() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{send\_merge\_grid() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{update\_sub\_hdf5\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
+\indexentry{load\_manning\_text() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{18}
+\indexentry{read\_attribute\_xml() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{18}
+\indexentry{save\_xml() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
+\indexentry{send\_data() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
+\indexentry{send\_err\_log() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
+\indexentry{send\_log (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{19}
+\indexentry{show\_dialog() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
+\indexentry{show\_fig (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{19}
+\indexentry{was\_model\_loaded\_before() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
+\indexentry{SubstrateW (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{20}
+\indexentry{enabledisable\_const() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{get\_att\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{get\_attribute\_from\_shp() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{load\_sub\_gui() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{log\_txt() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{save\_hdf5\_sub() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{send\_merge\_grid() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
+\indexentry{update\_sub\_hdf5\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{20}
 \indexentry{TELEMAC (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{21}
-\indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.TELEMAC method)|hyperpage}{22}
-\indexentry{load\_telemac\_gui() (src\_GUI.hydro\_GUI\_2.TELEMAC method)|hyperpage}{22}
-\indexentry{src\_GUI.output\_fig\_GUI (module)|hyperpage}{22}
-\indexentry{create\_default\_figoption() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{22}
-\indexentry{load\_fig\_option() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{22}
-\indexentry{outputW (class in src\_GUI.output\_fig\_GUI)|hyperpage}{22}
-\indexentry{init\_iu() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{22}
-\indexentry{save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{22}
-\indexentry{send\_log (src\_GUI.output\_fig\_GUI.outputW attribute)|hyperpage}{22}
-\indexentry{src\_GUI.stathab\_GUI (module)|hyperpage}{22}
-\indexentry{StathabW (class in src\_GUI.stathab\_GUI)|hyperpage}{22}
-\indexentry{add\_all\_fish() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{add\_fish() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{init\_iu() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{load\_from\_hdf5\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{load\_from\_txt\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{reach\_selected() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
-\indexentry{remove\_fish() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
-\indexentry{run\_stathab\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
-\indexentry{select\_dir() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
-\indexentry{select\_hdf5() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
+\indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.TELEMAC method)|hyperpage}{21}
+\indexentry{load\_telemac\_gui() (src\_GUI.hydro\_GUI\_2.TELEMAC method)|hyperpage}{21}
+\indexentry{src\_GUI.output\_fig\_GUI (module)|hyperpage}{21}
+\indexentry{create\_default\_figoption() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{21}
+\indexentry{load\_fig\_option() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{21}
+\indexentry{outputW (class in src\_GUI.output\_fig\_GUI)|hyperpage}{21}
+\indexentry{init\_iu() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{21}
+\indexentry{save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{21}
+\indexentry{send\_log (src\_GUI.output\_fig\_GUI.outputW attribute)|hyperpage}{21}
+\indexentry{src\_GUI.stathab\_GUI (module)|hyperpage}{21}
+\indexentry{StathabW (class in src\_GUI.stathab\_GUI)|hyperpage}{21}
+\indexentry{add\_all\_fish() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{22}
+\indexentry{add\_fish() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{22}
+\indexentry{init\_iu() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{22}
+\indexentry{load\_from\_hdf5\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{22}
+\indexentry{load\_from\_txt\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{22}
+\indexentry{reach\_selected() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
+\indexentry{remove\_fish() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
+\indexentry{run\_stathab\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
+\indexentry{select\_dir() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
+\indexentry{select\_hdf5() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
 \indexentry{send\_err\_log() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
 \indexentry{send\_log (src\_GUI.stathab\_GUI.StathabW attribute)|hyperpage}{24}
-\indexentry{show\_fig (src\_GUI.stathab\_GUI.StathabW attribute)|hyperpage}{25}
+\indexentry{show\_fig (src\_GUI.stathab\_GUI.StathabW attribute)|hyperpage}{24}
+\indexentry{src\_GUI.fstress\_GUI (module)|hyperpage}{24}
+\indexentry{FstressW (class in src\_GUI.fstress\_GUI)|hyperpage}{24}
+\indexentry{add\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{24}
+\indexentry{erase\_name() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{24}
+\indexentry{init\_iu() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{24}
+\indexentry{load\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{24}
+\indexentry{load\_data\_fstress() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{24}
+\indexentry{load\_hdf5\_fstress() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{24}
+\indexentry{load\_txt() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{24}
+\indexentry{modify\_name() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
+\indexentry{runsave\_fstress() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
+\indexentry{save\_river\_data() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
+\indexentry{show\_data\_one\_river() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
+\indexentry{update\_list\_riv() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
+\indexentry{was\_loaded\_before() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
 \indexentry{src\_GUI.estimhab\_GUI (module)|hyperpage}{25}
 \indexentry{EstimhabW (class in src\_GUI.estimhab\_GUI)|hyperpage}{25}
-\indexentry{add\_fish() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{25}
 \indexentry{change\_folder() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{25}
-\indexentry{find\_path\_im\_est() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{25}
 \indexentry{init\_iu() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{25}
-\indexentry{open\_estimhab\_hdf5() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{25}
-\indexentry{remove\_fish() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{25}
-\indexentry{run\_estmihab() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{25}
+\indexentry{open\_estimhab\_hdf5() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{26}
+\indexentry{run\_estmihab() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{26}
 \indexentry{save\_signal\_estimhab (src\_GUI.estimhab\_GUI.EstimhabW attribute)|hyperpage}{26}
-\indexentry{send\_log (src\_GUI.estimhab\_GUI.EstimhabW attribute)|hyperpage}{26}
-\indexentry{show\_fig (src\_GUI.estimhab\_GUI.EstimhabW attribute)|hyperpage}{26}
+\indexentry{StatModUseful (class in src\_GUI.estimhab\_GUI)|hyperpage}{26}
+\indexentry{add\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{26}
+\indexentry{find\_path\_im\_est() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{26}
+\indexentry{remove\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{26}
+\indexentry{send\_log (src\_GUI.estimhab\_GUI.StatModUseful attribute)|hyperpage}{26}
+\indexentry{show\_fig (src\_GUI.estimhab\_GUI.StatModUseful attribute)|hyperpage}{26}
 \indexentry{src (module)|hyperpage}{29}
 \indexentry{src.Hec\_ras06 (module)|hyperpage}{29}
 \indexentry{coord\_profile\_non\_georeferenced() (in module src.Hec\_ras06)|hyperpage}{29}
@@ -163,149 +176,167 @@
 \indexentry{load\_xml() (in module src.Hec\_ras06)|hyperpage}{31}
 \indexentry{main() (in module src.Hec\_ras06)|hyperpage}{31}
 \indexentry{open\_geofile() (in module src.Hec\_ras06)|hyperpage}{31}
-\indexentry{open\_hecras() (in module src.Hec\_ras06)|hyperpage}{32}
-\indexentry{open\_repfile() (in module src.Hec\_ras06)|hyperpage}{33}
-\indexentry{open\_sdffile() (in module src.Hec\_ras06)|hyperpage}{33}
+\indexentry{open\_hec\_hec\_ras\_and\_create\_grid() (in module src.Hec\_ras06)|hyperpage}{32}
+\indexentry{open\_hecras() (in module src.Hec\_ras06)|hyperpage}{33}
+\indexentry{open\_repfile() (in module src.Hec\_ras06)|hyperpage}{34}
+\indexentry{open\_sdffile() (in module src.Hec\_ras06)|hyperpage}{34}
 \indexentry{open\_xmlfile() (in module src.Hec\_ras06)|hyperpage}{34}
-\indexentry{pass\_in\_float\_from\_geo() (in module src.Hec\_ras06)|hyperpage}{34}
+\indexentry{pass\_in\_float\_from\_geo() (in module src.Hec\_ras06)|hyperpage}{35}
 \indexentry{reorder\_reach() (in module src.Hec\_ras06)|hyperpage}{35}
-\indexentry{update\_output() (in module src.Hec\_ras06)|hyperpage}{35}
-\indexentry{src.hec\_ras2D (module)|hyperpage}{36}
-\indexentry{figure\_hec\_ras2d() (in module src.hec\_ras2D)|hyperpage}{36}
+\indexentry{update\_output() (in module src.Hec\_ras06)|hyperpage}{36}
+\indexentry{src.hec\_ras2D (module)|hyperpage}{37}
+\indexentry{figure\_hec\_ras2d() (in module src.hec\_ras2D)|hyperpage}{37}
 \indexentry{get\_triangular\_grid\_hecras() (in module src.hec\_ras2D)|hyperpage}{37}
-\indexentry{load\_hec\_ras2d() (in module src.hec\_ras2D)|hyperpage}{37}
+\indexentry{load\_hec\_ras2d() (in module src.hec\_ras2D)|hyperpage}{38}
 \indexentry{load\_hec\_ras\_2d\_and\_cut\_grid() (in module src.hec\_ras2D)|hyperpage}{38}
-\indexentry{main() (in module src.hec\_ras2D)|hyperpage}{38}
-\indexentry{prepare\_grid() (in module src.hec\_ras2D)|hyperpage}{38}
-\indexentry{scatter\_plot() (in module src.hec\_ras2D)|hyperpage}{38}
-\indexentry{src.mascaret (module)|hyperpage}{39}
-\indexentry{correct\_duplicate() (in module src.mascaret)|hyperpage}{39}
-\indexentry{define\_stream\_network() (in module src.mascaret)|hyperpage}{39}
-\indexentry{figure\_mascaret() (in module src.mascaret)|hyperpage}{39}
-\indexentry{find\_node() (in module src.mascaret)|hyperpage}{40}
-\indexentry{flat\_coord\_pro() (in module src.mascaret)|hyperpage}{40}
-\indexentry{get\_geo\_name\_from\_xcas() (in module src.mascaret)|hyperpage}{40}
-\indexentry{get\_name\_from\_cas() (in module src.mascaret)|hyperpage}{40}
+\indexentry{main() (in module src.hec\_ras2D)|hyperpage}{39}
+\indexentry{prepare\_grid() (in module src.hec\_ras2D)|hyperpage}{39}
+\indexentry{scatter\_plot() (in module src.hec\_ras2D)|hyperpage}{39}
+\indexentry{src.mascaret (module)|hyperpage}{40}
+\indexentry{correct\_duplicate() (in module src.mascaret)|hyperpage}{40}
+\indexentry{define\_stream\_network() (in module src.mascaret)|hyperpage}{40}
+\indexentry{figure\_mascaret() (in module src.mascaret)|hyperpage}{40}
+\indexentry{find\_node() (in module src.mascaret)|hyperpage}{41}
+\indexentry{flat\_coord\_pro() (in module src.mascaret)|hyperpage}{41}
+\indexentry{get\_geo\_name\_from\_xcas() (in module src.mascaret)|hyperpage}{41}
+\indexentry{get\_name\_from\_cas() (in module src.mascaret)|hyperpage}{41}
 \indexentry{is\_this\_res\_on\_the\_profile() (in module src.mascaret)|hyperpage}{41}
-\indexentry{load\_mascaret() (in module src.mascaret)|hyperpage}{41}
-\indexentry{main() (in module src.mascaret)|hyperpage}{41}
-\indexentry{open\_geo\_mascaret() (in module src.mascaret)|hyperpage}{41}
-\indexentry{open\_res\_file() (in module src.mascaret)|hyperpage}{41}
-\indexentry{open\_rub\_file() (in module src.mascaret)|hyperpage}{42}
-\indexentry{profil\_coord\_non\_georef() (in module src.mascaret)|hyperpage}{42}
-\indexentry{river\_coord\_non\_georef\_from\_cas() (in module src.mascaret)|hyperpage}{42}
-\indexentry{river\_coord\_non\_georef\_from\_xcas() (in module src.mascaret)|hyperpage}{42}
-\indexentry{src.river2d (module)|hyperpage}{43}
-\indexentry{figure\_river2d() (in module src.river2d)|hyperpage}{43}
-\indexentry{get\_rid\_of\_lines() (in module src.river2d)|hyperpage}{43}
-\indexentry{load\_river2d\_and\_cut\_grid() (in module src.river2d)|hyperpage}{43}
-\indexentry{load\_river2d\_cdg() (in module src.river2d)|hyperpage}{44}
-\indexentry{main() (in module src.river2d)|hyperpage}{44}
-\indexentry{src.rubar (module)|hyperpage}{44}
-\indexentry{correct\_duplicate\_xy() (in module src.rubar)|hyperpage}{44}
-\indexentry{figure\_rubar1d() (in module src.rubar)|hyperpage}{44}
-\indexentry{figure\_rubar2d() (in module src.rubar)|hyperpage}{45}
-\indexentry{get\_triangular\_grid() (in module src.rubar)|hyperpage}{45}
-\indexentry{load\_coord\_1d() (in module src.rubar)|hyperpage}{45}
-\indexentry{load\_dat\_2d() (in module src.rubar)|hyperpage}{45}
-\indexentry{load\_data\_1d() (in module src.rubar)|hyperpage}{46}
-\indexentry{load\_mai\_1d() (in module src.rubar)|hyperpage}{46}
-\indexentry{load\_mai\_2d() (in module src.rubar)|hyperpage}{46}
-\indexentry{load\_rubar1d() (in module src.rubar)|hyperpage}{46}
-\indexentry{load\_rubar2d() (in module src.rubar)|hyperpage}{47}
-\indexentry{load\_rubar2d\_and\_create\_grid() (in module src.rubar)|hyperpage}{47}
-\indexentry{load\_tps\_2d() (in module src.rubar)|hyperpage}{47}
-\indexentry{m\_file\_load\_coord\_1d() (in module src.rubar)|hyperpage}{48}
-\indexentry{main() (in module src.rubar)|hyperpage}{48}
-\indexentry{src.selafin\_habby1 (module)|hyperpage}{48}
-\indexentry{Selafin (class in src.selafin\_habby1)|hyperpage}{48}
-\indexentry{addcontent() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{appendcoretimeslf() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{appendcorevarsslf() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{appendheaderslf() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{getheaderfloatsslf() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{getheaderintegersslf() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{getheadermetadataslf() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{gettimehistoryslf() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{getvalues() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{getvariablesat() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{putcontent() (src.selafin\_habby1.Selafin method)|hyperpage}{48}
-\indexentry{getendianfromchar() (in module src.selafin\_habby1)|hyperpage}{48}
-\indexentry{getfloattypefromfloat() (in module src.selafin\_habby1)|hyperpage}{49}
-\indexentry{load\_telemac() (in module src.selafin\_habby1)|hyperpage}{49}
-\indexentry{load\_telemac\_and\_cut\_grid() (in module src.selafin\_habby1)|hyperpage}{49}
-\indexentry{plot\_vel\_h() (in module src.selafin\_habby1)|hyperpage}{49}
-\indexentry{src.load\_hdf5 (module)|hyperpage}{49}
-\indexentry{get\_all\_filename() (in module src.load\_hdf5)|hyperpage}{49}
-\indexentry{get\_hdf5\_name() (in module src.load\_hdf5)|hyperpage}{50}
-\indexentry{load\_hdf5\_hyd() (in module src.load\_hdf5)|hyperpage}{50}
-\indexentry{load\_hdf5\_sub() (in module src.load\_hdf5)|hyperpage}{50}
-\indexentry{open\_hdf5() (in module src.load\_hdf5)|hyperpage}{50}
-\indexentry{save\_hdf5() (in module src.load\_hdf5)|hyperpage}{50}
-\indexentry{src.dist\_vistess2 (module)|hyperpage}{52}
-\indexentry{dist\_velocity\_hecras() (in module src.dist\_vistess2)|hyperpage}{52}
-\indexentry{get\_manning() (in module src.dist\_vistess2)|hyperpage}{53}
-\indexentry{get\_manning\_arr() (in module src.dist\_vistess2)|hyperpage}{54}
-\indexentry{main() (in module src.dist\_vistess2)|hyperpage}{54}
-\indexentry{plot\_dist\_vit() (in module src.dist\_vistess2)|hyperpage}{54}
-\indexentry{preparetest\_velocity() (in module src.dist\_vistess2)|hyperpage}{54}
-\indexentry{src.manage\_grid\_8 (module)|hyperpage}{55}
-\indexentry{add\_point() (in module src.manage\_grid\_8)|hyperpage}{55}
-\indexentry{create\_dummy\_substrate() (in module src.manage\_grid\_8)|hyperpage}{55}
-\indexentry{create\_grid() (in module src.manage\_grid\_8)|hyperpage}{55}
-\indexentry{create\_grid\_only\_1\_profile() (in module src.manage\_grid\_8)|hyperpage}{56}
-\indexentry{cut\_2d\_grid() (in module src.manage\_grid\_8)|hyperpage}{57}
-\indexentry{cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8)|hyperpage}{57}
-\indexentry{find\_profile\_between() (in module src.manage\_grid\_8)|hyperpage}{57}
-\indexentry{get\_crossing\_segment\_sub() (in module src.manage\_grid\_8)|hyperpage}{57}
-\indexentry{get\_new\_point\_and\_cell\_1\_profil() (in module src.manage\_grid\_8)|hyperpage}{58}
-\indexentry{inside\_polygon() (in module src.manage\_grid\_8)|hyperpage}{58}
-\indexentry{interp\_weights() (in module src.manage\_grid\_8)|hyperpage}{58}
-\indexentry{interpo\_linear() (in module src.manage\_grid\_8)|hyperpage}{58}
-\indexentry{interpo\_nearest() (in module src.manage\_grid\_8)|hyperpage}{59}
-\indexentry{interpolate\_opti() (in module src.manage\_grid\_8)|hyperpage}{59}
-\indexentry{intersection\_seg() (in module src.manage\_grid\_8)|hyperpage}{59}
-\indexentry{linear\_h\_cross() (in module src.manage\_grid\_8)|hyperpage}{60}
-\indexentry{main() (in module src.manage\_grid\_8)|hyperpage}{60}
-\indexentry{newp() (in module src.manage\_grid\_8)|hyperpage}{60}
-\indexentry{pass\_grid\_cell\_to\_node\_lin() (in module src.manage\_grid\_8)|hyperpage}{60}
-\indexentry{plot\_grid() (in module src.manage\_grid\_8)|hyperpage}{61}
-\indexentry{plot\_grid\_simple() (in module src.manage\_grid\_8)|hyperpage}{61}
-\indexentry{update\_coord\_pro\_with\_vh\_pro() (in module src.manage\_grid\_8)|hyperpage}{61}
-\indexentry{src.estimhab (module)|hyperpage}{62}
-\indexentry{estimhab() (in module src.estimhab)|hyperpage}{62}
-\indexentry{main() (in module src.estimhab)|hyperpage}{62}
-\indexentry{pass\_to\_float\_estimhab() (in module src.estimhab)|hyperpage}{62}
-\indexentry{src.stathab\_c (module)|hyperpage}{63}
-\indexentry{Stathab (class in src.stathab\_c)|hyperpage}{63}
-\indexentry{create\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{63}
-\indexentry{dengauss() (src.stathab\_c.Stathab method)|hyperpage}{63}
-\indexentry{dist\_h() (src.stathab\_c.Stathab method)|hyperpage}{63}
-\indexentry{dist\_v() (src.stathab\_c.Stathab method)|hyperpage}{63}
-\indexentry{find\_sh0() (src.stathab\_c.Stathab method)|hyperpage}{63}
-\indexentry{find\_sh0\_maxvrais() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{load\_stathab\_from\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{load\_stathab\_from\_txt() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{power\_law() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{savefig\_stahab() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{savetxt\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{stathab\_calc() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{test\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{64}
-\indexentry{load\_float\_stathab() (in module src.stathab\_c)|hyperpage}{65}
-\indexentry{load\_namereach() (in module src.stathab\_c)|hyperpage}{65}
-\indexentry{load\_pref() (in module src.stathab\_c)|hyperpage}{65}
-\indexentry{main() (in module src.stathab\_c)|hyperpage}{65}
-\indexentry{src.substrate (module)|hyperpage}{65}
-\indexentry{fig\_merge\_grid() (in module src.substrate)|hyperpage}{65}
-\indexentry{fig\_substrate() (in module src.substrate)|hyperpage}{65}
-\indexentry{get\_all\_attribute() (in module src.substrate)|hyperpage}{66}
-\indexentry{grid\_update\_sub2() (in module src.substrate)|hyperpage}{66}
-\indexentry{grid\_update\_sub3() (in module src.substrate)|hyperpage}{66}
-\indexentry{intersec\_cross() (in module src.substrate)|hyperpage}{66}
-\indexentry{load\_sub\_shp() (in module src.substrate)|hyperpage}{67}
-\indexentry{load\_sub\_txt() (in module src.substrate)|hyperpage}{67}
-\indexentry{main() (in module src.substrate)|hyperpage}{67}
-\indexentry{merge\_grid\_hydro\_sub() (in module src.substrate)|hyperpage}{67}
-\indexentry{open\_shp() (in module src.substrate)|hyperpage}{67}
-\indexentry{point\_cross2() (in module src.substrate)|hyperpage}{68}
-\indexentry{point\_cross\_bis() (in module src.substrate)|hyperpage}{68}
+\indexentry{load\_mascaret() (in module src.mascaret)|hyperpage}{42}
+\indexentry{load\_mascaret\_and\_create\_grid() (in module src.mascaret)|hyperpage}{42}
+\indexentry{main() (in module src.mascaret)|hyperpage}{43}
+\indexentry{open\_geo\_mascaret() (in module src.mascaret)|hyperpage}{43}
+\indexentry{open\_res\_file() (in module src.mascaret)|hyperpage}{43}
+\indexentry{open\_rub\_file() (in module src.mascaret)|hyperpage}{43}
+\indexentry{profil\_coord\_non\_georef() (in module src.mascaret)|hyperpage}{43}
+\indexentry{river\_coord\_non\_georef\_from\_cas() (in module src.mascaret)|hyperpage}{44}
+\indexentry{river\_coord\_non\_georef\_from\_xcas() (in module src.mascaret)|hyperpage}{44}
+\indexentry{src.river2d (module)|hyperpage}{44}
+\indexentry{figure\_river2d() (in module src.river2d)|hyperpage}{44}
+\indexentry{get\_rid\_of\_lines() (in module src.river2d)|hyperpage}{44}
+\indexentry{load\_river2d\_and\_cut\_grid() (in module src.river2d)|hyperpage}{45}
+\indexentry{load\_river2d\_cdg() (in module src.river2d)|hyperpage}{45}
+\indexentry{main() (in module src.river2d)|hyperpage}{45}
+\indexentry{src.rubar (module)|hyperpage}{45}
+\indexentry{correct\_duplicate\_xy() (in module src.rubar)|hyperpage}{45}
+\indexentry{figure\_rubar1d() (in module src.rubar)|hyperpage}{46}
+\indexentry{figure\_rubar2d() (in module src.rubar)|hyperpage}{46}
+\indexentry{get\_triangular\_grid() (in module src.rubar)|hyperpage}{46}
+\indexentry{load\_coord\_1d() (in module src.rubar)|hyperpage}{47}
+\indexentry{load\_dat\_2d() (in module src.rubar)|hyperpage}{47}
+\indexentry{load\_data\_1d() (in module src.rubar)|hyperpage}{47}
+\indexentry{load\_mai\_1d() (in module src.rubar)|hyperpage}{47}
+\indexentry{load\_mai\_2d() (in module src.rubar)|hyperpage}{47}
+\indexentry{load\_rubar1d() (in module src.rubar)|hyperpage}{48}
+\indexentry{load\_rubar1d\_and\_create\_grid() (in module src.rubar)|hyperpage}{48}
+\indexentry{load\_rubar2d() (in module src.rubar)|hyperpage}{49}
+\indexentry{load\_rubar2d\_and\_create\_grid() (in module src.rubar)|hyperpage}{49}
+\indexentry{load\_tps\_2d() (in module src.rubar)|hyperpage}{49}
+\indexentry{m\_file\_load\_coord\_1d() (in module src.rubar)|hyperpage}{50}
+\indexentry{main() (in module src.rubar)|hyperpage}{50}
+\indexentry{src.selafin\_habby1 (module)|hyperpage}{50}
+\indexentry{Selafin (class in src.selafin\_habby1)|hyperpage}{50}
+\indexentry{addcontent() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{appendcoretimeslf() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{appendcorevarsslf() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{appendheaderslf() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{getheaderfloatsslf() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{getheaderintegersslf() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{getheadermetadataslf() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{gettimehistoryslf() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{getvalues() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{getvariablesat() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{putcontent() (src.selafin\_habby1.Selafin method)|hyperpage}{50}
+\indexentry{getendianfromchar() (in module src.selafin\_habby1)|hyperpage}{50}
+\indexentry{getfloattypefromfloat() (in module src.selafin\_habby1)|hyperpage}{50}
+\indexentry{load\_telemac() (in module src.selafin\_habby1)|hyperpage}{51}
+\indexentry{load\_telemac\_and\_cut\_grid() (in module src.selafin\_habby1)|hyperpage}{51}
+\indexentry{plot\_vel\_h() (in module src.selafin\_habby1)|hyperpage}{51}
+\indexentry{src.load\_hdf5 (module)|hyperpage}{51}
+\indexentry{add\_sub\_to\_merge\_hdf5() (in module src.load\_hdf5)|hyperpage}{51}
+\indexentry{get\_all\_filename() (in module src.load\_hdf5)|hyperpage}{52}
+\indexentry{get\_hdf5\_name() (in module src.load\_hdf5)|hyperpage}{52}
+\indexentry{load\_hdf5\_hyd() (in module src.load\_hdf5)|hyperpage}{52}
+\indexentry{load\_hdf5\_sub() (in module src.load\_hdf5)|hyperpage}{52}
+\indexentry{open\_hdf5() (in module src.load\_hdf5)|hyperpage}{52}
+\indexentry{save\_hdf5() (in module src.load\_hdf5)|hyperpage}{53}
+\indexentry{src.dist\_vistess2 (module)|hyperpage}{54}
+\indexentry{dist\_velocity\_hecras() (in module src.dist\_vistess2)|hyperpage}{54}
+\indexentry{distribute\_velocity() (in module src.dist\_vistess2)|hyperpage}{56}
+\indexentry{get\_manning() (in module src.dist\_vistess2)|hyperpage}{56}
+\indexentry{get\_manning\_arr() (in module src.dist\_vistess2)|hyperpage}{56}
+\indexentry{main() (in module src.dist\_vistess2)|hyperpage}{57}
+\indexentry{plot\_dist\_vit() (in module src.dist\_vistess2)|hyperpage}{57}
+\indexentry{preparetest\_velocity() (in module src.dist\_vistess2)|hyperpage}{57}
+\indexentry{src.manage\_grid\_8 (module)|hyperpage}{58}
+\indexentry{add\_point() (in module src.manage\_grid\_8)|hyperpage}{58}
+\indexentry{create\_dummy\_substrate() (in module src.manage\_grid\_8)|hyperpage}{58}
+\indexentry{create\_grid() (in module src.manage\_grid\_8)|hyperpage}{58}
+\indexentry{create\_grid\_only\_1\_profile() (in module src.manage\_grid\_8)|hyperpage}{59}
+\indexentry{cut\_2d\_grid() (in module src.manage\_grid\_8)|hyperpage}{59}
+\indexentry{cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8)|hyperpage}{59}
+\indexentry{find\_profile\_between() (in module src.manage\_grid\_8)|hyperpage}{60}
+\indexentry{get\_crossing\_segment\_sub() (in module src.manage\_grid\_8)|hyperpage}{60}
+\indexentry{get\_new\_point\_and\_cell\_1\_profil() (in module src.manage\_grid\_8)|hyperpage}{60}
+\indexentry{grid\_and\_interpo() (in module src.manage\_grid\_8)|hyperpage}{61}
+\indexentry{inside\_polygon() (in module src.manage\_grid\_8)|hyperpage}{61}
+\indexentry{interp\_weights() (in module src.manage\_grid\_8)|hyperpage}{62}
+\indexentry{interpo\_linear() (in module src.manage\_grid\_8)|hyperpage}{62}
+\indexentry{interpo\_nearest() (in module src.manage\_grid\_8)|hyperpage}{62}
+\indexentry{interpolate\_opti() (in module src.manage\_grid\_8)|hyperpage}{62}
+\indexentry{intersection\_seg() (in module src.manage\_grid\_8)|hyperpage}{62}
+\indexentry{linear\_h\_cross() (in module src.manage\_grid\_8)|hyperpage}{63}
+\indexentry{main() (in module src.manage\_grid\_8)|hyperpage}{63}
+\indexentry{newp() (in module src.manage\_grid\_8)|hyperpage}{63}
+\indexentry{pass\_grid\_cell\_to\_node\_lin() (in module src.manage\_grid\_8)|hyperpage}{63}
+\indexentry{plot\_grid() (in module src.manage\_grid\_8)|hyperpage}{64}
+\indexentry{plot\_grid\_simple() (in module src.manage\_grid\_8)|hyperpage}{64}
+\indexentry{update\_coord\_pro\_with\_vh\_pro() (in module src.manage\_grid\_8)|hyperpage}{64}
+\indexentry{src.estimhab (module)|hyperpage}{65}
+\indexentry{estimhab() (in module src.estimhab)|hyperpage}{65}
+\indexentry{main() (in module src.estimhab)|hyperpage}{66}
+\indexentry{pass\_to\_float\_estimhab() (in module src.estimhab)|hyperpage}{66}
+\indexentry{src.stathab\_c (module)|hyperpage}{66}
+\indexentry{Stathab (class in src.stathab\_c)|hyperpage}{66}
+\indexentry{create\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{66}
+\indexentry{dengauss() (src.stathab\_c.Stathab method)|hyperpage}{66}
+\indexentry{dist\_h() (src.stathab\_c.Stathab method)|hyperpage}{66}
+\indexentry{dist\_v() (src.stathab\_c.Stathab method)|hyperpage}{66}
+\indexentry{find\_sh0() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{find\_sh0\_maxvrais() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{load\_stathab\_from\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{load\_stathab\_from\_txt() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{power\_law() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{savefig\_stahab() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{savetxt\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{stathab\_calc() (src.stathab\_c.Stathab method)|hyperpage}{67}
+\indexentry{test\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{68}
+\indexentry{load\_float\_stathab() (in module src.stathab\_c)|hyperpage}{68}
+\indexentry{load\_namereach() (in module src.stathab\_c)|hyperpage}{68}
+\indexentry{load\_pref() (in module src.stathab\_c)|hyperpage}{68}
+\indexentry{main() (in module src.stathab\_c)|hyperpage}{68}
+\indexentry{src.fstress (module)|hyperpage}{68}
+\indexentry{denstress() (in module src.fstress)|hyperpage}{68}
+\indexentry{figure\_fstress() (in module src.fstress)|hyperpage}{69}
+\indexentry{fstress\_test() (in module src.fstress)|hyperpage}{69}
+\indexentry{func\_stress() (in module src.fstress)|hyperpage}{69}
+\indexentry{main() (in module src.fstress)|hyperpage}{69}
+\indexentry{read\_fstress\_hdf5() (in module src.fstress)|hyperpage}{69}
+\indexentry{read\_pref() (in module src.fstress)|hyperpage}{69}
+\indexentry{run\_fstress() (in module src.fstress)|hyperpage}{70}
+\indexentry{save\_fstress() (in module src.fstress)|hyperpage}{70}
+\indexentry{write\_txt() (in module src.fstress)|hyperpage}{70}
+\indexentry{src.substrate (module)|hyperpage}{71}
+\indexentry{fig\_merge\_grid() (in module src.substrate)|hyperpage}{71}
+\indexentry{fig\_substrate() (in module src.substrate)|hyperpage}{71}
+\indexentry{get\_all\_attribute() (in module src.substrate)|hyperpage}{71}
+\indexentry{get\_new\_vel\_height\_data() (in module src.substrate)|hyperpage}{71}
+\indexentry{grid\_update\_sub2() (in module src.substrate)|hyperpage}{71}
+\indexentry{grid\_update\_sub3() (in module src.substrate)|hyperpage}{72}
+\indexentry{intersec\_cross() (in module src.substrate)|hyperpage}{72}
+\indexentry{load\_sub\_shp() (in module src.substrate)|hyperpage}{73}
+\indexentry{load\_sub\_txt() (in module src.substrate)|hyperpage}{73}
+\indexentry{main() (in module src.substrate)|hyperpage}{73}
+\indexentry{merge\_grid\_hydro\_sub() (in module src.substrate)|hyperpage}{73}
+\indexentry{open\_shp() (in module src.substrate)|hyperpage}{74}
+\indexentry{point\_cross2() (in module src.substrate)|hyperpage}{74}
+\indexentry{point\_cross\_bis() (in module src.substrate)|hyperpage}{74}

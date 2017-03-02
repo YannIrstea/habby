@@ -44,7 +44,6 @@ def save_fstress(path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, q
     # write the data in it (similar to save_estimhab in Main_Windows_1.py)
     i = 0
     nb_riv = file.create_group('Nb_river')
-    print(len(riv_name))
     nb_riv.create_dataset(fname_no_path, [1, 1], data=len(riv_name))
     for r in riv_name:
         # hydro data
@@ -94,7 +93,9 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
 
     :param hdf5_name: the name of the hdf5 file with the information realted to FStress
     :param hdf5_path: the path to this file
+
     :return:[[q,w,h], [q,w,h]] for each river, [qmin,qmax] for each river, the river names, and the selected fish
+
     """
     failload = [-99], [-99], ['-99'], ['-99']
     river_name = []
@@ -313,7 +314,6 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
         vh.append(vh_riv)
         qmod_all.append(qmod)
 
-
     return vh, qmod_all, inv_select
 
 
@@ -379,6 +379,7 @@ def denstress(k,m, nbst):
 
     return diststress
 
+
 def write_txt(qmod_all, vh_all, name_inv, path_im, name_river):
     """
     This function writes the txt outpus for FStress
@@ -394,8 +395,6 @@ def write_txt(qmod_all, vh_all, name_inv, path_im, name_river):
     for r in name_river:
         qmod = qmod_all[i]
         vh = vh_all[i]
-        print(path_im)
-        print('Fstress_'+r+'_rre.txt')
         fname = os.path.join(path_im, 'Fstress_'+r+ time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
         np.savetxt(fname, vh)
         fname = os.path.join(path_im, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
@@ -480,8 +479,6 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river,  path_rre):
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
         i += 1
-
-
 
 
 def main():

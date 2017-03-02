@@ -675,13 +675,11 @@ profile will always be one. See manage_grid.py for more information on how to cr
 calls the load function for hec_ras. First, it updates the xml project file. It adds the name of the new file
 to xml project file under the attribute indicated by self.attributexml. It also gets the path_im by reading the
 path_im in the xml project file. Then it check if the user want to create the figure or not
-(if self.cb.isChecked(), figures should be created). It also manages the log as explained in the section
-about the log. Notably, it redirects the  outstream to the mystdout stream. Hence, the “print” statement is
-now sent to the log windows at the bottom of HABBY window. Next, it loads the hec-ras data as explained in
-the section on hec_ras06.py. It then creates the grid as explained in the manage_grid.py based on the
-interpolation type wished by the user (linear, nearest neighbor or by block). It creates the hdf5
-with the loaded data. Finally, if necessary, it shows the figure by emitting a signal.
-This signal is collected in the MainWindow() class.</p>
+If self.cb.isChecked(), 2D figures should be created. If we want to create the 1D figure, the option show_all_fig
+should be selected in the figure option. It also manages the log as explained in the section about the log.
+It loads the hec-ras data as explained in the section on hec_ras06.py and creates the grid as explained
+in the manage_grid.py based on the interpolation type wished by the user (linear, nearest neighbor or by block).
+The variable self.name_hdf5() is taken from the GUI.</p>
 </dd></dl>
 
 </dd></dl>
@@ -844,7 +842,9 @@ load_manning_text of the class SubHydroW for more information)</p>
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.Mascaret.load_mascaret_gui">
 <code class="descname">load_mascaret_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret.load_mascaret_gui" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function is used to load the mascaret data, calling the function contained in the script mascaret.py</p>
+<dd><p>The function is used to load the mascaret data, calling the function contained in the script mascaret.py.
+It also create a 2D grid from the 1D data and distribute the velocity.
+All of theses tasks are done on a second thread to avoid freezing the GUI.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1009,15 +1009,6 @@ disable. If it chooses linear or nearest neighbour interpolation, it will be ena
 only works with 1D and 1.5D model.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="src_GUI.hydro_GUI_2.SubHydroW.distribute_velocity">
-<code class="descname">distribute_velocity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.distribute_velocity" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
-notably rubar and masacret.</p>
-<p>Dist vitess needs a manning parameters. It can be given by the user in two forms: a constant (float) or an array
-created by the function load_manning_text.</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.drop_hydro">
 <code class="descname">drop_hydro</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.drop_hydro" title="Permalink to this definition">¶</a></dt>
@@ -1040,34 +1031,6 @@ based on hec-ras output. The default here is to write the last model loaded. It 
 than for the function was_model_loaded_before(). To keep the coherence between the filename and hdf5 name,
 a change in this behaviour should be reflected in both function.</p>
 <p>This function calls the function get_hdf5_name in the load_hdf5.py file</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src_GUI.hydro_GUI_2.SubHydroW.grid_and_interpo">
-<code class="descname">grid_and_interpo</code><span class="sig-paren">(</span><em>cb_im</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.grid_and_interpo" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function forms the link between GUI and the various grid and interpolation functions. Is called by
-the &#8220;loading&#8221; function of hec-ras 1D, Mascaret and Rubar BE.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cb_im</strong> &#8211; A boolean if true, the figures are created and shown.</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Technical comments</strong></p>
-<p>Here are the list of the interpolatin choice:</p>
-<ul class="simple">
-<li>0 Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.</li>
-<li>1 Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation</li>
-<li>2 Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation</li>
-<li><dl class="first docutils">
-<dt>3 Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step</dt>
-<dd>and use the cut_2d_grid to get a grid with only the wet profile for all time step</dd>
-</dl>
-</li>
-</ul>
-<p>I&#8217;m not sure why there is a parameter to this method. Can we use self.cb.isckeched. To be checked.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1099,38 +1062,6 @@ along the profile in meter and n is the manning value (in SI unit). One point pe
 </dd></dl>
 
 <dl class="method">
-<dt id="src_GUI.hydro_GUI_2.SubHydroW.save_hdf5">
-<code class="descname">save_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.save_hdf5" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function save the hydrological data in the hdf5 format.</p>
-<p><strong>Technical comments</strong></p>
-<p>This function cannot be used outside of the class, so it needs to be re-written if used from the command line.</p>
-<p>This function creates an hdf5 file which contains the hydrological data. First it creates an empty hdf5.
-Then it fill the hdf5 with data. For 1D model, it fill the data in 1D (the original data), then the 1.5D data
-created by dist_vitess2.py and finally the 2D data. For model in 2D it only saved 2D data. Hence, the 2D data
-is the data which is common to all model and which can always be loaded from a hydrological hdf5 created by
-HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
-created hdf5:</p>
-<ul class="simple">
-<li>Name of the file: self.name_hdf5 + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.</li>
-<li>Position of the file: in the project folder</li>
-<li>Format of the hdf5 file:<ul>
-<li>Dats_gen:  number of time step and number of reach</li>
-<li>Data_1D:  xhzv_data_all (given profile by profile)</li>
-<li>Data_15D :  vh_pro, coord_pro (given profile by profile in a dict) and nb_pro_reach.</li>
-<li>Data_2D : For each time step, for each reach: ikle, point, point_c, inter_h, inter_vel</li>
-</ul>
-</li>
-</ul>
-<p>If a list has elements with a changing number of variables, it is necessary to create a dictionary to save
-this list in hdf5. For example, a dictionary will be needed to save the following list: [[1,2,3,4], [1,2,3]].
-This is used for example, to save data by profile as we can have profile with more or less points. We also note
-in the hdf5 attribute some important info such as the project name, path to the project, hdf5 version.
-This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
-hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.</p>
-<p>Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.save_xml">
 <code class="descname">save_xml</code><span class="sig-paren">(</span><em>i=0</em>, <em>append_name=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.save_xml" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to save the loaded data in the xml file.</p>
@@ -1158,15 +1089,19 @@ instead of remplacing the old name by the new name.</li>
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.send_data">
 <code class="descname">send_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is call regularly by the methods which have a second thread (so moslty the function
-to load the hydrological data). To call this functin regularly, the variable self.timer of QTimer type is used.</p>
-<p>This function just wait while the thread is alive. When it has terminated, it creates the figure and the error messages.</p>
+to load the hydrological data). To call this functin regularly, the variable self.timer of QTimer type is used.
+The variable self.timer is connected to this function in the initiation of SubHydroW() and so in the initation
+of all class which inherits from SubHydroW().</p>
+<p>This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
+messages.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.send_err_log">
 <code class="descname">send_err_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_err_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function sends the errors and the warnings to the logs.
-The stdout was redirected to self.mystdout.</p>
+The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+to avoid freezing the GUI.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1289,7 +1224,8 @@ the function load_sub_gui()</p>
 <dt id="src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub">
 <code class="descname">save_hdf5_sub</code><span class="sig-paren">(</span><em>constsub=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
-xml project file. The format of the hdf5 file is not finalzed yet so it is not documented.</p>
+xml project file. The format of the hdf5 file is not finalzed yet so it is not documented. This hdf5 file
+is only for the substrate, not for the merged grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1310,7 +1246,8 @@ data on the same grid. Hence, the hydrological grid will need to be cut to the f
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubstrateW.update_sub_hdf5_name">
 <code class="descname">update_sub_hdf5_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.update_sub_hdf5_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function update the QComBox on substrate data which is on the stubstrate tab.</p>
+<dd><p>This function update the QComBox on substrate data which is on the stubstrate tab. The similiar function
+for hydrology is in Main_Windows_1.py as it is more practical to have it there to collect all the signals.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1400,9 +1337,10 @@ figures. In the xml project file, the options for the figures are saved under th
 </dd></dl>
 
 </div>
-<div class="section" id="module-src_GUI.stathab_GUI">
-<span id="the-stathab-model-gui"></span><h2>The Stathab model - GUI<a class="headerlink" href="#module-src_GUI.stathab_GUI" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<div class="section" id="the-stathab-model-gui">
+<h2>The Stathab model - GUI<a class="headerlink" href="#the-stathab-model-gui" title="Permalink to this headline">¶</a></h2>
+<p>in src_GUI/stathab_GUI.py</p>
+<span class="target" id="module-src_GUI.stathab_GUI"></span><dl class="class">
 <dt id="src_GUI.stathab_GUI.StathabW">
 <em class="property">class </em><code class="descclassname">src_GUI.stathab_GUI.</code><code class="descname">StathabW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.stathab_GUI.StathabW" title="Permalink to this definition">¶</a></dt>
 <dd><p>The class to load and manage the widget controlling the Stathab model.</p>
@@ -1429,7 +1367,8 @@ which is in the form of a class and not a function, will be run on this object.<
 <dl class="method">
 <dt id="src_GUI.stathab_GUI.StathabW.add_all_fish">
 <code class="descname">add_all_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.stathab_GUI.StathabW.add_all_fish" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function add the name of all known fish (the ones in Pref.txt) to the QListWidget.</p>
+<dd><p>This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. Careful,
+a similar function exists in Fstress_GUI. Modify both if needed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1558,6 +1497,128 @@ Finally, it calls the function to load the hdf5 called load_from_hdf5_gui.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="fstress-model-gui">
+<h2>FStress model - GUI<a class="headerlink" href="#fstress-model-gui" title="Permalink to this headline">¶</a></h2>
+<p>in src_GUI/fstress_GUI.py</p>
+<span class="target" id="module-src_GUI.fstress_GUI"></span><dl class="class">
+<dt id="src_GUI.fstress_GUI.FstressW">
+<em class="property">class </em><code class="descclassname">src_GUI.fstress_GUI.</code><code class="descname">FstressW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class provides the graphical user interface for the habby version of Fstress. The Fstress model is described in
+fstress.py. FstressW just loads the data given by the user. He/She can write this data in the GUI or loads it
+from files. The following files are needed:</p>
+<ul class="simple">
+<li>listriv.txt the list of the river (if the file does not exist, the river is called river1).</li>
+<li>rivqwh.txt discharge, width, height for two discharge (measured) for each rivers.</li>
+<li>rivdeb.txt max and min discharge.</li>
+</ul>
+<p>FStress inherits from the class StatModUseful. This class is a &#8220;parent&#8221; class with some functions which are the same
+for estimhab and fstress. Hence, we can re-use these function without re.writing them (a bit like SubHydroW)</p>
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.add_all_fish">
+<code class="descname">add_all_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.add_all_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. This function
+was copied from the one in SStathab_GUI.py</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.erase_name">
+<code class="descname">erase_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.erase_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function erases the data from the river selected by the user.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to initialized an instance of the FstressW() class. It is called by __init__().
+It is very similar to EstihabW but it is possible to get more than one river and it can load the data from
+folder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.load_all_fish">
+<code class="descname">load_all_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.load_all_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function find the preference file, load the preference coefficient for each invertebrate and show their name
+on QListWidget. it is run at the start of the program. FStress cannot be run as long as a preference file is not
+found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.load_data_fstress">
+<code class="descname">load_data_fstress</code><span class="sig-paren">(</span><em>rind</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.load_data_fstress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the data for fstress and add it to the variable self.qrange and self.qhw for the river
+rind.
+:param rind: The indices of the river is self.river_name. So it is which river should be loaded</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.load_hdf5_fstress">
+<code class="descname">load_hdf5_fstress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.load_hdf5_fstress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads an hdf5 file in the fstress format and add it to the project. This hdf5 file was not part of
+the project previously.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.load_txt">
+<code class="descname">load_txt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.load_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>In this function, the user select a qhw.txt or a listriv.txt file. This files are loaded and written on the GUI.
+If a listriv.txt is selected, the river in lisriv.txt are loaded. If a qhw.txt is loaded and if there are
+more than one qhw.txt in the folder, we ask the user if all files must be loaded. The needed text files are
+the following:</p>
+<ul class="simple">
+<li>listriv.txt is a text file with one river name by line (not necessary)</li>
+<li>rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
+2 measureement (necessary)</li>
+<li>rivernamedeb.txt is a text file which has two lines. The first line is the minimum discharge and the second is
+the maximum discharge to be modelled. It is chosen by the user (necessary to run, but can be given by the user
+on the GUI)</li>
+</ul>
+<p>All data should be in SI unit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.modify_name">
+<code class="descname">modify_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.modify_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to modify the name of a river. It will only be saved if FStress is run. Otherwise it
+is not kept in the data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.runsave_fstress">
+<code class="descname">runsave_fstress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.runsave_fstress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function save the data related to FStress and call the model Fstress. It is the method which makes the
+link between the GUI and fstress.py.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.save_river_data">
+<code class="descname">save_river_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.save_river_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function save the data for one river based on the data from the GUI (i.e., after modification by the user).
+It can be used to save the data given directely by the user or modified by him.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.show_data_one_river">
+<code class="descname">show_data_one_river</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.show_data_one_river" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function shows the qhw and the [qmin, qmax] data on the GUI for the river selected by the user.
+The river must have been loaded before.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.update_list_riv">
+<code class="descname">update_list_riv</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.update_list_riv" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is a small function to update the QCombobox which contains the river name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.fstress_GUI.FstressW.was_loaded_before">
+<code class="descname">was_loaded_before</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.was_loaded_before" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function looks in the xml project file is an hdf5 exists already. If yes, it loads this data
+and show it on the GUI</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="estimhab-gui">
 <h2>Estimhab - GUI<a class="headerlink" href="#estimhab-gui" title="Permalink to this headline">¶</a></h2>
 <p>in src_GUI/estimhab_GUI.py</p>
@@ -1567,36 +1628,15 @@ Finally, it calls the function to load the hdf5 called load_from_hdf5_gui.</p>
 <dd><p>The Estimhab class provides the graphical interface for the version of the Estimhab model written in HABBY.
 The Estimhab model is described elsewhere. EstimhabW() just loads the data for Estimhab given by the user.</p>
 <dl class="method">
-<dt id="src_GUI.estimhab_GUI.EstimhabW.add_fish">
-<code class="descname">add_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.add_fish" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function is used to select a new fish species</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="src_GUI.estimhab_GUI.EstimhabW.change_folder">
 <code class="descname">change_folder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.change_folder" title="Permalink to this definition">¶</a></dt>
 <dd><p>A small method to change the folder which indicates where is the biological data</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="src_GUI.estimhab_GUI.EstimhabW.find_path_im_est">
-<code class="descname">find_path_im_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.find_path_im_est" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.
-Do not mix it up</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">path_im a string which indicates the path to the folder where are save the images.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
 <dt id="src_GUI.estimhab_GUI.EstimhabW.init_iu">
 <code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.init_iu" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is used to initialized an instance of the EstimhabW() class. It is called be __init__().</p>
+<dd><p>This function is used to initialized an instance of the EstimhabW() class. It is called by __init__().</p>
 <blockquote>
 <div><p><strong>Technical comments and walk-through</strong></p>
 <p>First we looked if some data for Estimhab was saved before by an user. If yes, we will fill the GUI with
@@ -1604,7 +1644,7 @@ the information saved before. Estimhab information is saved in hdf5 file format 
 hdf5 file is saved in the xml project file. So we open the xml project file and look if the name of an hdf5
 file was saved for Estimhab. If yes, the hdf5 file is read.</p>
 <p>The format of hdf5 file is relatively simple. Each input data for Estimhab has its own dataset (qmes, hmes,
-wmes, q50, qrange, and substrate).  Then, we a list of string which are a code for the fish species which
+wmes, q50, qrange, and substrate).  Then, we have a list of string which are a code for the fish species which
 were analyzed.  All the data contained in hdf5 file is loaded into variable.</p>
 <p>The different label are written on the graphical interface. Then, two QListWidget are modified. The first
 list contains all the fish species on which HABBY has info (see XML Estimhab format for more info).
@@ -1625,12 +1665,6 @@ here, which save the data.</p>
 <dt id="src_GUI.estimhab_GUI.EstimhabW.open_estimhab_hdf5">
 <code class="descname">open_estimhab_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.open_estimhab_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function opens the hdf5 data created by estimhab</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src_GUI.estimhab_GUI.EstimhabW.remove_fish">
-<code class="descname">remove_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.remove_fish" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function is used to remove fish species</p>
 </dd></dl>
 
 <dl class="method">
@@ -1657,15 +1691,50 @@ in the Telemac or other hydrological class).</p>
 <dd><p>PyQtsignal to save the Estimhab data.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="src_GUI.estimhab_GUI.StatModUseful">
+<em class="property">class </em><code class="descclassname">src_GUI.estimhab_GUI.</code><code class="descname">StatModUseful</code><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is not called directly by HABBY, but it is the parent class of EstihabW and FstressW. As fstress and
+estimhab have a similar graphical user interface, this architecture allows to re-use some functions between the
+two classes, which saves a bit of coding.</p>
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.add_fish">
+<code class="descname">add_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.add_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function is used to select a new fish species (or inverterbrate)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_im_est">
+<code class="descname">find_path_im_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_im_est" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.
+Do not mix it up</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">path_im a string which indicates the path to the folder where are save the images.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.remove_fish">
+<code class="descname">remove_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.remove_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function is used to remove fish species (or inverterbates species)</p>
+</dd></dl>
+
 <dl class="attribute">
-<dt id="src_GUI.estimhab_GUI.EstimhabW.send_log">
-<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.send_log" title="Permalink to this definition">¶</a></dt>
+<dt id="src_GUI.estimhab_GUI.StatModUseful.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.send_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>PyQtsignal to write the log.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="src_GUI.estimhab_GUI.EstimhabW.show_fig">
-<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.estimhab_GUI.EstimhabW.show_fig" title="Permalink to this definition">¶</a></dt>
+<dt id="src_GUI.estimhab_GUI.StatModUseful.show_fig">
+<code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.show_fig" title="Permalink to this definition">¶</a></dt>
 <dd><p>PyQtsignal to show the figures.</p>
 </dd></dl>
 
@@ -1931,6 +2000,41 @@ information from the geo file in all cases (georeferenced or not). The last prof
 distance to the next (not existing) profile. However, if a profile does not have a distance to the next profile
 and is not the last profile, we ignore this profile. It is usually not a problem because this profile is usually
 not a “real” profile, but the representation of a bridge or a culvert.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.Hec_ras06.open_hec_hec_ras_and_create_grid">
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_hec_hec_ras_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>path_im</em>, <em>save_fig1D</em>, <em>pro_add=1</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_hec_hec_ras_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open the hec_ras data and creates the 2D grid from the 1.5 data. It is called by the class HEC_RAS1D
+in a second thread to not freeze the GUI.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the name of the hdf5 to be created (string)</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 to be created (string)</li>
+<li><strong>model_type</strong> &#8211; the name of the model (hec_ras in most case, but given as argument in case we change
+the form of the name)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>namefile</strong> &#8211; the name of the geo file and the data file, which contains respectively geographical data and
+the ouput data (see open_hec_ras() for more precision) -&gt; list of string</li>
+<li><strong>pathfile</strong> &#8211; the absolute path to the file chosen into namefile</li>
+<li><strong>interpo_choice</strong> &#8211; the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.</li>
+<li><strong>path_im</strong> &#8211; the path to where to save the image</li>
+<li><strong>save_fig1D</strong> &#8211; create and save the figure related to the loading of the data (profile and so on)</li>
+<li><strong>pro_add</strong> &#8211; the number of addictional profile (one used for interpolation_choice 1 and 2)</li>
+<li><strong>q</strong> &#8211; used in the second thread</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>** Technical comments**</p>
+<p>This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.</p>
 </dd></dl>
 
 <dl class="function">
@@ -2339,6 +2443,10 @@ create a separate function to called this task in a second thread to avoid freez
 </tr>
 </tbody>
 </table>
+<p>** Technical comments**</p>
+<p>This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+by the cmd. If it is called by the GUI, we want the output to be redirected to the windoows for the log under HABBY.
+If it is called by the cmd, we want the print function to be sent to the command line.</p>
 </dd></dl>
 
 <dl class="function">
@@ -2623,6 +2731,40 @@ on the profile and the number of profile by reach.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mascaret.load_mascaret_and_create_grid">
+<code class="descclassname">src.mascaret.</code><code class="descname">load_mascaret_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>manning_data</em>, <em>nb_point_vel</em>, <em>show_fig_1D</em>, <em>pro_add</em>, <em>q=[]</em>, <em>path_im='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.load_mascaret_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to load the mascaret data by calling the load_mascaret() function and to create the grid
+by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
+Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the name of the hdf5 to be created (string)</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 to be created (string)</li>
+<li><strong>model_type</strong> &#8211; the name of the model (mascaret in most case, but given as argument in case we change
+the form of the name)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>namefile</strong> &#8211; the name of the geo file and the data file, which contains respectively geographical data and
+the ouput data (see open_hec_ras() for more precision) -&gt; list of string</li>
+<li><strong>pathfile</strong> &#8211; the absolute path to the file chosen into namefile -&gt; list of string</li>
+<li><strong>show_fig_1D</strong> &#8211; A boolean. If True, image from the 1D data are created and savec</li>
+<li><strong>q</strong> &#8211; used by the second thread.</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>** Technical comments**</p>
+<p>This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.</p>
 </dd></dl>
 
 <dl class="function">
@@ -3135,6 +3277,40 @@ and v the velocity</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.rubar.load_rubar1d_and_create_grid">
+<code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>manning_data</em>, <em>nb_point_vel</em>, <em>show_fig_1D</em>, <em>pro_add</em>, <em>q=[]</em>, <em>path_im='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
+by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
+Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the name of the hdf5 to be created (string)</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 to be created (string)</li>
+<li><strong>model_type</strong> &#8211; the name of the model (rubar in most case, but given as argument in case we change
+the form of the name)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>namefile</strong> &#8211; the name of the geo file and the data file, which contains respectively geographical data and
+the ouput data (see open_hec_ras() for more precision) -&gt; list of string</li>
+<li><strong>pathfile</strong> &#8211; the absolute path to the file chosen into namefile -&gt; list of string</li>
+<li><strong>show_fig_1D</strong> &#8211; A boolean. If True, image from the 1D data are created and savec</li>
+<li><strong>q</strong> &#8211; used by the second thread.</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>** Technical comments**</p>
+<p>This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.rubar.load_rubar2d">
 <code class="descclassname">src.rubar.</code><code class="descname">load_rubar2d</code><span class="sig-paren">(</span><em>geofile</em>, <em>tpsfile</em>, <em>pathgeo</em>, <em>pathtps</em>, <em>path_im</em>, <em>save_fig</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the function used to load the RUBAR data in 2D.</p>
@@ -3415,6 +3591,27 @@ It is not used direclty by HABBY.</p>
 <p>in src/load_hdf5.py</p>
 <p>This module contains some functions to load and manage hdf5 input/outputs. This is still in progress.</p>
 <span class="target" id="module-src.load_hdf5"></span><dl class="function">
+<dt id="src.load_hdf5.add_sub_to_merge_hdf5">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">add_sub_to_merge_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>substrate</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.add_sub_to_merge_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open an existing hydrological hdf5 and add the substrate data to it. Obviously, this only makes sense
+if the grid was merged before so that the subtrate grid and hydrological grid are coherent. If this function is
+directly called on an hydrological hdf5 before calling substrate.merge_grid_hydro_sub(), it will not work!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_hdf5</strong> &#8211; the name of the hdf5 (string)</li>
+<li><strong>path_hdf5</strong> &#8211; the path to this hdf5 (path)</li>
+<li><strong>substrate</strong> &#8211; the substrate data (one data by point0</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.load_hdf5.get_all_filename">
 <code class="descclassname">src.load_hdf5.</code><code class="descname">get_all_filename</code><span class="sig-paren">(</span><em>dirname</em>, <em>ext</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.get_all_filename" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function gets the name of all file with a particular extension in a folder. Useful to get all the output
@@ -3513,7 +3710,7 @@ files.
 
 <dl class="function">
 <dt id="src.load_hdf5.save_hdf5">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em>, <em>merge=False</em>, <em>sub_data_all_t=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function save the hydrological data in the hdf5 format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3535,6 +3732,8 @@ files.
 <li><strong>coord_pro</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (profile data)</li>
 <li><strong>vh_pro</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (velcoity and height data)</li>
 <li><strong>nb_pro_reach</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)</li>
+<li><strong>merge</strong> &#8211; If True, the data is coming from the merging of substrate and hydrological data.</li>
+<li><strong>sub_data_all_t</strong> &#8211; the data of the substrate given on the merged grid by cell. Only used if merge is True.</li>
 </ul>
 </td>
 </tr>
@@ -3661,6 +3860,32 @@ than the total conveyance. The next part of the script corrects for this, using 
 and the sum of the parts of the conveyance. Next, we calculate the velocity using the modelled energy slope (Sf)
 and the manning equation. We then then add a velocity of zero where there are no water (velocity is not defined
 at his point).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.dist_vistess2.distribute_velocity">
+<code class="descclassname">src.dist_vistess2.</code><code class="descname">distribute_velocity</code><span class="sig-paren">(</span><em>manning_data</em>, <em>nb_point_vel</em>, <em>coord_pro</em>, <em>xhzv_data</em>, <em>on_profile=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.dist_vistess2.distribute_velocity" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
+notably rubar and masacret.</p>
+<p>Dist vitess needs a manning parameters. It can be given by the user in two forms: a constant (float) or an array
+created by the function load_manning_text.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>manning_data</strong> &#8211; the manning data as a float (constant) or as an array (variable)</li>
+<li><strong>nb_point_vel</strong> &#8211; the number of velcoity point asked (if -99, the same number of point than the profile
+will be used)</li>
+<li><strong>coord_pro</strong> &#8211; the form of the profil (x,y, h, dist along the profile)</li>
+<li><strong>xhzv_data</strong> &#8211; the vecoity and height data</li>
+<li><strong>on_profile</strong> &#8211; Mascaret also gives outputs in poitns between profile. on_profile is true if the results are
+close or on the profile (les than 3cm of difference). This is not important for rubar or other models</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -3850,8 +4075,8 @@ or up to the water limit if vh_pro_t is present</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>q</strong> &#8211; used in the secondary process (like in hydro_gui2) when we do not call this function direclty, but we
-call it in a second process so that the GUI do not crash if something go wrong</li>
+<li><strong>q</strong> &#8211; used in the secondary process  when we do not call this function direclty, but we call it in a second
+process so that the GUI do not crash if something go wrong (not used anymore in this form)</li>
 <li><strong>coord_pro</strong> &#8211; the profile coordinates (x,y, h, dist along) the profile</li>
 <li><strong>extra_pro</strong> &#8211; the number of &#8220;extra&#8221; profiles to be added between profile to simplify the grid</li>
 <li><strong>coord_sub</strong> &#8211; (not used anymore)
@@ -4046,6 +4271,47 @@ To create the whole grod this function is called for each profile.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.manage_grid_8.grid_and_interpo">
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">grid_and_interpo</code><span class="sig-paren">(</span><em>vh_pro</em>, <em>coord_pro</em>, <em>nb_pro_reach</em>, <em>interpo_choice</em>, <em>pro_add=1</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.grid_and_interpo" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function forms the link between GUI and the various grid and interpolation functions. Is called by
+the &#8220;loading&#8221; function of hec-ras 1D, Mascaret and Rubar BE. It used to be a method in hydro_GUI2, but we have
+to move it as a function to create a second thread. Hence, the high amount of parameter.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>vh_pro</strong> &#8211; Velcoity and height data</li>
+<li><strong>coord_pro</strong> &#8211; the position of the profile</li>
+<li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach</li>
+<li><strong>interpo_choice</strong> &#8211; an int which gives the choice of interpolatin (see below)</li>
+<li><strong>pro_add</strong> &#8211; the number of profile for be added (for interpoation method 1 and 2)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments</strong></p>
+<p>Here are the list of the interpolation choice:</p>
+<ul class="simple">
+<li>0 Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.</li>
+<li>1 Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation</li>
+<li>2 Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation</li>
+<li><dl class="first docutils">
+<dt>3 Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step</dt>
+<dd>and use the cut_2d_grid to get a grid with only the wet profile for all time step (This part was only started.
+It was not finished.)</dd>
+</dl>
+</li>
+</ul>
+<p>For the interpolation case 1 and 2, it is possible that the triangle module crashes if the geometry of the
+river is too complicated. Generally, the interpolation method 1 and 2 gives smoother results with more control
+over the interpolation option and the size of the cells. However, these two interpolation methods are more sensitive
+to the inputs, especially if the river has a lot of &#8220;island&#8221; (strongly anastomotic). So the interpoliation method 0
+is more adequate in this case.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.manage_grid_8.inside_polygon">
 <code class="descclassname">src.manage_grid_8.</code><code class="descname">inside_polygon</code><span class="sig-paren">(</span><em>seg_poly</em>, <em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.inside_polygon" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function find if a point is inside a polygon, using a ray casting algorythm. It is called by various functions.</p>
@@ -4158,11 +4424,12 @@ This idea of this optimization is to not re-do some calculation when many interp
 
 <dl class="function">
 <dt id="src.manage_grid_8.intersection_seg">
-<code class="descclassname">src.manage_grid_8.</code><code class="descname">intersection_seg</code><span class="sig-paren">(</span><em>p1hyd</em>, <em>p2hyd</em>, <em>p1sub</em>, <em>p2sub</em>, <em>col=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.intersection_seg" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">intersection_seg</code><span class="sig-paren">(</span><em>p1hyd</em>, <em>p2hyd</em>, <em>p1sub</em>, <em>p2sub</em>, <em>col=True</em>, <em>wig=1e-07</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.intersection_seg" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function finds if there is an intersection between two segment (AB and CD). Idea from :
 <a class="reference external" href="http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect">http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect</a>
 It is based on the caluclaion of the cross-product z= 0 for 2D</p>
-<p>Careful there is many function using this function, so change here should be thought about.</p>
+<p>Careful there is many function using this function, so change here should be thought about. There is a precision
+management, so everythion smaller than 10**-8 is ok</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -4173,7 +4440,7 @@ It is based on the caluclaion of the cross-product z= 0 for 2D</p>
 <li><strong>p1sub</strong> &#8211; point C</li>
 <li><strong>p2sub</strong> &#8211; point D</li>
 <li><strong>col</strong> &#8211; if True, colinear segment crossed. If false, they do not cross</li>
-<li><strong>uncer</strong> &#8211; if True, two segment with a distance lower than 10**-8 will be crossing, otherwise no precision change.</li>
+<li><strong>wig</strong> &#8211; &#8220;wiggle room&#8221;, how precise should the calculation be (careful, complicated!)</li>
 </ul>
 </td>
 </tr>
@@ -4713,6 +4980,221 @@ It is not used in Habby but it is practical to debug.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="fstress-source">
+<h2>FStress - source<a class="headerlink" href="#fstress-source" title="Permalink to this headline">¶</a></h2>
+<p>in src/fstress.py</p>
+<p>This module contains the function used to run the model FStress.For an explanation on
+the form of the FStress text input, please see the last page of the pdf document <a class="reference download internal" href="_downloads/stathabinfo.pdf" download=""><code class="xref download docutils literal"><span class="pre">stathabinfo</span></code></a></p>
+<span class="target" id="module-src.fstress"></span><dl class="function">
+<dt id="src.fstress.denstress">
+<code class="descclassname">src.fstress.</code><code class="descname">denstress</code><span class="sig-paren">(</span><em>k</em>, <em>m</em>, <em>nbst</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.denstress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calulates the stress distrbution function for FStress. This distribution has generally the form
+of k*exp() + (1-k)* Sigma(x-m)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>k</strong> &#8211; the first parameter of the distribution</li>
+<li><strong>m</strong> &#8211; the second parameter of the disitribution</li>
+<li><strong>nbst</strong> &#8211; the number of stress class in the distribution</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the stress disitrbution for the (m,k) parameters</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.figure_fstress">
+<code class="descclassname">src.fstress.</code><code class="descname">figure_fstress</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_im</em>, <em>name_river</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.figure_fstress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates the figures for Fstress, notably the suitability index as a function of discharge for all
+rivers</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>qmod_all</strong> &#8211; the modelled discharge for each river</li>
+<li><strong>vh_all</strong> &#8211; the suitability indoex for each invertebrate species for each river</li>
+<li><strong>name_inv</strong> &#8211; The four letter code of each selected invetebrate</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+<li><strong>name_river</strong> &#8211; the name of the river</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.fstress_test">
+<code class="descclassname">src.fstress.</code><code class="descname">fstress_test</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>name_river</em>, <em>path_rre</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.fstress_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>This functions compares the output of the C programm of FStress and the output of this script. it is not used
+by HABBY, but it is practical to debug.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>qmod_all</strong> &#8211; the modelled discharge for each river</li>
+<li><strong>vh_all</strong> &#8211; the suitability indoex for each invertebrate species for each river</li>
+<li><strong>name_inv</strong> &#8211; The four letter code of each selected invetebrate</li>
+<li><strong>name_river</strong> &#8211; the name of the river</li>
+<li><strong>path_rre</strong> &#8211; the path to the C output</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.func_stress">
+<code class="descclassname">src.fstress.</code><code class="descname">func_stress</code><span class="sig-paren">(</span><em>vm</em>, <em>h</em>, <em>tau</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.func_stress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This functions calculates the distrbution of stress on the bottom of the river based of height and velocity
+at one discharge. In other word, it calculate the distrbution of the &#8220;hemispheres&#8221;.
+This function is mainly a copy of stress function contains in the vitess2.c of the C source of FStress.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>vm</strong> &#8211; the velocity for this diacharge value</li>
+<li><strong>h</strong> &#8211; the height for this discharge value</li>
+<li><strong>tau</strong> &#8211; the constraint values</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the stress distribution for this discharge</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.main">
+<code class="descclassname">src.fstress.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is not the main() of HABBY. This local function is used to test the Fstress model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.read_fstress_hdf5">
+<code class="descclassname">src.fstress.</code><code class="descname">read_fstress_hdf5</code><span class="sig-paren">(</span><em>hdf5_name</em>, <em>hdf5_path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.read_fstress_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This functions reads an hdf5 file related to FStress and extract the relevant information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hdf5_name</strong> &#8211; the name of the hdf5 file with the information realted to FStress</li>
+<li><strong>hdf5_path</strong> &#8211; the path to this file</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:return:[[q,w,h], [q,w,h]] for each river, [qmin,qmax] for each river, the river names, and the selected fish</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.read_pref">
+<code class="descclassname">src.fstress.</code><code class="descname">read_pref</code><span class="sig-paren">(</span><em>path_bio</em>, <em>name_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.read_pref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads and read the preference file for FStress.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path_bio</strong> &#8211; the path to the preference file</li>
+<li><strong>name_bio</strong> &#8211; the name of the preference file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the name invertebrate and their preference coefficient</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.run_fstress">
+<code class="descclassname">src.fstress.</code><code class="descname">run_fstress</code><span class="sig-paren">(</span><em>data_hydro</em>, <em>qrange</em>, <em>riv_name</em>, <em>inv_select</em>, <em>pref_all</em>, <em>name_all</em>, <em>name_prj</em>, <em>path_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.run_fstress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function run the model FStress for HABBY. FStress is based on the model of Nicolas Lamouroux. This model
+estimates suitability indices for invertebrate in relation with shear stress distributions. However, shear stress
+do not needs to be measured. There are statistically estimated based on velocity and height measurement.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>riv_name</strong> &#8211; the name of the river-&gt; string</li>
+<li><strong>data_hydro</strong> &#8211; the hydrological data (q,w,h for each river in riv name) -&gt; list of list</li>
+<li><strong>qrange</strong> &#8211; the qmin and qmax for each river [qmin,qmax] -&gt; list of list</li>
+<li><strong>inv_select</strong> &#8211; the name of the selected invetebrate</li>
+<li><strong>pref_all</strong> &#8211; the preference data for all invertebrate</li>
+<li><strong>name_all</strong> &#8211; the four letter code of all possible invertebrate</li>
+<li><strong>path_prj</strong> &#8211; the path to the project-&gt; string</li>
+<li><strong>name_prj</strong> &#8211; the name of the project-&gt; string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.save_fstress">
+<code class="descclassname">src.fstress.</code><code class="descname">save_fstress</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em>, <em>name_bio</em>, <em>path_bio</em>, <em>riv_name</em>, <em>data_hydro</em>, <em>qrange</em>, <em>fish_list</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.save_fstress" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function saves the data related to the fstress model in an hdf5 file and write the name of this hdf5 file
+in the xml project file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_prj</strong> &#8211; the path to the project-&gt; string</li>
+<li><strong>name_prj</strong> &#8211; the name of the project-&gt; string</li>
+<li><strong>name_bio</strong> &#8211; the name of the preference file-&gt; string</li>
+<li><strong>path_bio</strong> &#8211; the path to the preference file-&gt; string</li>
+<li><strong>riv_name</strong> &#8211; the name of the river-&gt; string</li>
+<li><strong>data_hydro</strong> &#8211; the hydrological data (q,w,h for each river in riv name) -&gt; list of list</li>
+<li><strong>qrange</strong> &#8211; the qmin and qmax for each river [qmin,qmax] -&gt; list of list</li>
+<li><strong>fish_list</strong> &#8211; the name of the selected invertebrate (! no fish) -&gt; list of string</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.fstress.write_txt">
+<code class="descclassname">src.fstress.</code><code class="descname">write_txt</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_im</em>, <em>name_river</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.write_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function writes the txt outpus for FStress</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>qmod_all</strong> &#8211; the modelled discharge for each river</li>
+<li><strong>vh_all</strong> &#8211; the suitability indoex for each invertebrate species for each river</li>
+<li><strong>name_inv</strong> &#8211; The four letter code of each selected invetebrate</li>
+<li><strong>path_im</strong> &#8211; the path where to save the text file</li>
+<li><strong>name_river</strong> &#8211; the name of the river</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 <div class="section" id="substrate">
 <h2>Substrate<a class="headerlink" href="#substrate" title="Permalink to this headline">¶</a></h2>
 <p>in src/substrate.py</p>
@@ -4785,6 +5267,30 @@ is [name(str), type (F,N), int, int]</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.substrate.get_new_vel_height_data">
+<code class="descclassname">src.substrate.</code><code class="descname">get_new_vel_height_data</code><span class="sig-paren">(</span><em>newp</em>, <em>point_old</em>, <em>data_old</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.get_new_vel_height_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets the height and velcoity data for a new point in or on the side of an element. It does an
+average of the data (velocity or height) given at the node of the original (old) elements. This average is weighted
+as a function of the distance of the point.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>newp</strong> &#8211; the coordinates of the new points</li>
+<li><strong>point_old</strong> &#8211; the coordinates of thre three old points (would work with more than three)</li>
+<li><strong>data_old</strong> &#8211; the data for the point in point_old</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.substrate.grid_update_sub2">
 <code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the updated grid with the substrate. More complicated than grid_update3 because it tries to makes
@@ -4813,8 +5319,9 @@ cell of the hydrological grid</li>
 
 <dl class="function">
 <dt id="src.substrate.grid_update_sub3">
-<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub3</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub3" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to update the grid after finding the crossing points</p>
+<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub3</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em>, <em>new_data_sub</em>, <em>vel</em>, <em>height</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub3" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to update the grid after finding the crossing points and finsihed to get the substrate_data.
+We still needs to get the substrate data correclty for complicated geometry</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -4826,6 +5333,9 @@ cell of the hydrological grid</li>
 direction (nx,ny) of the substrate line at this point</li>
 <li><strong>coord_sub</strong> &#8211; the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
 cell of the hydrological grid</li>
+<li><strong>new_data_sub</strong> &#8211; the substrate data by hydrological cell (3 information by cells realted to the three poins)</li>
+<li><strong>vel</strong> &#8211; the velocity (one time step, one reach) for each point in coord_p</li>
+<li><strong>height</strong> &#8211; the water height (one time step, one reach) for each point in coord_p</li>
 </ul>
 </td>
 </tr>
@@ -4834,6 +5344,18 @@ cell of the hydrological grid</li>
 </tr>
 </tbody>
 </table>
+<p>** Technical comments**</p>
+<p>This function corrects all element of the grids where a crossing point have been found by the function point_cross2()</p>
+<p>First, we find on which side of the triangle is the crossing points.</p>
+<p>Next there are three cases: a) one one crossing point -&gt; no change b) two crossing points -&gt; done manually c)
+more than two crossing point on the elements -&gt; We call the extrenal module triangle to re-do a small triagulation
+into the element. This last cases covers many possible case, but it is slow. To optimize, we can think about writing
+more individual cases.</p>
+<p>In the trianlge case, we do not have a good management of the substrate data yet. All new elements into in the
+old elements which do not touch one of the orginal trianlgular node are the given the first substrate data type.</p>
+<p>If a substrate cells is totally in the hydrological cells, it is considerated too small to be accounted for and
+it is neglected by the present function. It can be changed but it will be really slower as it would mean looping
+over all element (or to get a list of not found element in the function above).</p>
 </dd></dl>
 
 <dl class="function">
@@ -4921,7 +5443,8 @@ and an array with substrate type and (x,y,sub) of the orginal data</p>
 <code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>default_data</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>After the data for the substrate and the hydrological data are loaded, they are still in different grids.
 This functions will merge both grid together. This is done for all time step and all reaches. If a
-constnat substrate is there, the hydrological hdf5 is just copied.</p>
+constant substrate is there, the hydrological hdf5 is just copied.</p>
+<p>!TO BE CORRECTED if there is more than one intersection on a substrate side!</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -4964,8 +5487,8 @@ constnat substrate is there, the hydrological hdf5 is just copied.</p>
 
 <dl class="function">
 <dt id="src.substrate.point_cross2">
-<code class="descclassname">src.substrate.</code><code class="descname">point_cross2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross2" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
+<code class="descclassname">src.substrate.</code><code class="descname">point_cross2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em>, <em>data_sub</em>, <em>default_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross2" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which find where the crossing points are. Crossing points are the points on the triangular side of the
 hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
 are in the same polygon using a ray casting method</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4977,6 +5500,8 @@ are in the same polygon using a ray casting method</p>
 <li><strong>coord_p</strong> &#8211; the coordinates of the points of the hydrological grid</li>
 <li><strong>ikle_sub</strong> &#8211; the connecity vity table of the substrate</li>
 <li><strong>coord_p_sub</strong> &#8211; the coordinates of the points of the substrate grid</li>
+<li><strong>data_sub</strong> &#8211; the data of the substrate (one data by cell)</li>
+<li><strong>default_sub</strong> &#8211; the default_data</li>
 </ul>
 </td>
 </tr>
@@ -4991,7 +5516,7 @@ are in the same polygon using a ray casting method</p>
 <dt id="src.substrate.point_cross_bis">
 <code class="descclassname">src.substrate.</code><code class="descname">point_cross_bis</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross_bis" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
-hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow, so it is not used.</p>
+hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow.         So it is not used.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5218,7 +5743,8 @@ fail.</p>
 <li><a class="reference internal" href="#main-windows-of-habby">Main_windows of HABBY</a></li>
 <li><a class="reference internal" href="#hydrological-information-gui">Hydrological information - GUI</a></li>
 <li><a class="reference internal" href="#figure-option-gui">Figure Option - GUI</a></li>
-<li><a class="reference internal" href="#module-src_GUI.stathab_GUI">The Stathab model - GUI</a></li>
+<li><a class="reference internal" href="#the-stathab-model-gui">The Stathab model - GUI</a></li>
+<li><a class="reference internal" href="#fstress-model-gui">FStress model - GUI</a></li>
 <li><a class="reference internal" href="#estimhab-gui">Estimhab - GUI</a><ul>
 <li><a class="reference internal" href="#biological-data-estimhab">Biological data - Estimhab</a></li>
 </ul>
@@ -5243,6 +5769,7 @@ fail.</p>
 <li><a class="reference internal" href="#create-a-grid">Create a grid</a></li>
 <li><a class="reference internal" href="#estimhab-source">Estimhab -source</a></li>
 <li><a class="reference internal" href="#stathab-source">Stathab - source</a></li>
+<li><a class="reference internal" href="#fstress-source">FStress - source</a></li>
 <li><a class="reference internal" href="#substrate">Substrate</a></li>
 </ul>
 </li>

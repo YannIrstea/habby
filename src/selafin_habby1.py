@@ -11,7 +11,8 @@ from src import manage_grid_8
 from src import load_hdf5
 
 
-def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
+                              print_cmd=False):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
     was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
@@ -26,11 +27,12 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     """
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
 
-    sys.stdout = mystdout = StringIO()
-
-    #load data
+    # load data
     [v, h, coord_p, ikle, coord_c] = load_telemac(namefilet, pathfilet)
     if len(v) == 1 and v == [-99]:
         print('Error: Telemac data not loaded.')
@@ -59,7 +61,8 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
 
-    sys.stdout = sys.__stdout__
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
         return

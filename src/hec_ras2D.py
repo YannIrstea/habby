@@ -9,7 +9,8 @@ from src import manage_grid_8
 from src import load_hdf5
 
 
-def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[]):
+def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
+                                 print_cmd=False):
     """
     This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
     pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
@@ -25,6 +26,7 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
 
     ** Technical comments**
 
@@ -39,7 +41,8 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     inter_h_all_t = []
 
     # load hec-ras data
-    sys.stdout = mystdout = StringIO()
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
     [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
     if isinstance(vel_cell[0], int):
         if vel_cell == [-99]:
@@ -92,7 +95,8 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
 
-    sys.stdout = sys.__stdout__
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
         return

@@ -386,7 +386,7 @@ class EstimhabW(StatModUseful):
         self.send_log.emit(fish_list_str)
         self.send_log.emit("py    [VH, SPU] = estimhab.estimhab(data[0], data[1], data[2], data[3] ,"
                            " qrange, data[4], path1, fish_list, '.', True)\n")
-        self.send_log.emit("restart Run_Estimab")
+        self.send_log.emit("restart RUN_ESTIMHAB")
         self.send_log.emit("restart    data: " + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate)+ str(qrange[0]) + ',' + str(qrange[1]))
         self.send_log.emit("restart    fish: " + fish_list_str)

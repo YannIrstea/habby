@@ -4,31 +4,33 @@
 \contentsline {chapter}{\numberline {3}Graphical interface}{7}{chapter.3}
 \contentsline {section}{\numberline {3.1}Main\_windows of HABBY}{7}{section.3.1}
 \contentsline {section}{\numberline {3.2}Hydrological information - GUI}{13}{section.3.2}
-\contentsline {section}{\numberline {3.3}Figure Option - GUI}{22}{section.3.3}
-\contentsline {section}{\numberline {3.4}The Stathab model - GUI}{22}{section.3.4}
-\contentsline {section}{\numberline {3.5}Estimhab - GUI}{25}{section.3.5}
-\contentsline {subsection}{\numberline {3.5.1}Biological data - Estimhab}{26}{subsection.3.5.1}
+\contentsline {section}{\numberline {3.3}Figure Option - GUI}{21}{section.3.3}
+\contentsline {section}{\numberline {3.4}The Stathab model - GUI}{21}{section.3.4}
+\contentsline {section}{\numberline {3.5}FStress model - GUI}{24}{section.3.5}
+\contentsline {section}{\numberline {3.6}Estimhab - GUI}{25}{section.3.6}
+\contentsline {subsection}{\numberline {3.6.1}Biological data - Estimhab}{27}{subsection.3.6.1}
 \contentsline {chapter}{\numberline {4}Calculation of fish's habitat}{29}{chapter.4}
 \contentsline {section}{\numberline {4.1}Hec-ras model 1D}{29}{section.4.1}
-\contentsline {subsection}{\numberline {4.1.1}Notes on hec-ras outputs}{35}{subsection.4.1.1}
-\contentsline {section}{\numberline {4.2}Hec-ras model 2D}{36}{section.4.2}
-\contentsline {section}{\numberline {4.3}Mascaret}{39}{section.4.3}
-\contentsline {section}{\numberline {4.4}River 2D}{43}{section.4.4}
-\contentsline {section}{\numberline {4.5}Rubar}{44}{section.4.5}
-\contentsline {section}{\numberline {4.6}Telemac}{48}{section.4.6}
-\contentsline {section}{\numberline {4.7}Load HABBY hdf5 file}{49}{section.4.7}
-\contentsline {subsection}{\numberline {4.7.1}Form of the hdf5 files}{52}{subsection.4.7.1}
-\contentsline {section}{\numberline {4.8}Velocity distribution}{52}{section.4.8}
-\contentsline {section}{\numberline {4.9}Create a grid}{55}{section.4.9}
-\contentsline {section}{\numberline {4.10}Estimhab -source}{62}{section.4.10}
-\contentsline {section}{\numberline {4.11}Stathab - source}{63}{section.4.11}
-\contentsline {section}{\numberline {4.12}Substrate}{65}{section.4.12}
-\contentsline {chapter}{\numberline {5}Various notes}{69}{chapter.5}
-\contentsline {section}{\numberline {5.1}Translation of HABBY}{69}{section.5.1}
-\contentsline {section}{\numberline {5.2}Create a .exe}{70}{section.5.2}
-\contentsline {section}{\numberline {5.3}Logging}{70}{section.5.3}
-\contentsline {section}{\numberline {5.4}Git - code management}{72}{section.5.4}
-\contentsline {section}{\numberline {5.5}Write the documentation}{73}{section.5.5}
-\contentsline {section}{\numberline {5.6}License of used python modules}{73}{section.5.6}
-\contentsline {chapter}{\numberline {6}Indices and tables}{75}{chapter.6}
-\contentsline {chapter}{Python Module Index}{77}{section*.313}
+\contentsline {subsection}{\numberline {4.1.1}Notes on hec-ras outputs}{36}{subsection.4.1.1}
+\contentsline {section}{\numberline {4.2}Hec-ras model 2D}{37}{section.4.2}
+\contentsline {section}{\numberline {4.3}Mascaret}{40}{section.4.3}
+\contentsline {section}{\numberline {4.4}River 2D}{44}{section.4.4}
+\contentsline {section}{\numberline {4.5}Rubar}{45}{section.4.5}
+\contentsline {section}{\numberline {4.6}Telemac}{50}{section.4.6}
+\contentsline {section}{\numberline {4.7}Load HABBY hdf5 file}{51}{section.4.7}
+\contentsline {subsection}{\numberline {4.7.1}Form of the hdf5 files}{54}{subsection.4.7.1}
+\contentsline {section}{\numberline {4.8}Velocity distribution}{54}{section.4.8}
+\contentsline {section}{\numberline {4.9}Create a grid}{58}{section.4.9}
+\contentsline {section}{\numberline {4.10}Estimhab -source}{65}{section.4.10}
+\contentsline {section}{\numberline {4.11}Stathab - source}{66}{section.4.11}
+\contentsline {section}{\numberline {4.12}FStress - source}{68}{section.4.12}
+\contentsline {section}{\numberline {4.13}Substrate}{71}{section.4.13}
+\contentsline {chapter}{\numberline {5}Various notes}{75}{chapter.5}
+\contentsline {section}{\numberline {5.1}Translation of HABBY}{75}{section.5.1}
+\contentsline {section}{\numberline {5.2}Create a .exe}{76}{section.5.2}
+\contentsline {section}{\numberline {5.3}Logging}{76}{section.5.3}
+\contentsline {section}{\numberline {5.4}Git - code management}{78}{section.5.4}
+\contentsline {section}{\numberline {5.5}Write the documentation}{79}{section.5.5}
+\contentsline {section}{\numberline {5.6}License of used python modules}{79}{section.5.6}
+\contentsline {chapter}{\numberline {6}Indices and tables}{81}{chapter.6}
+\contentsline {chapter}{Python Module Index}{83}{section*.345}

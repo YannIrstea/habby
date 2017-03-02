@@ -13,7 +13,7 @@ from src import dist_vistess2
 
 
 def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
-                                                ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.'):
+                                ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.', print_cmd=False):
     """
     This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
     by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
@@ -31,6 +31,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
     :param show_fig_1D: A boolean. If True, image from the 1D data are created and savec
     :param q: used by the second thread.
     :param path_im: the path where to save the figure
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
 
     ** Technical comments**
 
@@ -40,7 +41,8 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
     """
 
     # load the rubar 1D
-    sys.stdout = mystdout = StringIO()
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
     [xhzv_data, coord_pro, lim_riv] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im, show_fig_1D)
     if show_fig_1D:
         plt.close() # just save the figure do not show them
@@ -66,7 +68,8 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
     # save the hdf5 file
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
                         point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
-    sys.stdout = sys.__stdout__
+    if print_cmd:
+        sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
         return
@@ -642,7 +645,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
 
 
 def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,
-                                 nb_dim, path_hdf5, q=[]):
+                                 nb_dim, path_hdf5, q=[], print_cmd =False):
     """
     This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
     interpolation and to save the whole in an hdf5 format
@@ -659,6 +662,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     """
 
     # create the empy output
@@ -669,7 +673,8 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     point_c_all_t = []
 
     # load data
-    sys.stdout = mystdout = StringIO()
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
     [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
         = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
 
@@ -715,7 +720,8 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
                         inter_vel_all_t, inter_h_all_t)
 
-    sys.stdout = sys.__stdout__
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
     else:

@@ -362,6 +362,7 @@ class SubHydroW(QWidget):
         self.timer = QTimer()
         self.mystdout = None
         self.name_hdf5 = ''
+        self.manning_textname = ''
         self.hname = QLineEdit(' ')
         self.p = None  # second process
         self.q = None
@@ -427,7 +428,7 @@ class SubHydroW(QWidget):
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
 
-    def gethdf5_name_gui(self):
+    def gethdf5_name_gui(self, constsub=False):
         """
         This function get the name of the hdf5 file for the hydrological and write down in the QLineEdit on the GUI.
         It is possible to have more than one hdf5 file for a model type. For example, we could have created two hdf5
@@ -436,6 +437,9 @@ class SubHydroW(QWidget):
         a change in this behaviour should be reflected in both function.
 
         This function calls the function get_hdf5_name in the load_hdf5.py file
+
+        :param constsub: If True, substrate will be loaded and is a constant substrate. The hdf5 name will reflect this.
+
         """
 
         sys.stdout = self.mystdout = StringIO()
@@ -446,7 +450,11 @@ class SubHydroW(QWidget):
         self.name_hdf5 = os.path.basename(pathname_hdf5)
         if len(self.name_hdf5) > 25: # careful this number should be changed if the form of the hdf5 name change
             self.name_hdf5 = self.name_hdf5[:-25]
-        self.hname.setText(self.name_hdf5)
+        if not constsub:
+            self.hname.setText(self.name_hdf5)
+        else:
+            self.name_hdf5 += "_CONST_"
+            self.hname2.setText(self.name_hdf5)
 
     def show_dialog(self, i=0):
         """
@@ -653,6 +661,9 @@ class SubHydroW(QWidget):
         1, 120, 0.035, etc.
 
         White space is neglected and a line starting with the character # is also neglected.
+
+        A very similar function to this ones exists in func_for_cmd. It is used to so the same thing but called
+        from the cmd. Changes should be copied in both functions if necessary.
         """
         # find the filename based on user choice
         if len(self.pathfile) == 0:
@@ -669,6 +680,7 @@ class SubHydroW(QWidget):
         if not os.path.isfile(filename_path):
             self.send_log.emit('Error: The selected file for manning is not found.')
             return
+        self.manning_textname = filename_path
         try:
             with open(filename_path, 'rt') as f:
                 data = f.read()
@@ -681,25 +693,26 @@ class SubHydroW(QWidget):
         com= 0
         for l in range(0, len(data)):
             data[l] = data[l].strip()
-            if data[l][0] != '#':
-                data_here = data[l].split(',')
-                if len(data_here) == 3:
-                    try:
-                        manning[l - com, 0] = np.int(data_here[0])
-                        manning[l - com, 1] = np.float(data_here[1])
-                        manning[l - com, 2] = np.float(data_here[2])
-                    except ValueError:
-                        self.send_log.emit('Error: The manning data could not be converted to float or int.'
+            if len(data[l])>0:
+                if data[l][0] != '#':
+                    data_here = data[l].split(',')
+                    if len(data_here) == 3:
+                        try:
+                            manning[l - com, 0] = np.int(data_here[0])
+                            manning[l - com, 1] = np.float(data_here[1])
+                            manning[l - com, 2] = np.float(data_here[2])
+                        except ValueError:
+                            self.send_log.emit('Error: The manning data could not be converted to float or int.'
+                                               ' Format: p,dist,n line by line.')
+                            return
+                    else:
+                        self.send_log.emit('Error: The manning data was not in the right format.'
                                            ' Format: p,dist,n line by line.')
                         return
-                else:
-                    self.send_log.emit('Error: The manning data was not in the right format.'
-                                       ' Format: p,dist,n line by line.')
-                    return
 
-            else:
-                manning = np.delete(manning, -1, 0)
-                com += 1
+                else:
+                    manning = np.delete(manning, -1, 0)
+                    com += 1
 
         # save the adress of the text data in the xml file
         self.pathfile[3] = os.path.dirname(filename_path)
@@ -954,6 +967,8 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("restart LOAD_HECRAS_1D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        self.send_log.emit("restart    interpolation: " + str(self.interpo_choice))
+        self.send_log.emit("restart    number of added profile: " + str(self.pro_add))
 
 
 class Rubar2D(SubHydroW):
@@ -1076,7 +1091,7 @@ class Rubar2D(SubHydroW):
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
         self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
         self.send_log.emit("py    load_rubar2d_and_create_grid(new_filename,file1, file2, path1, path2, path2, True, "
-                           "name_projet, path_projet, 'RUBAR_2D', 2, '.', )\n")
+                           "name_projet, path_projet, 'RUBAR2D', 2, '.', )\n")
         self.send_log.emit("restart LOAD_RUBAR_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
@@ -1230,20 +1245,16 @@ class Mascaret(SubHydroW):
         All of theses tasks are done on a second thread to avoid freezing the GUI.
         """
 
-        self.load_b.setDisabled(True)
+        self.load_b.setEnabled(False)
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
         self.save_xml(2)
 
-        # for error management and figures (when time finsiehed call the self.send_data function)
-        self.timer.start(1000)
-
         # get the image and load option
         path_im = self.find_path_im()
         # the path where to save the hdf5
         path_hdf5 = self.find_path_im()
-        self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         show_all_fig = False
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
@@ -1251,19 +1262,25 @@ class Mascaret(SubHydroW):
         self.interpo_choice = self.inter.currentIndex()
 
         # preparation for the velocity distibution
-        try:
-            # we have two cases possible: a manning array or a manning float. here we take the case manning as float
-            if not self.manning_arr:
-                self.manning_arr = float(self.manning_text.text())
-        except ValueError:
-            self.send_log.emit("Error: The manning value is not understood.")
+        manning_float = False
+        # we have two cases possible: a manning array or a manning float. here we take the case manning as float
+        if len(self.manning_arr) == 0:
+            try:
+                    manning_float = True
+                    self.manning_arr = float(self.manning_text.text())
+            except ValueError:
+                self.send_log.emit("Error: The manning value is not understood.")
+                return
         try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
             self.send_log.emit("Error: The number of velocity point is not understood.")
+            return
 
         # load hec_ras data, distribute the velocity and create the grid in a second thread
         self.q = Queue()
+        # for error management and figures (when time finsiehed call the self.send_data function)
+        self.timer.start(1000)
         self.p = Process(target=mascaret.load_mascaret_and_create_grid, args=(self.name_hdf5, path_hdf5,self.name_prj,
                                                                               self.path_prj,self.model_type, self.namefile,
                                                                               self.pathfile, self.interpo_choice,
@@ -1281,18 +1298,29 @@ class Mascaret(SubHydroW):
         self.send_log.emit("py    path3='" + self.pathfile[2] + "'")
         self.send_log.emit("py    files = [file1, file2, file3]")
         self.send_log.emit("py    paths = [path1, path2, path3]")
-        self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
-        self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
-        self.send_log.emit("py    manning1 = " + str(self.manning1))
+        self.send_log.emit("py    interp=" + str(self.interpo_choice))
+        self.send_log.emit("py    pro_add=" + str(self.pro_add))
+        if manning_float:
+            self.send_log.emit("py    manning1 = " + str(self.manning_text.text()))  # to be corrected to include text result
+        else:
+            blob = np.array2string(self.manning_arr, separator=',', )
+            blob = blob.replace('\n', '')
+            self.send_log.emit("py    manning1 = np.array(" + blob + ')')
         self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
-        self.send_log.emit("py    manning_array = dist_vistess2.get_manning(manning1, np_point_vel, len(coord_pro))")
         self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
                            " = mascaret.load_mascaret_and_create_grid(filename_new, pathname_new, name_prj, path_prj,"
-                           " 'mascaret',files, paths, interp,manning_array, np_point_vel,'.', False, pro_add)\n")
+                           " 'mascaret',files, paths, interp,manning_data, np_point_vel,'.', False, pro_add)\n")
         self.send_log.emit("restart LOAD_MASCARET")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
         self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
+        if manning_float:
+            self.send_log.emit("restart    manning: " + str(self.manning1))
+        else:
+            blob = np.array2string(self.manning_arr, separator=',',)
+            blob = blob.replace('\n','')
+            self.send_log.emit("restart    manning1 = " + self.manning_textname)
+        self.send_log.emit("restart    interpo: " + str(self.interpo_choice))
 
 
 class River2D(SubHydroW):
@@ -1663,9 +1691,6 @@ class Rubar1D(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
 
-        # for error management and figures (when time finsiehed call the self.send_data function)
-        self.timer.start(1000)
-
         # get the image and load option
         path_im = self.find_path_im()
         # the path where to save the hdf5
@@ -1678,12 +1703,14 @@ class Rubar1D(SubHydroW):
         self.interpo_choice = self.inter.currentIndex()
 
         # preparation for the velocity distibution
-        try:
-            # we have two cases possible: a manning array or a manning float. here we take the case manning as float
-            if not self.manning_arr:
+        manning_float = False
+        if len(self.manning_arr) > 0:
+            try:
+                # we have two cases possible: a manning array or a manning float. here we take the case manning as float
+                manning_float = True
                 self.manning_arr = float(self.manning_text.text())
-        except ValueError:
-            self.send_log.emit("Error: The manning value is not understood.")
+            except ValueError:
+                self.send_log.emit("Error: The manning value is not understood.")
         try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
@@ -1691,6 +1718,8 @@ class Rubar1D(SubHydroW):
 
         # load rubar 1D, distribute velcoity and create the grid
         self.q = Queue()
+        # for error management and figures (when time finished call the self.send_data function)
+        self.timer.start(1000)
         self.p = Process(target=rubar.load_rubar1d_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
                                                                         self.path_prj, self.model_type, self.namefile,
                                                                         self.pathfile, self.interpo_choice,
@@ -1708,9 +1737,13 @@ class Rubar1D(SubHydroW):
         self.send_log.emit("py    paths = [path1, path2]")
         self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
         self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
-        self.send_log.emit("py    manning1 = " + str(self.manning1))
+        if manning_float:
+            self.send_log.emit("py    manning1 = " + str(self.manning_text.text()))
+        else:
+            blob = np.array2string(self.manning_arr, separator=',', )
+            blob = blob.replace('\n', '')
+            self.send_log.emit("py    manning1 = np.array(" + blob + ')')
         self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
-        self.send_log.emit("py    manning_array = dist_vistess2.get_manning(manning1, np_point_vel, len(coord_pro))")
         self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
                            " = rubar.load_rubar1d_and_create_grid(filename_new, pathname_new, name_prj, path_prj,"
                            " 'RUBAR1D',files, paths, interp,manning_array, np_point_vel,'.', False, pro_add)\n")
@@ -1948,6 +1981,10 @@ class SubstrateW(SubHydroW):
         self.hyd_name = []
         self.max_lengthshow = 90  # the maximum length of a file name to be show in full
         self.nb_dim = 10  # just to ckeck
+        # order and name matters here!
+        # change with caution!
+        # roughness height if ok with George
+        self.all_code_type = ['Cemagref', 'Sandre']
 
         self.init_iu()
 
@@ -1955,49 +1992,51 @@ class SubstrateW(SubHydroW):
         """
         Used in the initialization by __init__().
         """
-        # label
+
+        # to load substrate data from file
         l1 = QLabel(self.tr('<b> Load substrate data </b>'))
         l2 = QLabel(self.tr('File'))
-        l3 = QLabel(self.tr('If text file used as input:'))
-        l7 = QLabel(self.tr('Attribute name (for shapefile):'))
-        l5 = QLabel(self.tr('A Voronoi transformation will be applied.'))
-        self.l4 = QLabel(self.tr('Constant substrate value:'))
-        l11 = QLabel(self.tr('Default substrate:'))
-        self.e1 = QLineEdit()  # constant substrate value
-        self.e3 = QLineEdit('-99')  # default substrate value
-        self.l4.setDisabled(True)
-        self.e1.setDisabled(True)
+        lh = QLabel(self.tr('hdf5 file name'))
+        l11 = QLabel(self.tr('Default substrate value:'))
+        l3 = QLabel(self.tr('Code Substrate'))
+        self.e2 = QComboBox()
+        self.e2.addItems(self.all_code_type)
+        self.e3 = QLineEdit('1')  # default substrate value
+        self.hname = QLineEdit(self.name_hdf5)  # hdf5 name
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
+
+        # choose file button
+        self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
+        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
+        #self.h2d_b.clicked.connect(self.get_attribute_from_shp)
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
+
+        # the load button from file
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b.clicked.connect(self.load_sub_gui)
+        self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # if there was substrate info before, update the label and attibutes
         self.was_model_loaded_before()
         self.get_att_name()
         self.h2d_t2 = QLabel(self.namefile[0], self)
         self.h2d_t2.setToolTip(self.pathfile[0])
-        # type of substrate available
-        self.e2 = QComboBox()
-        blob, ext = os.path.splitext(self.namefile[0])
-        if ext == '.txt' or ext == '.asc':
-           self.e2.setDisabled(True)
-        elif ext == '.shp':
-            self.e2.addItem(self.name_att)
 
-        self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
-        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(self.get_attribute_from_shp)
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
-
-        # hdf5 name
-        lh = QLabel(self.tr('hdf5 file name'))
-        self.hname = QLineEdit(self.name_hdf5)
+        # to load constant substrate
+        self.l4 = QLabel(self.tr('<b> Load constant substrate </b>'))
+        l12 = QLabel(self.tr('Constant substrate value'))
+        self.e1 = QLineEdit('1')  # constant substrate value
+        l13 = QLabel(self.tr('(Code type: Cemagref)'))
+        lh2 = QLabel(self.tr('hdf5 file name'))
+        self.hname2 = QLineEdit(self.name_hdf5)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
-            self.gethdf5_name_gui()
+            self.gethdf5_name_gui(True)
 
-        # load button
-        self.constsub = QRadioButton(self.tr('Create constant substrate'))
-        self.constsub.toggled.connect(self.enabledisable_const)
-        self.load_b = QPushButton('Load data and create hdf5', self)
-        self.load_b.clicked.connect(self.load_sub_gui)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        # the load button for constant substrate
+        self.load_const = QPushButton(self.tr('Load const. data and create hdf5'), self)
+        self.load_const.clicked.connect(lambda: self.load_sub_gui(True))
 
         # label and button for the part to merge the grid
         l8 = QLabel(self.tr("<b> Merge the hydrological and substrate grid </b>"))
@@ -2007,7 +2046,7 @@ class SubstrateW(SubHydroW):
         self.drop_sub = QComboBox()
         self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
         self.load_b2.clicked.connect(self.send_merge_grid)
-        self.spacer2 = QSpacerItem(1, 180)
+        self.spacer2 = QSpacerItem(1, 10)
         self.cb2 = QCheckBox(self.tr('Show figures'), self)
 
         # get possible substrate from the project file
@@ -2019,57 +2058,37 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(l2, 1, 0)
         self.layout_sub.addWidget(self.h2d_t2, 1, 1)
         self.layout_sub.addWidget(self.h2d_b, 1, 2)
-        self.layout_sub.addWidget(l7, 2, 0)
+        self.layout_sub.addWidget(l3, 2, 0)
         self.layout_sub.addWidget(self.e2, 2, 1)
-        self.layout_sub.addWidget(l3, 5, 0)
-        self.layout_sub.addWidget(l5, 5, 1)
-        self.layout_sub.addWidget(self.l4, 3, 0)
-        self.layout_sub.addWidget(self.constsub,3 ,2 )
-        self.layout_sub.addWidget(self.e1, 3, 1)
+        self.layout_sub.addWidget(l11, 3, 0)
+        self.layout_sub.addWidget(self.e3, 3, 1)
         self.layout_sub.addWidget(lh, 4, 0)
         self.layout_sub.addWidget(self.hname, 4, 1)
         self.layout_sub.addWidget(self.load_b, 5, 2)
         self.layout_sub.addWidget(self.cb, 5, 3)
-        self.layout_sub.addWidget(l8, 6, 0)
-        self.layout_sub.addWidget(l9, 7, 0)
-        self.layout_sub.addWidget(self.drop_hyd, 7, 1)
-        self.layout_sub.addWidget(l10, 8, 0)
-        self.layout_sub.addWidget(self.drop_sub, 8, 1)
-        self.layout_sub.addWidget(l11, 9, 0)
-        self.layout_sub.addWidget(self.e3,9, 1)
-        self.layout_sub.addWidget(self.load_b2, 10, 2)
-        self.layout_sub.addWidget(self.cb2, 10, 1)
+
+        self.layout_sub.addWidget(self.l4, 6, 0, 1, 2)
+        self.layout_sub.addWidget(l12, 7, 0)
+        self.layout_sub.addWidget(self.e1, 7, 1)
+        self.layout_sub.addWidget(l13, 7, 2)
+        self.layout_sub.addWidget(lh2, 8, 0)
+        self.layout_sub.addWidget(self.hname2, 8, 1)
+        self.layout_sub.addWidget(self.load_const, 9, 2)
+
+        self.layout_sub.addWidget(l8, 10, 0, 1, 2)
+        self.layout_sub.addWidget(l9, 11, 0)
+        self.layout_sub.addWidget(self.drop_hyd, 11, 1)
+        self.layout_sub.addWidget(l10, 12, 0)
+        self.layout_sub.addWidget(self.drop_sub, 12, 1)
+        self.layout_sub.addWidget(l11, 13, 0)
+        self.layout_sub.addWidget(self.e3, 13, 1)
+        self.layout_sub.addWidget(self.load_b2, 14, 2)
+        self.layout_sub.addWidget(self.cb2, 14, 3)
         self.layout_sub.addItem(self.spacer2, 11, 1)
 
         self.setLayout(self.layout_sub)
 
-    def enabledisable_const(self):
-        """
-        This function enable and disable the loading of shapefile and text file in the substrate. Notably
-        the user can choose to have a constant substrate everywhere. In this case, the choice to load the file is
-        disabled.
-        """
-
-        if self.constsub.isChecked():
-            # all disable, only constant value
-            self.h2d_t2.setDisabled(True)
-            self.h2d_b.setDisabled(True)
-            self.e2.setDisabled(True)
-            # get the possiblity of given a constant value
-            self.l4.setDisabled(False)
-            self.e1.setDisabled(False)
-        if not self.constsub.isChecked():
-            # all open
-            self.h2d_t2.setEnabled(True)
-            self.h2d_b.setEnabled(True)
-            blob, ext = os.path.splitext(self.namefile[0])
-            if ext == '.shp':
-                self.e2.setDisabled(False)
-            # but disable constant
-            self.l4.setDisabled(True)
-            self.e1.setDisabled(True)
-
-    def load_sub_gui(self):
+    def load_sub_gui(self, const_sub=False):
         """
         This function is used to load the substrate data. The substrate data can be in two forms: a) in the form of a shp
         file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line).
@@ -2079,10 +2098,13 @@ class SubstrateW(SubHydroW):
         It is possible to have a constant substrate if the self.constsub variable is on (it is a QRadioButton). In this
         case, an hdf5 is created with only the default value marked. This form of hdf5 file is then managed by the merge
         function.
+
+        :param const_sub: If True, a constant substrate is being loaded. Usually it is set to False.
+
         """
 
         self.load_b.setDisabled(True)
-        if self.constsub.isChecked():
+        if const_sub:
             if self.namefile[0] != 'unknown file':
                 self.send_log.emit('Warning: Constant substrate data. Data from '+self.namefile[0] +
                                    ' not taken into account.')
@@ -2094,22 +2116,43 @@ class SubstrateW(SubHydroW):
             self.save_xml(0)
             blob, ext = os.path.splitext(self.namefile[0])
             path_im = self.find_path_im()
+            code_type = self.e2.currentText()
             # if the substrate is in the shp form
             if ext == '.shp':
-                # get attribute name from the actual list
-                self.name_att = self.e2.currentText()
-                if not self.name_att:
-                    self.send_log.emit("Error: No attribute name was given to load the shapefile.")
-                    return
-                self.pathfile[1] = ''
-                self.namefile[1] = self.name_att  # avoid to code things again
-                self.save_xml(1)
-            # load substrate
+                # load substrate
                 sys.stdout = self.mystdout = StringIO()
-                [self.coord_p, self.ikle_sub, self.sub_info] = substrate.load_sub_shp(self.namefile[0], self.pathfile[0], self.name_att)
+                [self.coord_p, self.ikle_sub, sub_dom, self.sub_info, ok_dom] = substrate.load_sub_shp(self.namefile[0],
+                                                                                  self.pathfile[0], code_type)
+
+                # we have a case where two dominant substrate are "equally" dominant
+                # so we ask the user to solve this for us
+                dom_solve = 0
+                if not ok_dom:
+                    # in this case ask the user
+                    self.msg2 = QMessageBox()
+                    self.msg2.setWindowTitle(self.tr('Dominant substrate'))
+                    self.msg2.setText(self.tr('Our analysis found that the dominant substrate of certain substrate'
+                                              ' cells cannot be determined. Indeed, the maximum percentage of two or '
+                                              'more classes are equal. In these cases, should we take the larger or the'
+                                              ' smaller substrate class?'))
+                    b1 = self.msg2.addButton(self.tr('Larger'), QMessageBox.NoRole)
+                    b2 = self.msg2.addButton(self.tr('Smaller'), QMessageBox.YesRole)
+                    self.msg2.exec()
+                    if self.msg2.clickedButton() == b1:
+                       dom_solve = 1
+                    elif self.msg2.clickedButton() == b2:
+                        dom_solve = -1
+                    [self.coord_p, self.ikle_sub, sub_dom, self.sub_info, ok_dom] = substrate.load_sub_shp(
+                        self.namefile[0],self.pathfile[0], code_type, dom_solve)
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
+                if self.ikle_sub == [-99]:
+                    self.send_log.emit('Error: Substrate data not loaded')
+                    self.load_b.setDisabled(False)
+                    return
+
                 # log info
                 self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
-                self.send_err_log()
                 self.send_log.emit("py    file1='" + self.namefile[0] + "'")
                 self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
                 self.send_log.emit("py    attr='" + self.name_att + "'")
@@ -2118,24 +2161,30 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
                 self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[0], self.namefile[0]))
                 self.send_log.emit("restart    attr: " + self.name_att)
-
+                # figure
                 if self.cb.isChecked():
-                    substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im)
+                    substrate.fig_substrate(self.coord_p, self.ikle_sub,  sub_dom, self.sub_info, path_im)
+
             # if the substrate data is a text form
             elif ext == '.txt' or ext == ".asc":
-                sys.stdout = self.mystdout = StringIO()
-                [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
+                #sys.stdout = self.mystdout = StringIO()
+                [self.coord_p, self.ikle_sub, sub_dom, self.sub_info, x, y, sub1, sub2] = \
+                    substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type)
+                #sys.stdout = sys.__stdout__
+                if self.ikle_sub == [-99]:
+                    self.send_log.emit('Error: Substrate data not loaded')
+                    self.load_b.setDisabled(False)
+                    return
                 self.log_txt()
                 if self.cb.isChecked():
-                    substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
+                    substrate.fig_substrate(self.coord_p, self.ikle_sub, sub_dom, self.sub_info, path_im, x, y, sub1)
             # case unknown
             else:
-                self.send_log.emit("Warning: Unknown extension for substrate data, the model will try to load as .txt")
-                sys.stdout = self.mystdout = StringIO()
-                [self.coord_p, self.ikle_sub, self.sub_info, x, y, sub] = substrate.load_sub_txt(self.namefile[0], self.pathfile[0])
-                if self.cb.isChecked():
-                    substrate.fig_substrate(self.coord_p, self.ikle_sub, self.sub_info, path_im, x, y, sub)
-                self.log_txt()
+                self.send_log.emit("Error: Unknown extension for substrate data. The data was not loaded. Only file "
+                                   "with .txt, .asc ,or .shp are accepted.")
+                self.load_b.setDisabled(False)
+                return
+
             self.save_hdf5_sub()
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
@@ -2146,7 +2195,6 @@ class SubstrateW(SubHydroW):
             if os.path.isfile(self.sub_name[i]):
                 sub_name2.append(self.sub_name[i])
             if os.path.isfile(os.path.join(self.path_prj, self.sub_name[i])):
-                print('blob')
                 sub_name2.append(self.sub_name[i])
         self.sub_name = sub_name2
         self.drop_sub.clear()
@@ -2156,7 +2204,7 @@ class SubstrateW(SubHydroW):
             self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
 
         # show figure
-        if self.cb.isChecked() and path_im != 'no_path' and not self.constsub.isChecked():
+        if self.cb.isChecked() and path_im != 'no_path' and not const_sub:
             self.show_fig.emit()
 
         self.load_b.setDisabled(False)
@@ -2188,7 +2236,7 @@ class SubstrateW(SubHydroW):
         This function opens a shapefile and obtain the attribute. It then update the GUI
         to reflect this and also update the label as needed.
         """
-        self.h2d_t2.setText(self.namefile[0])
+
         lob, ext = os.path.splitext(self.namefile[0])
         if ext == '.shp':
             self.e2.clear()
@@ -2250,7 +2298,7 @@ class SubstrateW(SubHydroW):
 
             # create hdf5 name
             if self.name_hdf5:
-                h5name = self.name_hdf5 + '_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+                h5name = self.name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
             else:
                 h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
             path_hdf5 = self.find_path_im()
@@ -2271,7 +2319,7 @@ class SubstrateW(SubHydroW):
             constsub = file.create_group('constant_sub')
             file.close()
 
-        else: # grid
+        else:  # grid
 
             # create hdf5 name
             fileshort, ext = os.path.splitext(self.namefile[0])

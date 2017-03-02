@@ -15,7 +15,7 @@ from src import dist_vistess2
 
 
 def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
-                                                ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.'):
+                                 ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.', print_cmd=False):
     """
     This function is used to load the mascaret data by calling the load_mascaret() function and to create the grid
     by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
@@ -30,9 +30,14 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
     :param namefile: the name of the geo file and the data file, which contains respectively geographical data and
            the ouput data (see open_hec_ras() for more precision) -> list of string
     :param pathfile: the absolute path to the file chosen into namefile -> list of string
+    :param interpo_choice: the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.
+    :param manning_data: Contains the manning data. It can be in an array form (variable) or as a float (constant)
+    :param nb_point_vel: the number of velcoity point by whole profile
     :param show_fig_1D: A boolean. If True, image from the 1D data are created and savec
     :param q: used by the second thread.
+    :param pro_add: the number of addictional profile (one used for interpolation_choice 1 and 2)
     :param path_im: the path where to save the figure
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
 
     ** Technical comments**
 
@@ -42,7 +47,8 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
     """
 
     # load mascaret
-    sys.stdout = mystdout = StringIO()
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
     [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] \
         = load_mascaret(namefile[0], namefile[1], namefile[2], pathfile[0], pathfile[1], pathfile[2])
     if coord_pro == [-99]:
@@ -60,6 +66,7 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
                         [0, 1], [-1], [0])
         plt.close()  # only saved the image, do not show them
 
+
     # distribute the velocity
     vh_pro = dist_vistess2.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile)
 
@@ -70,7 +77,8 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
     # save the hdf5 file
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
                         point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
-    sys.stdout = sys.__stdout__
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
         return

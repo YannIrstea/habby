@@ -20,11 +20,11 @@ class FstressW(estimhab_GUI.StatModUseful):
     fstress.py. FstressW just loads the data given by the user. He/She can write this data in the GUI or loads it
     from files. The following files are needed:
 
-    *listriv.txt: the list of the river (if the file does not exist, the river is called river1)
-    *rivqwh.txt: discharge, width, height for two discharge (measured) for each rivers
-    *rivdeb.txt: max and min discharge
+    * listriv.txt the list of the river (if the file does not exist, the river is called river1).
+    * rivqwh.txt discharge, width, height for two discharge (measured) for each rivers.
+    * rivdeb.txt max and min discharge.
 
-    Fstress inherits from the class StatModUseful. This class is a "parent" class with some functions which are the same
+    FStress inherits from the class StatModUseful. This class is a "parent" class with some functions which are the same
     for estimhab and fstress. Hence, we can re-use these function without re.writing them (a bit like SubHydroW)
     """
 
@@ -276,11 +276,12 @@ class FstressW(estimhab_GUI.StatModUseful):
         more than one qhw.txt in the folder, we ask the user if all files must be loaded. The needed text files are
         the following:
 
-        *listriv.txt is a text file with one river name by line (not necessary)
-        *rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
-        2 measureement (necessary)
-        *rivernamedeb.txt is a text file which has two line, The first is min discharge and the second is the maximum
-        discharge to be modelled. It is chosen by the user (necessary to run, but can be given by the user on the GUI)
+        * listriv.txt is a text file with one river name by line (not necessary)
+        * rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
+          2 measureement (necessary)
+        * rivernamedeb.txt is a text file which has two lines. The first line is the minimum discharge and the second is
+          the maximum discharge to be modelled. It is chosen by the user (necessary to run, but can be given by the user
+          on the GUI)
 
         All data should be in SI unit.
         """
@@ -566,7 +567,6 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.msge.show()
             return
 
-        print(self.riv_name)
         for i in range(0, len(self.riv_name)):
             print(i)
             if len(self.qrange[i]) < 2:

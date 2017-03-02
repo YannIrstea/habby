@@ -19,7 +19,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
 
     :param vh_pro: Velcoity and height data
     :param coord_pro: the position of the profile
-    : nb_pro-reach: the number of profile by reach
+    :param nb_pro_reach: the number of profile by reach
     :param interpo_choice: an int which gives the choice of interpolatin (see below)
     :param pro_add: the number of profile for be added (for interpoation method 1 and 2)
 
@@ -38,7 +38,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
     river is too complicated. Generally, the interpolation method 1 and 2 gives smoother results with more control
     over the interpolation option and the size of the cells. However, these two interpolation methods are more sensitive
     to the inputs, especially if the river has a lot of "island" (strongly anastomotic). So the interpoliation method 0
-    is mroe adequate in this case.
+    is more adequate in this case.
 
     """
     # check input
@@ -661,7 +661,6 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         try:
             ikle_r = grid_dict['triangles']
             point_all_r = grid_dict['vertices']
-
         except KeyError:
             print('Warning: Reach with an empty grid.\n')
             ikle_r = None
