@@ -55,10 +55,12 @@ def main():
         print('LOAD_HYDRO_HDF5: load an hydrological hdf5. Input: the name of the hdf5 (with the path)')
 
         print('\n')
-        print('MERGE_GRID: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5,'
-              'the name of the substrate hdf5, the default data for the substrate (in cemagref code), (output name)')
-        print('LOAD_SHP_SUB: load the substrate from a shapefile. Input: filename of the shapefile, path to this file,'
+        print('MERGE_GRID: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5'
+              ', the name of the substrate hdf5, the default data for the substrate (in cemagref code), (output name)')
+        print('LOAD_SUB_SHP: load the substrate from a shapefile. Input: filename of the shapefile, path to this file,'
               'code_type as Cemagref or Sandre, (dominant_case as 1 or -1)')
+        print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the shapefile, path to this file,'
+              'code_type as Cemagref or Sandre')
         print('LOAD_SUB_HDF5: load the substrate data in an hdf5 form. Input: the name of the hdf5 file (with path)')
 
         print('\n')
@@ -458,8 +460,21 @@ def main():
             return
 
         [xy, ikle, sub_dom, sub_pg, blob] = substrate.load_sub_shp(filename, path, code_type, dominant_case)
+        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy, '', False, 'SUBSTRATE')
 
-        # TO BE ADDED: save_hdf5_substrate
+        # --------------------------------------------------------------------
+    elif sys.argv[1] == 'LOAD_SUB_TXT':
+
+        if not 4 < len(sys.argv) < 6:
+            print('LOAD_SUB_TXT needs between two and three inputs. See LIST_COMMAND for more information.')
+            return
+
+        filename = sys.argv[2]
+        path = sys.argv[3]
+        code_type = sys.argv[4]
+
+        [xy, ikle, sub_dom2, sub_pg2, x, y, blob, blob] = substrate.load_sub_txt(filename, path, code_type)
+        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, '', False, 'SUBSTRATE')
 
     # ----------------------------------------------------------------------------------------
     elif sys.argv[1] == 'MERGE_GRID_SUB':

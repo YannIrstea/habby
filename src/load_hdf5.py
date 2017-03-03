@@ -491,6 +491,124 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     return
 
 
+def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], coord_p=[], name_hdf5 ='', constsub=False,
+                  model_type='SUBSTRATE'):
+    """
+    This function creates an hdf5 with the substrate data. This hdf5 does not have the same form than the hdf5 file used
+    to store hydrological or merge data. This hdf5 store the substrate data alone before it is merged with the
+    hydrological info. The substrate info should be given in the cemagref code.
+
+    :param path_hdf5: the path where the hdf5 file should be saved
+    :param path_prj: the project path
+    :param name_prj: the name of the project
+    :param sub_pg: the coarser part of the substrate (array with length of ikle if const_sub is False, a float otherwise)
+    :param sub_dom: the dominant part of the substrate (array with length of ikle if const_sub is False, a float otherwise)
+    :param ikle_sub: the connectivity table for the substrate (only if constsub = False)
+    :param coord_p: the point of the grid of the substrate (only if constsub = False)
+    :param name_hdf5: the name of the substrate h5 file (without the timestamp). If not given, a default name is used.
+    :param constsub: If True the substrate is a constant value
+    :param model_type: the attribute for the xml file (usually SUBSTRATE)
+    """
+
+    if constsub:  # constant value of substrate
+
+        # create hdf5 name
+        if name_hdf5:
+            h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        else:
+            h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+
+        # create a new hdf5
+        fname = os.path.join(path_hdf5, h5name)
+        file = h5py.File(fname, 'w')
+
+        # create attributes
+        file.attrs['path_projet'] = path_prj
+        file.attrs['name_projet'] = name_prj
+        file.attrs['HDF5_version'] = h5py.version.hdf5_version
+        file.attrs['h5py_version'] = h5py.version.version
+
+        # add the constant value of substrate
+        constsubpg = file.create_group('constant_sub_pg')
+        if isinstance(sub_pg, float) or isinstance(sub_pg, int):
+            constsubpg.create_dataset(h5name, [1, 1], data=sub_pg)
+        else:
+            print('Error: Constant substrate not recognized. (1) \n')
+        constsubdom = file.create_group('constant_sub_dom')
+        if isinstance(sub_dom, float) or isinstance(sub_dom, int):
+            constsubdom.create_dataset(h5name, [1, 1], data=sub_dom)
+        else:
+            print('Error: Constant substrate not recognized. (2) \n')
+
+        file.close()
+
+    else:  # grid
+
+        # create hdf5 name
+        if name_hdf5:
+            h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        else:
+            h5name = 'Substrate_VAR_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+
+        # create a new hdf5
+        fname = os.path.join(path_hdf5, h5name)
+        file = h5py.File(fname, 'w')
+
+        # create attributes
+        file.attrs['path_projet'] = path_prj
+        file.attrs['name_projet'] = name_prj
+        file.attrs['HDF5_version'] = h5py.version.hdf5_version
+        file.attrs['h5py_version'] = h5py.version.version
+
+        # save ikle, coordonate and data
+        ikleg = file.create_group('ikle_sub')
+        coordpg = file.create_group('coord_p_sub')
+        if len(ikle_sub) > 0:
+            adict = dict()  # because the grid might not be triangular here
+            for p in range(0, len(ikle_sub)):
+                ns = 'p' + str(p)
+                adict[ns] = ikle_sub[p]
+            for k, v in adict.items():
+                ikleg.create_dataset(k, data=v)
+        coordpg.create_dataset(h5name, [len(coord_p), 2], data=coord_p)
+
+        # substrate data (cemagref code ususally)
+        datasubpg = file.create_group('data_sub_pg')
+        if len(ikle_sub) == len(datasubpg):
+            datasubpg.create_dataset(h5name, [len(sub_pg),1], data=sub_pg)
+        else:
+            print('Error: Substrate data not recognized (1) \n')
+        datasubpg = file.create_group('data_sub_dom')
+        if len(ikle_sub) == len(datasubpg):
+            datasubpg.create_dataset(h5name, [len(sub_dom), 1], data=sub_dom)
+        else:
+            print('Error: Substrate data not recognized (2) \n')
+
+        file.close()
+
+    # save the file to the xml of the project
+    filename_prj = os.path.join(path_prj, name_prj + '.xml')
+    if not os.path.isfile(filename_prj):
+        print('Error: No project saved. Please create a project first in the General tab.\n')
+        return
+    else:
+        doc = ET.parse(filename_prj)
+        root = doc.getroot()
+        child = root.find(".//" + model_type)
+        if child is None:
+            stathab_element = ET.SubElement(root, model_type)
+            hdf5file = ET.SubElement(stathab_element, "hdf5_substrate")
+            hdf5file.text = h5name
+        else:
+            hdf5file = root.find(".//" + "hdf5_substrate")
+            hdf5file = ET.SubElement(child, "hdf5_substrate")
+            hdf5file.text = h5name
+            #else:
+                #hdf5file.text = hdf5file.text + ', ' + h5name  # keep the name of the old and new file
+                #hdf5file.text = h5name  # keep only the new file
+        doc.write(filename_prj)
+
+
 def add_sub_to_merge_hdf5(name_hdf5, path_hdf5, substrate):
     """
     This function open an existing hydrological hdf5 and add the substrate data to it. Obviously, this only makes sense

@@ -176,7 +176,7 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
     # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
     [attribute_type, attribute_name] = get_useful_attribute(fields)
     if attribute_type == -99:
-        return [-99], [-99], [-99], [-99], True
+        return failload
 
     # if percentage type
     if attribute_type == 1:
@@ -193,7 +193,7 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
                     record_here = list(map(int, record_here))
                 except ValueError:
                     print('Error: The substate code should be formed by an int.\n')
-                    return [-99], [-99], [-99], [-99], True
+                    return failload
                 record_all.append(record_here)
                 ind += 1
         record_all = np.array(record_all)
@@ -205,7 +205,6 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
             # let find the dominant
             # we cannot use argmax as we need all maximum value, not only the first
             inds = list(np.argwhere(record_all_i == np.max(record_all_i)).flatten())
-            print(inds)
             if len(inds) > 1:
                 # if we have the same percentage for two dominant we send back the function to the GUI to ask the
                 # user. It is called again with the arg dominant_case
@@ -222,21 +221,23 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
             ind = np.where(record_all_i[record_all_i != 0])[0]
             sub_pg[e] = ind[-1] + 1
         # now let's checked and change code
+        if np.any(sum(sub_pg)) !=100 and np.any(sum(sub_dom)) != 100:
+            print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
         if code_type == 'Cemagref':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
                 print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                return [-99], [-99], [-99], [-99], True
+                return failload
             elif max(sub_dom) > 8 or max(sub_pg) > 8:
                 print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                return [-99], [-99], [-99], [-99], True
+                return failload
         # code type edf - checked and transform
         elif code_type == 'EDF':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
                 print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
-                return
+                return failload
             elif max(sub_dom) > 8 or max(sub_pg) > 8:
                 print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
-                return [-99], [-99], [-99], [-99], True
+                return failload
             else:
                 sub_dom = edf_to_cemagref(sub_dom)
                 sub_pg = edf_to_cemagref(sub_pg)
@@ -244,16 +245,16 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
         elif code_type == 'Sandre':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
                 print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                return [-99], [-99], [-99], [-99], True
+                return failload
             elif max(sub_dom) > 12 or max(sub_pg) > 12:
                 print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                return [-99], [-99], [-99], [-99], True
+                return failload
             else:
                 sub_dom = sandre_to_cemagref(sub_dom)
                 sub_pg = sandre_to_cemagref(sub_pg)
         else:
             print('Error: The substrate code is not recognized.\n')
-            return
+            return failload
 
 
     # pg/coarser/accessory type
@@ -268,16 +269,16 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
                     record_here = list(map(int, record_here))
                 except ValueError:
                     print('Error: The substate code should be formed by an int.\n')
-                    return [-99], [-99], [-99], [-99], True
+                    return failload
 
                 # code type cemagref - checked
                 if code_type == 'Cemagref':
                     if min(record_here) < 1:
                         print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                        return [-99], [-99], [-99], [-99], True
+                        return failload
                     elif max(record_here) > 8:
                         print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                        return [-99], [-99], [-99], [-99], True
+                        return failload
                 # code type edf - checked and transform
                 elif code_type == 'EDF':
                     if min(record_here) < 1:
@@ -292,15 +293,15 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
                 elif code_type == 'Sandre':
                     if min(record_here) < 1:
                         print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                        return [-99], [-99], [-99], [-99], True
+                        return failload
                     elif max(record_here) > 12:
                         print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                        return [-99], [-99], [-99], [-99], True
+                        return failload
                     else:
                         record_here = sandre_to_cemagref(record_here)
                 else:
                     print('Error: The substrate code is not recognized.\n')
-                    return [-99], [-99], [-99], [-99], True
+                    return failload
 
                 # now that we have checked and transform, give the data
                 if f[0] == attribute_name[0]:
@@ -311,9 +312,7 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
 
     else:
         print('Error: Type of attribute not recognized.\n')
-        return [-99], [-99], [-99], [-99], True
-
-    print(sub_dom)
+        return failload
 
     return xy, ikle, sub_dom, sub_pg, True
 
