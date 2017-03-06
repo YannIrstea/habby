@@ -187,14 +187,16 @@ def load_hdf5_sub(hdf5_name_sub, path_prj):
     """
     A function to load the substrate data contained in the hdf5 file. It also manage
     the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
-    the path is composed of the path to the project (path_prj) composed with hdf5_name_sub.
+    the path is composed of the path to the project (path_prj) composed with hdf5_name_sub. it manages constant and
+    vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
     :param path_prj: the path to the project
     """
 
     # correct all change to the hdf5 form in the doc!
-    data_sub = []
+    ikle_sub = []
+    point_all_sub = []
     failload = [[-99]], [[-99]], [[-99]]
 
     # open the file
@@ -211,40 +213,53 @@ def load_hdf5_sub(hdf5_name_sub, path_prj):
         return failload
 
     # manage the constant case
-    constname = 'constant_sub'
+    constname = 'constant_sub_pg'
     if constname in file_sub:
-        # read a constant data
-        # NOT DONE YET AS SUBSTRATE FORM IS NOT CHOSEN YET
-        data_sub = 1
-        return [[0]], [[0]], data_sub
+        try:
+            sub_pg = file_sub[constname]
+            sub_dom = file_sub['constant_sub_dom']
+        except KeyError:
+            print('Error:Constant substrate data is not found. \n')
+            return failload
+        sub_pg = sub_pg.values()
+        sub_dom = sub_dom.values()
 
-    # read the ikle data
-    basename1 = 'ikle_sub'
-    try:
-        gen_dataset = file_sub[basename1]
-    except KeyError:
-        print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
-        return failload
 
-    ikle_sub = list(gen_dataset.values())
-    ikle_sub = np.squeeze(np.array(ikle_sub))
+    # the variable case
+    else:
+        # read the ikle data
+        basename1 = 'ikle_sub'
+        try:
+            gen_dataset = file_sub[basename1]
+        except KeyError:
+            print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
+            return failload
+        ikle_sub = list(gen_dataset.values())
+        ikle_sub = np.squeeze(np.array(ikle_sub))
 
-    # read the coordinate of the point forming the grid
-    basename1 = 'coord_p_sub'
-    try:
-        gen_dataset = file_sub[basename1]
-    except KeyError:
-        print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
-        return failload
+        # read the coordinate of the point forming the grid
+        basename1 = 'coord_p_sub'
+        try:
+            gen_dataset = file_sub[basename1]
+        except KeyError:
+            print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
+            return failload
+        point_all_sub = list(gen_dataset.values())[0]
+        point_all_sub = np.array(point_all_sub)
 
-    point_all_sub = list(gen_dataset.values())[0]
-    point_all_sub = np.array(point_all_sub)
+        # read the substrate data
+        try:
+            sub_pg = file_sub['data_sub_pg']
+            sub_dom = file_sub['data_sub_dom']
+        except KeyError:
+            print('Error: No substrate data found. \n')
+            return failload
+        sub_pg = list(sub_pg.values())
+        sub_pg = np.squeeze(np.array(sub_pg))
+        sub_dom = list(sub_dom.values())
+        sub_dom = np.squeeze(np.array(sub_dom))
 
-    # read the substrate data
-    # NOT DONE YET AS THE FORM OF THE SUBSTRATE INFO IS UNKNOWN
-    data_sub = np.zeros(len(ikle_sub),)
-
-    return ikle_sub, point_all_sub, data_sub
+    return ikle_sub, point_all_sub, sub_pg, sub_dom
 
 
 def get_all_filename(dirname, ext):
@@ -300,7 +315,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
 
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
-              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_data_all_t=[]):
+              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[], sub_dom_all_t=[]):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -320,7 +335,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param vh_pro: data linked with 1.5D model or data created by dist_vist from a 1D model (velcoity and height data)
     :param nb_pro_reach: data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)
     :param merge: If True, the data is coming from the merging of substrate and hydrological data.
-    :param sub_data_all_t: the data of the substrate given on the merged grid by cell. Only used if merge is True.
+    :param sub_pg_all_t: the data of the coarser substrate given on the merged grid by cell. Only used if merge is True.
+    ;param sub_dom_all_t: the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
 
     **Technical comments**
 
@@ -438,11 +454,16 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                                                 data=inter_h_all_t[t][r])
                 # substrate data in the case it is a merged grid
                 if merge:
-                    data_subg = rhere.create_group('data_substrate')
-                    if len(sub_data_all_t)>0:
-                        if len(sub_data_all_t[t]) > 0 and not isinstance(sub_data_all_t[t][0], float):
-                            data_subg.create_dataset(h5name, [len(sub_data_all_t[t][r]), 1],
-                                                data=sub_data_all_t[t][r])
+                    data_subg = rhere.create_group('data_substrate_dom')
+                    if len(sub_dom_all_t)>0:
+                        if len(sub_dom_all_t[t]) > 0 and not isinstance(sub_dom_all_t[t][0], float):
+                            data_subg.create_dataset(h5name, [len(sub_dom_all_t[t][r]), 1],
+                                                data=sub_dom_all_t[t][r])
+                    data_subg = rhere.create_group('data_substrate_pg')
+                    if len(sub_pg_all_t) > 0:
+                        if len(sub_pg_all_t[t]) > 0 and not isinstance(sub_pg_all_t[t][0], float):
+                            data_subg.create_dataset(h5name, [len(sub_pg_all_t[t][r]), 1],
+                                                     data=sub_pg_all_t[t][r])
 
     file.close()
 
@@ -574,12 +595,12 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
 
         # substrate data (cemagref code ususally)
         datasubpg = file.create_group('data_sub_pg')
-        if len(ikle_sub) == len(datasubpg):
+        if len(ikle_sub) == len(sub_pg):
             datasubpg.create_dataset(h5name, [len(sub_pg),1], data=sub_pg)
         else:
             print('Error: Substrate data not recognized (1) \n')
         datasubpg = file.create_group('data_sub_dom')
-        if len(ikle_sub) == len(datasubpg):
+        if len(ikle_sub) == len(sub_dom):
             datasubpg.create_dataset(h5name, [len(sub_dom), 1], data=sub_dom)
         else:
             print('Error: Substrate data not recognized (2) \n')

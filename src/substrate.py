@@ -656,22 +656,26 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
 
     """
     failload = [-99], [-99], [-99], [-99], [-99]
-    sub_data_all_t = []
+    sub_dom_all_t = []
+    sub_pg_all_t = []
     ikle_both = []
     point_all_both = []
     point_c_all_both = []
     vel_all_both = []
     height_all_both = []
 
-    # here go check for default value
-    # NOT DONE YET as form of the substrate data is not known
+    try:
+        default_data= float(default_data)
+    except ValueError:
+        print('Error: Dafault data should be a float.\n')
+        return failload
 
     m = time.time()
     # load hdf5 hydro
     [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd, path_prj)
 
     # load hdf5 sub
-    [ikle_sub, point_all_sub, data_sub] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
+    [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
 
     # find the additional crossing points for each time step and each reach
     # and modify the grid
@@ -690,19 +694,26 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
         return failload
     elif len(point_all_sub) == 1 and ikle_sub[0][0] == 0:
         # if constant substrate, the hydrological grid is used
+        # the default value is not really used
         print('Warning: Constant substrate.')
         for t in range(0, len(ikle_all)):
-            sub_data_all = []
+            sub_data_all_pg = []
+            sub_data_all_dom = []
             if len(ikle_all[t]) > 0:
                 for r in range(0, len(ikle_all[t])):
                     try:
-                        sub_data_here = np.zeros(len(ikle_all[t][r]),) + float(default_data) # check if ok for float
+                        sub_data_pg = np.zeros(len(ikle_all[t][r]),) + float(data_sub_dom)
+                        sub_data_dom = np.zeros(len(ikle_all[t][r]),) + float(data_sub_pg)
                     except ValueError:
-                        print('Error: no float in substrate. (only float accepted fro now)')
+                        print('Error: no int in substrate. (only float or int accepted for now). \n')
                         return failload
-                    sub_data_all.append(sub_data_here)
-            sub_data_all_t.append(sub_data_all)
-        return ikle_all, point_all, sub_data_all_t, inter_vel_all, inter_height_all
+                    sub_data_all_pg.append(sub_data_dom)
+                    sub_data_all_dom.append(sub_data_pg)
+            sub_dom_all_t.append(sub_data_dom)
+            sub_pg_all_t.append(sub_data_all_pg)
+        sub_dom_all_t = sub_dom_all_t
+        sub_pg_all_t = sub_pg_all_t
+        return ikle_all, point_all, sub_dom_all_t, sub_pg_all_t, inter_vel_all, inter_height_all
     elif len(ikle_sub[0]) < 3:
         print('Error: the connectivity table of the substrate is badly formed.')
         return failload
@@ -710,7 +721,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
     for t in range(0, len(ikle_all)):
         ikle_all2 = []
         point_all2 = []
-        data_sub2 = []
+        data_sub2_pg = []
+        data_sub2_dom = []
         vel2 = []
         height2 = []
 
@@ -725,8 +737,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
                     vel_before = []
                     height_before = []
                 a = time.time()
-                [pc, new_data_sub] = point_cross2(ikle_before, point_before, ikle_sub, point_all_sub, data_sub,
-                                                  default_data)
+                if len(ikle_before) < 1:
+                    print('Warning: One time steps without grids found. \n')
+                    break
+                [pc, new_data_sub_pg, new_data_sub_dom] = point_cross2(ikle_before, point_before, ikle_sub,
+                                                                       point_all_sub, data_sub_pg, data_sub_dom, default_data)
                 pc = np.array(pc)
 
                 if len(pc) < 1:
@@ -736,32 +751,35 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
                     except ValueError:
                         print('Error: no float in substrate. (only float accepted fro now)')
                         return failload
-                    sub_data_all_t.append(sub_data_here)
+                    sub_dom_all_t.append(sub_data_here)
+                    sub_pg_all_t.append(sub_data_here)
                     ikle_all2.append(ikle_before)
                     point_all2.append(point_before)
                     break # next time step
 
                 b = time.time()
-                [ikle_here, point_all_here, new_data_sub, vel_new, height_new] = grid_update_sub3(ikle_before, point_before, pc,
-                                                                             point_all_sub, new_data_sub, vel_before,
-                                                                             height_before)
+                [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
+                    grid_update_sub3(ikle_before, point_before, pc, point_all_sub, new_data_sub_pg, new_data_sub_dom,
+                                     vel_before, height_before)
                 c = time.time()
                 ikle_all2.append(ikle_here)
                 point_all2.append(point_all_here)
-                data_sub2.append(new_data_sub)
+                data_sub2_pg.append(new_data_sub_pg)
+                data_sub2_dom.append(new_data_sub_dom)
                 vel2.append(vel_new)
                 height2.append(height_new)
 
         ikle_both.append(ikle_all2)
         point_all_both.append(point_all2)
-        sub_data_all_t.append(data_sub2)
+        sub_pg_all_t.append(data_sub2_pg)
+        sub_dom_all_t.append(data_sub2_dom)
         vel_all_both.append(vel2)
         height_all_both.append(height2)
 
-    return ikle_both, point_all_both, sub_data_all_t, vel_all_both, height_all_both
+    return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both
 
 
-def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
+def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom, default_sub):
     """
     A function which find where the crossing points are. Crossing points are the points on the triangular side of the
     hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
@@ -771,20 +789,23 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
     :param coord_p: the coordinates of the points of the hydrological grid
     :param ikle_sub: the connecity vity table of the substrate
     :param coord_p_sub: the coordinates of the points of the substrate grid
-    :param data_sub: the data of the substrate (one data by cell)
+    :param data_sub_pg: the data of the coaser  substrate in cemargef code(one data by cell)
+    :param data_sub_dom: the data of the  dominant substratein cemargef code(one data by cell)
     :param default_sub: the default_data
     :return: intersection
 
     """
     pc = []
-    new_data_sub = []  # the data sub for the hydrology
+    new_data_sub_pg = []  # the data sub for the hydrology
+    new_data_sub_dom = []
     xsubmax = max(coord_p_sub[:, 0])
     ysubmax = max(coord_p_sub[:, 1])
     xsubmin = min(coord_p_sub[:, 0])
     ysubmin = min(coord_p_sub[:, 1])
 
     # erase substrate cell which are outside of the hydrological grid (to optimize)
-    data_sub2 = []
+    data_sub_pg2 = []
+    data_sub_dom2 = []
     ikle_sub2 =[]
     xhydmax = max(coord_p[:, 0])
     yhydmax = max(coord_p[:, 1])
@@ -797,14 +818,16 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
         if xhydmax >= min(coord_x_sub) and xhydmin <= max(coord_x_sub) and \
                         yhydmax >= min(coord_y_sub) and yhydmin <= max(coord_y_sub):
             ikle_sub2.append(k)
-            data_sub2.append(data_sub[i])
+            data_sub_pg2.append(data_sub_pg[i])
+            data_sub_dom2.append(data_sub_dom[i])
         i+=1
     ikle_sub = np.array(ikle_sub2)
-    data_sub = data_sub2
+    data_sub_pg = data_sub_pg2
+    data_sub_dom = data_sub_dom2
     nb_poly = len(ikle_sub)
     nb_tri = len(ikle)
 
-    p0 = coord_p[int(ikle[0, 0]), :]
+    p0 = coord_p[int(ikle[0, 0])]
     nx = ny = 0  # direction of the substrate grid
 
     # for each triangle in the hydro mesh
@@ -817,8 +840,8 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
             # let's analyse each polygon of the substrate grid
             i = 0
             # if cross is not possible anyway
-            if xsubmax < xhyd or xhyd < xsubmin or ysubmax < yhyd or yhyd < ysubmin:
-                find_sub = True
+            #if xsubmax < xhyd or xhyd < xsubmin or ysubmax < yhyd or yhyd < ysubmin:
+                #find_sub = True
             # think about polygon size for optimization
             while not find_sub:
                 # using to send a ray outside of the polygon
@@ -827,6 +850,7 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
                 intersect = 0.0
                 # find the "substrate" point of this polygon
                 poly_i = ikle_sub[i]
+                idem_x = False
                 # for each side of the substrate polygon
                 for i2 in range(0, len(poly_i)):
                     if i2 == len(poly_i)-1:
@@ -853,6 +877,16 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
                         # if we have interesection
                         if xhyd <= x_int:
                             intersect += 1
+
+                        # manage the case where the yhyd is at the same height than subtrate (we want one intersection
+                        # and not two)
+                        if yhyd == y1sub or yhyd == y2sub:
+                            if idem_x:
+                                intersect -= 1
+                                idem_x = False
+                            else:
+                                idem_x = True
+
                             # seg = seg.append(i2)
                 # if number of intersection is odd, then point inside
                 if intersect % 2 == 1:
@@ -875,7 +909,28 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
         if sub_num[0] != sub_num[1] and sub_num[0] != -99 and sub_num[1] != -99:
             hyd1 = coord_p[int(ikle[e, 0]), :]
             hyd2 = coord_p[int(ikle[e, 1]), :]
-            a1 = ikle_sub[sub_num[0]]  # ????
+            if e == 56075 or e == 13892 or e == 56074:
+                print(ikle_sub[sub_num[0]])
+                # plt.figure()
+                a1 = ikle_sub[sub_num[0]]
+                for i in a1:
+                    print(coord_p_sub[int(i)])
+                a1 = ikle_sub[sub_num[1]]
+                for i in a1:
+                    print(coord_p_sub[int(i)])
+                print(hyd1)
+                print(hyd2)
+                # a1 = ikle_sub[sub_num[0]]
+                # for i in a1:
+                #     plt.plot(coord_p_sub[int(i)], 'r*')
+                # plt.plot(hyd1,'b*')
+                # plt.plot(hyd2, 'b*')
+                # plt.show()
+            # choosing 0 or 1 does not matter as long as we are not outside of the subtrate
+            if sub_num[0] != -1:
+                a1 = ikle_sub[sub_num[0]]
+            else:
+                a1 = ikle_sub[sub_num[1]]
             # find the side with an intersection
             for seg in range(0, len(a1)):  # We coud use while to not test all intersection
                 if seg < len(a1) - 1:
@@ -896,7 +951,10 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
         if sub_num[1] != sub_num[2] and sub_num[1] != -99 and sub_num[2] != -99:
             hyd1 = coord_p[int(ikle[e, 1]), :]
             hyd2 = coord_p[int(ikle[e, 2]), :]
-            a1 = ikle_sub[sub_num[2]]
+            if sub_num[2] != -1:
+                a1 = ikle_sub[sub_num[2]]
+            else:
+                a1 = ikle_sub[sub_num[1]]
             # find the side with an intersection
             for seg in range(0, len(a1)):
                 if seg < len(a1) - 1:
@@ -912,12 +970,16 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
                 if p_cross[1] is not None:
                     p_cross.extend([sub1[0], sub1[1], sub2[0], sub2[1]])
                     pc.append(p_cross)
+
             # # # pc.append(hyd1)
 
         if sub_num[2] != sub_num[0] and sub_num[0] != -99 and sub_num[2] != -99:
             hyd1 = coord_p[int(ikle[e, 2]), :]
             hyd2 = coord_p[int(ikle[e, 0]), :]
-            a1 = ikle_sub[sub_num[2]]
+            if sub_num[2] != -1:
+                a1 = ikle_sub[sub_num[2]]
+            else:
+                a1 = ikle_sub[sub_num[0]]
             # find the side with an intersection
             for seg in range(0, len(a1)):
                 if seg < len(a1) - 1:
@@ -933,21 +995,26 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub, default_sub):
                 if p_cross[1] is not None:
                     p_cross.extend([sub1[0], sub1[1], sub2[0], sub2[1]])
                     pc.append(p_cross)
+
             # # pc.append(hyd1)
 
         # prepare the substrate data
         # three value for each cells (one by triangle)
         # if one hydrological triangle in one substrate cell (simple case),
         # we gives three times the same data
-        data_sub_1_cell = []
-        for mi in range(0,len(sub_num)):
+        data_sub_1_cell_pg = []
+        data_sub_1_cell_dom = []
+        for mi in range(0, len(sub_num)):
             if sub_num[mi] == -1 or sub_num[mi] == -99:
-                data_sub_1_cell.append(default_sub)
+                data_sub_1_cell_pg.append(default_sub)
+                data_sub_1_cell_dom.append(default_sub)
             else:
-                data_sub_1_cell.append(data_sub[sub_num[mi]])
-        new_data_sub.append(data_sub_1_cell)
+                data_sub_1_cell_pg.append(data_sub_pg[sub_num[mi]])
+                data_sub_1_cell_dom.append(data_sub_dom[sub_num[mi]])
+        new_data_sub_pg.append(data_sub_1_cell_pg)
+        new_data_sub_dom.append(data_sub_1_cell_dom)
 
-    return pc, new_data_sub
+    return pc, new_data_sub_pg, new_data_sub_dom
 
 
 def point_cross_bis(ikle, coord_p, ikle_sub, coord_p_sub):
@@ -1022,6 +1089,7 @@ def intersec_cross(hyd1, hyd2, sub1, sub2, e=-99, nx=[], ny=[]):
 
     sub1 = np.array(sub1)
     sub2 = np.array(sub2)
+    wig = 0
 
     [sx,sy] = [hyd2[0] - hyd1[0], hyd2[1] - hyd1[1]]
     [rx,ry] = [sub2[0] - sub1[0], sub2[1] - sub1[1]]
@@ -1036,7 +1104,7 @@ def intersec_cross(hyd1, hyd2, sub1, sub2, e=-99, nx=[], ny=[]):
     if rxs != 0 :
         u = term2 / rxs
         t = ((hyd1[0] - sub1[0]) * sy - sx * (hyd1[1] - sub1[1])) / rxs
-        if 0.0 <=t<= 1.0 and 0.0 <=u<= 1.0:
+        if 0.0 -wig <=t<= 1.0+wig and 0.0 -wig <=u<= 1.0+wig:
             xcross = hyd1[0] + u * sx
             ycross = hyd1[1] + u * sy
     if e >= 0:
@@ -1045,7 +1113,7 @@ def intersec_cross(hyd1, hyd2, sub1, sub2, e=-99, nx=[], ny=[]):
         return [xcross, ycross]
 
 
-def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel, height):
+def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, new_data_sub_dom, vel, height):
     """
     A function to update the grid after finding the crossing points and finsihed to get the substrate_data.
     We still needs to get the substrate data correclty for complicated geometry
@@ -1056,7 +1124,10 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel
            direction (nx,ny) of the substrate line at this point
     :param coord_sub: the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
             cell of the hydrological grid
-    :param new_data_sub: the substrate data by hydrological cell (3 information by cells realted to the three poins)
+    :param new_data_sub_pg: the coarser substrate data by hydrological cell (3 information by cells realted to
+           the three points)
+    :param new_data_sub_dom: the dominant substrate data by hydrological cell (3 information by cells realted to
+           the three points)
     :param vel: the velocity (one time step, one reach) for each point in coord_p
     :param height: the water height (one time step, one reach) for each point in coord_p
     :return: the new grid
@@ -1093,7 +1164,22 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel
     # get all touched element (no duplicate)
     te = list(set(point_crossing[:, 0]))
 
+    for i in range(0, len(ikle)):
+        suba = new_data_sub_dom[i]
+        if suba[1] == suba[0] and suba[1] == suba[2]:
+            pass
+        else:
+            if i in te:
+                pass
+            else:
+                print('sdflkjsdfklsdjfklsdjfklsdfjsdklfjsdkfljsdfkldsjfskldjfsdklfjsdklfjsdlkfjsdklfjsdfkljsdklf')
+                print(i)
+                print(ikle[i])
+                print(suba)
+
+
     # for all these element
+    to_delete = []
     for e in te:
         # get the crossing pionts touched by these elements
         ind1 = np.searchsorted(point_crossing[:,0], e)
@@ -1150,7 +1236,6 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel
                         which_side.append(s)
 
         # for each pc of the element e, let's create new triangles
-        to_delete = []
         e = int(e) # used as index here
 
         # will delete the old element at the end(ikle and substrate)
@@ -1212,47 +1297,62 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel
             # seg1 = [0,1] and seg2 = [1,2] in ikle order
             if sum(which_side) == 1:
                 ikle = np.vstack((ikle, [len(coord_p)-1, len(coord_p)-2, ikle[e, 1]]))
-                new_data_sub.append(new_data_sub[e][1])
+                new_data_sub_pg.append(new_data_sub_pg[e][1])
+                new_data_sub_dom.append(new_data_sub_dom[e][1])
                 if which_side[1] == 1:  # seg = [1, 2]
                     ikle = np.vstack((ikle, [len(coord_p)-1, len(coord_p)-2, ikle[e, 0]]))
-                    new_data_sub.append(new_data_sub[e][0])
+                    new_data_sub_pg.append(new_data_sub_pg[e][0])
+                    new_data_sub_dom.append(new_data_sub_dom[e][0])
                     ikle = np.vstack((ikle, [len(coord_p) - 2, ikle[e, 2], ikle[e, 0]]))
                     # new_data_sub[e][0] and new_data_sub[e][2] should be identical
-                    new_data_sub.append(new_data_sub[e][0])
+                    new_data_sub_dom.append(new_data_sub_dom[e][0])
+                    new_data_sub_pg.append(new_data_sub_pg[e][0])
                 else:
                     ikle = np.vstack((ikle, [len(coord_p) - 1, len(coord_p) - 2, ikle[e, 2]]))
-                    new_data_sub.append(new_data_sub[e][2])
+                    new_data_sub_dom.append(new_data_sub_dom[e][2])
+                    new_data_sub_pg.append(new_data_sub_pg[e][2])
                     ikle = np.vstack((ikle, [len(coord_p) - 2, ikle[e, 2], ikle[e, 0]]))
-                    new_data_sub.append(new_data_sub[e][2])
+                    new_data_sub_dom.append(new_data_sub_dom[e][2])
+                    new_data_sub_pg.append(new_data_sub_pg[e][2])
                 # seg1 = [0,1] and seg2 = [0,2]
             if sum(which_side) == 2:
                 ikle = np.vstack((ikle, [len(coord_p) - 1, len(coord_p) - 2, ikle[e, 0]]))
-                new_data_sub.append(new_data_sub[e][0])
+                new_data_sub_dom.append(new_data_sub_dom[e][0])
+                new_data_sub_pg.append(new_data_sub_pg[e][0])
                 if which_side[1] == 0:  # seg = [1, 0]
                     ikle = np.vstack((ikle, [len(coord_p) - 1, len(coord_p) - 2, ikle[e, 2]]))
-                    new_data_sub.append(new_data_sub[e][2])
+                    new_data_sub_pg.append(new_data_sub_pg[e][2])
+                    new_data_sub_dom.append(new_data_sub_dom[e][2])
                     ikle = np.vstack((ikle, [len(coord_p) - 2, ikle[e, 1], ikle[e, 2]]))
                     # new_data_sub[e][1] and new_data_sub[e][2] should be identical
-                    new_data_sub.append(new_data_sub[e][2])
+                    new_data_sub_pg.append(new_data_sub_pg[e][2])
+                    new_data_sub_dom.append(new_data_sub_dom[e][2])
                 else:
                     ikle = np.vstack((ikle, [len(coord_p) - 1, len(coord_p) - 2, ikle[e, 1]]))
-                    new_data_sub.append(new_data_sub[e][1])
+                    new_data_sub_pg.append(new_data_sub_pg[e][1])
+                    new_data_sub_dom.append(new_data_sub_dom[e][1])
                     ikle = np.vstack((ikle, [len(coord_p) - 2, ikle[e, 1], ikle[e, 2]]))
-                    new_data_sub.append(new_data_sub[e][1])
+                    new_data_sub_pg.append(new_data_sub_pg[e][1])
+                    new_data_sub_dom.append(new_data_sub_dom[e][1])
             # seg1 = [2,1] and seg2 = [0,2]
             if sum(which_side) == 3:
                 ikle = np.vstack((ikle, [len(coord_p) - 1, len(coord_p) - 2, ikle[e, 2]]))
-                new_data_sub.append(new_data_sub[e][2])
+                new_data_sub_pg.append(new_data_sub_pg[e][2])
+                new_data_sub_dom.append(new_data_sub_dom[e][2])
                 if which_side[1] == 2:  # seg = [2, 0]
                     ikle = np.vstack((ikle, [len(coord_p) - 1, len(coord_p) - 2, ikle[e, 1]]))
-                    new_data_sub.append(new_data_sub[e][1])
+                    new_data_sub_pg.append(new_data_sub_pg[e][1])
+                    new_data_sub_dom.append(new_data_sub_dom[e][1])
                     ikle = np.vstack((ikle, [len(coord_p) - 2, ikle[e, 1], ikle[e, 0]]))
-                    new_data_sub.append(new_data_sub[e][1])
+                    new_data_sub_pg.append(new_data_sub_pg[e][1])
+                    new_data_sub_dom.append(new_data_sub_dom[e][1])
                 else:
                     ikle = np.vstack((ikle, [len(coord_p) - 1, len(coord_p) - 2, ikle[e, 0]]))
-                    new_data_sub.append(new_data_sub[e][0])
+                    new_data_sub_dom.append(new_data_sub_dom[e][0])
+                    new_data_sub_pg.append(new_data_sub_pg[e][0])
                     ikle = np.vstack((ikle, [len(coord_p) - 2, ikle[e, 1], ikle[e, 0]]))
-                    new_data_sub.append(new_data_sub[e][0])
+                    new_data_sub_dom.append(new_data_sub_dom[e][0])
+                    new_data_sub_pg.append(new_data_sub_pg[e][0])
         else:
 
             # all other cases
@@ -1271,7 +1371,7 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel
             seg.append([2, 0])
             # get the three triangluar point and pc_point
             point_new = []
-            for p in range(0,3):
+            for p in range(0, 3):
                 point_new.append(coord_p[ikle[e, p]])
             # get the segment indicating the direction of the substrate
             m0 = 10  # do not go too high here and neither too small afterward
@@ -1354,11 +1454,13 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel
                     ind = np.argmin(abs(phere[0] - point_new[:, 0]) + abs(phere[1]-point_new[:, 1]))
                     if ind in ikle_new:
                         found_new = True
-                        new_data_sub.append(new_data_sub[e][hydi])
+                        new_data_sub_pg.append(new_data_sub_pg[e][hydi])
+                        new_data_sub_dom.append(new_data_sub_dom[e][hydi])
                 if not found_new:
                     # !!!!! TO BE CORRECTED!!!!!!
                     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    new_data_sub.append(new_data_sub[e][0])
+                    new_data_sub_dom.append(new_data_sub_dom[e][0])
+                    new_data_sub_pg.append(new_data_sub_pg[e][0])
             # add new velcoity and height data
             if len(vel) > 0:
                 point_old = [coord_p[ikle[e, 0]], coord_p[ikle[e, 1]], coord_p[ikle[e, 2]]]
@@ -1405,22 +1507,28 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub, vel
 
     # remove element from ikle and new_data_sub
     ikle = [i for j, i in enumerate(ikle) if j not in to_delete]
-    new_data_sub = [i for j, i in enumerate(new_data_sub) if j not in to_delete]
+    new_data_sub_pg = [i for j, i in enumerate(new_data_sub_pg) if j not in to_delete]
+    new_data_sub_dom = [i for j, i in enumerate(new_data_sub_dom) if j not in to_delete]
+
 
     # check and take out column
     si = 0
-    for s in new_data_sub:
-        if isinstance(s, float) or isinstance(s, int):
+    for s in new_data_sub_pg:
+        s2 = new_data_sub_dom[si]
+        if isinstance(s, float) or isinstance(s, int) or isinstance(s, np.integer):
             s = [s]
         if len(s) > 1:
-            if new_data_sub[0] == new_data_sub[1] and new_data_sub[2] == new_data_sub[1]:
+            if s[0] == s[1] and s[2] == s[1] and s2[0] == s2[1] and s2[1] == s2[2]:
                 pass
             else:
                 print('Warning: Substrate data is not consistent')
-            new_data_sub[si] = new_data_sub[0]
+                print(new_data_sub_pg[si])
+                print(new_data_sub_dom[si])
+            new_data_sub_pg[si] = s[0]
+            new_data_sub_dom[si] = s2[0]
             si += 1
 
-    return ikle, coord_p, new_data_sub, vel, height
+    return ikle, coord_p, new_data_sub_pg, new_data_sub_dom, vel, height
 
 
 def get_new_vel_height_data(newp, point_old, data_old):
@@ -1791,7 +1899,6 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
         #plt.close()
 
     #plt.show()
-
 
 
 def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr=[], point_all_orr=[]):
