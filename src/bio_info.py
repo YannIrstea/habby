@@ -136,6 +136,28 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade):
         axarr[2].set_ylim([0, 1.1])
 
 
+def create_database(path_bio):
+    """
+    This function checks all xml files in the folder indicated by path_bio. If a change is detected, it create a new
+    sqlite database. The goal of creating a database is to avoid freezing the GUI when info on the preference curve are
+    asked. So it is possible to select one curve and have information without seeing too much of a delay.
+
+    :param path_bio:
+    """
+
+    # get last changed time from Qsettings
+
+    # check last changed time
+
+    # if different
+
+    # erase database
+
+    # create new database
+
+
+
+
 def main():
     """
     Used to test the module on the biological preference

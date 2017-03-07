@@ -111,13 +111,14 @@ class EstimhabW(StatModUseful):
 
     def __init__(self, path_prj, name_prj):
 
+        super().__init__()
         self.eq50 = QLineEdit()
         self.esub = QLineEdit()
         self.path_prj = path_prj
         self.name_prj = name_prj
+        self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
         self.VH = []
         self.SPU = []
-        super().__init__()
         self.init_iu()
 
 
@@ -175,10 +176,10 @@ class EstimhabW(StatModUseful):
         self.list_s.itemClicked.connect(self.remove_fish)
 
         # add  all test file in a directory
-        all_file = glob.glob(os.path.join(self.path_bio,r'*.xml'))
+        all_file = glob.glob(os.path.join(self.path_bio_estimhab,r'*.xml'))
         # make them look nicer
         for i in range(0, len(all_file)):
-            all_file[i] = all_file[i].replace(self.path_bio, "")
+            all_file[i] = all_file[i].replace(self.path_bio_estimhab, "")
             all_file[i] = all_file[i].replace("\\", "")
             all_file[i] = all_file[i].replace(".xml", "")
             # add the list
@@ -272,13 +273,13 @@ class EstimhabW(StatModUseful):
         A small method to change the folder which indicates where is the biological data
         """
         # user find new path
-        self.path_bio = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
+        self.path_bio_estimhab = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         # update list
         self.list_f.clear()
-        all_file = glob.glob(os.path.join(self.path_bio,r'*.xml'))
+        all_file = glob.glob(os.path.join(self.path_bio_estimhab,r'*.xml'))
         # make it look nicer
         for i in range(0, len(all_file)):
-            all_file[i] = all_file[i].replace(self.path_bio, "")
+            all_file[i] = all_file[i].replace(self.path_bio_estimhab, "")
             all_file[i] = all_file[i].replace("\\", "")
             all_file[i] = all_file[i].replace(".xml", "")
             item = QListWidgetItem(all_file[i])
@@ -366,7 +367,7 @@ class EstimhabW(StatModUseful):
         # run
         path_im = self.find_path_im_est()
         sys.stdout = mystdout = StringIO()
-        [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio, fish_list, path_im, True)
+        [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio_estimhab, fish_list, path_im, True)
 
         #log info
         self.send_log.emit(self.tr('# Run: Estimhab'))
@@ -378,7 +379,7 @@ class EstimhabW(StatModUseful):
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' +str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']' )
-        self.send_log.emit("py    path1='" + self.path_bio + "'")
+        self.send_log.emit("py    path1='" + self.path_bio_estimhab + "'")
         fish_list_str = "py    fish_list = ["
         for i in range(0,len(fish_list)):
             fish_list_str += "'" + fish_list[i] + "',"
