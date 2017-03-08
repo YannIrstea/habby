@@ -1967,6 +1967,11 @@ class SubstrateW(SubHydroW):
     This is the widget used to load the substrate. It is practical to re-use some of the method from SubHydroW.
     So this class inherit from SubHydroW.
     """
+    drop_merge = pyqtSignal()
+    """
+    A pyqtsignal which signal that merged hydro data is ready. The signal is for the bioinfo_tab and is collected
+    by MainWindows1.py.
+    """
 
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
@@ -2314,10 +2319,10 @@ class SubstrateW(SubHydroW):
         default_data = self.e3.text()
 
         # check inputs in the function
-        #sys.stdout = self.mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()
         [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
             substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, self.path_prj)
-        #sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
         self.send_err_log()
         if ikle_both == [-99]:
             self.send_log.emit('Error: data not merged.')
@@ -2357,6 +2362,8 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart    defval=-99")
         if self.cb2.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
+        # tell that the data is ok
+        self.drop_merge.emit()
 
 
 

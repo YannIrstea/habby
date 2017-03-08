@@ -2,8 +2,12 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+import sqlite3
 from src import load_hdf5
-
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 def load_evha_curve(filename, path):
     """
@@ -136,32 +140,379 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade):
         axarr[2].set_ylim([0, 1.1])
 
 
-def create_database(path_bio):
+def create_and_fill_database(path_bio, name_database, attribute):
     """
-    This function checks all xml files in the folder indicated by path_bio. If a change is detected, it create a new
-    sqlite database. The goal of creating a database is to avoid freezing the GUI when info on the preference curve are
-    asked. So it is possible to select one curve and have information without seeing too much of a delay.
+    This function create a new database when Habby starts. The goal of creating a database is to avoid freezing the GUI
+    when info on the preference curve are asked. So it is possible to select one curve and have information without
+    seeing too much of a delay. This is not used anymore by HABBY as the xml file is really small.
+    It could however be useful if the xml file becomes too big. In this case, this function could be
+    called if modification are found in the pref_file folder and would create a database.
 
-    :param path_bio:
+    The attribute can be modified, but they should all be of text type. It is also important to keep stage at the first
+    attribute. The modified attribute should reflect the attribute of the xml file. If it not possible, lines should
+    be added in the "special case" attributes". The main table with the data is called pref_bio.
+
+    :param path_bio: the path to the biological information (usually ./biology)
+    :param name_database: the name of the database (string) without the path
+    :param attribute: the attribute in the database (only text type)
+    :return: a boolean (True if everthing ok, False otherwise)
     """
 
-    # get last changed time from Qsettings
+    # test first attribute
+    if attribute[0] != 'Stage':
+        print("Correct first attribute to 'Stage' in bio_info_Gui.py. \n")
 
-    # check last changed time
+    lob, ext = os.path.splitext(name_database)
+    if ext != ".db":
+        print('Warning: the name of the database should have a .db extension \n')
 
-    # if different
+    pathname_database = os.path.join(path_bio, name_database)
 
-    # erase database
+    # erase database (to be done at the beginning because rename database at the end is annoying)
+    if os.path.isfile(pathname_database):
+        os.remove(pathname_database)
 
-    # create new database
+    # create database and table if not exist
+    request_create = 'CREATE TABLE pref_bio(fish_id INTEGER PRIMARY KEY, '
+    for a in attribute:
+        request_create += a + ' text,'
+    request_create = request_create[:-1]  # get rid of the last comma
+    request_create += ')'
+
+    conn = sqlite3.connect(pathname_database)
+    cursor = conn.cursor()
+    cursor.execute(request_create)
+    conn.commit()
+    conn.close()
+
+    # preapre insertion into databse
+    rea0 = "INSERT INTO pref_bio(fish_id, "
+    for att in attribute:
+        rea0 += att + ','
+    rea0 = rea0[:-1] # last comma
+    rea0 += ") values("
+
+    # get all xml name
+    preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
+    if len(preffiles) < 1:
+        print('Error: no xml preference file found. Please check the biology folder. \n')
+        return
+
+    # for all xml file
+    found_one = False
+    j = 0
+    for preffile in preffiles:
+        data = [None]*(len(attribute)-1)
+
+        # load the file
+        try:
+            try:
+                docxml = ET.parse(os.path.join(path_bio,preffile))
+                root = docxml.getroot()
+            except IOError:
+                print("Warning: the xml file "+preffile + " does not exist \n")
+                break
+        except ET.ParseError:
+            print("Warning: the xml file "+preffile + "is not well-formed.\n")
+            break
+
+        # get the data
+        i = -1
+        for att in attribute:
+            # special attribute
+            if att == 'Stage':  # this should be the first attribute as i ==-1 !
+                stages = root.findall(".//stage")
+                if len(stages) == 0:
+                    print('no stage found in '+preffile+ "\n")
+                else:
+                    stages = [s.attrib['type'] for s in stages]
+            elif att == 'French_common_name':
+                b = root.findall('.//comname')
+                if b is not None:
+                    for bi in b:
+                        if bi.attrib['language'] == 'French':
+                            data[i] = bi.text
+            elif att == 'English_common_name':
+                b = root.findall('.//comname')
+                if b is not None:
+                    for bi in b:
+                        if bi.attrib['language'] == 'English':
+                            data[i] = bi.text
+            elif att == 'Code_ONEMA':
+                org = root.find('.//OrgCdAlternative')
+                if org is not None:
+                    if org.text == 'ONEMA':
+                        data[i] = root.find('.//CdAlternative')
+                        if data[i] is not None:
+                             data[i] = data[i].text
+            elif att == 'Code_Sandre':
+                data[i] = root.find('.//CdAppelTaxon[@schemeAgencyID="SANDRE"]')
+                if data[i] is not None:
+                    data[i] = data[i].text
+            elif att == 'XML_filename':
+                data[i] = preffile
+            elif att == 'XML_data':
+                data[i] = ET.tostring(root).decode()
+                if data[i] is None:
+                    print('No xml data found for a file \n')
+                    break
+            elif att == 'creation_year':
+                data[i] = root.find('.//creation-year')
+                if data[i] is not None:
+                   data[i] = data[i].text
+
+            # normal attributes
+            # the tag figure_hydrosignature is None (Null) by default
+            else:
+                data[i] = root.find(".//"+att)
+                # None is null for python 3
+                if data[i] is not None:
+                    data[i] = data[i].text
+            i += 1
+
+        # fill the database
+        if stages is None or len(stages) == 0:
+            break
+        else:
+            for s in stages:
+                rea = rea0
+                rea += "'" + str(j) + "', "  # the primary key
+                rea += "'" + str(s) + "', "  # the stage
+                for d in data:
+                    if d is not None:
+                        d = d.replace("'"," ")
+                        rea += "'" + str(d) + "', "
+                    else:
+                        rea += "NULL,"
+                rea = rea[:-2]
+                rea += ")"
+                conn = sqlite3.connect(pathname_database)
+                cursor = conn.cursor()
+                cursor.execute(rea)
+                conn.commit()
+                conn.close()
+                j +=1
+
+        found_one= True
+
+    if not found_one:
+        print('Error: No preference file could be read. Please check the biology folder.\n')
 
 
+def execute_request(path_bio, name_database, request):
+    """
+    This function execute the SQL request given in the string called request. it saves the found data in a variable.
+    The idea is to use this function for SELELCT X FROM X WHERE ... , not really to handle all possible request.
+    It also opens and close the database name_database to do this. This is not used anymore by HABBY as we do not use
+    a database. it could however be useful if the xml file becomes too big.
+
+    :param path_bio: the path to the biological information (usually ./biology)
+    :param name_database: the name of the database (string) without the path
+    :param request: the SQL request in a string form
+    :return: the result
+    """
+
+    blob, ext = os.path.splitext(name_database)
+    if ext != ".db":
+        print('Warning: the name of the database should have a .db extension \n')
+    pathname_database = os.path.join(path_bio, name_database)
+
+    if os.path.isfile(pathname_database):
+        conn = sqlite3.connect(pathname_database)
+        cursor = conn.cursor()
+        cursor.execute(request)
+        res = cursor.fetchall()
+        conn.close()
+    else:
+        print('Error: Database not found.\n')
+        return
+
+    return res
+
+
+def load_xml_name(path_bio, attributes):
+    """
+    This function looks for all preference curves found in the path_bio folder. It extract the fish name and the stage.
+    to be corrected if more than one language. The name of attribute_acc should be coherent with the one from the xml
+    file apart from the common name which shoulf be in the form language_common_name (so we can wirte something in the
+    GUI to get all langugage if we get something else than English or French)
+
+    :param path_bio: the path to the biological function
+    :param attributes: the list of attribute which should be possible to search from the GUI or, more generally
+           which should be in data-fish which is returned.
+    :return: the list of stage/fish species with the info from [name for GUi, s, xmlfilename, attribute_acc without s]
+    """
+    # get all xml name
+    preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
+    if len(preffiles) < 1:
+        print('Error: no xml preference file found. Please check the biology folder. \n')
+        return
+
+    # for all xml file
+    found_one = False
+
+    data_fish = []
+    for preffile in preffiles:
+        data = [None] * len(attributes)
+        # load the file
+        try:
+            try:
+                docxml = ET.parse(os.path.join(path_bio, preffile))
+                root = docxml.getroot()
+            except IOError:
+                print("Warning: the xml file " + preffile + " does not exist \n")
+                break
+        except ET.ParseError:
+            print("Warning: the xml file " + preffile + "is not well-formed.\n")
+            break
+
+        i = -1
+        all_ok = True
+        for att in attributes:
+            att_langue = att.split('_')
+            # special attribute
+            if att == 'Stage':  # this should be the first attribute as i ==-1 !
+                stages = root.findall(".//Stage")
+                if len(stages) == 0:
+                    print('no stage found in ' + preffile + "\n")
+                    all_ok = False
+                    break
+                else:
+                    try:
+                        stages = [s.attrib['Type'] for s in stages]
+                    except KeyError:
+                        print('no stage found in ' + preffile + "\n")
+                        all_ok = False
+                        break
+            elif len(att_langue) == 3 and att_langue[1] == 'common' and att_langue[2] == 'name':
+                    b = root.findall('.//ComName')
+                    if b is not None:
+                        for bi in b:
+                            try:
+                                if bi.attrib['Language']== att_langue[0]:
+                                    data[i] = bi.text.strip()
+                            except KeyError:
+                                all_ok = False
+                                break
+            elif att == 'Code_ONEMA':
+                    data[i] = root.find('.//CdAlternative')
+                    if data[i] is not None:
+                        if data[i].attrib['OrgCdAlternative']:
+                            if data[i].attrib['OrgCdAlternative'] == 'ONEMA':
+                                data[i] = data[i].text.strip()
+            elif att == 'Code_Sandre':
+                data[i] = root.find('.//CdAppelTaxon')
+                if data[i] is not None:
+                    data[i] = data[i].text.strip()
+            # normal attributes
+            # the tag figure_hydrosignature is None (Null) by default
+            else:
+                data[i] = root.find(".//" + att)
+                # None is null for python 3
+                if data[i] is not None:
+                    data[i] = data[i].text.strip()
+            i += 1
+        if not all_ok:
+            break
+
+        # put data in the new list
+        for s in stages:
+                data_s = [data[4] + ': ' + s + ' - ' + data[5], s, preffile] # order mattter HERE! (ind: +3)
+                data_s.extend(data)
+                data_fish.append(data_s)
+        found_one = True
+
+    if not found_one:
+        print('Error: No preference file could be read. Please check the biology folder.\n')
+
+    data_fish = np.array(data_fish)
+
+    return data_fish
+
+
+def plot_hydrosignature(xmlfile):
+    """
+    This function plots the hydrosignature in the vclass and hclass given in the xml file.
+    It does only work if: units are SI (meter and m/s) and if the order of data is 'velocity increasing
+    and then height of water increasing".
+
+    :param xmlfile: the path and name of the xmlfile
+    """
+
+    # open the file
+    try:
+        try:
+            docxml = ET.parse(xmlfile)
+            root = docxml.getroot()
+        except IOError:
+            print("Warning: the xml file does not exist \n")
+            return
+    except ET.ParseError:
+        print("Warning: the xml file is not well-formed.\n")
+        return
+
+    # get the hydro signature data
+    hs = root.find('hydrosignature_of_the_sampling_data')
+    if hs is not None:
+        hclass = hs.find('class_height_of_water')
+        vclass = hs.find('class_velocity')
+        data = hs.find('hydrosignature_values')
+        if vclass is not None and hclass is not None and data is not None:
+            if hclass.attrib['units'] == 'meter' and vclass.attrib['units'] == 'meterspersecond':
+                if data.attrib['description_mode'] == 'velocity increasing and then heigth of water increasing':
+                    vclass = vclass.text.split()
+                    hclass = hclass.text.split()
+                    data = data.text.split()
+                    try:
+                        vclass = list(map(float, vclass))
+                        hclass = list(map(float, hclass))
+                        data = list(map(float, data))
+                    except ValueError:
+                        print('Warning: hydrosignature data could not be transformed to float')
+                        return
+                else:
+                    print('Warning: no hydrosignature found in the xml file (1). \n')
+                    return
+            else:
+                print('Warning: no hydrosignature found in the xml file (2). \n')
+                return
+        else:
+            print('Warning: no hydrosignature found in the xml file (3). \n')
+            return
+    else:
+        print('Warning: no hydrosignature found in the xml file (4). \n')
+        return
+
+    # if data found, plot the image
+
+    data = np.array(data)
+    vclass = np.array(vclass)
+    hclass = np.array(hclass)
+
+    if len(data) != (len(vclass)-1) * (len(hclass)-1):
+        print('Warning: the data for hydrosignature is not of the right length.\n')
+        return
+
+    data = data.reshape((len(vclass)-1, len(hclass)-1))
+
+    plt.figure()
+    plt.imshow(data, extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()], cmap='Blues',
+               interpolation='nearest')
+    plt.title('Hydrosignature')
+    plt.xlabel('V [m/s]')
+    plt.ylabel('H [m]')
+    plt.locator_params(nticks=3)
+    cbar = plt.colorbar()
+    cbar.ax.set_ylabel('Relative area [%]')
+    plt.grid()
 
 
 def main():
     """
     Used to test the module on the biological preference
     """
+
+    # load the pref
     path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part1-Multispe1998'
     path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
     filenames = load_hdf5.get_all_filename(path, '.PRF')
@@ -169,6 +520,7 @@ def main():
         [height, vel, sub, code_fish, name_fish, stade, descri] = load_evha_curve(filenames[i], path)
         figure_pref(height, vel, sub, code_fish, name_fish, stade)
     plt.show()
+
 
 if __name__ == '__main__':
     main()

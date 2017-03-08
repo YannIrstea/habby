@@ -30,6 +30,7 @@ from src_GUI import fstress_GUI
 
 class MainWindows(QMainWindow):
     """
+
     The class MainWindows contains the menu and the title of all the HABBY windows.
     It also create all the widgets which can be called during execution
 
@@ -500,6 +501,8 @@ class MainWindows(QMainWindow):
         self.central_widget.stathab_tab.mystathab.name_prj = self.name_prj
         self.central_widget.fstress_tab.path_prj = self.path_prj
         self.central_widget.fstress_tab.name_prj = self.name_prj
+        self.central_widget.bioinfo_tab.path_prj = self.path_prj
+        self.central_widget.bioinfo_tab.name_prj = self.name_prj
 
         self.central_widget.add_all_tab()
         # write log
@@ -553,6 +556,11 @@ class MainWindows(QMainWindow):
         # the text in the Qwidget will be used to save the project
         self.name_prj = root2.find(".//Project_Name").text
         self.path_prj = root2.find(".//Path_Projet").text
+
+        if self.name_prj is None or self.path_prj is None:
+            self.central_widget.write_log('Error: Project xml file is not understood')
+            return
+
         # check coherence
         if self.name_prj + '.xml' != os.path.basename(filename_path):
             self.central_widget.write_log('Warning: xml file name is not coherent with project name. '
@@ -1191,6 +1199,7 @@ class CentralW(QWidget):
         self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
         self.hydro_tab.mascar.show_fig.connect(self.showfig)
         self.fstress_tab.show_fig.connect(self.showfig)
+        self.bioinfo_tab.show_fig.connect(self.showfig)
 
         # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
         self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
@@ -1201,6 +1210,7 @@ class CentralW(QWidget):
         self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
         self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
         self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
         # connect signal for the log
         self.connect_signal_log()
