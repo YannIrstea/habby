@@ -469,6 +469,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
 
     # save the file to the xml of the project
     filename_prj = os.path.join(path_prj, name_prj + '.xml')
+    print(path_prj)
+    print(name_prj)
     if not os.path.isfile(filename_prj):
         print('Error: No project saved. Please create a project first in the General tab.\n')
         return

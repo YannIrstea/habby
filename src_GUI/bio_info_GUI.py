@@ -55,9 +55,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l2 = QLabel(self.tr('<b> Selected Fish and Guild </b>'))
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.itemClicked.connect(self.add_fish)
-        self.list_f.itemActivated.connect(self.add_fish)
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_s.itemClicked.connect(self.remove_fish)
+        self.list_f.itemActivated.connect(self.add_fish)
         self.list_s.itemActivated.connect(self.remove_fish)
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
         self.runhab.setStyleSheet("background-color: #31D656")
@@ -271,6 +271,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 else:
                     blob = f.text[:30] + '...'
                     self.m_all.addItem(blob)
+
 
 
 

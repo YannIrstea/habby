@@ -431,7 +431,7 @@ class MainWindows(QMainWindow):
                 fname = os.path.join(self.path_prj, self.name_prj+'.xml')
                 tree.write(fname)
             # create a default directory for the figures
-            path_im = os.path.join(self.path_prj, self.name_prj)
+            path_im = self.path_prj
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
         # project exist
@@ -513,8 +513,9 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log('# Project saved sucessfully.')
         self.central_widget.write_log("py    name_prj= '" + self.name_prj + "'")
         self.central_widget.write_log("py    path_prj= '" + self.path_prj + "'")
-        self.central_widget.write_log("restart Name_project")
-        self.central_widget.write_log("restart    name_prj= " + self.name_prj)
+        self.central_widget.write_log("restart NAME_PROJECT")
+        self.central_widget.write_log("restart    Name of the project: " + self.name_prj)
+        self.central_widget.write_log("restart    Path of the project: " + self.path_prj)
 
         # enabled lowest part
         self.central_widget.welcome_tab.lowpart.setEnabled(True)

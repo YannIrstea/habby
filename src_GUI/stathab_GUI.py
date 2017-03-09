@@ -389,7 +389,6 @@ class StathabW(QWidget):
         self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
         self.send_log.emit("py    mystathab.load_stathab_from_txt('listriv.txt', var1, var2, dir_name)")
         self.send_log.emit("py    self.mystathab.create_hdf5()")
-        self.send_log.emit('restart LOAD_STATHAB_FROM_TXT_AND_CREATE_HDF5')
 
     def select_hdf5(self):
         """
@@ -678,4 +677,5 @@ class StathabW(QWidget):
         self.send_log.emit("py    mystathab.path_im = '.'")
         self.send_log.emit("py    mystathab.savefig_stahab()")
         self.send_log.emit("restart    RUN_STATHAB_AND_SAVE_RESULTS")
+        self.send_log.emit("restart    folder: " + self.dir_name)
 

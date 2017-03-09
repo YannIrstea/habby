@@ -10,6 +10,11 @@ from src import substrate
 from src import rubar
 from src import estimhab
 from src import stathab_c
+from src import mascaret
+from src import bio_info
+from src import load_hdf5
+from src import fstress
+from src import river2d
 
 
 # start the main program

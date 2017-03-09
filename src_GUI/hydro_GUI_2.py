@@ -278,8 +278,13 @@ class HabbyHdf5(QWidget):
                     hdf5file.text += '\n' + new_name
             doc.write(filename_prj)
         self.send_log.emit('# hdf5 file sucessfully loaded to the current project.')
+        self.send_log.emit("py    import shutil")
+        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
+        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
+        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
+        self.send_log.emit('restart LOAD_HYDRO_HDF5')
+        self.send_log.emit('restart    file hdf5: ' + fname_h5)
         self.drop_hydro.emit()
-        return
 
 
 class FreeSpace(QWidget):
@@ -1308,8 +1313,8 @@ class Mascaret(SubHydroW):
             self.send_log.emit("py    manning1 = np.array(" + blob + ')')
         self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
         self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
-                           " = mascaret.load_mascaret_and_create_grid(filename_new, pathname_new, name_prj, path_prj,"
-                           " 'mascaret',files, paths, interp,manning_data, np_point_vel,'.', False, pro_add)\n")
+                           " = mascaret.load_mascaret_and_create_grid('Hydro_mascaret_log', path_prj, name_prj, path_prj,"
+                           " 'mascaret',files, paths, interp,manning_data, np_point_vel,'.', False, pro_add, [], True)\n")
         self.send_log.emit("restart LOAD_MASCARET")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
@@ -1321,6 +1326,8 @@ class Mascaret(SubHydroW):
             blob = blob.replace('\n','')
             self.send_log.emit("restart    manning1 = " + self.manning_textname)
         self.send_log.emit("restart    interpo: " + str(self.interpo_choice))
+        if self.interpo_choice > 0:
+            self.send_log.emit("restart    pro_add: " + str(self.pro_add))
 
 
 class River2D(SubHydroW):
@@ -1565,12 +1572,17 @@ class River2D(SubHydroW):
 
         # log
         self.send_log.emit(self.tr('# Loading : River2D data.'))
-        self.send_log.emit("py    file1='" + self.namefile[i] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[i] + "'")
-        self.send_log.emit("py    river2d.load_river2d_and_cut_grid(file1, path1, name_prj, path_prj, 'RIVER2D', "
-                           "2, '.') \n")
-        self.send_log.emit("restart LOAD_RIVER_2D")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[i], self.namefile[i]))
+        self.send_log.emit("py    files=" + self.namefile)
+        self.send_log.emit("py    paths=" + self.pathfile)
+        self.send_log.emit("py    river2d.load_river2d_and_cut_grid('Hydro_river2d_log', files, paths, name_prj, "
+                           "path_prj, 'RIVER2D', 2, path_prj, [], True) \n")
+        pold = ''
+        # careful, this will result in all cdg file from a folder to be loaded (to be corrected)
+        for p in self.pathfile:
+            if p != pold:
+                self.send_log.emit("restart LOAD_RIVER_2D")
+                self.send_log.emit("restart    path_to_folder: " +p)
+                pold = p
 
 
 class Rubar1D(SubHydroW):
@@ -1750,6 +1762,15 @@ class Rubar1D(SubHydroW):
         self.send_log.emit("restart LOAD_RUBAR_1D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        if manning_float:
+            self.send_log.emit("restart    manning: " + str(self.manning1))
+        else:
+            blob = np.array2string(self.manning_arr, separator=',',)
+            blob = blob.replace('\n','')
+            self.send_log.emit("restart    manning1 = " + self.manning_textname)
+        self.send_log.emit("restart    interpo: " + str(self.interpo_choice))
+        if self.interpo_choice > 0:
+            self.send_log.emit("restart    pro_add: " + str(self.pro_add))
 
 
 class HEC_RAS2D(SubHydroW):
@@ -1856,8 +1877,10 @@ class HEC_RAS2D(SubHydroW):
         self.send_log.emit(self.tr('# Loading: HEC-RAS 2D.'))
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py  hec_ras2D.load_hec_ras_2d_and_cut_grid(file1, path1, name_prj, path_prj,"
-                           " 'HECRAS2D', 2, '.')\n")
+        self.send_log.emit("py    interpo=" + str(self.interpo_choice) )
+        self.send_log.emit("py    pro_add=" + str(self.pro_add) )
+        self.send_log.emit("py    hec_ras2D.load_hec_ras_2d_and_cut_grid('HEC_RAS2D_log', file1, path1, name_prj, "
+                           "path_prj, 'HECRAS2D',2, path_prj, [], True)\n")
         self.send_log.emit("restart LOAD_HECRAS_2D")
         self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
 
@@ -2139,9 +2162,8 @@ class SubstrateW(SubHydroW):
             if ext == '.shp':
                 # load substrate
                 sys.stdout = self.mystdout = StringIO()
-                [self.coord_p, self.ikle_sub, sub_dom, self.sub_info, ok_dom] = substrate.load_sub_shp(self.namefile[0],
+                [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0],
                                                                                   self.pathfile[0], code_type)
-
                 # we have a case where two dominant substrate are "equally" dominant
                 # so we ask the user to solve this for us
                 dom_solve = 0
@@ -2163,6 +2185,7 @@ class SubstrateW(SubHydroW):
                     [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
                         self.namefile[0],self.pathfile[0], code_type, dom_solve)
                 sys.stdout = sys.__stdout__
+
                 self.send_err_log()
                 if self.ikle_sub == [-99]:
                     self.send_log.emit('Error: Substrate data not loaded')
@@ -2319,11 +2342,11 @@ class SubstrateW(SubHydroW):
         default_data = self.e3.text()
 
         # check inputs in the function
-        sys.stdout = self.mystdout = StringIO()
+        #sys.stdout = self.mystdout = StringIO()
         [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
             substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, self.path_prj)
         sys.stdout = sys.__stdout__
-        self.send_err_log()
+        #self.send_err_log()
         if ikle_both == [-99]:
             self.send_log.emit('Error: data not merged.')
             return
@@ -2354,12 +2377,12 @@ class SubstrateW(SubHydroW):
         self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = substrate.merge_grid_hydro_sub(file_hyd,"
                            " file_sub, defval)\n")
         self.send_log.emit("restart MERGE_GRID_SUB")
-        self.send_log.emit("restart    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
-        self.send_log.emit("restart    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
+        self.send_log.emit("restart    file_hyd:" + self.hyd_name[self.drop_hyd.currentIndex()-1])
+        self.send_log.emit("restart    file_sub:" + os.path.join(self.path_prj, self.sub_name[self.drop_sub.currentIndex()-1]))
         if  len(self.e3.text()) > 0:
-            self.send_log.emit("restart    defval='" + self.e3.text() + "'")
+            self.send_log.emit("restart    defval: " + self.e3.text())
         else:
-            self.send_log.emit("restart    defval=-99")
+            self.send_log.emit("restart    defval: -99")
         if self.cb2.isChecked() and path_im != 'no_path':
             self.show_fig.emit()
         # tell that the data is ok

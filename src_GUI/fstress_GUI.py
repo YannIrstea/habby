@@ -83,6 +83,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.list_f.itemClicked.connect(self.add_fish)
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_s.itemClicked.connect(self.remove_fish)
+        self.list_f.itemActivated.connect(self.add_fish)
+        self.list_s.itemActivated.connect(self.remove_fish)
         self.fishall = QCheckBox(self.tr('Select all species'), self)
         self.fishall.stateChanged.connect(self.add_all_fish)
 
@@ -144,24 +146,25 @@ class FstressW(estimhab_GUI.StatModUseful):
     def was_loaded_before(self):
         """
         This function looks in the xml project file is an hdf5 exists already. If yes, it loads this data
-        and show it on the GUI
+        and show it on the GUI.
         """
 
         # look in the xml project file if an Fstress model exist
         fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(fnamep):
             print("The project is not saved. Save the project in the Start tab before saving FStress data")
+            return
+
+        doc = ET.parse(fnamep)
+        root = doc.getroot()
+        tree = ET.ElementTree(root)
+        child = root.find(".//FStress_data")
+        # if we do not have already a FStress a model
+        if child is None:
+            return
+        # if not, get the hdf5 name
         else:
-            doc = ET.parse(fnamep)
-            root = doc.getroot()
-            tree = ET.ElementTree(root)
-            child = root.find(".//FStress_data")
-            # if we do not have already a FStress a model
-            if child is None:
-                return
-            # if not, get the hdf5 name
-            else:
-                hdf5_infoname = child.text
+            hdf5_infoname = child.text
         # the name is an absolute path, take it. Otherwise, assume that the file in it the path_prj
         if os.path.isabs(hdf5_infoname):
             hdf5_path = os.path.dir(hdf5_infoname)

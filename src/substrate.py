@@ -676,7 +676,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
 
     # load hdf5 sub
     [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
-
     # find the additional crossing points for each time step and each reach
     # and modify the grid
 
@@ -691,6 +690,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
         return failload
     elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
         print('Error: Substrate data could not be loaded.')
+        return failload
+    elif ikle_sub == [] or ikle_all == []:
+        print('Error: No connectivity table found.\n')
         return failload
     elif len(point_all_sub) == 1 and ikle_sub[0][0] == 0:
         # if constant substrate, the hydrological grid is used
@@ -822,6 +824,8 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
             data_sub_dom2.append(data_sub_dom[i])
         i+=1
     ikle_sub = np.array(ikle_sub2)
+    if len(ikle_sub) < 1:
+        return [], new_data_sub_pg, new_data_sub_dom
     data_sub_pg = data_sub_pg2
     data_sub_dom = data_sub_dom2
     nb_poly = len(ikle_sub)
@@ -909,23 +913,6 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
         if sub_num[0] != sub_num[1] and sub_num[0] != -99 and sub_num[1] != -99:
             hyd1 = coord_p[int(ikle[e, 0]), :]
             hyd2 = coord_p[int(ikle[e, 1]), :]
-            if e == 56075 or e == 13892 or e == 56074:
-                print(ikle_sub[sub_num[0]])
-                # plt.figure()
-                a1 = ikle_sub[sub_num[0]]
-                for i in a1:
-                    print(coord_p_sub[int(i)])
-                a1 = ikle_sub[sub_num[1]]
-                for i in a1:
-                    print(coord_p_sub[int(i)])
-                print(hyd1)
-                print(hyd2)
-                # a1 = ikle_sub[sub_num[0]]
-                # for i in a1:
-                #     plt.plot(coord_p_sub[int(i)], 'r*')
-                # plt.plot(hyd1,'b*')
-                # plt.plot(hyd2, 'b*')
-                # plt.show()
             # choosing 0 or 1 does not matter as long as we are not outside of the subtrate
             if sub_num[0] != -1:
                 a1 = ikle_sub[sub_num[0]]
@@ -1163,21 +1150,6 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
 
     # get all touched element (no duplicate)
     te = list(set(point_crossing[:, 0]))
-
-    for i in range(0, len(ikle)):
-        suba = new_data_sub_dom[i]
-        if suba[1] == suba[0] and suba[1] == suba[2]:
-            pass
-        else:
-            if i in te:
-                pass
-            else:
-                print('sdflkjsdfklsdjfklsdjfklsdfjsdklfjsdkfljsdfkldsjfskldjfsdklfjsdklfjsdlkfjsdklfjsdfkljsdklf')
-                print(i)
-                print(ikle[i])
-                print(suba)
-
-
     # for all these element
     to_delete = []
     for e in te:

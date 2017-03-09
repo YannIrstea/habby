@@ -36,7 +36,6 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
     point_all_t = []
     inter_h_all_t = []
     inter_vel_all_t = []
-    print('blob2')
 
     # for all time step
     if not print_cmd:
