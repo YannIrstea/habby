@@ -446,8 +446,9 @@ class MainWindows(QMainWindow):
             pathbio_child = root.find(".//Path_Bio")
             #  if pathim is the default one, change it. Otherwise keep the user chosen directory
             if pathim_child is not None:
-                if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, self.name_prj)):
-                    pathim_child.text = os.path.join(self.path_prj, self.name_prj)
+                if os.path.isfile(os.path.join(path_prj_before, self.name_prj +'.xml')):
+                    if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, self.name_prj +'.xml')):
+                        pathim_child.text = os.path.join(self.path_prj, self.name_prj)
             child.text = self.name_prj
             path_child.text = self.path_prj
             pathbio_child.text = "./biology"

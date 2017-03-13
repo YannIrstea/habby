@@ -1195,17 +1195,83 @@ def inside_polygon(seg_poly, point):
     :return: True is the point is inside the polygon, false otherwise
     """
 
+    xhyd = point[0]
+    yhyd = point[1]
+    poly_i = seg_poly
+    intersect = 0
+    idem_x = False
+    inside_poly = False
+
+    for i2 in range(0, len(poly_i)):
+        [x1sub, y1sub] = poly_i[i2][0]
+        [x2sub, y2sub] = poly_i[i2][1]
+
+        # send ray is along the x direction, positif y = const
+        # check if it is possible to have an interesection using <>
+        if xhyd <= max(x1sub, x2sub) and min(y1sub, y2sub) <= yhyd <= max(y1sub, y2sub):
+            # find the possible intersection
+            if x1sub != x2sub:
+                # case where the side of the triangle is on the "wrong side"
+                # of xhyd even if xhyd <= max(x1sub,x2sub)
+                if y1sub != y2sub:
+                    a = (y1sub - y2sub) / (x1sub - x2sub)
+                    x_int = (yhyd - y1sub) / a + x1sub  # (yhyd - (y1sub - x1sub *a)) / a
+                else:
+                    x_int = xhyd + 1000  # crossing if horizontal
+            else:
+                x_int = xhyd  # x1sub
+
+            # if we have interesection
+            if xhyd <= x_int:
+                intersect += 1
+
+            # manage the case where the yhyd is at the same height than subtrate (we want one intersection
+            # and not two)
+            if yhyd == y1sub or yhyd == y2sub:
+                if idem_x:
+                    intersect -= 1
+                    idem_x = False
+                else:
+                    idem_x = True
+
+                    # seg = seg.append(i2)
+    # if number of intersection is odd, then point inside
+    if intersect % 2 == 1:
+        inside_poly = True
+
+    # to debug
+    # plt.figure()
+    # for p in range(0, len(seg_poly)):
+    #     plt.plot(seg_poly[p][0][0], seg_poly[p][0][1], '*b')
+    #     plt.plot(seg_poly[p][1][0], seg_poly[p][1][1], '*b')
+    # plt.plot(xhyd, yhyd,'r*')
+    # plt.title(inside_poly)
+    # plt.show()
+
+    return inside_poly
+
+
     # the direction of the ray does not matter
-    ray = [point, [point[0], 1e5*abs(point[0])]]
-    inter_count = 0
-    for s in range(0, len(seg_poly)):
-        [inter, blob] = intersection_seg(seg_poly[s][0], seg_poly[s][1], ray[0], ray[1], False, 0)
-        if inter:
-            inter_count +=1
-    if inter_count % 2 == 0:
-        return False
-    else:
-        return True
+    # ray = [point, [point[0], 1e5*abs(point[0])]]
+    # inter_count = 0
+    # idem = False # in case we have two identical mpoint -> only one intersection is needed
+    # for s in range(0, len(seg_poly)):
+    #     [inter, blob] = intersection_seg(seg_poly[s][0], seg_poly[s][1], ray[0], ray[1], False, 0)
+    #
+    #     # case with two identical points
+    #     if seg_poly[s][1][0] == point[0] or seg_poly[s][0][0] == point[0]:
+    #         if idem:
+    #             inter_count -= 1
+    #             idem = False
+    #         else:
+    #             idem = True
+    #
+    #     if inter:
+    #         inter_count +=1
+    # if inter_count % 2 == 0:
+    #     return False
+    # else:
+    #     return True
 
 
 def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True, wig=10e-8):

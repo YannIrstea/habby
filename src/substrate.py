@@ -655,7 +655,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
     :return: the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
 
     """
-    failload = [-99], [-99], [-99], [-99], [-99]
+    failload = [-99], [-99], [-99], [-99], [-99],[-99]
     sub_dom_all_t = []
     sub_pg_all_t = []
     ikle_both = []
@@ -685,16 +685,14 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
     # ikle_sub = np.array([[0, 1, 2]])
     # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35], [1, 1]])
 
+
     if len(ikle_all) == 1 and ikle_all[0][0][0][0] == [-99]:
         print('Error: hydrological data could not be loaded.')
         return failload
     elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
         print('Error: Substrate data could not be loaded.')
         return failload
-    elif ikle_sub == [] or ikle_all == []:
-        print('Error: No connectivity table found.\n')
-        return failload
-    elif len(point_all_sub) == 1 and ikle_sub[0][0] == 0:
+    elif len(point_all_sub) == 1 and ikle_sub == []:
         # if constant substrate, the hydrological grid is used
         # the default value is not really used
         print('Warning: Constant substrate.')
@@ -716,6 +714,12 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
         sub_dom_all_t = sub_dom_all_t
         sub_pg_all_t = sub_pg_all_t
         return ikle_all, point_all, sub_dom_all_t, sub_pg_all_t, inter_vel_all, inter_height_all
+    elif ikle_sub == []:
+        print('no connectivity table found for the substrate. Check the format of the hdf5 file. \n')
+        return failload
+    elif  ikle_all == []:
+        print('no connectivity table found for the hydrology. Check the format of the hdf5 file. \n')
+        return failload
     elif len(ikle_sub[0]) < 3:
         print('Error: the connectivity table of the substrate is badly formed.')
         return failload
@@ -1128,7 +1132,11 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
     Next there are three cases: a) one one crossing point -> no change b) two crossing points -> done manually c)
     more than two crossing point on the elements -> We call the extrenal module triangle to re-do a small triagulation
     into the element. This last cases covers many possible case, but it is slow. To optimize, we can think about writing
-    more individual cases.
+    more individual cases. The triangle module has the advtage of covering all cases, including special ones. However,
+    nothing indicates the the internal triangulation would follow the side of the substrate cells. We only knowns that
+    it will account for the crossing point between hydrological and substrate grid and for the substrate and
+    hydrological points. This is sufficient in most cases, but there are cases where the trnagulation will not
+    be reflected of the form of the subtrate grids.
 
     In the trianlge case, we do not have a good management of the substrate data yet. All new elements into in the
     old elements which do not touch one of the orginal trianlgular node are the given the first substrate data type.
@@ -1345,65 +1353,17 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
             point_new = []
             for p in range(0, 3):
                 point_new.append(coord_p[ikle[e, p]])
-            # get the segment indicating the direction of the substrate
-            m0 = 10  # do not go too high here and neither too small afterward
-            cross = True
-            inter = False
+            # add point crossing
             for s1 in range(0, len(pc_here)):
-                m = m0
-                while cross and m > 10**-10:
-                    cross = False
-                    m = m/2
-                    p1x = pc_here[s1][1] + m * pc_here[s1][3]  # pc + m*nx
-                    p1y = pc_here[s1][2] + m * pc_here[s1][4]
-                    p1 = [p1x, p1y]
-                    p2x = pc_here[s1][1] - m * pc_here[s1][3]
-                    p2y = pc_here[s1][2] - m * pc_here[s1][4]
-                    p2 = [p2x, p2y]
-                    # find if p1 or p2 is in the triangle (just use the polygon function because lazy)
-                    inside = manage_grid_8.inside_polygon(seg_poly, p1)
-                    if not inside:
-                        inside = manage_grid_8.inside_polygon(seg_poly, p2)
-                        if inside:
-                            p1 = p2
-                    if inside:
-                        pc = [pc_here[s1][1], pc_here[s1][2]]
-                        # check that we have no crossing if we are sill far
-                        # if we are very close we want to get the easier possible path because it is complicated
-                        # enough
-                        if m > m0/16:
-                            for s2 in range(s1+1, len(pc_here)):
-                                p3x = pc_here[s2][1] + m0 * pc_here[s2][3]  # m0 is the highest possible m multiplied by two
-                                p3y = pc_here[s2][2] + m0 * pc_here[s2][4]
-                                p3 = [p3x, p3y]
-                                p4x = pc_here[s2][1] - m0 * pc_here[s2][3]
-                                p4y = pc_here[s2][2] - m0 * pc_here[s2][4]
-                                p4 = [p4x, p4y]
-                                [inter, blob] = manage_grid_8.intersection_seg(pc, p1, p3, p4, False)
-                                if inter:
-                                    cross = True
-                    else:
-                        cross = True
                 pc = [pc_here[s1][1], pc_here[s1][2]]
-                point_new.append(p1)
                 point_new.append(pc)
                 # add point in the substrate
                 if len(point_in) > 1:
                     for pii in point_in:
                         point_new.append(pii)
                 seg.append([s1*2 + 3, s1*2 + 4])
-                if cross:
-                    print('Warning: Complicated geometry for the substrate layer.\n')
-                    # also debug
-                    # for pi in range(0, len(pc_here)):
-                    #     plt.plot(pc_here[pi][1], pc_here[pi][2], '*g')
-                    # for pi in range(0, 3):
-                    #     plt.plot(coord_p[ikle[e, pi]][0], coord_p[ikle[e, pi]][1], '^r')
-                    # plt.plot(p1[0], p1[1], '^b')
-                    # plt.plot(p2[0], p2[1], '^b')
-                    # plt.show()
 
-            #triangulation
+            # triangulation
             point_new = np.array(point_new)
             seg = np.array(seg)
             #sorted_data = point_new[np.lexsort(point_new.T), :]
@@ -1481,7 +1441,6 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
     ikle = [i for j, i in enumerate(ikle) if j not in to_delete]
     new_data_sub_pg = [i for j, i in enumerate(new_data_sub_pg) if j not in to_delete]
     new_data_sub_dom = [i for j, i in enumerate(new_data_sub_dom) if j not in to_delete]
-
 
     # check and take out column
     si = 0
@@ -1947,17 +1906,17 @@ def main():
 
 
     # test merge grid
-    # path1 = r'D:\Diane_work\dummy_folder\DefaultProj'
-    # hdf5_name_hyd = os.path.join(path1, r'Hydro_HECRAS1D_CRITCREK13_02_2017_at_17_10_03.h5' )
-    # hdf5_name_sub = os.path.join(path1, r'Substrate_mytest_shp_13_02_2017_at_16_54_54.h5')
-    # [ikle_both, point_all_both, sub_data, vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,0)
+    path1 = r'D:\Diane_work\dummy_folder\DefaultProj'
+    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.h5' )
+    hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.h5')
+    [ikle_both, point_all_both, sub_data1, subdata2,  vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, -1)
     # fig_merge_grid(point_all_both[0], ikle_both[0], path1)
     # plt.show()
 
     # test create dummy substrate
-    path = r'D:\Diane_work\dummy_folder\DefaultProj'
-    fileh5 = 'Hydro_RUBAR2D_BS15a607_02_2017_at_15_50_13.h5'
-    create_dummy_substrate_from_hydro(fileh5, path, 'dummy_hydro_substrate2', 'Sandre', 0)
+    # path = r'D:\Diane_work\dummy_folder\DefaultProj'
+    # fileh5 = 'Hydro_RUBAR2D_BS15a607_02_2017_at_15_50_13.h5'
+    # create_dummy_substrate_from_hydro(fileh5, path, 'dummy_hydro_substrate2', 'Sandre', 0)
 
 
 if __name__ == '__main__':
