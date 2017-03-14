@@ -111,9 +111,17 @@ class MainWindows(QMainWindow):
         self.does_it_work = True
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
+        # the path to the biological data by default (HABBY force the user to use this path)
+        self.path_bio_default = "./biology\\"
 
         # create the central widget
-        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)
+        if self.lang == 0:
+            lang_bio = 'English'
+        elif self.lang == 1:
+            lang_bio = 'French'
+        else:
+            lang_bio = 'English'
+        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj, lang_bio)
         self.msg2 = QMessageBox()
 
         # call the normal constructor of QWidget
@@ -180,7 +188,16 @@ class MainWindows(QMainWindow):
         # create the new menu
         self.my_menu_bar()
 
-        # update user option to remember the languge
+        # pass the info to the bio info tab
+        # to be modified if a new langugage is added !
+        if nb_lang == 0:
+            self.central_widget.bioinfo_tab.lang = 'English'
+        elif nb_lang == 1:
+            self.central_widget.bioinfo_tab.lang = 'French'
+        else:
+            self.central_widget.bioinfo_tab.lang = 'English'
+
+        # update user option to remember the language
         self.settings = QSettings('HABBY', 'irstea')
         self.settings.setValue('language_code', self.lang)
         del self.settings
@@ -424,7 +441,7 @@ class MainWindows(QMainWindow):
             des_child = ET.SubElement(general_element, "Description")
             des_child.text = self.descri_prj
             pathbio_child = ET.SubElement(root_element, "Path_Bio")
-            pathbio_child.text = "./biology\\"
+            pathbio_child.text = self.path_bio_default
 
             # save new xml file
             if self.name_prj != '':
@@ -451,7 +468,7 @@ class MainWindows(QMainWindow):
                         pathim_child.text = os.path.join(self.path_prj, self.name_prj)
             child.text = self.name_prj
             path_child.text = self.path_prj
-            pathbio_child.text = "./biology"
+            pathbio_child.text = self.path_bio_default
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
@@ -502,8 +519,6 @@ class MainWindows(QMainWindow):
         self.central_widget.stathab_tab.mystathab.name_prj = self.name_prj
         self.central_widget.fstress_tab.path_prj = self.path_prj
         self.central_widget.fstress_tab.name_prj = self.name_prj
-        self.central_widget.bioinfo_tab.path_prj = self.path_prj
-        self.central_widget.bioinfo_tab.name_prj = self.name_prj
 
         self.central_widget.add_all_tab()
         # write log
@@ -1117,6 +1132,9 @@ class CentralW(QWidget):
     :param rech: A bollean which is True if the tabs for the "research option" are shown. False otherwise.
     :param path_prj: A string with the path to the project xml file
     :param name_prj: A string with the name of the project
+    :param lang_bio: A string with the word 'English', 'French' (or an other language). It is used to find the langugage
+           in which the biological info should be shown. So lang_bio should have the same form than the attribute
+           "langugage" in xml preference file.
 
     **Technical comments**
 
@@ -1155,7 +1173,7 @@ class CentralW(QWidget):
     The write_log() and write_log_file() method are explained in the section about the log.
     """
 
-    def __init__(self, rech, path_prj, name_prj):
+    def __init__(self, rech, path_prj, name_prj, lang_bio):
 
         super().__init__()
         self.msg2 = QMessageBox()
@@ -1166,7 +1184,7 @@ class CentralW(QWidget):
         self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
         self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
         self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
-        self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj)
+        self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
         self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj

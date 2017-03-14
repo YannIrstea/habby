@@ -2,7 +2,7 @@ from io import StringIO
 from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
-    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QSizePolicy, QScrollArea
+    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QSizePolicy, QScrollArea, QFrame
 from PyQt5.QtGui import QPixmap, QFont
 import os
 import sys
@@ -29,6 +29,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.imfish = ''
+        # self.path_bio is defined in StatModUseful.
 
         # attribute from the xml which the user can search the database
         # the name should refect the xml attribute or bio_info.load_xml_name() should be changed
@@ -64,6 +65,23 @@ class BioInfo(estimhab_GUI.StatModUseful):
         spacer1 = QSpacerItem(1, 1)
         spacer2 = QSpacerItem(300, 1)
 
+        # find the path bio
+        # open the file
+        try:
+            try:
+                docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.xml'))
+                root = docxml.getroot()
+            except IOError:
+                print("Warning: the xml file does not exist \n")
+                return
+        except ET.ParseError:
+            print("Warning: the xml file is not well-formed.\n")
+            return
+        pathbio_child = root.find(".//Path_Bio")
+        if pathbio_child is not None:
+            if os.path.isdir(pathbio_child.text):
+                self.path_bio = pathbio_child.text
+
         # info on pref
         l4 = QLabel(self.tr('<b> Information on the suitability curve</b>'))
         l5 = QLabel(self.tr('Latin Name: '))
@@ -73,9 +91,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l8 = QLabel(self.tr('Description:'))
         self.descr = QLabel()
         self.pref_curve = QPushButton(self.tr('Show suitability curve'))
+        self.pref_curve.clicked.connect(self.show_pref)
 
         # get a scollable area for the decription which might be long
         self.scroll = QScrollArea()
+        self.scroll.setFrameStyle(QFrame.NoFrame)
         self.vbar = self.scroll.verticalScrollBar()
         self.descr.setWordWrap(True)
         self.descr.setMaximumSize(200,210)
@@ -92,7 +112,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.pic = QLabel()
 
         # hydrosignature
-        self.hs = QPushButton(self.tr('Show Hydrosignature'))
+        self.hs = QPushButton(self.tr('Show Measurement Conditions (Hydrosignature)'))
         self.hs.clicked.connect(self.show_hydrosignature)
 
         # search possibility
@@ -109,7 +129,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         sys.stdout = self.mystdout = StringIO()
         self.data_fish = bio_info.load_xml_name(self.path_bio, self.attribute_acc)
         sys.stdout = sys.__stdout__
-        #self.send_err_log()
+        self.send_err_log()
         self.list_f.addItems(self.data_fish[:, 0])
         self.list_f.itemClicked.connect(self.show_info_fish)
         # fill hdf5 list
@@ -125,7 +145,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.list_f, 2, 0, 2, 1)
         self.layout4.addWidget(self.list_s, 2, 1, 2, 2)
 
-        self.layout4.addWidget(l4, 5,0)
+        self.layout4.addWidget(l4, 5, 0)
         self.layout4.addWidget(l5, 6, 0)
         self.layout4.addWidget(self.com_name, 6, 1)
         self.layout4.addWidget(l7, 7, 0)
@@ -169,7 +189,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             print("Warning: the xml file is not well-formed.\n")
             return
 
-        # should be found again because attribute_acc can change
         # get the data code ONEMA
         # for the moment only one code alternativ possible
         data = root.find('.//CdAlternative')
@@ -198,9 +217,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         data = root.find('.//Image')
         if data is not None:
             self.imfish = data.text
-            # use full ABSOLUTE path to the image, not relative
-            self.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), os.path.join(self.path_bio, self.imfish))
-                                       ).scaled(200, 70, Qt.KeepAspectRatio))  # 800 500
+            name_imhere = os.path.join(os.getcwd(), os.path.join(self.path_bio, self.imfish))
+            if os.path.isfile(name_imhere):
+                # use full ABSOLUTE path to the image, not relative
+                self.pic.setPixmap(QPixmap(name_imhere).scaled(200, 70, Qt.KeepAspectRatio))  # 800 500
 
     def show_hydrosignature(self):
         """
@@ -212,7 +232,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         i = self.list_f.currentRow()
         xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
         # do the plot
+        sys.stdout = self.mystdout = StringIO()
         bio_info.plot_hydrosignature(xmlfile)
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
         # show the plot
         self.show_fig.emit()
 
@@ -272,6 +295,23 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     blob = f.text[:30] + '...'
                     self.m_all.addItem(blob)
 
+    def show_pref(self):
+        """
+        This function shows the image of the preference curve of the selected xml file. For this it calls, the functions
+        read_pref and figure_pref of bio_info.py. Hence, this function justs makes the link between the GUI and
+        the functions effectively doing the image.
+        """
+        # get the file
+        i = self.list_f.currentRow()  # show the info concerning the one selected fish
+        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
+
+        # open the pref
+        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info.read_pref(xmlfile)
+        # plot the pref
+        bio_info.figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages)
+
+        # show the image
+        self.show_fig.emit()
 
 
 

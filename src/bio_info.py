@@ -9,6 +9,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 
+
 def load_evha_curve(filename, path):
     """
     This function is used to load the preference curve in the EVHA form . It will be useful to create xml preference
@@ -69,6 +70,9 @@ def load_evha_curve(filename, path):
                 except ValueError:
                     print('not a float')
                     return
+                # pass from centimeter to meter
+                if ind_hvs == 0 or ind_hvs == 1:
+                   new_data1 /= 100  # this is just a division
                 if new_data1old <= new_data1:
                     new_data1old = new_data1
                     if first_point:
@@ -83,16 +87,120 @@ def load_evha_curve(filename, path):
                     if ind_hvs == 1:
                         vel.append(pref_here)
                     ind_hvs += 1
-                    pref_here = []
+                    pref_here = [[],[]]
                     first_point = True
                     new_data1old = -1
         # go from velcoity to substrate
+        new_data1old = -1
         sub.append(pref_here)
+        first_point = True
+        pref_here = [[], []]
 
     return height, vel, sub, code_fish, name_fish, stade, descri
 
 
-def figure_pref(height, vel, sub, code_fish, name_fish, stade):
+def test_evah_xml_pref(path_xml,path_evha):
+    """
+    This function is used to visually compared the evha (.PRF) curve and the xml curve based on the evah curve.
+    Obviously the xml file should contain the same data than the evha curve (when the xml file are based on the evah
+    curve). An important assumption of this function is that the data in the xml file is in the order: fry, juvenile,
+    adult.
+
+    :param path_xml: the path to the folder which contains the xml files
+    :param path_evha: the path to the evha folder which contains the PRF files
+
+    """
+
+    # get filename evha
+    filenames = load_hdf5.get_all_filename(path_evha, '.PRF')
+    filenames2 = load_hdf5.get_all_filename(path_evha, '.prf')
+    filenames.extend(filenames2)
+    # load evha
+    h_evha = []
+    v_evha = []
+    sub_evha = []
+    code_fish_evha = []
+    name_fish_evha = []
+    stage_evha = []
+    for i in range(0, len(filenames)):
+        [height, vel, sub, code_fish, name_fish, stages, blob] = load_evha_curve(filenames[i], path_evha)
+        h_evha.append(height)
+        v_evha.append(vel)
+        sub_evha.append(sub)
+        code_fish_evha.append(code_fish)
+        name_fish_evha.append(name_fish)
+        stage_evha.append(stages)
+
+    # get filename xml
+    filenames = load_hdf5.get_all_filename(path_xml, '.xml')
+    for i in range(0, len(filenames)):
+        filename = os.path.join(path_xml, filenames[i])
+        print(filename)
+        [height, vel, sub, code_fish, name_fish, stages] = read_pref(filename)
+
+        # find which fish data to use in evha
+        j = 0
+        for n in code_fish_evha:
+            # some ONEMA code have changed between the years
+            # the PRF use the old code, the xml file the new code
+            if n == 'SAS':
+                n = 'SAT'
+            if n == 'Tox':
+                n = 'TOX'
+            if n == 'VAS':
+                n = 'VAI'
+            if n == 'OMB':
+                n = 'OBR'
+            if n == code_fish:
+                break
+            else:
+                j+=1
+        # last one
+        if j > len(code_fish_evha)-1:
+            j = len(code_fish_evha)-1
+
+        # pass from stades in evha to stages in xml
+        if len(stages) != len(stage_evha[j]):
+            print('Error: the number of stages is not coherent in evha and xml files \n')
+            return
+        # important assumption here: the data in the xml file is in the order: fry, juvenile, adult
+        # and the name are fry, juvenile, adult
+        stage_corr_evha = []
+        if len(stages) > 1:
+            for s in stage_evha[j]:
+                if s == 'FRA':
+                    stage_corr_evha.append(0)
+                elif s == 'ALE':
+                    stage_corr_evha.append(1)
+                elif s == 'JUV':
+                    stage_corr_evha.append(2)
+                elif s == 'ADU':
+                    stage_corr_evha.append(3)
+                else:
+                    print('Warning: stages not found \n')
+            # we might have less than four stages
+            stage_corr_evha = np.array(stage_corr_evha) - min(stage_corr_evha)
+
+        # plot xml
+        [f, axarr] = figure_pref(height, vel, sub, code_fish, name_fish, stages, True)
+
+        # plt evha data
+        plt.suptitle('Comparision of preference curve of ' + code_fish + '\n (xml as straight line, .PRF as triangle)')
+        if len(stages) > 1:  # if you take this out, the commande axarr[x,x] does not work as axarr is only 1D
+            #f, axarr = plt.subplots(len(stage_evha[j]), 3, sharey='row')
+            for s2 in range(0, len(stage_evha[j])):
+                s = stage_corr_evha[s2]
+                axarr[s, 0].plot(h_evha[j][s2][0], h_evha[j][s2][1], '^b')
+                axarr[s, 1].plot(v_evha[j][s2][0], v_evha[j][s2][1], '^r')
+                axarr[s, 2].plot(sub_evha[j][s2][0], sub_evha[j][s2][1], '^k')
+        else:
+            axarr[0].plot(h_evha[j][0][0], h_evha[j][0][1], '^b')
+            axarr[1].plot(v_evha[j][0][0], v_evha[j][0][1], '^r')
+            axarr[2].plot(sub_evha[j][0][0], sub_evha[j][0][1], '^k')
+    plt.show()
+
+
+def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False):
     """
     This function is used to plot the preference curves.
 
@@ -102,49 +210,55 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade):
     :param code_fish: the three letter code which indiate which fish species is analyzed
     :param name_fish: the name of the fish analyzed
     :param stade: the name of the stade analyzed (ADU, JUV, ...)
+    :param get_fig: usually False, If True return the figure (to modfied it more)
     """
 
     if len(stade)> 1:  # if you take this out, the commande axarr[x,x] does not work as axarr is only 1D
         f, axarr = plt.subplots(len(stade),3, sharey='row')
         plt.suptitle('Preference curve of ' + name_fish + ' (' + code_fish + ') ')
         for s in range(0, len(stade)):
-            axarr[s, 0].plot(height[s][0], height[s][1], 'b')
+            axarr[s, 0].plot(height[s][0], height[s][1], '-xb')
             axarr[s, 0].set_xlabel('Water height [m]')
             axarr[s, 0].set_ylabel('Coeff. Pref ' + stade[s])
             axarr[s, 0].set_ylim([0,1.1])
 
-            axarr[s, 1].plot(vel[s][0], vel[s][1], 'r')
+            axarr[s, 1].plot(vel[s][0], vel[s][1], '-xr')
             axarr[s, 1].set_xlabel('Velocity [m/sec]')
             axarr[s, 1].set_ylabel('Coeff. Pref ' + stade[s])
             axarr[s, 1].set_ylim([0, 1.1])
 
-            axarr[s, 2].plot(sub[s][0], sub[s][1], 'k')
+            axarr[s, 2].plot(sub[s][0], sub[s][1], '-xk')
             axarr[s, 2].set_xlabel('Substrate []')
             axarr[s, 2].set_ylabel('Coeff. Pref ' + stade[s])
             axarr[s, 2].set_ylim([0, 1.1])
     else:
         f, axarr = plt.subplots(3, 1, sharey='row')
         plt.suptitle('Preference curve of ' + name_fish + ' (' + code_fish + ') ')
-        axarr[0].plot(height[0][0], height[0][1], 'b')
+        axarr[0].plot(height[0][0], height[0][1], '-xb')
         axarr[0].set_xlabel('Water height [m]')
         axarr[0].set_ylabel('Coeff. Pref ' + stade[0])
         axarr[0].set_ylim([0, 1.1])
 
-        axarr[1].plot(vel[0][0], vel[0][1], 'r')
+        axarr[1].plot(vel[0][0], vel[0][1], '-xr')
         axarr[1].set_xlabel('Velocity [m/sec]')
         axarr[1].set_ylim([0, 1.1])
 
-        axarr[2].plot(sub[0][0], sub[0][1], 'k')
+        axarr[2].plot(sub[0][0], sub[0][1], '-xk')
         axarr[2].set_xlabel('Substrate []')
         axarr[2].set_ylabel('Coeff. Pref ' + stade[0])
         axarr[2].set_ylim([0, 1.1])
+
+    if get_fig:
+        return f, axarr
 
 
 def create_and_fill_database(path_bio, name_database, attribute):
     """
     This function create a new database when Habby starts. The goal of creating a database is to avoid freezing the GUI
     when info on the preference curve are asked. So it is possible to select one curve and have information without
-    seeing too much of a delay. This is not used anymore by HABBY as the xml file is really small.
+    seeing too much of a delay.
+
+    This is not used anymore by HABBY as the xml file is really small.
     It could however be useful if the xml file becomes too big. In this case, this function could be
     called if modification are found in the pref_file folder and would create a database.
 
@@ -304,7 +418,7 @@ def execute_request(path_bio, name_database, request):
     This function execute the SQL request given in the string called request. it saves the found data in a variable.
     The idea is to use this function for SELELCT X FROM X WHERE ... , not really to handle all possible request.
     It also opens and close the database name_database to do this. This is not used anymore by HABBY as we do not use
-    a database. it could however be useful if the xml file becomes too big.
+    a database. It could however be useful if the xml file becomes too big.
 
     :param path_bio: the path to the biological information (usually ./biology)
     :param name_database: the name of the database (string) without the path
@@ -437,6 +551,7 @@ def plot_hydrosignature(xmlfile):
     and then height of water increasing".
 
     :param xmlfile: the path and name of the xmlfile
+
     """
 
     # open the file
@@ -452,29 +567,33 @@ def plot_hydrosignature(xmlfile):
         return
 
     # get the hydro signature data
-    hs = root.find('hydrosignature_of_the_sampling_data')
+    hs = root.find('HydrosignatureOfTheSamplingData')
     if hs is not None:
-        hclass = hs.find('class_height_of_water')
-        vclass = hs.find('class_velocity')
-        data = hs.find('hydrosignature_values')
+        hclass = hs.find('HeightOfWaterClasses')
+        vclass = hs.find('VelocityClasses')
+        data = hs.find('HydrosignatureValues')
         if vclass is not None and hclass is not None and data is not None:
-            if hclass.attrib['units'] == 'meter' and vclass.attrib['units'] == 'meterspersecond':
-                if data.attrib['description_mode'] == 'velocity increasing and then heigth of water increasing':
-                    vclass = vclass.text.split()
-                    hclass = hclass.text.split()
-                    data = data.text.split()
-                    try:
-                        vclass = list(map(float, vclass))
-                        hclass = list(map(float, hclass))
-                        data = list(map(float, data))
-                    except ValueError:
-                        print('Warning: hydrosignature data could not be transformed to float')
+            try:
+                if hclass.attrib['Unit'] == 'Meter' and vclass.attrib['Unit'] == 'MeterPerSecond':
+                    if data.attrib['DescriptionMode'] == 'VelocityIncreasingAndThenHeightOfWaterIncreasing':
+                        vclass = vclass.text.split()
+                        hclass = hclass.text.split()
+                        data = data.text.split()
+                        try:
+                            vclass = list(map(float, vclass))
+                            hclass = list(map(float, hclass))
+                            data = list(map(float, data))
+                        except ValueError:
+                            print('Warning: hydrosignature data could not be transformed to float')
+                            return
+                    else:
+                        print('Warning: no hydrosignature found in the xml file (1). \n')
                         return
                 else:
-                    print('Warning: no hydrosignature found in the xml file (1). \n')
+                    print('Warning: no hydrosignature found in the xml file (2). \n')
                     return
-            else:
-                print('Warning: no hydrosignature found in the xml file (2). \n')
+            except KeyError:
+                print('Warning: Unit no found in the hydrosignature \n')
                 return
         else:
             print('Warning: no hydrosignature found in the xml file (3). \n')
@@ -494,10 +613,11 @@ def plot_hydrosignature(xmlfile):
         return
 
     data = data.reshape((len(vclass)-1, len(hclass)-1))
+    print(data)
 
     plt.figure()
     plt.imshow(data, extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()], cmap='Blues',
-               interpolation='nearest')
+               interpolation='nearest',origin='lower')
     plt.title('Hydrosignature')
     plt.xlabel('V [m/s]')
     plt.ylabel('H [m]')
@@ -507,20 +627,179 @@ def plot_hydrosignature(xmlfile):
     plt.grid()
 
 
+def read_pref(xmlfile):
+    """
+    This function reads the preference curve from the xml file and get the subtrate, height and velocity data.
+    It return the data in meter. Unit for space can be in centimeter, milimeter or meter. Unit for time should be in
+    second .The unit attribute of the xml files should be coherent with the data.
+
+    :param xmlfile: the path and name to the xml file (string)
+    :return: height, vel, sub, code_fish, name_fish, stade
+
+    """
+    failload = [-99], [-99], [-99], [-99], [-99], [-99]
+    xml_name = os.path.basename(xmlfile)
+
+    # load the file
+    try:
+        try:
+            docxml = ET.parse(xmlfile)
+            root = docxml.getroot()
+        except IOError:
+            print("Error: the xml file" + xml_name + "does not exist \n")
+            return failload
+    except ET.ParseError:
+        print("Error: the xml file " + xml_name + " is not well-formed.\n")
+        return failload
+
+    # get all stage
+    stages = []
+    stages_data = root.findall(".//Stage")
+    if stages_data is not None:
+        for s in stages_data:
+            stages.append(s.attrib["Type"])
+    else:
+        print('Error: No stage found in ' + xml_name + ' \n')
+
+    # get the code of the fish
+    code_fish = root.find('.//CdAlternative')
+    if code_fish is not None:
+        if code_fish.attrib['OrgCdAlternative']:
+            if code_fish.attrib['OrgCdAlternative'] == 'ONEMA':
+                code_fish = code_fish.text.strip()
+
+    # get the latin name of the fish
+    name_fish = root.find(".//LatinName")
+    # None is null for python 3
+    if name_fish is not None:
+        name_fish = name_fish.text.strip()
+
+    # velocity
+    vel_all = []
+    for s in stages:
+            vel = [[],[]]
+            rea = ".//Stage[@Type='" + s + "']/PreferenceVelocity/Value"
+            vel_data = root.findall(rea)
+            if vel_data is not None:
+                for v in vel_data:
+                    try:
+                        data2 = float(v.attrib['p'])
+                        data1 = float(v.attrib['v'])
+                    except ValueError:
+                        print('Error: Value cannot be converted to float in the velocity data of the xml file'
+                              + xml_name + '\n')
+                        return failload
+                    vel[0].extend([data1])
+                    vel[1].extend([data2])
+            else:
+                print('Error: Velocity data was not found \n')
+                return failload
+
+            #manage units
+            unit = root.find(".//PreferenceVelocity")
+            vel = change_unit(vel, unit.attrib["Unit"])
+            vel_all.append(vel)
+
+    # height
+    h_all = []
+    for s in stages:
+        height = [[], []]
+        rea = ".//Stage[@Type='" + s + "']/PreferenceHeightOfWater/Value"
+        h_data = root.findall(rea)
+        if h_data is not None:
+            for v in h_data:
+                try:
+                    data2 = float(v.attrib['p'])
+                    data1 = float(v.attrib['hw'])
+                except ValueError:
+                    print('Error: Value cannot be converted to float in the height data of the xml file'
+                          + xml_name + '\n')
+                    return failload
+                height[0].extend([data1])
+                height[1].extend([data2])
+        else:
+            print('Error: Height data was not found \n')
+            return failload
+        unit = root.find(".//PreferenceHeightOfWater")
+        height = change_unit(height, unit.attrib["Unit"])
+        h_all.append(height)
+
+    # substrate
+    sub_all = []
+    for s in stages:
+        sub = [[], []]
+        rea = ".//Stage[@Type='" + s + "']/PreferenceSubstrate/Value"
+        s_data = root.findall(rea)
+        if len(s_data)>0:
+            for v in s_data:
+                try:
+                    data2 = float(v.attrib['p'])  # get rif of the s
+                    data1 = float(v.attrib['s'][1:])
+                except ValueError:
+                    print('Error: Value cannot be converted to float in the substrate data of the xml file '
+                          + xml_name + '\n')
+                    return failload
+                sub[0].extend([data1])
+                sub[1].extend([data2])
+            unit = root.find(".//PreferenceSubstrate")
+            sub = change_unit(sub, unit.attrib['ClassificationName'])
+            sub_all.append(sub)
+        else:
+            # case without substrate
+            sub = [[0 , 0], [0, 0]]
+            sub_all.append(sub)
+
+    return h_all, vel_all, sub_all, code_fish, name_fish, stages
+
+
+def change_unit(data,unit):
+    """
+    This function modify the unit of the data to SI unit. Currently it accept the following unit :
+    Centimeter, Meter, CentimeterPerSecond, MeterPerSecond, Millimeter, "Code EVHA 2.0 (GINOT 1998)"
+
+    :param data: the data which has to be change to SI unti
+    :param unit: the unit code
+    """
+
+    if unit == 'Centimeter' or unit == "CentimeterPerSecond" :
+        data[0] =  [x / 100 for x in data[0]]
+    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Code EVHA 2.0 (GINOT 1998)":
+        pass
+    elif unit == "Millimeter":
+        data[0] = [x / 1000 for x in data[0]]
+    else:
+        print('Warning: Unit not recognized \n')
+
+    return data
+
+
 def main():
     """
     Used to test the module on the biological preference
     """
 
-    # load the pref
-    path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part1-Multispe1998'
-    path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
-    filenames = load_hdf5.get_all_filename(path, '.PRF')
-    for i in range(0, len(filenames)):
-        [height, vel, sub, code_fish, name_fish, stade, descri] = load_evha_curve(filenames[i], path)
-        figure_pref(height, vel, sub, code_fish, name_fish, stade)
-    plt.show()
+    # test to load the pref from PRF
+    # path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part1-Multispe1998'
+    # path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
+    # filenames = load_hdf5.get_all_filename(path, '.PRF')
+    # for i in range(0, len(filenames)):
+    #     [height, vel, sub, code_fish, name_fish, stade, descri] = load_evha_curve(filenames[i], path)
+    #     figure_pref(height, vel, sub, code_fish, name_fish, stade)
+    # plt.show()
 
+    # test to load the pref from xml
+    # path = r'C:\Users\diane.von-gunten\HABBY\biology'
+    # filenames = load_hdf5.get_all_filename(path, '.xml')
+    # for i in range(0,len(filenames)):
+    #     filename = os.path.join(path, filenames[i])
+    #     [height, vel, sub, code_fish, name_fish, stages] = read_pref(filename)
+    #     figure_pref(height, vel, sub, code_fish, name_fish, stages)
+    # plt.show()
+
+    # test comparison
+    path_xml = r'C:\Users\diane.von-gunten\HABBY\biology'
+    path_evha = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF_ALL'
+    test_evah_xml_pref(path_xml, path_evha)
 
 if __name__ == '__main__':
     main()

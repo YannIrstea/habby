@@ -637,7 +637,7 @@ class SubHydroW(QWidget):
         """
         This function sends the errors and the warnings to the logs.
         The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
-        to avoid freezing the GUI.
+        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
         """
         max_send = 100
         if self.mystdout is not None:

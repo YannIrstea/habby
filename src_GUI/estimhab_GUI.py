@@ -97,6 +97,24 @@ class StatModUseful(QWidget):
 
         return path_im
 
+    def send_err_log(self):
+        """
+        This function sends the errors and the warnings to the logs.
+        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+        to avoid freezing the GUI. A similar function exists in hydro_GUI_2.py. Correct both if necessary.
+        """
+        max_send = 100
+        if self.mystdout is not None:
+            str_found = self.mystdout.getvalue()
+        else:
+            return
+        str_found = str_found.split('\n')
+        for i in range(0, min(len(str_found), max_send)):
+            if len(str_found[i]) > 1:
+                self.send_log.emit(str_found[i])
+            if i == max_send - 1:
+                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+
 
 class EstimhabW(StatModUseful):
     """
