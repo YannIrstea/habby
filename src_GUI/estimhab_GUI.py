@@ -30,7 +30,7 @@ class StatModUseful(QWidget):
     """
 
     def __init__(self):
-        self.path_bio = './/biology'
+        self.path_bio = 'biology'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
         self.eh1 = QLineEdit()

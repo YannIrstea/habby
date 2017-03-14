@@ -29,8 +29,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.imfish = ''
+        self.path_im_bio = 'biology/figure_pref/'
         # self.path_bio is defined in StatModUseful.
-
+        self.data_fish = []  # all data concerning the fish
         # attribute from the xml which the user can search the database
         # the name should refect the xml attribute or bio_info.load_xml_name() should be changed
         # can be changed but with caution
@@ -38,7 +39,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # stage have to be the first attribute !
         self.attribute_acc = ['Stage', 'French_common_name','English_common_name', 'Code_ONEMA', 'Code_Sandre',
                               'LatinName', 'CdBiologicalModel']
-        self.name_database = 'pref_bio.db'
+        self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate')]
+        self.hdf5_merge = []  # the list with the name and path of the hdf5 file
+        #self.name_database = 'pref_bio.db'
 
         self.init_iu()
 
@@ -60,10 +63,17 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.list_s.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
         self.list_s.itemActivated.connect(self.remove_fish)
+
+        # run habitat value
+        self.l9 = QLabel(' <b> Options for the computation </b>')
+        self.l9.setAlignment(Qt.AlignBottom)
+        self.choice_run = QComboBox()
+        self.choice_run.addItems(self.all_run_choice)
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
         self.runhab.setStyleSheet("background-color: #31D656")
-        spacer1 = QSpacerItem(1, 1)
-        spacer2 = QSpacerItem(300, 1)
+        self.runhab.clicked.connect(self.run_habitat_value)
+        # spacer1 = QSpacerItem(1, 1)
+        # spacer2 = QSpacerItem(1, 1)
 
         # find the path bio
         # open the file
@@ -142,8 +152,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         self.layout4.addWidget(l1, 1, 0)
         self.layout4.addWidget(l2, 1, 1)
-        self.layout4.addWidget(self.list_f, 2, 0, 2, 1)
-        self.layout4.addWidget(self.list_s, 2, 1, 2, 2)
+        self.layout4.addWidget(self.list_f, 2, 0, 3, 1)
+        self.layout4.addWidget(self.list_s, 2, 1, 3, 2)
 
         self.layout4.addWidget(l4, 5, 0)
         self.layout4.addWidget(l5, 6, 0)
@@ -153,8 +163,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l8,8,0)
         self.layout4.addWidget(self.scroll, 8, 1, 3, 2) # in fact self.descr is in self.scoll
         self.layout4.addWidget(self.pic, 10, 0)
-
-        self.layout4.addWidget(self.runhab, 3, 3)
+        self.layout4.addWidget(self.l9, 2, 3)
+        self.layout4.addWidget(self.choice_run, 3, 3)
+        self.layout4.addWidget(self.runhab, 4, 3)
         self.layout4.addWidget(self.pref_curve, 8, 3)
         self.layout4.addWidget(self.hs, 9, 3)
 
@@ -164,8 +175,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.cond1,12, 2)
         self.layout4.addWidget(self.bs, 12, 3)
 
-        self.layout4.addItem(spacer1, 0, 2)
-        self.layout4.addItem(spacer2, 3, 3)
+        # self.layout4.addItem(spacer1, 0, 2)
+        # self.layout4.addItem(spacer2, 3, 3)
         self.setLayout(self.layout4)
 
     def show_info_fish(self):
@@ -204,23 +215,23 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get the description
         data = root.findall('.//Description')
-        if data is not None:
+        if len(data)>0:
             found= False
             for d in data:
                 if d.attrib['Language'] == self.lang:
                     self.descr.setText(d.text)
                     found = True
             if not found:
-                self.descr.setText(d[0].text)
+                self.descr.setText(data[0].text)
 
         # get the image fish
         data = root.find('.//Image')
         if data is not None:
-            self.imfish = data.text
-            name_imhere = os.path.join(os.getcwd(), os.path.join(self.path_bio, self.imfish))
+            self.imfish = os.path.join(os.getcwd(), self.path_im_bio, data.text)
+            name_imhere = os.path.join(os.getcwd(), self.path_im_bio, data.text)
             if os.path.isfile(name_imhere):
                 # use full ABSOLUTE path to the image, not relative
-                self.pic.setPixmap(QPixmap(name_imhere).scaled(200, 70, Qt.KeepAspectRatio))  # 800 500
+                self.pic.setPixmap(QPixmap(name_imhere).scaled(200, 90, Qt.KeepAspectRatio))  # 800 500
 
     def show_hydrosignature(self):
         """
@@ -294,6 +305,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 else:
                     blob = f.text[:30] + '...'
                     self.m_all.addItem(blob)
+                if os.path.isabs(f.text):
+                    namepath = f.text
+                else:
+                    namepath = os.path.join(self.path_prj,f.text)
+                self.hdf5_merge.append(namepath)
 
     def show_pref(self):
         """
@@ -312,6 +328,33 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # show the image
         self.show_fig.emit()
+
+    def run_habitat_value(self):
+        """
+        This function runs HABBY to get the habitat value based on the data in a "merged" hdf5 file and the chosen
+        preference files.
+        """
+        # get the name of the xml biological file of the selected fish and the stages to be analyzed
+        pref_list = []
+        stages_chosen = []
+        for i in range(0, self.list_s.count()):
+            fish_item = self.list_s.item(i)
+            for j in range(0, self.list_f.count()):
+                if self.data_fish[j][0] == fish_item.text():
+                    pref_list.append(self.data_fish[j][2])
+                    stages_chosen.append(self.data_fish[j][1])
+
+        # get the name of the merged file
+        ind =  self.m_all.currentIndex()
+        hdf5_file = self.hdf5_merge[ind]
+
+        # get the type of option choosen
+        run_choice =  self.choice_run.currentIndex()
+
+        # run the data
+
+        # create the output based on the choices ginven in hte output tab
+        pass
 
 
 

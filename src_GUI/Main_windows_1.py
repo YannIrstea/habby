@@ -1301,11 +1301,12 @@ class CentralW(QWidget):
         """
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(fname) and self.name_prj_c != '':
+            # order matters here
             self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
             self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
             self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Biology Info"))
             self.tab_widget.addTab(self.output_tab, self.tr("Output"))
+            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Biology Info"))
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
@@ -1347,7 +1348,7 @@ class CentralW(QWidget):
         A small function which open the output tab. It contains the different options for the figures.
         Output should be the 5th tab, otherwise it will not work.
         """
-        self.tab_widget.setCurrentIndex(4)
+        self.tab_widget.setCurrentIndex(3)
 
     def connect_signal_log(self):
         """
