@@ -176,117 +176,6 @@ class Hydro2W(QWidget):
         self.msgi.show()
 
 
-class HabbyHdf5(QWidget):
-    """
-    This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
-    it is there possible to just add a along hdf5 file to the current project without having to pass to the original
-    hydrological files.
-    """
-    send_log = pyqtSignal(str, name='send_log')
-    """
-    A PyQt signal to send the log.
-    """
-    drop_hydro = pyqtSignal()
-    """
-    A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.
-    """
-
-    def __init__(self, path_prj, name_prj):
-
-        super().__init__()
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.model_type = 'Imported_hydro'
-        self.init_iu()
-
-    def init_iu(self):
-        """
-        Used in the initialization by __init__()
-        """
-
-        l0 = QLabel(self.tr('Select the hdf5 created by HABBY to be loaded:'))
-        self.button2 = QPushButton(self.tr('Load data from hdf5'))
-        self.button2.clicked.connect(self.get_new_hydro_hdf5)
-        spacer1 = QSpacerItem(200, 1)
-        spacer2 = QSpacerItem(1, 300)
-
-        self.layout2 = QGridLayout()
-        self.layout2.addWidget(l0, 0, 0)
-        self.layout2.addWidget(self.button2, 0, 1)
-        self.layout2.addItem(spacer1, 0, 2)
-        self.layout2.addItem(spacer2, 2, 0)
-        self.setLayout(self.layout2)
-
-    def get_new_hydro_hdf5(self):
-        """
-        This is a function which allows the user to select an hdf5 file containing the hydrological
-        data from a previous project and add it to the current project. It modifies the xml project file and test
-        that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
-        created by HABBY in the method save_hdf5 of the class SubHydroW.
-        """
-
-        self.send_log.emit('# Load hdf5 file of hydrological data')
-        # prep
-        ikle_all_t = []
-        point_all = []
-        inter_vel_all = []
-        inter_height_all = []
-        # select a file
-        fname_h5 = QFileDialog.getOpenFileName()[0]
-        if fname_h5 != '':  # cancel
-            blob, ext = os.path.splitext(fname_h5)
-        else:
-            self.send_log.emit('Warning: No file selected.\n')
-            return
-        # load the data to check integrity
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(fname_h5)
-
-        # copy the file and update the attribute
-        if os.path.isdir(self.path_prj):
-            new_name = os.path.join(self.path_prj, 'COPY_' + os.path.basename(fname_h5))
-            shutil.copyfile(fname_h5, new_name)
-        else:
-            self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
-            return
-        try:
-            file_hydro2 = h5py.File(new_name, 'r+')
-        except OSError:
-            self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
-        file_hydro2.attrs['path_projet'] = self.path_prj
-        file_hydro2.attrs['name_projet'] = self.name_prj
-        # save the new file name in the xml file of the project
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if not os.path.isfile(filename_prj):
-            print('Error: No project saved. Please create a project first in the General tab.\n')
-            return
-        else:
-            doc = ET.parse(filename_prj)
-            root = doc.getroot()
-            # new xml category in case the hydrological model is not supported by HABBY
-            # as long s loded in the right format, it would not be a problem
-            child = root.find(".//Imported_hydro")
-            if child is None:
-                here_element = ET.SubElement(root, "Imported_hydro")
-                hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
-                hdf5file.text = new_name
-            else:
-                hdf5file = root.find(".//Imported_hydro/hdf5_hydrodata")
-                if hdf5file is None:
-                    hdf5file = ET.SubElement(child, "Imported_hydro/hdf5_hydrodata")
-                    hdf5file.text = new_name
-                else:
-                    hdf5file.text += '\n' + new_name
-            doc.write(filename_prj)
-        self.send_log.emit('# hdf5 file sucessfully loaded to the current project.')
-        self.send_log.emit("py    import shutil")
-        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
-        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
-        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
-        self.send_log.emit('restart LOAD_HYDRO_HDF5')
-        self.send_log.emit('restart    file hdf5: ' + fname_h5)
-        self.drop_hydro.emit()
-
-
 class FreeSpace(QWidget):
     """
     Simple class with empty space, just to have only Qwidget in the stack.
@@ -584,8 +473,11 @@ class SubHydroW(QWidget):
 
     def find_path_im(self):
         """
-        A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py. By default,
-        path_im is in the project folder.
+        A function to find the path where to save the figues. Careful a simialar one is in estimhab_GUI.py. By default,
+        path_im is in the project folder in the folder 'figure'.
+
+        This is practical to have in a function form as it should be called repeatably (in case the project have been
+        changed since the last start of HABBY).
         """
 
         path_im = 'no_path'
@@ -598,7 +490,7 @@ class SubHydroW(QWidget):
             if child is None:
                 path_im = os.path.join(self.path_prj, self.name_prj)
             else:
-                path_im = child.text
+                path_im = os.path.join(self.path_prj, child.text)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save the path to the figures"))
@@ -607,7 +499,65 @@ class SubHydroW(QWidget):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
+        if not os.path.isdir(path_im):
+            self.send_log.emit('Warning: The path to the figure was not found.')
+            path_im = self.path_prj
+
         return path_im
+
+    def find_path_hdf5(self):
+        """
+        A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
+        path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
+        """
+
+        path_hdf5 = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Hdf5")
+            if child is None:
+                path_hdf5 = os.path.join(self.path_prj, self.name_prj)
+            else:
+                path_hdf5 = os.path.join(self.path_prj, child.text)
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save the path to the fichier hdf5"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_hdf5
+
+    def find_path_input(self):
+        """
+        A function to find the path where to save the input file. Careful a simialar one is in estimhab_GUI.py. By default,
+        path_input indicates the folder 'input' in the project folder.
+        """
+
+        path_input = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Input")
+            if child is None:
+                path_input = os.path.join(self.path_prj, self.name_prj)
+            else:
+                path_input = os.path.join(self.path_prj, child.text)
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save the path to the copied inputs"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_input
 
     def read_attribute_xml(self, att_here):
         """
@@ -744,6 +694,9 @@ class SubHydroW(QWidget):
             self.mystdout = self.q.get()
             self.send_err_log()
 
+            # enable to loading of another model
+            self.load_b.setDisabled(False)
+
             # if grid creation fails
             if self.interpo_choice > 1 and self.p.exitcode is None:  # process terminated
                 self.send_log.emit("Error: Grid creation failed. Try with the interpolation method 'Interpolation by block'")
@@ -755,18 +708,16 @@ class SubHydroW(QWidget):
                 self.send_log.emit("Error: Grid creation failed. Try with the interpolation method 'Linear Interpolation'")
                 return
 
-            # enable to loading of another model
-            self.load_b.setDisabled(False)
-
             # create the figure and show them
             if self.cb.isChecked():
                 path_im = self.find_path_im()
+                path_hdf5 = self.find_path_hdf5()
                 sys.stdout = self.mystdout = StringIO()
                 name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 if name_hdf5:
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5, self.path_prj)
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5)
                     if ikle_all_t == [[-99]]:
                         print('Error: No data found in hdf5 (from send_data)')
                         return
@@ -928,7 +879,7 @@ class HEC_RAS1D(SubHydroW):
         # get the image and load option
         path_im = self.find_path_im()
         # the path where to save the hdf5
-        path_hdf5 = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         show_all_fig = False
@@ -954,14 +905,18 @@ class HEC_RAS1D(SubHydroW):
                                                                                   self.pro_add, self.q))
         self.p.start()
 
+        # copy input file
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
 
         # log info
         self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
         self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    path1='" + path_input + "'")
+        self.send_log.emit("py    path2='" + path_input + "'")
         self.send_log.emit("py    files = [file1, file2]")
         self.send_log.emit("py    paths = [path1, path2]")
         self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
@@ -970,8 +925,8 @@ class HEC_RAS1D(SubHydroW):
             "py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hec_hec_ras_and_create_grid(new_filename,new_path"
             ", name_prj, path_prj, 'HECRAS1D', files, paths, interp, '.', False, False, pro_add)\n")
         self.send_log.emit("restart LOAD_HECRAS_1D")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
         self.send_log.emit("restart    interpolation: " + str(self.interpo_choice))
         self.send_log.emit("restart    number of added profile: " + str(self.pro_add))
 
@@ -1078,7 +1033,7 @@ class Rubar2D(SubHydroW):
         # the path where to save the image
         path_im = self.find_path_im()
         # the path where to save the hdf5
-        path_hdf5 = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
 
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
@@ -1088,18 +1043,23 @@ class Rubar2D(SubHydroW):
                                 self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
 
+        # copy input file
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
         # log info
         self.send_log.emit(self.tr('# Loading: Rubar 2D data.'))
         #self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    path1='" + path_input + "'")
+        self.send_log.emit("py    path2='" + path_input + "'")
         self.send_log.emit("py    load_rubar2d_and_create_grid(new_filename,file1, file2, path1, path2, path2, True, "
                            "name_projet, path_projet, 'RUBAR2D', 2, '.', )\n")
         self.send_log.emit("restart LOAD_RUBAR_2D")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
 
     def propose_next_file(self):
         """
@@ -1259,7 +1219,7 @@ class Mascaret(SubHydroW):
         # get the image and load option
         path_im = self.find_path_im()
         # the path where to save the hdf5
-        path_hdf5 = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
         show_all_fig = False
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
@@ -1282,7 +1242,7 @@ class Mascaret(SubHydroW):
             self.send_log.emit("Error: The number of velocity point is not understood.")
             return
 
-        # load hec_ras data, distribute the velocity and create the grid in a second thread
+        # load mascaret data, distribute the velocity and create the grid in a second thread
         self.q = Queue()
         # for error management and figures (when time finsiehed call the self.send_data function)
         self.timer.start(1000)
@@ -1293,14 +1253,19 @@ class Mascaret(SubHydroW):
                                                                               show_all_fig,self.pro_add, self.q))
         self.p.start()
 
+        # copy input file
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
         #log info
         self.send_log.emit(self.tr('# Loading: Mascaret data.'))
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
         self.send_log.emit("py    file3='" + self.namefile[2] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    path3='" + self.pathfile[2] + "'")
+        self.send_log.emit("py    path1='" + path_input + "'")
+        self.send_log.emit("py    path2='" + path_input + "'")
+        self.send_log.emit("py    path3='" + path_input + "'")
         self.send_log.emit("py    files = [file1, file2, file3]")
         self.send_log.emit("py    paths = [path1, path2, path3]")
         self.send_log.emit("py    interp=" + str(self.interpo_choice))
@@ -1316,9 +1281,9 @@ class Mascaret(SubHydroW):
                            " = mascaret.load_mascaret_and_create_grid('Hydro_mascaret_log', path_prj, name_prj, path_prj,"
                            " 'mascaret',files, paths, interp,manning_data, np_point_vel,'.', False, pro_add, [], True)\n")
         self.send_log.emit("restart LOAD_MASCARET")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
-        self.send_log.emit("restart    file3: " + os.path.join(self.pathfile[2], self.namefile[2]))
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
+        self.send_log.emit("restart    file3: " + os.path.join(path_input, self.namefile[2]))
         if manning_float:
             self.send_log.emit("restart    manning: " + str(self.manning1))
         else:
@@ -1552,7 +1517,7 @@ class River2D(SubHydroW):
         self.timer.start(1000)
         self.load_b.setDisabled(True)
 
-        path_hdf5 = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
 
         if len(self.namefile) == 0:
             self.send_log.emit("Warning: No file chosen.")
@@ -1570,19 +1535,31 @@ class River2D(SubHydroW):
                                 self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
 
+        # copy input file
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
         # log
         self.send_log.emit(self.tr('# Loading : River2D data.'))
-        self.send_log.emit("py    files=" + self.namefile)
-        self.send_log.emit("py    paths=" + self.pathfile)
+        namefile_arr = np.array(self.namefile)
+        blob = np.array2string(namefile_arr, separator=',', )
+        blob = blob.replace('\n', '')
+        self.send_log.emit("py    files== np.array(" + blob + ')')
+        # all path inputs
+        path_inputs = []
+        for i in range(0, len(self.namefile)):
+            path_inputs.append(path_input)
+        path_inputs = np.array(path_inputs)
+        blob = np.array2string(path_inputs, separator=',', )
+        blob = blob.replace('\n', '')
+        self.send_log.emit("py    paths== np.array(" + blob + ')')
         self.send_log.emit("py    river2d.load_river2d_and_cut_grid('Hydro_river2d_log', files, paths, name_prj, "
                            "path_prj, 'RIVER2D', 2, path_prj, [], True) \n")
-        pold = ''
+
         # careful, this will result in all cdg file from a folder to be loaded (to be corrected)
-        for p in self.pathfile:
-            if p != pold:
-                self.send_log.emit("restart LOAD_RIVER_2D")
-                self.send_log.emit("restart    path_to_folder: " +p)
-                pold = p
+        self.send_log.emit("restart LOAD_RIVER_2D")
+        self.send_log.emit("restart    path_to_folder: " + path_input)
 
 
 class Rubar1D(SubHydroW):
@@ -1706,7 +1683,7 @@ class Rubar1D(SubHydroW):
         # get the image and load option
         path_im = self.find_path_im()
         # the path where to save the hdf5
-        path_hdf5 = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         show_all_fig = False
@@ -1716,17 +1693,19 @@ class Rubar1D(SubHydroW):
 
         # preparation for the velocity distibution
         manning_float = False
-        if len(self.manning_arr) > 0:
+        # we have two cases possible: a manning array or a manning float. here we take the case manning as float
+        if len(self.manning_arr) == 0:
             try:
-                # we have two cases possible: a manning array or a manning float. here we take the case manning as float
-                manning_float = True
-                self.manning_arr = float(self.manning_text.text())
+                    manning_float = True
+                    self.manning_arr = float(self.manning_text.text())
             except ValueError:
                 self.send_log.emit("Error: The manning value is not understood.")
+                return
         try:
             self.np_point_vel = int(self.nb_vel_text.text())
         except ValueError:
             self.send_log.emit("Error: The number of velocity point is not understood.")
+            return
 
         # load rubar 1D, distribute velcoity and create the grid
         self.q = Queue()
@@ -1739,12 +1718,17 @@ class Rubar1D(SubHydroW):
                                                                         show_all_fig, self.pro_add, self.q))
         self.p.start()
 
+        # path input
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
         # log info
         self.send_log.emit(self.tr('# Loading: Rubar 1D data.'))
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    path2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    path1='" + path_input + "'")
+        self.send_log.emit("py    path2='" + path_input + "'")
         self.send_log.emit("py    files = [file1, file2]")
         self.send_log.emit("py    paths = [path1, path2]")
         self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
@@ -1752,6 +1736,7 @@ class Rubar1D(SubHydroW):
         if manning_float:
             self.send_log.emit("py    manning1 = " + str(self.manning_text.text()))
         else:
+            self.manning_arr = np.array(self.manning_arr)
             blob = np.array2string(self.manning_arr, separator=',', )
             blob = blob.replace('\n', '')
             self.send_log.emit("py    manning1 = np.array(" + blob + ')')
@@ -1760,8 +1745,8 @@ class Rubar1D(SubHydroW):
                            " = rubar.load_rubar1d_and_create_grid(filename_new, pathname_new, name_prj, path_prj,"
                            " 'RUBAR1D',files, paths, interp,manning_array, np_point_vel,'.', False, pro_add)\n")
         self.send_log.emit("restart LOAD_RUBAR_1D")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
-        self.send_log.emit("restart    file2: " + os.path.join(self.pathfile[1], self.namefile[1]))
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
         if manning_float:
             self.send_log.emit("restart    manning: " + str(self.manning1))
         else:
@@ -1864,7 +1849,7 @@ class HEC_RAS2D(SubHydroW):
         self.timer.start(1000)
 
         # the path where to save the hdf5
-        path_hdf5 = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
 
         # load the hec_ras data and cut the grid to the needed side
@@ -1873,16 +1858,21 @@ class HEC_RAS2D(SubHydroW):
                                      self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
 
+        # path input
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=([self.namefile[0]], [self.pathfile[0]], path_input))
+        self.p2.start()
+
         # log info
         self.send_log.emit(self.tr('# Loading: HEC-RAS 2D.'))
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path1='" + path_input + "'")
         self.send_log.emit("py    interpo=" + str(self.interpo_choice) )
         self.send_log.emit("py    pro_add=" + str(self.pro_add) )
         self.send_log.emit("py    hec_ras2D.load_hec_ras_2d_and_cut_grid('HEC_RAS2D_log', file1, path1, name_prj, "
                            "path_prj, 'HECRAS2D',2, path_prj, [], True)\n")
         self.send_log.emit("restart LOAD_HECRAS_2D")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
 
 class TELEMAC(SubHydroW):
@@ -1966,23 +1956,134 @@ class TELEMAC(SubHydroW):
         self.save_xml(0)
         self.load_b.setDisabled(True)
         # the path where to save the hdf5
-        path_hdf5 = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
+
         # load the telemac data
         self.q = Queue()
         self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],self.pathfile[0],
                                           self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
         self.p.start()
 
+        # path input
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
         # log info
         self.send_log.emit(self.tr('# Loading: TELEMAC data.'))
         self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    path1='" + path_input + "'")
         self.send_log.emit("py   selafin_habby1.load_telemac_and_cut_grid(file1, path1, name_prj, path_prj, 'TELEMAC', "
                            "2, '.' )\n")
         self.send_log.emit("restart LOAD_TELEMAC")
-        self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+
+
+class HabbyHdf5(SubHydroW):
+    """
+    This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
+    it is there possible to just add a along hdf5 file to the current project without having to pass to the original
+    hydrological files.
+    """
+
+    def __init__(self, path_prj, name_prj):
+
+        super().__init__(path_prj, name_prj)
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.model_type = 'Imported_hydro'
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        Used in the initialization by __init__()
+        """
+
+        l0 = QLabel(self.tr('Select the hdf5 created by HABBY to be loaded:'))
+        self.button2 = QPushButton(self.tr('Load data from hdf5'))
+        self.button2.clicked.connect(self.get_new_hydro_hdf5)
+        spacer1 = QSpacerItem(200, 1)
+        spacer2 = QSpacerItem(1, 300)
+
+        self.layout2 = QGridLayout()
+        self.layout2.addWidget(l0, 0, 0)
+        self.layout2.addWidget(self.button2, 0, 1)
+        self.layout2.addItem(spacer1, 0, 2)
+        self.layout2.addItem(spacer2, 2, 0)
+        self.setLayout(self.layout2)
+
+    def get_new_hydro_hdf5(self):
+        """
+        This is a function which allows the user to select an hdf5 file containing the hydrological
+        data from a previous project and add it to the current project. It modifies the xml project file and test
+        that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
+        created by HABBY in the method save_hdf5 of the class SubHydroW.
+        """
+
+        self.send_log.emit('# Load hdf5 file of hydrological data')
+        # prep
+        ikle_all_t = []
+        point_all = []
+        inter_vel_all = []
+        inter_height_all = []
+        # select a file
+        fname_h5 = QFileDialog.getOpenFileName()[0]
+        if fname_h5 != '':  # cancel
+            blob, ext = os.path.splitext(fname_h5)
+        else:
+            self.send_log.emit('Warning: No file selected.\n')
+            return
+        # load the data to check integrity
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(fname_h5)
+
+        # copy the file and update the attribute
+        path_hdf5 = self.find_path_hdf5()
+        if os.path.isdir(path_hdf5):
+            new_name = 'COPY_' + os.path.basename(fname_h5)
+            pathnewname = os.path.join(path_hdf5, new_name)
+            shutil.copyfile(fname_h5, pathnewname)
+        else:
+            self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
+            return
+        try:
+            file_hydro2 = h5py.File(pathnewname, 'r+')
+        except OSError:
+            self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
+        file_hydro2.attrs['path_projet'] = self.path_prj
+        file_hydro2.attrs['name_projet'] = self.name_prj
+        # save the new file name in the xml file of the project
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if not os.path.isfile(filename_prj):
+            print('Error: No project saved. Please create a project first in the General tab.\n')
+            return
+        else:
+            doc = ET.parse(filename_prj)
+            root = doc.getroot()
+            # new xml category in case the hydrological model is not supported by HABBY
+            # as long s loded in the right format, it would not be a problem
+            child = root.find(".//Imported_hydro")
+            if child is None:
+                here_element = ET.SubElement(root, "Imported_hydro")
+                hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
+                hdf5file.text = new_name
+            else:
+                hdf5file = root.find(".//Imported_hydro/hdf5_hydrodata")
+                if hdf5file is None:
+                    hdf5file = ET.SubElement(child, "Imported_hydro/hdf5_hydrodata")
+                    hdf5file.text = new_name
+                else:
+                    hdf5file.text += '\n' + new_name
+            doc.write(filename_prj)
+        self.send_log.emit('# hdf5 file sucessfully loaded to the current project.')
+        self.send_log.emit("py    import shutil")
+        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
+        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
+        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
+        self.send_log.emit('restart LOAD_HYDRO_HDF5')
+        self.send_log.emit('restart    file hdf5: ' + fname_h5)
+        self.drop_hydro.emit()
 
 
 class SubstrateW(SubHydroW):
@@ -2144,8 +2245,9 @@ class SubstrateW(SubHydroW):
             if not 0 <data_sub<9:
                 self.send_log.emit('The substrate data should be between 1 and 8')
             self.name_hdf5 = self.hname2.text()
+            path_hdf5 = self.find_path_hdf5()
             sys.stdout = self.mystdout = StringIO()
-            load_hdf5.save_hdf5_sub(self.path_prj, self.path_prj, self.name_prj, data_sub, data_sub, [], [],
+            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, [], [],
                                     self.name_hdf5, True, self.model_type)
             sys.stdout = sys.__stdout__
             self.send_err_log()
@@ -2153,13 +2255,25 @@ class SubstrateW(SubHydroW):
         else:
             # save path and name substrate
             self.save_xml(0)
-            blob, ext = os.path.splitext(self.namefile[0])
+            namebase, ext = os.path.splitext(self.namefile[0])
             path_im = self.find_path_im()
             code_type = self.e2.currentText()
             self.name_hdf5 = self.hname.text()
 
             # if the substrate is in the shp form
             if ext == '.shp':
+
+                # check if we have all files
+                name1 = namebase + '.dbf'
+                name2 = namebase + '.shx'
+                pathname1 = os.path.join(self.pathfile[0], name1)
+                pathname2 = os.path.join(self.pathfile[0], name2)
+                if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
+                    self.send_log.emit('Error: A shapefile is composed of three files: a .shp file, a .shx file, and'
+                                       ' a .dbf file.')
+                    self.load_b.setDisabled(False)
+                    return
+
                 # load substrate
                 sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0],
@@ -2192,14 +2306,21 @@ class SubstrateW(SubHydroW):
                     self.load_b.setDisabled(False)
                     return
 
+                # copy shape file (compsed of .shp, .shx and .dbf)
+                path_input = self.find_path_input()
+                name_3 = [self.namefile[0], name1, name2]
+                path_3 = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
+                self.p2 = Process(target=load_hdf5.copy_files, args=(name_3, path_3, path_input))
+                self.p2.start()
+
                 # log info
                 self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
                 self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-                self.send_log.emit("py    path1='" + self.pathfile[0] + "'")
+                self.send_log.emit("py    path1='" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
                 self.send_log.emit("py    [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(file1, path1, type)\n")
                 self.send_log.emit("restart LOAD_SUB_SHP")
-                self.send_log.emit("restart    file1: " + os.path.join(self.pathfile[0], self.namefile[0]))
+                self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
                 self.send_log.emit("restart    code_type: " + code_type)
                 # figure
                 if self.cb.isChecked():
@@ -2207,16 +2328,36 @@ class SubstrateW(SubHydroW):
 
             # if the substrate data is a text form
             elif ext == '.txt' or ext == ".asc":
+
+                # load
                 sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, x, y, sub1, sub2] = \
                     substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
+
                 if self.ikle_sub == [-99]:
                     self.send_log.emit('Error: Substrate data not loaded')
                     self.load_b.setDisabled(False)
                     return
-                self.log_txt(code_type)
+
+                # copy
+                path_input = self.find_path_input()
+                self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+                self.p2.start()
+
+                # log info
+                self.send_log.emit(self.tr('# Load: Substrate data - text file'))
+                self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+                self.send_log.emit("py    path1='" + path_input + "'")
+                self.send_log.emit("py    type='" + code_type + "'")
+                self.send_log.emit(
+                    "py    [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(file1, path1,"
+                    " code_type)\n")
+                self.send_log.emit("restart LOAD_SUB_TXT")
+                self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+                self.send_log.emit("restart    code_type: " + code_type)
+
                 if self.cb.isChecked():
                     substrate.fig_substrate(self.coord_p, self.ikle_sub, sub_pg, sub_dom,path_im)
             # case unknown
@@ -2227,24 +2368,12 @@ class SubstrateW(SubHydroW):
                 return
 
             # save shp and txt in the substrate hdf5
-            load_hdf5.save_hdf5_sub(self.path_prj, self.path_prj, self.name_prj, sub_pg, sub_dom, self.ikle_sub,
+            path_hdf5 = self.find_path_hdf5()
+            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom, self.ikle_sub,
                                     self.coord_p,self.name_hdf5, False, self.model_type)
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
-        self.sub_name = self.read_attribute_xml('hdf5_substrate')
-        self.sub_name = self.sub_name.split(',')
-        sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
-        for i in range(0, len(self.sub_name)):
-            if os.path.isfile(self.sub_name[i]):
-                sub_name2.append(self.sub_name[i])
-            if os.path.isfile(os.path.join(self.path_prj, self.sub_name[i])):
-                sub_name2.append(self.sub_name[i])
-        self.sub_name = sub_name2
-        self.drop_sub.clear()
-        for i in range(0, len(self.sub_name)):
-            if i == 0 and len(self.sub_name) > 1:
-                self.drop_sub.addItem(' ')
-            self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+        self.update_sub_hdf5_name()
 
         # show figure
         if self.cb.isChecked() and path_im != 'no_path' and not const_sub:
@@ -2254,19 +2383,20 @@ class SubstrateW(SubHydroW):
 
     def update_sub_hdf5_name(self):
         """
-        This function update the QComBox on substrate data which is on the stubstrate tab. The similiar function
+        This function update the QComBox on substrate data which is on the substrate tab. The similiar function
         for hydrology is in Main_Windows_1.py as it is more practical to have it there to collect all the signals.
         """
-
+        path_hdf5 = self.find_path_hdf5()
         self.sub_name = self.read_attribute_xml('hdf5_substrate')
         self.sub_name = self.sub_name.split(',')
         sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
         for i in range(0, len(self.sub_name)):
             if os.path.isfile(self.sub_name[i]):
                 sub_name2.append(self.sub_name[i])
-            if os.path.isfile(os.path.join(self.path_prj, self.sub_name[i])):
+            if os.path.isfile(os.path.join(path_hdf5, self.sub_name[i])):
                 sub_name2.append(self.sub_name[i])
         self.sub_name = sub_name2
+        self.drop_sub.clear()
         for i in range(0, len(self.sub_name)):
             if i == 0 and len(self.sub_name) > 1:
                 self.drop_sub.addItem(' ')
@@ -2343,8 +2473,9 @@ class SubstrateW(SubHydroW):
 
         # check inputs in the function
         #sys.stdout = self.mystdout = StringIO()
+        path_hdf5 = self.find_path_hdf5()
         [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
-            substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, self.path_prj)
+            substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, self.path_prj)
         sys.stdout = sys.__stdout__
         #self.send_err_log()
         if ikle_both == [-99]:

@@ -144,7 +144,7 @@ class MainWindows(QMainWindow):
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         # set geometry
-        self.setGeometry(200, 200, 700, 600)
+        self.setGeometry(200, 200, 900, 600)
         self.setCentralWidget(self.central_widget)
         self.show()
 
@@ -178,12 +178,23 @@ class MainWindows(QMainWindow):
         self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
         app.installTranslator(self.languageTranslator)
 
+        # recreate new widget
+        self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
+        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
             self.central_widget.tab_widget.removeTab(i)
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
         self.central_widget.add_all_tab()
+        self.central_widget.tab_widget.removeTab(0)  # WHY? I don't understand
 
         # create the new menu
         self.my_menu_bar()
@@ -440,17 +451,34 @@ class MainWindows(QMainWindow):
             user_child.text = self.username_prj
             des_child = ET.SubElement(general_element, "Description")
             des_child.text = self.descri_prj
-            pathbio_child = ET.SubElement(root_element, "Path_Bio")
+
+            # path
+            path_element = ET.SubElement(general_element, "Paths")
+            pathbio_child = ET.SubElement(path_element, "Path_Bio")
             pathbio_child.text = self.path_bio_default
+            path_im = os.path.join(self.path_prj, 'figures')
+            pathbio_child = ET.SubElement(path_element, "Path_Figure")
+            pathbio_child.text = 'figures'
+            path_hdf5 = os.path.join(self.path_prj, 'fichier_hdf5')
+            pathhdf5_child = ET.SubElement(path_element, "Path_Hdf5")
+            pathhdf5_child.text = 'fichier_hdf5'
+            path_input = os.path.join(self.path_prj, 'input')
+            pathinput_child = ET.SubElement(path_element, "Path_Input")
+            pathinput_child.text = 'input'
 
             # save new xml file
             if self.name_prj != '':
                 fname = os.path.join(self.path_prj, self.name_prj+'.xml')
                 tree.write(fname)
-            # create a default directory for the figures
-            path_im = self.path_prj
+
+            # create a default directory for the figures and the hdf5
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
+            if not os.path.exists(path_hdf5):
+                os.makedirs(path_hdf5)
+            if not os.path.exists(path_input):
+                os.makedirs(path_input)
+
         # project exist
         else:
             doc = ET.parse(fname)
@@ -460,12 +488,13 @@ class MainWindows(QMainWindow):
             user_child = root.find(".//User_Name")
             des_child = root.find(".//Description")
             pathim_child = root.find(".//Path_Figure")
+            pathdf5_child = root.find(".//Path_Hdf5")
             pathbio_child = root.find(".//Path_Bio")
             #  if pathim is the default one, change it. Otherwise keep the user chosen directory
-            if pathim_child is not None:
-                if os.path.isfile(os.path.join(path_prj_before, self.name_prj +'.xml')):
-                    if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, self.name_prj +'.xml')):
-                        pathim_child.text = os.path.join(self.path_prj, self.name_prj)
+            # if pathim_child is not None:
+            #     if os.path.isfile(os.path.join(path_prj_before, self.name_prj +'.xml')):
+            #         if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, self.name_prj +'.xml')):
+            #             pathim_child.text = os.path.join(self.path_prj, self.name_prj)
             child.text = self.name_prj
             path_child.text = self.path_prj
             pathbio_child.text = self.path_bio_default
@@ -473,11 +502,14 @@ class MainWindows(QMainWindow):
             des_child.text = self.descri_prj
             fname = os.path.join(self.path_prj, self.name_prj+'.xml')
             doc.write(fname)
-            # path_im = os.path.join(self.path_prj, 'figures_habby')
-            path_im = self.path_prj
+
+            # create needed folder if not there yet
+            path_im = os.path.join(self.path_prj, pathim_child.text)
+            path_h5 = os.path.join(self.path_prj, pathdf5_child.text)
             if not os.path.exists(path_im):
-                os.makedirs(self.path_prj)
-                os.makedirs(os.path.join(self.path_prj, 'figues_habby'))
+                os.makedirs(path_im)
+            if not os.path.exists(path_h5):
+                os.makedirs(path_h5)
 
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
@@ -732,16 +764,16 @@ class MainWindows(QMainWindow):
 
         # change the path_im
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
-        self.path_im = self.path_prj
+        self.path_im = os.path.join(self.path_prj, 'figure')
         doc = ET.parse(fname)
         root = doc.getroot()
         # geo data
         child1 = root.find('.//Path_Figure')
         if child1 is None:
             child1 = ET.SubElement(root, 'Path_Figure')
-            child1.text = self.path_im
+            child1.text = 'figures'
         else:
-            child1.text = self.path_im
+            child1.text = 'figures'
         doc.write(fname)
 
     def change_name_project(self):
@@ -874,7 +906,22 @@ class MainWindows(QMainWindow):
 
         # create an empty hdf5 file using all default prop.
         fname_no_path = self.name_prj+'_ESTIMHAB'+'.h5'
-        fname = os.path.join(self.path_prj, fname_no_path)
+        fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if not os.path.isfile(fnamep):
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save project"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the start tab before saving ESTIMHAB data"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+        else:
+            doc = ET.parse(fnamep)
+            root = doc.getroot()
+            tree = ET.ElementTree(root)
+            child = root.find(".//Path_Hdf5")
+            path_hdf5 = child.text
+
+        fname = os.path.join(os.path.join(self.path_prj, path_hdf5), fname_no_path)
         file = h5py.File(fname, 'w')
 
         # create all datasets and group
@@ -900,7 +947,7 @@ class MainWindows(QMainWindow):
         file.close()
 
         # add the name of this h5 file to the xml file of the project
-        fnamep = os.path.join(self.path_prj, self.name_prj+'.xml')
+
         if not os.path.isfile(fnamep):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save project"))
@@ -1497,12 +1544,26 @@ class CentralW(QWidget):
         self.substrate_tab.drop_hyd.clear()
         self.hydro_tab.drop_hyd.clear()
 
+        # get the hdf5 path
+        filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Hdf5")
+            if child is None:
+                path_hdf5 = os.path.join(self.path_prj_c, self.name_prj_c)
+            else:
+                path_hdf5 = os.path.join(self.path_prj_c, child.text)
+        else:
+            self.write_log(self.tr('Error: Project is not saved'))
+            return
+
         # read name
         self.hyd_name = self.substrate_tab.read_attribute_xml('hdf5_hydrodata')
         self.hyd_name = self.hyd_name.split(',')
         if not os.path.isabs(self.hyd_name[0]):
             for i in range(0, len(self.hyd_name)):
-                self.hyd_name[i] = os.path.join(self.path_prj_c, self.hyd_name[i])
+                self.hyd_name[i] = os.path.join(path_hdf5, self.hyd_name[i])
         hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
         for i in range(0, len(self.hyd_name)):
             if os.path.isfile(self.hyd_name[i]):

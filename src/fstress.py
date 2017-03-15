@@ -12,11 +12,12 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 
-def save_fstress(path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
+def save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
     """
     This function saves the data related to the fstress model in an hdf5 file and write the name of this hdf5 file
     in the xml project file.
 
+    :param path_hdf5: the path where to sdave the hdf5-> string
     :param path_prj: the path to the project-> string
     :param name_prj: the name of the project-> string
     :param name_bio: the name of the preference file-> string
@@ -29,7 +30,7 @@ def save_fstress(path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, q
 
     # create the hdf5 file
     fname_no_path = 'FStress_'+ name_prj + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")  + '.h5'
-    fname = os.path.join(path_prj, fname_no_path)
+    fname = os.path.join(path_hdf5, fname_no_path)
     file = h5py.File(fname, 'w')
 
     # create general attribute
@@ -392,10 +393,11 @@ def write_txt(qmod_all, vh_all, name_inv, path_im, name_river):
 
     """
     i = 0
+    r = 'Default River'
     for r in name_river:
         qmod = qmod_all[i]
         vh = vh_all[i]
-        fname = os.path.join(path_im, 'Fstress_'+r+ time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
+        fname = os.path.join(path_im, 'Fstress_'+ r+ time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
         np.savetxt(fname, vh)
         fname = os.path.join(path_im, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
         np.savetxt(fname, qmod)

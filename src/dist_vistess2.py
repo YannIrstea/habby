@@ -22,7 +22,7 @@ def distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_pro
 
     """
 
-    if isinstance(manning_data, float):
+    if isinstance(manning_data, float) or isinstance(manning_data, np.floating) or isinstance(manning_data, int):
         # distribution of velocity using a float as a manning value (same value for all place)
         manning_array = get_manning(manning_data, nb_point_vel, len(coord_pro), coord_pro)
         vh_pro = dist_velocity_hecras(coord_pro, xhzv_data, manning_array, nb_point_vel, 1, on_profile)

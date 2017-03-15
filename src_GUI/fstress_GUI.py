@@ -165,12 +165,12 @@ class FstressW(estimhab_GUI.StatModUseful):
         # if not, get the hdf5 name
         else:
             hdf5_infoname = child.text
-        # the name is an absolute path, take it. Otherwise, assume that the file in it the path_prj
+        # the name is an absolute path, take it. Otherwise, assume that the file in it the path_hdf5
         if os.path.isabs(hdf5_infoname):
             hdf5_path = os.path.dir(hdf5_infoname)
             hdf5_name = os.path.basename(hdf5_infoname)
         else:
-            hdf5_path = self.path_prj
+            hdf5_path = self.find_path_hdf5_est()
             hdf5_name = hdf5_infoname
 
         # if exists, loads the hdf5
@@ -216,7 +216,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         except ValueError:
             self.send_log.emit("Error: The hydrological data cannot be concerted to float")
             return
-        fstress.save_fstress(self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
+        path_hdf5 = self.find_path_hdf5_est()
+        fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
                              self.qrange, self.fish_selected)
 
     def erase_name(self):
@@ -237,7 +238,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.update_list_riv()
         self.show_data_one_river()
         if not self.riv.count() == 1:
-            fstress.save_fstress(self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
+            path_hdf5 = self.find_path_hdf5_est()
+            fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
                                  self.qrange, self.fish_selected)
 
     def add_all_fish(self):
@@ -380,7 +382,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         # load the data for all the selected rivers and save it in an hdf5
         for i in range(0, len(self.riv_name)):
             self.load_data_fstress(i)
-        fstress.save_fstress(self.path_prj, self.name_prj,self.name_bio,self.path_bio, self.riv_name,self.qhw,
+        path_hdf5 = self.find_path_hdf5_est()
+        fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj,self.name_bio,self.path_bio, self.riv_name,self.qhw,
                              self.qrange,self.fish_selected)
 
         # show the data for the selected river
@@ -410,7 +413,8 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.show_data_one_river()
 
         # save it in a new name and links this copied hdf5 to the project
-        fstress.save_fstress(self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
+        path_hdf5 = self.find_path_hdf5_est()
+        fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
                              self.qrange, self.fish_selected)
 
     def show_data_one_river(self):
@@ -554,6 +558,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         link between the GUI and fstress.py.
         """
 
+        self.save_river_data()
+
         # get the name of the selected fish
         fish_list = []
         for i in range(0, self.list_s.count()):
@@ -571,7 +577,6 @@ class FstressW(estimhab_GUI.StatModUseful):
             return
 
         for i in range(0, len(self.riv_name)):
-            print(i)
             if len(self.qrange[i]) < 2:
                 self.msge.setIcon(QMessageBox.Warning)
                 self.msge.setWindowTitle(self.tr("run FStress"))
@@ -618,7 +623,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.path_im = self.find_path_im_est()
         fstress.figure_fstress(qmod, vh, inv_select, self.path_im, self.riv_name)
         self.show_fig.emit()
-        fstress.write_txt(qmod, vh, inv_select, self.path_im, self.riv_name)
+        fstress.write_txt(qmod, vh, inv_select, self.path_prj, self.riv_name)
 
         # log
         str_found = mystdout.getvalue()

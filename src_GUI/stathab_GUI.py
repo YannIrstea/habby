@@ -109,7 +109,7 @@ class StathabW(QWidget):
             root = doc.getroot()
             child = root.find(".//" + 'Path_Figure')
             if child is not None:
-                self.path_im = child.text
+                self.path_im = os.path.join(self.path_prj,child.text)
         if not os.path.exists(self.path_im):
             os.makedirs(self.path_im)
 
@@ -140,7 +140,7 @@ class StathabW(QWidget):
         self.fishall.stateChanged.connect(self.add_all_fish)
 
         # update label and list
-        if self.dir_name != "No directory selected" and self.typeload == 'txt':
+        if self.dir_name != self.tr("No directory selected") and self.typeload == 'txt':
             if os.path.isdir(self.dir_name):
                 self.load_from_txt_gui()
                 if not self.mystathab.load_ok:

@@ -86,7 +86,7 @@ class StatModUseful(QWidget):
             if child is None:
                 path_im = os.path.join(self.path_prj, self.name_prj)
             else:
-                path_im = child.text
+                path_im = os.path.join(self.path_prj, child.text)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
@@ -96,6 +96,60 @@ class StatModUseful(QWidget):
             self.msg2.show()
 
         return path_im
+
+    def find_path_hdf5_est(self):
+        """
+        A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
+        path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
+        """
+
+        path_hdf5 = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Hdf5")
+            if child is None:
+                path_hdf5 = os.path.join(self.path_prj, self.name_prj)
+            else:
+                path_hdf5 = os.path.join(self.path_prj, child.text)
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save the path to the fichier hdf5"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_hdf5
+
+    def find_path_input_est(self):
+        """
+        A function to find the path where to save the input file. Careful a simialar one is in estimhab_GUI.py. By default,
+        path_input indicates the folder 'input' in the project folder.
+        """
+
+        path_input = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Input")
+            if child is None:
+                path_input = os.path.join(self.path_prj, self.name_prj)
+            else:
+                path_input = os.path.join(self.path_prj, child.text)
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save the path to the copied inputs"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_input
 
     def send_err_log(self):
         """
@@ -257,7 +311,8 @@ class EstimhabW(StatModUseful):
             child = root.find(".//ESTIMHAB_data")
             if child is not None:  # if there is data for ESTIHAB
                 fname_h5 = child.text
-                fname_h5 = os.path.join(self.path_prj, fname_h5)
+                path_hdf5 = self.find_path_hdf5_est()
+                fname_h5 = os.path.join(path_hdf5, fname_h5)
                 if os.path.isfile(fname_h5):
                     file_estimhab = h5py.File(fname_h5, 'r+')
                     # hydrological data

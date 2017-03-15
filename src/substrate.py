@@ -640,7 +640,7 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
         np.savetxt(os.path.join(path, new_name+'.txt'), data)
 
 
-def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj =''):
+def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj =''):
     """
     After the data for the substrate and the hydrological data are loaded, they are still in different grids.
     This functions will merge both grid together. This is done for all time step and all reaches. If a
@@ -648,8 +648,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
 
     !TO BE CORRECTED if there is more than one intersection on a substrate side!
 
-    :param hdf5_name_hyd: the path and name of the hdf5 file with the hydrological data
-    :param hdf5_name_sub: the path and the name of the hdf5 with the substrate data
+    :param hdf5_name_hyd: the name of the hdf5 file with the hydrological data
+    :param hdf5_name_sub: the name of the hdf5 with the substrate data
+    :param path_hdf5: the path to the hdf5 data
     :param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
     :param path_prj: the path to the project
     :return: the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
@@ -667,15 +668,17 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, default_data, path_prj ='
     try:
         default_data= float(default_data)
     except ValueError:
-        print('Error: Dafault data should be a float.\n')
+        print('Error: Default data should be a float.\n')
         return failload
+
+
 
     m = time.time()
     # load hdf5 hydro
-    [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd, path_prj)
+    [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd, path_hdf5)
 
     # load hdf5 sub
-    [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
+    [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
     # find the additional crossing points for each time step and each reach
     # and modify the grid
 

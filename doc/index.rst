@@ -382,7 +382,11 @@ In HABBY, the list of the name of all qm file are in the variable self.file_lang
 in class MainWindows. Hence, we can follow the selected language using an integer self.lang 
 (0 for English and 1 for French). We can now call self.file_langue[self.lang] to get the qm 
 file in the right language. If a new language is added, it is necessary to add one string to this 
-list and to modify the menu. 
+list and to modify the menu. If the new langugage is also present in the xml prefence file
+ (which contains the biological info), it is also necessary to update the variable "bioinfo_tab.lang"
+from central_widget in the function setlangue from Main_Windows(). If this is done, the desciption of
+the xml preference file in the "Biology" tab will be shown in the selected language. Otherwise, it will be
+the first langugage found.
 
 When the translator has been created, it is necessary to re-do all Widgets and Windows. This is not a problem when we open HABBY, but it can be a bit of work if the user asks for a change in language when HABBY is running. This is the function of the setlangue function. This function would work for all language (it takes an integer as input to know which language to use), but it needs to be modified if one modifies the Main_Windows Class strongly (notably if one add signals).
 The language should be saved in the user setting using Qsettings as it is done at the end of the 

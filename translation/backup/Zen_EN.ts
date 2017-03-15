@@ -1,154 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS><TS version="2.0">
 <context>
-    <name>BioInfo</name>
-    <message>
-        <location filename="bio_info_GUI.py" line="43"/>
-        <source>Coarser Substrate</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="43"/>
-        <source>Dominant Substrate</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="55"/>
-        <source>&lt;b&gt; Substrate and hydraulic data &lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="59"/>
-        <source>&lt;b&gt; Available Fish and Guild &lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="60"/>
-        <source>&lt;b&gt; Selected Fish and Guild &lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="73"/>
-        <source>Compute Habitat Value</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="97"/>
-        <source>&lt;b&gt; Information on the suitability curve&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="98"/>
-        <source>Latin Name: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="100"/>
-        <source>ONEMA fish code: </source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="102"/>
-        <source>Description:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="104"/>
-        <source>Show suitability curve</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="126"/>
-        <source>Show Measurement Conditions (Hydrosignature)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="130"/>
-        <source>&lt;b&gt; Search biological models &lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="136"/>
-        <source>Select suitability curve</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="bio_info_GUI.py" line="268"/>
-        <source>Warning: No suitability curve found for the last selection. 
-</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>CentralW</name>
     <message>
-        <location filename="Main_windows_1.py" line="1209"/>
+        <location filename="Main_windows_1.py" line="1198"/>
         <source>Log of HABBY started. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1263"/>
+        <location filename="Main_windows_1.py" line="1252"/>
         <source>Project file not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1264"/>
+        <location filename="Main_windows_1.py" line="1253"/>
         <source>The xml project file does not exists. 
  Create or open a new project.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1285"/>
+        <location filename="Main_windows_1.py" line="1274"/>
         <source>HABBY says:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1332"/>
+        <location filename="Main_windows_1.py" line="1321"/>
         <source>Start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1319"/>
+        <location filename="Main_windows_1.py" line="1308"/>
         <source>Hydraulic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1320"/>
+        <location filename="Main_windows_1.py" line="1309"/>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1321"/>
+        <location filename="Main_windows_1.py" line="1310"/>
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1322"/>
+        <location filename="Main_windows_1.py" line="1311"/>
         <source>Biology Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1323"/>
+        <location filename="Main_windows_1.py" line="1312"/>
         <source>ESTIMHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1324"/>
+        <location filename="Main_windows_1.py" line="1313"/>
         <source>STATHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1325"/>
+        <location filename="Main_windows_1.py" line="1314"/>
         <source>FStress</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1327"/>
+        <location filename="Main_windows_1.py" line="1316"/>
         <source>Research 1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1328"/>
+        <location filename="Main_windows_1.py" line="1317"/>
         <source>Research 2</source>
         <translation type="unfinished"></translation>
     </message>
@@ -156,37 +77,37 @@
 <context>
     <name>CreateNewProject</name>
     <message>
-        <location filename="Main_windows_1.py" line="1107"/>
+        <location filename="Main_windows_1.py" line="1096"/>
         <source> &lt;b&gt; Create a new project &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1108"/>
+        <location filename="Main_windows_1.py" line="1097"/>
         <source>Project Name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1110"/>
+        <location filename="Main_windows_1.py" line="1099"/>
         <source>Main Folder: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1112"/>
+        <location filename="Main_windows_1.py" line="1101"/>
         <source>Set Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1114"/>
+        <location filename="Main_windows_1.py" line="1103"/>
         <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1127"/>
+        <location filename="Main_windows_1.py" line="1116"/>
         <source>HABBY- NEW PROJECT</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1134"/>
+        <location filename="Main_windows_1.py" line="1123"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
@@ -194,12 +115,12 @@
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="Main_windows_1.py" line="1726"/>
+        <location filename="Main_windows_1.py" line="1715"/>
         <source>I am a tab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1729"/>
+        <location filename="Main_windows_1.py" line="1718"/>
         <source>I am really</source>
         <translation type="unfinished"></translation>
     </message>
@@ -324,149 +245,6 @@
     <message>
         <location filename="estimhab_GUI.py" line="392"/>
         <source># Run: Estimhab</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>FstressW</name>
-    <message>
-        <location filename="fstress_GUI.py" line="37"/>
-        <source>Default River</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="55"/>
-        <source> &lt;b&gt; Load Data From Files&lt;/br&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="56"/>
-        <source>Text Files (qwh.txt or listriv.txt)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="58"/>
-        <source>Hdf5 File (.h5)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="72"/>
-        <source>&lt;b&gt;Hydrological Data&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="73"/>
-        <source>Q [m3/sec]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="74"/>
-        <source>Width [m]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="75"/>
-        <source>Height [m]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="76"/>
-        <source>Discharge range</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="77"/>
-        <source>Qmin and Qmax [m3/sec]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="80"/>
-        <source>&lt;b&gt;Available invertebrate species&lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="81"/>
-        <source>Selected Species</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="88"/>
-        <source>Select all species</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="92"/>
-        <source>Save and Run FStress</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="95"/>
-        <source>Save river data</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="193"/>
-        <source>Change River Name</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="193"/>
-        <source>Enter the new river or reach name:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="355"/>
-        <source>Load all files?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="356"/>
-        <source>We found more than one qhw file. Do you want to load all rivers?</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="369"/>
-        <source>Error: Only qhw and listriv file are accepted. Read Fstress documentation for more info.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="605"/>
-        <source>run FStress</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="568"/>
-        <source>No fish selected. Cannot run FStress.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="578"/>
-        <source>No discharge range. Cannot run FStress.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="585"/>
-        <source>Minimum dicharge bigger or equal to max discharge. Cannot run FStress.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="592"/>
-        <source>Estimhab needs two different measured discharge.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="599"/>
-        <source>FStress needs two different measured height.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="606"/>
-        <source>FStress needs two different measured width.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="fstress_GUI.py" line="629"/>
-        <source># Run: FStress</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -610,328 +388,328 @@
 <context>
     <name>MainWindows</name>
     <message>
-        <location filename="Main_windows_1.py" line="227"/>
+        <location filename="Main_windows_1.py" line="216"/>
         <source>Exit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="229"/>
+        <location filename="Main_windows_1.py" line="218"/>
         <source>Exit application</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="231"/>
+        <location filename="Main_windows_1.py" line="220"/>
         <source>Open Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="233"/>
+        <location filename="Main_windows_1.py" line="222"/>
         <source>Open an exisiting project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="250"/>
+        <location filename="Main_windows_1.py" line="239"/>
         <source>New Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="252"/>
+        <location filename="Main_windows_1.py" line="241"/>
         <source>Create a new project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="254"/>
+        <location filename="Main_windows_1.py" line="243"/>
         <source>Save Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="256"/>
+        <location filename="Main_windows_1.py" line="245"/>
         <source>Save the project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="258"/>
+        <location filename="Main_windows_1.py" line="247"/>
         <source>Close Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="260"/>
+        <location filename="Main_windows_1.py" line="249"/>
         <source>Close the cuurent project without opening a new one</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="264"/>
+        <location filename="Main_windows_1.py" line="253"/>
         <source>Clear Log Windows</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="265"/>
+        <location filename="Main_windows_1.py" line="254"/>
         <source>Empty the log windows at the bottom of the main window. Do not erase the .log file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="268"/>
+        <location filename="Main_windows_1.py" line="257"/>
         <source>Do Not Save Log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="269"/>
+        <location filename="Main_windows_1.py" line="258"/>
         <source>The .log file will not be updated further.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="271"/>
+        <location filename="Main_windows_1.py" line="260"/>
         <source>Save Log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="272"/>
+        <location filename="Main_windows_1.py" line="261"/>
         <source>Events will be written to the .log file.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="274"/>
+        <location filename="Main_windows_1.py" line="263"/>
         <source>Clear Images and h5 Files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="275"/>
+        <location filename="Main_windows_1.py" line="264"/>
         <source>Figures saved by HABBY will be deleted</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="277"/>
+        <location filename="Main_windows_1.py" line="266"/>
         <source>Show Images</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="278"/>
+        <location filename="Main_windows_1.py" line="267"/>
         <source>Open the window to view the created figures.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="280"/>
+        <location filename="Main_windows_1.py" line="269"/>
         <source>More Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="281"/>
+        <location filename="Main_windows_1.py" line="270"/>
         <source>Various options to modify the figures produced by HABBY.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="284"/>
+        <location filename="Main_windows_1.py" line="273"/>
         <source>Show Research Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="286"/>
+        <location filename="Main_windows_1.py" line="275"/>
         <source>Add untested research options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="288"/>
+        <location filename="Main_windows_1.py" line="277"/>
         <source>Hide Research Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="290"/>
+        <location filename="Main_windows_1.py" line="279"/>
         <source>Hide untested research options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="294"/>
+        <location filename="Main_windows_1.py" line="283"/>
         <source>&amp;English</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="295"/>
+        <location filename="Main_windows_1.py" line="284"/>
         <source>click here for English</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="297"/>
+        <location filename="Main_windows_1.py" line="286"/>
         <source>&amp;French</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="298"/>
+        <location filename="Main_windows_1.py" line="287"/>
         <source>click here for French</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="331"/>
+        <location filename="Main_windows_1.py" line="320"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="303"/>
+        <location filename="Main_windows_1.py" line="292"/>
         <source>Get help to use the programme</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="307"/>
+        <location filename="Main_windows_1.py" line="296"/>
         <source>&amp;File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="310"/>
+        <location filename="Main_windows_1.py" line="299"/>
         <source>Open Recent Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="316"/>
+        <location filename="Main_windows_1.py" line="305"/>
         <source>Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="317"/>
+        <location filename="Main_windows_1.py" line="306"/>
         <source>Log</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="321"/>
+        <location filename="Main_windows_1.py" line="310"/>
         <source>Image options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="325"/>
+        <location filename="Main_windows_1.py" line="314"/>
         <source>Research options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="328"/>
+        <location filename="Main_windows_1.py" line="317"/>
         <source>Language</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="553"/>
+        <location filename="Main_windows_1.py" line="542"/>
         <source>HABBY: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="384"/>
+        <location filename="Main_windows_1.py" line="373"/>
         <source>Path to project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="385"/>
+        <location filename="Main_windows_1.py" line="374"/>
         <source>The directory indicated in the project path does not exists. Project not saved.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="562"/>
+        <location filename="Main_windows_1.py" line="551"/>
         <source>XML (*.xml)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="704"/>
+        <location filename="Main_windows_1.py" line="693"/>
         <source>Start</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="776"/>
+        <location filename="Main_windows_1.py" line="765"/>
         <source>Erase old project?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="777"/>
+        <location filename="Main_windows_1.py" line="766"/>
         <source>A project with an identical name exists. Should this project be erased definitively? </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="768"/>
+        <location filename="Main_windows_1.py" line="757"/>
         <source>Change Project name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="768"/>
+        <location filename="Main_windows_1.py" line="757"/>
         <source>Enter the new project name:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="919"/>
+        <location filename="Main_windows_1.py" line="908"/>
         <source>Save project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="920"/>
+        <location filename="Main_windows_1.py" line="909"/>
         <source>The project is not saved. Save the project in the start tab before saving ESTIMHAB data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="954"/>
+        <location filename="Main_windows_1.py" line="943"/>
         <source>Data for ESTIMHAB</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="956"/>
+        <location filename="Main_windows_1.py" line="945"/>
         <source>Data cannot be converted to float.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="957"/>
+        <location filename="Main_windows_1.py" line="946"/>
         <source>First problematic data is </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="960"/>
+        <location filename="Main_windows_1.py" line="949"/>
         <source>Data is empty or partially empty. Data is saved, but cannot be executed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="991"/>
+        <location filename="Main_windows_1.py" line="980"/>
         <source>Log erased in this window.&lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1004"/>
+        <location filename="Main_windows_1.py" line="993"/>
         <source>This log will not be saved anymore in the .log file. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1004"/>
+        <location filename="Main_windows_1.py" line="993"/>
         <source>This log will not be saved anymore in the restart file. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1009"/>
+        <location filename="Main_windows_1.py" line="998"/>
         <source>This log will be saved in the .log file.&lt;br&gt; This log will be saved anymore in the restart file. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1023"/>
+        <location filename="Main_windows_1.py" line="1012"/>
         <source>Log Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1024"/>
+        <location filename="Main_windows_1.py" line="1013"/>
         <source>Information related to the .log file are incomplete. Please check.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1051"/>
+        <location filename="Main_windows_1.py" line="1040"/>
         <source>Save Hydrological Data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1052"/>
+        <location filename="Main_windows_1.py" line="1041"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1059"/>
+        <location filename="Main_windows_1.py" line="1048"/>
         <source>Delete figure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1060"/>
+        <location filename="Main_windows_1.py" line="1049"/>
         <source>Are you sure that you want to delete all file in the folder: 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1075"/>
+        <location filename="Main_windows_1.py" line="1064"/>
         <source>Images deleted. &lt;br&gt;</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1201,27 +979,27 @@
 <context>
     <name>ShowImageW</name>
     <message>
-        <location filename="Main_windows_1.py" line="1813"/>
+        <location filename="Main_windows_1.py" line="1802"/>
         <source>ALL FIGURES</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1844"/>
+        <location filename="Main_windows_1.py" line="1833"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1853"/>
+        <location filename="Main_windows_1.py" line="1842"/>
         <source>Change Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1854"/>
+        <location filename="Main_windows_1.py" line="1843"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1885"/>
+        <location filename="Main_windows_1.py" line="1874"/>
         <source>Available figures</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1559,136 +1337,68 @@
 <context>
     <name>WelcomeW</name>
     <message>
-        <location filename="Main_windows_1.py" line="1580"/>
+        <location filename="Main_windows_1.py" line="1569"/>
         <source>&lt;b&gt;Start working with HABBY &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1585"/>
+        <location filename="Main_windows_1.py" line="1574"/>
         <source>Open Exisiting Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1587"/>
+        <location filename="Main_windows_1.py" line="1576"/>
         <source>New Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1589"/>
+        <location filename="Main_windows_1.py" line="1578"/>
         <source>Open Example</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1598"/>
+        <location filename="Main_windows_1.py" line="1587"/>
         <source> &lt;b&gt; Current Project &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1599"/>
+        <location filename="Main_windows_1.py" line="1588"/>
         <source>Project Name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1601"/>
+        <location filename="Main_windows_1.py" line="1590"/>
         <source>Main Folder: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1603"/>
+        <location filename="Main_windows_1.py" line="1592"/>
         <source>Set Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1605"/>
+        <location filename="Main_windows_1.py" line="1594"/>
         <source>Change Project Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1607"/>
+        <location filename="Main_windows_1.py" line="1596"/>
         <source>Description: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1609"/>
+        <location filename="Main_windows_1.py" line="1598"/>
         <source>User Name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1611"/>
+        <location filename="Main_windows_1.py" line="1600"/>
         <source>Save Project Info</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1666"/>
+        <location filename="Main_windows_1.py" line="1655"/>
         <source>Open Directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>outputW</name>
-    <message>
-        <location filename="output_fig_GUI.py" line="40"/>
-        <source>&lt;b&gt; Figures Options &lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="41"/>
-        <source>Figure Size</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="42"/>
-        <source>Color Map 1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="43"/>
-        <source>Color Map 2</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="47"/>
-        <source>Font Size</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="48"/>
-        <source>Line Width</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="49"/>
-        <source>Grid</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="50"/>
-        <source>Dot size</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="61"/>
-        <source>On</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="62"/>
-        <source>Off</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="70"/>
-        <source>Save options</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="166"/>
-        <source>Project Not Saved</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="output_fig_GUI.py" line="167"/>
-        <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

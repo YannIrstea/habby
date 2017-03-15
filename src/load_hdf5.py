@@ -2,6 +2,7 @@ import h5py
 import os
 import numpy as np
 import time
+import shutil
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -31,14 +32,14 @@ def open_hdf5(hdf5_name):
     return file
 
 
-def load_hdf5_hyd(hdf5_name_hyd, path_prj = ''):
+def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = ''):
     """
     A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5_name_sub
     is an absolute path, the path_prj is not used. If it is a relative path, the path is composed of the path to the
     project (path_prj) composed with hdf5_name_sub.
 
-    :param hdf5_name_hyd: path and filename of the hdf5 file (string)
-    :param path_prj: the path to the project
+    :param hdf5_name_hyd: filename of the hdf5 file (string)
+    :param path_hdf5: the path to the hdf5 file
     :return: the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.
 
     """
@@ -54,8 +55,8 @@ def load_hdf5_hyd(hdf5_name_hyd, path_prj = ''):
     if os.path.isabs(hdf5_name_hyd):
         file_hydro = open_hdf5(hdf5_name_hyd)
     else:
-        if path_prj:
-            file_hydro = open_hdf5(os.path.join(path_prj, hdf5_name_hyd))
+        if path_hdf5:
+            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name_hyd))
         else:
             print('Error" No path to the project given although a relative path was provided')
             return failload
@@ -183,28 +184,28 @@ def load_hdf5_hyd(hdf5_name_hyd, path_prj = ''):
     return ikle_all_t, point_all, inter_vel_all, inter_height_all
 
 
-def load_hdf5_sub(hdf5_name_sub, path_prj):
+def load_hdf5_sub(hdf5_name_sub, path_hdf5):
     """
     A function to load the substrate data contained in the hdf5 file. It also manage
     the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
-    the path is composed of the path to the project (path_prj) composed with hdf5_name_sub. it manages constant and
+    the path is composed of the path to the 'hdf5' folder (path_prj/fichier_hdf5) composed with hdf5_name_sub. it manages constant and
     vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
-    :param path_prj: the path to the project
+    :param path_prj: the path to the hdf5 file
     """
 
     # correct all change to the hdf5 form in the doc!
     ikle_sub = []
     point_all_sub = []
-    failload = [[-99]], [[-99]], [[-99]]
+    failload = [[-99]], [[-99]], [[-99]],[[-99]]
 
     # open the file
     if os.path.isabs(hdf5_name_sub):
         file_sub = open_hdf5(hdf5_name_sub)
     else:
-        if path_prj:
-            file_sub = open_hdf5(os.path.join(path_prj, hdf5_name_sub))
+        if path_hdf5:
+            file_sub = open_hdf5(os.path.join(path_hdf5, hdf5_name_sub))
         else:
             print('Error" No path to the project given although a relative path was provided')
             return failload
@@ -469,8 +470,6 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
 
     # save the file to the xml of the project
     filename_prj = os.path.join(path_prj, name_prj + '.xml')
-    print(path_prj)
-    print(name_prj)
     if not os.path.isfile(filename_prj):
         print('Error: No project saved. Please create a project first in the General tab.\n')
         return
@@ -484,31 +483,19 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                 hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
             else:
                 hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
-            if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
-                hdf5file.text = h5name
-            else:
-                hdf5file.text = fname
+        # else:
+        #     if not merge:
+        #         hdf5file = root.find(".//" + model_type + "/hdf5_hydrodata")
+        #     else:
+        #         hdf5file = root.find(".//" + model_type + "/hdf5_mergedata")
+        #     if hdf5file is None:
+        if not merge:
+            hdf5file = ET.SubElement(child, "hdf5_hydrodata")
         else:
-            if not merge:
-                hdf5file = root.find(".//" + model_type + "/hdf5_hydrodata")
-            else:
-                hdf5file = root.find(".//" + model_type + "/hdf5_mergedata")
-            if hdf5file is None:
-                if not merge:
-                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-                else:
-                    hdf5file = ET.SubElement(child, "hdf5_mergedata")
-                if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
-                    hdf5file.text = h5name
-                else:
-                    hdf5file.text = fname
-            else:
-                # hdf5file.text = hdf5file.text + ', ' + fname  # keep the name of the old and new file
-                # keep only the new file
-                if os.path.normpath(path_hdf5) == os.path.normpath(path_prj):
-                    hdf5file.text = h5name
-                else:
-                    hdf5file.text = fname
+            hdf5file = ET.SubElement(child, "hdf5_mergedata")
+
+        hdf5file.text = h5name
+
         doc.write(filename_prj)
 
     return
@@ -632,21 +619,30 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
         doc.write(filename_prj)
 
 
-def add_sub_to_merge_hdf5(name_hdf5, path_hdf5, substrate):
+def copy_files(names,paths, path_input):
     """
-    This function open an existing hydrological hdf5 and add the substrate data to it. Obviously, this only makes sense
-    if the grid was merged before so that the subtrate grid and hydrological grid are coherent. If this function is
-    directly called on an hydrological hdf5 before calling substrate.merge_grid_hydro_sub(), it will not work!
+    This function copied the input files to the project file. The input files are usually contains in the input
+    project file. It is ususally done on a second thread as it might be long.
 
-    :param name_hdf5: the name of the hdf5 (string)
-    :param path_hdf5: the path to this hdf5 (path)
-    :param substrate: the substrate data (one data by point0
+    For the moment this function cannot send warning and error to the GUI. As input shoudl have been cheked before
+    by HABBY, this should not be a problem.
+
+    :param names: the name of the files to be copied (list of string)
+    :param paths: the path to these files (list of string)
+    :param path_input: the path where to send the input (string)
     """
 
-    # open the hdf5
-    hdf5_pathname = os.path.join(path_hdf5, name_hdf5)
-    file_hydro = open_hdf5(hdf5_pathname)
+    if not os.path.isdir(path_input):
+        print('Error: Folder not found to copy inputs \n')
+        return
 
-    # get point_all_data and check the length
-    # save the new data
-    # NOT FINISHED
+    if len(names) != len(paths):
+        print('Error: the number of file to be copied is not equalt to the number of paths')
+        return
+
+    for i in range(0, len(names)):
+        if names[i] != 'unknown file':
+            src = os.path.join(paths[i], names[i])
+            if os.path.isfile(src):
+                dst = os.path.join(path_input, names[i])
+                shutil.copy(src, dst)

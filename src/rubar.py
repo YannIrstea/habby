@@ -42,7 +42,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
 
     # load the rubar 1D
     if not print_cmd:
-        sys.stdout = mystdout = StringIO()
+       sys.stdout = mystdout = StringIO()
     [xhzv_data, coord_pro, lim_riv] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im, show_fig_1D)
     if show_fig_1D:
         plt.close() # just save the figure do not show them
@@ -69,7 +69,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
                         point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
     if print_cmd:
-        sys.stdout = sys.__stdout__
+       sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
         return
