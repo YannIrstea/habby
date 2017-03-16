@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<root>
+<Pref_courbe>
+</Pref_courbe>
+
+<estimhab>
+<coeff_q> 3.5 -75 </coeff_q>
+<func_q> 0 </func_q>
+<coeff_const> 225018 -94762 249139 </coeff_const> 
+<var_const> 4 5 </var_const>
+</estimhab>
+
+</root>
+

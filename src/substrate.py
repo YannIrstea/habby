@@ -679,8 +679,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
 
     # load hdf5 sub
     [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
-    # find the additional crossing points for each time step and each reach
-    # and modify the grid
+
 
     # simple test case to debug( two triangle separated by an horizontal line)
     # point_all = [[np.array([[0.5, 0.55], [0.3, 0.55], [0.5, 0.3], [0.3, 0.3]])]]
@@ -688,7 +687,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
     # ikle_sub = np.array([[0, 1, 2]])
     # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35], [1, 1]])
 
-
+    # special cases and checked
     if len(ikle_all) == 1 and ikle_all[0][0][0][0] == [-99]:
         print('Error: hydrological data could not be loaded.')
         return failload
@@ -727,7 +726,13 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
         print('Error: the connectivity table of the substrate is badly formed.')
         return failload
 
+    m1 = time.time()
+    print('Time to load:')
+    print(m1 - m)
+
+    # merge the grid for each time step (the time step 0 is the full profile)
     for t in range(0, len(ikle_all)):
+
         ikle_all2 = []
         point_all2 = []
         data_sub2_pg = []
@@ -749,10 +754,13 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
                 if len(ikle_before) < 1:
                     print('Warning: One time steps without grids found. \n')
                     break
+
+                # find intersection betweeen hydrology and substrate
                 [pc, new_data_sub_pg, new_data_sub_dom] = point_cross2(ikle_before, point_before, ikle_sub,
                                                                        point_all_sub, data_sub_pg, data_sub_dom, default_data)
                 pc = np.array(pc)
 
+                # if no intersection found
                 if len(pc) < 1:
                     print('Warning: No intersection between the grid and the substrate for one reach.\n')
                     try:
@@ -766,6 +774,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
                     point_all2.append(point_before)
                     break # next time step
 
+                # create the new grid based on intersection found
                 b = time.time()
                 [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
                     grid_update_sub3(ikle_before, point_before, pc, point_all_sub, new_data_sub_pg, new_data_sub_dom,
@@ -777,6 +786,14 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
                 data_sub2_dom.append(new_data_sub_dom)
                 vel2.append(vel_new)
                 height2.append(height_new)
+
+                print('Time to find the intersection point')
+                print(b-a)
+                print('Time to find the merge grid')
+                print(c-b)
+
+
+
 
         ikle_both.append(ikle_all2)
         point_all_both.append(point_all2)

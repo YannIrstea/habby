@@ -79,7 +79,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
 
     # prepare figure
     if pict:
-        c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'b', 'm', 'r', 'c', '#9932CC', '#800000']
+        c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'k', 'g', 'y','#9F81F7', '#BDBDBD', '#F7819F', 'b', 'm', 'r', 'c',
+             '#9932CC', '#800000', 'k', 'g', 'y','#810D0D','#810D0D','#9F81F7']
         plt.figure()
         plt.suptitle("ESTIMHAB2008 - HABBY", fontsize=12)
 
