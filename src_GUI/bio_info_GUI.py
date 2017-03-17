@@ -300,10 +300,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # add it to the list
         if files is not None:
             for f in files:
-                if len(f.text) <30:
+                if len(f.text) <55:
                     self.m_all.addItem(f.text)
                 else:
-                    blob = f.text[:30] + '...'
+                    blob = f.text[:55] + '...'
                     self.m_all.addItem(blob)
                 if os.path.isabs(f.text):
                     namepath = f.text
