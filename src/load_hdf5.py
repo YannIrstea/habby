@@ -32,7 +32,7 @@ def open_hdf5(hdf5_name):
     return file
 
 
-def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = ''):
+def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
     """
     A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5_name_sub
     is an absolute path, the path_prj is not used. If it is a relative path, the path is composed of the path to the
@@ -40,6 +40,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = ''):
 
     :param hdf5_name_hyd: filename of the hdf5 file (string)
     :param path_hdf5: the path to the hdf5 file
+    :param merge: If merge is True. this is a merged file with substrate data added
     :return: the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.
 
     """
@@ -49,7 +50,11 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = ''):
     point_all = []
     inter_vel_all = []
     inter_height_all = []
+    substrate_all_pg = []
+    substrate_all_dom = []
     failload = [[-99]], [[-99]], [[-99]], [[-99]]
+    if merge:
+        failload = [[-99]], [[-99]], [[-99]], [[-99]],[[-99]],[[-99]]
 
     # open the file with checking for the path
     if os.path.isabs(hdf5_name_hyd):
@@ -114,7 +119,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = ''):
                 gen_dataset = file_hydro[name_ik]
             except KeyError:
                 print(
-                    'Error: the dataset for ikle (2) is missing from the hdf5 file. \n')
+                    'Error: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
                 return failload
             ikle_whole = list(gen_dataset.values())[0]
             ikle_whole = np.array(ikle_whole)
@@ -154,34 +159,69 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = ''):
     # load height and velocity data
     inter_vel_all.append([])  # no data for the whole profile case
     inter_height_all.append([])
+    if merge:
+        substrate_all_pg.append([])
+        substrate_all_dom.append([])
     for t in range(0, nb_t):
         h_all = []
         vel_all = []
+        if merge:
+            sub_pg_all = []
+            sub_dom_all = []
         for r in range(0, nb_r):
             name_vel = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_vel_all"
             name_he = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_h_all"
+            if merge:
+                name_pg = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/data_substrate_pg"
+                name_dom = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/data_substrate_dom"
+            #velocity
             try:
                 gen_dataset = file_hydro[name_vel]
             except KeyError:
-                print(
-                    'Error: the dataset for velocity is missing from the hdf5 file. \n')
+                print('Error: the dataset for velocity is missing from the hdf5 file. \n')
+                return failload
+            if len(list(gen_dataset.values())) ==0:
+                print('Error: No velocity found in the hdf5 file. \n')
                 return failload
             vel = list(gen_dataset.values())[0]
             vel = np.array(vel).flatten()
             vel_all.append(vel)
+            #height
             try:
                 gen_dataset = file_hydro[name_he]
             except KeyError:
-                print(
-                    'Error: the dataset for water height is missing from the hdf5 file. \n')
+                print('Error: the dataset for water height is missing from the hdf5 file. \n')
+                return failload
+            if len(list(gen_dataset.values())) == 0:
+                print('Error: No height found in the hdf5 file. \n')
                 return failload
             heigh = list(gen_dataset.values())[0]
             heigh = np.array(heigh).flatten()
             h_all.append(heigh)
+            #substrate
+            if merge:
+                try:
+                    gen_datasetpg = file_hydro[name_pg]
+                    gen_datasetdom = file_hydro[name_dom]
+                except KeyError:
+                    print('Error: the dataset for substrate is missing from the hdf5 file. \n')
+                    return failload
+                subpg = list(gen_datasetpg.values())[0]
+                subpg = np.array(subpg).flatten()
+                subdom = list(gen_datasetdom.values())[0]
+                subdom = np.array(subdom).flatten()
+                sub_pg_all.append(subpg)
+                sub_dom_all.append(subdom)
         inter_vel_all.append(vel_all)
         inter_height_all.append(h_all)
+        if merge:
+            substrate_all_dom.append(sub_dom_all)
+            substrate_all_pg.append(sub_pg_all)
 
-    return ikle_all_t, point_all, inter_vel_all, inter_height_all
+    if not merge:
+        return ikle_all_t, point_all, inter_vel_all, inter_height_all
+    else:
+        return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom
 
 
 def load_hdf5_sub(hdf5_name_sub, path_hdf5):

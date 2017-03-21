@@ -124,6 +124,33 @@ class StatModUseful(QWidget):
 
         return path_hdf5
 
+    def find_path_text_est(self):
+        """
+        A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
+        path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
+        """
+
+        path_text = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Text")
+            if child is None:
+                path_text = os.path.join(self.path_prj, self.name_prj)
+            else:
+                path_text = os.path.join(self.path_prj, child.text)
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_text
+
     def find_path_input_est(self):
         """
         A function to find the path where to save the input file. Careful a simialar one is in estimhab_GUI.py. By default,

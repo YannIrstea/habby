@@ -678,7 +678,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
     # load hdf5 sub
     [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
 
-
     # simple test case to debug( two triangle separated by an horizontal line)
     # point_all = [[np.array([[0.5, 0.55], [0.3, 0.55], [0.5, 0.3], [0.3, 0.3]])]]
     # ikle_all = [[np.array([[0, 1, 3], [0, 2, 3]])]]
@@ -751,6 +750,12 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
                 a = time.time()
                 if len(ikle_before) < 1:
                     print('Warning: One time steps without grids found. \n')
+                    data_sub2_pg.append([-99])
+                    data_sub2_dom.append([-99])
+                    vel2.append([-99])
+                    height2.append([-99])
+                    ikle_all2.append([[-99,-99]])
+                    point_all2.append([[[-99,-99]]])
                     break
 
                 # find intersection betweeen hydrology and substrate
@@ -766,8 +771,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
                     except ValueError:
                         print('Error: no float in substrate. (only float accepted fro now)')
                         return failload
-                    sub_dom_all_t.append(sub_data_here)
-                    sub_pg_all_t.append(sub_data_here)
+                    data_sub2_pg.append(sub_data_here)
+                    data_sub2_dom.append(sub_data_here)
+                    vel2.append(vel_before)
+                    height2.append(height_before)
                     ikle_all2.append(ikle_before)
                     point_all2.append(point_before)
                     break # next time step
@@ -1187,13 +1194,6 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
     # for all these element
     to_delete = []
 
-    # si = 0
-    # for s in new_data_sub_pg:
-    #     if s == [3,3,4]:
-    #         print(si)
-    #     si +=1
-
-
     for e in te:
         # get the crossing pionts touched by these elements
         ind1 = np.searchsorted(point_crossing[:,0], e)
@@ -1418,7 +1418,7 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
                 for hydi in range(0,3):
                     phere = coord_p[ikle[e][hydi]]
                     ind = np.argmin(abs(phere[0] - point_new[:, 0]) + abs(phere[1]-point_new[:, 1]))
-                    if ind in ikle_new:
+                    if ind in ikle_new and not found_new:
                         found_new = True
                         new_data_sub_pg.append(new_data_sub_pg[e][hydi])
                         new_data_sub_dom.append(new_data_sub_dom[e][hydi])

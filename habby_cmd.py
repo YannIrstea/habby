@@ -47,7 +47,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print("LOAD_RUBAR_1D: load the Rubar data in 1D. Input: name of input file .rbe, name of the profile input "
               "file, manning coefficient, interpolation choice, (number of profile to add), (output name),"
               "(nb_point_vel=x)")
-        print("LOAD_RUBAR2D: load the Rubar data in 2D. Input: name of input file 1, name of input file 2, (output)")
+        print("LOAD_RUBAR2D: load the Rubar data in 2D. Input: name of input file 1, name of input file 2, "
+              "(output name)")
         print("LOAD_TELEMAC: load the telemac data. Input: name of the .res file, (output name)")
         print('LOAD_HYDRO_HDF5: load an hydrological hdf5. Input: the name of the hdf5 (with the path)')
 
@@ -339,7 +340,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 name_hdf5 = os.path.basename(namepath_hdf5)
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
-                name_hdf5 = 'Hydro_MASCARET_' + namefile[0]
+                name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0]
                 path_hdf5 = '.'
         if len(all_arg) == 7:
             pro_add_is_here = True
@@ -505,7 +506,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            name_hdf5 = 'Hydro_MERGE_cmd'
+            if len(hdf5_name_hyd)>33:
+                name_hdf5 = 'Hydro_MERGE_cmd' + hdf5_name_hyd[6:-26]
+            else:
+                name_hdf5 = 'Hydro_MERGE_cmd' + hdf5_name_hyd
             path_hdf5 = '.'
 
         [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = substrate.merge_grid_hydro_sub(

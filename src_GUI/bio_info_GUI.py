@@ -14,6 +14,8 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from src import bio_info
 from src_GUI import estimhab_GUI
+from src import calcul_hab
+from src_GUI import output_fig_GUI
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -170,9 +172,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.hs, 9, 3)
 
         self.layout4.addWidget(l3, 11, 0)
-        self.layout4.addWidget(self.keys,12, 0)
+        self.layout4.addWidget(self.keys, 12, 0)
         self.layout4.addWidget(l02,12, 1)
-        self.layout4.addWidget(self.cond1,12, 2)
+        self.layout4.addWidget(self.cond1, 12, 2)
         self.layout4.addWidget(self.bs, 12, 3)
 
         # self.layout4.addItem(spacer1, 0, 2)
@@ -293,6 +295,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             return
 
         self.m_all.clear()
+        self.hdf5_merge = []
 
         # get filename
         files = root.findall('.//hdf5_mergedata')
@@ -300,16 +303,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # add it to the list
         if files is not None:
             for f in files:
-                if len(f.text) <55:
+                if len(f.text) < 55:
                     self.m_all.addItem(f.text)
                 else:
                     blob = f.text[:55] + '...'
                     self.m_all.addItem(blob)
-                if os.path.isabs(f.text):
-                    namepath = f.text
-                else:
-                    namepath = os.path.join(self.path_prj,f.text)
-                self.hdf5_merge.append(namepath)
+                name = f.text
+                self.hdf5_merge.append(name)
 
     def show_pref(self):
         """
@@ -337,24 +337,82 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
         stages_chosen = []
+        name_fish = []
         for i in range(0, self.list_s.count()):
             fish_item = self.list_s.item(i)
             for j in range(0, self.list_f.count()):
                 if self.data_fish[j][0] == fish_item.text():
                     pref_list.append(self.data_fish[j][2])
                     stages_chosen.append(self.data_fish[j][1])
+                    name_fish.append(self.data_fish[j][3])
 
         # get the name of the merged file
-        ind =  self.m_all.currentIndex()
+        path_hdf5 = self.find_path_hdf5_est()
+        ind = self.m_all.currentIndex()
         hdf5_file = self.hdf5_merge[ind]
 
         # get the type of option choosen
-        run_choice =  self.choice_run.currentIndex()
+        run_choice = self.choice_run.currentIndex()
 
         # run the data
+        sys.stdout = self.mystdout = StringIO()
+        [vh_all_t_sp, vel_c_att_t, height_c_all_t] = calcul_hab.calc_hab(hdf5_file, path_hdf5 ,pref_list, stages_chosen,
+                                                                         self.path_bio, run_choice)
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
 
-        # create the output based on the choices ginven in hte output tab
-        pass
+        # create the output based on the choices given in the output tab
+        fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        create_text = bool(fig_dict['text_output'])
+        create_shape = bool(fig_dict['shape_output'])
+        create_para = bool(fig_dict['paraview'])
+
+        # pre pare
+        for id, n in enumerate(name_fish):
+            name_fish[id] = n + '_' + stages_chosen[id]
+        if len(hdf5_file) > 35:
+            name_base = hdf5_file[11: -25]
+        else:
+            name_base = self.name_prj
+
+        # text output
+        if create_text:
+            path_txt = self.find_path_text_est()
+            sys.stdout = self.mystdout = StringIO()
+            calcul_hab.save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, name_fish,
+                                    path_txt, name_base)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+        if create_shape:
+            path_shp = self.find_path_text_est()
+            # sys.stdout = self.mystdout = StringIO()
+            calcul_hab.save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, name_fish,
+                                      path_shp, name_base)
+            # sys.stdout = sys.__stdout__
+            # self.send_err_log()
+        if create_para:
+            pass
+            #calcul_hab.save_hab_paraview()
+        #create image in all cases
+        #calcul_hab.save_hab_fig()
+
+        # log
+        self.send_log.emit(self.tr('# Calculation: habitat value'))
+        self.send_log.emit("py    file1='" + hdf5_file + "'")
+        self.send_log.emit("py    path1= os.path.join(path_prj, 'fichier_hdf5')")
+        self.send_log.emit("py    pref_list= [" + ', '.join(pref_list) + ']')
+        self.send_log.emit("py    stages= [" + ', '.join(stages_chosen) +']')
+        self.send_log.emit("py    path_bio='" + self.path_bio + "'")
+        self.send_log.emit("py    type='" + str(run_choice) + "'")
+        self.send_log.emit(
+            "py    vh_all_t_sp = calcul_hab.calc_hab(file1, path1 ,pref_list, stages, path_bio, type)")
+        self.send_log.emit("restart CALCULATE_HAB")
+        self.send_log.emit("restart    file1: " + hdf5_file)
+        self.send_log.emit("restart    list of preference file: [" + ', '.join(pref_list) +']')
+        self.send_log.emit("restart    stages chosen: [" + ', '.join(stages_chosen) +']')
+        self.send_log.emit("restart    type of calculation: " + str(run_choice))
+
+
 
 
 

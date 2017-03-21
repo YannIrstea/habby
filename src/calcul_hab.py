@@ -1,0 +1,330 @@
+import os
+import numpy as np
+import bisect
+import time
+from src import load_hdf5
+from src import bio_info
+import shapefile
+
+
+def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
+    """
+    This function calculates the habitat value. It loads substrate and hydrology datqa from an hdf5 files and it loads
+    the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
+    stages are in the xml files). There are more than one method to calculte the habitat so the parameter opt indicate
+    which metho to use. 0-> usde coarser substrate, 1 -> use dominant substrate
+
+    :param merge_name: the name of the hdf5 with the results
+    :param path_merge: the path to the merged file
+    :param bio_names: the name of the xml biological data
+    :param stages: the stage chosen (youngs, adults, etc.). List with the same length as bio_names.
+    :param path_bio: The path to the biological folder (with all files given in bio_names
+    :param opt: an int fron 0 to n. Gives which calculation method should be used
+    :return: the habiatat value for all species, all time, all reach, all cells.
+    """
+    failload = [-99]
+    vh_all_t_sp = []
+
+    if len(bio_names) != len(stages):
+        print('Error: Number of stage and species is not coherent. \n')
+        return failload
+
+    # load merge
+    # test if file exists in load_hdf5_hyd
+    [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] = \
+        load_hdf5.load_hdf5_hyd(merge_name, path_merge, True)
+    if ikle_all_t == [-99]:
+        return failload
+
+    for idx, bio_name in enumerate(bio_names):
+
+        # load bio data
+        xmlfile = os.path.join(path_bio, bio_name)
+        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info.read_pref(xmlfile)
+        if pref_height == [-99]:
+            return
+
+        for idx2, stade_bio in enumerate(stade_bios):
+            if stages[idx] == stade_bio:
+                pref_height = pref_height[idx2]
+                pref_vel = pref_vel[idx2]
+                pref_sub = pref_sub[idx2]
+
+                # calcul (one function for each calculation options)
+                if opt == 0:  # pg
+                    # optmization possibility: feed_back the vel_c_att_t and height_c_all_t
+                    [vh_all_t,  vel_c_att_t, height_c_all_t] = calc_hab_norm(ikle_all_t, inter_vel_all, inter_height_all, substrate_all_pg,
+                                             pref_vel, pref_height, pref_sub)
+                elif opt == 1:  # dom
+                    [vh_all_t, vel_c_att_t, height_c_all_t]  = calc_hab_norm(ikle_all_t, inter_vel_all, inter_height_all, substrate_all_dom, pref_vel,
+                                             pref_height, pref_sub)
+                else:
+                    print('Error: the calculation method is not found. \n')
+                    return failload
+                vh_all_t_sp.append(vh_all_t)
+
+    return vh_all_t_sp,vel_c_att_t, height_c_all_t
+
+
+def calc_hab_norm(ikle_all_t, vel, height, sub, pref_vel, pref_height, pref_sub):
+    """
+    This function calculates the habitat valie
+
+    :param ikle_all_t: the connectivity table for all time step, all reach
+    :param vel: the velocity data for all time step, all reach
+    :param height: the water height data for all time step, all reach
+    :param sub: the substrate data (can be coarser or dominant substrate based on function's call)
+    :param pref_vel: the preference index for the velcoity (for one life stage)
+    :param pref_sub: the preference index for the substrate  (for one life stage)
+    :param pref_height:the preference index for the height  (for one life stage)
+    :return: vh of one life stage
+    """
+
+    if len(height) != len(vel) or len(height) != len(sub):
+        return [-99],[-99], [-99]
+
+    vh_all_t = [[]] # time step 0 is whole profile
+    height_c_all_t = [[[-1]]]
+    vel_c_att_t = [[[-1]]]
+    for t in range(1, len(height)):  # time step 0 is whole profile
+        vh_all = []
+        height_c = []
+        vel_c = []
+        height_t = height[t]
+        vel_t = vel[t]
+        sub_t = sub[t]
+        ikle_t = ikle_all_t[t]
+        # if failed before
+        if vel_t[0][0] == -99:
+            vh_all = [[-99]]
+            vel_c = [[-99]]
+            height_c = [[-99]]
+        else:
+            for r in range(0,len(height_t)):
+
+                # preparation
+                ikle = np.array(ikle_t[r])
+                h = np.array(height_t[r])
+                v = np.array(vel_t[r])
+                s = np.array(sub_t[r])
+
+                # get data by cells
+                v1 = v[ikle[:, 0]]
+                v2 = v[ikle[:, 1]]
+                v3 = v[ikle[:, 2]]
+                v_cell = 1.0 / 3.0 * (v1 + v2+ v3)
+
+                h1 = h[ikle[:, 0]]
+                h2 = h[ikle[:, 1]]
+                h3 = h[ikle[:, 2]]
+                h_cell = 1.0 / 3.0 * (h1+ h2 + h3)
+
+                # get pref value
+                h_pref_c = find_pref_value(h_cell, pref_height)
+                v_pref_c = find_pref_value(v_cell, pref_vel)
+                s_pref_c = find_pref_value(s, pref_sub)
+
+                vh = h_cell*h_pref_c + v_cell*v_pref_c + s*s_pref_c
+                vh_all.append(vh)
+                vel_c.append(v_cell)
+                height_c.append(h_cell)
+
+        vh_all_t.append(vh_all)
+        vel_c_att_t.append(vel_c)
+        height_c_all_t.append(height_c)
+
+    return vh_all_t, vel_c_att_t, height_c_all_t
+
+
+def find_pref_value(data, pref):
+    """
+    This function finds the preference value associated with the data for each cell. For this, it finds the last
+    point of the preference curve under the data and it makes a linear interpolation with the next data to
+    find the preference value. As preference value is sorted, it uses the module bisect to accelerate the process.
+
+    :param data: the data on the cell
+    :param pref: the pref data [pref, class data]
+    """
+
+    pref = np.array(pref)
+    pref_d = pref[:,1]
+    pref_data = []
+
+    for d in data:
+        indh = bisect.bisect(pref_d, d) - 1  # about 3 time quicker than max(np.where(x_ini <= x_p[i]))
+        dmin = pref_d[indh]
+        prefmin = pref[indh, 0]
+        if indh < len(pref_d) - 1:
+            dmax = pref_d[indh + 1]
+            prefmax = pref[indh + 1, 0]
+            if dmax == dmin:  # does not happen theorically
+                pref_data_here = prefmin
+            else:
+                a1 = (prefmax - prefmin) / (dmax - dmin)
+                b1 = prefmax - a1 * dmax
+                pref_data_here = a1 * d + b1
+            pref_data.append(pref_data_here)
+        else:
+            pref_data.append( pref_d[indh])
+
+    return pref_data
+
+
+def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_txt, name_base):
+    """
+    This function print the text output. We create one set of text file by time step. Each Reach is separated by the
+    key work REACH follwoed by the reach number (strating from 0). There are three files by time steps: one file which
+    gives the connectivity table (starting at 0), one file with the point coordinates in the
+    coordinate systems of the hydraulic models (x,y), one file wiche gives the results.
+    In all three files, the first column is the reach number. In the results files, the next columns are velocity,
+    height, substrate, habitat value for each species.
+
+    :param name_merge_hdf5: the name of the hdf5 merged file
+    :param path_hdf5: the path to the hydrological hdf5 data
+    :param vel_data: the velocity by reach by time step on the cell (not node!)
+    :param height_data: the height by reach by time step on the cell (not node!)
+    :param vh_data: the habitat value data by speces by reach by tims tep
+    :param name_fish: the list of fish latin name + stage
+    :param path_txt: the path where to save the text file
+    :param name_base: a string on which to base the name of the files
+    """
+
+    [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
+        load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
+
+    # we do not print the first time step with the whole profile
+    nb_reach = len(ikle[0])
+    for t in range(1, len(ikle)):
+        ikle_here = ikle[t][0]
+        if len(ikle_here) < 2:
+            print('Warning: One time step failed. \n')
+        else:
+            name1 = 'xy_' + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+            name2 = 'gridcell_' + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+            name3 = 'result_' + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+
+            if os.path.exists(path_txt):
+                name1 = os.path.join(path_txt, name1)
+                name2 = os.path.join(path_txt, name2)
+                name3 = os.path.join(path_txt, name3)
+
+            # grid
+            with open(name2,'wt', encoding='utf-8') as f:
+                for r in range(0,  nb_reach):
+                    ikle_here = ikle[t][r]
+                    f.write('REACH ' + str(r)+'\n')
+                    f.write('reach cell1 cell2 cell2'+'\n')
+                    for c in ikle_here:
+                        f.write(str(r) + ' ' + str(c[0]) + ' ' + str(c[1]) + ' ' + str(c[2]) + '\n')
+            # point
+            with open(name1, 'wt') as f:
+                for r in range(0,  nb_reach):
+                    p_here = point[t][r]
+                    f.write('REACH ' + str(r)+'\n')
+                    f.write('reach x y'+'\n')
+                    for p in p_here:
+                        f.write(str(r) + ' ' + str(p[0]) + ' ' + str(p[1])+'\n')
+
+            # result
+            with open(name3, 'wt') as f:
+                for r in range(0, nb_reach):
+                    v_here = vel_data[t][r]
+                    h_here = height_data[t][r]
+                    sub_pg = sub_pg_data[t][r]
+                    sub_dom = sub_dom_data[t][r]
+                    f.write('REACH ' + str(r) +'\n')
+                    # header 1
+                    header = 'reach cells velocity height coarser_substrate dominant_substrate'
+                    for i in range(0, len(name_fish)):
+                        header += ' VH'+str(i)
+                    header += '\n'
+                    f.write(header)
+                    # header 2
+                    header = '[] [] [m/s] [m] [Code_Cemagref] [Code_Cemagref]'
+                    for i in name_fish:
+                        i = i.replace(' ', '_')  # so space is always a separator
+                        header += ' ' + i
+                    header += '\n'
+                    f.write(header)
+                    # data
+                    for i in range(0, len(v_here)):
+                        vh_str = ''
+                        for j in range(0, len(name_fish)):
+                            vh_str += str(vh_data[j][t][r][i]) + ' '
+                        f.write(str(r) + ' ' + str(i) + ' ' + str(v_here[i]) + ' ' + str(h_here[i]) + ' ' +
+                                str(sub_pg[i]) + ' ' +str(sub_dom[i]) + ' ' +vh_str + '\n')
+
+
+def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_shp, name_base):
+    """
+    This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
+    all the reaches together. If there is overlap between reaches, it does not care. It create an attribute table
+    with the habitat value, velocity, height, substrate coarser, substrate dominant. It also create a shapefile
+    0 with the whole profile without data
+
+    :param name_merge_hdf5: the name of the hdf5 merged file
+    :param path_hdf5: the path to the hydrological hdf5 data
+    :param vel_data: the velocity by reach by time step on the cell (not node!)
+    :param height_data: the height by reach by time step on the cell (not node!)
+    :param vh_data: the habitat value data by speces by reach by tims tep
+    :param name_fish: the list of fish latin name + stage
+    :param path_shp: the path where to save the shpaefile
+    :param name_base: a string on which to base the name of the files
+    """
+    [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
+        load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
+
+    # we do not print the first time step with the whole profile
+    nb_reach = len(ikle[0])
+    for t in range(0, len(ikle)):
+        ikle_here = ikle[t][0]
+        if len(ikle_here) < 2:
+            print('Warning: One time step failed. \n')
+        else:
+            w = shapefile.Writer(shapefile.POLYGON)
+
+            # get the triangle
+            for r in range(0, nb_reach):
+                ikle_r = ikle[t][r]
+                point_here = point[t][r]
+                for i in range(0, len(ikle_r)):
+                    p1 = list(point_here[ikle_r[i][0]])
+                    p2 = list(point_here[ikle_r[i][1]])
+                    p3 = list(point_here[ikle_r[i][2]])
+                    w.poly(parts=[[p1, p2, p3, p1]])  # the double [[]] is important or it bugs, but why?
+
+            if t > 0:
+                # attribute
+               # for n in name_fish:
+                  #  w.field('vh_'+n, 'F', 10, 8)
+                w.field('vel', 'F', 10, 8)
+                w.field('water height', 'F', 10, 8)
+                w.field('sub_coarser', 'F', 10, 8)
+                w.field('sub_dom', 'F', 10, 8)
+
+                # fill attribute
+                for r in range(0, nb_reach):
+                    vel = vel_data[t][r]
+                    height = height_data[t][r]
+                    sub_pg = sub_pg_data[t][r]
+                    sub_dom = sub_dom_data[t][r]
+                    for i in range(0, len(ikle_r)):
+                        data_here = ()
+                        #for j in range(0, len(name_fish)):
+                           # data_here +=(vh_data[j][t][r][i],)
+                        data_here += (vel[i], height[i], sub_pg[i], sub_dom[i])
+                        w.record(data_here)
+
+            w.autoBalance = 1
+            name1 = name_base + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+            w.save(os.path.join(path_shp, name1))
+
+
+def save_hab_paraview():
+    pass
+
+
+def save_hab_fig():
+    pass
+
+

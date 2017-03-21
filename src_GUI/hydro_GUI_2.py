@@ -2477,7 +2477,7 @@ class SubstrateW(SubHydroW):
         [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
             substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, self.path_prj)
         sys.stdout = sys.__stdout__
-        #self.send_err_log()
+        self.send_err_log()
         if ikle_both == [-99]:
             self.send_log.emit('Error: data not merged.')
             return

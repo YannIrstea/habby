@@ -465,6 +465,9 @@ class MainWindows(QMainWindow):
             path_input = os.path.join(self.path_prj, 'input')
             pathinput_child = ET.SubElement(path_element, "Path_Input")
             pathinput_child.text = 'input'
+            path_text = os.path.join(self.path_prj, 'text_output')
+            pathtext_child = ET.SubElement(path_element, "Path_Text")
+            pathtext_child.text = 'text_output'
 
             # save new xml file
             if self.name_prj != '':
@@ -478,6 +481,8 @@ class MainWindows(QMainWindow):
                 os.makedirs(path_hdf5)
             if not os.path.exists(path_input):
                 os.makedirs(path_input)
+            if not os.path.exists(path_text):
+                os.makedirs(path_text)
 
         # project exist
         else:
@@ -490,11 +495,31 @@ class MainWindows(QMainWindow):
             pathim_child = root.find(".//Path_Figure")
             pathdf5_child = root.find(".//Path_Hdf5")
             pathbio_child = root.find(".//Path_Bio")
+            pathtxt_child = root.find(".//Path_Text")
+            pathin_child = root.find(".//Path_Input")
             #  if pathim is the default one, change it. Otherwise keep the user chosen directory
             # if pathim_child is not None:
             #     if os.path.isfile(os.path.join(path_prj_before, self.name_prj +'.xml')):
             #         if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, self.name_prj +'.xml')):
             #             pathim_child.text = os.path.join(self.path_prj, self.name_prj)
+            # check
+            if pathim_child is None:
+                pathim_text = 'figures'
+            else:
+                pathim_text = pathim_child.text
+            if pathdf5_child is None:
+                pathhdf5_text = 'fichier_hdf5'
+            else:
+                pathhdf5_text = pathdf5_child.text
+            if pathtxt_child is None:
+                pathtxt_text = 'text_output'
+            else:
+                pathtxt_text = pathtxt_child.text
+            if pathin_child.text is None:
+                pathin_text = 'input'
+            else:
+                pathin_text = pathin_child.text
+
             child.text = self.name_prj
             path_child.text = self.path_prj
             pathbio_child.text = self.path_bio_default
@@ -504,13 +529,17 @@ class MainWindows(QMainWindow):
             doc.write(fname)
 
             # create needed folder if not there yet
-            path_im = os.path.join(self.path_prj, pathim_child.text)
-            path_h5 = os.path.join(self.path_prj, pathdf5_child.text)
+            path_im = os.path.join(self.path_prj, pathim_text)
+            path_h5 = os.path.join(self.path_prj, pathhdf5_text)
+            path_text = os.path.join(self.path_prj, pathtxt_text)
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
             if not os.path.exists(path_h5):
                 os.makedirs(path_h5)
-
+            if not os.path.exists(path_text):
+                os.makedirs(path_text)
+            if not os.path.exists(pathin_text):
+                os.makedirs(pathin_text)
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
