@@ -344,7 +344,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if self.data_fish[j][0] == fish_item.text():
                     pref_list.append(self.data_fish[j][2])
                     stages_chosen.append(self.data_fish[j][1])
-                    name_fish.append(self.data_fish[j][3])
+                    name_fish.append(self.data_fish[j][7])
 
         # get the name of the merged file
         path_hdf5 = self.find_path_hdf5_est()
@@ -356,8 +356,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # run the data
         sys.stdout = self.mystdout = StringIO()
-        [vh_all_t_sp, vel_c_att_t, height_c_all_t] = calcul_hab.calc_hab(hdf5_file, path_hdf5 ,pref_list, stages_chosen,
-                                                                         self.path_bio, run_choice)
+        [vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all, spu_all] = \
+            calcul_hab.calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, self.path_bio, run_choice)
         sys.stdout = sys.__stdout__
         self.send_err_log()
 
@@ -378,11 +378,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # text output
         if create_text:
             path_txt = self.find_path_text_est()
-            sys.stdout = self.mystdout = StringIO()
+            # sys.stdout = self.mystdout = StringIO()
             calcul_hab.save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, name_fish,
                                     path_txt, name_base)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
+            calcul_hab.save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base)
+            # sys.stdout = sys.__stdout__
+            # self.send_err_log()
         if create_shape:
             path_shp = self.find_path_text_est()
             # sys.stdout = self.mystdout = StringIO()

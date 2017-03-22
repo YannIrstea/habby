@@ -364,8 +364,9 @@ class MainWindows(QMainWindow):
 
         Interesting path are a) the biology path (named "biology" by default) which contains the biological information
         such as the preference curve and b) the path_im which is the path where all figures and most outputs of HABBY
-        is saved. If path_im is not given, HABBY automatically create a folder called figure_habby when the
-        user creates a new project. The user can however change this path if he wants. The next step is to communicate
+        is saved. If path_im is not given, HABBY automatically create a folder called figures when the
+        user creates a new project. The user can however change this path if he wants. It also create other similar
+        folders to sotre different type of outputs. The next step is to communicate
         to all the children widget than the name and path of the project have changed.
 
         This function also changes the title of the Windows to reflect the project name and it adds the saved
@@ -468,6 +469,9 @@ class MainWindows(QMainWindow):
             path_text = os.path.join(self.path_prj, 'text_output')
             pathtext_child = ET.SubElement(path_element, "Path_Text")
             pathtext_child.text = 'text_output'
+            path_other = os.path.join(self.path_prj, 'other_output')
+            pathother_child = ET.SubElement(path_element, "Path_Output")
+            pathother_child.text = 'other_output'
 
             # save new xml file
             if self.name_prj != '':
@@ -483,6 +487,8 @@ class MainWindows(QMainWindow):
                 os.makedirs(path_input)
             if not os.path.exists(path_text):
                 os.makedirs(path_text)
+            if not os.path.exists(path_other):
+                os.makedirs(path_other)
 
         # project exist
         else:
@@ -497,6 +503,7 @@ class MainWindows(QMainWindow):
             pathbio_child = root.find(".//Path_Bio")
             pathtxt_child = root.find(".//Path_Text")
             pathin_child = root.find(".//Path_Input")
+            pathout_child = root.find(".//Path_Output")
             #  if pathim is the default one, change it. Otherwise keep the user chosen directory
             # if pathim_child is not None:
             #     if os.path.isfile(os.path.join(path_prj_before, self.name_prj +'.xml')):
@@ -519,6 +526,10 @@ class MainWindows(QMainWindow):
                 pathin_text = 'input'
             else:
                 pathin_text = pathin_child.text
+            if pathout_child is None:
+                pathout_text = 'other_output'
+            else:
+                pathout_text = pathin_child.text
 
             child.text = self.name_prj
             path_child.text = self.path_prj
@@ -532,6 +543,7 @@ class MainWindows(QMainWindow):
             path_im = os.path.join(self.path_prj, pathim_text)
             path_h5 = os.path.join(self.path_prj, pathhdf5_text)
             path_text = os.path.join(self.path_prj, pathtxt_text)
+            path_output = os.path.join(self.path_prj, pathout_text)
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
             if not os.path.exists(path_h5):
@@ -540,6 +552,8 @@ class MainWindows(QMainWindow):
                 os.makedirs(path_text)
             if not os.path.exists(pathin_text):
                 os.makedirs(pathin_text)
+            if not os.path.exists(path_output):
+                os.makedirs(path_output)
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
@@ -1407,7 +1421,7 @@ class CentralW(QWidget):
             root = doc.getroot()
             child = root.find(".//" + 'Path_Figure')
             if child is not None:
-                self.path_im = child.text
+                self.path_im = os.path.join(self.path_prj_c,child.text)
 
         plt.show()
 
@@ -1750,36 +1764,36 @@ class WelcomeW(QWidget):
         # if the project exist and the project name has not changed
         # ,change the project path in the xml file and copy the xml at the chosen location
         # if a project directory exist copy it as long as no project directory exist at the end location
-        fname_old = os.path.join(self.path_prj, self.name_prj + '.xml')
+        path_old = self.path_prj
+        fname_old = os.path.join(path_old, self.name_prj + '.xml')
+        new_path = os.path.join(dir_name, self.name_prj)
         if os.path.isfile(fname_old) and self.e1.text() == self.name_prj:
             # write new project path
-            if not os.path.isfile(os.path.join(dir_name, self.name_prj +'.xml')):
-                self.path_prj = dir_name
+            if not os.path.exists(new_path):
+                self.path_prj = new_path
                 doc = ET.parse(fname_old)
                 root = doc.getroot()
                 path_child = root.find(".//Path_Projet")
-                path_im_child = root.find(".//Path_Figure")
-                path_im = path_im_child.text
-                path_child.text = self.path_prj
+                path_child.text = self.path_prj # new name
                 fname = os.path.join(self.path_prj, self.name_prj + '.xml')
-                if path_im is not None:
-                    if os.path.isdir(path_im):
-                        path_here = os.path.join(self.path_prj, self.name_prj)
-                        if not os.path.isdir(path_here):
-                            shutil.copytree(path_im, path_here)
-                            self.send_log.emit(' The file in the project folder have been copied to the new location')
-                            shutil.copyfile(fname_old, os.path.join(path_here, self.name_prj + '.xml'))
-                            self.path_prj = path_here
-                            path_child.text = self.path_prj
-                else:
+                try:
+                    shutil.copytree(path_old, self.path_prj)
+                except shutil.Error:
+                    self.send_log.emit('Could not copy the project. Permission Error? \n')
+                    return
+                self.send_log.emit(' The file in the project folder have been copied to the new location')
+                try:
                     shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.xml'))
+                except shutil.Error:
+                    self.send_log.emit('Coould not copy the project. Permission Error? \n')
+                    return
                 doc.write(fname)
                 self.e2.setText(self.path_prj)
                 self.save_signal.emit()  # if not project folder, will create one
             else:
                 self.send_log.emit('Error: A project with the same name exists at the new location. '
                                    'Project not saved \n')
-                self.e2.setText(self.path_prj)
+                self.e2.setText(path_old)
                 return
         # if the project do not exist or has a different name than before, save a new project
         else:
@@ -1859,7 +1873,7 @@ class ShowImageW(QWidget):
         self.w = 200  #size of the image (see if we let some options for this)
         self.h = 200
         self.imtype = '*.png'
-        self.path_im = os.path.join(self.path_prj, self.name_prj)
+        self.path_im = os.path.join(self.path_prj, self.name_prj + r'/figures')
         self.msg2 = QMessageBox()
         self.init_iu()
         self.all_file = []
