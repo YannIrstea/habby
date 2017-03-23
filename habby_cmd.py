@@ -69,6 +69,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print('\n')
         print("RESTART: Relauch HABBY based on a list of command in a text file (restart file) Input: the name of file"
               " (with the path).")
+        print("ALL: if the keywork ALL is followed by a command from HABBY, the command will be applied to all file"
+              " in a folder. The name of the input file should be in the form: path_to_folder/*.ext with the "
+              "right extension as ext. No output name should be given.")
 
 # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_TELEMAC':
@@ -88,7 +91,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
             name_hdf5 = 'Hydro_TELEMAC_' + namefilet
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
 
         selafin_habby1.load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, 'TELEMAC',2,
                                                  path_hdf5,[], True)
@@ -110,7 +113,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         pro_add_is_here = False
         if len(all_arg) == 5:  # .py com f1 f2 int_type
             name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0]
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
         if len(all_arg) == 6:  # .py com f1 f2 int_type pro_add or .py com f1 f2 int_type output
             try:
                 pro_add_is_here = True
@@ -123,7 +126,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
                 name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0]
-                path_hdf5 = '.'
+                path_hdf5 = path_prj
         if len(all_arg) == 7:   # .py com f1 f2 int_type pro_add output
             pro_add_is_here = True
             pro_add = int(all_arg[5])
@@ -161,7 +164,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
             name_hdf5 = 'Hydro_HECRAS2D_' + namefile
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
         hec_ras2D.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
                                                path_hdf5, [], False)
 
@@ -181,7 +184,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
         if len(all_arg) == 4:
             name_hdf5 = 'Hydro_RUBAR2D_' + geofile[0]
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
         if len(all_arg) == 5:
             namepath_hdf5 = all_arg[4]
             name_hdf5 = os.path.basename(namepath_hdf5)
@@ -230,7 +233,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # get the interpolatin type and hdf5 name
         if len(all_arg) == 6:  # .py com f1 f2 f3 int_type
             name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0]
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
         if len(all_arg) == 7:  # .py com f1 f2 f3 int_type pro_add or .py com f1 f2 f3 int_type output
             try:
                 pro_add_is_here = True
@@ -243,7 +246,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
                 name_hdf5 = 'Hydro_MASCARET_' + namefile[0]
-                path_hdf5 = '.'
+                path_hdf5 = path_prj
         if len(all_arg) == 8:
             pro_add_is_here = True
             pro_add = int(all_arg[6])
@@ -280,7 +283,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
         if len(all_arg) == 3:
             name_hdf5 = 'Hydro_RIVER2D_' + filenames[0]
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
         if len(all_arg) == 4:
             namepath_hdf5 = all_arg[3]
             name_hdf5 = os.path.basename(namepath_hdf5)
@@ -328,7 +331,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # get the interpolatin type and hdf5 name
         if len(all_arg) == 5:  # .py com f1 f2 int_type
             name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0]
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
         if len(all_arg) == 6:  # .py com f1 f2 int_type pro_add or .py com f1 f2 int_type output
             try:
                 pro_add_is_here = True
@@ -341,7 +344,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
                 name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0]
-                path_hdf5 = '.'
+                path_hdf5 = path_prj
         if len(all_arg) == 7:
             pro_add_is_here = True
             pro_add = int(all_arg[6])
@@ -510,7 +513,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 name_hdf5 = 'Hydro_MERGE_cmd' + hdf5_name_hyd[6:-26]
             else:
                 name_hdf5 = 'Hydro_MERGE_cmd' + hdf5_name_hyd
-            path_hdf5 = '.'
+            path_hdf5 = path_prj
 
         [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = substrate.merge_grid_hydro_sub(
             hdf5_name_hyd, hdf5_name_sub, default_data, path_prj)
@@ -613,18 +616,98 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
         l +=1
 
 
+def habby_on_all(all_arg, name_prj, path_prj, path_bio):
+    """
+    This function is used to execute a command from habby_cmd on all files in a folder. The form of the command should
+    be something like "habby_cmd ALL COMMAND path_to_file/*.ext arg2 ag3" with the arguments adated to the specific
+    command.
+
+    In other words, the command should be the usual command with the keyword ALL before and with the name of
+    the input files remplace by *.ext. where ext is the extension of the files.  it is better to not add an output name.
+    Indeed default name for output indudes the input file name. If the default is overides, the same name will be
+    applied, only the time stamps will be different. To be sure to not overwirte a files, this function wait 1 sec
+    between each command. Only the input argument should containts the string '*'. Otherwise, other command would be
+    treated as input files.
+
+    If there is more than one type of input, it is important that the name of the file are the name (or at least
+    that there are in the same alphbethical order).
+
+    If more than one extension is possible (example g01, g02, g03, etc. in hec-ras), remplace the changing part of the
+    extension with the symbol * (so path_to_folder/*.g0* arg1 argn). If the name of the file changed in the extension
+    as in RUBAR (where the file have the name PROFIL.file), just change for PROFIL.* or something similar. Generally
+    the matching is done using the function glob, so the shell-type wildcard can be used.
+
+    :param all_arg: the list of argument (sys.argv without the argument ALL so [sys.argv[0], sys.argv[2], sys.argv[n]])
+    :param name_prj: the name of the project, created by default by the main()
+    :param path_prj: the path to the project created by default bu the main()
+    :param path_bio: the path to the project
+    """
+
+    # get argv with *. (input name)
+    input_folder = []
+    place_ind = []
+    for idx, a in enumerate(all_arg):
+        if '*' in a:
+            input_folder.append(a)
+            place_ind.append(idx)
+    nb_type = len(place_ind)
+
+    # get all input name
+    all_files = []
+    dirname = '.'
+    for f in input_folder:
+        files = glob.glob(f)
+        # dirname = os.path.dirname(f)
+        # basename = os.path.basename(f)
+        # blob,ext = os.path.splitext(basename)
+        # if "*" not in ext:
+        #     files = load_hdf5.get_all_filename(dirname, ext)
+        # else:
+        #     pattern = basename
+        all_files.append(files)
+
+    # check that each input type has the same length
+    if not all(len(i) == len(all_files[0]) for i in all_files):
+        print(' the number of each type of input file is not equal. Please check the name of the file below')
+        print(all_files)
+        return
+
+    # now get trough each files
+    for i in range(0, len(all_files[0])):
+        all_arg_here = all_arg
+
+        # get the file for this command
+        # careful files should be in order
+        for j in range(0, nb_type):
+            all_arg_here[place_ind[j]] = os.path.join(dirname, all_files[j][i])
+
+        # just to check
+        print('Execute command ' + all_arg_here[1] + ' on:')
+        for i in place_ind:
+            print(all_arg_here[i])
+
+        # execute the command
+        all_command(all_arg_here, name_prj, path_prj, path_bio)
+
+        # avoid risk of over-wrting
+        time.sleep(1)
+
+
 def main():
     """
     This is the main for HABBY when called from the command line. It can call restart (read a list of command from a
-    file) or read a command written on the cmd or apply a command to a type of file. For more complicated case, one can
-    directly do a python script using the function from HABBY.
+    file) or read a command written on the cmd or apply a command to a type of file (key word ALL before the command and
+    name of the file with asterisk). For more complicated case, one can directly do a python script using the function
+    from HABBY.
     """
 
     # create an empty project
-    filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
-    copyfile(filename_empty, 'DefaultProj.xml')
     name_prj = 'DefaultProj'
-    path_prj = '.'
+    namedir = 'result_cmd' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+    path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
+    filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
+    os.makedirs(path_prj)
+    copyfile(filename_empty, os.path.join(path_prj, 'DefaultProj.xml'))
     path_bio = './biology'
 
     if len(sys.argv) == 0 or len(sys.argv) == 1:
@@ -635,7 +718,12 @@ def main():
         if len(sys.argv) != 3:
             print('Error: the RESTART command needs the name of the restart file as input.')
             return
-        habby_restart(sys.argv[2],name_prj, path_prj, path_bio)
+        habby_restart(sys.argv[2], name_prj, path_prj, path_bio)
+    elif sys.argv[1] == 'ALL':
+        if len(sys.argv) < 2:
+            print('Error: the ALL command needs at least one argument.')
+        all_arg = ['habby_cmd.py'] + sys.argv[2:]
+        habby_on_all(all_arg, name_prj, path_prj, path_bio)
     else:
         all_arg = sys.argv
         all_command(all_arg, name_prj, path_prj, path_bio)

@@ -1754,7 +1754,8 @@ class WelcomeW(QWidget):
         This is used in the case where the project exist already. A similar function is in the class CreateNewProject()
         for the case where the project is new.
         """
-        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))  # check for invalid null parameter on Linuxgit
+        # check for invalid null parameter on Linuxgit
+        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project. \n')
@@ -1785,7 +1786,7 @@ class WelcomeW(QWidget):
                 try:
                     shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.xml'))
                 except shutil.Error:
-                    self.send_log.emit('Coould not copy the project. Permission Error? \n')
+                    self.send_log.emit('Could not copy the project. Permission Error? \n')
                     return
                 doc.write(fname)
                 self.e2.setText(self.path_prj)

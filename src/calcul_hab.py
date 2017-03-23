@@ -2,6 +2,7 @@ import os
 import numpy as np
 import bisect
 import time
+import matplotlib.pyplot as plt
 from src import load_hdf5
 from src import bio_info
 import shapefile
@@ -146,7 +147,6 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 area_reach = np.sum(area)
                 # get pref value
                 h_pref_c = find_pref_value(h_cell, pref_height)
-                print(pref_vel)
                 v_pref_c = find_pref_value(v_cell, pref_vel)
                 s_pref_c = find_pref_value(s, pref_sub)
                 vh = h_pref_c * v_pref_c * s_pref_c
@@ -315,7 +315,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
         # header
         header = 'time_step reach reach_area'
         for i in range(0, len(name_fish)):
-            header += ' SPU' + str(i)
+            header += ' WUA' + str(i)
         header += '\n'
         f.write(header)
         # header 2
@@ -408,7 +408,47 @@ def save_hab_paraview():
     pass
 
 
-def save_hab_fig():
-    pass
+def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
+    """
+    This function creates the figure of the spu as a function of time for each reach. if there is only one
+    time step, it reverse to a bar plot. Otherwise it is a line plot.
+
+    :param area_all: the area for all reach
+    :param spu_all: the "surface pondere utile" (SPU) for each reach
+    :param name_fish: the list of fish latin name + stage
+    :param path_imt: the path where to save the image
+    :param name_base: a string on which to base the name of the files
+    """
+
+
+    # one time step - bar
+    if len(area_all) == 1:
+        data_bar = []
+        for r in range(0, len(area_all[0])):
+            data_bar = []
+            for s in range(0, len(spu_all)):
+                data_bar.append(spu_all[s][0][r])
+        y_pos = np.arange(len(spu_all))
+        plt.figure()
+        plt.bar(y_pos, data_bar)
+        plt.xticks(y_pos, name_fish)
+        plt.ylabel('WUA []')
+        plt.title('Weighted Usable Area for the Reach ' +str(r))
+        name = 'WUA_' + name_base
+
+    # many time step - lines
+    else:
+        data_plot = []
+        for r in range(0, len(area_all[0])):
+            plt.figure()
+            for s in range(0, len(spu_all)):
+                data_plot = []
+                for t in range(0, len(area_all)):
+                    data_plot.append(spu_all[s][t][r], label=name_fish[s])
+                plt.plot(data_plot)
+            plt.xlabel('Time step [ ]')
+            plt.ylabel('WUA []')
+            plt.title('Weighted Usable Area for the Reach ' + str(r))
+
 
 

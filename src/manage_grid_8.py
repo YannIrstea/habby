@@ -8,6 +8,7 @@ import itertools
 import copy
 import os
 import bisect
+import sys
 #np.set_printoptions(threshold=np.inf)
 
 
@@ -99,6 +100,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
         point_all_t.append(point_all_reach)
         point_c_all_t.append(point_c_all)
 
+
         # only the wet area, by time step
         for t in range(0, len(vh_pro)):
             [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
@@ -123,6 +125,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
 
         # create grid for the wet area by time steps
         for t in range(0, len(vh_pro)):
+            sys.stdout.flush()
             [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
                 coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
             [inter_vel_all, inter_height_all] = interpo_nearest(point_all_reach, coord_pro2, vh_pro[t])
@@ -510,17 +513,17 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     row_mask = np.append([True], np.any(np.diff(sorted_data, axis=0), 1))
     test_unique = sorted_data[row_mask]
     if len(test_unique) != len(point_all):
-        print('Warning: There is duplicate points. The triangulation might fail.\n')
+        print('Warning: There is duplicate points. The triangulation will be modified.\n')
         # this is slow , but it might solve problems
-        # j = 0
-        # unique_find = []
-        # for p in point_all:
-        #     p = list(p)
-        #     if p not in unique_find:
-        #         unique_find.append(p)
-        #     else:
-        #         point_all[j] = [p[0]+0.00001*j, p[1]+0.000001*j]
-        #     j += 1
+        j = 0
+        unique_find = []
+        for p in point_all:
+            p = list(p)
+            if p not in unique_find:
+                unique_find.append(p)
+            else:
+                point_all[j] = [p[0]+0.00001*j, p[1]+0.000001*j]
+            j += 1
 
     # put data in order and find the limits
     seg_to_be_added2 = []
@@ -656,8 +659,10 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)  #
         else:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r])
-        grid_dict = triangle.triangulate(dict_point,'p')  # 'p' allows for constraint V for verbose q for angle (mesh improvement)
-
+        try:
+            grid_dict = triangle.triangulate(dict_point,'p')  # 'p' allows for constraint V for verbose q for angle (mesh improvement)
+        except:
+            print('blob')
         try:
             ikle_r = grid_dict['triangles']
             point_all_r = grid_dict['vertices']
@@ -2348,28 +2353,28 @@ def main():
     #
     # #test hec-ras
     #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
-    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    path_test = r'D:\Diane_work\version\file_test\hecrasv5'
-    name = 'BaldEagle'  # CRITCREK (22), LOOP (12)
-    name_xml = name + '.O01.xml'
-    name_xml = 'BaldEagle.RASexport.sdf'
+    path_test = r'D:\Diane_work\version\file_test\hecrasv4'
+    name = 'CHANMOD'  # CRITCREK (22), LOOP (12)
+    name_xml = name + '.O02.xml'
+    #name_xml = 'BaldEagle.RASexport.sdf'
     name_geo = name + '.g01'
-    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    path_im = r'D:\Diane_work\version\file_test\fig_test'
     #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
     #ikle_sub = [[0, 1, 2]]
+    from src import Hec_ras06
 
     [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
-    # whole profile
-    #[point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island,
-     #coord_pro, point_c_all] = create_grid(coord_pro, 10, nb_pro_reach)
-    #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
-    #
-    # [ikle_sub, coord_sub] = create_dummy_substrate(coord_pro, 5)
-    #
-    for t in range(1, len(vh_pro)):
+    print(len(vh_pro))
+
+    [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
+        coord_pro, 5, [], [], nb_pro_reach, [])
+    #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, [], [], path_im)
+    #plt.show()
+
+    for t in range(0, len(vh_pro)):
         which_pro = vh_pro[t]
         [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-           = create_grid(coord_pro, 1, [], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
+           = create_grid(coord_pro, 5, [], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
         #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
            # create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
         if which_pro:
@@ -2379,6 +2384,7 @@ def main():
         else:
             pass
             #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+        plt.show()
 
     # cut 2D grid
     # namefile = r'mersey.res'

@@ -691,7 +691,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
     elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
         print('Error: Substrate data could not be loaded.')
         return failload
-    elif len(point_all_sub) == 1 and ikle_sub == []:
+    elif len(point_all_sub) == 0 and ikle_sub == []:
         # if constant substrate, the hydrological grid is used
         # the default value is not really used
         print('Warning: Constant substrate.')
@@ -701,19 +701,23 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
             if len(ikle_all[t]) > 0:
                 for r in range(0, len(ikle_all[t])):
                     try:
-                        sub_data_pg = np.zeros(len(ikle_all[t][r]),) + float(data_sub_dom)
-                        sub_data_dom = np.zeros(len(ikle_all[t][r]),) + float(data_sub_pg)
-                    except ValueError:
+                        sub_data_pg = np.zeros(len(ikle_all[t][r]),) + float(data_sub_dom[0])
+                        sub_data_dom = np.zeros(len(ikle_all[t][r]),) + float(data_sub_pg[0])
+                    except ValueError or TypeError:
                         print('Error: no int in substrate. (only float or int accepted for now). \n')
                         return failload
                     sub_data_all_pg.append(sub_data_dom)
                     sub_data_all_dom.append(sub_data_pg)
-            sub_dom_all_t.append(sub_data_dom)
+            elif t >0:
+                for r in range(0, len(ikle_all[t])):
+                    sub_data_all_pg.append([-99])
+                    sub_data_all_dom.append([-99])
+
+            sub_dom_all_t.append(sub_data_all_dom)
             sub_pg_all_t.append(sub_data_all_pg)
-        sub_dom_all_t = sub_dom_all_t
-        sub_pg_all_t = sub_pg_all_t
-        return ikle_all, point_all, sub_dom_all_t, sub_pg_all_t, inter_vel_all, inter_height_all
-    elif ikle_sub == []:
+
+        return ikle_all, point_all, sub_pg_all_t, sub_dom_all_t, inter_vel_all, inter_height_all
+    elif ikle_sub == [] and len(point_all_sub) != 0:
         print('no connectivity table found for the substrate. Check the format of the hdf5 file. \n')
         return failload
     elif  ikle_all == []:

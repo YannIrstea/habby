@@ -262,9 +262,8 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
         except KeyError:
             print('Error:Constant substrate data is not found. \n')
             return failload
-        sub_pg = sub_pg.values()
-        sub_dom = sub_dom.values()
-
+        sub_pg = list(sub_pg.values())[0]
+        sub_dom = list(sub_dom.values())[0]
 
     # the variable case
     else:
@@ -523,16 +522,11 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                 hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
             else:
                 hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
-        # else:
-        #     if not merge:
-        #         hdf5file = root.find(".//" + model_type + "/hdf5_hydrodata")
-        #     else:
-        #         hdf5file = root.find(".//" + model_type + "/hdf5_mergedata")
-        #     if hdf5file is None:
-        if not merge:
-            hdf5file = ET.SubElement(child, "hdf5_hydrodata")
         else:
-            hdf5file = ET.SubElement(child, "hdf5_mergedata")
+            if not merge:
+                hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+            else:
+                hdf5file = ET.SubElement(child, "hdf5_mergedata")
 
         hdf5file.text = h5name
 

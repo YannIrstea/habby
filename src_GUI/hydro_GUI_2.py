@@ -697,17 +697,6 @@ class SubHydroW(QWidget):
             # enable to loading of another model
             self.load_b.setDisabled(False)
 
-            # if grid creation fails
-            if self.interpo_choice > 1 and self.p.exitcode is None:  # process terminated
-                self.send_log.emit("Error: Grid creation failed. Try with the interpolation method 'Interpolation by block'")
-                # add here the call to the interpolatin method 0 to automatize this correction. TO BE DONE.
-                # if a new thread is created, join it to wait (The GUI would freeze,
-                # but it will get too complicated otherwise)
-                return
-            if self.interpo_choice == 0 and self.p.exitcode is None:
-                self.send_log.emit("Error: Grid creation failed. Try with the interpolation method 'Linear Interpolation'")
-                return
-
             # create the figure and show them
             if self.cb.isChecked():
                 path_im = self.find_path_im()
@@ -734,6 +723,22 @@ class SubHydroW(QWidget):
             self.send_log.emit(self.tr("Loading of hydrological data finished."))
             # # send a signal to the substrate tab so it can account for the new info
             self.drop_hydro.emit()
+
+        if not self.p.is_alive() and self.q.empty():
+            self.timer.stop()
+            self.load_b.setDisabled(False)
+            # if grid creation fails
+            # if self.interpo_choice >= 1:
+            #     self.send_log.emit(
+            #         "Error: Grid creation failed. Try with the interpolation method 'Interpolation by block'")
+            #     # add here the call to the interpolatin method 0 to automatize this correction. TO BE DONE.
+            #     # if a new thread is created, join it to wait (The GUI would freeze,
+            #     # but it will get too complicated otherwise)
+            #     return
+            # if self.interpo_choice == 0:
+            #     self.send_log.emit(
+            #         "Error: Grid creation failed. Try with the interpolation method 'Linear Interpolation'")
+            #     return
 
 
 class HEC_RAS1D(SubHydroW):
