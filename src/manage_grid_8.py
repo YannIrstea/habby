@@ -278,7 +278,6 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                         point_all = np.concatenate((point_all, point_all_i), axis=0)
                         ind_p.extend([len(point_all)])
 
-        #point_all = np.array(point_all2)
         # add the last profile
         if p == len(coord_pro)-1:
             pro_orr = np.array([coord_pro_p1[0], coord_pro_p1[1]]).transpose()

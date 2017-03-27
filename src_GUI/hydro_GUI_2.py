@@ -488,7 +488,7 @@ class SubHydroW(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = os.path.join(self.path_prj, self.name_prj)
+                path_im = self.path_prj
             else:
                 path_im = os.path.join(self.path_prj, child.text)
         else:
@@ -519,7 +519,7 @@ class SubHydroW(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
-                path_hdf5 = os.path.join(self.path_prj, self.name_prj)
+                path_hdf5 = self.path_prj
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
@@ -546,7 +546,7 @@ class SubHydroW(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Input")
             if child is None:
-                path_input = os.path.join(self.path_prj, self.name_prj)
+                path_input = self.path_prj
             else:
                 path_input = os.path.join(self.path_prj, child.text)
         else:

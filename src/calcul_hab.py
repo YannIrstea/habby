@@ -3,9 +3,13 @@ import numpy as np
 import bisect
 import time
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import Polygon
 from src import load_hdf5
 from src import bio_info
 import shapefile
+
 
 
 def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
@@ -90,7 +94,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
     if len(height) != len(vel) or len(height) != len(sub):
         return [-99],[-99], [-99], [-99], [-99]
 
-    vh_all_t = [[]] # time step 0 is whole profile
+    vh_all_t = [[]] # time step 0 is whole profile, no data
     spu_all_t = [[]]
     area_all_t = [[]]
     height_c_all_t = [[[-1]]]
@@ -149,7 +153,11 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 h_pref_c = find_pref_value(h_cell, pref_height)
                 v_pref_c = find_pref_value(v_cell, pref_vel)
                 s_pref_c = find_pref_value(s, pref_sub)
-                vh = h_pref_c * v_pref_c * s_pref_c
+                try:
+                    vh = h_pref_c * v_pref_c * s_pref_c
+                except ValueError:
+                    print('Error: One time step misses substrate, velocity or water height value \n')
+                    vh = [-99]
                 spu_reach = 1/area_reach * np.sum(vh*area)
 
                 vh_all.append(list(vh))
@@ -288,7 +296,11 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                     for i in range(0, len(v_here)):
                         vh_str = ''
                         for j in range(0, len(name_fish)):
-                            vh_str += str(vh_data[j][t][r][i]) + ' '
+                            try:
+                                vh_str += str(vh_data[j][t][r][i]) + ' '
+                            except IndexError:
+                                print('Error: Result could not be written to text file. \n')
+                                return
                         f.write(str(r) + ' ' + str(i) + ' ' + str(v_here[i]) + ' ' + str(h_here[i]) + ' ' +
                                 str(sub_pg[i]) + ' ' +str(sub_dom[i]) + ' ' +vh_str + '\n')
 
@@ -353,7 +365,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     """
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
-    if ikle == [-99]:
+    if ikle == [[-99]]:
         return
 
         # we do not print the first time step with the whole profile
@@ -394,7 +406,11 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                     for i in range(0, len(ikle_r)):
                         data_here = ()
                         for j in range(0, len(name_fish)):
-                           data_here +=(vh_data[j][t][r][i],)
+                            try:
+                                data_here +=(vh_data[j][t][r][i],)
+                            except IndexError:
+                                print('Error: Results could not be written to text file \n')
+                                return
                         data_here += vel[i], height[i], sub_pg[i], sub_dom[i]
                         # the * pass tuple to function argument
                         w.record(*data_here)
@@ -402,10 +418,6 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
             w.autoBalance = 1
             name1 = name_base + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
             w.save(os.path.join(path_shp, name1))
-
-
-def save_hab_paraview():
-    pass
 
 
 def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
@@ -416,39 +428,125 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
     :param area_all: the area for all reach
     :param spu_all: the "surface pondere utile" (SPU) for each reach
     :param name_fish: the list of fish latin name + stage
-    :param path_imt: the path where to save the image
+    :param path_im: the path where to save the image
     :param name_base: a string on which to base the name of the files
     """
 
+    nb_reach = len(max(area_all, key=len)) # we might have failes
+    for id,n in enumerate(name_fish):
+        name_fish[id] = n.replace('_', ' ')
 
     # one time step - bar
-    if len(area_all) == 1:
+    if len(area_all) == 1 or len(area_all) == 2:
         data_bar = []
-        for r in range(0, len(area_all[0])):
-            data_bar = []
-            for s in range(0, len(spu_all)):
-                data_bar.append(spu_all[s][0][r])
+        r = 0
+        for r in range(0, nb_reach):
+            for s in range(0, len(name_fish)):
+                data_bar.append(spu_all[s][1][r])
         y_pos = np.arange(len(spu_all))
         plt.figure()
-        plt.bar(y_pos, data_bar)
-        plt.xticks(y_pos, name_fish)
+        if data_bar:
+            plt.bar(y_pos, data_bar)
+            plt.xticks(y_pos+0.5, name_fish)
         plt.ylabel('WUA []')
-        plt.title('Weighted Usable Area for the Reach ' +str(r))
-        name = 'WUA_' + name_base
+        plt.title('Weighted Usable Area for the Reach ' + str(r))
+        name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
+        plt.savefig(os.path.join(path_im, name))
 
     # many time step - lines
-    else:
+    elif len(area_all) > 2:
         data_plot = []
-        for r in range(0, len(area_all[0])):
+        for r in range(0, nb_reach):
             plt.figure()
             for s in range(0, len(spu_all)):
                 data_plot = []
+                t_all = []
                 for t in range(0, len(area_all)):
-                    data_plot.append(spu_all[s][t][r], label=name_fish[s])
-                plt.plot(data_plot)
+                    if spu_all[s][t]:
+                        data_plot.append(spu_all[s][t][r])
+                        t_all.append(t)
+                plt.plot(t_all,data_plot, label=name_fish[s])
             plt.xlabel('Time step [ ]')
             plt.ylabel('WUA []')
             plt.title('Weighted Usable Area for the Reach ' + str(r))
+            plt.legend()
+            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
+            plt.savefig(os.path.join(path_im, name))
 
+def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, time_step=[-1]):
+    """
+    This function create 2D map of the habitat value for each specaies at
+    the time step asked. All reach are plooted on the same
+    figure.
 
+    :param name_merge_hdf5: the name of the hdf5 merged file
+    :param path_hdf5: the path to the hydrological hdf5 data
+    :param vh_all_t_sp: the habitat value for all reach all time step all species
+    :param path_im : the path where to save the figure
+    :param name_fish: the name and stage of the studied species
+    :param name_base: the string on which to base the figure name
+    :param time_step: which time step should be plotted
+    """
 
+    # get grid data from hdf5
+    [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
+        load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
+    if ikle_all_t == [-99]:
+        return
+    # format name fish
+    for id, n in enumerate(name_fish):
+        name_fish[id] = n.replace('_', ' ')
+
+    # create the figure for each species, and each time step
+    for sp in range(0, len(vh_all_t_sp)):
+        vh_all_t = vh_all_t_sp[sp]
+
+        for t in time_step:
+            ikle_t = ikle_all_t[t]
+            point_t = point_all_t[t]
+            vh_t = vh_all_t[t]
+            fig, ax = plt.subplots(1) # new figure
+
+            for r in range(0, len(vh_t)):
+                ikle = ikle_t[r]
+                coord_p = point_t[r]
+                vh = vh_t[r]
+
+                # plot the habitat value
+                patches = []
+                cmap = plt.get_cmap('jet')
+               # colors = cmap((vh - np.min(vh)) / (np.max(vh) - np.min(vh)))
+                colors = cmap(vh)
+                n = len(vh)
+                for i in range(0, n):
+                    verts = []
+                    for j in range(0, len(ikle[i])):
+                        verts_j = coord_p[int(ikle[i][j]), :]
+                        verts.append(verts_j)
+                    polygon = Polygon(verts, closed=True)
+                    patches.append(polygon)
+                collection = PatchCollection(patches)
+                ax.add_collection(collection)
+                collection.set_color(colors)
+                ax.autoscale_view()
+                # cbar = plt.colorbar()
+                # cbar.ax.set_ylabel('Substrate')
+                plt.xlabel('x coord []')
+                plt.ylabel('y coord []')
+                plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
+                ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+
+                # colorbar
+                # Set norm to correspond to the data for which
+                # the colorbar will be used.
+                norm = mpl.colors.Normalize(vmin=0, vmax=1)
+                # ColorbarBase derives from ScalarMappable and puts a colorbar
+                # in a specified axes, so it has everything needed for a
+                # standalone colorbar.  There are many more kwargs, but the
+                # following gives a basic continuous colorbar with ticks
+                # and labels.
+                cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+                cb1.set_label('HSI []')
+                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
+                           time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'
+                plt.savefig(os.path.join(path_im, name_fig), dpi=1000)

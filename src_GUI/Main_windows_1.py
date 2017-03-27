@@ -513,7 +513,7 @@ class MainWindows(QMainWindow):
             if pathim_child is None:
                 pathim_text = 'figures'
             else:
-                pathim_text = pathim_child.text
+                pathim_text = 'figures'
             if pathdf5_child is None:
                 pathhdf5_text = 'fichier_hdf5'
             else:
@@ -522,7 +522,7 @@ class MainWindows(QMainWindow):
                 pathtxt_text = 'text_output'
             else:
                 pathtxt_text = pathtxt_child.text
-            if pathin_child.text is None:
+            if pathin_child is None:
                 pathin_text = 'input'
             else:
                 pathin_text = pathin_child.text
@@ -807,7 +807,7 @@ class MainWindows(QMainWindow):
 
         # change the path_im
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
-        self.path_im = os.path.join(self.path_prj, 'figure')
+        self.path_im = os.path.join(self.path_prj, 'figures')
         doc = ET.parse(fname)
         root = doc.getroot()
         # geo data
@@ -1120,7 +1120,7 @@ class MainWindows(QMainWindow):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = os.path.join(self.path_prj, self.name_prj)
+                path_im = os.path.join(self.path_prj, 'figures')
             else:
                 path_im = child.text
         else:

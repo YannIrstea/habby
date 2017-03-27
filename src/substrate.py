@@ -1729,8 +1729,6 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
     :param subtxt: if the data was given in txt form, the orignal sub data
     :param path_im: the path where to save the figure\
     """
-    # pass sub_info to float
-    # TO BE DONE!!!!
 
     plt.rcParams['font.size'] = 10
 
@@ -1740,7 +1738,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
         print('no data found to plot.')
         return
 
-    # prepare grid
+    # prepare grid (to optimize)
     xlist = []
     ylist = []
     coord_p = np.array(coord_p)

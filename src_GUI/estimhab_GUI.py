@@ -84,7 +84,7 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = os.path.join(self.path_prj, self.name_prj)
+                path_im = self.path_prj
             else:
                 path_im = os.path.join(self.path_prj, child.text)
         else:
@@ -111,7 +111,7 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
-                path_hdf5 = os.path.join(self.path_prj, self.name_prj)
+                path_hdf5 = self.path_prj
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
@@ -138,7 +138,34 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Text")
             if child is None:
-                path_text = os.path.join(self.path_prj, self.name_prj)
+                path_text = self.path_prj
+            else:
+                path_text = os.path.join(self.path_prj, child.text)
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_text
+
+    def find_path_output_est(self):
+        """
+        A function to find the path where to save the shapefile, paraview files and other future format. By default,
+        path_out is in the project folder in the folder 'other_output.
+        """
+
+        path_text = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Output")
+            if child is None:
+                path_text = self.path_prj
             else:
                 path_text = os.path.join(self.path_prj, child.text)
         else:
@@ -165,7 +192,7 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Input")
             if child is None:
-                path_input = os.path.join(self.path_prj, self.name_prj)
+                path_input = self.path_prj
             else:
                 path_input = os.path.join(self.path_prj, child.text)
         else:

@@ -74,11 +74,14 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
     try:
         gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
     except KeyError:
-        print(
-            'Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name_hyd
+        print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name_hyd
             + ' an hydrological input? \n')
         return failload
-    nb_t = list(gen_dataset.values())[0]
+    try:
+        nb_t = list(gen_dataset.values())[0]
+    except IndexError:
+        print('Error: Time step are not found')
+        return failload
     nb_t = np.array(nb_t)
     nb_t = int(nb_t)
 
@@ -105,7 +108,11 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
             print(
                 'Error: the dataset for ikle (1) is missing from the hdf5 file. \n')
             return failload
-        ikle_whole = list(gen_dataset.values())[0]
+        try:
+            ikle_whole = list(gen_dataset.values())[0]
+        except IndexError:
+            print('Error: the dataset for ikle (3) is missing from the hdf5 file. \n')
+            return failload
         ikle_whole = np.array(ikle_whole)
         ikle_whole_all.append(ikle_whole)
     ikle_all_t.append(ikle_whole_all)
@@ -121,7 +128,11 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
                 print(
                     'Error: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
                 return failload
-            ikle_whole = list(gen_dataset.values())[0]
+            try:
+                ikle_whole = list(gen_dataset.values())[0]
+            except IndexError:
+                print('Error: the dataset for ikle (4) is missing from the hdf5 file for one time step. \n')
+                return failload
             ikle_whole = np.array(ikle_whole)
             ikle_whole_all.append(ikle_whole)
         ikle_all_t.append(ikle_whole_all)
@@ -136,7 +147,11 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
             print(
                 'Error: the dataset for coordinates of the points (1) is missing from the hdf5 file. \n')
             return failload
-        point_whole = list(gen_dataset.values())[0]
+        try:
+            point_whole = list(gen_dataset.values())[0]
+        except IndexError:
+            print('Error: the dataset for coordinates of the points (3) is missing from the hdf5 file. \n')
+            return failload
         point_whole = np.array(point_whole)
         point_whole_all.append(point_whole)
     point_all.append(point_whole_all)
@@ -148,10 +163,13 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
             try:
                 gen_dataset = file_hydro[name_pa]
             except KeyError:
-                print(
-                    'Error: the dataset for coordinates of the points (2) is missing from the hdf5 file. \n')
+                print('Error: the dataset for coordinates of the points (2) is missing from the hdf5 file. \n')
                 return failload
-            point_whole = list(gen_dataset.values())[0]
+            try:
+                point_whole = list(gen_dataset.values())[0]
+            except IndexError:
+                print('Error: the dataset for coordinates of the points (4) is missing from the hdf5 file. \n')
+                return failload
             point_whole = np.array(point_whole)
             point_whole_all.append(point_whole)
         point_all.append(point_whole_all)
@@ -206,9 +224,17 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
                 except KeyError:
                     print('Error: the dataset for substrate is missing from the hdf5 file. \n')
                     return failload
-                subpg = list(gen_datasetpg.values())[0]
+                try:
+                    subpg = list(gen_datasetpg.values())[0]
+                except IndexError:
+                    print('Error: the dataset for substrate is missing from the hdf5 file (2). \n')
+                    return failload
                 subpg = np.array(subpg).flatten()
-                subdom = list(gen_datasetdom.values())[0]
+                try:
+                    subdom = list(gen_datasetdom.values())[0]
+                except IndexError:
+                    print('Error: the dataset for substrate is missing from the hdf5 file (3). \n')
+                    return failload
                 subdom = np.array(subdom).flatten()
                 sub_pg_all.append(subpg)
                 sub_dom_all.append(subdom)

@@ -16,6 +16,7 @@ from src import bio_info
 from src_GUI import estimhab_GUI
 from src import calcul_hab
 from src_GUI import output_fig_GUI
+from src import convert_to_paraview
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -356,10 +357,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # run the data
         sys.stdout = self.mystdout = StringIO()
-        [vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all, spu_all] = \
+        [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all] = \
             calcul_hab.calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, self.path_bio, run_choice)
         sys.stdout = sys.__stdout__
         self.send_err_log()
+
+        if vh_all_t_sp == [-99]:
+            return
 
         # create the output based on the choices given in the output tab
         fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
@@ -378,24 +382,33 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # text output
         if create_text:
             path_txt = self.find_path_text_est()
-            # sys.stdout = self.mystdout = StringIO()
-            calcul_hab.save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, name_fish,
+            sys.stdout = self.mystdout = StringIO()
+            calcul_hab.save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish,
                                     path_txt, name_base)
             calcul_hab.save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base)
-            # sys.stdout = sys.__stdout__
-            # self.send_err_log()
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
         if create_shape:
-            path_shp = self.find_path_text_est()
-            # sys.stdout = self.mystdout = StringIO()
-            calcul_hab.save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, name_fish,
+            path_shp = self.find_path_output_est()
+            sys.stdout = self.mystdout = StringIO()
+            calcul_hab.save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish,
                                       path_shp, name_base)
-            # sys.stdout = sys.__stdout__
-            # self.send_err_log()
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
         if create_para:
-            pass
-            #calcul_hab.save_hab_paraview()
-        #create image in all cases
-        #calcul_hab.save_hab_fig()
+            path_out = self.find_path_output_est()
+            sys.stdout = self.mystdout = StringIO()
+            convert_to_paraview.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
+                                               vel_c_all_t, name_fish, False)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+
+        # create image in all cases
+        path_im = self.find_path_im_est()
+        calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base)
+        calcul_hab.save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base)
+        self.send_err_log()
+        self.show_fig.emit()
 
         # log
         self.send_log.emit(self.tr('# Calculation: habitat value'))
