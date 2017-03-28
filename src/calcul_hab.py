@@ -473,6 +473,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
             plt.savefig(os.path.join(path_im, name))
 
+
 def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, time_step=[-1]):
     """
     This function create 2D map of the habitat value for each specaies at

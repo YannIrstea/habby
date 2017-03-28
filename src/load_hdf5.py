@@ -32,7 +32,7 @@ def open_hdf5(hdf5_name):
     return file
 
 
-def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge = False):
+def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge=False):
     """
     A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5_name_sub
     is an absolute path, the path_prj is not used. If it is a relative path, the path is composed of the path to the
@@ -355,16 +355,22 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     :param path_prj: the path to the project
     :return: the name of the hdf5 file
     """
+    if model_name == 'MERGE':
+        model_name2 = 'SUBSTRATE'  # merge data is in the subtrate tag in the xml files
+    else:
+        model_name2 = model_name
 
     # open the xml project file
     filename_path_pro = os.path.join(path_prj, name_prj + '.xml')
     if os.path.isfile(filename_path_pro):
         doc = ET.parse(filename_path_pro)
         root = doc.getroot()
-        child = root.find(".//" + model_name)
+        child = root.find(".//" + model_name2)
         if child is not None:
-            if model_name == 'SUBSTRATE':
-                child = root.findall(".//" + model_name + '/hdf5_substrate')
+            if model_name == 'MERGE':
+                child = root.findall(".//" + model_name2 + '/hdf5_mergedata')
+            elif model_name == 'SUBSTRATE':
+                child = root.findall(".//" + model_name2 + '/hdf5_substrate')
             else:
                 child = root.findall(".//" + model_name + '/hdf5_hydrodata')
             if len(child) > 0:

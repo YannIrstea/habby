@@ -699,20 +699,24 @@ class SubHydroW(QWidget):
 
             # create the figure and show them
             if self.cb.isChecked():
+
                 path_im = self.find_path_im()
                 path_hdf5 = self.find_path_hdf5()
                 sys.stdout = self.mystdout = StringIO()
-                name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
+                if self.model_type == 'SUBSTRATE':
+                    name_hdf5 = load_hdf5.get_hdf5_name('MERGE', self.name_prj, self.path_prj)
+                else:
+                    name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 if name_hdf5:
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5)
                     if ikle_all_t == [[-99]]:
-                        print('Error: No data found in hdf5 (from send_data)')
+                        self.send_log.emit('Error: No data found in hdf5 (from send_data)')
                         return
                     for t in [-1]:  # range(0, len(vel_cell)):
                         manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], inter_vel_all_t[t], inter_h_all_t[t],
-                                                       path_im)
+                                                       path_im, True)
                         # to debug
                         # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                         # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
@@ -720,9 +724,14 @@ class SubHydroW(QWidget):
                     self.show_fig.emit()
                 else:
                     self.send_log.emit(self.tr("The hydrological model was not found. Figures could not be shown"))
-            self.send_log.emit(self.tr("Loading of hydrological data finished."))
-            # # send a signal to the substrate tab so it can account for the new info
-            self.drop_hydro.emit()
+
+            if self.model_type == 'SUBSTRATE':
+                self.send_log.emit(self.tr("Merging of substrate and hydrological data finished."))
+                self.drop_merge.emit()
+            else:
+                self.send_log.emit(self.tr("Loading of hydrological data finished."))
+                # send a signal to the substrate tab so it can account for the new info
+                self.drop_hydro.emit()
 
         if not self.p.is_alive() and self.q.empty():
             self.timer.stop()
@@ -2151,7 +2160,7 @@ class SubstrateW(SubHydroW):
         # the load button from file
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.clicked.connect(self.load_sub_gui)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.cb2 = QCheckBox(self.tr('Show figures'), self)
 
         # if there was substrate info before, update the label and attibutes
         self.was_model_loaded_before()
@@ -2181,7 +2190,7 @@ class SubstrateW(SubHydroW):
         self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)
-        self.cb2 = QCheckBox(self.tr('Show figures'), self)
+        self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # get possible substrate from the project file
         self.update_sub_hdf5_name()
@@ -2199,7 +2208,7 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(lh, 4, 0)
         self.layout_sub.addWidget(self.hname, 4, 1)
         self.layout_sub.addWidget(self.load_b, 5, 2)
-        self.layout_sub.addWidget(self.cb, 5, 3)
+        self.layout_sub.addWidget(self.cb2, 5, 3)
 
         self.layout_sub.addWidget(self.l4, 6, 0, 1, 2)
         self.layout_sub.addWidget(l12, 7, 0)
@@ -2217,7 +2226,7 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(l11, 13, 0)
         self.layout_sub.addWidget(self.e3, 13, 1)
         self.layout_sub.addWidget(self.load_b2, 14, 2)
-        self.layout_sub.addWidget(self.cb2, 14, 3)
+        self.layout_sub.addWidget(self.cb, 14, 3)
         self.layout_sub.addItem(self.spacer2, 11, 1)
 
         self.setLayout(self.layout_sub)
@@ -2328,7 +2337,7 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
                 self.send_log.emit("restart    code_type: " + code_type)
                 # figure
-                if self.cb.isChecked():
+                if self.cb2.isChecked():
                     substrate.fig_substrate(self.coord_p,self.ikle_sub, sub_pg, sub_dom, path_im)
 
             # if the substrate data is a text form
@@ -2381,7 +2390,7 @@ class SubstrateW(SubHydroW):
         self.update_sub_hdf5_name()
 
         # show figure
-        if self.cb.isChecked() and path_im != 'no_path' and not const_sub:
+        if self.cb2.isChecked() and path_im != 'no_path' and not const_sub:
             self.show_fig.emit()
 
         self.load_b.setDisabled(False)
@@ -2463,44 +2472,33 @@ class SubstrateW(SubHydroW):
         """
         This function calls the function merge grid in substrate.py. The goal is to have the substrate and hydrological
         data on the same grid. Hence, the hydrological grid will need to be cut to the form of the substrate grid.
-        """
-        self.send_log.emit('# Merge substrate and hydrological grid')
 
-        if len(self.drop_hyd)>1:
+        This function can be slow so it call on a second thread.
+        """
+        self.send_log.emit('# Start merging substrate and hydrological grid')
+
+        # get usfule data
+        if len(self.drop_hyd) >1:
             hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()-1]
         else:
             hdf5_name_hyd = self.hyd_name[0]
-        if len(self.drop_sub)>1:
+        if len(self.drop_sub )>1:
             hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()-1]
         else:
             hdf5_name_sub = self.sub_name[0]
         default_data = self.e3.text()
-
-        # check inputs in the function
-        #sys.stdout = self.mystdout = StringIO()
         path_hdf5 = self.find_path_hdf5()
-        [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
-            substrate.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, self.path_prj)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-        if ikle_both == [-99]:
-            self.send_log.emit('Error: data not merged.')
-            return
-        # figure
         path_im = self.find_path_im()
-        if self.cb2.isChecked() and path_im != 'no_path':
-            # plot the last time step, can be changed if necessary
-            substrate.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_im)
 
-        # save hdf5
-        path_hdf5 = os.path.dirname(hdf5_name_hyd)
-        if len(os.path.basename(hdf5_name_hyd)) > 25:
-            name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-25]  # take out the date in most case
-        else:
-            name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
-        load_hdf5.save_hdf5(name_hdf5merge, self.name_prj, self.path_prj, self.model_type, 2, path_hdf5, ikle_both,
-                            point_all_both, [], inter_vel_all_both, inter_h_all_both,[],[],[],[], True,
-                            sub_pg_all_t, sub_dom_all_t)
+        # for error management and figures
+        self.timer.start(1000)
+
+        # run the function
+        self.q = Queue()
+        self.p = Process(target=substrate.merge_grid_and_save, args=(hdf5_name_hyd, hdf5_name_sub, path_hdf5,
+                                                                     default_data, self.name_prj, self.path_prj,
+                                                                     self.model_type, self.q))
+        self.p.start()
 
         # log
         # functions if ind is zero also
@@ -2519,10 +2517,9 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart    defval: " + self.e3.text())
         else:
             self.send_log.emit("restart    defval: -99")
-        if self.cb2.isChecked() and path_im != 'no_path':
-            self.show_fig.emit()
-        # tell that the data is ok
-        self.drop_merge.emit()
+
+
+
 
 
 

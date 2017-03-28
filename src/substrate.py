@@ -2,16 +2,19 @@ import shapefile
 import os
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
-import matplotlib.tri as tri
+#import matplotlib.tri as tri
+from io import StringIO
+import sys
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 import time
-from src import load_hdf5
-from src import manage_grid_8
 import triangle
 from random import randrange
+from src import load_hdf5
+from src import manage_grid_8
+
 
 
 def open_shp(filename, path):
@@ -638,6 +641,58 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     if attribute_type == 0:
         data = np.hstack((np.array(point_new), np.array(data_sub_txt)))
         np.savetxt(os.path.join(path, new_name+'.txt'), data)
+
+
+def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj, model_type,
+                        q=[], print_cmd=False):
+    """
+    This function call the merging of the grid between the grid from the hydrological data and the substrate data.
+    It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
+    thread to avoid freezin gthe GUI. This is why we have this extra-function just to call save_hdf5() and
+    merge_grid_hydro_sub().
+
+    :param hdf5_name_hyd: the name of the hdf5 file with the hydrological data
+    :param hdf5_name_sub: the name of the hdf5 with the substrate data
+    :param path_hdf5: the path to the hdf5 data
+    :param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
+    :param name_prj: the name of the project
+    :param path_prj: the path to the project
+    :param model_type: the type of the "model". In this case, it is just 'SUBSTRATE'
+    :param q: used to share info with the GUI when this thread have finsihed (print_cmd = False)
+    :param print_cmd: If False, print to the GUI (usually False)
+    """
+
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
+    # merge the grid
+    [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
+        merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data)
+    if ikle_both == [-99]:
+        print('Error: data not merged.\n')
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put(mystdout)
+            return
+        else:
+            return
+
+    # save hdf5
+    if len(os.path.basename(hdf5_name_hyd)) > 25:
+        name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-25]  # take out the date in most case
+    else:
+        name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
+    load_hdf5.save_hdf5(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
+                        point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
+                        sub_pg_all_t, sub_dom_all_t)
+
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
+    if q:
+        q.put(mystdout)
+        return
+    else:
+        return
 
 
 def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj =''):

@@ -371,7 +371,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         create_shape = bool(fig_dict['shape_output'])
         create_para = bool(fig_dict['paraview'])
 
-        # pre pare
+        # prepare
         for id, n in enumerate(name_fish):
             name_fish[id] = n + '_' + stages_chosen[id]
         if len(hdf5_file) > 35:

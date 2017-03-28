@@ -2038,7 +2038,7 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     return ikle_sub, coord_sub
 
 
-def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[], path_im=[]):
+def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False):
     """
     This is the function to plot grid output for one time step. The data is one the node. A more complicated function
     exists to plot the grid and additional information (manage-grid_8.plot_grid()) in case there are needed to debug.
@@ -2049,6 +2049,8 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
     :param inter_vel_all: the velcoity data. This is given by reaches.
     :param inter_h_all: the height data. This is given by reaches.
     :param path_im: the path where the figure should be saved
+    :param merge_case: If True, we plot data from grid with merged substrate and hydrological data
+
     """
 
     # plot the grid, the velcoity and the water height
@@ -2135,8 +2137,12 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
-    plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=800)
-    plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=800)
+    if merge_case:
+        plt.savefig(os.path.join(path_im, "Merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=800)
+        plt.savefig(os.path.join(path_im, "Merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=800)
+    else:
+        plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=800)
+        plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=800)
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[], inter_h_all=[], path_im = [], coord_pro2 = []):
