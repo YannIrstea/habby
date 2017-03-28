@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLa
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QSizePolicy, QScrollArea, QFrame
 from PyQt5.QtGui import QPixmap, QFont
+from multiprocessing import Process, Queue, Pool
 import os
 import sys
 import time
@@ -385,23 +386,21 @@ class BioInfo(estimhab_GUI.StatModUseful):
             sys.stdout = self.mystdout = StringIO()
             calcul_hab.save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish,
                                     path_txt, name_base)
-            calcul_hab.save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base)
             sys.stdout = sys.__stdout__
             self.send_err_log()
+            self.p3 = Process(target=calcul_hab.save_spu_txt, args =(area_all, spu_all, name_fish, path_txt, name_base))
+            self.p3.start()
         if create_shape:
             path_shp = self.find_path_output_est()
-            sys.stdout = self.mystdout = StringIO()
-            calcul_hab.save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish,
-                                      path_shp, name_base)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
+            self.p = Process(target=calcul_hab.save_hab_shape, args=(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t,
+                                                                     height_c_all_t, name_fish,path_shp, name_base))
+            self.p.start()
         if create_para:
             path_out = self.find_path_output_est()
-            sys.stdout = self.mystdout = StringIO()
-            convert_to_paraview.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
-                                               vel_c_all_t, name_fish, False)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
+            self.p2 = Process(target=convert_to_paraview.habitat_to_vtu, args=(name_base, path_out, path_hdf5,
+                                                                               hdf5_file, vh_all_t_sp, height_c_all_t,
+                                                                               vel_c_all_t, name_fish, False))
+            self.p2.start()
 
         # create image in all cases
         path_im = self.find_path_im_est()

@@ -1819,19 +1819,20 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
     fig, ax = plt.subplots(1)
     patches = []
     cmap = plt.get_cmap('gist_rainbow')
-    colors = cmap((sub_pg - np.min(sub_pg)) / (
-    np.max(sub_pg) - np.min(sub_pg)))  # convert nfloors to colors that we can use later
+    colors_val = np.array((sub_pg - np.min(sub_pg)) / (
+    np.max(sub_pg) - np.min(sub_pg))) # convert nfloors to colors that we can use later
     n = len(sub_pg)
     for i in range(0, n):
         verts = []
         for j in range(0, len(ikle[i])):
             verts_j = coord_p[int(ikle[i][j]), :]
             verts.append(verts_j)
-        polygon = Polygon(verts, closed=True)
+        polygon = Polygon(verts, closed=True,edgecolor='w')
         patches.append(polygon)
-    collection = PatchCollection(patches)
+    collection = PatchCollection(patches, linewidth=0.0)
     ax.add_collection(collection)
-    collection.set_color(colors)
+    #collection.set_color(colors)
+    collection.set_array(colors_val)
     ax.autoscale_view()
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')
@@ -1861,7 +1862,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
     fig, ax = plt.subplots(1)
     patches = []
     cmap = plt.get_cmap('gist_rainbow')
-    colors = cmap((sub_dom - np.min(sub_dom)) / (
+    colors_num = np.array((sub_dom - np.min(sub_dom)) / (
         np.max(sub_dom) - np.min(sub_dom)))  # convert nfloors to colors that we can use later
     n = len(sub_dom)
     for i in range(0, n):
@@ -1871,9 +1872,10 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
-    collection = PatchCollection(patches)
+    collection = PatchCollection(patches,linewidth=0.0)
     ax.add_collection(collection)
-    collection.set_color(colors)
+    #collection.set_color(colors)
+    collection.set_array(colors_val)
     ax.autoscale_view()
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')

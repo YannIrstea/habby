@@ -11,7 +11,6 @@ from src import bio_info
 import shapefile
 
 
-
 def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     """
     This function calculates the habitat value. It loads substrate and hydrology datqa from an hdf5 files and it loads
@@ -42,6 +41,8 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     if ikle_all_t == [-99]:
         return failload
 
+    a = time.time()
+
     for idx, bio_name in enumerate(bio_names):
 
         # load bio data
@@ -71,6 +72,11 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
                     return failload
                 vh_all_t_sp.append(vh_all_t)
                 spu_all_t_sp.append(spu_all_t)
+
+    b = time.time()
+
+    print('Create vallue habitat:')
+    print(b-a)
 
     return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp
 
@@ -305,6 +311,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                                 str(sub_pg[i]) + ' ' +str(sub_dom[i]) + ' ' +vh_str + '\n')
 
 
+
 def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
     """
     This function create a text files with the folowing columns: the tiem step, the reach number, the area of the
@@ -345,6 +352,8 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
                     data_here += ' ' + str(spu_all[i][t][r])
                 data_here += '\n'
                 f.write(data_here)
+
+
 
 
 def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_shp, name_base):
@@ -489,6 +498,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     :param time_step: which time step should be plotted
     """
 
+    b= 0
     # get grid data from hdf5
     [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
@@ -499,8 +509,10 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
         name_fish[id] = n.replace('_', ' ')
 
     # create the figure for each species, and each time step
+    all_patches = []
     for sp in range(0, len(vh_all_t_sp)):
         vh_all_t = vh_all_t_sp[sp]
+        rt = 0
 
         for t in time_step:
             ikle_t = ikle_all_t[t]
@@ -514,21 +526,26 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 vh = vh_t[r]
 
                 # plot the habitat value
-                patches = []
                 cmap = plt.get_cmap('jet')
-               # colors = cmap((vh - np.min(vh)) / (np.max(vh) - np.min(vh)))
                 colors = cmap(vh)
-                n = len(vh)
-                for i in range(0, n):
-                    verts = []
-                    for j in range(0, len(ikle[i])):
-                        verts_j = coord_p[int(ikle[i][j]), :]
-                        verts.append(verts_j)
-                    polygon = Polygon(verts, closed=True)
-                    patches.append(polygon)
-                collection = PatchCollection(patches)
+                if sp == 0: # for optimization (the grid is always the same for each species)
+                    n = len(vh)
+                    patches = []
+                    for i in range(0, n):
+                        verts = []
+                        for j in range(0, 3):
+                            verts_j = coord_p[int(ikle[i][j]), :]
+                            verts.append(verts_j)
+                        polygon = Polygon(verts, closed=True, edgecolor='w')
+                        patches.append(polygon)
+                        all_patches.append(patches)
+                else:
+                    patches = all_patches[rt]
+
+                collection = PatchCollection(patches, linewidth=0.0)
+                #collection.set_color(colors) too slow
+                collection.set_array(np.array(vh))
                 ax.add_collection(collection)
-                collection.set_color(colors)
                 ax.autoscale_view()
                 # cbar = plt.colorbar()
                 # cbar.ax.set_ylabel('Substrate')
@@ -536,6 +553,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 plt.ylabel('y coord []')
                 plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
                 ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+                rt +=1
 
                 # colorbar
                 # Set norm to correspond to the data for which
@@ -550,4 +568,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 cb1.set_label('HSI []')
                 name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
                            time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'
-                plt.savefig(os.path.join(path_im, name_fig), dpi=1000)
+                c = time.time()
+                plt.savefig(os.path.join(path_im, name_fig), dpi=800)
+                d = time.time()
+
