@@ -1657,7 +1657,8 @@ class WelcomeW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        self.imname = os.path.join('translation','test3.jpg') # image shoulfd in the translation folder
+        #self.imname = os.path.join('translation','test3.jpg') # image shoulfd in the translation folder
+        self.imname = os.path.join('translation', 'beaver.png')  # image shoulfd in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.init_iu()
@@ -1705,9 +1706,10 @@ class WelcomeW(QWidget):
 
         # background image
         pic = QLabel()
-        pic.setMaximumSize(1000, 200)
+        #pic.setMaximumSize(1000, 200)
         # use full ABSOLUTE path to the image, not relative
-        pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
+        #pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
+        pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
 
         # layout (in two parts)
         layout2 = QGridLayout()

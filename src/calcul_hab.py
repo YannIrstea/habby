@@ -354,8 +354,6 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
                 f.write(data_here)
 
 
-
-
 def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_shp, name_base):
     """
     This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
