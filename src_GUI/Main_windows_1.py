@@ -1547,7 +1547,7 @@ class CentralW(QWidget):
         """
         if self.logon:
             if os.path.isfile(pathname_logfile):
-                with open(pathname_logfile, "a") as myfile:
+                with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write('\n' + text_log)
             elif self.name_prj_c == '':
                 return
@@ -1558,11 +1558,11 @@ class CentralW(QWidget):
                             os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
                 shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
                             os.path.join(self.path_prj_c,'restart_' + self.name_prj_c + '.log'))
-                with open(pathname_logfile, "a") as myfile:
+                with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write("    name_projet = " + self.name_prj_c + "'\n")
-                with open(pathname_logfile, "a") as myfile:
+                with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write("    path_projet = " + self.path_prj_c + "'\n")
-                with open(pathname_logfile, "a") as myfile:
+                with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write('\n' + text_log)
 
         return
@@ -1657,8 +1657,8 @@ class WelcomeW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        #self.imname = os.path.join('translation','test3.jpg') # image shoulfd in the translation folder
-        self.imname = os.path.join('translation', 'beaver.png')  # image shoulfd in the translation folder
+        self.imname = os.path.join('translation','test3.jpg') # image shoulfd in the translation folder
+        #self.imname = os.path.join('translation', 'beaver.png')  # image shoulfd in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.init_iu()
@@ -1706,10 +1706,10 @@ class WelcomeW(QWidget):
 
         # background image
         pic = QLabel()
-        #pic.setMaximumSize(1000, 200)
+        pic.setMaximumSize(1000, 200)
         # use full ABSOLUTE path to the image, not relative
-        #pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
-        pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
+        pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
+        #pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
 
         # layout (in two parts)
         layout2 = QGridLayout()
