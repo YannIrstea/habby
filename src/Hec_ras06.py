@@ -3,7 +3,6 @@ import xml.etree.ElementTree as Etree
 import os
 import re
 import numpy as np
-import warnings
 from io import StringIO
 import sys
 import time
@@ -11,10 +10,11 @@ from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylab
     show, subplot, fill_between, rcParams, savefig, close, rcParams,suptitle
 from src import manage_grid_8
 from src import load_hdf5
+from src_GUI import output_fig_GUI
 
 
 def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
-                                     interpo_choice, path_im, save_fig1D, pro_add=1, q=[], print_cmd=False):
+                                     interpo_choice, path_im, save_fig1d, pro_add=1, q=[], print_cmd=False, fig_opt=[]):
     """
     This function open the hec_ras data and creates the 2D grid from the 1.5 data. It is called by the class HEC_RAS1D
     in a second thread to not freeze the GUI.
@@ -30,10 +30,11 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     :param pathfile: the absolute path to the file chosen into namefile
     :param interpo_choice: the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.
     :param path_im: the path to where to save the image
-    :param save_fig1D: create and save the figure related to the loading of the data (profile and so on)
+    :param save_fig1d: create and save the figure related to the loading of the data (profile and so on)
     :param pro_add: the number of addictional profile (one used for interpolation_choice 1 and 2)
     :param q: used in the second thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param fig_opt: the options to crete the figure if save_fig1d is True
 
     ** Technical comments**
 
@@ -44,10 +45,13 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     """
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+
     # load the hec-ra data (the function is just below)
     [coord_pro, vh_pro, nb_pro_reach] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
-                                                   save_fig1D)
-    if save_fig1D:
+                                                    save_fig1d, fig_opt)
+    if save_fig1d:  # to avoid problem with matplotlib
         close()
     if coord_pro == [-99]:
         print('Error: HEC-RAS data not loaded')
@@ -74,7 +78,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
         return
 
 
-def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False):
+def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False, fig_opt =[]):
     """
     This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS.
     All arguments from this function are string.
@@ -85,6 +89,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
     :param path_geo: path to the geo file
     :param path_im: the path to the folder where the images should be saved
     :param save_fig: if True image is saved
+    :param fig_opt: the figure option is save_fig is True
     :return: coord_pro (for each profile, x,y,elev, dist along the profile), vh_pro
             (for each profile, dist along the profile, water height, velocity). Both variable are a list of numpy array.
 
@@ -165,7 +170,14 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False)
         return [-99], [-99], [-99]
     # plot and check
     if save_fig:
-        figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, [0, 6], path_im,  0, riv_name)
+        if fig_opt['time_step'][0] == -99:
+            tfig = range(0, len(zone_v))
+        else:
+            tfig = list(fig_opt['time_step'])
+        pro = [0, 1, 2]
+        for t in tfig:
+            if t < len(xy_h):
+                figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, fig_opt,  t, riv_name)
 
     # update the form of the vector to be coherent with rubar and mascaret
     [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
@@ -1283,7 +1295,8 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
     return coord_pro, vh_pro, nb_pro_reach
 
 
-def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, nb_sim=0, name_profile='no_name', coord_p2=-99):
+def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, fig_opt, nb_sim=0,
+               name_profile='no_name', coord_p2=-99):
     """
     A function to plot the results of the loading of hec-ras data.
 
@@ -1298,6 +1311,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     :param name_profile: a list of string with the name of the profiles
     :param coord_p2: the data of the profile when non geo-referenced, optional
     :param path_im: the path where the figure should be saved (string)
+    :param fig_opt: the figure options
 
     **Technical comments**
 
@@ -1324,8 +1338,11 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     useful). If the figure gets too complicated, this can be taken away by changing the two lines which finish
     with height or velocity as comment.  We add some titles and save the figures.
     """
-    # rcParams['figure.figsize'] = 7, 3
-    rcParams['font.size'] = 10
+    rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    rcParams['font.size'] = fig_opt['font_size']
+    rcParams['lines.linewidth'] = fig_opt['line_width']
+    format = int(fig_opt['format'])
+    rcParams['axes.grid'] = fig_opt['grid']
     #close()
 
     # choose the simulation to plot
@@ -1387,9 +1404,16 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
         legend(("Profile", "Water surface"))
         xlim([np.min(xz[:, 0]-1)*0.95, np.max(xz[:, 0])*1.05])
         m += 1
-        savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png'))
-        savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.pdf'))
-        #close()
+        if format == 0 or format == 1:
+            savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+
+                                 '.png'), dpi=fig_opt['resolution'])
+        if format == 0 or format == 3:
+            savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+
+                                 '.pdf'), dpi=fig_opt['resolution'])
+        if format == 2:
+            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.jpg'), dpi=fig_opt['resolution'])
+
 
     # plot the profile in the (x,y) plane
     fig2 = figure(len(pro))
@@ -1399,7 +1423,6 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     xmip = 1000
     xmap = -1000
 
-    rcParams.update({'font.size': 9})
     for i in range(0,len(coord_r)):
         coord_r_i = coord_r[i]
         plot(coord_r_i[:, 0], coord_r_i[:, 1], label='River')
@@ -1430,9 +1453,15 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     title("Position of the profiles")
     axis('equal') # if right angle are needed
     legend(bbox_to_anchor=(1.1, 1), prop={'size':10})
-    savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"))
-    savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".pdf"))
-    #close()
+    if format == 0 or format == 1:
+        savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"),
+                dpi=fig_opt['resolution'])
+    if format == 0 or format == 3:
+        savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".pdf"),
+                dpi=fig_opt['resolution'])
+    if format == 2:
+        savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                dpi=fig_opt['resolution'])
     show()
 
 

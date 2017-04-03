@@ -10,6 +10,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+from src_GUI import output_fig_GUI
 
 
 class Stathab:
@@ -42,6 +43,8 @@ class Stathab:
         #  during the load of the files and the hdf5 creation and calculation
         self.path_prj = path_prj
         self.name_prj = name_prj
+        # get the option for the figure in a dict
+        self.fig_opt = []
 
     def load_stathab_from_txt(self, reachname_file, end_file_reach, name_file_allreach, path):
         """
@@ -620,11 +623,16 @@ class Stathab:
         """
         A function to save the results in text and the figure.
         """
-        plt.rcParams['figure.figsize'] = 10, 8
-        plt.rcParams['font.size'] = 8
-        #plt.close()
+        # figure option
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        plt.rcParams['figure.figsize'] = self.fig_opt['width'], self.fig_opt['height']
+        plt.rcParams['font.size'] = self.fig_opt['font_size']
+        plt.rcParams['lines.linewidth'] = self.fig_opt['line_width']
+        format = int(self.fig_opt['format'])
+        plt.rcParams['axes.grid'] = self.fig_opt['grid']
 
         for r in range(0, len(self.name_reach)):
+
             rclass = self.rclass_all[r]
             hclass = self.hclass_all[r]
             vclass = self.vclass_all[r]
@@ -656,13 +664,19 @@ class Stathab:
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Volume by Class [m$^{3}$]')
             lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-            name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                    "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight')
-            name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                    "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight')
+            # save the figures
 
+            if format == 0 or format == 1:
+                name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                        "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
+            if format == 0 or format == 3:
+                name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                        "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+            if format == 2 or format > 2:
+                name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                        "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+                        dpi=self.fig_opt['resolution'])
             # suitability index
             j = np.squeeze(self.j_all[0, :, :])
             fig = plt.figure()
@@ -672,13 +686,17 @@ class Stathab:
             plt.ylabel('Index J [ ]')
             plt.title('Suitability index J')
             lgd = plt.legend(bbox_to_anchor=(1.2, 1), loc='upper right', ncol=1, borderaxespad=0.)
-
-            name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png')
-            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight')
-            name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight')
+            if format == 0 or format == 1:
+                name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png')
+            if format == 0 or format == 3:
+                name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+            if format == 2 or format > 2:
+                name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+                        dpi=self.fig_opt['resolution'])
             # plt.show()
 
     def savetxt_stathab(self):

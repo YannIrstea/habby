@@ -2,6 +2,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+import numpy as np
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
     QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QCheckBox
@@ -11,7 +12,8 @@ import os
 from io import StringIO
 from src_GUI import estimhab_GUI
 from src import fstress
-import numpy as np
+from src_GUI import output_fig_GUI
+
 
 
 class FstressW(estimhab_GUI.StatModUseful):
@@ -621,7 +623,8 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # figure
         self.path_im = self.find_path_im_est()
-        fstress.figure_fstress(qmod, vh, inv_select, self.path_im, self.riv_name)
+        fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        fstress.figure_fstress(qmod, vh, inv_select, self.path_im, self.riv_name, fig_opt)
         self.show_fig.emit()
         fstress.write_txt(qmod, vh, inv_select, self.path_prj, self.riv_name)
 

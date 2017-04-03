@@ -12,6 +12,7 @@ from src import Hec_ras06
 from src import manage_grid_8
 from src import load_hdf5
 from src import dist_vistess2
+from src_GUI import output_fig_GUI
 
 
 def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
@@ -62,10 +63,17 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
 
     # image if necessary
     if show_fig_1D:
-        figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im,
-                        [0, 1], [-1], [0])
-        plt.close()  # only saved the image, do not show them
+        fig_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+        pro = [0,1,2]
+        reach = [0]
+        if fig_opt['time_step'][0] == -99:
+            tfig = range(0, len(xhzv_data))
+        else:
+            tfig = list(fig_opt['time_step'])
 
+        figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig_opt, name_pro, name_reach, path_im,
+                        pro, tfig, reach)
+        plt.show()
 
     # distribute the velocity
     vh_pro = dist_vistess2.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile)
@@ -1068,7 +1076,8 @@ def open_rub_file(file_res, path_res):
     return xhzv_data, timestep
 
 
-def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]):
+def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig_opt, name_pro, name_reach, path_im, pro,
+                    plot_timestep=[-1], reach_plot=[0]):
     """
     The function to plot the figures related to mascaret.
 
@@ -1078,14 +1087,18 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
     :param name_reach: the name of the reach
     :param on_profile: which result are on the profile. Some output are not the profiles.
     :param nb_pro_reach: the number of profile by reach (careful this is the number of profile, not the number of output)
+    :param fig_opt: the figure option
     :param xhzv_data: the height and velcoity (x,h,v) list by time step
     :param pro profile: which profile to be plotted (list of int)
     :param plot_timestep: which timestep to be plotted
     :param reach_plot: the reach to be plotted for the river view
     :param path_im: the path where to save the figure
     """
-    #plt.close()
-    plt.rcParams['font.size'] = 10
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
 
     if not coord_pro:
         print('Error: No data available to plot.\n')
@@ -1126,9 +1139,17 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
             plt.plot(x_t, v_t, 'r')
             plt.xlabel('Distance along the river [m]')
             plt.ylabel('Velocity [m/sec]')
-            plt.savefig(os.path.join(path_im, "mascaret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-            plt.savefig(os.path.join(path_im, "masacret_riv_" +  name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-            #plt.close()
+            if format == 1 or format == 0:
+                plt.savefig(os.path.join(path_im, "mascaret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                                         + ".png"), dpi = fig_opt['resolution'])
+            if format == 0 or format ==3:
+                plt.savefig(os.path.join(path_im, "masacret_riv_" +
+                                         name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                                     + ".pdf"),dpi = fig_opt['resolution'])
+            if format == 3:
+                plt.savefig(
+                    os.path.join(path_im, "masacret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                                 + ".jpg"), dpi=fig_opt['resolution'])
 
     # (x,y) coordinates view
     fig = plt.figure()
@@ -1148,10 +1169,15 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
     plt.ylabel('y coord. [m]')
     plt.axis('equal')
     plt.legend(bbox_to_anchor=(1.1, 1), prop={'size': 10})
-    plt.savefig(os.path.join(path_im, "mascaret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-    plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-    #plt.close()
-
+    if format == 1 or format == 0:
+        plt.savefig(os.path.join(path_im, "mascaret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                dpi=fig_opt['resolution'])
+    if format == 0 or format == 3:
+        plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                dpi=fig_opt['resolution'])
+    if format == 2:
+        plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                    dpi=fig_opt['resolution'])
     # profiles (h, x) with water levels
     for p in pro:
         plt.figure()
@@ -1172,11 +1198,15 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, nam
         plt.xlabel('distance along the profile [m]')
         plt.ylabel('Height of the river bed [m]')
         plt.title('Profile ' + name_pro[p] + ' at the time step ' + str(t))
-        plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-        plt.savefig(os.path.join(path_im, "masacret_pro_" + str(p) + '_time' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-        #plt.close()
-
-    #plt.show()
+        if format == 1 or format == 0:
+            plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time' +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=fig_opt['resolution'])
+        if format == 0 or format == 3:
+            plt.savefig(os.path.join(path_im, "masacret_pro_" + str(p) + '_time' +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=fig_opt['resolution'])
+        if format ==2:
+            plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time'+
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"), dpi=fig_opt['resolution'])
 
 
 def flat_coord_pro(coord_pro):

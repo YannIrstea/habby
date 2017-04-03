@@ -14,7 +14,7 @@ import triangle
 from random import randrange
 from src import load_hdf5
 from src import manage_grid_8
-
+from src_GUI import output_fig_GUI
 
 
 def open_shp(filename, path):
@@ -1770,7 +1770,7 @@ def grid_update_sub2(ikle, coord_p, point_crossing, coord_sub):
     return ikle, coord_p
 
 
-def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [-99], subtxt= [-99]):
+def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-99], ytxt= [-99], subtxt= [-99]):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -1779,13 +1779,19 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
     :param ikle: the connectivity table
     :param sub_pg: the information on subtrate by element for the "coarser part"
     :param sub_dom: the information on subtrate by element for the "dominant part"
+    :param fig_opt: the figure option as a doctionnary
     :param xtxt: if the data was given in txt form, the orignal x data
     :param ytxt: if the data was given in txt form, the orignal y data
     :param subtxt: if the data was given in txt form, the orignal sub data
     :param path_im: the path where to save the figure\
     """
-
-    plt.rcParams['font.size'] = 10
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
 
     sub_dom = np.array(sub_dom)
     sub_pg = np.array(sub_pg)
@@ -1855,8 +1861,15 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
                                     norm=norm,
                                     orientation='vertical')
     cb1.set_label('Code Cemagrfef')
-    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=1000)
-    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=1000)
+    if format == 0 or format == 1:
+        plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'), dpi=fig_opt['resolution'])
+    if format == 0 or format == 3:
+        plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.pdf'), dpi=fig_opt['resolution'])
+    if format == 2:
+        plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.jpg'), dpi=fig_opt['resolution'])
 
     # substrate dominant
     fig, ax = plt.subplots(1)
@@ -1899,8 +1912,15 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, xtxt = [-99], ytxt= [
                                     orientation='vertical')
     cb1.set_label('Code Cemagrfef')
 
-    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=1000)
-    plt.savefig(os.path.join(path_im, "substrate" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=1000)
+    if format == 0 or format == 1:
+        plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'), dpi=fig_opt['resolution'])
+    if format == 0 or format == 3:
+        plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.pdf'), dpi=fig_opt['resolution'])
+    if format == 2:
+        plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.jpg'), dpi=fig_opt['resolution'])
 
     # if we start with txt data, plot the original data
     if xtxt != [-99]:

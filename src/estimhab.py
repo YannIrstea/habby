@@ -3,9 +3,10 @@ import xml.etree.ElementTree as ET
 import os
 import matplotlib.pyplot as plt
 import time
+from src_GUI import output_fig_GUI
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False):
+def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False, fig_opt={}):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -16,10 +17,11 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     :param q50: the natural median discharge
     :param qrange: the range of discharge
     :param substrat: mean height of substrat
-    :param pict: if true the figure is shown. If false, the figure is not shown
     :param path_im: the path where the image should be saved
     :param path_bio: the path to the xml file with the information on the fishes
     :param fish_name: the name of the fish which have to be analyzed
+    :param pict: if true the figure is shown. If false, the figure is not shown
+    :param fig_opt: a dictionnary with the figure option
     :return: habitat value and useful surface (VH and SPU) as a function of discharge
 
     **Technical comments and walk-through**
@@ -82,7 +84,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         c = ['b', 'm', 'r', 'c', '#9932CC', '#800000', 'k', 'g', 'y', '#9F81F7', '#BDBDBD', '#F7819F', 'b', 'm', 'r',
              'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
         plt.figure()
-        plt.suptitle("ESTIMHAB2008 - HABBY", fontsize=12)
+        plt.suptitle("ESTIMHAB - HABBY")
 
     # get fish data
     VH = []
@@ -137,10 +139,16 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         SPU.append(SPU_f)
 
     if pict:
-        plt.rcParams['font.size'] = 10
+        if not fig_opt:
+            fig_opt = output_fig_GUI.create_default_figoption()
+        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+        plt.rcParams['font.size'] = fig_opt['font_size']
+        plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+        format = int(fig_opt['format'])
+        plt.rcParams['axes.grid'] = fig_opt['grid']
+
         plt.legend(fish_name)
         # saving with date and time
-
         name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
         txt_header = 'Q [m3/sec] '
@@ -149,10 +157,15 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
             txt_header += ' VH_' + fish_name[f] + ' SPU_' + fish_name[f]
             data = np.vstack((data, VH[f]))
             data = np.vstack((data, SPU[f]))
+
         # save
         np.savetxt(os.path.join(path_im, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header)
-        plt.savefig(os.path.join(path_im, name_pict + '.png'))
-        plt.savefig(os.path.join(path_im, name_pict + '.pdf'))
+        if format == 0 or format ==1:
+            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'])
+        if format == 0 or format ==3:
+            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=fig_opt['resolution'])
+        if format == 2:
+            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=fig_opt['resolution'])
         # plt.show()
 
     return VH, SPU

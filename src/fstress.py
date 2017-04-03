@@ -10,6 +10,7 @@ import numpy as np
 from src import stathab_c
 from scipy import stats
 import matplotlib.pyplot as plt
+from src_GUI import output_fig_GUI
 
 
 def save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
@@ -409,7 +410,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_im, name_river):
         f.write(name_inv_str)
 
 
-def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river):
+def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}):
     """
     This function creates the figures for Fstress, notably the suitability index as a function of discharge for all
     rivers
@@ -419,8 +420,18 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river):
     :param name_inv: The four letter code of each selected invetebrate
     :param path_im: the path where to save the figure
     :param name_river: the name of the river
+    :param fig_opt: the figure option in a dictionnary
 
     """
+
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+
     i = 0
     for r in name_river:
         qmod = qmod_all[i]
@@ -435,12 +446,17 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river):
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-        name_fig = os.path.join(path_im, 'Fstress_' + r +
-                                "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-        fig.savefig(os.path.join(path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight')
-        name_fig = os.path.join(path_im, 'Fstress_' + r+
-                                "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-        fig.savefig(os.path.join(path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight')
+        if format == 0 or format == 1:
+            name_fig = os.path.join(path_im, 'Fstress_' + r +
+                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
+        if format == 0 or format == 3:
+            name_fig = os.path.join(path_im, 'Fstress_' + r +
+                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+        if format == 2:
+            name_fig = os.path.join(path_im, 'Fstress_' + r +
+                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+        fig.savefig(os.path.join(path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+                    dpi=fig_opt['resolution'])
         i += 1
 
 

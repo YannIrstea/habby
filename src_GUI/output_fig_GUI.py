@@ -27,7 +27,7 @@ class outputW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         # list with the available color map
-        self.namecmap = ['magma','viridis', 'inferno', 'plasma', 'Blues',
+        self.namecmap = ['coolwarm','jet','magma','viridis', 'inferno', 'plasma', 'Blues',
                          'Greens', 'Greys', 'Oranges', 'Purples',
                          'Reds', 'gist_earth', 'terrain', 'ocean', ]
         self.init_iu()
@@ -39,22 +39,22 @@ class outputW(QWidget):
 
         # on half of the widget, give options to create the figure
         # figrst write the QLabel
-        self.fig0l = QLabel(self.tr('<b> Figures Options </b>'), self)
-        self.fig1l = QLabel(self.tr('Figure Size'), self)
+        self.fig0l = QLabel(self.tr('<b> Figures Options </b> (Can be modified further in the figure)'), self)
+        self.fig1l = QLabel(self.tr('Figure Size [cm]'), self)
         self.fig2l = QLabel(self.tr('Color Map 1'), self)
         self.fig3l = QLabel(self.tr('Color Map 2'), self)
         self.fig5l = QLabel(self.tr('Font Size'), self)
         self.fig6l = QLabel(self.tr('Line Width'), self)
         self.fig7l = QLabel(self.tr('Grid'), self)
-        self.fig8l = QLabel(self.tr('Time step'))
+        self.fig8l = QLabel(self.tr('Time step [for all time steps: -99]'))
         self.fig9l = QLabel(self.tr('Plot raw loaded data'))
         self.fig10l = QLabel(self.tr('Format'))
-        self.fig11l = QLabel(self.tr('Resolution'))
+        self.fig11l = QLabel(self.tr('Resolution [dpi]'))
 
         # then fill the size
         self.fig1 = QLineEdit(str(fig_dict['width']) + ',' + str(fig_dict['height']))
 
-        #fill the colormap options
+        # fill the colormap options
         self.fig2 = QComboBox()
         self.fig2.addItems(self.namecmap)
         namecmap1 = fig_dict['color_map1']
@@ -79,13 +79,8 @@ class outputW(QWidget):
             self.fig7b.setChecked(True)
 
         # fill the option for the time steps
-        self.fig8 = QComboBox()
-        # here order matters
-        self.fig8.addItems([self.tr('First step'), self.tr('All steps'),self.tr('Last step'), ])
-        if fig_dict['time_step'] == -99:
-            self.fig8.setCurrentIndex(1)
-        else:
-            self.fig8.setCurrentIndex(fig_dict['time_step'])
+        self.fig8 = QLineEdit('0,1')
+        self.fig8.setText(str(fig_dict['time_step'])[1:-1])  # [1:-1] because of []
 
         # choose if we should plot the data from the loaded model (before the grid is created)
         self.fig9a = QCheckBox(self.tr('Yes'), self)
@@ -97,8 +92,8 @@ class outputW(QWidget):
             self.fig9a.setChecked(False)
             self.fig9b.setChecked(True)
         self.fig10 = QComboBox()
-        self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf'])
-        self.fig8.setCurrentIndex(int(fig_dict['format']))
+        self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf'])  # DO NOT change order here 0,1,2,3 aew used afterward
+        self.fig10.setCurrentIndex(int(fig_dict['format']))
         self.fig11 = QLineEdit(str(fig_dict['resolution']))
 
         # on the other half, choose the other option
@@ -218,12 +213,12 @@ class outputW(QWidget):
             except ValueError:
                 self.send_log.emit('Error: Font size should be an integer. \n')
         # line width
-        font_size = self.fig6.text()
-        if font_size:
+        line_width = self.fig6.text()
+        if line_width:
             try:
-                fig_dict['font_size'] = int(font_size)
+                fig_dict['line_width'] = int(line_width)
             except ValueError:
-                self.send_log.emit('Error: Font size should be an integer. \n')
+                self.send_log.emit('Error: Line width should be an integer. \n')
         # grid
         if self.fig7a.isChecked() and self.fig7b.isChecked():
             self.send_log.emit('Error: Grid cannot be on and off at the same time. \n')
@@ -232,7 +227,7 @@ class outputW(QWidget):
         elif self.fig7b.isChecked():
             fig_dict['grid'] = False
         # time step
-        fig_dict['time_step'] = str(self.fig8.currentIndex())
+        fig_dict['time_step'] = str(self.fig8.text())
         # raw data
         if self.fig9a.isChecked() and self.fig9b.isChecked():
             self.send_log.emit('Error: The option to plot raw output cannot be on and off at the same time. \n')
@@ -318,7 +313,7 @@ class outputW(QWidget):
             linewidth1.text = str(fig_dict['line_width'])
             grid1.text = str(fig_dict['grid'])
             time1.text = str(fig_dict['time_step']) # -99 is all time steps
-            raw1.text = fig_dict['raw_data']
+            raw1.text = str(fig_dict['raw_data'])
             format1.text = str(fig_dict['format'])
             reso1.text = str(fig_dict['resolution'])
             text1.text = str(fig_dict['text_output'])
@@ -350,7 +345,7 @@ def load_fig_option(path_prj, name_prj):
     elif name_prj == '':
         pass
     elif not os.path.isfile(fname):  # the project is not found
-        print('Error: No project file (.xml) found.\n')
+        print('Warning: No project file (.xml) found.\n')
     else:
         doc = ET.parse(fname)
         root = doc.getroot()
@@ -371,22 +366,39 @@ def load_fig_option(path_prj, name_prj):
             shape1 = root.find(".//ShapeOutput")
             para1 = root.find(".//ParaviewOutput")
             try:
-                fig_dict['width'] = float(width1.text)
-                fig_dict['height'] = float(height1.text)
-                fig_dict['color_map1'] = colormap1.text
-                fig_dict['color_map2'] = colormap2.text
-                fig_dict['font_size'] = int(fontsize1.text)
-                fig_dict['line_width'] = int(linewidth1.text)
-                fig_dict['grid'] = grid1.text
-                fig_dict['time_step'] = int(time1.text) # -99 is all
-                fig_dict['raw_data'] = raw1.text
-                fig_dict['format'] = format1.text
-                fig_dict['resolution'] = int(reso1.text)
-                fig_dict['text_output'] = text1.text
-                fig_dict['shape_output'] = shape1.text
-                fig_dict['paraview'] = para1.text
+                if width1 is not None:
+                    fig_dict['width'] = float(width1.text)
+                if height1 is not None:
+                    fig_dict['height'] = float(height1.text)
+                if colormap1 is not None:
+                    fig_dict['color_map1'] = colormap1.text
+                if colormap2 is not None:
+                    fig_dict['color_map2'] = colormap2.text
+                if fontsize1 is not None:
+                    fig_dict['font_size'] = int(fontsize1.text)
+                if linewidth1 is not None:
+                    fig_dict['line_width'] = int(linewidth1.text)
+                if grid1 is not None:
+                    fig_dict['grid'] = grid1.text
+                if time1 is not None:
+                    fig_dict['time_step'] = time1.text # -99 is all
+                if raw1 is not None:
+                    fig_dict['raw_data'] = raw1.text
+                if format1 is not None:
+                    fig_dict['format'] = format1.text
+                if reso1 is not None:
+                    fig_dict['resolution'] = int(reso1.text)
+                if text1 is not None:
+                    fig_dict['text_output'] = text1.text
+                if shape1 is not None:
+                    fig_dict['shape_output'] = shape1.text
+                if para1 is not None:
+                    fig_dict['paraview'] = para1.text
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
+
+    fig_dict['time_step'] = fig_dict['time_step'].split(',')
+    fig_dict['time_step'] = list(map(int, fig_dict['time_step']))
 
     return fig_dict
 
@@ -398,12 +410,12 @@ def create_default_figoption():
     fig_dict = {}
     fig_dict['height'] = 7
     fig_dict['width'] = 10
-    fig_dict['color_map1'] = 'terrain'
-    fig_dict['color_map2'] = 'gist_earth'
+    fig_dict['color_map1'] = 'coolwarm'
+    fig_dict['color_map2'] = 'jet'
     fig_dict['font_size'] = 12
     fig_dict['line_width'] = 1
     fig_dict['grid'] = False
-    fig_dict['time_step'] = 0
+    fig_dict['time_step'] = 1,-1
     fig_dict['raw_data'] = False
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800

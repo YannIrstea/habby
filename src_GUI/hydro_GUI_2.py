@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLa
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView
 import h5py
+np.set_printoptions(threshold=np.inf)
+from multiprocessing import Process, Queue, Pool
 import time
 try:
     import xml.etree.cElementTree as ET
@@ -21,10 +23,9 @@ from src import rubar
 from src import river2d
 from src import mascaret
 from src import manage_grid_8
-from src import dist_vistess2
 from src import load_hdf5
-np.set_printoptions(threshold=np.inf)
-from multiprocessing import Process, Queue, Pool
+from src_GUI import output_fig_GUI
+
 #import matplotlib.pyplot as plt
 
 class Hydro2W(QWidget):
@@ -260,6 +261,7 @@ class SubHydroW(QWidget):
         self.hname = QLineEdit(' ')
         self.p = None  # second process
         self.q = None
+        self.fig_opt = []
         super().__init__()
 
         # update error or show figure every second
@@ -412,7 +414,7 @@ class SubHydroW(QWidget):
         """
         This function enable and disable the QLineEdit where the user gives the number of additional profile needed to
         create the gird and the related QLabel. If the user choose the interpolation by bloc, the QLineEdit will be
-        disable. If it chooses linear or nearest neighbour interpolation, it will be enabled. Careful, this function
+        disabled. If it chooses linear or nearest neighbour interpolation, it will be enabled. Careful, this function
         only works with 1D and 1.5D model.
         """
         if self.nb_dim >= 2:
@@ -703,6 +705,7 @@ class SubHydroW(QWidget):
                 path_im = self.find_path_im()
                 path_hdf5 = self.find_path_hdf5()
                 sys.stdout = self.mystdout = StringIO()
+                # find hsf5 name (files where is hte data)
                 if self.model_type == 'SUBSTRATE':
                     name_hdf5 = load_hdf5.get_hdf5_name('MERGE', self.name_prj, self.path_prj)
                 else:
@@ -710,16 +713,37 @@ class SubHydroW(QWidget):
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
                 if name_hdf5:
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5)
+                    # load data
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
+                                                                                                        path_hdf5)
                     if ikle_all_t == [[-99]]:
                         self.send_log.emit('Error: No data found in hdf5 (from send_data)')
                         return
-                    for t in [-1]:  # range(0, len(vel_cell)):
-                        manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], inter_vel_all_t[t], inter_h_all_t[t],
-                                                       path_im, True)
-                        # to debug
-                        # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                        # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+                    # figure option
+                    self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+                    # plot the figure for all time step
+                    if self.fig_opt['time_step'][0] == -99:  # all time steps
+                        for t in range(1, len(ikle_all_t)):  # do not plot full profile
+                            if t < len(ikle_all_t):
+                                if self.model_type == 'SUBSTRATE':
+                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
+                                else:
+                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
+                    # plot the figure for some time steps
+                    else:
+                        for t in self.fig_opt['time_step']:  # range(0, len(vel_cell)):
+                            if t < len(ikle_all_t):
+                                if self.model_type == 'SUBSTRATE':
+                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
+                                else:
+                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t],self.fig_opt,
+                                                                   inter_vel_all_t[t],inter_h_all_t[t], path_im, False, t)
+                            # to debug
+                            # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                            # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
 
                     self.show_fig.emit()
                 else:
@@ -896,7 +920,8 @@ class HEC_RAS1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        show_all_fig = False
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        show_all_fig = bool(self.fig_opt['raw_data'])
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
@@ -1235,7 +1260,8 @@ class Mascaret(SubHydroW):
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
-        show_all_fig = False
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        show_all_fig = self.fig_opt['raw_data']
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
@@ -1700,7 +1726,8 @@ class Rubar1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        show_all_fig = False
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        show_all_fig = bool(self.fig_opt['raw_data'])
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
@@ -2274,6 +2301,8 @@ class SubstrateW(SubHydroW):
             code_type = self.e2.currentText()
             self.name_hdf5 = self.hname.text()
 
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
             # if the substrate is in the shp form
             if ext == '.shp':
 
@@ -2338,7 +2367,7 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("restart    code_type: " + code_type)
                 # figure
                 if self.cb2.isChecked():
-                    substrate.fig_substrate(self.coord_p,self.ikle_sub, sub_pg, sub_dom, path_im)
+                    substrate.fig_substrate(self.coord_p,self.ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
 
             # if the substrate data is a text form
             elif ext == '.txt' or ext == ".asc":
@@ -2373,7 +2402,7 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("restart    code_type: " + code_type)
 
                 if self.cb.isChecked():
-                    substrate.fig_substrate(self.coord_p, self.ikle_sub, sub_pg, sub_dom,path_im)
+                    substrate.fig_substrate(self.coord_p, self.ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
             # case unknown
             else:
                 self.send_log.emit("Error: Unknown extension for substrate data. The data was not loaded. Only file "

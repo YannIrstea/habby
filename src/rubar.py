@@ -10,6 +10,7 @@ from src import load_hdf5
 from src import manage_grid_8
 import xml.etree.ElementTree as Etree
 from src import dist_vistess2
+from src_GUI import output_fig_GUI
 
 
 def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
@@ -21,13 +22,16 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
 
     :param name_hdf5: the name of the hdf5 to be created (string)
     :param path_hdf5: the path to the hdf5 to be created (string)
-    :param model_type: the name of the model (rubar in most case, but given as argument in case we change
-           the form of the name)
     :param name_prj: the name of the project (string)
     :param path_prj: the path of the project
+    :param model_type: the name of the model (rubar in most case, but given as argument in case we change
+           the form of the name)
     :param namefile: the name of the geo file and the data file, which contains respectively geographical data and
            the ouput data (see open_hec_ras() for more precision) -> list of string
     :param pathfile: the absolute path to the file chosen into namefile -> list of string
+    :param interpo_choice: the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.
+    :param manning_data: Contains the manning data. It can be in an array form (variable) or as a float (constant)
+    :param nb_point_vel: the number of velcoity point by whole profile
     :param show_fig_1D: A boolean. If True, image from the 1D data are created and savec
     :param q: used by the second thread.
     :param path_im: the path where to save the figure
@@ -43,7 +47,10 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
     # load the rubar 1D
     if not print_cmd:
        sys.stdout = mystdout = StringIO()
-    [xhzv_data, coord_pro, lim_riv] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im, show_fig_1D)
+
+    fig_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+    [xhzv_data, coord_pro, lim_riv] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im,
+                                                   show_fig_1D, fig_opt)
     if show_fig_1D:
         plt.close() # just save the figure do not show them
 
@@ -77,7 +84,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
         return
 
 
-def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
+def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, fig_opt=[]):
     """
     the function to load the RUBAR BE data (in 1D).
 
@@ -87,6 +94,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
     :param pathdata: the path to the data_vh file
     :param path_im: the file where to save the image
     :param savefig: a boolean. If True create and save the figure.
+    :param fig_opt: A dictionarry with the figure option
     :return: coordinates of the profile (x,y,z dist along the profile) coordinates (x,y) of the river and the bed,
             data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
             and v the velocity
@@ -95,6 +103,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
 
     # load the river coordinates 1d (not needed anymore, but can be useful)
     #[x, nb_mail] = load_mai_1d(mail, pathgeo)
+
     # load the profile coordinates
     blob, ext = os.path.splitext(geofile)
     if ext == ".rbe":
@@ -116,7 +125,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig):
             print('Error: No data to produce the figure. \n')
             return failload
         else:
-            figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], [-1], nb_pro_reach)
+            figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], [-1], nb_pro_reach, fig_opt)
 
     return data_xhzv, coord_pro, lim_riv
 
@@ -568,7 +577,8 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
     return seq3D, send_warn
 
 
-def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, plot_timestep, nb_pro_reach = [0,10**10]):
+def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, plot_timestep, nb_pro_reach = [0,10**10]
+                   ,fig_opt ={}):
     """
     The function to plot the loaded RUBAR 1D data (Rubar BE).
 
@@ -581,10 +591,17 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     :param pro: the profile number which should be plotted
     :param plot_timestep: which timestep should be plotted
     :param nb_pro_reach: the number of profile by reach
+    :param fig_opt: the dictionnary with the figure option
     :return: none
     """
 
-    #plt.rcParams.update({'font.size': 9})
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
 
     # profiles in xy view
     riv_mid = np.zeros((len(coord_pro), 3))
@@ -604,12 +621,17 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     plt.ylabel("y coordinate []")
     plt.title("Position of the profiles")
     # plt.axis('equal') # if right angle are needed
-    plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-    plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    #plt.show()
+    if format == 0 or format == 1:
+        plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'), dpi=fig_opt['resolution'])
+    if format == 0 or format == 3:
+        plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.pdf'), dpi=fig_opt['resolution'])
+    if format == 2:
+        plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.jpg'), dpi=fig_opt['resolution'])
 
     # plot speeed and height
-
     warn_reach = True
     for r in range(0, len(nb_pro_reach)-1):
         if r < 10:
@@ -633,15 +655,20 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
                 plt.plot(x, v_t, '-r')
                 plt.xlabel('Distance along the river [m]')
                 plt.ylabel('Velocity [m/sec]')
-                plt.savefig(
-                    os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-                plt.savefig(
-                    os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+                if format == 0 or format == 1:
+                    plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
+                                             time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'])
+                if format == 0 or format == 3:
+                    plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
+                                             time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'])
+                if format == 2:
+                    plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=fig_opt['resolution'])
         elif warn_reach:
             print('Warning: Too many reaches to plot them all. Only the ten first reaches plotted. \n')
             warn_reach = False
 
-    # plt.show()
+    plt.show()
 
 
 def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,

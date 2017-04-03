@@ -891,15 +891,15 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
                     break
         if not inter:
             print('Error: Point not found')
-            plt.figure()
-            plt.plot()
-            plt.plot(p1hyd[0], p1hyd[1], 'xb')
-            plt.plot(p2hyd[0], p2hyd[1], 'xb')
-            plt.plot([p1hyd[0], p2hyd[0]],[p1hyd[1], p2hyd[1]])
-            plt.plot(point_mid_x, point_mid_y,'.r')
-            plt.plot(coord_pro_p[0], coord_pro_p[1], '-k')
-            plt.show()
-            return
+            # plt.figure()
+            # plt.plot()
+            # plt.plot(p1hyd[0], p1hyd[1], 'xb')
+            # plt.plot(p2hyd[0], p2hyd[1], 'xb')
+            # plt.plot([p1hyd[0], p2hyd[0]],[p1hyd[1], p2hyd[1]])
+            # plt.plot(point_mid_x, point_mid_y,'.r')
+            # plt.plot(coord_pro_p[0], coord_pro_p[1], '-k')
+            # plt.show()
+            # return
         if s0 == 1:
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
@@ -2038,7 +2038,8 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     return ikle_sub, coord_sub
 
 
-def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False):
+def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False,
+                     time_step=0):
     """
     This is the function to plot grid output for one time step. The data is one the node. A more complicated function
     exists to plot the grid and additional information (manage-grid_8.plot_grid()) in case there are needed to debug.
@@ -2046,16 +2047,21 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
 
     :param point_all_reach: the coordinate of the point. This is given by reaches.
     :param ikle_all:  the connectivity table. This is given by reaches.
+    :param: fig_opt: the dictionary with the different options to create the figures
     :param inter_vel_all: the velcoity data. This is given by reaches.
     :param inter_h_all: the height data. This is given by reaches.
     :param path_im: the path where the figure should be saved
     :param merge_case: If True, we plot data from grid with merged substrate and hydrological data
-
+    :param time_step: time step to be added to the title
     """
 
     # plot the grid, the velcoity and the water height
-    plt.figure(figsize=(8, 12))
-    plt.rcParams.update({'font.size': 9})
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.figure()
 
     # the grid
     plt.subplot(3,1,1) # nb_fig, nb_fig, position
@@ -2092,17 +2098,17 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
                     ylist.append(None)
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
-    plt.title('Computational Grid')
+    plt.title('Computational Grid  - Time Step ' + str(time_step))
 
     # plot the interpolated velocity
     if len(inter_vel_all) > 0:  # 0
-        cm = plt.cm.get_cmap('coolwarm')
+        cm = plt.cm.get_cmap(fig_opt['color_map1'])
         plt.subplot(3, 1, 2)
         for r in range(0, len(inter_vel_all)):
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
-            if len(point_here[:, 0]) == len(inter_vel):
-                mh = np.median(inter_vel[inter_vel>0]) *5
+            if len(point_here[:, 1]) == len(inter_vel) and len(ikle_all[r]) > 2:
+                mh = np.median(inter_vel[inter_vel> 0]) * 2
                 bounds = np.linspace(0, mh, 10)
                 sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm, vmin=0,
                                      vmax=mh, levels=bounds, extend='both')
@@ -2118,14 +2124,14 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
-        cm = plt.cm.get_cmap('jet')
+        cm = plt.cm.get_cmap(fig_opt['color_map2'])
         plt.subplot(3, 1, 3)
         for r in range(0, len(inter_h_all)):
             point_here = np.array(point_all_reach[r])
             inter_h = inter_h_all[r]
-            if len(point_here) == len(inter_h):
+            if len(point_here) == len(inter_h) and len(ikle_all[r]) > 2:
                 inter_h[inter_h < 0] = 0
-                mh = np.median(inter_h[inter_h > 0]) * 10
+                mh = np.median(inter_h[inter_h > 0]) * 2
                 bounds = np.linspace(0, mh, 10)
                 sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, vmin=0, vmax=mh,
                                      cmap=cm, levels=bounds, extend='both')
@@ -2137,12 +2143,21 @@ def plot_grid_simple(point_all_reach, ikle_all, inter_vel_all=[], inter_h_all=[]
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
+
+    # save figures
     if merge_case:
-        plt.savefig(os.path.join(path_im, "Merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=800)
-        plt.savefig(os.path.join(path_im, "Merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=800)
+        suffix = 'Merge_t'+str(time_step) + '_'
     else:
-        plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=800)
-        plt.savefig(os.path.join(path_im, "Hydro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=800)
+        suffix = 'Hydro_t'+str(time_step) + '_'
+    if format1 == 0 or format1 == 1:
+        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                    dpi=fig_opt['resolution'])
+    if format1 == 0 or format1 == 3:
+        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                    dpi=fig_opt['resolution'])
+    if format1 == 2:
+        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                    dpi=fig_opt['resolution'])
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[], inter_h_all=[], path_im = [], coord_pro2 = []):
