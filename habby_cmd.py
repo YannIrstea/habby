@@ -15,6 +15,7 @@ from src import hec_ras2D
 from src import estimhab
 from src import stathab_c
 from src import substrate
+from src import fstress
 
 
 def all_command(all_arg, name_prj, path_prj, path_bio):
@@ -41,6 +42,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print("LOAD_HECRAS_1D: load the hec-ras data in 1D. Input: name of .geo, name of the data file, interpolation "
               "choice,(number of profile to add), (output name)")
         print("LOAD_HECRAS_2D: load the hec-ras data in 2D. Input: name of the .h5 file, (output name)")
+        print('LOAD_HYDRO_HDF5: load an hydrological hdf5. Input: the name of the hdf5 (with the path)')
         print("LOAD_MASCARET: load the mascaret data. Input: name of the three inputs files - xcas, geo, opt, "
               "manning coefficient, interpolation choice, (number of profile to add), (output name), (nb_point_vel=x)")
         print("LOAD_RIVER_2D: load the river 2d data. Input folder containing the cdg file, (output name)")
@@ -50,7 +52,6 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print("LOAD_RUBAR2D: load the Rubar data in 2D. Input: name of input file 1, name of input file 2, "
               "(output name)")
         print("LOAD_TELEMAC: load the telemac data. Input: name of the .res file, (output name)")
-        print('LOAD_HYDRO_HDF5: load an hydrological hdf5. Input: the name of the hdf5 (with the path)')
 
         print('\n')
         print('MERGE_GRID: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5'
@@ -62,9 +63,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print('LOAD_SUB_HDF5: load the substrate data in an hdf5 form. Input: the name of the hdf5 file (with path)')
 
         print('\n')
-        print("RUN_STATHAB: Run the stathab model. Need the path to the folder with the different input files.")
         print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub'
               '- all data in float')
+        print('RUN_FSTRESS: Run the fstress model. Input: the path the files list_riv, deb, andd qwh.txt and'
+              ' (path where to save output)')
+        print("RUN_STATHAB: Run the stathab model. Need the path to the folder with the different input files.")
 
         print('\n')
         print("RESTART: Relauch HABBY based on a list of command in a text file (restart file) Input: the name of file"
@@ -438,7 +441,42 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
     # -----------------------------------------------------------------------------------
     elif all_arg[1] == 'RUN_FSTRESS':
-        print('FSTRESS is not done yet on the command line.')
+
+        if not 2 < len(all_arg) < 5:
+            print('RUN_FSTRESS needs between one and two inputs. See LIST_COMMAND for more information.')
+            return
+
+        path_fstress = all_arg[2]
+        if len(all_arg) == 3:
+            path_hdf5 = path_prj
+        else:
+            path_hdf5 = all_arg[3]
+        # do not change the name from this file which should be in the biology folder.
+        name_bio = 'pref_fstress.txt'
+
+        # get the data from txt file
+        [riv_name, qhw, qrange] = func_for_cmd.load_fstress_text(path_fstress)
+
+        if qhw == [-99]:
+            return
+
+        # get the preferences curve, all invertebrate are selected by default
+        [pref_inver, inv_name] = fstress.read_pref(path_bio, name_bio)
+
+        # save input data in hdf5
+        fstress.save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, qhw, qrange, inv_name)
+
+        # run fstress
+        [vh_all, qmod_all, inv_name] = fstress.run_fstress(qhw, qrange, riv_name, inv_name, pref_inver, inv_name,
+                                                           name_prj, path_prj)
+
+        # write output in txt
+        fstress.write_txt(qmod_all, vh_all, inv_name, path_prj, riv_name)
+
+        # plot output in txt
+        fstress.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
+        plt.show()
+
 
     # --------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_SHP':

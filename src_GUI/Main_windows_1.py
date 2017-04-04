@@ -194,7 +194,9 @@ class MainWindows(QMainWindow):
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
         self.central_widget.add_all_tab()
-        self.central_widget.tab_widget.removeTab(0)  # WHY? I don't understand
+        self.central_widget.tab_widget.removeTab(1)  # WHY? I don't understand
+        self.central_widget.welcome_tab.name_prj = self.name_prj
+        self.central_widget.welcome_tab.path_prj = self.path_prj
 
         # create the new menu
         self.my_menu_bar()

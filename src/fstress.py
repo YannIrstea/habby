@@ -239,7 +239,7 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
     """
     This function run the model FStress for HABBY. FStress is based on the model of Nicolas Lamouroux. This model
     estimates suitability indices for invertebrate in relation with shear stress distributions. However, shear stress
-    do not needs to be measured. There are statistically estimated based on velocity and height measurement.
+    do not needs to be measured. It is statistically estimated based on velocity and height measurement.
 
     :param riv_name: the name of the river-> string
     :param data_hydro: the hydrological data (q,w,h for each river in riv name) -> list of list
