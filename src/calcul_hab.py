@@ -29,6 +29,10 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     failload = [-99], [-99], [-99], [-99], [-99]
     vh_all_t_sp = []
     spu_all_t_sp = []
+    vel_c_att_t = []
+    height_c_all_t = []
+    area_all_t = []
+    found_stage = 0
 
     if len(bio_names) != len(stages):
         print('Error: Number of stage and species is not coherent. \n')
@@ -49,10 +53,13 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
         xmlfile = os.path.join(path_bio, bio_name)
         [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info.read_pref(xmlfile)
         if pref_height == [-99]:
-            return
+            print('Error: preference file could not be loaded. \n')
+            return failload
 
         for idx2, stade_bio in enumerate(stade_bios):
+
             if stages[idx] == stade_bio:
+                found_stage += 1
                 pref_height = pref_height[idx2]
                 pref_vel = pref_vel[idx2]
                 pref_sub = pref_sub[idx2]
@@ -73,10 +80,12 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
                 vh_all_t_sp.append(vh_all_t)
                 spu_all_t_sp.append(spu_all_t)
 
+        if found_stage == 0:
+            print('Error: the name of the fish stage are not coherent \n')
+            return failload
+
     b = time.time()
 
-    print('Create vallue habitat:')
-    print(b-a)
 
     return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp
 
@@ -84,7 +93,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
 def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub):
     """
     This function calculates the habitat suitiabilty index (f(H)*f(v)*f(sub)) for each and the SPU which is the sum of
-    all hbitat suitability index weighted by the cell area for each reach
+    all hbitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
 
     :param ikle_all_t: the connectivity table for all time step, all reach
     :param point_all_t: the point of the grid
@@ -311,7 +320,6 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                                 str(sub_pg[i]) + ' ' +str(sub_dom[i]) + ' ' +vh_str + '\n')
 
 
-
 def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
     """
     This function create a text files with the folowing columns: the tiem step, the reach number, the area of the
@@ -383,6 +391,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
             print('Warning: One time step failed. \n')
         else:
             w = shapefile.Writer(shapefile.POLYGON)
+            w.autoBalance = 1
 
             # get the triangle
             for r in range(0, nb_reach):
@@ -414,16 +423,17 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                         data_here = ()
                         for j in range(0, len(name_fish)):
                             try:
-                                data_here +=(vh_data[j][t][r][i],)
+                                # necessarry. Without it number > 1 are found in the shape. Format problem.
+                                data_here +=(np.round(vh_data[j][t][r][i], 4),)
                             except IndexError:
-                                print('Error: Results could not be written to text file \n')
+                                print('Error: Results could not be written to shape file \n')
                                 return
                         data_here += vel[i], height[i], sub_pg[i], sub_dom[i]
                         # the * pass tuple to function argument
                         w.record(*data_here)
 
             w.autoBalance = 1
-            name1 = name_base + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+            name1 = name_base + 't_' + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
             w.save(os.path.join(path_shp, name1))
 
 

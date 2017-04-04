@@ -509,7 +509,7 @@ def load_sub_txt(filename, path, code_type):
     return xy, ikle, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg
 
 
-def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribute_type, nb_point=200):
+def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribute_type, nb_point=200, path_out='.'):
     """
     This function takes an hydrological hdf5 as inputs and create a shapefile of substrate and a text file of substrate
     which can be used as input for habby. The substrate data is random. So it is mainly useful to test an hydrological
@@ -523,9 +523,10 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     :param h5name: the name of the hydrological hdf5 file
     :param path: the path to this file
     :param new_name: the name of the create shape file wihtout the shp (string)
-    :param code_type: the code type for the substrate (sandre, cemagref or edf)
+    :param code_type: the code type for the substrate (Sandre, Cemagref or EDF)
     :param attribute_type: if the substrate is given in the type coarser/dominant/..(0) or in percenctage (1)
     :param nb_point: the number of point needed (more points results in smaller substrate form)
+    :param path_out: the path where to save the new substrate shape
     """
 
     # load hydro hdf5
@@ -635,12 +636,12 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
                 w.record(data_sub[i][0], data_sub[i][1],data_sub[i][2], data_sub[i][3],data_sub[i][4], data_sub[i][5],
                          data_sub[i][6], data_sub[i][7],data_sub[i][8], data_sub[i][9],data_sub[i][10], data_sub[i][11])
     w.autoBalance = 1
-    w.save(os.path.join(path, new_name + '.shp'))
+    w.save(os.path.join(path_out, new_name + '.shp'))
 
     # pass to text file
     if attribute_type == 0:
         data = np.hstack((np.array(point_new), np.array(data_sub_txt)))
-        np.savetxt(os.path.join(path, new_name+'.txt'), data)
+        np.savetxt(os.path.join(path_out, new_name+'.txt'), data)
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj, model_type,

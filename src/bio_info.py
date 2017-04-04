@@ -540,8 +540,60 @@ def load_xml_name(path_bio, attributes):
         print('Error: No preference file could be read. Please check the biology folder.\n')
 
     data_fish = np.array(data_fish)
+    print(data_fish)
 
     return data_fish
+
+
+def get_stage(names_bio, path_bio):
+    """
+    This function loads all the stages present in a list of  xml preference files (JUV, ADU, etc) and the latin name of
+    the fish species. All the files should be in the same folder indicated by path_bio. It is mainly used by habby_cmd
+    but it can be useful in other cases also.
+
+    :param names_bio: A list of xml biological preference file
+    :param path_bio: the path to the xml preference files (usually './biology')
+    :return: the stages in a list of string
+
+    """
+    stages_all = []
+    latin_all = []
+
+    for n in names_bio:
+
+        # load the file
+        try:
+            try:
+                docxml = ET.parse(os.path.join(path_bio, n))
+                root = docxml.getroot()
+            except IOError:
+                print("Warning: the xml file " + n + " does not exist \n")
+                break
+        except ET.ParseError:
+            print("Warning: the xml file " + n + "is not well-formed.\n")
+            break
+
+        # get the stage
+        stages = root.findall(".//Stage")
+        if len(stages) == 0:
+            print('no stage found in ' + n + "\n")
+            break
+        else:
+            try:
+                stages = [s.attrib['Type'] for s in stages]
+            except KeyError:
+                print('no stage found in ' + n + "\n")
+                break
+        stages_all.append(stages)
+
+        # get latin name
+        data = root.find(".//LatinName")
+        # None is null for python 3
+        if data is not None:
+            latin = data.text.strip()
+        latin_all.append(latin)
+
+    return latin_all, stages_all
 
 
 def plot_hydrosignature(xmlfile):

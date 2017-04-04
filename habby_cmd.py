@@ -16,6 +16,9 @@ from src import estimhab
 from src import stathab_c
 from src import substrate
 from src import fstress
+from src import calcul_hab
+from src import convert_to_paraview
+from src import bio_info
 
 
 def all_command(all_arg, name_prj, path_prj, path_bio):
@@ -61,10 +64,18 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the shapefile,'
               'code_type as Cemagref or Sandre')
         print('LOAD_SUB_HDF5: load the substrate data in an hdf5 form. Input: the name of the hdf5 file (with path)')
+        print('CREATE_RAND_SUB: create random substrate in the same geographical location of the hydrological files. '
+              'Will be created  in the cemagref code in the type coarser?dominant/... '
+              'Input: the name of the hydrological hdf5 file (with path), (output name)')
 
         print('\n')
         print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub'
               '- all data in float')
+        print('RUN_HAB_COARSE: Estimate the habitat value from an hdf5 merged files. It used the coarser substrate '
+              'as the substrate layer.'
+              'Input: pathname of merge file, name of xml prefence file with no path, (output name). To get the '
+              'calculation on more than one fish species, separate the names of the xml biological files'
+              ' by a comma without a space between the comman and the filenames. ')
         print('RUN_FSTRESS: Run the fstress model. Input: the path the files list_riv, deb, andd qwh.txt and'
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Need the path to the folder with the different input files.")
@@ -477,7 +488,6 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         fstress.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
         plt.show()
 
-
     # --------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_SHP':
 
@@ -580,7 +590,92 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         hdf5_name_sub = all_arg[1]
         [ikle_sub, point_all_sub, data_sub] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
 
+    # ----------------------------------------------------------------
+    elif all_arg[1] == 'RUN_HAB_COARSE':
+        if not 3 < len(all_arg) < 6:
+            print('RUN_HAB_COARSE needs between three and four input. See LIST_COMMAND for more information.')
+            return
 
+        # merge hdf5 (with hydro and subtrate data)
+        merge_path_name = all_arg[2]
+        merge_name = os.path.basename(merge_path_name)
+        path_merge = os.path.dirname(merge_path_name)
+
+        # the xml preference files
+        bio_names = all_arg[3]
+        bio_names = bio_names.split(',')
+        for i in range(0, len(bio_names)): # in case there is spaces
+            bio_names[i] = bio_names[i].strip()
+
+        # create name_fish (the name of fish and stage to be calculated)
+        # addapt bionames and stage
+        name_fish = []
+        stage2 = []
+        bio_name2 = []
+        [latin_name, stages] = bio_info.get_stage(bio_names, path_bio)
+        for l in range(0,len(latin_name)):
+            for s in stages[l]:
+                name_fish.extend([latin_name[l] + '_' + s])
+                stage2.extend([s])
+                bio_name2.extend([bio_names[l]])
+        stages = stage2
+        bio_names = bio_name2
+
+        if len(all_arg) == 5:
+            name_base = all_arg[4]
+        else:
+            name_base = 'OUTPUT_HAB'
+
+        # run calculation
+        # we calculate hab on all the stage in xml preference files
+        [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all_t, spu_all_t_sp] = \
+            calcul_hab.calc_hab(merge_name, path_merge, bio_names, stages, path_bio, 0)
+        if vh_all_t_sp == [-99]:
+            return
+        print("Calculation done...")
+
+        # save txt
+        calcul_hab.save_hab_txt(merge_name, path_merge, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_prj,
+                                name_base)
+        calcul_hab.save_spu_txt(area_all_t, spu_all_t_sp, name_fish, path_prj, name_base)
+        print("Text output created...")
+
+        # save shp
+        calcul_hab.save_hab_shape(merge_name, path_merge, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish,
+                                  path_prj, name_base)
+
+        print("Shapefile created...")
+
+        # figure
+        calcul_hab.save_hab_fig_spu(area_all_t, spu_all_t_sp, name_fish, path_prj, name_base)
+        calcul_hab.save_vh_fig_2d(merge_name, path_merge, vh_all_t_sp, path_prj, name_fish, name_base, [-1])
+        plt.close()
+        print("Figure saved (not shown) ...")
+
+        # paraview
+        convert_to_paraview.habitat_to_vtu(name_base, path_prj, path_merge, merge_name, vh_all_t_sp, height_c_all_t,
+                                           vel_c_all_t, name_fish, False)
+        print("Paraview output created...")
+        print("All done.")
+
+    # --------------------------------------------------------------------------------------
+    elif all_arg[1] == 'CREATE_RAND_SUB':
+
+        if not 2 < len(all_arg) < 5:
+            print('CREATE_RAND_SUB needs between one and two inputs. See LIST_COMMAND for more information.')
+            return
+        pathname_h5 = all_arg[2]
+        h5name = os.path.basename(pathname_h5)
+        path_h5 = os.path.dirname(pathname_h5)
+
+        if len(all_arg) == 4:
+            new_name = all_arg[3]
+        else:
+            new_name = 'Random_sub'
+
+        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 200, path_prj)
+
+    # ----------------------------------------------------------------------
     else:
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
 
