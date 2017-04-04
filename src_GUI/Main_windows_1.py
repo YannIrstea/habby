@@ -1046,19 +1046,21 @@ class MainWindows(QMainWindow):
 
         Indeed, it is possible to show extra tab in HABBY. These supplementary tab correspond to open for researcher.
         The plan is that these options are less tested than other mainstream options. It is not clear yet what
-        will be added to these options, but the basic architecture is there when it will be needed.
+        will be added to these options, but the tabs are already there when it will be needed.
         """
         self.rechmain = True
-        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # 0 is not research mode
-        self.setCentralWidget(self.central_widget)
+        self.central_widget.tab_widget.addTab(self.central_widget.other_tab, self.tr("Research 1"))
+        self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
 
     def close_rech(self):
         """
-            Close the additional research menu (see open_rech for more information)
+            Close the additional research menu (see open_rech for more information). For the moment, ONLY works with
+            two research tabs. Modify this function if a different number of tab is needed.
         """
+        if self.rechmain:
+            for i in range(self.central_widget.tab_widget.count(), self.central_widget.tab_widget.count()-3, -1):
+                self.central_widget.tab_widget.removeTab(i)
         self.rechmain = False
-        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj)  # 0 is not research mode
-        self.setCentralWidget(self.central_widget)
 
     def clear_log(self):
         """

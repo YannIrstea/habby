@@ -342,6 +342,14 @@ This module contains the function to manage the substrate data. This is still a 
 Various notes
 ===============
 
+The legend of the plots are not shown.
+----------------------------------------
+Generally HABBY is able to save the figure while showing the legend (which is often outside of the figure) appropriately. However, 
+the figure shown to the user by matplotlib often have the legend outside of the visible area. To see the figure fully, one can modify
+the axes in the option of the figure (the menu in the axes on the top of the figure).
+
+
+
 Translation of HABBY
 ------------------------
 

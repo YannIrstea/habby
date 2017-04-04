@@ -415,7 +415,7 @@ def create_default_figoption():
     fig_dict['font_size'] = 12
     fig_dict['line_width'] = 1
     fig_dict['grid'] = False
-    fig_dict['time_step'] = 1,-1
+    fig_dict['time_step'] = '1,-1'
     fig_dict['raw_data'] = False
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800
