@@ -626,7 +626,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
         fstress.figure_fstress(qmod, vh, inv_select, self.path_im, self.riv_name, fig_opt)
         self.show_fig.emit()
-        fstress.write_txt(qmod, vh, inv_select, self.path_prj, self.riv_name)
+        path_txt = self.find_path_text_est()
+        fstress.write_txt(qmod, vh, inv_select, path_txt, self.riv_name)
 
         # log
         str_found = mystdout.getvalue()

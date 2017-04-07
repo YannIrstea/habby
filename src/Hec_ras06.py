@@ -3,6 +3,7 @@ import xml.etree.ElementTree as Etree
 import os
 import re
 import numpy as np
+import bisect
 from io import StringIO
 import sys
 import time
@@ -51,9 +52,10 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     # load the hec-ra data (the function is just below)
     [coord_pro, vh_pro, nb_pro_reach] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
                                                     save_fig1d, fig_opt)
+
     if save_fig1d:  # to avoid problem with matplotlib
         close()
-    if coord_pro == [-99]:
+    if coord_pro == [-99] or len(vh_pro) <1:
         print('Error: HEC-RAS data not loaded')
         if q:
             sys.stdout = sys.__stdout__
@@ -1229,7 +1231,6 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                                 xy_h_pro[ind_dup[j], 0] -= ax * dist_mov * (j+1)
                                 xy_h_pro[ind_dup[j], 1] -= ay * dist_mov * (j+1)
 
-
                 # add the new profile
                 coord_pro_p = [xy_h_pro[:, 0], xy_h_pro[:, 1], data_profile_p[:, 1], xy_h_pro[:, 2]]
                 coord_pro.append(coord_pro_p)
@@ -1262,7 +1263,12 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
             zone_v_pro = zone_v[t][p]
             zone_v_new = np.zeros((len(h_p),))
             for i in range(0, len(h_p)):
-                indv = np.argmin(abs(zone_v_pro[:, 2] - x_p[i]))
+                if x_p[1] >= x_p[0]: # if coord increase along the profile (usually the case)
+                    indv = bisect.bisect(zone_v_pro[:, 2], x_p[i]) - 1
+                else:
+                    print('Error x-coordinate does not increase. \n')
+                    return [-99], [-99]
+                #indv = np.argmin(abs(zone_v_pro[:, 2] - x_p[i]))
                 zone_v_new[i] = zone_v_pro[indv, 3]
             # velcoity is zeros if water height = 0, velocity is by zone and not by point
             # so two additional point needed for plotting

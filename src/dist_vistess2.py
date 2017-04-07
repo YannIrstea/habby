@@ -209,6 +209,10 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 x1 = x1[vert]
                 n = n[vert]
 
+                if n[0] == 0:
+                    print('Warning: Manning parameter should be higher than zero. n is set to 1e-6. \n')
+                    n = 1e-6
+
                 # get wetted perimeter, area, hydraulic radius
                 wet_pro = np.sqrt((hmax - hmin)**2 + (x1 - x0)**2)
                 area = 0.5 * (hmax - hmin) * (x1 - x0) + (x1 - x0) * (h_w_p - hmax)
@@ -571,7 +575,7 @@ def main():
     #mail = 'mail.LE13'
     #geofile = 'four.rbe'
     #data = 'profil.four'
-    [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
+    #[xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
 
     # test the new manning function
     # nb_point = 5

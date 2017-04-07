@@ -40,6 +40,8 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     inter_vel_all_t = []
     inter_h_all_t = []
 
+    print('blob1')
+
     # load hec-ras data
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
@@ -53,6 +55,7 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
                 return
             else:
                 return
+
 
     # mimic the "whole" profile for 1D model (t=0)
     point_all_t = [coord_p]
@@ -253,10 +256,10 @@ def load_hec_ras2d(filename, path):
         vel_t_all.append(vel_t)
 
     # get a triangular grid as hec-ras output are not triangular
-    [ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all] = get_triangular_grid_hecras(
+    [ikle_all, coord_c_all, coord_p_all, vel_t_all2, water_depth_t_all2] = get_triangular_grid_hecras(
         ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
 
-    return vel_t_all, water_depth_t_all, elev_all, coord_p_all, coord_c_all, ikle_all
+    return vel_t_all2, water_depth_t_all2, elev_all, coord_p_all, coord_c_all, ikle_all
 
 
 def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
@@ -291,24 +294,22 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
         coord_c = list(coord_c_all[r])
         ikle = list(ikle_all[r])
         xy = list(point_all[r])
-        h2 = []
-        v2 = []
 
         nbtime = len(v)
-        for t in range(0, nbtime):
-            h2.append(list(h[t][r]))
-            v2.append(list(v[t][r]))
-
         # now create the triangular grid
         likle = len(ikle)
         to_be_delete = []
+        len_c = []
         for c in range(0, likle):
             ikle[c] = [item for item in ikle[c] if item >= 0]  # get rid of the minus 1 in ikle
             ikle_c = ikle[c]
 
             # in hec-ras, the permieter cells are in the ikle, so we have cells with only two point
             if len(ikle_c) < 3:
+                len_c.append(0)
                 to_be_delete.append(c)
+            if len(ikle_c) == 3:
+                len_c.append(1)
             # we neglect it here
             if len(ikle_c) > 3:
                 # the new cell is compose of triangle where one point is the centroid and two points are side of
@@ -320,31 +321,57 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
                 ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
                 p1 = xy[len(xy)-1]
                 coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1)/3
+                len_c.append(len(ikle_c) - 1)
                 # next triangular cell
                 for s in range(1, len(ikle_c)-1):
                     ikle.append([ikle_c[s], ikle_c[s+1], len(xy) - 1])
                     coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s+1]] + p1) / 3)
-                    for t in range(0, nbtime):
-                        v2[t].append(v[t][r][c])
-                        h2[t].append(h[t][r][c])
+                    # for t in range(0, nbtime):
+                    #     v2[t].append(v[t][r][c])
+                    #     h2[t].append(h[t][r][c])
                 # last triangular cells
                 ikle.append([ikle_c[-1], ikle_c[0], len(xy) - 1])
                 coord_c.append((xy[ikle_c[-1]] + xy[ikle_c[0]] + p1) / 3)
-                for t in range(0, nbtime):
-                    v2[t].append(v[t][r][c])
-                    h2[t].append(h[t][r][c])
+                # for t in range(0, nbtime):
+                #     v2[t].append(v[t][r][c])
+                #     h2[t].append(h[t][r][c])
 
         # no empty cell
         for i in sorted(to_be_delete, reverse=True):
             del ikle[i]
+            del coord_c[i]
+
         # add grid by reach
         ikle_all[r] = np.array(ikle)
         point_all[r] = np.array(xy)
         coord_c_all[r] = np.array(coord_c)
+
+        # put the data in the new cells (np.array to save memeory if a lot of time step)
+        h2 = np.zeros((nbtime, len(ikle)))
+        v2 = np.zeros((nbtime, len(ikle)))
+
+        h = np.array(h)
+        v = np.array(v)
+
+        m = likle - len(to_be_delete)
+        for c in range(0, likle):
+            if len_c[c] > 0.5:
+                h2[:, c] = h[:, r, c]
+                v2[:, c] = v[:, r, c]
+                if len_c[c] >1:
+                    for s in range(1, len_c[c]):
+                        h2[:, m] = h[:, r, c]
+                        v2[:, m] = v[:, r, c]
+                        m += 1
+                    h2[:, m] = h[:, r, c]
+                    v2[:, m] = v[:, r, c]
+                    m += 1
+
         # add data bt time step
         for t in range(0, nbtime):
-            v_all[t][r] = np.array(v2[t])  # list of np.array
-            h_all[t][r] = np.array(h2[t])
+            v_all[t][r] = v2[t, :] # list of np.array
+            h_all[t][r] = h2[t, :]
+
     return ikle_all, coord_c_all, point_all, v_all, h_all
 
 

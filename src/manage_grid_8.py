@@ -80,6 +80,9 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
 
         # by time step
         for t in range(0, len(vh_pro)):
+            if t % 10 == 0:
+                print('time step :'+str(t))
+
             [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
                                            create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
             inter_vel_all_t.append(inter_vel_all)
@@ -1960,7 +1963,10 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
         normb = np.sqrt((x1all[-1] - x1all[0])**2 + (y1all[-1] - y1all[0])**2)
         # cos(theta) = a.b / (norm(a) * norm(b))
         dota = ((x2-x1)*(x1all[-1] - x1all[0]) + (y2 - y1)*(y1all[-1] - y1all[0]))/ (norma*normb)
-        theta = np.arccos(dota)
+        if dota > 1 or dota < -1:
+            theta = 0.5
+        else:
+            theta = np.arccos(dota)
         inter1 = True
         inter2 = True
         warn_here = True

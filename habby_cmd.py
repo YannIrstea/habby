@@ -2,6 +2,8 @@ import sys
 import os
 import time
 import glob
+import matplotlib
+matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from src import selafin_habby1
 from src import mascaret
@@ -52,7 +54,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print("LOAD_RUBAR_1D: load the Rubar data in 1D. Input: name of input file .rbe, name of the profile input "
               "file, manning coefficient, interpolation choice, (number of profile to add), (output name),"
               "(nb_point_vel=x)")
-        print("LOAD_RUBAR2D: load the Rubar data in 2D. Input: name of input file 1, name of input file 2, "
+        print("LOAD_RUBAR_2D: load the Rubar data in 2D. Input: name of .dat or .mai file, name of input .tps file "
               "(output name)")
         print("LOAD_TELEMAC: load the telemac data. Input: name of the .res file, (output name)")
 
@@ -104,7 +106,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            name_hdf5 = 'Hydro_TELEMAC_' + namefilet
+            name_hdf5 = 'Hydro_TELEMAC_' + namefilet.replace('.','')
             path_hdf5 = path_prj
 
         selafin_habby1.load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, 'TELEMAC',2,
@@ -126,7 +128,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # hdf5 and pro_add
         pro_add_is_here = False
         if len(all_arg) == 5:  # .py com f1 f2 int_type
-            name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0]
+            name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0].replace('.', '')
             path_hdf5 = path_prj
         if len(all_arg) == 6:  # .py com f1 f2 int_type pro_add or .py com f1 f2 int_type output
             try:
@@ -139,7 +141,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 name_hdf5 = os.path.basename(namepath_hdf5)
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
-                name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0]
+                name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0].replace('.', '')
                 path_hdf5 = path_prj
         if len(all_arg) == 7:   # .py com f1 f2 int_type pro_add output
             pro_add_is_here = True
@@ -177,10 +179,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            name_hdf5 = 'Hydro_HECRAS2D_' + namefile
+            name_hdf5 = 'Hydro_HECRAS2D_' + namefile.replace('.', '')
             path_hdf5 = path_prj
         hec_ras2D.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
-                                               path_hdf5, [], False)
+                                               path_hdf5, [], True)
 
     # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_RUBAR_2D':
@@ -197,7 +199,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         tpsfile = os.path.basename(filename_data)
 
         if len(all_arg) == 4:
-            name_hdf5 = 'Hydro_RUBAR2D_' + geofile[0]
+            name_hdf5 = 'Hydro_RUBAR2D_' + geofile[0].replace('.', '')
             path_hdf5 = path_prj
         if len(all_arg) == 5:
             namepath_hdf5 = all_arg[4]
@@ -246,7 +248,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
         # get the interpolatin type and hdf5 name
         if len(all_arg) == 6:  # .py com f1 f2 f3 int_type
-            name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0]
+            name_hdf5 = 'Hydro_MASCARET_' + namefile[0].replace('.', '')
             path_hdf5 = path_prj
         if len(all_arg) == 7:  # .py com f1 f2 f3 int_type pro_add or .py com f1 f2 f3 int_type output
             try:
@@ -259,7 +261,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 name_hdf5 = os.path.basename(namepath_hdf5)
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
-                name_hdf5 = 'Hydro_MASCARET_' + namefile[0]
+                name_hdf5 = 'Hydro_MASCARET_' + namefile[0].replace('.', '')
                 path_hdf5 = path_prj
         if len(all_arg) == 8:
             pro_add_is_here = True
@@ -296,7 +298,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             paths.append(all_arg[2])
 
         if len(all_arg) == 3:
-            name_hdf5 = 'Hydro_RIVER2D_' + filenames[0]
+            name_hdf5 = 'Hydro_RIVER2D_' + filenames[0].replace('.', '')
             path_hdf5 = path_prj
         if len(all_arg) == 4:
             namepath_hdf5 = all_arg[3]
@@ -308,8 +310,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
 # -------------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_RUBAR_1D':
-        if not 6 < len(all_arg) < 11:
-            print('The function LOAD_RUBAR_1D needs five to eight inputs. Call LIST_COMMAND for more '
+        if not 5 < len(all_arg) < 10:
+            print('The function LOAD_RUBAR_1D needs four to seven inputs. Call LIST_COMMAND for more '
                   'information.')
             return
 
@@ -332,7 +334,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 break
 
         # get the manning data 9can be a float or the name of a text file
-        manning_data = all_arg[5]
+        manning_data = all_arg[4]
         try:
             manning_data = float(manning_data)
         except ValueError:
@@ -344,7 +346,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
         # get the interpolatin type and hdf5 name
         if len(all_arg) == 5:  # .py com f1 f2 int_type
-            name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0]
+            name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0].replace('.', '')
             path_hdf5 = path_prj
         if len(all_arg) == 6:  # .py com f1 f2 int_type pro_add or .py com f1 f2 int_type output
             try:
@@ -357,11 +359,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 name_hdf5 = os.path.basename(namepath_hdf5)
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
-                name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0]
+                name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0].replace('.', '')
                 path_hdf5 = path_prj
         if len(all_arg) == 7:
             pro_add_is_here = True
-            pro_add = int(all_arg[6])
+            pro_add = int(all_arg[5])
             namepath_hdf5 = all_arg[6]
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
@@ -540,8 +542,15 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             print('MERGE_GRID_SUB needs between three and four inputs. See LIST_COMMAND for more information.')
             return
 
-        hdf5_name_hyd = all_arg[2]
-        hdf5_name_sub = all_arg[3]
+        hdf5_name_hyd = os.path.basename(all_arg[2])
+        hdf5_name_sub = os.path.basename(all_arg[3])
+        path_hdf5_in = os.path.dirname(hdf5_name_hyd)
+        path_hdf5_in2 = os.path.dirname(hdf5_name_sub)
+
+        if path_hdf5_in != path_hdf5_in2:
+            print('Error: hydro and sub hdf5 should be in the same folder.')
+            return
+
         try:
             default_data = int(all_arg[4])
         except ValueError:
@@ -564,15 +573,73 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             path_hdf5 = path_prj
 
         [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = substrate.merge_grid_hydro_sub(
-            hdf5_name_hyd, hdf5_name_sub, default_data, path_prj)
+            hdf5_name_hyd, hdf5_name_sub,path_hdf5_in,  default_data, path_prj)
         if ikle_both == [-99]:
             print('Error: data not merged.')
             return
+
         load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
                              point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
                             sub_dom_all_both)
 
+    # --------------------------------------------------------------------------------
+    elif all_arg[1] == 'MERGE_GRID_RAND_SUB':
+        # this merge an hydro hdf5 with a random substrate
+
+        if not 2 < len(all_arg) < 5:
+            print('MERGE_GRID_RAND_SUB needs between one and two inputs.')
+            return
+
+        # name of the hydrological hdf5
+        hdf5_name_hyd = all_arg[2]
+
+        default_data = 1.0
+
+        # create a random substrate in a shp form
+        h5name = os.path.basename(hdf5_name_hyd)
+        path_h5 = os.path.dirname(hdf5_name_hyd)
+        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Cemagref', 0, 200, path_prj)
+
+        # save it in hdf5 form
+        filename_shp = 'random_sub.shp'
+        [xy, ikle, sub_dom, sub_pg, blob] = substrate.load_sub_shp(filename_shp, path_prj, 'Cemagref', -1)
+        if ikle == [-99]:
+            return
+        hdf5_name_sub = load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy,
+                                                '', False, 'SUBSTRATE', True)
+
+        # delete the random shapefile (so we can create a new one without problem)
+        for f in os.listdir(path_prj):
+            if f[:9] == 'random_sub':
+                os.remove(os.path.join(path_prj,f))
+
+        # new merged hdf5 name
+        if len(all_arg) == 4:
+            namepath_hdf5 = all_arg[3]
+            name_hdf5 = os.path.basename(namepath_hdf5)
+            path_hdf5 = os.path.dirname(namepath_hdf5)
+        else:
+            if len(hdf5_name_hyd) > 33:
+                name_hdf5 = 'Hydro_MERGE_cmd' + h5name[6:-26]
+            else:
+                name_hdf5 = 'Hydro_MERGE_cmd' + h5name
+            path_hdf5 = path_prj
+
+        # merge data
+        [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both,
+         height_all_both] = substrate.merge_grid_hydro_sub(
+            h5name, hdf5_name_sub, path_h5, default_data, path_prj)
+        if ikle_both == [-99]:
+            print('Error: data not merged.')
+            return
+
+        # save it
+        load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
+                            point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
+                            sub_dom_all_both)
+
     # --------------------------------------------------------------------------------------------------------
+
     elif all_arg[1] == 'LOAD_HYDRO_HDF5':
         if len(all_arg) != 3:
             print('LOAD_HYDRO_HDF5 needs one input (the name of the hdf5 file).')
@@ -593,7 +660,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
     # ----------------------------------------------------------------
     elif all_arg[1] == 'RUN_HAB_COARSE':
         if not 3 < len(all_arg) < 6:
-            print('RUN_HAB_COARSE needs between three and four input. See LIST_COMMAND for more information.')
+            print('RUN_HAB_COARSE needs between two and three inputs. See LIST_COMMAND for more information.')
             return
 
         # merge hdf5 (with hydro and subtrate data)
@@ -649,8 +716,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # figure
         calcul_hab.save_hab_fig_spu(area_all_t, spu_all_t_sp, name_fish, path_prj, name_base)
         calcul_hab.save_vh_fig_2d(merge_name, path_merge, vh_all_t_sp, path_prj, name_fish, name_base, [-1])
-        plt.close()
-        print("Figure saved (not shown) ...")
+        print("Figure saved ...")
 
         # paraview
         convert_to_paraview.habitat_to_vtu(name_base, path_prj, path_merge, merge_name, vh_all_t_sp, height_c_all_t,
@@ -671,7 +737,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         if len(all_arg) == 4:
             new_name = all_arg[3]
         else:
-            new_name = 'Random_sub'
+            new_name = 'rand_sub_' + h5name
 
         substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 200, path_prj)
 
@@ -820,7 +886,11 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio):
             print(all_arg_here[i])
 
         # execute the command
+        a = time.time()
         all_command(all_arg_here, name_prj, path_prj, path_bio)
+        t = time.time() - a
+        print('Command executed in ' + str(t) + ' sec.')
+        print('----------------------------------------------------------------------')
 
         # avoid risk of over-wrting
         time.sleep(1)
@@ -836,10 +906,11 @@ def main():
 
     # create an empty project
     name_prj = 'DefaultProj'
-    namedir = 'result_cmd' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+    namedir = 'result_cmd' #+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
     path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
     filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
-    os.makedirs(path_prj)
+    if not os.path.isdir(path_prj):
+        os.makedirs(path_prj)
     copyfile(filename_empty, os.path.join(path_prj, 'DefaultProj.xml'))
     path_bio = './biology'
 

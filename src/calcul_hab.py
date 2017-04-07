@@ -170,6 +170,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 s_pref_c = find_pref_value(s, pref_sub)
                 try:
                     vh = h_pref_c * v_pref_c * s_pref_c
+                    vh = np.round(vh,3)  # necessary ofr shapefile, do not get above 8 digits of precision
                 except ValueError:
                     print('Error: One time step misses substrate, velocity or water height value \n')
                     vh = [-99]
@@ -218,8 +219,15 @@ def find_pref_value(data, pref):
                 a1 = (prefmax - prefmin) / (dmax - dmin)
                 b1 = prefmax - a1 * dmax
                 pref_data_here = a1 * d + b1
-                if pref_data_here < 0 or pref_data_here >1+1e-10:
-                    print('Warning: preference data is not between 0 and 1. \n')
+                if pref_data_here < 0 or pref_data_here > 1:
+                    # the linear interpolation sometimes creates value like -5.55e-17
+                    if -1e-10 < pref_data_here < 0:
+                        pref_data_here = 0
+                    elif 1 < pref_data_here < 1+1e10:
+                        pref_data_here = 1
+                    else:
+                        print('Warning: preference data is not between 0 and 1. \n')
+                        print(pref_data_here)
             pref_data.append(pref_data_here)
         else:
             pref_data.append(pref_f[indh])
@@ -362,19 +370,22 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
                 f.write(data_here)
 
 
-def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_shp, name_base):
+def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish_sh, path_shp, name_base):
     """
     This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
     all the reaches together. If there is overlap between reaches, it does not care. It create an attribute table
     with the habitat value, velocity, height, substrate coarser, substrate dominant. It also create a shapefile
-    0 with the whole profile without data
+    0 with the whole profile without data.
+
+    The name of the column of the attribute table should be less than 10 character. Hence, the variable name_fish
+    has been adapted to be shorter. The shorter name_fish is called name_fish_sh.
 
     :param name_merge_hdf5: the name of the hdf5 merged file
     :param path_hdf5: the path to the hydrological hdf5 data
     :param vel_data: the velocity by reach by time step on the cell (not node!)
     :param height_data: the height by reach by time step on the cell (not node!)
     :param vh_data: the habitat value data by speces by reach by tims tep
-    :param name_fish: the list of fish latin name + stage
+    :param name_fish_sh: the list of fish latin name + stage
     :param path_shp: the path where to save the shpaefile
     :param name_base: a string on which to base the name of the files
     """
@@ -405,9 +416,8 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
 
             if t > 0:
                 # attribute
-                for n in name_fish:
-                    n = n.replace(' ', '_')
-                    w.field('hsi_'+n, 'F', 10, 8)
+                for n in name_fish_sh:
+                    w.field('hsi'+n, 'F', 10, 8)
                 w.field('vel', 'F', 10, 8)
                 w.field('water height', 'F', 10, 8)
                 w.field('sub_coarser', 'F', 10, 8)
@@ -421,10 +431,9 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                     sub_dom = sub_dom_data[t][r]
                     for i in range(0, len(ikle_r)):
                         data_here = ()
-                        for j in range(0, len(name_fish)):
+                        for j in range(0, len(name_fish_sh)):
                             try:
-                                # necessarry. Without it number > 1 are found in the shape. Format problem.
-                                data_here +=(np.round(vh_data[j][t][r][i], 4),)
+                                data_here +=(vh_data[j][t][r][i],)
                             except IndexError:
                                 print('Error: Results could not be written to shape file \n')
                                 return

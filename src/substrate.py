@@ -2,6 +2,7 @@ import shapefile
 import os
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
+from random import uniform
 #import matplotlib.tri as tri
 from io import StringIO
 import sys
@@ -539,10 +540,10 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     maxy = -1e40
     point_all = np.array(point_all[0])  # full profile
     for r in range(0, len(point_all)):
-        maxx_here = max(point_all[r ,:, 0])
-        minx_here = min(point_all[r ,:, 0])
-        maxy_here = max(point_all[r ,:, 1])
-        miny_here = min(point_all[r ,:, 1])
+        maxx_here = max(point_all[r][:, 0])
+        minx_here = min(point_all[r][:, 0])
+        maxy_here = max(point_all[r][:, 1])
+        miny_here = min(point_all[r][:, 1])
         if maxx_here > maxx:
             maxx = maxx_here
         if minx_here < minx:
@@ -558,8 +559,8 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     # get random coordinate
     point_new = []
     for p in range(0, nb_point):
-        x = randrange(int(minx), int(maxx))
-        y = randrange(int(miny), int(maxy))
+        x = uniform(minx, maxx)
+        y = uniform(miny, maxy)
         point_new.append([x,y])
 
     # get a new substrate grid
@@ -724,7 +725,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
     try:
         default_data= float(default_data)
     except ValueError:
-        print('Error: Default data should be a float.\n')
+        print('Error: Default data should be a float. (1)\n')
         return failload
 
     m = time.time()

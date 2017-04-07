@@ -568,7 +568,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
 
 
 def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], coord_p=[], name_hdf5 ='', constsub=False,
-                  model_type='SUBSTRATE'):
+                  model_type='SUBSTRATE', return_name=False):
     """
     This function creates an hdf5 with the substrate data. This hdf5 does not have the same form than the hdf5 file used
     to store hydrological or merge data. This hdf5 store the substrate data alone before it is merged with the
@@ -584,6 +584,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
     :param name_hdf5: the name of the substrate h5 file (without the timestamp). If not given, a default name is used.
     :param constsub: If True the substrate is a constant value
     :param model_type: the attribute for the xml file (usually SUBSTRATE)
+    :param return_name: If True this function return the name of the substrate hdf5 name
     """
 
     if constsub:  # constant value of substrate
@@ -683,6 +684,12 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
                 #hdf5file.text = hdf5file.text + ', ' + h5name  # keep the name of the old and new file
                 #hdf5file.text = h5name  # keep only the new file
         doc.write(filename_prj)
+
+    if return_name:
+        return h5name
+    else:
+        return
+
 
 
 def copy_files(names,paths, path_input):

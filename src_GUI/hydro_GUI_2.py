@@ -2110,14 +2110,11 @@ class HabbyHdf5(SubHydroW):
                 hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
                 hdf5file.text = new_name
             else:
-                hdf5file = root.find(".//Imported_hydro/hdf5_hydrodata")
-                if hdf5file is None:
-                    hdf5file = ET.SubElement(child, "Imported_hydro/hdf5_hydrodata")
-                    hdf5file.text = new_name
-                else:
-                    hdf5file.text += '\n' + new_name
+                hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+                hdf5file.text = new_name
+
             doc.write(filename_prj)
-        self.send_log.emit('# hdf5 file sucessfully loaded to the current project.')
+        self.send_log.emit('# hdf5 file loaded to the current project.')
         self.send_log.emit("py    import shutil")
         self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
         self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")

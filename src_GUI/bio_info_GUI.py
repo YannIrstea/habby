@@ -340,6 +340,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         pref_list = []
         stages_chosen = []
         name_fish = []
+        name_fish_sh = [] # because max 10 characters in attribute table of shapefile
         for i in range(0, self.list_s.count()):
             fish_item = self.list_s.item(i)
             for j in range(0, self.list_f.count()):
@@ -347,6 +348,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     pref_list.append(self.data_fish[j][2])
                     stages_chosen.append(self.data_fish[j][1])
                     name_fish.append(self.data_fish[j][7])
+                    name_fish_sh.append(self.data_fish[j][5][:3]+self.data_fish[j][1][:3])
 
         # get the name of the merged file
         path_hdf5 = self.find_path_hdf5_est()
@@ -393,7 +395,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if create_shape:
             path_shp = self.find_path_output_est()
             self.p = Process(target=calcul_hab.save_hab_shape, args=(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t,
-                                                                     height_c_all_t, name_fish,path_shp, name_base))
+                                                                     height_c_all_t, name_fish_sh, path_shp, name_base))
             self.p.start()
         if create_para:
             path_out = self.find_path_output_est()

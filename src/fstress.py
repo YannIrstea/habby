@@ -382,14 +382,14 @@ def denstress(k,m, nbst):
     return diststress
 
 
-def write_txt(qmod_all, vh_all, name_inv, path_im, name_river):
+def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river):
     """
-    This function writes the txt outpus for FStress
+    This function writes the txt outputs for FStress
 
     :param qmod_all: the modelled discharge for each river
     :param vh_all: the suitability indoex for each invertebrate species for each river
     :param name_inv: The four letter code of each selected invetebrate
-    :param path_im: the path where to save the text file
+    :param path_txt: the path where to save the text file
     :param name_river: the name of the river
 
     """
@@ -398,11 +398,11 @@ def write_txt(qmod_all, vh_all, name_inv, path_im, name_river):
     for r in name_river:
         qmod = qmod_all[i]
         vh = vh_all[i]
-        fname = os.path.join(path_im, 'Fstress_'+ r+ time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
+        fname = os.path.join(path_txt, 'Fstress_'+ r+ time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
         np.savetxt(fname, vh)
-        fname = os.path.join(path_im, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
+        fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
         np.savetxt(fname, qmod)
-    fname = os.path.join(path_im, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_code_inv.txt')
+    fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_code_inv.txt')
     name_inv_str = ''
     for i in range(0, len(name_inv)):
         name_inv_str += name_inv[i] + "\n"
