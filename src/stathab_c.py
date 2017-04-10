@@ -11,6 +11,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from src_GUI import output_fig_GUI
+from src_GUI import estimhab_GUI
 
 
 class Stathab:
@@ -24,7 +25,8 @@ class Stathab:
         # at least at two different dicharges (rivqvh.txt) a list of np.array
         self.disthmes = [] # the measured distribution of height (rivdist.txt) a list of np.array
         self.qhmoy = []  # the mean height and q (2 first llines of rivdis.txt)
-        self.dist_gran = []  # the distribution of substrate (rivgra.txt), a list of np.array
+        self.dist_gran = []  # the distribution of granulo (rivgra.txt)-only used by temperate river, a list of np.array
+        self.data_ii = []  # only used by tropical river. The slope, waterfall height and length of river
         self.fish_chosen = []  # the name of the fish to be studied, the name should also be in pref.txt
         self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
         self.name_reach = []  # the list with the name of the reaches
@@ -33,10 +35,11 @@ class Stathab:
         self.vclass_all = []  # volume of each velocity classes
         self.hclass_all = []  # surface height for all classes
         self.rclass_all = []   # granulo surface for all classes
-        self.h_all = []  # total height of all thr reaches
+        self.h_all = []  # total height of all the reaches
         self.w_all = []   # total width of all the reaches
         self.q_all = []   # discharge
         self.fish_chosen = np.array([])   # the name of the fish
+        self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
         self.name_reach = []  # the name of the reaches of the river
         self.path_im = '.'   # path where to save the image
         self.load_ok = False # a boolean to manage the errors
@@ -53,7 +56,7 @@ class Stathab:
         The file Pref.txt is read in run_stathab.
         If self.fish_chosen is not present, all fish in the preference file are read.
 
-        :param reachname_file: the file with the name of the reaches to study (usually listirv.txt)
+        :param reachname_file: the file with the name of the reaches to study (usually listirv)
         :param end_file_reach: the ending of the files whose names depends on the reach
         :param name_file_allreach: the name of the file common to all reaches
         :param path: the path to the file
@@ -65,6 +68,7 @@ class Stathab:
         if self.name_reach == [-99]:
             return
         nb_reach = len(self.name_reach)
+        print(self.name_reach)
 
         # prep
         self.qwh = []
@@ -72,72 +76,93 @@ class Stathab:
         self.disthmes = []
         self.qhmoy = []
         self.dist_gran = []
+        self.data_ii = []
 
         # read the txt files reach by reach
         for r in range(0, nb_reach):
 
-            # open rivself.qwh.txt
-            filename = os.path.join(path, self.name_reach[r] + end_file_reach[1])
-            qwh_r = load_float_stathab(filename, True)
-            if np.array_equal(qwh_r, [-99]):  # if failed
-                return
-            else:
-                self.qwh.append(qwh_r)
-            if len(qwh_r[0]) != 3:
-                print('Error: The file called ' + filename + ' is not in the right format. Three columns needed. \n')
-                return
-            if len(qwh_r) < 2:
-                print('Error: The file called ' + filename + ' is not in the right format. Minimum two rows needed. \n')
-                return
+            for ef in end_file_reach:
+                # open rivself.qwh.txt
+                if ef[-7:-4] == 'qhw':
+                    filename = os.path.join(path, self.name_reach[r] + ef)
+                    qwh_r = load_float_stathab(filename, True)
+                    if np.array_equal(qwh_r, [-99]):  # if failed
+                        return
+                    else:
+                        self.qwh.append(qwh_r)
+                    if len(qwh_r[0]) != 3:
+                        print('Error: The file called ' + filename + ' is not in the right format. Three columns '
+                                                                     'needed. \n')
+                        return
+                    if len(qwh_r) < 2:
+                        print('Error: The file called ' + filename + ' is not in the right format. Minimum two rows '
+                                                                     'needed. \n')
+                        return
 
-            # open rivdeb.txt
-            filename = os.path.join(path, self.name_reach[r] + end_file_reach[0])
-            qlist_r = load_float_stathab(filename, True)
-            if np.array_equal(qlist_r, [-99]):
-                return
-            else:
-                self.qlist.append(qlist_r)
-            if len(qlist_r) < 2:
-                print('Error: two discharges minimum are needed in ' + filename + '\n')
-                return
+                # open rivdeb.txt
+                if ef[-7:-4] == 'deb':
+                    filename = os.path.join(path, self.name_reach[r] + ef)
+                    qlist_r = load_float_stathab(filename, True)
+                    if np.array_equal(qlist_r, [-99]):
+                        return
+                    else:
+                        self.qlist.append(qlist_r)
+                    if len(qlist_r) < 2:
+                        print('Error: two discharges minimum are needed in ' + filename + '\n')
+                        return
 
-            # open riv dis
-            filename = os.path.join(path, self.name_reach[r] + end_file_reach[3])
-            dis_r = load_float_stathab(filename, True)
-            if np.array_equal(dis_r, [-99]):  # if failed
-                return
-            if len(dis_r) < 4:
-                print('Error: The file called ' + filename + ' is not in the right format. At least four values needed. \n')
-                return
-            else:
-                self.disthmes.append(dis_r[2:])
-                self.qhmoy.append(dis_r[:2])
+                # open riv dis
+                if ef[-7:-4] == 'dis':
+                    filename = os.path.join(path, self.name_reach[r] + ef)
+                    dis_r = load_float_stathab(filename, True)
+                    if np.array_equal(dis_r, [-99]):  # if failed
+                        return
+                    if len(dis_r) < 4:
+                        print('Error: The file called ' + filename + ' is not in the right format. At least four values needed. \n')
+                        return
+                    else:
+                        self.disthmes.append(dis_r[2:])
+                        self.qhmoy.append(dis_r[:2])
 
-            # open rivgra.txt
-            filename = os.path.join(path, self.name_reach[r] + end_file_reach[2])
-            dist_granulo_r = load_float_stathab(filename, True)
-            if np.array_equal(dist_granulo_r, [-99]):  # if failed
-                return
-            if len(dist_granulo_r) != 12:
-                print('Error: The file called ' + filename +
-                      ' is not in the right format. 12 roughness classes are needed.\n')
-                return
-            else:
-                self.dist_gran.append(dist_granulo_r)
+                # open rivgra.txt
+                if ef[-7:-4] == 'gra':
+                    filename = os.path.join(path, self.name_reach[r] + ef)
+                    dist_granulo_r = load_float_stathab(filename, True)
+                    if np.array_equal(dist_granulo_r, [-99]):  # if failed
+                        return
+                    if len(dist_granulo_r) != 12:
+                        print('Error: The file called ' + filename +
+                              ' is not in the right format. 12 roughness classes are needed.\n')
+                        return
+                    else:
+                        self.dist_gran.append(dist_granulo_r)
+
+                # open data_ii.txt (only ofr tropical rivers)
+                if ef[-6:-4] == 'ii':
+                    filename = os.path.join(path, self.name_reach[r] + ef)
+                    data_ii_r = load_float_stathab(filename, False)
+                    if np.array_equal(data_ii_r, [-99]):  # if failed
+                        return
+                    if len(data_ii_r) != 3:
+                        print('Error: The file called ' + filename + ' is not in the right format.  Three values needed.\n')
+                        return
+                    self.data_ii.append(data_ii_r)
 
         # open the files with the limits of class
         self.lim_all = []
-        for b in range(0, 3):
-            filename = name_file_allreach[b]
-            filename = os.path.join(path, filename)
-            born = load_float_stathab(filename, False)
-            if np.array_equal(born, [-99]):
-                return
-            if len(born) < 2:
-                print('Error: The file called ' + filename + ' is not in the right format.  At leat two values needed. \n')
-                return
-            else:
-                self.lim_all.append(born)
+        for b in range(0, len(name_file_allreach)):
+            if name_file_allreach[b] != 'Pref.txt':
+                filename = name_file_allreach[b]
+                filename = os.path.join(path, filename)
+                born = load_float_stathab(filename, False)
+                if np.array_equal(born, [-99]):
+                    return
+                if len(born) < 2:
+                    print('Error: The file called ' + filename + ' is not in the right format.  '
+                                                                 'At least two values needed. \n')
+                    return
+                else:
+                    self.lim_all.append(born)
 
         # usually not chosen fish if using the txt files
         self.fish_chosen = ['all_fish']
@@ -154,9 +179,14 @@ class Stathab:
         """
         A function to load the file from an hdf5 whose name is given in the xml project file. If the name of the
         file is a relative path, use the path_prj to create an absolute path.
+
+        It works for tropical and temperate rivers. It checks the river type in the hdf5  files and
+        used this river type regardless of the one curently used by the GUI. The method load_hdf5 in stathab_GUI
+        get the value of self.riverint from the object mystathab to check the cohrenence between the GUI and the loaded
+        hdf5.
         """
         self.load_ok = False
-        # find the path to the h5 file
+        # find the path to the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(fname):
             print('Error: The xml project file was not found. Save the project in the General Tab. \n')
@@ -167,10 +197,17 @@ class Stathab:
         if child is None:  # if there is data for STATHAB
             print("Error: No hdf5 file is written in the xml project file. \n")
             return
+        if not child.text:
+            print("Error: No hdf5 file is written in the xml project file. (2) \n")
+            return
 
         # load the h5 file
         fname_h5 = child.text
-        full_fname_hdf5 = os.path.join(self.path_prj, fname_h5)
+        blob = estimhab_GUI.StatModUseful()
+        blob.path_prj = self.path_prj
+        blob.name_prj = self.name_prj
+        path_hdf5 = blob.find_path_hdf5_est()
+        full_fname_hdf5 = os.path.join(path_hdf5, fname_h5)
         if os.path.isfile(fname_h5) or os.path.isfile(full_fname_hdf5):
             try:
                 if os.path.isabs(fname_h5):
@@ -183,6 +220,7 @@ class Stathab:
                         return
             except OSError:
                 print('Error: the hdf5 file could not be loaded.\n')
+                return
         else:
             print("Error: The hdf5 file is not found. \n")
             return
@@ -190,11 +228,26 @@ class Stathab:
         # prepare the data to be found
         basename1 = 'Info_general'
 
+        # find the river type
+        rinverint = file_stathab.attrs['riverint']
+        try:
+            riverint = int(rinverint)
+            if riverint >2:
+                print('The river type in the hdf5 should be 0,1,or 2.')
+                return
+        except ValueError:
+            print('The river type in the hdf5 was not well formed')
+            return
+        self.riverint = riverint  # careful, must be "send" back to the GUI
+
         # load reach_name
         try:
             gen_dataset = file_stathab[basename1 + "/reach_name"]
         except KeyError:
             print('Error: the dataset reach_name is missing from the hdf5 file. Is ' + fname_h5 + ' a stathab input? \n')
+            return
+        if len(list(gen_dataset.values())) == 0:
+            print('Error: The data name_reach could not be read. \n')
             return
         gen_dataset = list(gen_dataset.values())[0]
         gen_dataset = np.array(gen_dataset)
@@ -208,39 +261,48 @@ class Stathab:
             self.name_reach.append(a[3:-2])
 
         # load limits
-        gen_dataset_name = ['lim_h', 'lim_v', 'lim_g']
-        for i in range(0, len(gen_dataset_name)):
+        if self.riverint == 0:
+            gen_dataset_name = ['lim_h', 'lim_v', 'lim_g']
+            for i in range(0, len(gen_dataset_name)):
+                try:
+                    gen_dataset = file_stathab[basename1 + "/" + gen_dataset_name[i]]
+                except KeyError:
+                    print("Error: the dataset" + gen_dataset_name[i] + "is missing from the hdf5 file.\n")
+                    return
+                gen_dataset = list(gen_dataset.values())[0]
+                if len(np.array(gen_dataset)) < 2:
+                    print('Error: Limits of surface/volume could not be extracted from the hdf5 file. \n')
+                    return
+                self.lim_all.append(np.array(gen_dataset))
+
+            # get the chosen fish
             try:
-                gen_dataset = file_stathab[basename1 + "/" + gen_dataset_name[i]]
+                gen_dataset = file_stathab[basename1 + "/fish_chosen"]
             except KeyError:
-                print("Error: the dataset" + gen_dataset_name[i] + "is missing from the hdf5 file.\n")
+                print('Error: the dataset fish_chosen is missing from the hdf5 file. \n')
                 return
             gen_dataset = list(gen_dataset.values())[0]
-            if len(np.array(gen_dataset)) < 2:
-                print('Error: Limits of surface/volume could not be extracted from the hdf5 file. \n')
+            gen_dataset = np.array(gen_dataset)
+            if len(gen_dataset) == 0:
+                print('Error: no fish names found in the hdf5 file.\n')
                 return
-            self.lim_all.append(np.array(gen_dataset))
-
-        # get the chosen fish
-        try:
-            gen_dataset = file_stathab[basename1 + "/fish_chosen"]
-        except KeyError:
-            print('Error: the dataset fish_chosen is missing from the hdf5 file. \n')
-            return
-        gen_dataset = list(gen_dataset.values())[0]
-        gen_dataset = np.array(gen_dataset)
-        if len(gen_dataset) == 0:
-            print('Error: no fish names found in the hdf5 file.\n')
-            return
-        # hdf5 cannot strore string directly, needs conversion
-        #  array[3,-2] is needed after bytes to string conversion
-        for f in range(0, len(gen_dataset)):
-            a = str(gen_dataset[f])
-            np.append(self.fish_chosen, a[3:-2])
+            # hdf5 cannot strore string directly, needs conversion
+            #  array[3,-2] is needed after bytes to string conversion
+            for f in range(0, len(gen_dataset)):
+                a = str(gen_dataset[f])
+                np.append(self.fish_chosen, a[3:-2])
 
         # get the data by reach
-        reach_dataset_name = ['qlist', 'qwh', 'disthmes', 'qhmoy', 'dist_gran']
-        reach_var = [self.qlist, self.qwh, self.disthmes, self.qhmoy, self.dist_gran]
+        if self.riverint == 0:
+            reach_dataset_name = ['qlist', 'qwh', 'disthmes', 'qhmoy', 'dist_gran']
+            reach_var = [self.qlist, self.qwh, self.disthmes, self.qhmoy, self.dist_gran]
+        elif self.riverint == 1 or self.riverint == 2:
+            reach_dataset_name = ['qlist', 'qwh', 'data_ii']
+            reach_var = [self.qlist, self.qwh, self.data_ii]
+        else:
+            print('Error: self.riverint should be lower than two.')
+            return
+
         for r in range(0, len(self.name_reach)):
             for i in range(0, len(reach_dataset_name)):
                 try:
@@ -263,12 +325,19 @@ class Stathab:
         self.load_ok = False
         # create an empty hdf5 file using all default prop.
         fname_no_path = self.name_prj + '_STATHAB' + '.h5'
-        fname = os.path.join(self.path_prj, fname_no_path)
+        blob = estimhab_GUI.StatModUseful()
+        blob.path_prj = self.path_prj
+        blob.name_prj = self.name_prj
+        path_hdf5 = blob.find_path_hdf5_est()
+        fname = os.path.join(path_hdf5, fname_no_path)
         file = h5py.File(fname, 'w')
 
         # create all datasets and group
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
         file.attrs['h5py_version'] = h5py.version.version
+        file.attrs['path_prj'] = self.path_prj
+        file.attrs['name_prj'] = self.name_prj
+        file.attrs['riverint'] = self.riverint
 
         for r in range(0, len(self.name_reach)):
             try:
@@ -289,31 +358,48 @@ class Stathab:
                 qmesg.create_dataset(fname_no_path, data=self.qlist[r])
                 qwhg = filereach.create_group('qwh')
                 qwhg.create_dataset(fname_no_path, data=self.qwh[r])
-                distg = filereach.create_group('disthmes')
-                distg.create_dataset(fname_no_path,  data=self.disthmes[r])
-                qhmoyg = filereach.create_group('qhmoy')
-                qhmoyg.create_dataset(fname_no_path,  data=self.qhmoy[r])
-                dist_grang = filereach.create_group('dist_gran')
-                dist_grang.create_dataset(fname_no_path, data=self.dist_gran[r])
+                if self.riverint == 0:
+                    distg = filereach.create_group('disthmes')
+                    distg.create_dataset(fname_no_path, data=self.disthmes[r])
+                    qhmoyg = filereach.create_group('qhmoy')
+                    qhmoyg.create_dataset(fname_no_path, data=self.qhmoy[r])
+                    dist_grang = filereach.create_group('dist_gran')
+                    dist_grang.create_dataset(fname_no_path, data=self.dist_gran[r])
+                if self.riverint > 0:
+                    data_iig = filereach.create_group('data_ii')
+                    data_iig.create_dataset(fname_no_path, data=self.data_ii[r])
             except IndexError:
                 print('Error: the length of the data is not compatible with the number of reach.\n')
                 return
 
         allreach = file.create_group('Info_general')
         reachg = allreach.create_group('reach_name')
-        reach_ascii = [n.encode("ascii", "ignore") for n in self.name_reach]  # unicode is not ok with hdf5
+        reach_ascii = [n.encode("utf8", "ignore") for n in self.name_reach]  # unicode is not ok with hdf5
         reachg.create_dataset(fname_no_path, (len(reach_ascii), 1), data=reach_ascii)
-        limhg = allreach.create_group('lim_h')
-        limhg.create_dataset(fname_no_path, [len(self.lim_all[0])], data=self.lim_all[0])
-        limvg = allreach.create_group('lim_v')
-        limvg.create_dataset(fname_no_path, [len(self.lim_all[1])], data=self.lim_all[1])
-        limgg = allreach.create_group('lim_g')
-        limgg.create_dataset(fname_no_path, [len(self.lim_all[2])], data=self.lim_all[2])
+        if self.riverint == 0:
+            limhg = allreach.create_group('lim_h')
+            limhg.create_dataset(fname_no_path, [len(self.lim_all[0])], data=self.lim_all[0])
+            limvg = allreach.create_group('lim_v')
+            limvg.create_dataset(fname_no_path, [len(self.lim_all[1])], data=self.lim_all[1])
+            limgg = allreach.create_group('lim_g')
+            limgg.create_dataset(fname_no_path, [len(self.lim_all[2])], data=self.lim_all[2])
         fishg = allreach.create_group('fish_chosen')
         fish_chosen_ascii = [n.encode("ascii", "ignore") for n in self.fish_chosen]  # unicode is not ok with hdf5
         fishg.create_dataset(fname_no_path, (len(self.fish_chosen), 1), data=fish_chosen_ascii)
         # close and save hdf5
         file.close()
+        self.load_ok = True
+
+    def save_xml_stathab(self, no_hdf5=False):
+        """
+        The function which saves the function related to stathab in the xml projexct files
+
+        :param no_hdf5: If True, no hdf5 file was created (usually because Stathab crashed at some points)
+        """
+
+        fname_no_path = self.name_prj + '_STATHAB' + '.h5'
+        if no_hdf5:
+            fname_no_path = ''
 
         # write info in the xml project file
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -328,6 +414,7 @@ class Stathab:
                 stathab_element = ET.SubElement(root, "Stathab")
                 hdf5file = ET.SubElement(stathab_element, "hdf5Stathab")
                 hdf5file.text = fname_no_path
+                hdf5file.set('riverint', str(self.riverint))  # attribute
             else:
                 hdf5file = root.find(".//hdf5Stathab")
                 if hdf5file is None:
@@ -335,8 +422,8 @@ class Stathab:
                     hdf5file.text = fname_no_path
                 else:
                     hdf5file.text = fname_no_path
+                hdf5file.set('riverint', str(self.riverint))  # attribute
             doc.write(filename_prj)
-        self.load_ok = True
 
     def stathab_calc(self, path_pref='.', name_pref='Pref.txt'):
         """
@@ -382,12 +469,16 @@ class Stathab:
         for r in range(0, nb_reach):
 
             # data for this reach
-            qwh_r = self.qwh[r]
-            qhmoy_r = self.qhmoy[r]
-            h0 = qhmoy_r[1]
-            disthmes_r = self.disthmes[r]
-            qlist_r = self.qlist[r]
-            dist_gran_r = np.array(self.dist_gran[r])
+            try:
+                qwh_r = self.qwh[r]
+                qhmoy_r = self.qhmoy[r]
+                h0 = qhmoy_r[1]
+                disthmes_r = self.disthmes[r]
+                qlist_r = self.qlist[r]
+                dist_gran_r = np.array(self.dist_gran[r])
+            except IndexError:
+                print('Error: data not coherent with the number of reach \n')
+                return
             hclass = np.zeros((len(self.lim_all[0])-1, nbclaq))
             vclass = np.zeros((len(self.lim_all[1])-1, nbclaq))
             rclass = np.zeros((len(self.lim_all[2])-1, nbclaq))
@@ -678,10 +769,14 @@ class Stathab:
             fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
                         dpi=self.fig_opt['resolution'])
             # suitability index
-            j = np.squeeze(self.j_all[0, :, :])
+            if len(self.fish_chosen)>1:
+                j = np.squeeze(self.j_all[0, :, :])
             fig = plt.figure()
-            for e in range(0, len(self.fish_chosen)):
-                plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
+            if len(self.fish_chosen) > 1:
+                for e in range(0, len(self.fish_chosen)):
+                    plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
+            else:
+                plt.plot(qmod, self.j_all[0,0, :], '-', label=self.fish_chosen[0])
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
             plt.title('Suitability index J')
@@ -817,12 +912,27 @@ def load_float_stathab(filename, check_neg):
     :param check_neg: if true negative value are not allowed in the data
     :return: data if ok, -99 if failed
     """
+
     myfloatdata = [-99]
+    still_val_err = True  # if False at the end, the file could be loaded
     if os.path.isfile(filename):
         try:
             myfloatdata = np.loadtxt(filename)
+            still_val_err = False
         except ValueError:
-            print('Error: The file called ' + filename + ' could not be read.\n')
+            pass
+        try:  # because some people add an header to the files in the csv
+            myfloatdata = np.loadtxt(filename, skiprows=1, delimiter=";")
+            still_val_err = False
+        except ValueError:
+            pass
+        try:  # because there are csv files without header
+            myfloatdata = np.loadtxt(filename, delimiter=';')
+            still_val_err = False
+        except ValueError:
+            pass
+        if still_val_err:
+            print('Error: The file called ' + filename + ' could not be read.(2)\n')
             return [-99]
     else:  # when loading file, python is always case-sensitive because Windows is.
         # so let's insist on this.
@@ -830,14 +940,26 @@ def load_float_stathab(filename, check_neg):
         all_file = os.listdir(path_here)
         file_found = False
         for f in range(0, len(all_file)):
-            print(all_file[f])
             if os.path.basename(filename.lower()) == all_file[f].lower():
                 file_found = True
                 filename = os.path.join(path_here, all_file[f])
                 try:
                     myfloatdata = np.loadtxt(filename)
+                    still_val_err = False
                 except ValueError:
-                    print('Error: The file called ' + filename + ' could not be read.\n')
+                    pass
+                try:  # because some people add an header to the files in the csv
+                    myfloatdata = np.loadtxt(filename, skiprows=1, delimiter=";")
+                    still_val_err = False
+                except ValueError:
+                    pass
+                try:  # because ther are csv files without header
+                    myfloatdata = np.loadtxt(filename, delimiter=';')
+                    still_val_err = False
+                except ValueError:
+                    pass
+                if still_val_err:
+                    print('Error: The file called ' + filename + ' could not be read.(2)\n')
                     return [-99]
         if not file_found:
             print('Error: The file called ' + filename + ' was not found.\n')
@@ -886,27 +1008,34 @@ def load_pref(filepref, path):
     return name_fish, coeff_all
 
 
-def load_namereach(path, name_file_reach='listriv.txt'):
+def load_namereach(path, name_file_reach='listriv'):
     """
-    A function to only load the reach names (useful for the GUI)
+    A function to only load the reach names (useful for the GUI). The extension must be .txt or .csv
 
-    :param path : the path to the file listriv.txt
-    :param name_file_reach: In case the file name is not listriv.txt
+    :param path : the path to the file listriv.txt or listriv.csv
+    :param name_file_reach: In case the file name is not listriv
     :return: the list of reach name
     """
     # find the reaches
-    filename = os.path.join(path, name_file_reach)
+    filename = os.path.join(path, name_file_reach + '.txt')
+    filename2 = os.path.join(path, name_file_reach + '.csv')
     if os.path.isfile(filename):
         with open(filename, 'rt') as f:
             data = f.read()
+    elif os.path.isfile(filename2):
+        with open(filename2, 'rt') as f:
+            data = f.read()
     else:
-        print('Error:  The file containing the names of the reaches was not found (listriv.txt).\n')
+        print('Error:  The file containing the names of the reaches was not found (listriv).\n')
         return [-99]
     if not data:
         print('Error:  The file containing the names of the reaches could not be read (listriv.txt).\n')
         return [-99]
     # get reach name line by line
     name_reach = data.split('\n')  # in case there is a space in the names of the reaches
+    # in case we have an empty line between reaches
+    name_reach = [x for x in name_reach if x]
+
     return name_reach
 
 

@@ -125,7 +125,12 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, fig_opt=
             print('Error: No data to produce the figure. \n')
             return failload
         else:
-            figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], [-1], nb_pro_reach, fig_opt)
+            if fig_opt['time_step'][0] == -99:
+                tfig = range(0, len(coord_pro))
+            else:
+                tfig = fig_opt['time_step']
+                tfig = list(map(int, tfig))
+            figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], tfig, nb_pro_reach, fig_opt)
 
     return data_xhzv, coord_pro, lim_riv
 

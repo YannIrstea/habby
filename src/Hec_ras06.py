@@ -175,9 +175,12 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
         if fig_opt['time_step'][0] == -99:
             tfig = range(0, len(zone_v))
         else:
-            tfig = list(fig_opt['time_step'])
+            tfig = fig_opt['time_step']
+            tfig = tfig.split(',')
+            tfig = list(map(int,tfig))
         pro = [0, 1, 2]
         for t in tfig:
+            t = int(t)
             if t < len(xy_h):
                 figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, fig_opt,  t, riv_name)
 

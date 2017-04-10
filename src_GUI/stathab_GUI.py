@@ -1,13 +1,14 @@
 from io import StringIO
 import os
-from PyQt5.QtCore import QTranslator, pyqtSignal, Qt, QModelIndex
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
-    QListWidgetItem, QMessageBox, QCheckBox
+from PyQt5.QtCore import QTranslator, pyqtSignal, Qt
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QFileDialog, QSpacerItem,\
+    QListWidget, QListWidgetItem, QMessageBox, QCheckBox, QComboBox
 from PyQt5.QtGui import QPixmap
 import time
 import sys
+import copy
 from src import stathab_c
+from src import load_hdf5
 import xml.etree.ElementTree as ET
 
 
@@ -58,7 +59,7 @@ class StathabW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_im = self.path_prj
-        self.path_bio_stathab = './/biology'
+        self.path_bio_stathab = './/biology/stathab'
         self.fish_selected = []
         self.dir_name = self.tr("No directory selected")
         self.mystdout = StringIO()
@@ -70,13 +71,18 @@ class StathabW(QWidget):
         self.list_re = QListWidget()
         self.list_f = QListWidget()
         # name of all the text file (see stathabinfo.pdf)
-        self.listrivname = 'listriv.txt'
-        self.end_file_reach = ['deb.txt', 'qhw.txt', 'gra.txt', 'dis.txt']
-        self.name_file_allreach = ['bornh.txt', 'bornv.txt', 'borng.txt', 'Pref.txt']
+        self.listrivname = 'listriv'
+        self.end_file_reach = ['deb', 'qhw', 'gra', 'dis']  # .txt or .csv
+        self.end_file_reach_trop = ['deb', 'qhw', 'ii'] # .txt or .csv
+        self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref.txt']
+        self.name_file_allreach_trop = []
         self.hdf5_name = self.tr('No hdf5 selected')
         self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
         self.dir_hdf5 = self.path_prj
         self.typeload = 'txt'  # txt or hdf5
+        self.riverint = 0  # the type of river (default 0, tropical river 1, tropical river bivarate 2)
+        self.rivtype_str = [self.tr('Temperate River - Default'), self.tr('Tropical River - Univariate'),
+                            self.tr('Tropical River - Bivariate')]
 
         self.init_iu()
 
@@ -104,12 +110,24 @@ class StathabW(QWidget):
             self.send_log.emit('Warning: Project was not saved. Save the project in the general tab \n')
 
         # check if there is a path where to save the figures
+        # and if there is a type of river selected
         if os.path.isfile(filename_prj):
             doc = ET.parse(filename_prj)
             root = doc.getroot()
             child = root.find(".//" + 'Path_Figure')
             if child is not None:
-                self.path_im = os.path.join(self.path_prj,child.text)
+                self.path_im = os.path.join(self.path_prj, child.text)
+            # river type
+            child = root.find(".//hdf5Stathab")
+            if child is not None:
+                try:
+                    rivintstr = child.attrib['riverint']
+                    self.riverint = int(rivintstr)
+                    if self.riverint > 2:
+                        self.riverint = 0
+                except ValueError:
+                    self.send_log.emit('Warning: River type not recongnized')
+                    self.riverint = 0
         if not os.path.exists(self.path_im):
             os.makedirs(self.path_im)
 
@@ -130,6 +148,12 @@ class StathabW(QWidget):
         self.runb = QPushButton(self.tr("Save and run Stathab"))
         self.cb = QCheckBox(self.tr('Show figures'), self)
 
+        # add a switch for tropical rivers
+        self.rivtype = QComboBox()
+        self.rivtype.addItems(self.rivtype_str)
+        self.rivtype.setCurrentIndex(self.riverint)
+        self.mystathab.riverint = self.riverint
+
         # connect method with list
         loadb.clicked.connect(self.select_dir)
         loadhdf5b.clicked.connect(self.select_hdf5)
@@ -138,6 +162,7 @@ class StathabW(QWidget):
         self.list_f.itemClicked.connect(self.add_fish)
         self.list_s.itemClicked.connect(self.remove_fish)
         self.fishall.stateChanged.connect(self.add_all_fish)
+        self.rivtype.currentIndexChanged.connect(self.change_riv_type)
 
         # update label and list
         if self.dir_name != self.tr("No directory selected") and self.typeload == 'txt':
@@ -179,24 +204,24 @@ class StathabW(QWidget):
         self.layout.addWidget(l2, 1, 0)
         self.layout.addWidget(self.l3, 1, 1)
         self.layout.addWidget(self.l4, 1, 2)
-        self.layout.addWidget(self.list_re, 2, 0)
-        self.layout.addWidget(self.list_file, 2, 1)
+        self.layout.addWidget(self.list_re, 2, 0,2,1)
+        self.layout.addWidget(self.list_file, 2, 1,2,1)
         self.layout.addWidget(self.list_needed, 2, 2)
-        self.layout.addWidget(l5, 3, 0)
-        self.layout.addWidget(l6, 3, 1)
-        self.layout.addWidget(loadhdf5b, 4, 2)
-        self.layout.addWidget(self.list_f, 4, 0, 2,1)
-        self.layout.addWidget(self.list_s, 4, 1, 2, 1)
-        self.layout.addWidget(self.runb, 5, 2)
-        self.layout.addWidget(self.fishall, 6, 1)
-        self.layout.addWidget(self.cb, 6, 2)
+        self.layout.addWidget(self.rivtype, 3, 2)
+        self.layout.addWidget(l5, 4, 0)
+        self.layout.addWidget(l6, 4, 1)
+        self.layout.addWidget(loadhdf5b, 5, 2)
+        self.layout.addWidget(self.list_f, 5, 0, 2,1)
+        self.layout.addWidget(self.list_s, 5, 1, 2, 1)
+        self.layout.addWidget(self.runb, 6, 2)
+        self.layout.addWidget(self.fishall, 7, 1)
+        self.layout.addWidget(self.cb, 7, 2)
         self.setLayout(self.layout)
 
     def select_dir(self):
         """
         This function is used to select the directory and find the files to laod stathab from txt files. It calls
         load_from_txt_gui() when done.
-
 
         """
         # get the directory
@@ -248,6 +273,35 @@ class StathabW(QWidget):
             # fill the lists with the existing files
             self.load_from_txt_gui()
 
+    def change_riv_type(self):
+        """
+        This function manage the changes which needs to happends to the GUI when the user want to pass from
+        tropical river to temperate river and vice-versa. Indeed the fish species and the input files are not
+        the same for tropical and temperate river.
+        """
+
+        # get the new river type
+        self.riverint = self.rivtype.currentIndex()
+
+        # clear the different list
+        self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
+        self.list_re.clear()
+        self.list_file.clear()
+        self.list_s.clear()
+        self.list_needed.clear()
+        self.list_f.clear()
+        self.fish_selected = []
+        self.firstitemreach = []
+        self.mystathab.riverint = self.riverint
+
+
+
+        # get the new files
+        if self.typeload == 'txt':
+            self.load_from_txt_gui()
+        if self.typeload == 'hdf5':
+            self.load_from_hdf5_gui()
+
     def load_from_txt_gui(self):
         """
         The main roles of load_from_text_gui() are to call the load_function of the stathab class (which is in
@@ -274,14 +328,26 @@ class StathabW(QWidget):
         self.end_file_reach. If it does not find all files, it add the name of the files not found to self.list_needed,
         so that the user can be aware of which file he needs. The exception is Pref.txt. If HABBY do not find it in the
         directory, it uses the default “Pref.txt”. All files (apart from Pref.txt) should be in the same directory.
+        If the river is temperate, the files needed are not the same than if the river is in the tropic. This is
+        accounted using the variable rivint. If rivint is zero, the river is temparate and this function looks for the
+        file needed for temperate type (list of file contained in self.end_file_reach and self.name_file_allreach).
+        If riverin is equal to 1 or 2, the river is tropical (list of file contained in self.end_file_reach_top +
+        biological data in the biology/stathab folder (many files). if the river is temperate, all preference coeff are
+        in one file called Pref.txt.
 
         Then, it calls a method of the Stathab class (in src) which reads the “pref.txt” file and adds the name
-        of the fish to the GUI. Next, if all files are present, it loads the data using the method written in Stathab
+        of the fish to the GUI. If the "tropical river" option is selected, it looks which preference file are present
+        in self.path_bio_stathab. The name of the tropical preference file needs to be in this form: *uni*h_XXX.csv and
+        *uni*h_XX.csv for the univariate case and *biv*XXX.csv for the bivarate where XX is the three letter fish code
+        from ONEMA. The form of the preference file is the form from the R version of stathab 2.
+
+        Next, if all files are present, it loads the data using the method written in Stathab
         (in the src folder). When the data is loaded, it creates an hdf5 file from this data and save the name of this
         new hdf5 file in the xml project file (also using a method in the stathab class).
 
         Finally, it sends the log info as explained in the log section of the documentation
         """
+        self.mystathab.riverint = self.riverint
 
         # update the labels
         if len(self.dir_name) > 30:
@@ -305,17 +371,38 @@ class StathabW(QWidget):
             self.list_re.addItem(itemr)
 
         # see if the needed file are available
-        # by reach
+
+        # first let's look for the files where one file by reach is needed
         c = -1
         for r in range(0, len(name_reach)):
-            for i in range(0, len(self.end_file_reach)):
-                file = os.path.join(self.dir_name, name_reach[r]+self.end_file_reach[i])
+
+            # see which files are need based on the current river type
+            if self.riverint == 0:  # temperate rivers
+                end_file_reach_here = copy.deepcopy(self.end_file_reach)
+                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
+            # tropical rivers
+            elif self.riverint == 1 or self.riverint == 2:
+                end_file_reach_here = copy.deepcopy(self.end_file_reach_trop)
+                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach_trop)
+            else:
+                end_file_reach_here = copy.deepcopy(self.end_file_reach)
+                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
+
+            for i in range(0, len(end_file_reach_here)):
+                file = os.path.join(self.dir_name, name_reach[r]+end_file_reach_here[i] + '.txt')
+                file2 = os.path.join(self.dir_name, name_reach[r]+end_file_reach_here[i] + '.csv')
                 if os.path.isfile(file):
-                    itemf = QListWidgetItem(name_reach[r]+self.end_file_reach[i])
+                    itemf = QListWidgetItem(name_reach[r]+end_file_reach_here[i] + '.txt')
+                    end_file_reach_here[i] += '.txt'
+                    self.list_file.addItem(itemf)
+                    c += 1
+                elif os.path.isfile(file2):
+                    itemf = QListWidgetItem(name_reach[r] + end_file_reach_here[i] + '.csv')
+                    end_file_reach_here[i] += '.csv'
                     self.list_file.addItem(itemf)
                     c += 1
                 else:
-                    itemf = QListWidgetItem(name_reach[r]+self.end_file_reach[i])
+                    itemf = QListWidgetItem(name_reach[r]+end_file_reach_here[i])
                     self.list_needed.addItem(itemf)
                 if i == 0: # note the first item to be able to highlight it afterwards
                     self.firstitemreach.append([itemf, c])
@@ -323,24 +410,35 @@ class StathabW(QWidget):
             self.list_file.addItem('----------------')
             c += 1
 
-        # all reach
+        # files for all reaches
+        # for the preference file in the case of temperate river:
         # first choice> Pref.txt in dir_name is used.
         # default choice: Pref.txt in the biology folder.
-        for i in range(0,len(self.name_file_allreach)):
-            file = os.path.join(self.dir_name, self.name_file_allreach[i])
+        for i in range(0, len(file_name_all_reach_here)):
+            file = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.txt')
+            file2 = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.csv')
             if os.path.isfile(file):
-                itemf = QListWidgetItem(self.name_file_allreach[i])
+                itemf = QListWidgetItem(file_name_all_reach_here[i] + '.txt')
+                file_name_all_reach_here[i] += '.txt'
                 self.list_file.addItem(itemf)
                 itemf.setBackground(Qt.lightGray)
-                # if a custom Pref.txt is present
-                if i == len(self.name_file_allreach):
+                # if a custom Pref.txt is present (for stathab temperate)
+                if i == len(self.name_file_allreach) and self.riverint == 0:
+                    self.path_bio_stathab = self.dir_name
+            elif os.path.isfile(file2):
+                itemf = QListWidgetItem(file_name_all_reach_here[i] + '.csv')
+                file_name_all_reach_here[i] += '.csv'
+                self.list_file.addItem(itemf)
+                itemf.setBackground(Qt.lightGray)
+                # if a custom Pref.txt is present (for stathab temperate)
+                if i == len(self.name_file_allreach) and self.riverint == 0:
                     self.path_bio_stathab = self.dir_name
             else:
-                # usual case: a file is missing
-                if i != len(self.name_file_allreach)-1:
-                    self.list_needed.addItem(self.name_file_allreach[i])
-                # if Pref.txt is missing, let's use the default file
-                else: # by default the biological model in the biology folder
+                # case 1: a file is missing
+                if i != len(file_name_all_reach_here)-1:
+                    self.list_needed.addItem(file_name_all_reach_here[i])
+                # Or: if Pref.txt is missing, let's use the default file (temperate river)
+                elif self.riverint == 0:
                     file = os.path.join(self.path_bio_stathab, self.name_file_allreach[i])
                     if os.path.join(file):
                         itemf = QListWidgetItem(self.name_file_allreach[i] + ' (default)')
@@ -349,29 +447,45 @@ class StathabW(QWidget):
                     else:
                         self.list_needed.addItem(self.name_file_allreach[i])
 
-        # read the available fish
-        sys.stdout = self.mystdout = StringIO()
-        [name_fish, blob] = stathab_c.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
+        # read the name of the available fish
+        name_fish = []
+        if self.riverint == 0:
+            sys.stdout = self.mystdout = StringIO()
+            [name_fish, blob] = stathab_c.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+        if self.riverint == 1:  # univariate
+            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            for f in filenames:
+                if 'uni' in f and f[-7:-4] not in name_fish:
+                    name_fish.append(f[-7:-4])
+        if self.riverint == 2:
+            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            for f in filenames:
+                if 'biv' in f:
+                    name_fish.append(f[-7:-4])
+
         if name_fish == [-99]:
             return
+        self.list_f.clear()
         for r in range(0, len(name_fish)):
             self.list_f.addItem(name_fish[r])
 
-        # load now the text data
+        # load now the text data, create the hdf5 and wrtie in the xml project file
         if self.list_needed.count() > 0:
             self.send_log.emit('# Found part of the STATHAB files. Need re-load')
+            self.mystathab.save_xml_stathab(True)
             return
         self.list_needed.addItem('All files found')
         self.send_log.emit('# Found all STATHAB files. Load Now.')
         sys.stdout = self.mystdout = StringIO()
-        self.mystathab.load_stathab_from_txt('listriv.txt', self.end_file_reach, self.name_file_allreach, self.dir_name)
+        self.mystathab.load_stathab_from_txt(self.listrivname, end_file_reach_here, file_name_all_reach_here, self.dir_name)
         self.mystathab.create_hdf5()
-
-        # log info
+        self.mystathab.save_xml_stathab()
         sys.stdout = sys.__stdout__
         self.send_err_log()
+
+        # log info
         if not self.mystathab.load_ok:
             self.send_log.emit('Error: Could not load stathab data.\n')
             return
@@ -387,8 +501,9 @@ class StathabW(QWidget):
         self.send_log.emit(var2)
         self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
         self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
-        self.send_log.emit("py    mystathab.load_stathab_from_txt('listriv.txt', var1, var2, dir_name)")
+        self.send_log.emit("py    mystathab.load_stathab_from_txt('listriv', var1, var2, dir_name)")
         self.send_log.emit("py    self.mystathab.create_hdf5()")
+        self.send_log.emit("py    self.mystathab.save_xml_stathab()")
 
     def select_hdf5(self):
         """
@@ -494,6 +609,11 @@ class StathabW(QWidget):
         # log info
         sys.stdout = sys.__stdout__
         self.send_err_log()
+        if self.riverint != self.mystathab.riverint:
+            self.send_log.emit('Warning: This river type could not be selected with the current hdf5.')
+            self.riverint = self.mystathab.riverint
+            self.rivtype.setCurrentIndex(self.mystathab.riverint)
+            self.change_riv_type()
         if not self.mystathab.load_ok:
             self.send_log.emit('Error: Data from  hdf5 not loaded.\n')
             return
@@ -510,12 +630,16 @@ class StathabW(QWidget):
             self.list_re.addItem(itemr)
 
         # update list with name of data
-        data_reach = [self.mystathab.qlist, self.mystathab.qwh, self.mystathab.disthmes,
-                self.mystathab.qhmoy, self.mystathab.dist_gran]
-        data_reach_str = ['qlist', 'qwh', 'dishhmes', 'qhmoy', 'dist_granulo']
+        if self.riverint == 0:
+            data_reach = [self.mystathab.qlist, self.mystathab.qwh, self.mystathab.disthmes,
+                    self.mystathab.qhmoy, self.mystathab.dist_gran]
+            data_reach_str = ['qlist', 'qwh', 'dishhmes', 'qhmoy', 'dist_granulo']
+        else:
+            data_reach = [self.mystathab.qlist, self.mystathab.qwh, self.mystathab.data_ii]
+            data_reach_str = ['qlist', 'qwh', 'data_ii']
         c = -1
         for r in range(0, len(self.mystathab.name_reach)):
-            for i in range(0, 5):
+            for i in range(0, len(data_reach)):
                 if data_reach[i]:
                     itemr = QListWidgetItem(data_reach_str[i])
                     self.list_file.addItem(itemr)
@@ -528,34 +652,49 @@ class StathabW(QWidget):
             self.list_file.addItem('----------------')
 
         # update list with bornes of velocity, height and granola
-        lim_str = ['limits height', 'limits velocity', 'limits granulometry']
-        for i in range(0, 3):
-            if len(self.mystathab.lim_all[i]) > 1:
-                itemr = QListWidgetItem(lim_str[i])
-                self.list_file.addItem(itemr)
-                itemr.setBackground(Qt.lightGray)
-            else:
-                self.list_needed.addItem(lim_str[i])
+        if self.riverint == 0:
+            lim_str = ['limits height', 'limits velocity', 'limits granulometry']
+            for i in range(0, 3):
+                if len(self.mystathab.lim_all[i]) > 1:
+                    itemr = QListWidgetItem(lim_str[i])
+                    self.list_file.addItem(itemr)
+                    itemr.setBackground(Qt.lightGray)
+                else:
+                    self.list_needed.addItem(lim_str[i])
 
-        # see if a preference file is available in the same folder than the hdf5 file
-        preffile = os.path.join(self.dir_hdf5, self.name_file_allreach[3])
-        if os.path.isfile(preffile):
-            self.path_bio_stathab = self.dir_hdf5
-            itemp = QListWidgetItem(self.name_file_allreach[3])
-            self.list_file.addItem(itemp)
-            itemp.setBackground(Qt.lightGray)
-        else:
-            itemp = QListWidgetItem(self.name_file_allreach[3] + '(default)')
-            self.list_file.addItem(itemp)
-            itemp.setBackground(Qt.lightGray)
+            # see if a preference file is available in the same folder than the hdf5 file
+            preffile = os.path.join(self.dir_hdf5, self.name_file_allreach[3])
+            if os.path.isfile(preffile):
+                self.path_bio_stathab = self.dir_hdf5
+                itemp = QListWidgetItem(self.name_file_allreach[3])
+                self.list_file.addItem(itemp)
+                itemp.setBackground(Qt.lightGray)
+            else:
+                itemp = QListWidgetItem(self.name_file_allreach[3] + '(default)')
+                self.list_file.addItem(itemp)
+                itemp.setBackground(Qt.lightGray)
 
         # read the available fish
-        sys.stdout = self.mystdout = StringIO()
-        [name_fish, blob] = stathab_c.load_pref(self.name_file_allreach[3], self.path_bio_stathab)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
+        name_fish = []
+        if self.riverint == 0:
+            sys.stdout = self.mystdout = StringIO()
+            [name_fish, blob] = stathab_c.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+        if self.riverint == 1:  # univariate
+            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            for f in filenames:
+                if 'uni' in f and f[-7:-4] not in name_fish:
+                    name_fish.append(f[-7:-4])
+        if self.riverint == 2:
+            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            for f in filenames:
+                if 'biv' in f:
+                    name_fish.append(f[-7:-4])
+
         if name_fish == [-99]:
             return
+        self.list_f.clear()
         for r in range(0, len(name_fish)):
             self.list_f.addItem(name_fish[r])
 
@@ -653,11 +792,30 @@ class StathabW(QWidget):
             fish_item = self.list_s.item(i)
             fish_item_str = fish_item.text()
             self.mystathab.fish_chosen.append(fish_item_str)
-        sys.stdout = self.mystdout = StringIO()
-        # run stathab
-        self.mystathab.stathab_calc(self.path_bio_stathab, self.name_file_allreach[3])
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
+
+        # run stathab for temperate rivers
+        if self.riverint == 0:
+            sys.stdout = self.mystdout = StringIO()
+            self.mystathab.stathab_calc(self.path_bio_stathab, self.name_file_allreach[3])
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+        # run stathab for tropical rivers
+        elif self.riverint == 1:
+            pass
+        elif self.riverint == 2:
+            pass
+        else:
+            self.send_log.emit('The river type is not reconnized. Stathab could not be run.')
+            return
+
+        # caught some errors, special cases.
+        if len(self.mystathab.disthmes) == 0:
+            self.send_log.emit('Stathab could not be run. Are all files available?')
+            return
+        if len(self.mystathab.disthmes[0]) == 1:
+            if self.mystathab.disthmes[0] == -99:
+                return
+
         # save data and fig
         self.mystathab.path_im = self.path_im
         self.mystathab.savetxt_stathab()
@@ -668,14 +826,14 @@ class StathabW(QWidget):
         # log information
         sys.stdout = sys.__stdout__
         self.send_err_log()
-        if len(self.mystathab.disthmes[0]) == 1:
-            if self.mystathab.disthmes[0] == -99:
-                return
+
         self.send_log.emit("py    path_bio = '" + self.path_bio_stathab + "'")
-        self.send_log.emit("py    mystathab.stathab_calc(path_bio)")
+        if self.riverint == 0:
+            self.send_log.emit("py    mystathab.stathab_calc(path_bio)")
         self.send_log.emit("py    mystathab.savetxt_stathab()")
         self.send_log.emit("py    mystathab.path_im = '.'")
         self.send_log.emit("py    mystathab.savefig_stahab()")
-        self.send_log.emit("restart    RUN_STATHAB_AND_SAVE_RESULTS")
-        self.send_log.emit("restart    folder: " + self.dir_name)
+        if self.riverint == 0:
+            self.send_log.emit("restart    RUN_STATHAB_AND_SAVE_RESULTS")
+            self.send_log.emit("restart    folder: " + self.dir_name)
 

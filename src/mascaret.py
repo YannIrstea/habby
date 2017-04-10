@@ -64,12 +64,13 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
     # image if necessary
     if show_fig_1D:
         fig_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
-        pro = [0,1,2]
+        pro = [0, 1, 2]
         reach = [0]
         if fig_opt['time_step'][0] == -99:
             tfig = range(0, len(xhzv_data))
         else:
-            tfig = list(fig_opt['time_step'])
+            tfig = fig_opt['time_step']
+            tfig = list(map(int, tfig))
 
         figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig_opt, name_pro, name_reach, path_im,
                         pro, tfig, reach)
