@@ -100,8 +100,8 @@ class StatModUseful(QWidget):
 
     def find_path_hdf5_est(self):
         """
-        A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py. By default,
-        path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
+        A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py and in
+        stathab_c. By default, path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
         """
 
         path_hdf5 = 'no_path'

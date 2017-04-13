@@ -294,8 +294,6 @@ class StathabW(QWidget):
         self.firstitemreach = []
         self.mystathab.riverint = self.riverint
 
-
-
         # get the new files
         if self.typeload == 'txt':
             self.load_from_txt_gui()
@@ -801,26 +799,37 @@ class StathabW(QWidget):
             self.send_err_log()
         # run stathab for tropical rivers
         elif self.riverint == 1:
-            pass
+            sys.stdout = self.mystdout = StringIO()
+            self.mystathab.stathab_trop_univ(self.path_bio_stathab, True)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
         elif self.riverint == 2:
-            pass
+            sys.stdout = self.mystdout = StringIO()
+            self.mystathab.stathab_trop_biv(self.path_bio_stathab)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
         else:
             self.send_log.emit('The river type is not reconnized. Stathab could not be run.')
             return
 
         # caught some errors, special cases.
-        if len(self.mystathab.disthmes) == 0:
-            self.send_log.emit('Stathab could not be run. Are all files available?')
-            return
-        if len(self.mystathab.disthmes[0]) == 1:
-            if self.mystathab.disthmes[0] == -99:
+        if self.riverint ==0:
+            if len(self.mystathab.disthmes) == 0:
+                self.send_log.emit('Stathab could not be run. Are all files available?')
                 return
+            if len(self.mystathab.disthmes[0]) == 1:
+                if self.mystathab.disthmes[0] == -99:
+                    return
+        if not self.mystathab.load_ok:
+            self.send_log.emit('Stathab could not be run.')
+            return
 
         # save data and fig
         self.mystathab.path_im = self.path_im
-        self.mystathab.savetxt_stathab()
+        if self.riverint == 0:
+            self.mystathab.savetxt_stathab()
         if self.cb.isChecked():
-            self.mystathab.savefig_stahab()
+            self.mystathab.savefig_stahab(False)
             self.show_fig.emit()
 
         # log information

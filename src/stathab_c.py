@@ -2,6 +2,7 @@ import os
 import numpy as np
 from scipy import stats
 from scipy import optimize
+from scipy import interpolate
 import re
 import time
 import matplotlib.pyplot as plt
@@ -12,6 +13,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from src_GUI import output_fig_GUI
 from src_GUI import estimhab_GUI
+from src import load_hdf5
 
 
 class Stathab:
@@ -57,7 +59,7 @@ class Stathab:
         If self.fish_chosen is not present, all fish in the preference file are read.
 
         :param reachname_file: the file with the name of the reaches to study (usually listirv)
-        :param end_file_reach: the ending of the files whose names depends on the reach
+        :param end_file_reach: the ending of the files whose names depends on the reach (with .txt or .csv)
         :param name_file_allreach: the name of the file common to all reaches
         :param path: the path to the file
         :return: the inputs needed for run_stathab
@@ -68,7 +70,6 @@ class Stathab:
         if self.name_reach == [-99]:
             return
         nb_reach = len(self.name_reach)
-        print(self.name_reach)
 
         # prep
         self.qwh = []
@@ -323,12 +324,10 @@ class Stathab:
         info from stathab
         """
         self.load_ok = False
+
         # create an empty hdf5 file using all default prop.
         fname_no_path = self.name_prj + '_STATHAB' + '.h5'
-        blob = estimhab_GUI.StatModUseful()
-        blob.path_prj = self.path_prj
-        blob.name_prj = self.name_prj
-        path_hdf5 = blob.find_path_hdf5_est()
+        path_hdf5 = self.find_path_hdf5_stat()
         fname = os.path.join(path_hdf5, fname_no_path)
         file = h5py.File(fname, 'w')
 
@@ -536,6 +535,172 @@ class Stathab:
 
         self.load_ok = True
 
+    def stathab_trop_univ(self, path_bio, by_vol):
+        """
+        This function calculate the stathab outputs  for the univariate preference file in the case where the river is
+        steep and in the tropical regions (usually the islands of Reunion and Guadeloupe).
+
+        :param path_bio: the path to the preference file usually biology/stathab
+        :param by_vol: If True the output is by volum (VPU instead of SPU) from the velcoity pref file
+        :return: the SPU or VPU
+        """
+
+        # various info
+        self.load_ok = False
+        nb_reach = len(self.name_reach)
+        nbclaq = 50  # number of discharge value where the data have to be calculated
+        nbclass = 20 # number of height and velcoity class (do not change without changing dist_h_trop and _dist_v_trop)
+
+        # get the preference info based on the files known
+        code_fish = self.fish_chosen
+        [datah_all, datav_all] = load_pref_trop_uni(code_fish, path_bio)
+        nb_fish = len(datah_all)
+        pref_v_all = np.zeros((nb_reach, nb_fish, nbclaq))
+        pref_h_all = np.zeros((nb_reach, nb_fish, nbclaq))
+        if nb_fish == 0:
+            print('Error: No fish found \n')
+            return
+
+        # the biological preference index for all reach, all species
+        self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+
+        # for each reach
+        for r in range(0, nb_reach):
+
+            qmod = np.zeros((nbclaq, 1))
+            hmod = np.zeros((nbclaq, 1))
+            wmod = np.zeros((nbclaq, 1))
+            try:
+                qwh_r = self.qwh[r]
+                qlist_r = self.qlist[r]
+            except IndexError:
+                print('Error: data not coherent with the number of reach \n')
+                return
+
+            # get the power law
+            [h_coeff, w_coeff] = self.power_law(qwh_r)
+
+            # for each Q
+            for qind in range(0, nbclaq):
+
+                # discharge, height and velcoity data
+                lnqs = np.log(min(qlist_r)) + (qind + 0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
+                qmod[qind] = np.exp(lnqs)
+                hs = np.exp(h_coeff[1] + lnqs * h_coeff[0])
+                hmod[qind] = hs
+                ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
+                wmod[qind] = ws
+                vs = np.exp(lnqs) / (hs * ws)
+
+                # get dist h
+                [h_dist, h_born] = self.dist_h_trop(vs, hs, self.data_ii[r][0])
+                # get dist v
+                [v_dist, v_born] = self.dist_v_trop(vs, hs, self.data_ii[r][1], self.data_ii[r][2])
+
+                # calculate J
+                for f in range(0, nb_fish):
+                    # to be checked
+                    pref_h = np.interp(h_born, datah_all[f][:, 0], datah_all[f][:, 1])
+                    pref_v = np.interp(v_born, datav_all[f][:, 0], datav_all[f][:, 1])
+                    h_index = np.sum(pref_h * h_dist)
+                    v_index = np.sum(pref_v * v_dist)
+                    pref_h_all[r, f, qind] = h_index * ws
+                    pref_v_all[r, f, qind] = v_index * ws * hs
+                self.h_all.append(hmod)
+                self.w_all.append(wmod)
+                self.q_all.append(qmod)
+
+        # why?
+        if by_vol:
+            self.j_all = pref_v_all
+        else:
+            self.j_all = pref_h_all
+
+        self.load_ok = True
+
+    def stathab_trop_biv(self, path_bio):
+        """
+        This function calculate the stathab outputs  for the bivariate preference file in the case where the river is
+        steep and in the tropical regions (usually the islands of Reunion and Guadeloupe).
+
+        :param path_bio:
+        :return:
+        """
+
+        # various info
+        self.load_ok = False
+        nb_reach = len(self.name_reach)
+        nbclaq = 50  # number of discharge value where the data have to be calculated
+
+        # get the preference info based on the files known
+        code_fish = self.fish_chosen
+        data_pref_all = load_pref_trop_biv(code_fish,path_bio)
+        nb_fish = len(data_pref_all)
+        if nb_fish == 0:
+            print('Error: No fish found \n')
+            return
+
+        # the biological preference index for all reach, all species
+        self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
+
+        # for each reach
+        for r in range(0, nb_reach):
+
+            qmod = np.zeros((nbclaq, 1))
+            hmod = np.zeros((nbclaq, 1))
+            wmod = np.zeros((nbclaq, 1))
+            try:
+                qwh_r = self.qwh[r]
+                qlist_r = self.qlist[r]
+            except IndexError:
+                print('Error: data not coherent with the number of reach \n')
+                return
+
+            # get the power law
+            [h_coeff, w_coeff] = self.power_law(qwh_r)
+
+            # for each Q
+            for qind in range(0, nbclaq):
+                # discharge, height and velcoity data
+                lnqs = np.log(min(qlist_r)) + (qind + 0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
+                qmod[qind] = np.exp(lnqs)
+                hs = np.exp(h_coeff[1] + lnqs * h_coeff[0])
+                hmod[qind] = hs
+                ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
+                wmod[qind] = ws
+                vs = np.exp(lnqs) / (hs * ws)
+
+                # get dist h
+                [h_dist, h_born] = self.dist_h_trop(vs, hs, self.data_ii[r][0])
+                # get dist v
+                [v_dist, v_born] = self.dist_v_trop(vs, hs, self.data_ii[r][1], self.data_ii[r][2])
+
+                # change to the vecloity and heigth distribtion because we are in bivariate
+                # we nomalize the height distribution (between 0 and 1 ) and mulitply it with the velocity
+                h_dist = h_dist / h_born
+                h_dist = h_dist / sum(h_dist)  # normalisation to one, (like getting a mini-volum?)
+                rep_num = len(h_dist)
+                v_dist = np.repeat(v_dist, rep_num)  # [0,1,2] -> [0,0,1,1,2,2]
+                h_vol = np.tile(h_dist, (1, rep_num))  # [0,1,2] -> [0,1,2,0,1,2]
+                biv_dist = (h_vol * v_dist).T
+
+                # calculate J
+                for f in range(0, nb_fish):
+
+                    # interpolate the preference file to the new point
+                    data_pref = data_pref_all[f]
+                    v_born2 = np.repeat(v_born, rep_num)
+                    h_born2 = np.squeeze(np.tile(h_born, (1, rep_num)))
+                    point_vh = np.array([v_born2, h_born2]).T
+                    pref_here = interpolate.griddata(data_pref[:, :2], data_pref[:,2], point_vh, method='linear')
+
+                    self.j_all[r, f, qind] = np.sum(pref_here * biv_dist.T) * ws*hs
+                self.h_all.append(hmod)
+                self.w_all.append(wmod)
+                self.q_all.append(qmod)
+
+        self.load_ok = True
+
     def power_law(self, qwh_r):
         """
         The function to calculate power law for discharge and width
@@ -569,7 +734,6 @@ class Stathab:
         # optimization by non-linear least square
         # if start value equal or above one, the optimization fails.
         [sh0_opt, pcov] = optimize.curve_fit(lambda h, sh0: self.dist_h(sh0, h0, bornhmes, h), h0, disthmesr, p0=0.5)
-        print(sh0_opt)
         return sh0_opt
 
     def find_sh0_maxvrais(self, disthmesr, h0):
@@ -710,9 +874,103 @@ class Stathab:
                 + (1 - sv) * (stats.norm.cdf((b - 1) / 0.611) - stats.norm.cdf((c - 1) / 0.611))
         return distv
 
-    def savefig_stahab(self):
+    def dist_h_trop(self,v,h, mean_slope):
         """
-        A function to save the results in text and the figure.
+        This function calulate the height distribution for steep tropical stream based on the R code from
+        Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
+        is given in the list of numbers in the codes below. The final frequency distribution is in the form:
+        t *f1 + (1-t) * f where t is a function of the froude number and the mean slope of the station.
+
+        The height limits are considered constant here (constrarily to dist_h where they are given in the parameter
+        bornh).
+
+        :param v: the velcoity for this discharge
+        :param h: the height for this discharge
+        :param mean_slope: the mean slope of the station (usally in the data_ii[0] variable)
+        :return: the distribution of height
+
+        """
+
+        # general info
+        g = 9.80665  # gravitation constant
+        fr = v/np.sqrt(g*h)
+
+        # empirical freq. distributions
+        fd_h =[0.221545010, 0.193846678, 0.117355060, 0.110029404, 0.074083455, 0.071369872, 0.054854534,
+               0.025952644, 0.024479842, 0.021200121, 0.015840696, 0.018349236, 0.010369520, 0.006917000,
+               0.005550880, 0.003432236, 0.001366120, 0.003366120, 0.006118644, 0.013972928]
+        fc_h = [0.10786195, 0.12074410, 0.14866942, 0.13869359, 0.16721162, 0.11451288, 0.08924672, 0.05603628,
+                0.02442850, 0.02209880, 0.01049615, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000,
+                0.00000000, 0.00000000, 0.00000000, 0.00000000]
+
+        # get the mixiing parameters
+        tmix_lien = -2.775 - 0.838*np.log(fr) + 0.087*mean_slope
+        tmix = np.exp(tmix_lien)/(1+np.exp(tmix_lien))
+
+        # height disitrbution
+        h_dist = np.zeros((len(fd_h),))
+        for i in range(0, len(fd_h)):
+            h_dist[i] = tmix * fd_h[i] + (1-tmix) * fc_h[i]
+
+        h_born = np.arange(0.125, 5, 0.25) *h
+
+        return h_dist, h_born
+
+    def dist_v_trop(self,v,h, h_waterfall, length_stat):
+        """
+        This function calulate the velocity distribution for steep tropical stream based on the R code from
+        Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
+        is given in the list of numbers in the codes below. The final frequency distribution is in the form:
+        t *f1 + (1-t) * f where t depends on the ratio of the length of station and the height of the waterfall.
+
+        :param v: the velcoity for this discharge
+        :param h: the height for this discharge
+        :param h_waterfall: the height of the waterfall
+        :param length_stat: the length of the station
+        :return: the distribution of velocity
+
+        """
+
+        # prep
+        g = 9.80665  # gravitation constant
+        ichu = h_waterfall/length_stat
+        fr = v / np.sqrt(g * h)
+
+        # empirical freq. distributions
+        fd_v = [0.367737038, 0.171825373, 0.070912537, 0.049956434, 0.042982367, 0.037409374, 0.032246954,
+                0.025315107, 0.019778008, 0.018990529, 0.011506684, 0.018655122, 0.016300231, 0.012822439,
+                0.012222620, 0.006738370, 0.007714692, 0.003348316, 0.006082559, 0.001749545, 0.065705701]
+        fc_v = [0.113325663, 0.167094505, 0.104591869, 0.091699585, 0.076272551, 0.076247281, 0.075009649,
+                0.066482669, 0.057792617, 0.058358048, 0.036947598, 0.025192247, 0.024107747, 0.014137293,
+                0.003300867, 0.006857482, 0.002582328, 0.000000000, 0.000000000, 0.000000000, 0.000000000]
+
+        # get the mixing paramter
+        if np.isnan(ichu):
+            smix_lien = -3.163-1.344*np.log(fr)
+        else:
+            smix_lien = -4.53-1.58*np.log(fr)+0.159*ichu
+        smix = np.exp(smix_lien) / (1 + np.exp(smix_lien))
+
+        # velocity distribution
+        v_dist = np.zeros((len(fd_v),))
+        for i in range(0, len(fd_v)):
+            v_dist[i] = smix * fd_v[i] + (1 - smix) * fc_v[i]
+
+        v_born = np.arange(-0.125, 5, 0.25)*v
+
+        # change the length as needed
+        v_born = v_born[1:]
+        v_dist[1] = v_dist[0] + v_dist[1]
+        v_dist = v_dist[1:]
+
+        return v_dist,v_born
+
+    def savefig_stahab(self, show_class=True):
+        """
+        A function to save the results in text and the figure. If the argument show_class is True,
+        it shows an extra figure with the size of the different height, granulo, and velocity classes. The optional
+        figure only works when stathab1 for temperate river is used.
+
         """
         # figure option
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
@@ -724,50 +982,52 @@ class Stathab:
 
         for r in range(0, len(self.name_reach)):
 
-            rclass = self.rclass_all[r]
-            hclass = self.hclass_all[r]
-            vclass = self.vclass_all[r]
-            vol = self.h_all[0] * self.w_all[0]
             qmod = self.q_all[r]
+            if show_class:
+                rclass = self.rclass_all[r]
+                hclass = self.hclass_all[r]
+                vclass = self.vclass_all[r]
+                vol = self.h_all[0] * self.w_all[0]
 
-            fig = plt.figure()
-            plt.subplot(221)
-            plt.title('Volume total')
-            plt.plot(qmod, vol)
-            plt.ylabel('Volume for 1m reach [m3]')
-            plt.subplot(222)
-            plt.title('Surface by class for the granulometry')
-            for g in range(0, len(rclass)):
-                plt.plot(qmod, rclass[g], '-', label='Class ' + str(g))
-            plt.ylabel('Surface by Class [m$^{2}$]')
-            lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-            plt.subplot(223)
-            plt.title('Surface by class for the height')
-            for g in range(0, len(hclass)):
-                plt.plot(qmod, hclass[g, :], '-', label='Class ' + str(g))
-            plt.xlabel('Q [m$^{3}$/sec]')
-            plt.ylabel('Surface by Class [m$^{2}$]')
-            lgd = plt.legend()
-            plt.subplot(224)
-            plt.title('Volume by class for the velocity')
-            for g in range(0, len(vclass)):
-                plt.plot(qmod, vclass[g], '-', label='Class ' + str(g))
-            plt.xlabel('Q [m$^{3}$/sec]')
-            plt.ylabel('Volume by Class [m$^{3}$]')
-            lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-            # save the figures
+                fig = plt.figure()
+                plt.subplot(221)
+                plt.title('Volume total')
+                plt.plot(qmod, vol)
+                plt.ylabel('Volume for 1m reach [m3]')
+                plt.subplot(222)
+                plt.title('Surface by class for the granulometry')
+                for g in range(0, len(rclass)):
+                    plt.plot(qmod, rclass[g], '-', label='Class ' + str(g))
+                plt.ylabel('Surface by Class [m$^{2}$]')
+                lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
+                plt.subplot(223)
+                plt.title('Surface by class for the height')
+                for g in range(0, len(hclass)):
+                    plt.plot(qmod, hclass[g, :], '-', label='Class ' + str(g))
+                plt.xlabel('Q [m$^{3}$/sec]')
+                plt.ylabel('Surface by Class [m$^{2}$]')
+                lgd = plt.legend()
+                plt.subplot(224)
+                plt.title('Volume by class for the velocity')
+                for g in range(0, len(vclass)):
+                    plt.plot(qmod, vclass[g], '-', label='Class ' + str(g))
+                plt.xlabel('Q [m$^{3}$/sec]')
+                plt.ylabel('Volume by Class [m$^{3}$]')
+                lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
+                # save the figures
 
-            if format == 0 or format == 1:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                        "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-            if format == 0 or format == 3:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                        "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-            if format == 2 or format > 2:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                        "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
-            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                        dpi=self.fig_opt['resolution'])
+                if format == 0 or format == 1:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
+                if format == 0 or format == 3:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+                if format == 2 or format > 2:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+                fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+                            dpi=self.fig_opt['resolution'])
+
             # suitability index
             if len(self.fish_chosen)>1:
                 j = np.squeeze(self.j_all[0, :, :])
@@ -792,7 +1052,7 @@ class Stathab:
                                         "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
             fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
                         dpi=self.fig_opt['resolution'])
-            # plt.show()
+            plt.show()
 
     def savetxt_stathab(self):
         """
@@ -821,9 +1081,32 @@ class Stathab:
                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + 'rre.txt')
             np.savetxt(namefile, j.T)
 
+    def find_path_hdf5_stat(self):
+        """
+        A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py
+        and in estimhab_GUI. By default,
+        path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
+        """
+
+        path_hdf5 = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//Path_Hdf5")
+            if child is None:
+                path_hdf5 = self.path_prj
+            else:
+                path_hdf5 = os.path.join(self.path_prj, child.text)
+        else:
+           print('Error: Project file is not found')
+
+        return path_hdf5
+
     def test_stathab(self, path_ori):
         """
-        A short function to test part of the outputs against the C++ code,
+        A short function to test part of the outputs of stathab in temperate rivers against the C++ code,
         It is not used in Habby but it is practical to debug.
 
         :param path_ori: the path to the files from stathab based on the c++ code
@@ -903,6 +1186,71 @@ class Stathab:
     
         plt.show()
 
+    def test_stathab_trop_biv(self, path_ori):
+        """
+        A short function to test part of the outputs of the stathab tropical rivers against the R code
+        in the bivariate mode. It is not used in Habby but it is practical to debug. Stathab_trop+biv should be
+        executed before. For the moment only the fish SIC is tested.
+
+        :param path_ori: the path to the output files from stathab based on the R code
+
+        """
+
+        # load the R output data
+        filename = os.path.join(path_ori, 'SIC_ind-vh.csv')
+        data_r = np.genfromtxt(filename, skip_header=1, delimiter=";")
+        q_r = data_r[:, 2]
+        vpu = data_r[:, 6]
+
+        # compare result
+        plt.figure()
+        plt.title('Stathab - Tropical bivariate - SIC')
+        plt.plot(self.q_all[0], self.j_all[0, 0, :],'-')
+        plt.plot(q_r, vpu,'x')
+        plt.xlabel('Q [m3/sec]')
+        plt.ylabel('VPU')
+        plt.legend(('Python Code', 'R Code'), loc=2)
+        plt.grid('on')
+        plt.show()
+
+    def test_stathab_trop_uni(self, path_ori,by_vel=True):
+        """
+        A short function to test part of the outputs of the stathab tropical rivers against the R code
+        in the univariate mode. It is not used in Habby but it is practical to debug. Stathab_trop_uni should be
+        executed before. For the moment only the fish SIC is tested.
+
+        :param path_ori: the path to the output files from stathab based on the R code
+        :param by_vel: If True, the velcoity-based vpu is used. Otherise, it is height-based spu
+
+        """
+
+        # load the R output data
+        if by_vel:
+            filename = os.path.join(path_ori, 'SIC_ind-v.csv')
+        else:
+            filename = os.path.join(path_ori, 'SIC_ind-h.csv')
+        data_r = np.genfromtxt(filename, skip_header=1, delimiter=";")
+        q_r = data_r[:, 2]
+        vpu = data_r[:, 6]
+
+        # compare result
+        plt.figure()
+        if by_vel:
+            plt.title('Stathab - Tropical univariate, based on velocity preference - SIC ')
+            plt.ylabel('VPU')
+        else:
+            plt.title('Stathab - Tropical univariate, based on height preference - SIC ')
+            plt.ylabel('SPU')
+        plt.plot(self.q_all[0], self.j_all[0, 0, :], '-')
+        plt.plot(q_r, vpu, 'x')
+        plt.xlabel('Q [m3/sec]')
+
+        plt.legend(('Python Code', 'R Code'), loc=2)
+        plt.grid('on')
+        plt.show()
+
+
+
 
 def load_float_stathab(filename, check_neg):
     """
@@ -974,7 +1322,7 @@ def load_float_stathab(filename, check_neg):
 
 def load_pref(filepref, path):
     """
-    The function loads the different pref coeffficient contained in filepref
+    The function loads the different pref coeffficient contained in filepref, for the temperate river from Stathab
 
     :param filepref: the name of the file (usually Pref.txt)
     :param path: the path to this file
@@ -1006,6 +1354,90 @@ def load_pref(filepref, path):
     coeff_all = np.array(coeff_all)
 
     return name_fish, coeff_all
+
+
+def load_pref_trop_uni(code_fish, path):
+    """
+    This function loads the preference files for the univariate data. The file with the univaraite data should be in the
+    form of *uni-h_XXX where XX is the fish code The assumption is that the filename for velocity is very similar to
+    the filename for height, in more detail that the string uni-h is changes to uni-v in the filename. Otherwise,
+    the file are csv with two columns: First is velocity or height, the second is the preference data.
+
+    :param code_fish: the code for the fish name in three letters (such as ASC)
+    :param path: the path to files
+    :return: the height data and velcoity data (h, pref) and (v,pref)
+    """
+    datah_all = []
+    datav_all = []
+
+    # get all possible file
+    all_files = load_hdf5.get_all_filename(path,'.csv')
+
+    # get the name of univariate height files
+    filenamesh = []
+    for fi in code_fish:
+        for file in all_files:
+            if 'uni-h_'+fi in file:
+                filenamesh.append(file)
+
+    # load the data
+    for fh in filenamesh:
+        # get filename with the path
+        fv = fh.replace('uni-h','uni-v')
+        fileh = os.path.join(path,fh)
+        filev = os.path.join(path,fv)
+        print(filev)
+
+        # load file
+        if not os.path.isfile(fileh) or not os.path.isfile(filev):
+            print('Warning: One preference file was not found.\n')
+        else:
+            try:
+                datah = np.loadtxt(fileh, skiprows=1, delimiter=';')
+                datav = np.loadtxt(filev, skiprows=1, delimiter=';')
+                datah_all.append(datah)
+                datav_all.append(datav)
+            except ValueError:
+                print('Warning: One preference file could not be read.\n')
+
+    return datah_all, datav_all
+
+
+def load_pref_trop_biv(code_fish, path):
+    """
+    This function loads the bivariate preference files for tropical rivers. The name of the file must be in the form
+    of *biv_XXX.csv where XXX is the three-letters fish code.
+
+    :param code_fish: the code for the fish name in three letters (such as ASC)
+    :param path: the path to files
+    :return: the bivariate preferences
+    """
+    data_all = []
+
+    # get all possible files
+    all_files = load_hdf5.get_all_filename(path, '.csv')
+
+    # get the name of univariate height files
+    filenames = []
+    for fi in code_fish:
+        for file in all_files:
+            if 'biv_' + fi in file:
+                filenames.append(file)
+
+    # load the data
+    for f in filenames:
+        # get filename with the path
+        file = os.path.join(path,f)
+        if not os.path.isfile(file):
+            print('Warning: One preference file was not found.\n')
+        else:
+            try:
+                data = np.loadtxt(file, skiprows=1, delimiter=';')
+                data_all.append(data)
+            except ValueError:
+                print('Warning: One preference file could not be read.\n')
+
+    return data_all
 
 
 def load_namereach(path, name_file_reach='listriv'):
@@ -1044,23 +1476,50 @@ def main():
     used to test this module.
     """
 
-    path = 'D:\Diane_work\model_stat\input_test'
-    path_ori = 'D:\Diane_work\model_stat\stathab_t(1)'
-    #path_ori = r'D:\Diane_work\model_stat\stathab_t(1)\mob_test'
-    end_file_reach = ['deb.txt', 'qhw.txt', 'gra.txt', 'dis.txt']
-    name_file_allreach = ['bornh.txt', 'bornv.txt', 'borng.txt', 'Pref.txt']
-    path_habby = r'C:\Users\diane.von-gunten\HABBY'
-    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    # test temperate stathab
 
-    mystathab = Stathab('my_test4', path_habby)
-    mystathab.load_stathab_from_txt('listriv.txt', end_file_reach, name_file_allreach, path)
+    # path = 'D:\Diane_work\model_stat\input_test'
+    # path_ori = 'D:\Diane_work\model_stat\stathab_t(1)'
+    # #path_ori = r'D:\Diane_work\model_stat\stathab_t(1)\mob_test'
+    # end_file_reach = ['deb.txt', 'qhw.txt', 'gra.txt', 'dis.txt']
+    # name_file_allreach = ['bornh.txt', 'bornv.txt', 'borng.txt', 'Pref.txt']
+    # path_habby = r'C:\Users\diane.von-gunten\HABBY'
+    # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
+    #
+    # mystathab = Stathab('my_test4', path_habby)
+    # mystathab.load_stathab_from_txt('listriv.txt', end_file_reach, name_file_allreach, path)
+    # mystathab.create_hdf5()
+    # mystathab.load_stathab_from_hdf5()
+    # mystathab.stathab_calc(path_ori)
+    # mystathab.path_im = path_im
+    # #mystathab.savefig_stahab()
+    # #mystathab.savetxt_stathab()
+    # mystathab.test_stathab(path_ori)
+
+    # test tropical stathab
+    path_ori = r'D:\Diane_work\model_stat\FSTRESSandtathab\fstress_stathab_C\Stathab2_2014 04_R\Stathab2_2014 04\output'
+    path = r'C:\Users\diane.von-gunten\HABBY\test_data\input_stathab2'
+    path_prj = r'D:\Diane_work\dummy_folder\Projet1'
+    name_prj = 'Projet1'
+    path_im = r'D:\Diane_work\dummy_folder\cmd_test'
+    path_bio = r'C:\Users\diane.von-gunten\HABBY\biology\stathab'
+    name_file_allreach_trop = []
+    end_file_reach_trop = ['deb.csv', 'qhw.csv', 'ii.csv']  # .txt or .csv
+    biv= False
+
+    mystathab = Stathab(name_prj, path_prj)
+    mystathab.riverint = 2
+    mystathab.load_stathab_from_txt('listriv', end_file_reach_trop, name_file_allreach_trop, path)
     mystathab.create_hdf5()
-    mystathab.load_stathab_from_hdf5()
-    mystathab.stathab_calc(path_ori)
-    mystathab.path_im = path_im
-    #mystathab.savefig_stahab()
-    #mystathab.savetxt_stathab()
-    mystathab.test_stathab(path_ori)
+    mystathab.fish_chosen = ['SIC']
+
+    if biv:
+        mystathab.stathab_trop_biv(path_bio)
+        mystathab.test_stathab_trop_biv(path_ori)
+    else:
+        # False-> height based spu, True-> vpu
+        mystathab.stathab_trop_univ(path_bio, False)
+        mystathab.test_stathab_trop_uni(path_ori, False)
 
 
 if __name__ == '__main__':
