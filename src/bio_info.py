@@ -477,7 +477,7 @@ def load_xml_name(path_bio, attributes):
                 print("Warning: the xml file " + preffile + " does not exist \n")
                 break
         except ET.ParseError:
-            print("Warning: the xml file " + preffile + "is not well-formed.\n")
+            print("Warning: the xml file " + preffile + " is not well-formed.\n")
             break
 
         i = -1

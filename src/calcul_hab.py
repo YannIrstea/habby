@@ -13,7 +13,7 @@ import shapefile
 
 def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     """
-    This function calculates the habitat value. It loads substrate and hydrology datqa from an hdf5 files and it loads
+    This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
     stages are in the xml files). There are more than one method to calculte the habitat so the parameter opt indicate
     which metho to use. 0-> usde coarser substrate, 1 -> use dominant substrate
@@ -394,9 +394,9 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     if ikle == [[-99]]:
         return
 
-        # we do not print the first time step with the whole profile
+    # we do not print the first time step with the whole profile
     nb_reach = len(ikle[0])
-    for t in range(0, len(ikle)):
+    for t in range(1, len(ikle)):
         ikle_here = ikle[t][0]
         if len(ikle_here) < 2:
             print('Warning: One time step failed. \n')

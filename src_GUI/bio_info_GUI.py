@@ -17,7 +17,7 @@ from src import bio_info
 from src_GUI import estimhab_GUI
 from src import calcul_hab
 from src_GUI import output_fig_GUI
-from src import convert_to_paraview
+from src import new_create_vtk
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -399,7 +399,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.p.start()
         if create_para:
             path_out = self.find_path_output_est()
-            self.p2 = Process(target=convert_to_paraview.habitat_to_vtu, args=(name_base, path_out, path_hdf5,
+            self.p2 = Process(target=new_create_vtk.habitat_to_vtu, args=(name_base, path_out, path_hdf5,
                                                                                hdf5_file, vh_all_t_sp, height_c_all_t,
                                                                                vel_c_all_t, name_fish, False))
             self.p2.start()
