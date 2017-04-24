@@ -4,6 +4,7 @@ import numpy as np
 from src import calcul_hab
 from src import hl
 
+
 def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, height_c_data, vel_c_data, name_fish,
                    binary_data=False):
     """
@@ -54,7 +55,8 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
         for t in range(1, nb_time):
             ikle = ikle_all_t[t][0]
             if len(ikle) < 3:  # if something is wrong
-                #print('Error: Connectivity table missing or illogical. One time step not created. \n')
+                pass
+                # print('Error: Connectivity table missing or illogical. One time step not created. \n')
             else:
 
                 # grid data preparation for vtk
@@ -129,6 +131,9 @@ def writePVD(fileName, fileNames):
 
 
 def main():
+    """
+    Used to test this module
+    """
     path_hdf5 = r'D:\Diane_work\dummy_folder\Projet1\fichier_hdf5'
     name_hdf5 = r'MERGE_Hydro_RUBAR2D_BS15a621_03_2017_at_10_15_45.h5'
     blob = None

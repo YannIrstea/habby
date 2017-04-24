@@ -300,8 +300,14 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
         except KeyError:
             print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
             return failload
-        ikle_sub = list(gen_dataset.values())
-        ikle_sub = np.squeeze(np.array(ikle_sub))
+        # longer because we might have non-triangular value
+        ikle_sub_no_order = list(gen_dataset.values())  # write the length in the hdf5?
+        ikle_sub_no_order = np.squeeze(np.array(ikle_sub_no_order))
+        ikle_sub = []
+        for id in range(0, len(ikle_sub_no_order)):
+            ns = 'p' + str(id)
+            cell = gen_dataset[ns]
+            ikle_sub.append(list(cell))
 
         # read the coordinate of the point forming the grid
         basename1 = 'coord_p_sub'
@@ -408,7 +414,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param nb_pro_reach: data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)
     :param merge: If True, the data is coming from the merging of substrate and hydrological data.
     :param sub_pg_all_t: the data of the coarser substrate given on the merged grid by cell. Only used if merge is True.
-    ;param sub_dom_all_t: the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
+    :param sub_dom_all_t: the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
 
     **Technical comments**
 
@@ -439,7 +445,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
     hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.
 
-    Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.
+    Hdf5 file do not support unicode. It is necessary to encode string to write them.
+
     """
 
     # create hdf5 name
@@ -641,12 +648,11 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
         ikleg = file.create_group('ikle_sub')
         coordpg = file.create_group('coord_p_sub')
         if len(ikle_sub) > 0:
-            adict = dict()  # because the grid might not be triangular here
-            for p in range(0, len(ikle_sub)):
-                ns = 'p' + str(p)
-                adict[ns] = ikle_sub[p]
-            for k, v in adict.items():
-                ikleg.create_dataset(k, data=v)
+            # the grid is not necessary triangular for the subtrate
+            for id, c in enumerate(ikle_sub):
+                ns = 'p' + str(id)
+                ikleg.create_dataset(ns, data=c)
+
         coordpg.create_dataset(h5name, [len(coord_p), 2], data=coord_p)
 
         # substrate data (cemagref code ususally)
@@ -689,7 +695,6 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
         return h5name
     else:
         return
-
 
 
 def copy_files(names,paths, path_input):

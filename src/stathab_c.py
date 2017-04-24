@@ -879,7 +879,7 @@ class Stathab:
         This function calulate the height distribution for steep tropical stream based on the R code from
         Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
         is given in the list of numbers in the codes below. The final frequency distribution is in the form:
-        t *f1 + (1-t) * f where t is a function of the froude number and the mean slope of the station.
+        t xf1 + (1-t) x f where t is a function of the froude number and the mean slope of the station.
 
         The height limits are considered constant here (constrarily to dist_h where they are given in the parameter
         bornh).
@@ -921,7 +921,7 @@ class Stathab:
         This function calulate the velocity distribution for steep tropical stream based on the R code from
         Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
         is given in the list of numbers in the codes below. The final frequency distribution is in the form:
-        t *f1 + (1-t) * f where t depends on the ratio of the length of station and the height of the waterfall.
+        t x f1 + (1-t) x f where t depends on the ratio of the length of station and the height of the waterfall.
 
         :param v: the velcoity for this discharge
         :param h: the height for this discharge
@@ -1250,8 +1250,6 @@ class Stathab:
         plt.show()
 
 
-
-
 def load_float_stathab(filename, check_neg):
     """
     A function to load float with extra checks
@@ -1358,10 +1356,11 @@ def load_pref(filepref, path):
 
 def load_pref_trop_uni(code_fish, path):
     """
-    This function loads the preference files for the univariate data. The file with the univaraite data should be in the
-    form of *uni-h_XXX where XX is the fish code The assumption is that the filename for velocity is very similar to
-    the filename for height, in more detail that the string uni-h is changes to uni-v in the filename. Otherwise,
-    the file are csv with two columns: First is velocity or height, the second is the preference data.
+    This function loads the preference files for the univariate data. The file with the univariate data should be in the
+    form of xuni-h_XXX where XX is the fish code and x is whatever string. The assumption is that the filename for
+    velocity is very similar to the filename for height. In more detail that the string uni-h is changed to uni-v in
+    the filename. Otherwise, the file are csv file with two columns: First is velocity or height,
+    the second is the preference data.
 
     :param code_fish: the code for the fish name in three letters (such as ASC)
     :param path: the path to files
@@ -1406,7 +1405,7 @@ def load_pref_trop_uni(code_fish, path):
 def load_pref_trop_biv(code_fish, path):
     """
     This function loads the bivariate preference files for tropical rivers. The name of the file must be in the form
-    of *biv_XXX.csv where XXX is the three-letters fish code.
+    of xbiv_XXX.csv where XXX is the three-letters fish code and x is whatever string.
 
     :param code_fish: the code for the fish name in three letters (such as ASC)
     :param path: the path to files

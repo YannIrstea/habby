@@ -7,7 +7,7 @@ Welcome to HABBY's documentation!
 ==================================
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
    :caption: Contents
   
 HABBY is a program to estimate the habitat of fish using various hydrological models and preference curve as input. 
@@ -29,6 +29,8 @@ The source code is separated in two folders: one folder which contain the code s
 The dependency between the different part of the source code can be visualized in the mindmap real_GUI.xmind (xmind should be installed).
 
 The main of HABBY is habby.py. It has the usual form for an application using PyQt5.  The main() creates an application of QWidget and call the Main_Windows class, which we will discuss shortly. The last line closes the application. 
+
+It is also possible to call habby from the command line without the GUI. For this, the script called habby_cmd.py is used.
 
 
 Graphical interface
@@ -62,10 +64,11 @@ used for the hydrological calculations.
    
 Figure Option - GUI
 ------------------------------
- in src_GUI/output_fig_GUI.py
+in src_GUI/output_fig_GUI.py
  
- This part is not finished. The idea is to let the user select various options to create
- the figures, notably the colour or the size of the text. 
+This python module lets the user select various options to create the figures, notably the colormap or the size of the text.
+It is also wehre the user select the needed outputs.
+
  
 .. automodule:: src_GUI.output_fig_GUI
    :members:
@@ -94,6 +97,19 @@ in src_GUI/estimhab_GUI.py
 .. automodule:: src_GUI.estimhab_GUI
    :members:
    :undoc-members:
+
+Information Biological and Run habitat
+---------------------------------------
+in src_GUI/bio_info_GUI.py
+
+This python module is where the biological info is managed and shown to the user.
+It is also where the user can run the habitat calculation.
+
+.. automodule:: src_GUI.bio_info_GUI
+   :members:
+   :undoc-members:
+
+
    
 Biological data - Estimhab
 """"""""""""""""""""""""""""""""""""""
@@ -230,7 +246,7 @@ Load HABBY hdf5 file
 --------------------------------------
 in src/load_hdf5.py
 
-This module contains some functions to load and manage hdf5 input/outputs. This is still in progress.
+This module contains some functions to load and manage hdf5 input/outputs. 
 
 .. automodule:: src.load_hdf5
    :members:
@@ -333,14 +349,73 @@ Substrate
 -------------------
 in src/substrate.py
 
-This module contains the function to manage the substrate data. This is still a work in progress.
+This module contains the function to manage the substrate data and to merge the grid with the substrate and hydrological data.
 
 .. automodule:: src.substrate
    :members:
    :undoc-members:
+
+Biological Info
+-------------------------
+in src/bio_info.py
+
+This module contains the script to show and manage the biological models (preference curves) which are in the biology folder.
+
+.. automodule:: src.bio_info
+   :members:
+   :undoc-members:
+
+Calculation habitat
+-----------------------
+in src/calcul_hab.py
+
+This module calculates the habitat value for the fish and creates the outputs (text files, shapefile, and figures).
+
+.. automodule:: src.calcul_hab
+   :members:
+   :undoc-members:
+
+
+Create Paraview Files
+------------------------
+in src/new_create_vtk.py
+in src/evtk.py
+in src/hl.py
+in src/vtk.py
+in src/xml_vk.py
+
+Theses modules contain the scripts to create Paraview input which are binary xml-based vtu files. This part is heavily based on the module
+Pyevtk created by Paulo Herrera (https://bitbucket.org/pauloh/pyevtk). Hence, the only script written for HABBY is in new_create_vtk.py. This
+script then called one function in hl.py which then called the three other scripts as in Pyevtk (not documented here).
+
+.. automodule:: src.new_create_vtk
+   :members:
+   :undoc-members:
+
+Function for the command lines
+-------------------------------
+in src/func_for_cmd.py
+
+This module contains functions which are only used by habby_cmd.py. Theoretically, it is not needed but it is sometimes practical.
+It is not great idea to add to many functions here however because it is more complicated to maintain.
+
+.. automodule:: src.func_for_cmd
+   :members:
+   :undoc-members:
+
    
 Various notes
 ===============
+
+
+
+The legend of the plots are not shown.
+----------------------------------------
+Generally HABBY is able to save the figure while showing the legend (which is often outside of the figure) appropriately. However, 
+the figure shown to the user by matplotlib often have the legend outside of the visible area. To see the figure fully, one can modify
+the axes in the option of the figure (the menu in the axes on the top of the figure).
+
+
 
 Translation of HABBY
 ------------------------
@@ -382,7 +457,11 @@ In HABBY, the list of the name of all qm file are in the variable self.file_lang
 in class MainWindows. Hence, we can follow the selected language using an integer self.lang 
 (0 for English and 1 for French). We can now call self.file_langue[self.lang] to get the qm 
 file in the right language. If a new language is added, it is necessary to add one string to this 
-list and to modify the menu. 
+list and to modify the menu. If the new language is also present in the xml preference file
+(which contains the biological info), it is also necessary to update the variable "bioinfo_tab.lang"
+from central_widget in the function setlangue from Main_Windows(). If this is done, the description of
+the xml preference file in the "Biology" tab will be shown in the selected language. Otherwise, it will be
+the first language found.
 
 When the translator has been created, it is necessary to re-do all Widgets and Windows. This is not a problem when we open HABBY, but it can be a bit of work if the user asks for a change in language when HABBY is running. This is the function of the setlangue function. This function would work for all language (it takes an integer as input to know which language to use), but it needs to be modified if one modifies the Main_Windows Class strongly (notably if one add signals).
 The language should be saved in the user setting using Qsettings as it is done at the end of the 
@@ -391,7 +470,7 @@ setlangue function.
 Create a .exe
 --------------------
 
-Here are step to create a .exe using PyInstaller
+Here are step to create a .exe using PyInstaller:
 
 *	install Pyinstaller (pip install pyinstaller)
 *	cd "folder with source code"
@@ -405,6 +484,14 @@ Here are some common problems:
 *	Intel MKL fatal error copy the .dll missing (or just find an old dist and copy all mkl stuff) AND the libiomp5md.dll
 *	The translation does not work: Add the translation folder into the dist folder
 *	Do not find log0.txt (or crash when saving project): create a folder called src_GUI, copy the files log0.txt and restart_log0.txt from the src_GUI folder in the python module
+
+Practically:
+
+* go to the folder called executable
+* run createexe.bat (only on Windows)
+* copy all files in the mklall folder to the folder dist/habby
+* run habby by writing habby on the cmd
+* test and correct problems. It can be long!
 
 Logging
 --------------
@@ -423,7 +510,9 @@ modified to create a new script to use HABBY in a different ways. For this, pyth
 The second log, called restart/_’name_project’.log, has limited functionalities but allows to 
 re-start the HABBY simulation from the command line, without the need for python. 
 Format of this file is described below. It is aimed to be readable and easily modifiable. 
-To use the restart file, type in the command line: habby restart/_’name_project’.log. (not done yet)
+To use the restart file, type in the command line: python habby_cmd.py restart/_’name_project’.log.
+
+This part genreally needs more revisions and tests.
 
 **Type of log and format**
 
@@ -478,9 +567,20 @@ To create a new line of log for new_func, one should follow these steps:
 *	The signal should be collected in the function connect_signal_log in the Main_Windows_1.py.  For this, a line should be added in the function:
 	*	self.my_class.send_log.connect(self.write_log)
 
-**Format of the restart file**
+**restart file**
 
-To be determined.
+The format of the restart file is based on the format asked by habby_cmd.py. More information on this format in habby_cmd.py 
+(notably in the part list_command).
+
+Command line
+----------------------------------
+The module habby_cmd is used to call habby from the command line or to use the restart file to run habby. This
+module can also be used to run HABBY on a bunch of files contained in a folder.
+
+
+.. automodule:: habby_cmd
+   :members:
+   :undoc-members:
 
 
 Git - code management
@@ -529,8 +629,8 @@ It is better to not use absolute path for this, so it is possible to move the do
 computer. If the documentation does not run on a new computer, check the path given in the config.py file. 
 
 In the docstring, add as many blank lines as possible (in reasonable limit). This is easier for the 
-formatting. To make a bullet list, one should use a tab and the symbol “*”.  Using only the symbol * will 
-fail. 
+formatting. To make a bullet list, one should use a tab and the symbol "*".  Using only the symbol "*" will 
+fail.
 
 To add a new title, do not start the title or the line of symbol under the title with a blank space.
 
@@ -542,6 +642,8 @@ License of used python modules
 *	numpy: BSD License
 *	matplotlib: BSD License
 *	PyQt5: GNU License
+*	Scipy: BSD license
+*	shutil: 
 
 
 

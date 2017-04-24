@@ -1195,7 +1195,7 @@ def newp(p0, p1, extra_pro):
 
 def inside_polygon(seg_poly, point):
     """
-    This function find if a point is inside a polygon, using a ray casting algorythm. It is called by various functions.
+    This function find if a point is inside a polygon, using a ray casting algorythm.
 
     :param seg_poly: the segmentS forming the polygon
     :param point: the point which is indide or outside the polygon
@@ -1206,7 +1206,6 @@ def inside_polygon(seg_poly, point):
     yhyd = point[1]
     poly_i = seg_poly
     intersect = 0
-    idem_x = False
     inside_poly = False
 
     for i2 in range(0, len(poly_i)):
@@ -1235,11 +1234,13 @@ def inside_polygon(seg_poly, point):
             # manage the case where the yhyd is at the same height than subtrate (we want one intersection
             # and not two)
             if yhyd == y1sub or yhyd == y2sub:
-                if idem_x:
-                    intersect -= 1
-                    idem_x = False
-                else:
-                    idem_x = True
+                # manage the case where the yhyd is at the same height than subtrate
+                if yhyd == y1sub:
+                    if y2sub < yhyd:
+                        intersect += 1
+                elif yhyd == y2sub:
+                    if y1sub < yhyd:
+                        intersect += 1
 
                     # seg = seg.append(i2)
     # if number of intersection is odd, then point inside

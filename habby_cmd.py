@@ -19,7 +19,7 @@ from src import stathab_c
 from src import substrate
 from src import fstress
 from src import calcul_hab
-from src import convert_to_paraview
+from src import new_create_vtk
 from src import bio_info
 
 
@@ -566,10 +566,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            if len(hdf5_name_hyd)>33:
-                name_hdf5 = 'Hydro_MERGE_cmd' + hdf5_name_hyd[6:-26]
+            if len(hdf5_name_hyd) > 33:
+                name_hdf5 = 'MERGE_' + hdf5_name_hyd[6:-26]
             else:
-                name_hdf5 = 'Hydro_MERGE_cmd' + hdf5_name_hyd
+                name_hdf5 = 'MERGE_' + hdf5_name_hyd
             path_hdf5 = path_prj
 
         [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = substrate.merge_grid_hydro_sub(
@@ -593,6 +593,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # name of the hydrological hdf5
         hdf5_name_hyd = all_arg[2]
 
+        # sometimes we re-run a folder with old substrate hdf5 files in it, we do not want to test them in this case
+        if 'Substrate_VAR' in hdf5_name_hyd:
+            print('Warning: This function cannot be run on a hdf5 substrate file')
+            return
+
         default_data = 1.0
 
         # create a random substrate in a shp form
@@ -605,6 +610,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         [xy, ikle, sub_dom, sub_pg, blob] = substrate.load_sub_shp(filename_shp, path_prj, 'Cemagref', -1)
         if ikle == [-99]:
             return
+
+        # path_im2 = r'C:\Users\diane.von-gunten\HABBY\output_cmd\result_cmd2'
+        # substrate.fig_substrate(xy, ikle, sub_pg, sub_dom, path_im2)
+
         hdf5_name_sub = load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy,
                                                 '', False, 'SUBSTRATE', True)
 
@@ -620,9 +629,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
             if len(hdf5_name_hyd) > 33:
-                name_hdf5 = 'Hydro_MERGE_cmd' + h5name[6:-26]
+                name_hdf5 = 'MERGE_' + h5name[6:-26]
             else:
-                name_hdf5 = 'Hydro_MERGE_cmd' + h5name
+                name_hdf5 = 'MERGE_' + h5name
             path_hdf5 = path_prj
 
         # merge data
@@ -719,7 +728,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print("Figure saved ...")
 
         # paraview
-        convert_to_paraview.habitat_to_vtu(name_base, path_prj, path_merge, merge_name, vh_all_t_sp, height_c_all_t,
+        new_create_vtk.habitat_to_vtu(name_base, path_prj, path_merge, merge_name, vh_all_t_sp, height_c_all_t,
                                            vel_c_all_t, name_fish, False)
         print("Paraview output created...")
         print("All done.")
@@ -818,22 +827,23 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
 def habby_on_all(all_arg, name_prj, path_prj, path_bio):
     """
     This function is used to execute a command from habby_cmd on all files in a folder. The form of the command should
-    be something like "habby_cmd ALL COMMAND path_to_file/*.ext arg2 ag3" with the arguments adated to the specific
+    be something like "habby_cmd ALL COMMAND path_to_file/\*.ext arg2 ag3" with the arguments adated to the specific
     command.
 
     In other words, the command should be the usual command with the keyword ALL before and with the name of
-    the input files remplace by *.ext. where ext is the extension of the files.  it is better to not add an output name.
-    Indeed default name for output indudes the input file name. If the default is overides, the same name will be
-    applied, only the time stamps will be different. To be sure to not overwirte a files, this function wait 1 sec
-    between each command. Only the input argument should containts the string '*'. Otherwise, other command would be
-    treated as input files.
+    the input files remplace by \*.ext . where ext is the extension of the files.
+    It is better to not add an output name. Indeed default name for output includes the input file name, which
+    is practical if different files are given as input. If the default
+    is overided, the same name will be applied, only the time stamps will be different. To be sure to not overwrite a
+    file, this function waits one second between each command. Only the input argument should containts the string '\*'.
+    Otherwise, other commands would be treated as input files.
 
     If there is more than one type of input, it is important that the name of the file are the name (or at least
-    that there are in the same alphbethical order).
+    that there are in the same alphabetical order).
 
     If more than one extension is possible (example g01, g02, g03, etc. in hec-ras), remplace the changing part of the
-    extension with the symbol * (so path_to_folder/*.g0* arg1 argn). If the name of the file changed in the extension
-    as in RUBAR (where the file have the name PROFIL.file), just change for PROFIL.* or something similar. Generally
+    extension with the symbol \* (so path_to_folder/\*.g0\* arg1 argn). If the name of the file changed in the extension
+    as in RUBAR (where the file have the name PROFIL.file), just change for PROFIL.\* or something similar. Generally
     the matching is done using the function glob, so the shell-type wildcard can be used.
 
     :param all_arg: the list of argument (sys.argv without the argument ALL so [sys.argv[0], sys.argv[2], sys.argv[n]])
@@ -841,6 +851,9 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio):
     :param path_prj: the path to the project created by default bu the main()
     :param path_bio: the path to the project
     """
+
+    # if you just read the docstring here, do not forgot that \ is an espcae character for sphinx and * is a special
+    # character: \* = *
 
     # get argv with *. (input name)
     input_folder = []
@@ -906,7 +919,7 @@ def main():
 
     # create an empty project
     name_prj = 'DefaultProj'
-    namedir = 'result_cmd' #+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
+    namedir = 'result_cmd2' #+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
     path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
     filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
     if not os.path.isdir(path_prj):

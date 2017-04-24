@@ -92,8 +92,8 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
 
 def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub):
     """
-    This function calculates the habitat suitiabilty index (f(H)*f(v)*f(sub)) for each and the SPU which is the sum of
-    all hbitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
+    This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
+    all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
 
     :param ikle_all_t: the connectivity table for all time step, all reach
     :param point_all_t: the point of the grid
@@ -102,8 +102,9 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
     :param sub: the substrate data (can be coarser or dominant substrate based on function's call)
     :param pref_vel: the preference index for the velcoity (for one life stage)
     :param pref_sub: the preference index for the substrate  (for one life stage)
-    :param pref_height:the preference index for the height  (for one life stage)
+    :param pref_height: the preference index for the height  (for one life stage)
     :return: vh of one life stage, area, habitat value
+
     """
 
     if len(height) != len(vel) or len(height) != len(sub):
@@ -139,6 +140,10 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 v = np.array(vel_t[r])
                 s = np.array(sub_t[r])
                 p = np.array(point_t[r])
+
+                if len(ikle[0]) < 3:
+                    print('Error: The connectivity table was not well-formed \n')
+                    return  [-99],[-99], [-99], [-99], [-99]
 
                 # get data by cells
                 v1 = v[ikle[:, 0]]
@@ -322,7 +327,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                             try:
                                 vh_str += str(vh_data[j][t][r][i]) + ' '
                             except IndexError:
-                                print('Error: Result could not be written to text file. \n')
+                                print('Error: Results could not be written to text file. \n')
                                 return
                         f.write(str(r) + ' ' + str(i) + ' ' + str(v_here[i]) + ' ' + str(h_here[i]) + ' ' +
                                 str(sub_pg[i]) + ' ' +str(sub_dom[i]) + ' ' +vh_str + '\n')
@@ -429,6 +434,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                     height = height_data[t][r]
                     sub_pg = sub_pg_data[t][r]
                     sub_dom = sub_dom_data[t][r]
+                    ikle_r = ikle[t][r]
                     for i in range(0, len(ikle_r)):
                         data_here = ()
                         for j in range(0, len(name_fish_sh)):
@@ -502,17 +508,17 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
 
 def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, time_step=[-1]):
     """
-    This function create 2D map of the habitat value for each specaies at
-    the time step asked. All reach are plooted on the same
-    figure.
+    This function creates 2D map of the habitat value for each species at
+    the time step asked. All reaches are ploted on the same figure.
 
     :param name_merge_hdf5: the name of the hdf5 merged file
     :param path_hdf5: the path to the hydrological hdf5 data
     :param vh_all_t_sp: the habitat value for all reach all time step all species
-    :param path_im : the path where to save the figure
+    :param path_im: the path where to save the figure
     :param name_fish: the name and stage of the studied species
     :param name_base: the string on which to base the figure name
     :param time_step: which time step should be plotted
+
     """
 
     b= 0

@@ -5,32 +5,39 @@
 \contentsline {section}{\numberline {3.1}Main\_windows of HABBY}{7}{section.3.1}
 \contentsline {section}{\numberline {3.2}Hydrological information - GUI}{13}{section.3.2}
 \contentsline {section}{\numberline {3.3}Figure Option - GUI}{21}{section.3.3}
-\contentsline {section}{\numberline {3.4}The Stathab model - GUI}{21}{section.3.4}
+\contentsline {section}{\numberline {3.4}The Stathab model - GUI}{22}{section.3.4}
 \contentsline {section}{\numberline {3.5}FStress model - GUI}{24}{section.3.5}
-\contentsline {section}{\numberline {3.6}Estimhab - GUI}{25}{section.3.6}
-\contentsline {subsection}{\numberline {3.6.1}Biological data - Estimhab}{27}{subsection.3.6.1}
-\contentsline {chapter}{\numberline {4}Calculation of fish's habitat}{29}{chapter.4}
-\contentsline {section}{\numberline {4.1}Hec-ras model 1D}{29}{section.4.1}
-\contentsline {subsection}{\numberline {4.1.1}Notes on hec-ras outputs}{36}{subsection.4.1.1}
-\contentsline {section}{\numberline {4.2}Hec-ras model 2D}{37}{section.4.2}
-\contentsline {section}{\numberline {4.3}Mascaret}{40}{section.4.3}
-\contentsline {section}{\numberline {4.4}River 2D}{44}{section.4.4}
-\contentsline {section}{\numberline {4.5}Rubar}{45}{section.4.5}
-\contentsline {section}{\numberline {4.6}Telemac}{50}{section.4.6}
-\contentsline {section}{\numberline {4.7}Load HABBY hdf5 file}{51}{section.4.7}
-\contentsline {subsection}{\numberline {4.7.1}Form of the hdf5 files}{54}{subsection.4.7.1}
-\contentsline {section}{\numberline {4.8}Velocity distribution}{54}{section.4.8}
-\contentsline {section}{\numberline {4.9}Create a grid}{58}{section.4.9}
-\contentsline {section}{\numberline {4.10}Estimhab -source}{65}{section.4.10}
-\contentsline {section}{\numberline {4.11}Stathab - source}{66}{section.4.11}
-\contentsline {section}{\numberline {4.12}FStress - source}{68}{section.4.12}
-\contentsline {section}{\numberline {4.13}Substrate}{71}{section.4.13}
-\contentsline {chapter}{\numberline {5}Various notes}{75}{chapter.5}
-\contentsline {section}{\numberline {5.1}Translation of HABBY}{75}{section.5.1}
-\contentsline {section}{\numberline {5.2}Create a .exe}{76}{section.5.2}
-\contentsline {section}{\numberline {5.3}Logging}{76}{section.5.3}
-\contentsline {section}{\numberline {5.4}Git - code management}{78}{section.5.4}
-\contentsline {section}{\numberline {5.5}Write the documentation}{79}{section.5.5}
-\contentsline {section}{\numberline {5.6}License of used python modules}{79}{section.5.6}
-\contentsline {chapter}{\numberline {6}Indices and tables}{81}{chapter.6}
-\contentsline {chapter}{Python Module Index}{83}{section*.345}
+\contentsline {section}{\numberline {3.6}Estimhab - GUI}{26}{section.3.6}
+\contentsline {section}{\numberline {3.7}Information Biological and Run habitat}{27}{section.3.7}
+\contentsline {subsection}{\numberline {3.7.1}Biological data - Estimhab}{28}{subsection.3.7.1}
+\contentsline {chapter}{\numberline {4}Calculation of fish's habitat}{31}{chapter.4}
+\contentsline {section}{\numberline {4.1}Hec-ras model 1D}{31}{section.4.1}
+\contentsline {subsection}{\numberline {4.1.1}Notes on hec-ras outputs}{38}{subsection.4.1.1}
+\contentsline {section}{\numberline {4.2}Hec-ras model 2D}{39}{section.4.2}
+\contentsline {section}{\numberline {4.3}Mascaret}{42}{section.4.3}
+\contentsline {section}{\numberline {4.4}River 2D}{47}{section.4.4}
+\contentsline {section}{\numberline {4.5}Rubar}{48}{section.4.5}
+\contentsline {section}{\numberline {4.6}Telemac}{53}{section.4.6}
+\contentsline {section}{\numberline {4.7}Load HABBY hdf5 file}{54}{section.4.7}
+\contentsline {subsection}{\numberline {4.7.1}Form of the hdf5 files}{57}{subsection.4.7.1}
+\contentsline {section}{\numberline {4.8}Velocity distribution}{58}{section.4.8}
+\contentsline {section}{\numberline {4.9}Create a grid}{61}{section.4.9}
+\contentsline {section}{\numberline {4.10}Estimhab -source}{68}{section.4.10}
+\contentsline {section}{\numberline {4.11}Stathab - source}{69}{section.4.11}
+\contentsline {section}{\numberline {4.12}FStress - source}{74}{section.4.12}
+\contentsline {section}{\numberline {4.13}Substrate}{76}{section.4.13}
+\contentsline {section}{\numberline {4.14}Biological Info}{82}{section.4.14}
+\contentsline {section}{\numberline {4.15}Calculation habitat}{84}{section.4.15}
+\contentsline {section}{\numberline {4.16}Create Paraview Files}{87}{section.4.16}
+\contentsline {section}{\numberline {4.17}Function for the command lines}{88}{section.4.17}
+\contentsline {chapter}{\numberline {5}Various notes}{89}{chapter.5}
+\contentsline {section}{\numberline {5.1}The legend of the plots are not shown.}{89}{section.5.1}
+\contentsline {section}{\numberline {5.2}Translation of HABBY}{89}{section.5.2}
+\contentsline {section}{\numberline {5.3}Create a .exe}{90}{section.5.3}
+\contentsline {section}{\numberline {5.4}Logging}{91}{section.5.4}
+\contentsline {section}{\numberline {5.5}Command line}{92}{section.5.5}
+\contentsline {section}{\numberline {5.6}Git - code management}{93}{section.5.6}
+\contentsline {section}{\numberline {5.7}Write the documentation}{94}{section.5.7}
+\contentsline {section}{\numberline {5.8}License of used python modules}{94}{section.5.8}
+\contentsline {chapter}{\numberline {6}Indices and tables}{97}{chapter.6}
+\contentsline {chapter}{Python Module Index}{99}{section*.408}

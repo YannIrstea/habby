@@ -260,7 +260,6 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
             print('Error: The substrate code is not recognized.\n')
             return failload
 
-
     # pg/coarser/accessory type
     elif attribute_type == 0:
         for f in fields:
@@ -310,7 +309,7 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
                 # now that we have checked and transform, give the data
                 if f[0] == attribute_name[0]:
                     sub_pg = record_here
-                if f[0] == attribute_name[0]:
+                if f[0] == attribute_name[1]:
                     sub_dom = record_here
             ind += 1
 
@@ -553,8 +552,8 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
         if miny_here < miny:
             miny = miny_here
 
-    # to test the default substrate
-    miny *= 0.9
+    # to test the case where substrate shp does not cover the whole reach
+    # miny *= 0.90
 
     # get random coordinate
     point_new = []
@@ -733,7 +732,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
     [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd, path_hdf5)
 
     # load hdf5 sub
-    [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
+    [ikle_sub, point_all_sub, data_sub_pgb, data_sub_domb] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
 
     # simple test case to debug( two triangle separated by an horizontal line)
     # point_all = [[np.array([[0.5, 0.55], [0.3, 0.55], [0.5, 0.3], [0.3, 0.3]])]]
@@ -741,7 +740,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
     # ikle_sub = np.array([[0, 1, 2]])
     # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35], [1, 1]])
 
-    # special cases and checked
+    # special cases and checks
     if len(ikle_all) == 1 and ikle_all[0][0][0][0] == [-99]:
         print('Error: hydrological data could not be loaded.')
         return failload
@@ -799,6 +798,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
         height2 = []
 
         if len(ikle_all[t]) > 0:
+            print('Timestep: ' + str(t))
             for r in range(0, len(ikle_all[t])):
                 point_before = np.array(point_all[t][r])
                 ikle_before = np.array(ikle_all[t][r])
@@ -820,8 +820,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
                     break
 
                 # find intersection betweeen hydrology and substrate
-                [pc, new_data_sub_pg, new_data_sub_dom] = point_cross2(ikle_before, point_before, ikle_sub,
-                                                                       point_all_sub, data_sub_pg, data_sub_dom, default_data)
+                [pc, new_data_sub_pg, new_data_sub_dom, sub_cell_ind, ikle_sub2] = point_cross2(ikle_before, point_before, ikle_sub,
+                                                                       point_all_sub, data_sub_pgb, data_sub_domb, default_data)
                 pc = np.array(pc)
 
                 # if no intersection found
@@ -844,7 +844,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, 
                 b = time.time()
                 [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
                     grid_update_sub3(ikle_before, point_before, pc, point_all_sub, new_data_sub_pg, new_data_sub_dom,
-                                     vel_before, height_before)
+                                     vel_before, height_before, ikle_sub2,sub_cell_ind, default_data)
                 c = time.time()
                 ikle_all2.append(ikle_here)
                 point_all2.append(point_all_here)
@@ -874,7 +874,7 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
     hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
     are in the same polygon using a ray casting method
 
-    :param ikle: the connectivity table for the hydrological data
+    :param ikle: the connectivity table for the hydrological data for one reach and one time step
     :param coord_p: the coordinates of the points of the hydrological grid
     :param ikle_sub: the connecity vity table of the substrate
     :param coord_p_sub: the coordinates of the points of the substrate grid
@@ -887,6 +887,7 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
     pc = []
     new_data_sub_pg = []  # the data sub for the hydrology
     new_data_sub_dom = []
+    sub_cell_ind = []  # an array which indicate the index of the subtrate cell
 
     # erase substrate cell which are outside of the hydrological grid (to optimize)
     data_sub_pg2 = []
@@ -897,6 +898,11 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
     xhydmin = min(coord_p[:, 0])
     yhydmin = min(coord_p[:, 1])
     i = 0
+
+    # path_im2 = r'C:\Users\diane.von-gunten\HABBY\output_cmd\result_cmd2'
+    # fig_substrate(coord_p_sub, ikle_sub, data_sub_pg, data_sub_dom, path_im2)
+    # plt.show()
+
     for k in ikle_sub:
         coord_x_sub = np.array([coord_p_sub[int(k[0]), 0], coord_p_sub[int(k[1]), 0], coord_p_sub[int(k[2]), 0]])
         coord_y_sub = np.array([coord_p_sub[int(k[0]), 1], coord_p_sub[int(k[1]), 1], coord_p_sub[int(k[2]), 1]])
@@ -906,11 +912,13 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
             data_sub_pg2.append(data_sub_pg[i])
             data_sub_dom2.append(data_sub_dom[i])
         i+=1
+
+
     ikle_sub = np.array(ikle_sub2)
     if len(ikle_sub) < 1:
         return [], new_data_sub_pg, new_data_sub_dom
-    data_sub_pg = data_sub_pg2
-    data_sub_dom = data_sub_dom2
+    data_sub_pg = np.copy(data_sub_pg2)
+    data_sub_dom = np.copy(data_sub_dom2)
     nb_poly = len(ikle_sub)
     nb_tri = len(ikle)
 
@@ -922,10 +930,8 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
     for e in range(0, nb_tri):
         sub_num = [-99, -99, -99]  # where are the polygon
 
-        blob1 = time.time()
         # for each points in this triangle
         for p in range(0, 3):
-            blob8 = time.time()
             [xhyd, yhyd] = coord_p[int(ikle[e, p]), :]
             find_sub = False
             # let's analyse each polygon of the substrate grid
@@ -934,8 +940,6 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
             j = 0 # this counter is only to count the number of polygon foun
             # think about polygon size for optimization
             while not find_sub:
-
-                blob7 = time.time()
 
                 # using to send a ray outside of the polygon
                 # idea from http://geomalgorithms.com/a03-_inclusion.html
@@ -1089,17 +1093,24 @@ def point_cross2(ikle, coord_p, ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom
         # we gives three times the same data
         data_sub_1_cell_pg = []
         data_sub_1_cell_dom = []
+        sub_cell_ind_1_cell = []
         for mi in range(0, len(sub_num)):
             if sub_num[mi] == -1 or sub_num[mi] == -99:
                 data_sub_1_cell_pg.append(default_sub)
                 data_sub_1_cell_dom.append(default_sub)
+                sub_cell_ind_1_cell.append(-1)
             else:
                 data_sub_1_cell_pg.append(data_sub_pg[sub_num[mi]])
                 data_sub_1_cell_dom.append(data_sub_dom[sub_num[mi]])
+                sub_cell_ind_1_cell.append(sub_num[mi])
         new_data_sub_pg.append(data_sub_1_cell_pg)
         new_data_sub_dom.append(data_sub_1_cell_dom)
+        # this varaible is useful to compute the subtrate type if one hydrological cell will need
+        # to be cut in many parts (too many to keep a precise track of it)
+        sub_cell_ind.append(sub_cell_ind_1_cell)
 
-    return pc, new_data_sub_pg, new_data_sub_dom
+
+    return pc, new_data_sub_pg, new_data_sub_dom, sub_cell_ind, ikle_sub2
 
 
 def point_cross_bis(ikle, coord_p, ikle_sub, coord_p_sub):
@@ -1198,10 +1209,11 @@ def intersec_cross(hyd1, hyd2, sub1, sub2, e=-99, nx=[], ny=[]):
         return [xcross, ycross]
 
 
-def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, new_data_sub_dom, vel, height):
+def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, new_data_sub_dom, vel,
+                     height,ikle_sub, sub_cell_ind, default_data):
     """
-    A function to update the grid after finding the crossing points and finsihed to get the substrate_data.
-    We still needs to get the substrate data correclty for complicated geometry
+    A function to update the grid after finding the crossing points. It also get the substrate_datafr each cell
+    of the new grid. TO DO: there are still some precision problems to be corrected.
 
     :param ikle:  the hydrological grid to be merge with the substrate grid
     :param coord_p: the coordinate of the point of the hydrological grid
@@ -1215,6 +1227,9 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
            the three points)
     :param vel: the velocity (one time step, one reach) for each point in coord_p
     :param height: the water height (one time step, one reach) for each point in coord_p
+    :param ikle_sub: the connectivity table for the substrate
+    :param sub_cell_ind: the index of the substrate cell for each substrate info in new_data_sub_pg and new_data_sub_dom
+    :param default_data: the default substrate data
     :return: the new grid
 
     ** Technical comments**
@@ -1232,8 +1247,12 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
     hydrological points. This is sufficient in most cases, but there are cases where the trnagulation will not
     be reflected of the form of the subtrate grids.
 
-    In the trianlge case, we do not have a good management of the substrate data yet. All new elements into in the
-    old elements which do not touch one of the orginal trianlgular node are the given the first substrate data type.
+    In the trianlge case, we do come extra calculate to know which type of substrate is linked with each new cell.
+    This is the reason to give ikle_sub and sub_cell_ind as a variable. The variable sub_cell_int says which
+    cell of the substrate grid is linked with the subtrate info in the variables new_data_sub_pg and new_data_sub_dom.
+    When we have many new cells, we take the middle points of each cell and we test in which substrate cell is
+    the central points of the new cell. Because of the cutting done before, this is the subtrate value of the whole
+    cell.
 
     If a substrate cells is totally in the hydrological cells, it is considerated too small to be accounted for and
     it is neglected by the present function. It can be changed but it will be really slower as it would mean looping
@@ -1473,21 +1492,74 @@ def grid_update_sub3(ikle, coord_p, point_crossing, coord_sub, new_data_sub_pg, 
             ikle = np.vstack((ikle, np.array(ikle_new) + len(coord_p)))
             coord_p = np.vstack((coord_p, point_new))
             # add substrate data
-            for i in ikle_new:
-                found_new = False
-                # if one of the origanl data is in, we know the substrate
-                for hydi in range(0,3):
-                    phere = coord_p[ikle[e][hydi]]
-                    ind = np.argmin(abs(phere[0] - point_new[:, 0]) + abs(phere[1]-point_new[:, 1]))
-                    if ind in ikle_new and not found_new:
-                        found_new = True
-                        new_data_sub_pg.append(new_data_sub_pg[e][hydi])
-                        new_data_sub_dom.append(new_data_sub_dom[e][hydi])
-                if not found_new:
-                    # !!!!! TO BE CORRECTED!!!!!!
-                    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    new_data_sub_dom.append(new_data_sub_dom[e][0])
-                    new_data_sub_pg.append(new_data_sub_pg[e][0])
+            for c in ikle_new:
+                find_sub = False
+                ptype = 0
+
+                # theorically we should find it the first time, but there are very small triangle
+                # which have problem with precision or strange geometry. so if it does not work the first time,
+                # we try again six time. If it is still not found, we let it down.
+
+                while not find_sub and ptype < 7:
+
+                    if ptype == 0:  # we could take any point
+                        # find the central point of the cell
+                        pnew = (1/3) * (point_new[c[0]] + point_new[c[1]] + point_new[c[2]] )
+                    if ptype == 1:
+                        pnew = (1/2) * (point_new[c[0]] + point_new[c[1]])
+                    if ptype == 2:
+                        pnew = (1 / 2) * (point_new[c[1]] + point_new[c[2]])
+                    if ptype == 3:
+                        pnew = (1 / 2) * (point_new[c[2]] + point_new[c[0]])
+                    if ptype == 4:
+                        pnew = point_new[c[0]]
+                    if ptype == 5:
+                        pnew = point_new[c[1]]
+                    if ptype == 6:
+                        pnew = point_new[c[2]]
+                    ptype +=1
+
+                    # get ind_cell
+                    ind_cell = sub_cell_ind[e]
+                    find_sub = False
+
+                    # case where the default substrate was found (point outside of the subtrate)
+                    # only used if pnew is not in the other substrate cell
+                    if -1 in ind_cell:
+                        find_def = True
+                    else:
+                        find_def = False
+
+                    for id,inc in enumerate(ind_cell):
+                        if not find_sub:
+                            # get the substrate cell
+                            inds = ikle_sub[inc]
+                            seg_poly_sub = []
+                            for i2 in range(0, len(inds)-1):
+                                seg_poly_sub.append([coord_sub[inds[i2]], coord_sub[inds[i2+1]]])
+                            seg_poly_sub.append([coord_sub[inds[i2+1]], coord_sub[inds[0]]])
+
+                            # check if pnew is in this cell
+                            inside = manage_grid_8.inside_polygon(seg_poly_sub, pnew)
+
+                            # if yes, we know the subtrate
+                            # if no, carry on
+                            if inside:
+                                find_sub = True
+                                new_data_sub_dom.append(new_data_sub_dom[e][id])
+                                new_data_sub_pg.append(new_data_sub_pg[e][id])
+
+                    # case where we are outside of substrate input
+                    if not find_sub and find_def:
+                        new_data_sub_dom.append(default_data)
+                        new_data_sub_pg.append(default_data)
+                        find_sub = True
+
+                if not find_sub:
+                    print('Warning: a substrate cell was not found')
+                    new_data_sub_dom.append(default_data)
+                    new_data_sub_pg.append(default_data)
+
             # add new velcoity and height data
             if len(vel) > 0:
                 point_old = [coord_p[ikle[e, 0]], coord_p[ikle[e, 1]], coord_p[ikle[e, 2]]]
@@ -1826,7 +1898,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     # substrate coarser
     fig, ax = plt.subplots(1)
     patches = []
-    cmap = plt.get_cmap('gist_rainbow')
+    cmap = plt.get_cmap(fig_opt['color_map1'])
     colors_val = np.array((sub_pg - np.min(sub_pg)) / (
     np.max(sub_pg) - np.min(sub_pg))) # convert nfloors to colors that we can use later
     n = len(sub_pg)
@@ -1837,19 +1909,16 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True,edgecolor='w')
         patches.append(polygon)
-    collection = PatchCollection(patches, linewidth=0.0)
+    collection = PatchCollection(patches, linewidth=0.0, cmap=cmap)
     ax.add_collection(collection)
     #collection.set_color(colors)
     collection.set_array(colors_val)
     ax.autoscale_view()
-    # cbar = plt.colorbar()
-    # cbar.ax.set_ylabel('Substrate')
     plt.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title('Substrate Grid - Coarser Data')
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-
     # colorbar
     # Set norm to correspond to the data for which
     # the colorbar will be used.
@@ -1876,8 +1945,8 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     # substrate dominant
     fig, ax = plt.subplots(1)
     patches = []
-    cmap = plt.get_cmap('gist_rainbow')
-    colors_num = np.array((sub_dom - np.min(sub_dom)) / (
+    cmap = plt.get_cmap(fig_opt['color_map2'])
+    colors_val = np.array((sub_dom - np.min(sub_dom)) / (
         np.max(sub_dom) - np.min(sub_dom)))  # convert nfloors to colors that we can use later
     n = len(sub_dom)
     for i in range(0, n):
@@ -1887,9 +1956,8 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
-    collection = PatchCollection(patches,linewidth=0.0)
+    collection = PatchCollection(patches,linewidth=0.0, cmap=cmap)
     ax.add_collection(collection)
-    #collection.set_color(colors)
     collection.set_array(colors_val)
     ax.autoscale_view()
     # cbar = plt.colorbar()
@@ -1914,6 +1982,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
                                     orientation='vertical')
     cb1.set_label('Code Cemagrfef')
 
+    # save the figure
     if format == 0 or format == 1:
         plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.png'), dpi=fig_opt['resolution'])

@@ -329,15 +329,16 @@ class StathabW(QWidget):
         If the river is temperate, the files needed are not the same than if the river is in the tropic. This is
         accounted using the variable rivint. If rivint is zero, the river is temparate and this function looks for the
         file needed for temperate type (list of file contained in self.end_file_reach and self.name_file_allreach).
-        If riverin is equal to 1 or 2, the river is tropical (list of file contained in self.end_file_reach_top +
-        biological data in the biology/stathab folder (many files). if the river is temperate, all preference coeff are
-        in one file called Pref.txt.
+        If riverin is equal to 1 or 2, the river is tropical (list of file contained in self.end_file_reach_top and
+        biological data in the stathab folder in the biology folder (many files). If the river is temperate,
+        all preference coeff are in one file called Pref.txt (also in the stathab folder of the biology folder).
 
         Then, it calls a method of the Stathab class (in src) which reads the “pref.txt” file and adds the name
         of the fish to the GUI. If the "tropical river" option is selected, it looks which preference file are present
-        in self.path_bio_stathab. The name of the tropical preference file needs to be in this form: *uni*h_XXX.csv and
-        *uni*h_XX.csv for the univariate case and *biv*XXX.csv for the bivarate where XX is the three letter fish code
-        from ONEMA. The form of the preference file is the form from the R version of stathab 2.
+        in self.path_bio_stathab. The name of the tropical preference file needs to be in this form: YuniYh_XXX.csv and
+        YuniYh_XX.csv for the univariate case and YbivYXXX.csv for the bivarate where XX is the three letter fish code
+        from ONEMA and Y is whatever string. The form of the preference file is the form from the R version of
+        stathab 2.
 
         Next, if all files are present, it loads the data using the method written in Stathab
         (in the src folder). When the data is loaded, it creates an hdf5 file from this data and save the name of this

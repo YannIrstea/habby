@@ -3,7 +3,7 @@
   \item add\_all\_file() (src\_GUI.hydro\_GUI\_2.River2D method), 
 		\hyperpage{16}
   \item add\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method), 
-		\hyperpage{24}
+		\hyperpage{25}
   \item add\_all\_fish() (src\_GUI.stathab\_GUI.StathabW method), 
 		\hyperpage{22}
   \item add\_all\_tab() (src\_GUI.Main\_windows\_1.CentralW method), 
@@ -13,34 +13,42 @@
   \item add\_file\_to\_list() (src\_GUI.hydro\_GUI\_2.River2D method), 
 		\hyperpage{17}
   \item add\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method), 
-		\hyperpage{26}
+		\hyperpage{27}
   \item add\_fish() (src\_GUI.stathab\_GUI.StathabW method), 
 		\hyperpage{22}
-  \item add\_point() (in module src.manage\_grid\_8), \hyperpage{58}
-  \item add\_sub\_to\_merge\_hdf5() (in module src.load\_hdf5), 
-		\hyperpage{51}
+  \item add\_point() (in module src.manage\_grid\_8), \hyperpage{61}
   \item addcontent() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item addtext() (src\_GUI.Main\_windows\_1.EmptyTab method), 
 		\hyperpage{9}
+  \item all\_command() (in module habby\_cmd), \hyperpage{92}
   \item appendcoretimeslf() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item appendcorevarsslf() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item appendheaderslf() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
 
   \indexspace
 
+  \item BioInfo (class in src\_GUI.bio\_info\_GUI), \hyperpage{28}
+
+  \indexspace
+
+  \item calc\_hab() (in module src.calcul\_hab), \hyperpage{84}
+  \item calc\_hab\_norm() (in module src.calcul\_hab), \hyperpage{84}
   \item CentralW (class in src\_GUI.Main\_windows\_1), \hyperpage{7}
   \item change\_folder() (src\_GUI.estimhab\_GUI.EstimhabW method), 
-		\hyperpage{25}
+		\hyperpage{26}
   \item change\_folder() (src\_GUI.Main\_windows\_1.ShowImageW method), 
 		\hyperpage{12}
   \item change\_name (src\_GUI.Main\_windows\_1.WelcomeW attribute), 
-		\hyperpage{12}
+		\hyperpage{13}
   \item change\_name\_project() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
+  \item change\_riv\_type() (src\_GUI.stathab\_GUI.StathabW method), 
+		\hyperpage{22}
+  \item change\_unit() (in module src.bio\_info), \hyperpage{82}
   \item clear\_log() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
   \item close\_project() (src\_GUI.Main\_windows\_1.MainWindows method), 
@@ -52,154 +60,187 @@
   \item connect\_signal\_log() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
   \item coord\_profile\_non\_georeferenced() (in module src.Hec\_ras06), 
-		\hyperpage{29}
-  \item correct\_duplicate() (in module src.mascaret), \hyperpage{40}
-  \item correct\_duplicate\_xy() (in module src.rubar), \hyperpage{45}
+		\hyperpage{31}
+  \item copy\_files() (in module src.load\_hdf5), \hyperpage{54}
+  \item correct\_duplicate() (in module src.mascaret), \hyperpage{42}
+  \item correct\_duplicate\_xy() (in module src.rubar), \hyperpage{48}
+  \item create\_and\_fill\_database() (in module src.bio\_info), 
+		\hyperpage{82}
   \item create\_default\_figoption() (in module src\_GUI.output\_fig\_GUI), 
 		\hyperpage{21}
   \item create\_dummy\_substrate() (in module src.manage\_grid\_8), 
-		\hyperpage{58}
-  \item create\_grid() (in module src.manage\_grid\_8), \hyperpage{58}
+		\hyperpage{61}
+  \item create\_dummy\_substrate\_from\_hydro() (in module src.substrate), 
+		\hyperpage{76}
+  \item create\_grid() (in module src.manage\_grid\_8), \hyperpage{62}
   \item create\_grid\_only\_1\_profile() (in module src.manage\_grid\_8), 
-		\hyperpage{59}
-  \item create\_hdf5() (src.stathab\_c.Stathab method), \hyperpage{66}
+		\hyperpage{62}
+  \item create\_hdf5() (src.stathab\_c.Stathab method), \hyperpage{70}
   \item CreateNewProject (class in src\_GUI.Main\_windows\_1), 
 		\hyperpage{9}
-  \item cut\_2d\_grid() (in module src.manage\_grid\_8), \hyperpage{59}
+  \item cut\_2d\_grid() (in module src.manage\_grid\_8), \hyperpage{63}
   \item cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8), 
-		\hyperpage{59}
+		\hyperpage{63}
 
   \indexspace
 
   \item define\_stream\_network() (in module src.mascaret), 
-		\hyperpage{40}
-  \item dengauss() (src.stathab\_c.Stathab method), \hyperpage{66}
-  \item denstress() (in module src.fstress), \hyperpage{68}
+		\hyperpage{42}
+  \item dengauss() (src.stathab\_c.Stathab method), \hyperpage{70}
+  \item denstress() (in module src.fstress), \hyperpage{74}
   \item dis\_enable\_nb\_profile() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{18}
-  \item dist\_h() (src.stathab\_c.Stathab method), \hyperpage{66}
-  \item dist\_v() (src.stathab\_c.Stathab method), \hyperpage{66}
+  \item dist\_h() (src.stathab\_c.Stathab method), \hyperpage{70}
+  \item dist\_h\_trop() (src.stathab\_c.Stathab method), \hyperpage{70}
+  \item dist\_v() (src.stathab\_c.Stathab method), \hyperpage{70}
+  \item dist\_v\_trop() (src.stathab\_c.Stathab method), \hyperpage{71}
   \item dist\_velocity\_hecras() (in module src.dist\_vistess2), 
-		\hyperpage{54}
+		\hyperpage{58}
   \item distribute\_velocity() (in module src.dist\_vistess2), 
-		\hyperpage{56}
+		\hyperpage{59}
   \item do\_log() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
-  \item drop\_hydro (src\_GUI.hydro\_GUI\_2.HabbyHdf5 attribute), 
-		\hyperpage{14}
   \item drop\_hydro (src\_GUI.hydro\_GUI\_2.SubHydroW attribute), 
 		\hyperpage{18}
+  \item drop\_merge (src\_GUI.hydro\_GUI\_2.SubstrateW attribute), 
+		\hyperpage{20}
 
   \indexspace
 
+  \item edf\_to\_cemagref() (in module src.substrate), \hyperpage{77}
   \item empty\_project() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
   \item EmptyTab (class in src\_GUI.Main\_windows\_1), \hyperpage{9}
-  \item enabledisable\_const() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
-		\hyperpage{20}
   \item erase\_name() (src\_GUI.fstress\_GUI.FstressW method), 
-		\hyperpage{24}
+		\hyperpage{25}
   \item erase\_pict() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
-  \item estimhab() (in module src.estimhab), \hyperpage{65}
-  \item EstimhabW (class in src\_GUI.estimhab\_GUI), \hyperpage{25}
+  \item estimhab() (in module src.estimhab), \hyperpage{68}
+  \item EstimhabW (class in src\_GUI.estimhab\_GUI), \hyperpage{26}
+  \item execute\_request() (in module src.bio\_info), \hyperpage{82}
 
   \indexspace
 
-  \item fig\_merge\_grid() (in module src.substrate), \hyperpage{71}
-  \item fig\_substrate() (in module src.substrate), \hyperpage{71}
-  \item figure\_fstress() (in module src.fstress), \hyperpage{69}
-  \item figure\_hec\_ras2d() (in module src.hec\_ras2D), \hyperpage{37}
-  \item figure\_mascaret() (in module src.mascaret), \hyperpage{40}
-  \item figure\_river2d() (in module src.river2d), \hyperpage{44}
-  \item figure\_rubar1d() (in module src.rubar), \hyperpage{46}
-  \item figure\_rubar2d() (in module src.rubar), \hyperpage{46}
-  \item figure\_xml() (in module src.Hec\_ras06), \hyperpage{29}
+  \item fig\_merge\_grid() (in module src.substrate), \hyperpage{77}
+  \item fig\_substrate() (in module src.substrate), \hyperpage{77}
+  \item figure\_fstress() (in module src.fstress), \hyperpage{74}
+  \item figure\_hec\_ras2d() (in module src.hec\_ras2D), \hyperpage{39}
+  \item figure\_mascaret() (in module src.mascaret), \hyperpage{42}
+  \item figure\_pref() (in module src.bio\_info), \hyperpage{82}
+  \item figure\_river2d() (in module src.river2d), \hyperpage{47}
+  \item figure\_rubar1d() (in module src.rubar), \hyperpage{48}
+  \item figure\_rubar2d() (in module src.rubar), \hyperpage{49}
+  \item figure\_xml() (in module src.Hec\_ras06), \hyperpage{31}
   \item find\_coord\_height\_velocity() (in module src.Hec\_ras06), 
-		\hyperpage{30}
-  \item find\_node() (in module src.mascaret), \hyperpage{41}
+		\hyperpage{32}
+  \item find\_node() (in module src.mascaret), \hyperpage{43}
+  \item find\_path\_hdf5() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
+		\hyperpage{18}
+  \item find\_path\_hdf5\_est() (src\_GUI.estimhab\_GUI.StatModUseful method), 
+		\hyperpage{27}
+  \item find\_path\_hdf5\_stat() (src.stathab\_c.Stathab method), 
+		\hyperpage{71}
   \item find\_path\_im() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{18}
   \item find\_path\_im\_est() (src\_GUI.estimhab\_GUI.StatModUseful method), 
-		\hyperpage{26}
+		\hyperpage{27}
+  \item find\_path\_input() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
+		\hyperpage{18}
+  \item find\_path\_input\_est() (src\_GUI.estimhab\_GUI.StatModUseful method), 
+		\hyperpage{27}
+  \item find\_path\_output\_est() (src\_GUI.estimhab\_GUI.StatModUseful method), 
+		\hyperpage{27}
+  \item find\_path\_text\_est() (src\_GUI.estimhab\_GUI.StatModUseful method), 
+		\hyperpage{27}
+  \item find\_pref\_value() (in module src.calcul\_hab), \hyperpage{85}
   \item find\_profile\_between() (in module src.manage\_grid\_8), 
-		\hyperpage{60}
-  \item find\_sh0() (src.stathab\_c.Stathab method), \hyperpage{67}
+		\hyperpage{63}
+  \item find\_sh0() (src.stathab\_c.Stathab method), \hyperpage{71}
   \item find\_sh0\_maxvrais() (src.stathab\_c.Stathab method), 
-		\hyperpage{67}
-  \item flat\_coord\_pro() (in module src.mascaret), \hyperpage{41}
+		\hyperpage{71}
+  \item flat\_coord\_pro() (in module src.mascaret), \hyperpage{43}
   \item FreeSpace (class in src\_GUI.hydro\_GUI\_2), \hyperpage{13}
-  \item fstress\_test() (in module src.fstress), \hyperpage{69}
+  \item fstress\_test() (in module src.fstress), \hyperpage{74}
   \item FstressW (class in src\_GUI.fstress\_GUI), \hyperpage{24}
-  \item func\_stress() (in module src.fstress), \hyperpage{69}
+  \item func\_stress() (in module src.fstress), \hyperpage{74}
 
   \indexspace
 
-  \item get\_all\_attribute() (in module src.substrate), \hyperpage{71}
-  \item get\_all\_filename() (in module src.load\_hdf5), \hyperpage{52}
+  \item get\_all\_attribute() (in module src.substrate), \hyperpage{77}
+  \item get\_all\_filename() (in module src.load\_hdf5), \hyperpage{55}
   \item get\_att\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
 		\hyperpage{20}
   \item get\_attribute\_from\_shp() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
 		\hyperpage{20}
   \item get\_crossing\_segment\_sub() (in module src.manage\_grid\_8), 
-		\hyperpage{60}
+		\hyperpage{63}
   \item get\_geo\_name\_from\_xcas() (in module src.mascaret), 
-		\hyperpage{41}
-  \item get\_hdf5\_name() (in module src.load\_hdf5), \hyperpage{52}
-  \item get\_manning() (in module src.dist\_vistess2), \hyperpage{56}
+		\hyperpage{43}
+  \item get\_hdf5\_name() (in module src.load\_hdf5), \hyperpage{55}
+  \item get\_manning() (in module src.dist\_vistess2), \hyperpage{59}
   \item get\_manning\_arr() (in module src.dist\_vistess2), 
-		\hyperpage{56}
-  \item get\_name\_from\_cas() (in module src.mascaret), \hyperpage{41}
+		\hyperpage{60}
+  \item get\_name\_from\_cas() (in module src.mascaret), \hyperpage{43}
   \item get\_new\_hydro\_hdf5() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method), 
 		\hyperpage{15}
   \item get\_new\_point\_and\_cell\_1\_profil() (in module src.manage\_grid\_8), 
-		\hyperpage{60}
+		\hyperpage{64}
   \item get\_new\_vel\_height\_data() (in module src.substrate), 
-		\hyperpage{71}
-  \item get\_rid\_of\_lines() (in module src.river2d), \hyperpage{44}
+		\hyperpage{78}
+  \item get\_rid\_of\_lines() (in module src.river2d), \hyperpage{47}
   \item get\_rid\_of\_white\_space() (in module src.Hec\_ras06), 
-		\hyperpage{31}
-  \item get\_triangular\_grid() (in module src.rubar), \hyperpage{46}
+		\hyperpage{33}
+  \item get\_stage() (in module src.bio\_info), \hyperpage{83}
+  \item get\_triangular\_grid() (in module src.rubar), \hyperpage{49}
   \item get\_triangular\_grid\_hecras() (in module src.hec\_ras2D), 
-		\hyperpage{37}
+		\hyperpage{39}
+  \item get\_useful\_attribute() (in module src.substrate), 
+		\hyperpage{78}
   \item getendianfromchar() (in module src.selafin\_habby1), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item getfloattypefromfloat() (in module src.selafin\_habby1), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item gethdf5\_name\_gui() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{18}
   \item getheaderfloatsslf() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item getheaderintegersslf() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item getheadermetadataslf() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item gettimehistoryslf() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item getvalues() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item getvariablesat() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
   \item give\_info\_model() (src\_GUI.hydro\_GUI\_2.Hydro2W method), 
 		\hyperpage{15}
   \item grid\_and\_interpo() (in module src.manage\_grid\_8), 
-		\hyperpage{61}
-  \item grid\_update\_sub2() (in module src.substrate), \hyperpage{71}
-  \item grid\_update\_sub3() (in module src.substrate), \hyperpage{72}
+		\hyperpage{64}
+  \item grid\_update\_sub2() (in module src.substrate), \hyperpage{78}
+  \item grid\_update\_sub3() (in module src.substrate), \hyperpage{78}
 
   \indexspace
 
+  \item habby\_cmd (module), \hyperpage{92}
+  \item habby\_on\_all() (in module habby\_cmd), \hyperpage{92}
+  \item habby\_restart() (in module habby\_cmd), \hyperpage{93}
   \item HabbyHdf5 (class in src\_GUI.hydro\_GUI\_2), \hyperpage{14}
+  \item habitat\_to\_vtu() (in module src.new\_create\_vtk), 
+		\hyperpage{87}
   \item HEC\_RAS1D (class in src\_GUI.hydro\_GUI\_2), \hyperpage{13}
   \item HEC\_RAS2D (class in src\_GUI.hydro\_GUI\_2), \hyperpage{14}
   \item Hydro2W (class in src\_GUI.hydro\_GUI\_2), \hyperpage{15}
 
   \indexspace
 
+  \item init\_iu() (src\_GUI.bio\_info\_GUI.BioInfo method), 
+		\hyperpage{28}
   \item init\_iu() (src\_GUI.estimhab\_GUI.EstimhabW method), 
-		\hyperpage{25}
+		\hyperpage{26}
   \item init\_iu() (src\_GUI.fstress\_GUI.FstressW method), 
-		\hyperpage{24}
+		\hyperpage{25}
   \item init\_iu() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method), 
 		\hyperpage{15}
   \item init\_iu() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method), 
@@ -237,116 +278,131 @@
   \item init\_ui() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
   \item inside\_polygon() (in module src.manage\_grid\_8), 
-		\hyperpage{61}
+		\hyperpage{65}
   \item interp\_weights() (in module src.manage\_grid\_8), 
-		\hyperpage{62}
+		\hyperpage{65}
   \item interpo\_linear() (in module src.manage\_grid\_8), 
-		\hyperpage{62}
+		\hyperpage{65}
   \item interpo\_nearest() (in module src.manage\_grid\_8), 
-		\hyperpage{62}
+		\hyperpage{65}
   \item interpolate\_opti() (in module src.manage\_grid\_8), 
-		\hyperpage{62}
-  \item intersec\_cross() (in module src.substrate), \hyperpage{72}
+		\hyperpage{66}
+  \item intersec\_cross() (in module src.substrate), \hyperpage{79}
   \item intersection\_seg() (in module src.manage\_grid\_8), 
-		\hyperpage{62}
+		\hyperpage{66}
   \item is\_this\_res\_on\_the\_profile() (in module src.mascaret), 
-		\hyperpage{41}
+		\hyperpage{44}
 
   \indexspace
 
   \item linear\_h\_cross() (in module src.manage\_grid\_8), 
-		\hyperpage{63}
+		\hyperpage{66}
   \item load\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method), 
-		\hyperpage{24}
-  \item load\_coord\_1d() (in module src.rubar), \hyperpage{47}
-  \item load\_dat\_2d() (in module src.rubar), \hyperpage{47}
-  \item load\_data\_1d() (in module src.rubar), \hyperpage{47}
+		\hyperpage{25}
+  \item load\_coord\_1d() (in module src.rubar), \hyperpage{49}
+  \item load\_dat\_2d() (in module src.rubar), \hyperpage{49}
+  \item load\_data\_1d() (in module src.rubar), \hyperpage{50}
   \item load\_data\_fstress() (src\_GUI.fstress\_GUI.FstressW method), 
-		\hyperpage{24}
+		\hyperpage{25}
+  \item load\_evha\_curve() (in module src.bio\_info), \hyperpage{83}
   \item load\_fig\_option() (in module src\_GUI.output\_fig\_GUI), 
 		\hyperpage{21}
   \item load\_float\_stathab() (in module src.stathab\_c), 
-		\hyperpage{68}
+		\hyperpage{73}
   \item load\_from\_hdf5\_gui() (src\_GUI.stathab\_GUI.StathabW method), 
 		\hyperpage{22}
   \item load\_from\_txt\_gui() (src\_GUI.stathab\_GUI.StathabW method), 
-		\hyperpage{22}
+		\hyperpage{23}
+  \item load\_fstress\_text() (in module src.func\_for\_cmd), 
+		\hyperpage{88}
   \item load\_hdf5\_fstress() (src\_GUI.fstress\_GUI.FstressW method), 
-		\hyperpage{24}
-  \item load\_hdf5\_hyd() (in module src.load\_hdf5), \hyperpage{52}
-  \item load\_hdf5\_sub() (in module src.load\_hdf5), \hyperpage{52}
+		\hyperpage{25}
+  \item load\_hdf5\_hyd() (in module src.load\_hdf5), \hyperpage{55}
+  \item load\_hdf5\_sub() (in module src.load\_hdf5), \hyperpage{55}
   \item load\_hec\_2d\_gui() (src\_GUI.hydro\_GUI\_2.HEC\_RAS2D method), 
 		\hyperpage{14}
-  \item load\_hec\_ras2d() (in module src.hec\_ras2D), \hyperpage{38}
+  \item load\_hec\_ras2d() (in module src.hec\_ras2D), \hyperpage{40}
   \item load\_hec\_ras\_2d\_and\_cut\_grid() (in module src.hec\_ras2D), 
-		\hyperpage{38}
+		\hyperpage{40}
   \item load\_hec\_ras\_gui() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method), 
 		\hyperpage{14}
-  \item load\_mai\_1d() (in module src.rubar), \hyperpage{47}
-  \item load\_mai\_2d() (in module src.rubar), \hyperpage{47}
+  \item load\_mai\_1d() (in module src.rubar), \hyperpage{50}
+  \item load\_mai\_2d() (in module src.rubar), \hyperpage{50}
   \item load\_manning\_text() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{18}
-  \item load\_mascaret() (in module src.mascaret), \hyperpage{42}
+  \item load\_manning\_txt() (in module src.func\_for\_cmd), 
+		\hyperpage{88}
+  \item load\_mascaret() (in module src.mascaret), \hyperpage{44}
   \item load\_mascaret\_and\_create\_grid() (in module src.mascaret), 
-		\hyperpage{42}
+		\hyperpage{44}
   \item load\_mascaret\_gui() (src\_GUI.hydro\_GUI\_2.Mascaret method), 
 		\hyperpage{16}
-  \item load\_namereach() (in module src.stathab\_c), \hyperpage{68}
-  \item load\_pref() (in module src.stathab\_c), \hyperpage{68}
+  \item load\_namereach() (in module src.stathab\_c), \hyperpage{73}
+  \item load\_pref() (in module src.stathab\_c), \hyperpage{73}
+  \item load\_pref\_trop\_biv() (in module src.stathab\_c), 
+		\hyperpage{73}
+  \item load\_pref\_trop\_uni() (in module src.stathab\_c), 
+		\hyperpage{73}
   \item load\_river2d\_and\_cut\_grid() (in module src.river2d), 
-		\hyperpage{45}
-  \item load\_river2d\_cdg() (in module src.river2d), \hyperpage{45}
+		\hyperpage{47}
+  \item load\_river2d\_cdg() (in module src.river2d), \hyperpage{47}
   \item load\_river2d\_gui() (src\_GUI.hydro\_GUI\_2.River2D method), 
 		\hyperpage{17}
   \item load\_rubar() (src\_GUI.hydro\_GUI\_2.Rubar2D method), 
 		\hyperpage{17}
-  \item load\_rubar1d() (in module src.rubar), \hyperpage{48}
+  \item load\_rubar1d() (in module src.rubar), \hyperpage{50}
   \item load\_rubar1d() (src\_GUI.hydro\_GUI\_2.Rubar1D method), 
 		\hyperpage{17}
   \item load\_rubar1d\_and\_create\_grid() (in module src.rubar), 
-		\hyperpage{48}
-  \item load\_rubar2d() (in module src.rubar), \hyperpage{49}
+		\hyperpage{50}
+  \item load\_rubar2d() (in module src.rubar), \hyperpage{51}
   \item load\_rubar2d\_and\_create\_grid() (in module src.rubar), 
-		\hyperpage{49}
+		\hyperpage{52}
   \item load\_stathab\_from\_hdf5() (src.stathab\_c.Stathab method), 
-		\hyperpage{67}
+		\hyperpage{71}
   \item load\_stathab\_from\_txt() (src.stathab\_c.Stathab method), 
-		\hyperpage{67}
+		\hyperpage{71}
   \item load\_sub\_gui() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
 		\hyperpage{20}
-  \item load\_sub\_shp() (in module src.substrate), \hyperpage{73}
-  \item load\_sub\_txt() (in module src.substrate), \hyperpage{73}
-  \item load\_telemac() (in module src.selafin\_habby1), \hyperpage{51}
+  \item load\_sub\_shp() (in module src.substrate), \hyperpage{79}
+  \item load\_sub\_txt() (in module src.substrate), \hyperpage{80}
+  \item load\_telemac() (in module src.selafin\_habby1), \hyperpage{53}
   \item load\_telemac\_and\_cut\_grid() (in module src.selafin\_habby1), 
-		\hyperpage{51}
+		\hyperpage{53}
   \item load\_telemac\_gui() (src\_GUI.hydro\_GUI\_2.TELEMAC method), 
 		\hyperpage{21}
-  \item load\_tps\_2d() (in module src.rubar), \hyperpage{49}
+  \item load\_tps\_2d() (in module src.rubar), \hyperpage{52}
   \item load\_txt() (src\_GUI.fstress\_GUI.FstressW method), 
-		\hyperpage{24}
-  \item load\_xml() (in module src.Hec\_ras06), \hyperpage{31}
+		\hyperpage{25}
+  \item load\_xml() (in module src.Hec\_ras06), \hyperpage{33}
+  \item load\_xml\_name() (in module src.bio\_info), \hyperpage{83}
   \item log\_txt() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
 		\hyperpage{20}
 
   \indexspace
 
   \item m\_file\_load\_coord\_1d() (in module src.rubar), 
-		\hyperpage{50}
-  \item main() (in module src.dist\_vistess2), \hyperpage{57}
-  \item main() (in module src.estimhab), \hyperpage{66}
-  \item main() (in module src.fstress), \hyperpage{69}
-  \item main() (in module src.Hec\_ras06), \hyperpage{31}
-  \item main() (in module src.hec\_ras2D), \hyperpage{39}
-  \item main() (in module src.manage\_grid\_8), \hyperpage{63}
-  \item main() (in module src.mascaret), \hyperpage{43}
-  \item main() (in module src.river2d), \hyperpage{45}
-  \item main() (in module src.rubar), \hyperpage{50}
-  \item main() (in module src.stathab\_c), \hyperpage{68}
-  \item main() (in module src.substrate), \hyperpage{73}
+		\hyperpage{52}
+  \item main() (in module habby\_cmd), \hyperpage{93}
+  \item main() (in module src.bio\_info), \hyperpage{83}
+  \item main() (in module src.dist\_vistess2), \hyperpage{60}
+  \item main() (in module src.estimhab), \hyperpage{69}
+  \item main() (in module src.fstress), \hyperpage{75}
+  \item main() (in module src.Hec\_ras06), \hyperpage{33}
+  \item main() (in module src.hec\_ras2D), \hyperpage{41}
+  \item main() (in module src.manage\_grid\_8), \hyperpage{66}
+  \item main() (in module src.mascaret), \hyperpage{45}
+  \item main() (in module src.new\_create\_vtk), \hyperpage{87}
+  \item main() (in module src.river2d), \hyperpage{48}
+  \item main() (in module src.rubar), \hyperpage{52}
+  \item main() (in module src.stathab\_c), \hyperpage{74}
+  \item main() (in module src.substrate), \hyperpage{80}
   \item MainWindows (class in src\_GUI.Main\_windows\_1), \hyperpage{9}
   \item Mascaret (class in src\_GUI.hydro\_GUI\_2), \hyperpage{16}
+  \item merge\_grid\_and\_save() (in module src.substrate), 
+		\hyperpage{80}
   \item merge\_grid\_hydro\_sub() (in module src.substrate), 
-		\hyperpage{73}
+		\hyperpage{80}
   \item modify\_name() (src\_GUI.fstress\_GUI.FstressW method), 
 		\hyperpage{25}
   \item my\_menu\_bar() (src\_GUI.Main\_windows\_1.MainWindows method), 
@@ -358,7 +414,7 @@
 		\hyperpage{13}
   \item new\_project() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
-  \item newp() (in module src.manage\_grid\_8), \hyperpage{63}
+  \item newp() (in module src.manage\_grid\_8), \hyperpage{67}
 
   \indexspace
 
@@ -366,12 +422,12 @@
 		\hyperpage{26}
   \item open\_example() (src\_GUI.Main\_windows\_1.WelcomeW method), 
 		\hyperpage{13}
-  \item open\_geo\_mascaret() (in module src.mascaret), \hyperpage{43}
-  \item open\_geofile() (in module src.Hec\_ras06), \hyperpage{31}
-  \item open\_hdf5() (in module src.load\_hdf5), \hyperpage{52}
+  \item open\_geo\_mascaret() (in module src.mascaret), \hyperpage{45}
+  \item open\_geofile() (in module src.Hec\_ras06), \hyperpage{33}
+  \item open\_hdf5() (in module src.load\_hdf5), \hyperpage{55}
   \item open\_hec\_hec\_ras\_and\_create\_grid() (in module src.Hec\_ras06), 
-		\hyperpage{32}
-  \item open\_hecras() (in module src.Hec\_ras06), \hyperpage{33}
+		\hyperpage{34}
+  \item open\_hecras() (in module src.Hec\_ras06), \hyperpage{35}
   \item open\_proj (src\_GUI.Main\_windows\_1.WelcomeW attribute), 
 		\hyperpage{13}
   \item open\_project() (src\_GUI.Main\_windows\_1.MainWindows method), 
@@ -380,12 +436,12 @@
 		\hyperpage{10}
   \item open\_rech() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{11}
-  \item open\_repfile() (in module src.Hec\_ras06), \hyperpage{34}
-  \item open\_res\_file() (in module src.mascaret), \hyperpage{43}
-  \item open\_rub\_file() (in module src.mascaret), \hyperpage{43}
-  \item open\_sdffile() (in module src.Hec\_ras06), \hyperpage{34}
-  \item open\_shp() (in module src.substrate), \hyperpage{74}
-  \item open\_xmlfile() (in module src.Hec\_ras06), \hyperpage{34}
+  \item open\_repfile() (in module src.Hec\_ras06), \hyperpage{36}
+  \item open\_res\_file() (in module src.mascaret), \hyperpage{45}
+  \item open\_rub\_file() (in module src.mascaret), \hyperpage{45}
+  \item open\_sdffile() (in module src.Hec\_ras06), \hyperpage{36}
+  \item open\_shp() (in module src.substrate), \hyperpage{81}
+  \item open\_xmlfile() (in module src.Hec\_ras06), \hyperpage{37}
   \item optfig() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
   \item outputW (class in src\_GUI.output\_fig\_GUI), \hyperpage{21}
@@ -393,68 +449,78 @@
   \indexspace
 
   \item pass\_grid\_cell\_to\_node\_lin() (in module src.manage\_grid\_8), 
-		\hyperpage{63}
+		\hyperpage{67}
   \item pass\_in\_float\_from\_geo() (in module src.Hec\_ras06), 
-		\hyperpage{35}
+		\hyperpage{37}
   \item pass\_to\_float\_estimhab() (in module src.estimhab), 
-		\hyperpage{66}
+		\hyperpage{69}
   \item plot\_dist\_vit() (in module src.dist\_vistess2), 
-		\hyperpage{57}
-  \item plot\_grid() (in module src.manage\_grid\_8), \hyperpage{64}
+		\hyperpage{60}
+  \item plot\_grid() (in module src.manage\_grid\_8), \hyperpage{67}
   \item plot\_grid\_simple() (in module src.manage\_grid\_8), 
-		\hyperpage{64}
-  \item plot\_vel\_h() (in module src.selafin\_habby1), \hyperpage{51}
-  \item point\_cross2() (in module src.substrate), \hyperpage{74}
-  \item point\_cross\_bis() (in module src.substrate), \hyperpage{74}
-  \item power\_law() (src.stathab\_c.Stathab method), \hyperpage{67}
-  \item prepare\_grid() (in module src.hec\_ras2D), \hyperpage{39}
+		\hyperpage{68}
+  \item plot\_hydrosignature() (in module src.bio\_info), 
+		\hyperpage{83}
+  \item plot\_vel\_h() (in module src.selafin\_habby1), \hyperpage{54}
+  \item point\_cross2() (in module src.substrate), \hyperpage{81}
+  \item point\_cross\_bis() (in module src.substrate), \hyperpage{81}
+  \item power\_law() (src.stathab\_c.Stathab method), \hyperpage{72}
+  \item prepare\_grid() (in module src.hec\_ras2D), \hyperpage{41}
   \item preparetest\_velocity() (in module src.dist\_vistess2), 
-		\hyperpage{57}
+		\hyperpage{61}
   \item profil\_coord\_non\_georef() (in module src.mascaret), 
-		\hyperpage{43}
+		\hyperpage{46}
   \item propose\_next\_file() (src\_GUI.hydro\_GUI\_2.Rubar2D method), 
 		\hyperpage{18}
   \item putcontent() (src.selafin\_habby1.Selafin method), 
-		\hyperpage{50}
+		\hyperpage{53}
 
   \indexspace
 
   \item reach\_selected() (src\_GUI.stathab\_GUI.StathabW method), 
 		\hyperpage{23}
   \item read\_attribute\_xml() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
-		\hyperpage{18}
-  \item read\_fstress\_hdf5() (in module src.fstress), \hyperpage{69}
-  \item read\_pref() (in module src.fstress), \hyperpage{69}
+		\hyperpage{19}
+  \item read\_fstress\_hdf5() (in module src.fstress), \hyperpage{75}
+  \item read\_pref() (in module src.bio\_info), \hyperpage{84}
+  \item read\_pref() (in module src.fstress), \hyperpage{75}
   \item remove\_all\_file() (src\_GUI.hydro\_GUI\_2.River2D method), 
 		\hyperpage{17}
   \item remove\_file() (src\_GUI.hydro\_GUI\_2.River2D method), 
 		\hyperpage{17}
   \item remove\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method), 
-		\hyperpage{26}
+		\hyperpage{27}
   \item remove\_fish() (src\_GUI.stathab\_GUI.StathabW method), 
-		\hyperpage{23}
-  \item reorder\_reach() (in module src.Hec\_ras06), \hyperpage{35}
+		\hyperpage{24}
+  \item reorder\_reach() (in module src.Hec\_ras06), \hyperpage{37}
   \item River2D (class in src\_GUI.hydro\_GUI\_2), \hyperpage{16}
   \item river\_coord\_non\_georef\_from\_cas() (in module src.mascaret), 
-		\hyperpage{44}
+		\hyperpage{46}
   \item river\_coord\_non\_georef\_from\_xcas() (in module src.mascaret), 
-		\hyperpage{44}
+		\hyperpage{46}
   \item Rubar1D (class in src\_GUI.hydro\_GUI\_2), \hyperpage{17}
   \item Rubar2D (class in src\_GUI.hydro\_GUI\_2), \hyperpage{17}
   \item run\_estmihab() (src\_GUI.estimhab\_GUI.EstimhabW method), 
 		\hyperpage{26}
-  \item run\_fstress() (in module src.fstress), \hyperpage{70}
+  \item run\_fstress() (in module src.fstress), \hyperpage{75}
+  \item run\_habitat\_value() (src\_GUI.bio\_info\_GUI.BioInfo method), 
+		\hyperpage{28}
   \item run\_stathab\_gui() (src\_GUI.stathab\_GUI.StathabW method), 
-		\hyperpage{23}
+		\hyperpage{24}
   \item runsave\_fstress() (src\_GUI.fstress\_GUI.FstressW method), 
 		\hyperpage{25}
 
   \indexspace
 
-  \item save\_fstress() (in module src.fstress), \hyperpage{70}
-  \item save\_hdf5() (in module src.load\_hdf5), \hyperpage{53}
-  \item save\_hdf5\_sub() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
-		\hyperpage{20}
+  \item sandre\_to\_cemagref() (in module src.substrate), 
+		\hyperpage{81}
+  \item save\_fstress() (in module src.fstress), \hyperpage{75}
+  \item save\_hab\_fig\_spu() (in module src.calcul\_hab), 
+		\hyperpage{85}
+  \item save\_hab\_shape() (in module src.calcul\_hab), \hyperpage{85}
+  \item save\_hab\_txt() (in module src.calcul\_hab), \hyperpage{86}
+  \item save\_hdf5() (in module src.load\_hdf5), \hyperpage{55}
+  \item save\_hdf5\_sub() (in module src.load\_hdf5), \hyperpage{57}
   \item save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method), 
 		\hyperpage{21}
   \item save\_project (src\_GUI.Main\_windows\_1.CreateNewProject attribute), 
@@ -470,35 +536,41 @@
   \item save\_signal (src\_GUI.Main\_windows\_1.WelcomeW attribute), 
 		\hyperpage{13}
   \item save\_signal\_estimhab (src\_GUI.estimhab\_GUI.EstimhabW attribute), 
-		\hyperpage{26}
+		\hyperpage{27}
+  \item save\_spu\_txt() (in module src.calcul\_hab), \hyperpage{86}
+  \item save\_vh\_fig\_2d() (in module src.calcul\_hab), \hyperpage{86}
   \item save\_xml() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{19}
+  \item save\_xml\_stathab() (src.stathab\_c.Stathab method), 
+		\hyperpage{72}
   \item savefig\_stahab() (src.stathab\_c.Stathab method), 
-		\hyperpage{67}
+		\hyperpage{72}
   \item savetxt\_stathab() (src.stathab\_c.Stathab method), 
-		\hyperpage{67}
-  \item scatter\_plot() (in module src.hec\_ras2D), \hyperpage{39}
+		\hyperpage{72}
+  \item scatter\_plot() (in module src.hec\_ras2D), \hyperpage{41}
   \item scrolldown() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
-  \item Selafin (class in src.selafin\_habby1), \hyperpage{50}
+  \item Selafin (class in src.selafin\_habby1), \hyperpage{53}
   \item select\_dir() (src\_GUI.stathab\_GUI.StathabW method), 
-		\hyperpage{23}
+		\hyperpage{24}
+  \item select\_fish() (src\_GUI.bio\_info\_GUI.BioInfo method), 
+		\hyperpage{28}
   \item select\_hdf5() (src\_GUI.stathab\_GUI.StathabW method), 
-		\hyperpage{23}
+		\hyperpage{24}
   \item selectionchange() (src\_GUI.hydro\_GUI\_2.Hydro2W method), 
 		\hyperpage{15}
   \item selectionchange() (src\_GUI.Main\_windows\_1.ShowImageW method), 
 		\hyperpage{12}
   \item send\_data() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{19}
+  \item send\_err\_log() (src\_GUI.estimhab\_GUI.StatModUseful method), 
+		\hyperpage{27}
   \item send\_err\_log() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{19}
   \item send\_err\_log() (src\_GUI.stathab\_GUI.StathabW method), 
 		\hyperpage{24}
   \item send\_log (src\_GUI.estimhab\_GUI.StatModUseful attribute), 
-		\hyperpage{26}
-  \item send\_log (src\_GUI.hydro\_GUI\_2.HabbyHdf5 attribute), 
-		\hyperpage{15}
+		\hyperpage{27}
   \item send\_log (src\_GUI.hydro\_GUI\_2.Hydro2W attribute), 
 		\hyperpage{16}
   \item send\_log (src\_GUI.hydro\_GUI\_2.SubHydroW attribute), 
@@ -510,57 +582,72 @@
   \item send\_log (src\_GUI.Main\_windows\_1.WelcomeW attribute), 
 		\hyperpage{13}
   \item send\_log (src\_GUI.output\_fig\_GUI.outputW attribute), 
-		\hyperpage{21}
+		\hyperpage{22}
   \item send\_log (src\_GUI.stathab\_GUI.StathabW attribute), 
 		\hyperpage{24}
   \item send\_merge\_grid() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
-		\hyperpage{20}
+		\hyperpage{21}
   \item setfolder() (src\_GUI.Main\_windows\_1.CreateNewProject method), 
 		\hyperpage{9}
   \item setfolder() (src\_GUI.Main\_windows\_1.WelcomeW method), 
 		\hyperpage{13}
   \item setlangue() (src\_GUI.Main\_windows\_1.MainWindows method), 
-		\hyperpage{11}
+		\hyperpage{12}
   \item show\_data\_one\_river() (src\_GUI.fstress\_GUI.FstressW method), 
 		\hyperpage{25}
   \item show\_dialog() (src\_GUI.hydro\_GUI\_2.SubHydroW method), 
 		\hyperpage{19}
   \item show\_fig (src\_GUI.estimhab\_GUI.StatModUseful attribute), 
-		\hyperpage{26}
+		\hyperpage{27}
   \item show\_fig (src\_GUI.hydro\_GUI\_2.SubHydroW attribute), 
 		\hyperpage{19}
   \item show\_fig (src\_GUI.stathab\_GUI.StathabW attribute), 
 		\hyperpage{24}
+  \item show\_hydrosignature() (src\_GUI.bio\_info\_GUI.BioInfo method), 
+		\hyperpage{28}
+  \item show\_info\_fish() (src\_GUI.bio\_info\_GUI.BioInfo method), 
+		\hyperpage{28}
+  \item show\_pref() (src\_GUI.bio\_info\_GUI.BioInfo method), 
+		\hyperpage{28}
   \item showfig() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
   \item showfig2() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
   \item ShowImageW (class in src\_GUI.Main\_windows\_1), \hyperpage{12}
-  \item src (module), \hyperpage{29}
-  \item src.dist\_vistess2 (module), \hyperpage{54}
-  \item src.estimhab (module), \hyperpage{65}
-  \item src.fstress (module), \hyperpage{68}
-  \item src.Hec\_ras06 (module), \hyperpage{29}
-  \item src.hec\_ras2D (module), \hyperpage{37}
-  \item src.load\_hdf5 (module), \hyperpage{51}
-  \item src.manage\_grid\_8 (module), \hyperpage{58}
-  \item src.mascaret (module), \hyperpage{40}
-  \item src.river2d (module), \hyperpage{44}
-  \item src.rubar (module), \hyperpage{45}
-  \item src.selafin\_habby1 (module), \hyperpage{50}
-  \item src.stathab\_c (module), \hyperpage{66}
-  \item src.substrate (module), \hyperpage{71}
+  \item src (module), \hyperpage{31}
+  \item src.bio\_info (module), \hyperpage{82}
+  \item src.calcul\_hab (module), \hyperpage{84}
+  \item src.dist\_vistess2 (module), \hyperpage{58}
+  \item src.estimhab (module), \hyperpage{68}
+  \item src.fstress (module), \hyperpage{74}
+  \item src.func\_for\_cmd (module), \hyperpage{88}
+  \item src.Hec\_ras06 (module), \hyperpage{31}
+  \item src.hec\_ras2D (module), \hyperpage{39}
+  \item src.load\_hdf5 (module), \hyperpage{54}
+  \item src.manage\_grid\_8 (module), \hyperpage{61}
+  \item src.mascaret (module), \hyperpage{42}
+  \item src.new\_create\_vtk (module), \hyperpage{87}
+  \item src.river2d (module), \hyperpage{47}
+  \item src.rubar (module), \hyperpage{48}
+  \item src.selafin\_habby1 (module), \hyperpage{53}
+  \item src.stathab\_c (module), \hyperpage{70}
+  \item src.substrate (module), \hyperpage{76}
   \item src\_GUI (module), \hyperpage{7}
-  \item src\_GUI.estimhab\_GUI (module), \hyperpage{25}
+  \item src\_GUI.bio\_info\_GUI (module), \hyperpage{28}
+  \item src\_GUI.estimhab\_GUI (module), \hyperpage{26}
   \item src\_GUI.fstress\_GUI (module), \hyperpage{24}
   \item src\_GUI.hydro\_GUI\_2 (module), \hyperpage{13}
   \item src\_GUI.Main\_windows\_1 (module), \hyperpage{7}
   \item src\_GUI.output\_fig\_GUI (module), \hyperpage{21}
-  \item src\_GUI.stathab\_GUI (module), \hyperpage{21}
-  \item Stathab (class in src.stathab\_c), \hyperpage{66}
-  \item stathab\_calc() (src.stathab\_c.Stathab method), \hyperpage{67}
-  \item StathabW (class in src\_GUI.stathab\_GUI), \hyperpage{21}
-  \item StatModUseful (class in src\_GUI.estimhab\_GUI), \hyperpage{26}
+  \item src\_GUI.stathab\_GUI (module), \hyperpage{22}
+  \item Stathab (class in src.stathab\_c), \hyperpage{70}
+  \item stathab\_calc() (src.stathab\_c.Stathab method), \hyperpage{72}
+  \item stathab\_trop\_biv() (src.stathab\_c.Stathab method), 
+		\hyperpage{72}
+  \item stathab\_trop\_univ() (src.stathab\_c.Stathab method), 
+		\hyperpage{72}
+  \item StathabW (class in src\_GUI.stathab\_GUI), \hyperpage{22}
+  \item StatModUseful (class in src\_GUI.estimhab\_GUI), \hyperpage{27}
   \item SubHydroW (class in src\_GUI.hydro\_GUI\_2), \hyperpage{18}
   \item SubstrateW (class in src\_GUI.hydro\_GUI\_2), \hyperpage{20}
 
@@ -569,21 +656,29 @@
   \item TELEMAC (class in src\_GUI.hydro\_GUI\_2), \hyperpage{21}
   \item test\_entry\_float() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{12}
-  \item test\_stathab() (src.stathab\_c.Stathab method), \hyperpage{68}
+  \item test\_evah\_xml\_pref() (in module src.bio\_info), 
+		\hyperpage{84}
+  \item test\_stathab() (src.stathab\_c.Stathab method), \hyperpage{72}
+  \item test\_stathab\_trop\_biv() (src.stathab\_c.Stathab method), 
+		\hyperpage{73}
+  \item test\_stathab\_trop\_uni() (src.stathab\_c.Stathab method), 
+		\hyperpage{73}
 
   \indexspace
 
   \item update\_coord\_pro\_with\_vh\_pro() (in module src.manage\_grid\_8), 
-		\hyperpage{64}
+		\hyperpage{68}
   \item update\_hydro\_hdf5\_name() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
   \item update\_list\_riv() (src\_GUI.fstress\_GUI.FstressW method), 
 		\hyperpage{25}
+  \item update\_merge\_list() (src\_GUI.bio\_info\_GUI.BioInfo method), 
+		\hyperpage{28}
   \item update\_namefig() (src\_GUI.Main\_windows\_1.ShowImageW method), 
 		\hyperpage{12}
-  \item update\_output() (in module src.Hec\_ras06), \hyperpage{36}
+  \item update\_output() (in module src.Hec\_ras06), \hyperpage{38}
   \item update\_sub\_hdf5\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method), 
-		\hyperpage{20}
+		\hyperpage{21}
 
   \indexspace
 
@@ -596,6 +691,7 @@
 		\hyperpage{8}
   \item write\_log\_file() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{9}
-  \item write\_txt() (in module src.fstress), \hyperpage{70}
+  \item write\_txt() (in module src.fstress), \hyperpage{76}
+  \item writePVD() (in module src.new\_create\_vtk), \hyperpage{87}
 
 \end{theindex}

@@ -70,6 +70,7 @@
 <p>The source code is separated in two folders: one folder which contain the code source for the graphical user interface (GUI) and one folder for the rest of the code source.</p>
 <p>The dependency between the different part of the source code can be visualized in the mindmap real_GUI.xmind (xmind should be installed).</p>
 <p>The main of HABBY is habby.py. It has the usual form for an application using PyQt5.  The main() creates an application of QWidget and call the Main_Windows class, which we will discuss shortly. The last line closes the application.</p>
+<p>It is also possible to call habby from the command line without the GUI. For this, the script called habby_cmd.py is used.</p>
 </div>
 <div class="section" id="graphical-interface">
 <h1>Graphical interface<a class="headerlink" href="#graphical-interface" title="Permalink to this headline">¶</a></h1>
@@ -79,7 +80,7 @@
 <p>in src_GUI/Main_Windows_1.py</p>
 <span class="target" id="module-src_GUI"></span><span class="target" id="module-src_GUI.Main_windows_1"></span><dl class="class">
 <dt id="src_GUI.Main_windows_1.CentralW">
-<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">CentralW</code><span class="sig-paren">(</span><em>rech</em>, <em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">CentralW</code><span class="sig-paren">(</span><em>rech</em>, <em>path_prj</em>, <em>name_prj</em>, <em>lang_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class create the different tabs of the programm, which are then used as the central widget by the class
 MainWindows.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -90,6 +91,9 @@ MainWindows.</p>
 <li><strong>rech</strong> &#8211; A bollean which is True if the tabs for the &#8220;research option&#8221; are shown. False otherwise.</li>
 <li><strong>path_prj</strong> &#8211; A string with the path to the project xml file</li>
 <li><strong>name_prj</strong> &#8211; A string with the name of the project</li>
+<li><strong>lang_bio</strong> &#8211; A string with the word &#8216;English&#8217;, &#8216;French&#8217; (or an other language). It is used to find the langugage
+in which the biological info should be shown. So lang_bio should have the same form than the attribute
+&#8220;langugage&#8221; in xml preference file.</li>
 </ul>
 </td>
 </tr>
@@ -330,7 +334,8 @@ project with a new name and copy the file for the log with a new name</p>
 <dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.close_rech">
 <code class="descname">close_rech</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.close_rech" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close the additional research menu (see open_rech for more information)</p>
+<dd><p>Close the additional research menu (see open_rech for more information). For the moment, ONLY works with
+two research tabs. Modify this function if a different number of tab is needed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -415,7 +420,7 @@ the recent project is selected and the method save_project() is called.</p>
 <dd><p>Open the additional research tab, which can be used to create Tab with more experimental contents.</p>
 <p>Indeed, it is possible to show extra tab in HABBY. These supplementary tab correspond to open for researcher.
 The plan is that these options are less tested than other mainstream options. It is not clear yet what
-will be added to these options, but the basic architecture is there when it will be needed.</p>
+will be added to these options, but the tabs are already there when it will be needed.</p>
 </dd></dl>
 
 <dl class="method">
@@ -439,8 +444,9 @@ before using HABBY. If the project exists already (i.e. the name and the path of
 modified), the xml file is just updated to change its attributes as needed.</p>
 <p>Interesting path are a) the biology path (named &#8220;biology&#8221; by default) which contains the biological information
 such as the preference curve and b) the path_im which is the path where all figures and most outputs of HABBY
-is saved. If path_im is not given, HABBY automatically create a folder called figure_habby when the
-user creates a new project. The user can however change this path if he wants. The next step is to communicate
+is saved. If path_im is not given, HABBY automatically create a folder called figures when the
+user creates a new project. The user can however change this path if he wants. It also create other similar
+folders to sotre different type of outputs. The next step is to communicate
 to all the children widget than the name and path of the project have changed.</p>
 <p>This function also changes the title of the Windows to reflect the project name and it adds the saved
 project to the list of recent project if it is not part of the list already. Because of this the menu must
@@ -713,16 +719,10 @@ figure and errors.</p>
 <dl class="class">
 <dt id="src_GUI.hydro_GUI_2.HabbyHdf5">
 <em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">HabbyHdf5</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">PyQt5.QtWidgets.QWidget</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
 <p>This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
 it is there possible to just add a along hdf5 file to the current project without having to pass to the original
 hydrological files.</p>
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.HabbyHdf5.drop_hydro">
-<code class="descname">drop_hydro</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.drop_hydro" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.HabbyHdf5.get_new_hydro_hdf5">
 <code class="descname">get_new_hydro_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.get_new_hydro_hdf5" title="Permalink to this definition">¶</a></dt>
@@ -736,12 +736,6 @@ created by HABBY in the method save_hdf5 of the class SubHydroW.</p>
 <dt id="src_GUI.hydro_GUI_2.HabbyHdf5.init_iu">
 <code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.init_iu" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used in the initialization by __init__()</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="src_GUI.hydro_GUI_2.HabbyHdf5.send_log">
-<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.HabbyHdf5.send_log" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PyQt signal to send the log.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1005,7 +999,7 @@ methods in common, so they inherit from SubHydroW, this class.</p>
 <code class="descname">dis_enable_nb_profile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.dis_enable_nb_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function enable and disable the QLineEdit where the user gives the number of additional profile needed to
 create the gird and the related QLabel. If the user choose the interpolation by bloc, the QLineEdit will be
-disable. If it chooses linear or nearest neighbour interpolation, it will be enabled. Careful, this function
+disabled. If it chooses linear or nearest neighbour interpolation, it will be enabled. Careful, this function
 only works with 1D and 1.5D model.</p>
 </dd></dl>
 
@@ -1016,10 +1010,26 @@ only works with 1D and 1.5D model.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.find_path_hdf5">
+<code class="descname">find_path_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.find_path_hdf5" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
+path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.find_path_im">
 <code class="descname">find_path_im</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.find_path_im" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to find the path where to save the figues, careful a simialr one is in estimhab_GUI.py. By default,
-path_im is in the project folder.</p>
+<dd><p>A function to find the path where to save the figues. Careful a simialar one is in estimhab_GUI.py. By default,
+path_im is in the project folder in the folder &#8216;figure&#8217;.</p>
+<p>This is practical to have in a function form as it should be called repeatably (in case the project have been
+changed since the last start of HABBY).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubHydroW.find_path_input">
+<code class="descname">find_path_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.find_path_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the input file. Careful a simialar one is in estimhab_GUI.py. By default,
+path_input indicates the folder &#8216;input&#8217; in the project folder.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1045,6 +1055,8 @@ along the profile in meter and n is the manning value (in SI unit). One point pe
 <p>0, 200, 0.025</p>
 <p>1, 120, 0.035, etc.</p>
 <p>White space is neglected and a line starting with the character # is also neglected.</p>
+<p>A very similar function to this ones exists in func_for_cmd. It is used to so the same thing but called
+from the cmd. Changes should be copied in both functions if necessary.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1101,7 +1113,7 @@ messages.</p>
 <code class="descname">send_err_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_err_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function sends the errors and the warnings to the logs.
 The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
-to avoid freezing the GUI.</p>
+to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1173,12 +1185,11 @@ this order is given in the definition of the class of each hydrological model.</
 <dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
 <p>This is the widget used to load the substrate. It is practical to re-use some of the method from SubHydroW.
 So this class inherit from SubHydroW.</p>
-<dl class="method">
-<dt id="src_GUI.hydro_GUI_2.SubstrateW.enabledisable_const">
-<code class="descname">enabledisable_const</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.enabledisable_const" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function enable and disable the loading of shapefile and text file in the substrate. Notably
-the user can choose to have a constant substrate everywhere. In this case, the choice to load the file is
-disabled.</p>
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.drop_merge">
+<code class="descname">drop_merge</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.drop_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pyqtsignal which signal that merged hydro data is ready. The signal is for the bioinfo_tab and is collected
+by MainWindows1.py.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1203,37 +1214,29 @@ to reflect this and also update the label as needed.</p>
 
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubstrateW.load_sub_gui">
-<code class="descname">load_sub_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.load_sub_gui" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load_sub_gui</code><span class="sig-paren">(</span><em>const_sub=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.load_sub_gui" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to load the substrate data. The substrate data can be in two forms: a) in the form of a shp
 file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line).
 Generally this function has some similarities to the functions used to load the hydrological data and it re-uses
 some of the methods developed for them.</p>
-<p>It is possible to have a constant substrate if the self.constsub variable is on (it is a QRadioButton). In this
+<p>It is possible to have a constant substrate if const_sub= True. In this
 case, an hdf5 is created with only the default value marked. This form of hdf5 file is then managed by the merge
 function.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src_GUI.hydro_GUI_2.SubstrateW.log_txt">
-<code class="descname">log_txt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.log_txt" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function gives the log for the substrate in text form. this is in a function because it is used twice in
-the function load_sub_gui()</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub">
-<code class="descname">save_hdf5_sub</code><span class="sig-paren">(</span><em>constsub=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.save_hdf5_sub" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function save the substrate data in its own hdf5 file and write the name of this hdf5 file in the
-xml project file. The format of the hdf5 file is not finalzed yet so it is not documented. This hdf5 file
-is only for the substrate, not for the merged grid.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>constsub</strong> &#8211; If constsub is True, the hdf5 created will only account for a constant value</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>const_sub</strong> &#8211; If True, a constant substrate is being loaded. Usually it is set to False.</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.SubstrateW.log_txt">
+<code class="descname">log_txt</code><span class="sig-paren">(</span><em>code_type</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.log_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gives the log for the substrate in text form. this is in a function because it is used twice in
+the function load_sub_gui()</p>
 </dd></dl>
 
 <dl class="method">
@@ -1241,12 +1244,13 @@ is only for the substrate, not for the merged grid.</p>
 <code class="descname">send_merge_grid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.send_merge_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calls the function merge grid in substrate.py. The goal is to have the substrate and hydrological
 data on the same grid. Hence, the hydrological grid will need to be cut to the form of the substrate grid.</p>
+<p>This function can be slow so it call on a second thread.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubstrateW.update_sub_hdf5_name">
 <code class="descname">update_sub_hdf5_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubstrateW.update_sub_hdf5_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function update the QComBox on substrate data which is on the stubstrate tab. The similiar function
+<dd><p>This function update the QComBox on substrate data which is on the substrate tab. The similiar function
 for hydrology is in Main_Windows_1.py as it is more practical to have it there to collect all the signals.</p>
 </dd></dl>
 
@@ -1276,11 +1280,9 @@ from the class SubHydroW(). It is very similar to RUBAR2D class, but data from T
 </div>
 <div class="section" id="figure-option-gui">
 <h2>Figure Option - GUI<a class="headerlink" href="#figure-option-gui" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>in src_GUI/output_fig_GUI.py</p>
-<p>This part is not finished. The idea is to let the user select various options to create
-the figures, notably the colour or the size of the text.</p>
-</div></blockquote>
+<p>in src_GUI/output_fig_GUI.py</p>
+<p>This python module lets the user select various options to create the figures, notably the colormap or the size of the text.
+It is also wehre the user select the needed outputs.</p>
 <span class="target" id="module-src_GUI.output_fig_GUI"></span><dl class="function">
 <dt id="src_GUI.output_fig_GUI.create_default_figoption">
 <code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">create_default_figoption</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.create_default_figoption" title="Permalink to this definition">¶</a></dt>
@@ -1313,7 +1315,7 @@ function uses data by default which are in the fonction create_default_fig_optio
 <dl class="class">
 <dt id="src_GUI.output_fig_GUI.outputW">
 <em class="property">class </em><code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">outputW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW" title="Permalink to this definition">¶</a></dt>
-<dd><p>The class which support the creation and management of the output. It is notably used to select the otions to
+<dd><p>The class which support the creation and management of the output. It is notably used to select the options to
 create the figures.</p>
 <dl class="method">
 <dt id="src_GUI.output_fig_GUI.outputW.init_iu">
@@ -1378,6 +1380,14 @@ a similar function exists in Fstress_GUI. Modify both if needed.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.stathab_GUI.StathabW.change_riv_type">
+<code class="descname">change_riv_type</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.stathab_GUI.StathabW.change_riv_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function manage the changes which needs to happends to the GUI when the user want to pass from
+tropical river to temperate river and vice-versa. Indeed the fish species and the input files are not
+the same for tropical and temperate river.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.stathab_GUI.StathabW.init_iu">
 <code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.stathab_GUI.StathabW.init_iu" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1421,9 +1431,20 @@ the reach name called self.list_re.</p>
 self.end_file_reach list. The form of the file is always the name of the reach + one item of
 self.end_file_reach. If it does not find all files, it add the name of the files not found to self.list_needed,
 so that the user can be aware of which file he needs. The exception is Pref.txt. If HABBY do not find it in the
-directory, it uses the default “Pref.txt”. All files (apart from Pref.txt) should be in the same directory.</p>
+directory, it uses the default “Pref.txt”. All files (apart from Pref.txt) should be in the same directory.
+If the river is temperate, the files needed are not the same than if the river is in the tropic. This is
+accounted using the variable rivint. If rivint is zero, the river is temparate and this function looks for the
+file needed for temperate type (list of file contained in self.end_file_reach and self.name_file_allreach).
+If riverin is equal to 1 or 2, the river is tropical (list of file contained in self.end_file_reach_top and
+biological data in the stathab folder in the biology folder (many files). If the river is temperate,
+all preference coeff are in one file called Pref.txt (also in the stathab folder of the biology folder).</p>
 <p>Then, it calls a method of the Stathab class (in src) which reads the “pref.txt” file and adds the name
-of the fish to the GUI. Next, if all files are present, it loads the data using the method written in Stathab
+of the fish to the GUI. If the &#8220;tropical river&#8221; option is selected, it looks which preference file are present
+in self.path_bio_stathab. The name of the tropical preference file needs to be in this form: YuniYh_XXX.csv and
+YuniYh_XX.csv for the univariate case and YbivYXXX.csv for the bivarate where XX is the three letter fish code
+from ONEMA and Y is whatever string. The form of the preference file is the form from the R version of
+stathab 2.</p>
+<p>Next, if all files are present, it loads the data using the method written in Stathab
 (in the src folder). When the data is loaded, it creates an hdf5 file from this data and save the name of this
 new hdf5 file in the xml project file (also using a method in the stathab class).</p>
 <p>Finally, it sends the log info as explained in the log section of the documentation</p>
@@ -1613,7 +1634,7 @@ The river must have been loaded before.</p>
 <dt id="src_GUI.fstress_GUI.FstressW.was_loaded_before">
 <code class="descname">was_loaded_before</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.was_loaded_before" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function looks in the xml project file is an hdf5 exists already. If yes, it loads this data
-and show it on the GUI</p>
+and show it on the GUI.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1706,6 +1727,13 @@ two classes, which saves a bit of coding.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_hdf5_est">
+<code class="descname">find_path_hdf5_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_hdf5_est" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py and in
+stathab_c. By default, path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_im_est">
 <code class="descname">find_path_im_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_im_est" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.
@@ -1721,9 +1749,38 @@ Do not mix it up</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_input_est">
+<code class="descname">find_path_input_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_input_est" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the input file. Careful a simialar one is in estimhab_GUI.py. By default,
+path_input indicates the folder &#8216;input&#8217; in the project folder.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_output_est">
+<code class="descname">find_path_output_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_output_est" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the shapefile, paraview files and other future format. By default,
+path_out is in the project folder in the folder &#8216;other_output.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_text_est">
+<code class="descname">find_path_text_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_text_est" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
+path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.estimhab_GUI.StatModUseful.remove_fish">
 <code class="descname">remove_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.remove_fish" title="Permalink to this definition">¶</a></dt>
 <dd><p>The function is used to remove fish species (or inverterbates species)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.send_err_log">
+<code class="descname">send_err_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.send_err_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function sends the errors and the warnings to the logs.
+The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
+to avoid freezing the GUI. A similar function exists in hydro_GUI_2.py. Correct both if necessary.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1736,6 +1793,69 @@ Do not mix it up</p>
 <dt id="src_GUI.estimhab_GUI.StatModUseful.show_fig">
 <code class="descname">show_fig</code><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.show_fig" title="Permalink to this definition">¶</a></dt>
 <dd><p>PyQtsignal to show the figures.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="information-biological-and-run-habitat">
+<h2>Information Biological and Run habitat<a class="headerlink" href="#information-biological-and-run-habitat" title="Permalink to this headline">¶</a></h2>
+<p>in src_GUI/bio_info_GUI.py</p>
+<p>This python module is where the biological info is managed and shown to the user.
+It is also where the user can run the habitat calculation.</p>
+<span class="target" id="module-src_GUI.bio_info_GUI"></span><dl class="class">
+<dt id="src_GUI.bio_info_GUI.BioInfo">
+<em class="property">class </em><code class="descclassname">src_GUI.bio_info_GUI.</code><code class="descname">BioInfo</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em>, <em>lang='French'</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class contains the tab with the biological information (the curves of preference). It inherites from
+StatModUseful. StatModuseful is a QWidget, with some practical signal (send_log and show_fig) and some functions
+to find path_im and path_bio (the path wher to save image) and to manage lists.</p>
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used in the initialization by __init__()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.run_habitat_value">
+<code class="descname">run_habitat_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.run_habitat_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function runs HABBY to get the habitat value based on the data in a &#8220;merged&#8221; hdf5 file and the chosen
+preference files.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.select_fish">
+<code class="descname">select_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.select_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function select the fish which corresponds at the chosen criteria by the user. The type of criteria
+is given in the list self.keys and the criteria is given in self.cond1. The condition should exactly
+match the criteria. Sign such as * does not work.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.show_hydrosignature">
+<code class="descname">show_hydrosignature</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_hydrosignature" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function make the link with function in bio_info.py which allows to load and plot the data realted
+to the hydrosignature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.show_info_fish">
+<code class="descname">show_info_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_info_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function shows the useful information concerning the selected fish on the GUI</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.show_pref">
+<code class="descname">show_pref</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_pref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function shows the image of the preference curve of the selected xml file. For this it calls, the functions
+read_pref and figure_pref of bio_info.py. Hence, this function justs makes the link between the GUI and
+the functions effectively doing the image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.update_merge_list">
+<code class="descname">update_merge_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.update_merge_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function goes in the projet xml file and gets all available merged data. Usually, it is called
+by Substrate() (when finished to merge some data) or at the start of HABBY.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1825,7 +1945,7 @@ profile, we can also find the beginning and end of the profile.</p>
 
 <dl class="function">
 <dt id="src.Hec_ras06.figure_xml">
-<code class="descclassname">src.Hec_ras06.</code><code class="descname">figure_xml</code><span class="sig-paren">(</span><em>data_profile</em>, <em>coord_pro_old</em>, <em>coord_r</em>, <em>xy_h_all</em>, <em>zone_v_all</em>, <em>pro</em>, <em>path_im</em>, <em>nb_sim=0</em>, <em>name_profile='no_name'</em>, <em>coord_p2=-99</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.figure_xml" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">figure_xml</code><span class="sig-paren">(</span><em>data_profile</em>, <em>coord_pro_old</em>, <em>coord_r</em>, <em>xy_h_all</em>, <em>zone_v_all</em>, <em>pro</em>, <em>path_im</em>, <em>fig_opt</em>, <em>nb_sim=0</em>, <em>name_profile='no_name'</em>, <em>coord_p2=-99</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.figure_xml" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to plot the results of the loading of hec-ras data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1843,6 +1963,7 @@ the (x,y) indicates the start of the zone which end with the next velocity</li>
 <li><strong>name_profile</strong> &#8211; a list of string with the name of the profiles</li>
 <li><strong>coord_p2</strong> &#8211; the data of the profile when non geo-referenced, optional</li>
 <li><strong>path_im</strong> &#8211; the path where the figure should be saved (string)</li>
+<li><strong>fig_opt</strong> &#8211; the figure options</li>
 </ul>
 </td>
 </tr>
@@ -2004,7 +2125,7 @@ not a “real” profile, but the representation of a bridge or a culvert.</p>
 
 <dl class="function">
 <dt id="src.Hec_ras06.open_hec_hec_ras_and_create_grid">
-<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_hec_hec_ras_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>path_im</em>, <em>save_fig1D</em>, <em>pro_add=1</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_hec_hec_ras_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_hec_hec_ras_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>path_im</em>, <em>save_fig1d</em>, <em>pro_add=1</em>, <em>q=[]</em>, <em>print_cmd=False</em>, <em>fig_opt=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_hec_hec_ras_and_create_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function open the hec_ras data and creates the 2D grid from the 1.5 data. It is called by the class HEC_RAS1D
 in a second thread to not freeze the GUI.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2023,9 +2144,11 @@ the ouput data (see open_hec_ras() for more precision) -&gt; list of string</li>
 <li><strong>pathfile</strong> &#8211; the absolute path to the file chosen into namefile</li>
 <li><strong>interpo_choice</strong> &#8211; the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.</li>
 <li><strong>path_im</strong> &#8211; the path to where to save the image</li>
-<li><strong>save_fig1D</strong> &#8211; create and save the figure related to the loading of the data (profile and so on)</li>
+<li><strong>save_fig1d</strong> &#8211; create and save the figure related to the loading of the data (profile and so on)</li>
 <li><strong>pro_add</strong> &#8211; the number of addictional profile (one used for interpolation_choice 1 and 2)</li>
 <li><strong>q</strong> &#8211; used in the second thread</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
+<li><strong>fig_opt</strong> &#8211; the options to crete the figure if save_fig1d is True</li>
 </ul>
 </td>
 </tr>
@@ -2039,7 +2162,7 @@ If it is called by the cmd, we want the print function to be sent to the command
 
 <dl class="function">
 <dt id="src.Hec_ras06.open_hecras">
-<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_hecras</code><span class="sig-paren">(</span><em>geo_file</em>, <em>res_file</em>, <em>path_geo</em>, <em>path_res</em>, <em>path_im</em>, <em>save_fig=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_hecras" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.Hec_ras06.</code><code class="descname">open_hecras</code><span class="sig-paren">(</span><em>geo_file</em>, <em>res_file</em>, <em>path_geo</em>, <em>path_res</em>, <em>path_im</em>, <em>save_fig=False</em>, <em>fig_opt=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.Hec_ras06.open_hecras" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS.
 All arguments from this function are string.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -2053,6 +2176,7 @@ All arguments from this function are string.</p>
 <li><strong>path_geo</strong> &#8211; path to the geo file</li>
 <li><strong>path_im</strong> &#8211; the path to the folder where the images should be saved</li>
 <li><strong>save_fig</strong> &#8211; if True image is saved</li>
+<li><strong>fig_opt</strong> &#8211; the figure option is save_fig is True</li>
 </ul>
 </td>
 </tr>
@@ -2419,7 +2543,7 @@ manage_grid_8.</p>
 
 <dl class="function">
 <dt id="src.hec_ras2D.load_hec_ras_2d_and_cut_grid">
-<code class="descclassname">src.hec_ras2D.</code><code class="descname">load_hec_ras_2d_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>filename</em>, <em>path</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.load_hec_ras_2d_and_cut_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.hec_ras2D.</code><code class="descname">load_hec_ras_2d_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>filename</em>, <em>path</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.hec_ras2D.load_hec_ras_2d_and_cut_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
 pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
 get only the wetted area. This was done before in the HEC_RAS2D Class in hydro_gui_2.py, but it was necessary to
@@ -2438,6 +2562,7 @@ create a separate function to called this task in a second thread to avoid freez
 <li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
 <li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
 <li><strong>q</strong> &#8211; used by the second thread to get the error back to the GUI at the end of the thread</li>
+<li><strong>print_cmd</strong> &#8211; If True will print the error and warning to the cmd. If False, send it to the GUI.</li>
 </ul>
 </td>
 </tr>
@@ -2564,7 +2689,7 @@ reach to define the geometry of the junction.</p>
 
 <dl class="function">
 <dt id="src.mascaret.figure_mascaret">
-<code class="descclassname">src.mascaret.</code><code class="descname">figure_mascaret</code><span class="sig-paren">(</span><em>coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.figure_mascaret" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.mascaret.</code><code class="descname">figure_mascaret</code><span class="sig-paren">(</span><em>coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig_opt, name_pro, name_reach, path_im, pro, plot_timestep=[-1], reach_plot=[0]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.figure_mascaret" title="Permalink to this definition">¶</a></dt>
 <dd><p>The function to plot the figures related to mascaret.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -2577,6 +2702,7 @@ reach to define the geometry of the junction.</p>
 <li><strong>name_reach</strong> &#8211; the name of the reach</li>
 <li><strong>on_profile</strong> &#8211; which result are on the profile. Some output are not the profiles.</li>
 <li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach (careful this is the number of profile, not the number of output)</li>
+<li><strong>fig_opt</strong> &#8211; the figure option</li>
 <li><strong>xhzv_data</strong> &#8211; the height and velcoity (x,h,v) list by time step</li>
 <li><strong>profile</strong> (<em>pro</em>) &#8211; which profile to be plotted (list of int)</li>
 <li><strong>plot_timestep</strong> &#8211; which timestep to be plotted</li>
@@ -2735,7 +2861,7 @@ on the profile and the number of profile by reach.</p>
 
 <dl class="function">
 <dt id="src.mascaret.load_mascaret_and_create_grid">
-<code class="descclassname">src.mascaret.</code><code class="descname">load_mascaret_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>manning_data</em>, <em>nb_point_vel</em>, <em>show_fig_1D</em>, <em>pro_add</em>, <em>q=[]</em>, <em>path_im='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.load_mascaret_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.mascaret.</code><code class="descname">load_mascaret_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>manning_data</em>, <em>nb_point_vel</em>, <em>show_fig_1D</em>, <em>pro_add</em>, <em>q=[]</em>, <em>path_im='.'</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mascaret.load_mascaret_and_create_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to load the mascaret data by calling the load_mascaret() function and to create the grid
 by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
 Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.</p>
@@ -2753,9 +2879,14 @@ the form of the name)</li>
 <li><strong>namefile</strong> &#8211; the name of the geo file and the data file, which contains respectively geographical data and
 the ouput data (see open_hec_ras() for more precision) -&gt; list of string</li>
 <li><strong>pathfile</strong> &#8211; the absolute path to the file chosen into namefile -&gt; list of string</li>
+<li><strong>interpo_choice</strong> &#8211; the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.</li>
+<li><strong>manning_data</strong> &#8211; Contains the manning data. It can be in an array form (variable) or as a float (constant)</li>
+<li><strong>nb_point_vel</strong> &#8211; the number of velcoity point by whole profile</li>
 <li><strong>show_fig_1D</strong> &#8211; A boolean. If True, image from the 1D data are created and savec</li>
 <li><strong>q</strong> &#8211; used by the second thread.</li>
+<li><strong>pro_add</strong> &#8211; the number of addictional profile (one used for interpolation_choice 1 and 2)</li>
 <li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
 </ul>
 </td>
 </tr>
@@ -2973,7 +3104,7 @@ and the velocity (one data by column, row are node)</li>
 
 <dl class="function">
 <dt id="src.river2d.load_river2d_and_cut_grid">
-<code class="descclassname">src.river2d.</code><code class="descname">load_river2d_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>namefiles</em>, <em>paths</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.load_river2d_and_cut_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.river2d.</code><code class="descname">load_river2d_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>namefiles</em>, <em>paths</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.river2d.load_river2d_and_cut_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
 River2D() in hydro_GUI_2. This function was added as it was practical to have a second thread to avoid freezing
 the GUI.</p>
@@ -2991,6 +3122,7 @@ the GUI.</p>
 <li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
 <li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
 <li><strong>q</strong> &#8211; used to send the error back from the second thread (can be used to send other variable too)</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
 </ul>
 </td>
 </tr>
@@ -3060,7 +3192,7 @@ the 2D grid. So this function correct duplicates along the profile.</p>
 
 <dl class="function">
 <dt id="src.rubar.figure_rubar1d">
-<code class="descclassname">src.rubar.</code><code class="descname">figure_rubar1d</code><span class="sig-paren">(</span><em>coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, plot_timestep, nb_pro_reach=[0, 10000000000]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.figure_rubar1d" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.rubar.</code><code class="descname">figure_rubar1d</code><span class="sig-paren">(</span><em>coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, plot_timestep, nb_pro_reach=[0, 10000000000], fig_opt={}</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.figure_rubar1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>The function to plot the loaded RUBAR 1D data (Rubar BE).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3076,6 +3208,7 @@ the 2D grid. So this function correct duplicates along the profile.</p>
 <li><strong>pro</strong> &#8211; the profile number which should be plotted</li>
 <li><strong>plot_timestep</strong> &#8211; which timestep should be plotted</li>
 <li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach</li>
+<li><strong>fig_opt</strong> &#8211; the dictionnary with the figure option</li>
 </ul>
 </td>
 </tr>
@@ -3251,7 +3384,7 @@ to use the .dat file. In fact, it is advised to use the dat file when possible a
 
 <dl class="function">
 <dt id="src.rubar.load_rubar1d">
-<code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d</code><span class="sig-paren">(</span><em>geofile</em>, <em>data_vh</em>, <em>pathgeo</em>, <em>pathdata</em>, <em>path_im</em>, <em>savefig</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d</code><span class="sig-paren">(</span><em>geofile</em>, <em>data_vh</em>, <em>pathgeo</em>, <em>pathdata</em>, <em>path_im</em>, <em>savefig</em>, <em>fig_opt=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d" title="Permalink to this definition">¶</a></dt>
 <dd><p>the function to load the RUBAR BE data (in 1D).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3264,6 +3397,7 @@ to use the .dat file. In fact, it is advised to use the dat file when possible a
 <li><strong>pathdata</strong> &#8211; the path to the data_vh file</li>
 <li><strong>path_im</strong> &#8211; the file where to save the image</li>
 <li><strong>savefig</strong> &#8211; a boolean. If True create and save the figure.</li>
+<li><strong>fig_opt</strong> &#8211; A dictionarry with the figure option</li>
 </ul>
 </td>
 </tr>
@@ -3278,7 +3412,7 @@ and v the velocity</p>
 
 <dl class="function">
 <dt id="src.rubar.load_rubar1d_and_create_grid">
-<code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>manning_data</em>, <em>nb_point_vel</em>, <em>show_fig_1D</em>, <em>pro_add</em>, <em>q=[]</em>, <em>path_im='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>manning_data</em>, <em>nb_point_vel</em>, <em>show_fig_1D</em>, <em>pro_add</em>, <em>q=[]</em>, <em>path_im='.'</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d_and_create_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
 by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
 Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.</p>
@@ -3289,16 +3423,20 @@ Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vi
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>name_hdf5</strong> &#8211; the name of the hdf5 to be created (string)</li>
 <li><strong>path_hdf5</strong> &#8211; the path to the hdf5 to be created (string)</li>
-<li><strong>model_type</strong> &#8211; the name of the model (rubar in most case, but given as argument in case we change
-the form of the name)</li>
 <li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
 <li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>model_type</strong> &#8211; the name of the model (rubar in most case, but given as argument in case we change
+the form of the name)</li>
 <li><strong>namefile</strong> &#8211; the name of the geo file and the data file, which contains respectively geographical data and
 the ouput data (see open_hec_ras() for more precision) -&gt; list of string</li>
 <li><strong>pathfile</strong> &#8211; the absolute path to the file chosen into namefile -&gt; list of string</li>
+<li><strong>interpo_choice</strong> &#8211; the interpolation type (int: 0,1,2 or 3). See grid_and_interpo() for mroe details.</li>
+<li><strong>manning_data</strong> &#8211; Contains the manning data. It can be in an array form (variable) or as a float (constant)</li>
+<li><strong>nb_point_vel</strong> &#8211; the number of velcoity point by whole profile</li>
 <li><strong>show_fig_1D</strong> &#8211; A boolean. If True, image from the 1D data are created and savec</li>
 <li><strong>q</strong> &#8211; used by the second thread.</li>
 <li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
 </ul>
 </td>
 </tr>
@@ -3338,7 +3476,7 @@ the coordinates of the center of the cells and the connectivity table.</p>
 
 <dl class="function">
 <dt id="src.rubar.load_rubar2d_and_create_grid">
-<code class="descclassname">src.rubar.</code><code class="descname">load_rubar2d_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>geofile</em>, <em>tpsfile</em>, <em>pathgeo</em>, <em>pathtps</em>, <em>path_im</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar2d_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.rubar.</code><code class="descname">load_rubar2d_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>geofile</em>, <em>tpsfile</em>, <em>pathgeo</em>, <em>pathtps</em>, <em>path_im</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar2d_and_create_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
 interpolation and to save the whole in an hdf5 format</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3358,6 +3496,7 @@ interpolation and to save the whole in an hdf5 format</p>
 <li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
 <li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
 <li><strong>q</strong> &#8211; used by the second thread to get the error back to the GUI at the end of the thread</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
 </ul>
 </td>
 </tr>
@@ -3538,7 +3677,7 @@ Adapted from the original script &#8216;parserSELAFIN.py&#8217; from the open Te
 
 <dl class="function">
 <dt id="src.selafin_habby1.load_telemac_and_cut_grid">
-<code class="descclassname">src.selafin_habby1.</code><code class="descname">load_telemac_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>namefilet</em>, <em>pathfilet</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.load_telemac_and_cut_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.selafin_habby1.</code><code class="descname">load_telemac_and_cut_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>namefilet</em>, <em>pathfilet</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>q=[]</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.selafin_habby1.load_telemac_and_cut_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
 was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
 is useful to avoid freezing the GUI.</p>
@@ -3556,6 +3695,7 @@ is useful to avoid freezing the GUI.</p>
 <li><strong>nb_dim</strong> &#8211; the number of dimension (model, 1D, 1,5D, 2D) in a float</li>
 <li><strong>path_hdf5</strong> &#8211; A string which gives the adress to the folder in which to save the hdf5</li>
 <li><strong>q</strong> &#8211; used by the second thread to get the error back to the GUI at the end of the thread</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
 </ul>
 </td>
 </tr>
@@ -3589,21 +3729,22 @@ It is not used direclty by HABBY.</p>
 <div class="section" id="load-habby-hdf5-file">
 <h2>Load HABBY hdf5 file<a class="headerlink" href="#load-habby-hdf5-file" title="Permalink to this headline">¶</a></h2>
 <p>in src/load_hdf5.py</p>
-<p>This module contains some functions to load and manage hdf5 input/outputs. This is still in progress.</p>
+<p>This module contains some functions to load and manage hdf5 input/outputs.</p>
 <span class="target" id="module-src.load_hdf5"></span><dl class="function">
-<dt id="src.load_hdf5.add_sub_to_merge_hdf5">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">add_sub_to_merge_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>substrate</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.add_sub_to_merge_hdf5" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function open an existing hydrological hdf5 and add the substrate data to it. Obviously, this only makes sense
-if the grid was merged before so that the subtrate grid and hydrological grid are coherent. If this function is
-directly called on an hydrological hdf5 before calling substrate.merge_grid_hydro_sub(), it will not work!</p>
+<dt id="src.load_hdf5.copy_files">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">copy_files</code><span class="sig-paren">(</span><em>names</em>, <em>paths</em>, <em>path_input</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.copy_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function copied the input files to the project file. The input files are usually contains in the input
+project file. It is ususally done on a second thread as it might be long.</p>
+<p>For the moment this function cannot send warning and error to the GUI. As input shoudl have been cheked before
+by HABBY, this should not be a problem.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name_hdf5</strong> &#8211; the name of the hdf5 (string)</li>
-<li><strong>path_hdf5</strong> &#8211; the path to this hdf5 (path)</li>
-<li><strong>substrate</strong> &#8211; the substrate data (one data by point0</li>
+<li><strong>names</strong> &#8211; the name of the files to be copied (list of string)</li>
+<li><strong>paths</strong> &#8211; the path to these files (list of string)</li>
+<li><strong>path_input</strong> &#8211; the path where to send the input (string)</li>
 </ul>
 </td>
 </tr>
@@ -3659,7 +3800,7 @@ project folder. Hencem, it is not the absolute path.</p>
 
 <dl class="function">
 <dt id="src.load_hdf5.load_hdf5_hyd">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_hyd</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_hyd" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_hyd</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>path_hdf5=''</em>, <em>merge=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_hyd" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5_name_sub
 is an absolute path, the path_prj is not used. If it is a relative path, the path is composed of the path to the
 project (path_prj) composed with hdf5_name_sub.</p>
@@ -3668,8 +3809,9 @@ project (path_prj) composed with hdf5_name_sub.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>hdf5_name_hyd</strong> &#8211; path and filename of the hdf5 file (string)</li>
-<li><strong>path_prj</strong> &#8211; the path to the project</li>
+<li><strong>hdf5_name_hyd</strong> &#8211; filename of the hdf5 file (string)</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 file</li>
+<li><strong>merge</strong> &#8211; If merge is True. this is a merged file with substrate data added</li>
 </ul>
 </td>
 </tr>
@@ -3682,17 +3824,18 @@ project (path_prj) composed with hdf5_name_sub.</p>
 
 <dl class="function">
 <dt id="src.load_hdf5.load_hdf5_sub">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_sub</code><span class="sig-paren">(</span><em>hdf5_name_sub</em>, <em>path_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_sub" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_sub</code><span class="sig-paren">(</span><em>hdf5_name_sub</em>, <em>path_hdf5</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the substrate data contained in the hdf5 file. It also manage
 the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
-the path is composed of the path to the project (path_prj) composed with hdf5_name_sub.</p>
+the path is composed of the path to the &#8216;hdf5&#8217; folder (path_prj/fichier_hdf5) composed with hdf5_name_sub. it manages constant and
+vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>hdf5_name_sub</strong> &#8211; path and file name to the hdf5 file (string)</li>
-<li><strong>path_prj</strong> &#8211; the path to the project</li>
+<li><strong>path_prj</strong> &#8211; the path to the hdf5 file</li>
 </ul>
 </td>
 </tr>
@@ -3710,7 +3853,7 @@ files.
 
 <dl class="function">
 <dt id="src.load_hdf5.save_hdf5">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em>, <em>merge=False</em>, <em>sub_data_all_t=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em>, <em>merge=False</em>, <em>sub_pg_all_t=[]</em>, <em>sub_dom_all_t=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function save the hydrological data in the hdf5 format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -3733,7 +3876,8 @@ files.
 <li><strong>vh_pro</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (velcoity and height data)</li>
 <li><strong>nb_pro_reach</strong> &#8211; data linked with 1.5D model or data created by dist_vist from a 1D model (nb profile)</li>
 <li><strong>merge</strong> &#8211; If True, the data is coming from the merging of substrate and hydrological data.</li>
-<li><strong>sub_data_all_t</strong> &#8211; the data of the substrate given on the merged grid by cell. Only used if merge is True.</li>
+<li><strong>sub_pg_all_t</strong> &#8211; the data of the coarser substrate given on the merged grid by cell. Only used if merge is True.</li>
+<li><strong>sub_dom_all_t</strong> &#8211; the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.</li>
 </ul>
 </td>
 </tr>
@@ -3766,7 +3910,36 @@ This is used for example, to save data by profile as we can have profile with mo
 in the hdf5 attribute some important info such as the project name, path to the project, hdf5 version.
 This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
 hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.</p>
-<p>Hdf5 file do not support unicode. It is necessary to encode string to write them in ascii.</p>
+<p>Hdf5 file do not support unicode. It is necessary to encode string to write them.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.load_hdf5.save_hdf5_sub">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5_sub</code><span class="sig-paren">(</span><em>path_hdf5</em>, <em>path_prj</em>, <em>name_prj</em>, <em>sub_pg</em>, <em>sub_dom</em>, <em>ikle_sub=[]</em>, <em>coord_p=[]</em>, <em>name_hdf5=''</em>, <em>constsub=False</em>, <em>model_type='SUBSTRATE'</em>, <em>return_name=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5_sub" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates an hdf5 with the substrate data. This hdf5 does not have the same form than the hdf5 file used
+to store hydrological or merge data. This hdf5 store the substrate data alone before it is merged with the
+hydrological info. The substrate info should be given in the cemagref code.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_hdf5</strong> &#8211; the path where the hdf5 file should be saved</li>
+<li><strong>path_prj</strong> &#8211; the project path</li>
+<li><strong>name_prj</strong> &#8211; the name of the project</li>
+<li><strong>sub_pg</strong> &#8211; the coarser part of the substrate (array with length of ikle if const_sub is False, a float otherwise)</li>
+<li><strong>sub_dom</strong> &#8211; the dominant part of the substrate (array with length of ikle if const_sub is False, a float otherwise)</li>
+<li><strong>ikle_sub</strong> &#8211; the connectivity table for the substrate (only if constsub = False)</li>
+<li><strong>coord_p</strong> &#8211; the point of the grid of the substrate (only if constsub = False)</li>
+<li><strong>name_hdf5</strong> &#8211; the name of the substrate h5 file (without the timestamp). If not given, a default name is used.</li>
+<li><strong>constsub</strong> &#8211; If True the substrate is a constant value</li>
+<li><strong>model_type</strong> &#8211; the attribute for the xml file (usually SUBSTRATE)</li>
+<li><strong>return_name</strong> &#8211; If True this function return the name of the substrate hdf5 name</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <div class="section" id="form-of-the-hdf5-files">
@@ -4570,7 +4743,7 @@ the limits of the reaches used by triangle, the overlap between two reaches, and
 
 <dl class="function">
 <dt id="src.manage_grid_8.plot_grid_simple">
-<code class="descclassname">src.manage_grid_8.</code><code class="descname">plot_grid_simple</code><span class="sig-paren">(</span><em>point_all_reach</em>, <em>ikle_all</em>, <em>inter_vel_all=[]</em>, <em>inter_h_all=[]</em>, <em>path_im=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.plot_grid_simple" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">plot_grid_simple</code><span class="sig-paren">(</span><em>point_all_reach</em>, <em>ikle_all</em>, <em>fig_opt</em>, <em>inter_vel_all=[]</em>, <em>inter_h_all=[]</em>, <em>path_im=[]</em>, <em>merge_case=False</em>, <em>time_step=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.plot_grid_simple" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the function to plot grid output for one time step. The data is one the node. A more complicated function
 exists to plot the grid and additional information (manage-grid_8.plot_grid()) in case there are needed to debug.
 The present function only plot the grid and output without more information.</p>
@@ -4578,13 +4751,18 @@ The present function only plot the grid and output without more information.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>point_all_reach</strong> &#8211; the coordinate of the point. This is given by reaches.</li>
 <li><strong>ikle_all</strong> &#8211; the connectivity table. This is given by reaches.</li>
 <li><strong>inter_vel_all</strong> &#8211; the velcoity data. This is given by reaches.</li>
 <li><strong>inter_h_all</strong> &#8211; the height data. This is given by reaches.</li>
 <li><strong>path_im</strong> &#8211; the path where the figure should be saved</li>
+<li><strong>merge_case</strong> &#8211; If True, we plot data from grid with merged substrate and hydrological data</li>
+<li><strong>time_step</strong> &#8211; time step to be added to the title</li>
 </ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Param:</th><td class="field-body"><p class="first last">fig_opt: the dictionary with the different options to create the figures</p>
 </td>
 </tr>
 </tbody>
@@ -4625,7 +4803,7 @@ create_grid_one_profile, but only if vh_pro_t exists.</p>
 the pdf document <a class="reference download internal" href="_downloads/estimhab2008.pdf" download=""><code class="xref download docutils literal"><span class="pre">estimhab2008</span></code></a></p>
 <span class="target" id="module-src.estimhab"></span><dl class="function">
 <dt id="src.estimhab.estimhab">
-<code class="descclassname">src.estimhab.</code><code class="descname">estimhab</code><span class="sig-paren">(</span><em>qmes</em>, <em>width</em>, <em>height</em>, <em>q50</em>, <em>qrange</em>, <em>substrat</em>, <em>path_bio</em>, <em>fish_name</em>, <em>path_im</em>, <em>pict=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.estimhab" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.estimhab.</code><code class="descname">estimhab</code><span class="sig-paren">(</span><em>qmes</em>, <em>width</em>, <em>height</em>, <em>q50</em>, <em>qrange</em>, <em>substrat</em>, <em>path_bio</em>, <em>fish_name</em>, <em>path_im</em>, <em>pict=False</em>, <em>fig_opt={}</em><span class="sig-paren">)</span><a class="headerlink" href="#src.estimhab.estimhab" title="Permalink to this definition">¶</a></dt>
 <dd><p>This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
 forms the original Estimhab model.. Unit in meter amd m^3/sec</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4639,10 +4817,11 @@ forms the original Estimhab model.. Unit in meter amd m^3/sec</p>
 <li><strong>q50</strong> &#8211; the natural median discharge</li>
 <li><strong>qrange</strong> &#8211; the range of discharge</li>
 <li><strong>substrat</strong> &#8211; mean height of substrat</li>
-<li><strong>pict</strong> &#8211; if true the figure is shown. If false, the figure is not shown</li>
 <li><strong>path_im</strong> &#8211; the path where the image should be saved</li>
 <li><strong>path_bio</strong> &#8211; the path to the xml file with the information on the fishes</li>
 <li><strong>fish_name</strong> &#8211; the name of the fish which have to be analyzed</li>
+<li><strong>pict</strong> &#8211; if true the figure is shown. If false, the figure is not shown</li>
+<li><strong>fig_opt</strong> &#8211; a dictionnary with the figure option</li>
 </ul>
 </td>
 </tr>
@@ -4755,6 +4934,33 @@ sh is the parameter of the distribution, gives the relative importance of ganuss
 </dd></dl>
 
 <dl class="method">
+<dt id="src.stathab_c.Stathab.dist_h_trop">
+<code class="descname">dist_h_trop</code><span class="sig-paren">(</span><em>v</em>, <em>h</em>, <em>mean_slope</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dist_h_trop" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calulate the height distribution for steep tropical stream based on the R code from
+Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
+is given in the list of numbers in the codes below. The final frequency distribution is in the form:
+t xf1 + (1-t) x f where t is a function of the froude number and the mean slope of the station.</p>
+<p>The height limits are considered constant here (constrarily to dist_h where they are given in the parameter
+bornh).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>v</strong> &#8211; the velcoity for this discharge</li>
+<li><strong>h</strong> &#8211; the height for this discharge</li>
+<li><strong>mean_slope</strong> &#8211; the mean slope of the station (usally in the data_ii[0] variable)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the distribution of height</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="src.stathab_c.Stathab.dist_v">
 <code class="descname">dist_v</code><span class="sig-paren">(</span><em>h</em>, <em>d</em>, <em>bornv</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dist_v" title="Permalink to this definition">¶</a></dt>
 <dd><p>The calculation of velocity distribution across the river
@@ -4776,6 +4982,40 @@ The distribution is a mix of an exponential and guassian.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.dist_v_trop">
+<code class="descname">dist_v_trop</code><span class="sig-paren">(</span><em>v</em>, <em>h</em>, <em>h_waterfall</em>, <em>length_stat</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.dist_v_trop" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calulate the velocity distribution for steep tropical stream based on the R code from
+Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
+is given in the list of numbers in the codes below. The final frequency distribution is in the form:
+t x f1 + (1-t) x f where t depends on the ratio of the length of station and the height of the waterfall.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>v</strong> &#8211; the velcoity for this discharge</li>
+<li><strong>h</strong> &#8211; the height for this discharge</li>
+<li><strong>h_waterfall</strong> &#8211; the height of the waterfall</li>
+<li><strong>length_stat</strong> &#8211; the length of the station</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the distribution of velocity</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.find_path_hdf5_stat">
+<code class="descname">find_path_hdf5_stat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.find_path_hdf5_stat" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py
+and in estimhab_GUI. By default,
+path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4827,6 +5067,10 @@ This function aims at reproducing the results from the c++ code. Hence, no use o
 <code class="descname">load_stathab_from_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.load_stathab_from_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the file from an hdf5 whose name is given in the xml project file. If the name of the
 file is a relative path, use the path_prj to create an absolute path.</p>
+<p>It works for tropical and temperate rivers. It checks the river type in the hdf5  files and
+used this river type regardless of the one curently used by the GUI. The method load_hdf5 in stathab_GUI
+get the value of self.riverint from the object mystathab to check the cohrenence between the GUI and the loaded
+hdf5.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4841,8 +5085,8 @@ If self.fish_chosen is not present, all fish in the preference file are read.</p
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>reachname_file</strong> &#8211; the file with the name of the reaches to study (usually listirv.txt)</li>
-<li><strong>end_file_reach</strong> &#8211; the ending of the files whose names depends on the reach</li>
+<li><strong>reachname_file</strong> &#8211; the file with the name of the reaches to study (usually listirv)</li>
+<li><strong>end_file_reach</strong> &#8211; the ending of the files whose names depends on the reach (with .txt or .csv)</li>
 <li><strong>name_file_allreach</strong> &#8211; the name of the file common to all reaches</li>
 <li><strong>path</strong> &#8211; the path to the file</li>
 </ul>
@@ -4873,9 +5117,25 @@ ln(h0 = a1 + a2 ln(Q)</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src.stathab_c.Stathab.save_xml_stathab">
+<code class="descname">save_xml_stathab</code><span class="sig-paren">(</span><em>no_hdf5=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.save_xml_stathab" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function which saves the function related to stathab in the xml projexct files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>no_hdf5</strong> &#8211; If True, no hdf5 file was created (usually because Stathab crashed at some points)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="src.stathab_c.Stathab.savefig_stahab">
-<code class="descname">savefig_stahab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.savefig_stahab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to save the results in text and the figure.</p>
+<code class="descname">savefig_stahab</code><span class="sig-paren">(</span><em>show_class=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.savefig_stahab" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to save the results in text and the figure. If the argument show_class is True,
+it shows an extra figure with the size of the different height, granulo, and velocity classes. The optional
+figure only works when stathab1 for temperate river is used.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4906,15 +5166,90 @@ ln(h0 = a1 + a2 ln(Q)</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src.stathab_c.Stathab.stathab_trop_biv">
+<code class="descname">stathab_trop_biv</code><span class="sig-paren">(</span><em>path_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.stathab_trop_biv" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculate the stathab outputs  for the bivariate preference file in the case where the river is
+steep and in the tropical regions (usually the islands of Reunion and Guadeloupe).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_bio</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.stathab_trop_univ">
+<code class="descname">stathab_trop_univ</code><span class="sig-paren">(</span><em>path_bio</em>, <em>by_vol</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.stathab_trop_univ" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculate the stathab outputs  for the univariate preference file in the case where the river is
+steep and in the tropical regions (usually the islands of Reunion and Guadeloupe).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path_bio</strong> &#8211; the path to the preference file usually biology/stathab</li>
+<li><strong>by_vol</strong> &#8211; If True the output is by volum (VPU instead of SPU) from the velcoity pref file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the SPU or VPU</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="src.stathab_c.Stathab.test_stathab">
 <code class="descname">test_stathab</code><span class="sig-paren">(</span><em>path_ori</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.test_stathab" title="Permalink to this definition">¶</a></dt>
-<dd><p>A short function to test part of the outputs against the C++ code,
+<dd><p>A short function to test part of the outputs of stathab in temperate rivers against the C++ code,
 It is not used in Habby but it is practical to debug.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_ori</strong> &#8211; the path to the files from stathab based on the c++ code</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.test_stathab_trop_biv">
+<code class="descname">test_stathab_trop_biv</code><span class="sig-paren">(</span><em>path_ori</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.test_stathab_trop_biv" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short function to test part of the outputs of the stathab tropical rivers against the R code
+in the bivariate mode. It is not used in Habby but it is practical to debug. Stathab_trop+biv should be
+executed before. For the moment only the fish SIC is tested.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_ori</strong> &#8211; the path to the output files from stathab based on the R code</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="src.stathab_c.Stathab.test_stathab_trop_uni">
+<code class="descname">test_stathab_trop_uni</code><span class="sig-paren">(</span><em>path_ori</em>, <em>by_vel=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.test_stathab_trop_uni" title="Permalink to this definition">¶</a></dt>
+<dd><p>A short function to test part of the outputs of the stathab tropical rivers against the R code
+in the univariate mode. It is not used in Habby but it is practical to debug. Stathab_trop_uni should be
+executed before. For the moment only the fish SIC is tested.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_ori</strong> &#8211; the path to the output files from stathab based on the R code</li>
+<li><strong>by_vel</strong> &#8211; If True, the velcoity-based vpu is used. Otherise, it is height-based spu</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
@@ -4945,17 +5280,17 @@ It is not used in Habby but it is practical to debug.</p>
 
 <dl class="function">
 <dt id="src.stathab_c.load_namereach">
-<code class="descclassname">src.stathab_c.</code><code class="descname">load_namereach</code><span class="sig-paren">(</span><em>path</em>, <em>name_file_reach='listriv.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_namereach" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to only load the reach names (useful for the GUI)</p>
-<p>:param path : the path to the file listriv.txt
-:param name_file_reach: In case the file name is not listriv.txt
+<code class="descclassname">src.stathab_c.</code><code class="descname">load_namereach</code><span class="sig-paren">(</span><em>path</em>, <em>name_file_reach='listriv'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_namereach" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to only load the reach names (useful for the GUI). The extension must be .txt or .csv</p>
+<p>:param path : the path to the file listriv.txt or listriv.csv
+:param name_file_reach: In case the file name is not listriv
 :return: the list of reach name</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="src.stathab_c.load_pref">
 <code class="descclassname">src.stathab_c.</code><code class="descname">load_pref</code><span class="sig-paren">(</span><em>filepref</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_pref" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function loads the different pref coeffficient contained in filepref</p>
+<dd><p>The function loads the different pref coeffficient contained in filepref, for the temperate river from Stathab</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -4967,6 +5302,53 @@ It is not used in Habby but it is practical to debug.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the name of the fish, a np.array with the differen coeff</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.stathab_c.load_pref_trop_biv">
+<code class="descclassname">src.stathab_c.</code><code class="descname">load_pref_trop_biv</code><span class="sig-paren">(</span><em>code_fish</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_pref_trop_biv" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the bivariate preference files for tropical rivers. The name of the file must be in the form
+of xbiv_XXX.csv where XXX is the three-letters fish code and x is whatever string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>code_fish</strong> &#8211; the code for the fish name in three letters (such as ASC)</li>
+<li><strong>path</strong> &#8211; the path to files</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the bivariate preferences</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.stathab_c.load_pref_trop_uni">
+<code class="descclassname">src.stathab_c.</code><code class="descname">load_pref_trop_uni</code><span class="sig-paren">(</span><em>code_fish</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.load_pref_trop_uni" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the preference files for the univariate data. The file with the univariate data should be in the
+form of xuni-h_XXX where XX is the fish code and x is whatever string. The assumption is that the filename for
+velocity is very similar to the filename for height. In more detail that the string uni-h is changed to uni-v in
+the filename. Otherwise, the file are csv file with two columns: First is velocity or height,
+the second is the preference data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>code_fish</strong> &#8211; the code for the fish name in three letters (such as ASC)</li>
+<li><strong>path</strong> &#8211; the path to files</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the height data and velcoity data (h, pref) and (v,pref)</p>
 </td>
 </tr>
 </tbody>
@@ -5010,7 +5392,7 @@ of k*exp() + (1-k)* Sigma(x-m)</p>
 
 <dl class="function">
 <dt id="src.fstress.figure_fstress">
-<code class="descclassname">src.fstress.</code><code class="descname">figure_fstress</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_im</em>, <em>name_river</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.figure_fstress" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.fstress.</code><code class="descname">figure_fstress</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_im</em>, <em>name_river</em>, <em>fig_opt={}</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.figure_fstress" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates the figures for Fstress, notably the suitability index as a function of discharge for all
 rivers</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -5023,6 +5405,7 @@ rivers</p>
 <li><strong>name_inv</strong> &#8211; The four letter code of each selected invetebrate</li>
 <li><strong>path_im</strong> &#8211; the path where to save the figure</li>
 <li><strong>name_river</strong> &#8211; the name of the river</li>
+<li><strong>fig_opt</strong> &#8211; the figure option in a dictionnary</li>
 </ul>
 </td>
 </tr>
@@ -5127,7 +5510,7 @@ This function is mainly a copy of stress function contains in the vitess2.c of t
 <code class="descclassname">src.fstress.</code><code class="descname">run_fstress</code><span class="sig-paren">(</span><em>data_hydro</em>, <em>qrange</em>, <em>riv_name</em>, <em>inv_select</em>, <em>pref_all</em>, <em>name_all</em>, <em>name_prj</em>, <em>path_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.run_fstress" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function run the model FStress for HABBY. FStress is based on the model of Nicolas Lamouroux. This model
 estimates suitability indices for invertebrate in relation with shear stress distributions. However, shear stress
-do not needs to be measured. There are statistically estimated based on velocity and height measurement.</p>
+do not needs to be measured. It is statistically estimated based on velocity and height measurement.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5150,7 +5533,7 @@ do not needs to be measured. There are statistically estimated based on velocity
 
 <dl class="function">
 <dt id="src.fstress.save_fstress">
-<code class="descclassname">src.fstress.</code><code class="descname">save_fstress</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em>, <em>name_bio</em>, <em>path_bio</em>, <em>riv_name</em>, <em>data_hydro</em>, <em>qrange</em>, <em>fish_list</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.save_fstress" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.fstress.</code><code class="descname">save_fstress</code><span class="sig-paren">(</span><em>path_hdf5</em>, <em>path_prj</em>, <em>name_prj</em>, <em>name_bio</em>, <em>path_bio</em>, <em>riv_name</em>, <em>data_hydro</em>, <em>qrange</em>, <em>fish_list</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.save_fstress" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function saves the data related to the fstress model in an hdf5 file and write the name of this hdf5 file
 in the xml project file.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -5158,6 +5541,7 @@ in the xml project file.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_hdf5</strong> &#8211; the path where to sdave the hdf5-&gt; string</li>
 <li><strong>path_prj</strong> &#8211; the path to the project-&gt; string</li>
 <li><strong>name_prj</strong> &#8211; the name of the project-&gt; string</li>
 <li><strong>name_bio</strong> &#8211; the name of the preference file-&gt; string</li>
@@ -5175,8 +5559,8 @@ in the xml project file.</p>
 
 <dl class="function">
 <dt id="src.fstress.write_txt">
-<code class="descclassname">src.fstress.</code><code class="descname">write_txt</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_im</em>, <em>name_river</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.write_txt" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function writes the txt outpus for FStress</p>
+<code class="descclassname">src.fstress.</code><code class="descname">write_txt</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_txt</em>, <em>name_river</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.write_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function writes the txt outputs for FStress</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5185,7 +5569,7 @@ in the xml project file.</p>
 <li><strong>qmod_all</strong> &#8211; the modelled discharge for each river</li>
 <li><strong>vh_all</strong> &#8211; the suitability indoex for each invertebrate species for each river</li>
 <li><strong>name_inv</strong> &#8211; The four letter code of each selected invetebrate</li>
-<li><strong>path_im</strong> &#8211; the path where to save the text file</li>
+<li><strong>path_txt</strong> &#8211; the path where to save the text file</li>
 <li><strong>name_river</strong> &#8211; the name of the river</li>
 </ul>
 </td>
@@ -5198,8 +5582,56 @@ in the xml project file.</p>
 <div class="section" id="substrate">
 <h2>Substrate<a class="headerlink" href="#substrate" title="Permalink to this headline">¶</a></h2>
 <p>in src/substrate.py</p>
-<p>This module contains the function to manage the substrate data. This is still a work in progress.</p>
+<p>This module contains the function to manage the substrate data and to merge the grid with the substrate and hydrological data.</p>
 <span class="target" id="module-src.substrate"></span><dl class="function">
+<dt id="src.substrate.create_dummy_substrate_from_hydro">
+<code class="descclassname">src.substrate.</code><code class="descname">create_dummy_substrate_from_hydro</code><span class="sig-paren">(</span><em>h5name</em>, <em>path</em>, <em>new_name</em>, <em>code_type</em>, <em>attribute_type</em>, <em>nb_point=200</em>, <em>path_out='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.create_dummy_substrate_from_hydro" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes an hydrological hdf5 as inputs and create a shapefile of substrate and a text file of substrate
+which can be used as input for habby. The substrate data is random. So it is mainly useful to test an hydrological
+input.</p>
+<p>The created shape file is rectangular with a size based on min/max of the hydrological coordinates. The substrate
+grid is not the same as the hydrological grids (which is good to test the programm). In addition, one side of the shp
+is smaller than the hydrological grid to test the &#8216;default substrate&#8217; option (which is used if the substrate
+shapefile is not big enough).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>h5name</strong> &#8211; the name of the hydrological hdf5 file</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+<li><strong>new_name</strong> &#8211; the name of the create shape file wihtout the shp (string)</li>
+<li><strong>code_type</strong> &#8211; the code type for the substrate (Sandre, Cemagref or EDF)</li>
+<li><strong>attribute_type</strong> &#8211; if the substrate is given in the type coarser/dominant/..(0) or in percenctage (1)</li>
+<li><strong>nb_point</strong> &#8211; the number of point needed (more points results in smaller substrate form)</li>
+<li><strong>path_out</strong> &#8211; the path where to save the new substrate shape</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.edf_to_cemagref">
+<code class="descclassname">src.substrate.</code><code class="descname">edf_to_cemagref</code><span class="sig-paren">(</span><em>records</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.edf_to_cemagref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function passes the substrate data from the code type &#8216;EDF&#8221; to the code type &#8220;Cemagref&#8221;. As the code 1 from EDF
+can be the code 2 or code 1 in Cemagref, a code 1 in EDF is code 1 in Cemagref half of the time and code 2 the
+other half of the time. This function is not optimized yet. For the definiction of the code, see the tabular at the 14
+of the LAMMI manual. THIS IS NOT RIGHT AS CLASS ARE NOT SPEAREATED IDENTICALLY,  TO BE CORRECTED !!!</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> &#8211; the substrate data in code edf</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the substrate data in code cemagref</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.substrate.fig_merge_grid">
 <code class="descclassname">src.substrate.</code><code class="descname">fig_merge_grid</code><span class="sig-paren">(</span><em>point_all_both_t</em>, <em>ikle_both_t</em>, <em>path_im</em>, <em>ikle_orr=[]</em>, <em>point_all_orr=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_merge_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to plot the grid after it was merged with the substrate data.
@@ -5223,8 +5655,9 @@ It plots one time step at the time.</p>
 
 <dl class="function">
 <dt id="src.substrate.fig_substrate">
-<code class="descclassname">src.substrate.</code><code class="descname">fig_substrate</code><span class="sig-paren">(</span><em>coord_p, ikle, sub_info, path_im, xtxt=[-99], ytxt=[-99], subtxt=[-99]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_substrate" title="Permalink to this definition">¶</a></dt>
-<dd><p>The function to plot the raw substrate data, which was loaded before</p>
+<code class="descclassname">src.substrate.</code><code class="descname">fig_substrate</code><span class="sig-paren">(</span><em>coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt=[-99], ytxt=[-99], subtxt=[-99]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_substrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>The function to plot the substrate data, which was loaded before. This function will only work if the substrate
+data is given using the cemagref code.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5232,7 +5665,9 @@ It plots one time step at the time.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>coord_p</strong> &#8211; the coordinate of the point</li>
 <li><strong>ikle</strong> &#8211; the connectivity table</li>
-<li><strong>sub_info</strong> &#8211; the information on subtrate by element</li>
+<li><strong>sub_pg</strong> &#8211; the information on subtrate by element for the &#8220;coarser part&#8221;</li>
+<li><strong>sub_dom</strong> &#8211; the information on subtrate by element for the &#8220;dominant part&#8221;</li>
+<li><strong>fig_opt</strong> &#8211; the figure option as a doctionnary</li>
 <li><strong>xtxt</strong> &#8211; if the data was given in txt form, the orignal x data</li>
 <li><strong>ytxt</strong> &#8211; if the data was given in txt form, the orignal y data</li>
 <li><strong>subtxt</strong> &#8211; if the data was given in txt form, the orignal sub data</li>
@@ -5291,6 +5726,25 @@ as a function of the distance of the point.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.substrate.get_useful_attribute">
+<code class="descclassname">src.substrate.</code><code class="descname">get_useful_attribute</code><span class="sig-paren">(</span><em>attributes</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.get_useful_attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function find if the substrate was given in percentage or coarser/dominant/accesory and get the attribute
+or header name useful to load the substrate. If the subtrate is given by percentage, it is important to get
+attribute in order (S1, S2, S3) and not (S3, S1,S2) for this function and the next functions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attributes</strong> &#8211; The list of attribute from the shp file or the header list from the text file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The attribute type as int (percentage=1 and coarser/... = 0 and failed = -99) and the attribute names
+If we are in the attribute type 0, attribute list is in the order of: coarser, dominant, and accessory</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.substrate.grid_update_sub2">
 <code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the updated grid with the substrate. More complicated than grid_update3 because it tries to makes
@@ -5319,7 +5773,7 @@ cell of the hydrological grid</li>
 
 <dl class="function">
 <dt id="src.substrate.grid_update_sub3">
-<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub3</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em>, <em>new_data_sub</em>, <em>vel</em>, <em>height</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub3" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub3</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em>, <em>new_data_sub_pg</em>, <em>new_data_sub_dom</em>, <em>vel</em>, <em>height</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub3" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to update the grid after finding the crossing points and finsihed to get the substrate_data.
 We still needs to get the substrate data correclty for complicated geometry</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -5333,7 +5787,10 @@ We still needs to get the substrate data correclty for complicated geometry</p>
 direction (nx,ny) of the substrate line at this point</li>
 <li><strong>coord_sub</strong> &#8211; the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
 cell of the hydrological grid</li>
-<li><strong>new_data_sub</strong> &#8211; the substrate data by hydrological cell (3 information by cells realted to the three poins)</li>
+<li><strong>new_data_sub_pg</strong> &#8211; the coarser substrate data by hydrological cell (3 information by cells realted to
+the three points)</li>
+<li><strong>new_data_sub_dom</strong> &#8211; the dominant substrate data by hydrological cell (3 information by cells realted to
+the three points)</li>
 <li><strong>vel</strong> &#8211; the velocity (one time step, one reach) for each point in coord_p</li>
 <li><strong>height</strong> &#8211; the water height (one time step, one reach) for each point in coord_p</li>
 </ul>
@@ -5350,7 +5807,11 @@ cell of the hydrological grid</li>
 <p>Next there are three cases: a) one one crossing point -&gt; no change b) two crossing points -&gt; done manually c)
 more than two crossing point on the elements -&gt; We call the extrenal module triangle to re-do a small triagulation
 into the element. This last cases covers many possible case, but it is slow. To optimize, we can think about writing
-more individual cases.</p>
+more individual cases. The triangle module has the advtage of covering all cases, including special ones. However,
+nothing indicates the the internal triangulation would follow the side of the substrate cells. We only knowns that
+it will account for the crossing point between hydrological and substrate grid and for the substrate and
+hydrological points. This is sufficient in most cases, but there are cases where the trnagulation will not
+be reflected of the form of the subtrate grids.</p>
 <p>In the trianlge case, we do not have a good management of the substrate data yet. All new elements into in the
 old elements which do not touch one of the orginal trianlgular node are the given the first substrate data type.</p>
 <p>If a substrate cells is totally in the hydrological cells, it is considerated too small to be accounted for and
@@ -5388,7 +5849,7 @@ Also save various info with the intersection (element, direction, etc.)</p>
 
 <dl class="function">
 <dt id="src.substrate.load_sub_shp">
-<code class="descclassname">src.substrate.</code><code class="descname">load_sub_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em>, <em>name_att='SUBSTRATE'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_shp" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.substrate.</code><code class="descname">load_sub_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em>, <em>code_type</em>, <em>dominant_case=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_shp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the substrate in form of shapefile.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -5397,12 +5858,15 @@ Also save various info with the intersection (element, direction, etc.)</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>filename</strong> &#8211; the name of the shapefile</li>
 <li><strong>path</strong> &#8211; the path where the shapefile is</li>
-<li><strong>name_att</strong> &#8211; the name of the substrate column in the attribute table</li>
+<li><strong>code_type</strong> &#8211; the type of code used to define the substrate (string)</li>
+<li><strong>dominant_case</strong> &#8211; an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+if 0, we do not know.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">grid in form of list of coordinate and connectivity table (two list)
-and an array with substrate type</p>
+and an array with substrate type and a boolean which allows to get the case where we have tow dominant case</p>
 </td>
 </tr>
 </tbody>
@@ -5411,9 +5875,10 @@ and an array with substrate type</p>
 
 <dl class="function">
 <dt id="src.substrate.load_sub_txt">
-<code class="descclassname">src.substrate.</code><code class="descname">load_sub_txt</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_txt" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to load the substrate in form of a text file. The text file must have 3 column x,y coordinate and
-substrate info, no header or title. It is transform to a grid using a voronoi transformation</p>
+<code class="descclassname">src.substrate.</code><code class="descname">load_sub_txt</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em>, <em>code_type</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
+xoarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
+transformation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5421,6 +5886,7 @@ substrate info, no header or title. It is transform to a grid using a voronoi tr
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>filename</strong> &#8211; the name of the shapefile</li>
 <li><strong>path</strong> &#8211; the path where the shapefile is</li>
+<li><strong>code_type</strong> &#8211; the type of code used to define the substrate (string)</li>
 </ul>
 </td>
 </tr>
@@ -5439,8 +5905,36 @@ and an array with substrate type and (x,y,sub) of the orginal data</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.substrate.merge_grid_and_save">
+<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_and_save</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>path_hdf5</em>, <em>default_data</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>q=[]</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_and_save" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function call the merging of the grid between the grid from the hydrological data and the substrate data.
+It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
+thread to avoid freezin gthe GUI. This is why we have this extra-function just to call save_hdf5() and
+merge_grid_hydro_sub().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hdf5_name_hyd</strong> &#8211; the name of the hdf5 file with the hydrological data</li>
+<li><strong>hdf5_name_sub</strong> &#8211; the name of the hdf5 with the substrate data</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 data</li>
+<li><strong>default_data</strong> &#8211; The substrate data given in the region of the hydrological grid where no substrate is given</li>
+<li><strong>name_prj</strong> &#8211; the name of the project</li>
+<li><strong>path_prj</strong> &#8211; the path to the project</li>
+<li><strong>model_type</strong> &#8211; the type of the &#8220;model&#8221;. In this case, it is just &#8216;SUBSTRATE&#8217;</li>
+<li><strong>q</strong> &#8211; used to share info with the GUI when this thread have finsihed (print_cmd = False)</li>
+<li><strong>print_cmd</strong> &#8211; If False, print to the GUI (usually False)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.substrate.merge_grid_hydro_sub">
-<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>default_data</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>path_hdf5</em>, <em>default_data</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>After the data for the substrate and the hydrological data are loaded, they are still in different grids.
 This functions will merge both grid together. This is done for all time step and all reaches. If a
 constant substrate is there, the hydrological hdf5 is just copied.</p>
@@ -5450,8 +5944,9 @@ constant substrate is there, the hydrological hdf5 is just copied.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>hdf5_name_hyd</strong> &#8211; the path and name of the hdf5 file with the hydrological data</li>
-<li><strong>hdf5_name_sub</strong> &#8211; the path and the name of the hdf5 with the substrate data</li>
+<li><strong>hdf5_name_hyd</strong> &#8211; the name of the hdf5 file with the hydrological data</li>
+<li><strong>hdf5_name_sub</strong> &#8211; the name of the hdf5 with the substrate data</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 data</li>
 <li><strong>default_data</strong> &#8211; The substrate data given in the region of the hydrological grid where no substrate is given</li>
 <li><strong>path_prj</strong> &#8211; the path to the project</li>
 </ul>
@@ -5487,7 +5982,7 @@ constant substrate is there, the hydrological hdf5 is just copied.</p>
 
 <dl class="function">
 <dt id="src.substrate.point_cross2">
-<code class="descclassname">src.substrate.</code><code class="descname">point_cross2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em>, <em>data_sub</em>, <em>default_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross2" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.substrate.</code><code class="descname">point_cross2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em>, <em>data_sub_pg</em>, <em>data_sub_dom</em>, <em>default_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function which find where the crossing points are. Crossing points are the points on the triangular side of the
 hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
 are in the same polygon using a ray casting method</p>
@@ -5500,7 +5995,8 @@ are in the same polygon using a ray casting method</p>
 <li><strong>coord_p</strong> &#8211; the coordinates of the points of the hydrological grid</li>
 <li><strong>ikle_sub</strong> &#8211; the connecity vity table of the substrate</li>
 <li><strong>coord_p_sub</strong> &#8211; the coordinates of the points of the substrate grid</li>
-<li><strong>data_sub</strong> &#8211; the data of the substrate (one data by cell)</li>
+<li><strong>data_sub_pg</strong> &#8211; the data of the coaser  substrate in cemargef code(one data by cell)</li>
+<li><strong>data_sub_dom</strong> &#8211; the data of the  dominant substratein cemargef code(one data by cell)</li>
 <li><strong>default_sub</strong> &#8211; the default_data</li>
 </ul>
 </td>
@@ -5536,10 +6032,594 @@ hydrological grid which cross with a side of the substrate grid. Easier than poi
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="src.substrate.sandre_to_cemagref">
+<code class="descclassname">src.substrate.</code><code class="descname">sandre_to_cemagref</code><span class="sig-paren">(</span><em>records</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.sandre_to_cemagref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function passes the substrate data from the code type &#8220;Sandre&#8221; to the code type &#8220;Cemagref&#8221;. This function is
+not optimized yet. For the definition of the code, see the tabular at the 14 of the LAMMI manual.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> &#8211; the substrate data in code samdre</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the substrate data in code cemagref</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="biological-info">
+<h2>Biological Info<a class="headerlink" href="#biological-info" title="Permalink to this headline">¶</a></h2>
+<p>in src/bio_info.py</p>
+<p>This module contains the script to show and manage the biological models (preference curves) which are in the biology folder.</p>
+<span class="target" id="module-src.bio_info"></span><dl class="function">
+<dt id="src.bio_info.change_unit">
+<code class="descclassname">src.bio_info.</code><code class="descname">change_unit</code><span class="sig-paren">(</span><em>data</em>, <em>unit</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.change_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function modify the unit of the data to SI unit. Currently it accept the following unit :
+Centimeter, Meter, CentimeterPerSecond, MeterPerSecond, Millimeter, &#8220;Code EVHA 2.0 (GINOT 1998)&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> &#8211; the data which has to be change to SI unti</li>
+<li><strong>unit</strong> &#8211; the unit code</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.create_and_fill_database">
+<code class="descclassname">src.bio_info.</code><code class="descname">create_and_fill_database</code><span class="sig-paren">(</span><em>path_bio</em>, <em>name_database</em>, <em>attribute</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.create_and_fill_database" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function create a new database when Habby starts. The goal of creating a database is to avoid freezing the GUI
+when info on the preference curve are asked. So it is possible to select one curve and have information without
+seeing too much of a delay.</p>
+<p>This is not used anymore by HABBY as the xml file is really small.
+It could however be useful if the xml file becomes too big. In this case, this function could be
+called if modification are found in the pref_file folder and would create a database.</p>
+<p>The attribute can be modified, but they should all be of text type. It is also important to keep stage at the first
+attribute. The modified attribute should reflect the attribute of the xml file. If it not possible, lines should
+be added in the &#8220;special case&#8221; attributes&#8221;. The main table with the data is called pref_bio.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path_bio</strong> &#8211; the path to the biological information (usually ./biology)</li>
+<li><strong>name_database</strong> &#8211; the name of the database (string) without the path</li>
+<li><strong>attribute</strong> &#8211; the attribute in the database (only text type)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a boolean (True if everthing ok, False otherwise)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.execute_request">
+<code class="descclassname">src.bio_info.</code><code class="descname">execute_request</code><span class="sig-paren">(</span><em>path_bio</em>, <em>name_database</em>, <em>request</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.execute_request" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function execute the SQL request given in the string called request. it saves the found data in a variable.
+The idea is to use this function for SELELCT X FROM X WHERE ... , not really to handle all possible request.
+It also opens and close the database name_database to do this. This is not used anymore by HABBY as we do not use
+a database. It could however be useful if the xml file becomes too big.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path_bio</strong> &#8211; the path to the biological information (usually ./biology)</li>
+<li><strong>name_database</strong> &#8211; the name of the database (string) without the path</li>
+<li><strong>request</strong> &#8211; the SQL request in a string form</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the result</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.figure_pref">
+<code class="descclassname">src.bio_info.</code><code class="descname">figure_pref</code><span class="sig-paren">(</span><em>height</em>, <em>vel</em>, <em>sub</em>, <em>code_fish</em>, <em>name_fish</em>, <em>stade</em>, <em>get_fig=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.figure_pref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to plot the preference curves.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>height</strong> &#8211; the height preference data (list of list)</li>
+<li><strong>vel</strong> &#8211; the height preference data (list of list)</li>
+<li><strong>sub</strong> &#8211; the height preference data (list of list)</li>
+<li><strong>code_fish</strong> &#8211; the three letter code which indiate which fish species is analyzed</li>
+<li><strong>name_fish</strong> &#8211; the name of the fish analyzed</li>
+<li><strong>stade</strong> &#8211; the name of the stade analyzed (ADU, JUV, ...)</li>
+<li><strong>get_fig</strong> &#8211; usually False, If True return the figure (to modfied it more)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.get_stage">
+<code class="descclassname">src.bio_info.</code><code class="descname">get_stage</code><span class="sig-paren">(</span><em>names_bio</em>, <em>path_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.get_stage" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads all the stages present in a list of  xml preference files (JUV, ADU, etc) and the latin name of
+the fish species. All the files should be in the same folder indicated by path_bio. It is mainly used by habby_cmd
+but it can be useful in other cases also.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>names_bio</strong> &#8211; A list of xml biological preference file</li>
+<li><strong>path_bio</strong> &#8211; the path to the xml preference files (usually &#8216;./biology&#8217;)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the stages in a list of string</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.load_evha_curve">
+<code class="descclassname">src.bio_info.</code><code class="descname">load_evha_curve</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.load_evha_curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to load the preference curve in the EVHA form . It will be useful to create xml preference
+file, but it is not used direclty by HABBY. This function does not have much control on user input as it is planned
+to be used only by people working on HABBY. The order of the data in the file must be height, velocity, substrate</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; the name of file containing the preference curve for EVHA</li>
+<li><strong>path</strong> &#8211; the path to this file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">preference for height, vel, sub in a list of list form, name of the fish, code, stade and description</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.load_xml_name">
+<code class="descclassname">src.bio_info.</code><code class="descname">load_xml_name</code><span class="sig-paren">(</span><em>path_bio</em>, <em>attributes</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.load_xml_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function looks for all preference curves found in the path_bio folder. It extract the fish name and the stage.
+to be corrected if more than one language. The name of attribute_acc should be coherent with the one from the xml
+file apart from the common name which shoulf be in the form language_common_name (so we can wirte something in the
+GUI to get all langugage if we get something else than English or French)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path_bio</strong> &#8211; the path to the biological function</li>
+<li><strong>attributes</strong> &#8211; the list of attribute which should be possible to search from the GUI or, more generally
+which should be in data-fish which is returned.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the list of stage/fish species with the info from [name for GUi, s, xmlfilename, attribute_acc without s]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.main">
+<code class="descclassname">src.bio_info.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to test the module on the biological preference</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.plot_hydrosignature">
+<code class="descclassname">src.bio_info.</code><code class="descname">plot_hydrosignature</code><span class="sig-paren">(</span><em>xmlfile</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.plot_hydrosignature" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function plots the hydrosignature in the vclass and hclass given in the xml file.
+It does only work if: units are SI (meter and m/s) and if the order of data is &#8216;velocity increasing
+and then height of water increasing&#8221;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xmlfile</strong> &#8211; the path and name of the xmlfile</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.read_pref">
+<code class="descclassname">src.bio_info.</code><code class="descname">read_pref</code><span class="sig-paren">(</span><em>xmlfile</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.read_pref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reads the preference curve from the xml file and get the subtrate, height and velocity data.
+It return the data in meter. Unit for space can be in centimeter, milimeter or meter. Unit for time should be in
+second .The unit attribute of the xml files should be coherent with the data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>xmlfile</strong> &#8211; the path and name to the xml file (string)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">height, vel, sub, code_fish, name_fish, stade</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.bio_info.test_evah_xml_pref">
+<code class="descclassname">src.bio_info.</code><code class="descname">test_evah_xml_pref</code><span class="sig-paren">(</span><em>path_xml</em>, <em>path_evha</em><span class="sig-paren">)</span><a class="headerlink" href="#src.bio_info.test_evah_xml_pref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to visually compared the evha (.PRF) curve and the xml curve based on the evah curve.
+Obviously the xml file should contain the same data than the evha curve (when the xml file are based on the evah
+curve). An important assumption of this function is that the data in the xml file is in the order: fry, juvenile,
+adult.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path_xml</strong> &#8211; the path to the folder which contains the xml files</li>
+<li><strong>path_evha</strong> &#8211; the path to the evha folder which contains the PRF files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="calculation-habitat">
+<h2>Calculation habitat<a class="headerlink" href="#calculation-habitat" title="Permalink to this headline">¶</a></h2>
+<p>in src/calcul_hab.py</p>
+<p>This module calculates the habitat value for the fish and creates the outputs (text files, shapefile, and figures).</p>
+<span class="target" id="module-src.calcul_hab"></span><dl class="function">
+<dt id="src.calcul_hab.calc_hab">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">calc_hab</code><span class="sig-paren">(</span><em>merge_name</em>, <em>path_merge</em>, <em>bio_names</em>, <em>stages</em>, <em>path_bio</em>, <em>opt</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.calc_hab" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
+the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
+stages are in the xml files). There are more than one method to calculte the habitat so the parameter opt indicate
+which metho to use. 0-&gt; usde coarser substrate, 1 -&gt; use dominant substrate</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>merge_name</strong> &#8211; the name of the hdf5 with the results</li>
+<li><strong>path_merge</strong> &#8211; the path to the merged file</li>
+<li><strong>bio_names</strong> &#8211; the name of the xml biological data</li>
+<li><strong>stages</strong> &#8211; the stage chosen (youngs, adults, etc.). List with the same length as bio_names.</li>
+<li><strong>path_bio</strong> &#8211; The path to the biological folder (with all files given in bio_names</li>
+<li><strong>opt</strong> &#8211; an int fron 0 to n. Gives which calculation method should be used</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the habiatat value for all species, all time, all reach, all cells.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.calcul_hab.calc_hab_norm">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">calc_hab_norm</code><span class="sig-paren">(</span><em>ikle_all_t</em>, <em>point_all_t</em>, <em>vel</em>, <em>height</em>, <em>sub</em>, <em>pref_vel</em>, <em>pref_height</em>, <em>pref_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.calc_hab_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
+all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle_all_t</strong> &#8211; the connectivity table for all time step, all reach</li>
+<li><strong>point_all_t</strong> &#8211; the point of the grid</li>
+<li><strong>vel</strong> &#8211; the velocity data for all time step, all reach</li>
+<li><strong>height</strong> &#8211; the water height data for all time step, all reach</li>
+<li><strong>sub</strong> &#8211; the substrate data (can be coarser or dominant substrate based on function&#8217;s call)</li>
+<li><strong>pref_vel</strong> &#8211; the preference index for the velcoity (for one life stage)</li>
+<li><strong>pref_sub</strong> &#8211; the preference index for the substrate  (for one life stage)</li>
+<li><strong>pref_height</strong> &#8211; the preference index for the height  (for one life stage)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">vh of one life stage, area, habitat value</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.calcul_hab.find_pref_value">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">find_pref_value</code><span class="sig-paren">(</span><em>data</em>, <em>pref</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.find_pref_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function finds the preference value associated with the data for each cell. For this, it finds the last
+point of the preference curve under the data and it makes a linear interpolation with the next data to
+find the preference value. As preference value is sorted, it uses the module bisect to accelerate the process.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data</strong> &#8211; the data on the cell</li>
+<li><strong>pref</strong> &#8211; the pref data [pref, class data]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.calcul_hab.save_hab_fig_spu">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">save_hab_fig_spu</code><span class="sig-paren">(</span><em>area_all</em>, <em>spu_all</em>, <em>name_fish</em>, <em>path_im</em>, <em>name_base</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_hab_fig_spu" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates the figure of the spu as a function of time for each reach. if there is only one
+time step, it reverse to a bar plot. Otherwise it is a line plot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>area_all</strong> &#8211; the area for all reach</li>
+<li><strong>spu_all</strong> &#8211; the &#8220;surface pondere utile&#8221; (SPU) for each reach</li>
+<li><strong>name_fish</strong> &#8211; the list of fish latin name + stage</li>
+<li><strong>path_im</strong> &#8211; the path where to save the image</li>
+<li><strong>name_base</strong> &#8211; a string on which to base the name of the files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.calcul_hab.save_hab_shape">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">save_hab_shape</code><span class="sig-paren">(</span><em>name_merge_hdf5</em>, <em>path_hdf5</em>, <em>vh_data</em>, <em>vel_data</em>, <em>height_data</em>, <em>name_fish_sh</em>, <em>path_shp</em>, <em>name_base</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_hab_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
+all the reaches together. If there is overlap between reaches, it does not care. It create an attribute table
+with the habitat value, velocity, height, substrate coarser, substrate dominant. It also create a shapefile
+0 with the whole profile without data.</p>
+<p>The name of the column of the attribute table should be less than 10 character. Hence, the variable name_fish
+has been adapted to be shorter. The shorter name_fish is called name_fish_sh.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_merge_hdf5</strong> &#8211; the name of the hdf5 merged file</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hydrological hdf5 data</li>
+<li><strong>vel_data</strong> &#8211; the velocity by reach by time step on the cell (not node!)</li>
+<li><strong>height_data</strong> &#8211; the height by reach by time step on the cell (not node!)</li>
+<li><strong>vh_data</strong> &#8211; the habitat value data by speces by reach by tims tep</li>
+<li><strong>name_fish_sh</strong> &#8211; the list of fish latin name + stage</li>
+<li><strong>path_shp</strong> &#8211; the path where to save the shpaefile</li>
+<li><strong>name_base</strong> &#8211; a string on which to base the name of the files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.calcul_hab.save_hab_txt">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">save_hab_txt</code><span class="sig-paren">(</span><em>name_merge_hdf5</em>, <em>path_hdf5</em>, <em>vh_data</em>, <em>vel_data</em>, <em>height_data</em>, <em>name_fish</em>, <em>path_txt</em>, <em>name_base</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_hab_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function print the text output. We create one set of text file by time step. Each Reach is separated by the
+key work REACH follwoed by the reach number (strating from 0). There are three files by time steps: one file which
+gives the connectivity table (starting at 0), one file with the point coordinates in the
+coordinate systems of the hydraulic models (x,y), one file wiche gives the results.
+In all three files, the first column is the reach number. In the results files, the next columns are velocity,
+height, substrate, habitat value for each species.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_merge_hdf5</strong> &#8211; the name of the hdf5 merged file</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hydrological hdf5 data</li>
+<li><strong>vel_data</strong> &#8211; the velocity by reach by time step on the cell (not node!)</li>
+<li><strong>height_data</strong> &#8211; the height by reach by time step on the cell (not node!)</li>
+<li><strong>vh_data</strong> &#8211; the habitat value data by speces by reach by tims tep</li>
+<li><strong>name_fish</strong> &#8211; the list of fish latin name + stage</li>
+<li><strong>path_txt</strong> &#8211; the path where to save the text file</li>
+<li><strong>name_base</strong> &#8211; a string on which to base the name of the files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.calcul_hab.save_spu_txt">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">save_spu_txt</code><span class="sig-paren">(</span><em>area_all</em>, <em>spu_all</em>, <em>name_fish</em>, <em>path_txt</em>, <em>name_base</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_spu_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function create a text files with the folowing columns: the tiem step, the reach number, the area of the
+reach and the spu for each fish species.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>area_all</strong> &#8211; the area for all reach</li>
+<li><strong>spu_all</strong> &#8211; the &#8220;surface pondere utile&#8221; (SPU) for each reach</li>
+<li><strong>name_fish</strong> &#8211; the list of fish latin name + stage</li>
+<li><strong>path_txt</strong> &#8211; the path where to save the text file</li>
+<li><strong>name_base</strong> &#8211; a string on which to base the name of the files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.calcul_hab.save_vh_fig_2d">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">save_vh_fig_2d</code><span class="sig-paren">(</span><em>name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, time_step=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_vh_fig_2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates 2D map of the habitat value for each species at
+the time step asked. All reaches are ploted on the same figure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name_merge_hdf5</strong> &#8211; the name of the hdf5 merged file</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hydrological hdf5 data</li>
+<li><strong>vh_all_t_sp</strong> &#8211; the habitat value for all reach all time step all species</li>
+<li><strong>path_im</strong> &#8211; the path where to save the figure</li>
+<li><strong>name_fish</strong> &#8211; the name and stage of the studied species</li>
+<li><strong>name_base</strong> &#8211; the string on which to base the figure name</li>
+<li><strong>time_step</strong> &#8211; which time step should be plotted</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="create-paraview-files">
+<h2>Create Paraview Files<a class="headerlink" href="#create-paraview-files" title="Permalink to this headline">¶</a></h2>
+<p>in src/new_create_vtk.py
+in src/evtk.py
+in src/hl.py
+in src/vtk.py
+in src/xml_vk.py</p>
+<p>Theses modules contain the scripts to create Paraview input which are binary xml-based vtu files. This part is heavily based on the module
+Pyevtk created by Paulo Herrera (<a class="reference external" href="https://bitbucket.org/pauloh/pyevtk">https://bitbucket.org/pauloh/pyevtk</a>). Hence, the only script written for HABBY is in new_create_vtk.py. This
+script then called one function in hl.py which then called the three other scripts as in Pyevtk (not documented here).</p>
+<span class="target" id="module-src.new_create_vtk"></span><dl class="function">
+<dt id="src.new_create_vtk.habitat_to_vtu">
+<code class="descclassname">src.new_create_vtk.</code><code class="descname">habitat_to_vtu</code><span class="sig-paren">(</span><em>file_name_base</em>, <em>path_out</em>, <em>path_hdf5</em>, <em>name_hdf5</em>, <em>vh_all_t_sp</em>, <em>height_c_data</em>, <em>vel_c_data</em>, <em>name_fish</em>, <em>binary_data=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.new_create_vtk.habitat_to_vtu" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates paraview input in the new, non-legacy xml format. This function called the evtk class
+written by Paulo Herrera, which is available at <a class="reference external" href="https://bitbucket.org/pauloh/pyevtk/downloads/">https://bitbucket.org/pauloh/pyevtk/downloads/</a></p>
+<p>The format for paravier input file is decirbed in paraview_file_format.pdf in the doc folder of HABBY.</p>
+<p>The data of the paraview file created here  is usually not in a binary form, but it could be put in binary if the
+switch binary_data is True. The idea of paraview for a binary file is to keep the same usual xml file. The data is
+encoded to base64. Before the binary array, there is a 32-bits interger which contains the data length in bytes.
+More info: <a class="reference external" href="http://www.earthmodels.org/software/vtk-and-paraview/vtk-file-formats">http://www.earthmodels.org/software/vtk-and-paraview/vtk-file-formats</a>.</p>
+<p>Paraview can handle a group of file which compose an output with than one time step. This is the reason to create a
+pwd files which list the files composing all the time steps (one file by time step)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_name_base</strong> &#8211; the base to create the name of the vtu file</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 hydro file (to load the grid)</li>
+<li><strong>name_hdf5</strong> &#8211; the name of the hdf5 containing the grid</li>
+<li><strong>vh_all_t_sp</strong> &#8211; the habitat data by reach, time step, species</li>
+<li><strong>height_c_data</strong> &#8211; the height by cell by reach by time step</li>
+<li><strong>vel_c_data</strong> &#8211; the velocity by cell by reach by time step</li>
+<li><strong>name_fish</strong> &#8211; the name of fish and stage</li>
+<li><strong>path_out</strong> &#8211; the path where to save the data</li>
+<li><strong>binary_data</strong> &#8211; If True will create binary data. DO NOT WORK YET, let it to FALSE</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.new_create_vtk.main">
+<code class="descclassname">src.new_create_vtk.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.new_create_vtk.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to test this module</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.new_create_vtk.writePVD">
+<code class="descclassname">src.new_create_vtk.</code><code class="descname">writePVD</code><span class="sig-paren">(</span><em>fileName</em>, <em>fileNames</em><span class="sig-paren">)</span><a class="headerlink" href="#src.new_create_vtk.writePVD" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function write the file which indicates to paraview how to group the file. This &#8220;grouping&#8221; file is pvd file.
+With this file, paraview can open all the time steps together with one clic. This function is heavily inspired
+by the class given at the adress:
+<a class="reference external" href="https://github.com/cfinch/Shocksolution_Examples/blob/master/Visualization/vtktools.py">https://github.com/cfinch/Shocksolution_Examples/blob/master/Visualization/vtktools.py</a>. Because Element Tree
+was not used in the class from Shocksolution, we use minidom here instead of Element Tree.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fileName</strong> &#8211; the name of the pvd file</li>
+<li><strong>fileNames</strong> &#8211; the names of all the files for this time step (usually only for one reach but could be changed).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="function-for-the-command-lines">
+<h2>Function for the command lines<a class="headerlink" href="#function-for-the-command-lines" title="Permalink to this headline">¶</a></h2>
+<p>in src/func_for_cmd.py</p>
+<p>This module contains functions which are only used by habby_cmd.py. Theoretically, it is not needed but it is sometimes practical.
+It is not great idea to add to many functions here however because it is more complicated to maintain.</p>
+<span class="target" id="module-src.func_for_cmd"></span><dl class="function">
+<dt id="src.func_for_cmd.load_fstress_text">
+<code class="descclassname">src.func_for_cmd.</code><code class="descname">load_fstress_text</code><span class="sig-paren">(</span><em>path_fstress</em><span class="sig-paren">)</span><a class="headerlink" href="#src.func_for_cmd.load_fstress_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the data for fstress from text files. The data is composed of the name of the rive, the
+discharge range, and the [discharge, height, width]. To read the files, the files listriv.txt is given. Form then,
+the function looks for the other files in the same folder. The other files are rivdeb.txt and rivqwh.txt. If more
+than one river is given in listriv.txt, it load the data for all rivers.</p>
+<p>There is a very similar function as a method in the class FStressW() in fstress_GUI.py but it ised by the GUI
+and it includes a way to select the file using the GUI. Changes should be copied in both functions if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path_fstress</strong> &#8211; the path to the listriv.txt function (the other fil should be in the same folder)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.func_for_cmd.load_manning_txt">
+<code class="descclassname">src.func_for_cmd.</code><code class="descname">load_manning_txt</code><span class="sig-paren">(</span><em>filename_path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.func_for_cmd.load_manning_txt" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the manning data in case where manning number is not simply a constant. In this case, the manning
+parameter is given in a .txt file. The manning parameter used by 1D model such as mascaret or Rubar BE to distribute
+velocity along the profiles. The format of the txt file is &#8220;p, dist, n&#8221; where  p is the profile number (start at zero),
+dist is the distance along the profile in meter and n is the manning value (in SI unit). White space is neglected
+and a line starting with the character # is also neglected.</p>
+<p>There is a very similar function as a method in the class Sub_HydroW() in hydro_GUI.py but it used by the GUI
+and it includes a way to select the file using the GUI and it used a lot of class attribute. So it cannot be used
+by the command line. Changes should be copied in both functions if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename_path</strong> &#8211; the path and the name of the file containing the manning data</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the manning as an array form</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="various-notes">
 <h1>Various notes<a class="headerlink" href="#various-notes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="the-legend-of-the-plots-are-not-shown">
+<h2>The legend of the plots are not shown.<a class="headerlink" href="#the-legend-of-the-plots-are-not-shown" title="Permalink to this headline">¶</a></h2>
+<p>Generally HABBY is able to save the figure while showing the legend (which is often outside of the figure) appropriately. However,
+the figure shown to the user by matplotlib often have the legend outside of the visible area. To see the figure fully, one can modify
+the axes in the option of the figure (the menu in the axes on the top of the figure).</p>
+</div>
 <div class="section" id="translation-of-habby">
 <h2>Translation of HABBY<a class="headerlink" href="#translation-of-habby" title="Permalink to this headline">¶</a></h2>
 <p>In HABBY, it is possible to translate all strings which are in a python file (.py)
@@ -5574,14 +6654,18 @@ code which is not linked with the graphical interface. Hence, English might be s
 in class MainWindows. Hence, we can follow the selected language using an integer self.lang
 (0 for English and 1 for French). We can now call self.file_langue[self.lang] to get the qm
 file in the right language. If a new language is added, it is necessary to add one string to this
-list and to modify the menu.</p>
+list and to modify the menu. If the new language is also present in the xml preference file
+(which contains the biological info), it is also necessary to update the variable &#8220;bioinfo_tab.lang&#8221;
+from central_widget in the function setlangue from Main_Windows(). If this is done, the description of
+the xml preference file in the &#8220;Biology&#8221; tab will be shown in the selected language. Otherwise, it will be
+the first language found.</p>
 <p>When the translator has been created, it is necessary to re-do all Widgets and Windows. This is not a problem when we open HABBY, but it can be a bit of work if the user asks for a change in language when HABBY is running. This is the function of the setlangue function. This function would work for all language (it takes an integer as input to know which language to use), but it needs to be modified if one modifies the Main_Windows Class strongly (notably if one add signals).
 The language should be saved in the user setting using Qsettings as it is done at the end of the
 setlangue function.</p>
 </div>
 <div class="section" id="create-a-exe">
 <h2>Create a .exe<a class="headerlink" href="#create-a-exe" title="Permalink to this headline">¶</a></h2>
-<p>Here are step to create a .exe using PyInstaller</p>
+<p>Here are step to create a .exe using PyInstaller:</p>
 <ul class="simple">
 <li>install Pyinstaller (pip install pyinstaller)</li>
 <li>cd &#8220;folder with source code&#8221;</li>
@@ -5595,6 +6679,14 @@ setlangue function.</p>
 <li>Intel MKL fatal error copy the .dll missing (or just find an old dist and copy all mkl stuff) AND the libiomp5md.dll</li>
 <li>The translation does not work: Add the translation folder into the dist folder</li>
 <li>Do not find log0.txt (or crash when saving project): create a folder called src_GUI, copy the files log0.txt and restart_log0.txt from the src_GUI folder in the python module</li>
+</ul>
+<p>Practically:</p>
+<ul class="simple">
+<li>go to the folder called executable</li>
+<li>run createexe.bat (only on Windows)</li>
+<li>copy all files in the mklall folder to the folder dist/habby</li>
+<li>run habby by writing habby on the cmd</li>
+<li>test and correct problems. It can be long!</li>
 </ul>
 </div>
 <div class="section" id="logging">
@@ -5610,7 +6702,8 @@ modified to create a new script to use HABBY in a different ways. For this, pyth
 <p>The second log, called restart/_’name_project’.log, has limited functionalities but allows to
 re-start the HABBY simulation from the command line, without the need for python.
 Format of this file is described below. It is aimed to be readable and easily modifiable.
-To use the restart file, type in the command line: habby restart/_’name_project’.log. (not done yet)</p>
+To use the restart file, type in the command line: python habby_cmd.py restart/_’name_project’.log.</p>
+<p>This part genreally needs more revisions and tests.</p>
 <p><strong>Type of log and format</strong></p>
 <p>Currently, there are five types of outputs, which can be sent to the log:</p>
 <ul class="simple">
@@ -5661,8 +6754,106 @@ new_func and the class in the GUI my_class.</p>
 <li>The signal should be collected in the function connect_signal_log in the Main_Windows_1.py.  For this, a line should be added in the function:
 *       self.my_class.send_log.connect(self.write_log)</li>
 </ul>
-<p><strong>Format of the restart file</strong></p>
-<p>To be determined.</p>
+<p><strong>restart file</strong></p>
+<p>The format of the restart file is based on the format asked by habby_cmd.py. More information on this format in habby_cmd.py
+(notably in the part list_command).</p>
+</div>
+<div class="section" id="command-line">
+<h2>Command line<a class="headerlink" href="#command-line" title="Permalink to this headline">¶</a></h2>
+<p>The module habby_cmd is used to call habby from the command line or to use the restart file to run habby. This
+module can also be used to run HABBY on a bunch of files contained in a folder.</p>
+<span class="target" id="module-habby_cmd"></span><dl class="function">
+<dt id="habby_cmd.all_command">
+<code class="descclassname">habby_cmd.</code><code class="descname">all_command</code><span class="sig-paren">(</span><em>all_arg</em>, <em>name_prj</em>, <em>path_prj</em>, <em>path_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#habby_cmd.all_command" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to call HABBY from the command line. The general form is to call:
+habby_cmd command_name input1 input2 .. input n. The list of the command_name is given in the documentation and by
+calling the command &#8220;python habby_cmd.py LIST_COMMAND&#8221;. This functiion is usually called direclty by the main()
+or it is called by the function restart which read a list of function line by line. Careful, new command cannot
+contain the symbol &#8221;:&#8221; as it is used by restart.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>all_arg</strong> &#8211; the list of argument (sys.argv more or less)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project, created by default by the main()</li>
+<li><strong>path_prj</strong> &#8211; the path to the project created by default bu the main()</li>
+<li><strong>path_bio</strong> &#8211; the path to the project</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="habby_cmd.habby_on_all">
+<code class="descclassname">habby_cmd.</code><code class="descname">habby_on_all</code><span class="sig-paren">(</span><em>all_arg</em>, <em>name_prj</em>, <em>path_prj</em>, <em>path_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#habby_cmd.habby_on_all" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to execute a command from habby_cmd on all files in a folder. The form of the command should
+be something like &#8220;habby_cmd ALL COMMAND path_to_file/*.ext arg2 ag3&#8221; with the arguments adated to the specific
+command.</p>
+<p>In other words, the command should be the usual command with the keyword ALL before and with the name of
+the input files remplace by *.ext . where ext is the extension of the files.
+It is better to not add an output name. Indeed default name for output includes the input file name, which
+is practical if different files are given as input. If the default
+is overided, the same name will be applied, only the time stamps will be different. To be sure to not overwrite a
+file, this function waits one second between each command. Only the input argument should containts the string &#8216;*&#8217;.
+Otherwise, other commands would be treated as input files.</p>
+<p>If there is more than one type of input, it is important that the name of the file are the name (or at least
+that there are in the same alphabetical order).</p>
+<p>If more than one extension is possible (example g01, g02, g03, etc. in hec-ras), remplace the changing part of the
+extension with the symbol * (so path_to_folder/*.g0* arg1 argn). If the name of the file changed in the extension
+as in RUBAR (where the file have the name PROFIL.file), just change for PROFIL.* or something similar. Generally
+the matching is done using the function glob, so the shell-type wildcard can be used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>all_arg</strong> &#8211; the list of argument (sys.argv without the argument ALL so [sys.argv[0], sys.argv[2], sys.argv[n]])</li>
+<li><strong>name_prj</strong> &#8211; the name of the project, created by default by the main()</li>
+<li><strong>path_prj</strong> &#8211; the path to the project created by default bu the main()</li>
+<li><strong>path_bio</strong> &#8211; the path to the project</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="habby_cmd.habby_restart">
+<code class="descclassname">habby_cmd.</code><code class="descname">habby_restart</code><span class="sig-paren">(</span><em>file_comm</em>, <em>name_prj</em>, <em>path_prj</em>, <em>path_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#habby_cmd.habby_restart" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function reads a list of command from a text file called file_comm. It then calls all_command one each line
+which does contain the symbol &#8221;:&#8221; . If the lines contains the symbol &#8221;:&#8221;, it considered as an input.
+Careful, the intput should be in order!!!! The info on the left and sight of the symbol &#8221;:&#8221; are just there so
+an human can read them more easily. Space does not matters here. We try to write the restart file created
+automatically by HABBY in a &#8220;nice&#8221; layout, but it just to  read it more easily.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>file_comm</strong> &#8211; a string wehich gives the name of the restart file (with the path)</li>
+<li><strong>name_prj</strong> &#8211; the name of the project, created by default by the main()</li>
+<li><strong>path_prj</strong> &#8211; the path to the project created by default bu the main()</li>
+<li><strong>path_bio</strong> &#8211; the path to the project</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="habby_cmd.main">
+<code class="descclassname">habby_cmd.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#habby_cmd.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the main for HABBY when called from the command line. It can call restart (read a list of command from a
+file) or read a command written on the cmd or apply a command to a type of file (key word ALL before the command and
+name of the file with asterisk). For more complicated case, one can directly do a python script using the function
+from HABBY.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="git-code-management">
 <h2>Git - code management<a class="headerlink" href="#git-code-management" title="Permalink to this headline">¶</a></h2>
@@ -5704,7 +6895,7 @@ documentation, add the module as written in the index.rts file in the doc folder
 It is better to not use absolute path for this, so it is possible to move the documentation on another
 computer. If the documentation does not run on a new computer, check the path given in the config.py file.</p>
 <p>In the docstring, add as many blank lines as possible (in reasonable limit). This is easier for the
-formatting. To make a bullet list, one should use a tab and the symbol “*”.  Using only the symbol * will
+formatting. To make a bullet list, one should use a tab and the symbol &#8220;*&#8221;.  Using only the symbol &#8220;*&#8221; will
 fail.</p>
 <p>To add a new title, do not start the title or the line of symbol under the title with a blank space.</p>
 </div>
@@ -5716,6 +6907,8 @@ fail.</p>
 <li>numpy: BSD License</li>
 <li>matplotlib: BSD License</li>
 <li>PyQt5: GNU License</li>
+<li>Scipy: BSD license</li>
+<li>shutil:</li>
 </ul>
 </div>
 </div>
@@ -5745,7 +6938,8 @@ fail.</p>
 <li><a class="reference internal" href="#figure-option-gui">Figure Option - GUI</a></li>
 <li><a class="reference internal" href="#the-stathab-model-gui">The Stathab model - GUI</a></li>
 <li><a class="reference internal" href="#fstress-model-gui">FStress model - GUI</a></li>
-<li><a class="reference internal" href="#estimhab-gui">Estimhab - GUI</a><ul>
+<li><a class="reference internal" href="#estimhab-gui">Estimhab - GUI</a></li>
+<li><a class="reference internal" href="#information-biological-and-run-habitat">Information Biological and Run habitat</a><ul>
 <li><a class="reference internal" href="#biological-data-estimhab">Biological data - Estimhab</a></li>
 </ul>
 </li>
@@ -5771,12 +6965,18 @@ fail.</p>
 <li><a class="reference internal" href="#stathab-source">Stathab - source</a></li>
 <li><a class="reference internal" href="#fstress-source">FStress - source</a></li>
 <li><a class="reference internal" href="#substrate">Substrate</a></li>
+<li><a class="reference internal" href="#biological-info">Biological Info</a></li>
+<li><a class="reference internal" href="#calculation-habitat">Calculation habitat</a></li>
+<li><a class="reference internal" href="#create-paraview-files">Create Paraview Files</a></li>
+<li><a class="reference internal" href="#function-for-the-command-lines">Function for the command lines</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#various-notes">Various notes</a><ul>
+<li><a class="reference internal" href="#the-legend-of-the-plots-are-not-shown">The legend of the plots are not shown.</a></li>
 <li><a class="reference internal" href="#translation-of-habby">Translation of HABBY</a></li>
 <li><a class="reference internal" href="#create-a-exe">Create a .exe</a></li>
 <li><a class="reference internal" href="#logging">Logging</a></li>
+<li><a class="reference internal" href="#command-line">Command line</a></li>
 <li><a class="reference internal" href="#git-code-management">Git - code management</a></li>
 <li><a class="reference internal" href="#write-the-documentation">Write the documentation</a></li>
 <li><a class="reference internal" href="#license-of-used-python-modules">License of used python modules</a></li>

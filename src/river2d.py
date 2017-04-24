@@ -57,9 +57,10 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
         [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2],
                                                                                 xyzhv_i[:, 3], xyzhv_i[:, 4])
 
+
         # mimic empty grid for t = 0 for 1 D model
         if i == 0:
-            point_all_t.append([xyzhv_i[:, :2]])
+            point_all_t.append([point_all])
             ikle_all_t.append([ikle_i])
             point_c_all_t.append([coord_c])
             inter_h_all_t.append([])
@@ -284,8 +285,7 @@ def figure_river2d(xyzhv, ikle, path_im, t=0):
     hec_ras2D.scatter_plot(xyzhv[:, :2], xyzhv[:, 4], 'Vel. [m3/sec]', 'gist_ncar', 8, 0)
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    #plt.close()
-    #plt.show()
+
 
 
 def main():
