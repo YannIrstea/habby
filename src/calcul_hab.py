@@ -226,7 +226,7 @@ def find_pref_value(data, pref):
                 pref_data_here = a1 * d + b1
                 if pref_data_here < 0 or pref_data_here > 1:
                     # the linear interpolation sometimes creates value like -5.55e-17
-                    if -1e-10 < pref_data_here < 0:
+                    if -1e-3 < pref_data_here < 0:
                         pref_data_here = 0
                     elif 1 < pref_data_here < 1+1e10:
                         pref_data_here = 1

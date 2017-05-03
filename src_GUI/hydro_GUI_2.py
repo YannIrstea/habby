@@ -25,6 +25,7 @@ from src import mascaret
 from src import manage_grid_8
 from src import load_hdf5
 from src_GUI import output_fig_GUI
+from src import mesh_grid2
 
 #import matplotlib.pyplot as plt
 
@@ -2521,7 +2522,7 @@ class SubstrateW(SubHydroW):
 
         # run the function
         self.q = Queue()
-        self.p = Process(target=substrate.merge_grid_and_save, args=(hdf5_name_hyd, hdf5_name_sub, path_hdf5,
+        self.p = Process(target=mesh_grid2.merge_grid_and_save, args=(hdf5_name_hyd, hdf5_name_sub, path_hdf5,
                                                                      default_data, self.name_prj, self.path_prj,
                                                                      self.model_type, self.q))
         self.p.start()

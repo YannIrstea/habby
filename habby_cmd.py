@@ -21,6 +21,7 @@ from src import fstress
 from src import calcul_hab
 from src import new_create_vtk
 from src import bio_info
+from src import mesh_grid2
 
 
 def all_command(all_arg, name_prj, path_prj, path_bio):
@@ -88,6 +89,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print("ALL: if the keywork ALL is followed by a command from HABBY, the command will be applied to all file"
               " in a folder. The name of the input file should be in the form: path_to_folder/*.ext with the "
               "right extension as ext. No output name should be given.")
+
+        print('\n')
+        print('list of options which can be added after the command: (1) path_prj= path to project, (2) '
+              'name_prj= name of the project, (3) path_bio: the path to the biological files')
 
 # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_TELEMAC':
@@ -572,8 +577,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
                 name_hdf5 = 'MERGE_' + hdf5_name_hyd
             path_hdf5 = path_prj
 
-        [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = substrate.merge_grid_hydro_sub(
-            hdf5_name_hyd, hdf5_name_sub,path_hdf5_in,  default_data, path_prj)
+        # in two function to be able to control the name
+        [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = \
+            mesh_grid2.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj)
+
         if ikle_both == [-99]:
             print('Error: data not merged.')
             return
@@ -603,7 +610,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # create a random substrate in a shp form
         h5name = os.path.basename(hdf5_name_hyd)
         path_h5 = os.path.dirname(hdf5_name_hyd)
-        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Cemagref', 0, 200, path_prj)
+        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Cemagref', 0, 2000, path_prj)
 
         # save it in hdf5 form
         filename_shp = 'random_sub.shp'
@@ -635,9 +642,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             path_hdf5 = path_prj
 
         # merge data
-        [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both,
-         height_all_both] = substrate.merge_grid_hydro_sub(
-            h5name, hdf5_name_sub, path_h5, default_data, path_prj)
+        [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = \
+            mesh_grid2.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj)
         if ikle_both == [-99]:
             print('Error: data not merged.')
             return
@@ -691,7 +697,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         [latin_name, stages] = bio_info.get_stage(bio_names, path_bio)
         for l in range(0,len(latin_name)):
             for s in stages[l]:
-                name_fish.extend([latin_name[l] + '_' + s])
+                name_fish.extend([latin_name[l][:3] + '_' + s[:3]])
                 stage2.extend([s])
                 bio_name2.extend([bio_names[l]])
         stages = stage2
@@ -748,7 +754,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         else:
             new_name = 'rand_sub_' + h5name
 
-        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 200, path_prj)
+        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 300, path_prj)
 
     # ----------------------------------------------------------------------
     else:
@@ -917,16 +923,31 @@ def main():
     from HABBY.
     """
 
-    # create an empty project
+    # get path and project name
     name_prj = 'DefaultProj'
-    namedir = 'result_cmd2' #+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
+    namedir = 'result_cmd'
+    path_bio = './biology'
     path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
+    for id, opt in enumerate(sys.argv):
+        if len(opt) > 8:
+            if opt[:8] == 'path_prj':
+                path_prj = opt[9:]
+                del sys.argv[id]
+            if opt[:8] == 'name_prj':
+                name_prj = opt[9:]
+                del sys.argv[id]
+            if opt[:8] == 'path_bio':
+                path_bio = opt[9:]
+                del sys.argv[id]
+
+    # create an empty project if not existing gbefore
     filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
     if not os.path.isdir(path_prj):
         os.makedirs(path_prj)
-    copyfile(filename_empty, os.path.join(path_prj, 'DefaultProj.xml'))
-    path_bio = './biology'
+    if not os.path.isfile(os.path.join(path_prj, name_prj + '.xml')):
+        copyfile(filename_empty, os.path.join(path_prj, name_prj + '.xml'))
 
+    # check if enough argument
     if len(sys.argv) == 0 or len(sys.argv) == 1:
         print(" Not enough argument was given. At least one argument should be given")
         return

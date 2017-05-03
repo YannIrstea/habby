@@ -1068,6 +1068,10 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     water_height = np.array(water_height)
     velocity = np.array(velocity)
 
+    # should not be used anymore, but who knows?
+    water_height[water_height < 0] = 0
+    velocity[water_height < 0] = 0
+
     # erease the old cells
     ikle = np.delete(ikle, c_dry, axis=0)
 

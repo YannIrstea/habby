@@ -34,7 +34,8 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
 
     # load data
     [v, h, coord_p, ikle, coord_c] = load_telemac(namefilet, pathfilet)
-    if len(v) == 1 and v == [-99]:
+
+    if len(v[0]) == 1 and v == [-99]:
         print('Error: Telemac data not loaded.')
         if q:
             sys.stdout = sys.__stdout__
@@ -98,7 +99,7 @@ def load_telemac(namefilet, pathfilet):
     for t in range(0, nbtimes):
         val_all = telemac_data.getvalues(t)
         vt = np.sqrt(val_all[:, 0]**2 + val_all[:, 1]**2)
-        ht = val_all[:, 2]
+        ht = val_all[:, 2] #- val_all[:, 3]
         v.append(vt)
         h.append(ht)
     coord_p = np.array([telemac_data.meshx, telemac_data.meshy])
@@ -531,5 +532,5 @@ class Selafin(object):
 if __name__ == "__main__":
     namefile = 'mersey.res'
     pathfile = r'D:\Diane_work\output_hydro\telemac_py'
-    [v, h, coord_p, ikle] = load_telemac(namefile, pathfile)
+    [v, h, coord_p, ikle, coord_c] = load_telemac(namefile, pathfile)
     plot_vel_h(coord_p,h,v)
