@@ -155,7 +155,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     # print(m1 - m)
 
     # merge the grid for each time step (the time step 0 is the full profile)
-    for t in range(0, 2): #
+    for t in range(0, len(ikle_all)): #
 
         ikle_all2 = []
         point_all2 = []
@@ -913,8 +913,8 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
     # remove element from ikle and new_data_sub
     a3 = time.time()
     ikle = [i for j, i in enumerate(ikle) if j not in to_delete]
-    data_sub_pg_ok = [i for j, i in enumerate(data_sub_pg_ok) if j not in to_delete]
-    data_sub_dom_ok = [i for j, i in enumerate(data_sub_dom_ok) if j not in to_delete]
+    data_sub_pg_ok = np.delete(data_sub_pg_ok, to_delete)
+    data_sub_dom_ok = np.delete(data_sub_dom_ok, to_delete)
     a4 = time.time()
     print('time to delete:')
     print(str(a4-a3))

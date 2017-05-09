@@ -925,7 +925,7 @@ def main():
 
     # get path and project name
     name_prj = 'DefaultProj'
-    namedir = 'result_cmd'
+    namedir = 'result_cmd3'
     path_bio = './biology'
     path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
     for id, opt in enumerate(sys.argv):
