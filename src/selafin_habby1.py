@@ -97,9 +97,36 @@ def load_telemac(namefilet, pathfilet):
     v = []
     h = []
     for t in range(0, nbtimes):
+        foundu = foundv = False
         val_all = telemac_data.getvalues(t)
-        vt = np.sqrt(val_all[:, 0]**2 + val_all[:, 1]**2)
-        ht = val_all[:, 2] #- val_all[:, 3]
+        vt = []
+        ht = []
+
+        # load variable based on their name (english or french)
+        for id,n in enumerate(telemac_data.varnames):
+            n = n.decode('utf-8')
+            if 'VITESSE MOY' in n or 'MEAN VELOCITY' in n:
+                vt = val_all[:, id]
+            if 'VITESSE U' in n or 'VELOCITY U' in n:
+                vu = val_all[:, id]
+                foundu = True
+            if 'VITESSE V' in n or 'VELOCITY V' in n:
+                vv = val_all[:, id]
+                foundv = True
+            if 'WATER DEPTH' in n or "HAUTEUR D'EAU" in n:
+                ht = val_all[:, id]
+            if 'FOND' in n or 'BOTTOM' in n:
+                bt = val_all[:, id]
+
+        if foundu and foundv:
+            vt = np.sqrt(vu**2 + vv**2)
+
+        if len(vt) == 0:
+            print('Error: The variable name of the telemec file were not recognized. (1) \n')
+            return [-99], [-99], [-99], [-99], [-99]
+        if len(ht) == 0:
+            print('Error: The variable name of the telemec file were not recognized. (2) \n')
+            return [-99], [-99], [-99], [-99], [-99]
         v.append(vt)
         h.append(ht)
     coord_p = np.array([telemac_data.meshx, telemac_data.meshy])

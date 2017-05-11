@@ -6,7 +6,6 @@ import time
 from copy import deepcopy
 import numpy as np
 import triangle
-from src import manage_grid_8
 import matplotlib.pyplot as plt
 
 
@@ -911,13 +910,18 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
             data_sub_pg_ok[i] = data_sub_pg[int(s)]
 
     # remove element from ikle and new_data_sub
-    a3 = time.time()
-    ikle = [i for j, i in enumerate(ikle) if j not in to_delete]
+    a1 = time.time()
+    # ikle = [i for j, i in enumerate(ikle) if j not in to_delete]
+    for d in reversed(to_delete):
+        del ikle[d]
+    a2 = time.time()
+    print('time to delete ikle:')
+    print(str(a2 - a1))
     data_sub_pg_ok = np.delete(data_sub_pg_ok, to_delete)
     data_sub_dom_ok = np.delete(data_sub_dom_ok, to_delete)
     a4 = time.time()
-    print('time to delete:')
-    print(str(a4-a3))
+    print('time to delete sub:')
+    print(str(a4-a2))
 
     return ikle, coord_p, data_sub_pg_ok, data_sub_dom_ok, vel, height
 

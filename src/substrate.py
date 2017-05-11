@@ -4,8 +4,6 @@ import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from random import uniform
 #import matplotlib.tri as tri
-from io import StringIO
-import sys
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
@@ -14,9 +12,7 @@ import time
 import triangle
 from random import randrange
 from src import load_hdf5
-from src import manage_grid_8
 from src_GUI import output_fig_GUI
-from src import mesh_grid2
 
 
 def open_shp(filename, path):
@@ -817,7 +813,6 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         #plt.close()
 
     #plt.show()
-
 
 
 def main():
