@@ -18,26 +18,28 @@
 \contentsline {section}{\numberline {4.4}River 2D}{47}{section.4.4}
 \contentsline {section}{\numberline {4.5}Rubar}{48}{section.4.5}
 \contentsline {section}{\numberline {4.6}Telemac}{53}{section.4.6}
-\contentsline {section}{\numberline {4.7}Load HABBY hdf5 file}{54}{section.4.7}
-\contentsline {subsection}{\numberline {4.7.1}Form of the hdf5 files}{57}{subsection.4.7.1}
-\contentsline {section}{\numberline {4.8}Velocity distribution}{58}{section.4.8}
-\contentsline {section}{\numberline {4.9}Create a grid}{61}{section.4.9}
-\contentsline {section}{\numberline {4.10}Estimhab -source}{68}{section.4.10}
-\contentsline {section}{\numberline {4.11}Stathab - source}{69}{section.4.11}
-\contentsline {section}{\numberline {4.12}FStress - source}{74}{section.4.12}
-\contentsline {section}{\numberline {4.13}Substrate}{76}{section.4.13}
-\contentsline {section}{\numberline {4.14}Biological Info}{82}{section.4.14}
-\contentsline {section}{\numberline {4.15}Calculation habitat}{84}{section.4.15}
-\contentsline {section}{\numberline {4.16}Create Paraview Files}{87}{section.4.16}
-\contentsline {section}{\numberline {4.17}Function for the command lines}{88}{section.4.17}
-\contentsline {chapter}{\numberline {5}Various notes}{89}{chapter.5}
-\contentsline {section}{\numberline {5.1}The legend of the plots are not shown.}{89}{section.5.1}
-\contentsline {section}{\numberline {5.2}Translation of HABBY}{89}{section.5.2}
-\contentsline {section}{\numberline {5.3}Create a .exe}{90}{section.5.3}
-\contentsline {section}{\numberline {5.4}Logging}{91}{section.5.4}
-\contentsline {section}{\numberline {5.5}Command line}{92}{section.5.5}
-\contentsline {section}{\numberline {5.6}Git - code management}{93}{section.5.6}
-\contentsline {section}{\numberline {5.7}Write the documentation}{94}{section.5.7}
-\contentsline {section}{\numberline {5.8}License of used python modules}{94}{section.5.8}
-\contentsline {chapter}{\numberline {6}Indices and tables}{97}{chapter.6}
-\contentsline {chapter}{Python Module Index}{99}{section*.408}
+\contentsline {section}{\numberline {4.7}LAMMI}{54}{section.4.7}
+\contentsline {section}{\numberline {4.8}Load HABBY hdf5 file}{57}{section.4.8}
+\contentsline {subsection}{\numberline {4.8.1}Form of the hdf5 files}{60}{subsection.4.8.1}
+\contentsline {section}{\numberline {4.9}Velocity distribution}{60}{section.4.9}
+\contentsline {section}{\numberline {4.10}Create a grid}{63}{section.4.10}
+\contentsline {section}{\numberline {4.11}Estimhab -source}{71}{section.4.11}
+\contentsline {section}{\numberline {4.12}Stathab - source}{72}{section.4.12}
+\contentsline {section}{\numberline {4.13}FStress - source}{76}{section.4.13}
+\contentsline {section}{\numberline {4.14}Substrate}{79}{section.4.14}
+\contentsline {section}{\numberline {4.15}Merge the grid}{81}{section.4.15}
+\contentsline {section}{\numberline {4.16}Biological Info}{84}{section.4.16}
+\contentsline {section}{\numberline {4.17}Calculation habitat}{86}{section.4.17}
+\contentsline {section}{\numberline {4.18}Create Paraview Files}{89}{section.4.18}
+\contentsline {section}{\numberline {4.19}Function for the command lines}{90}{section.4.19}
+\contentsline {chapter}{\numberline {5}Various notes}{91}{chapter.5}
+\contentsline {section}{\numberline {5.1}The legend of the plots are not shown.}{91}{section.5.1}
+\contentsline {section}{\numberline {5.2}Translation of HABBY}{91}{section.5.2}
+\contentsline {section}{\numberline {5.3}Create a .exe}{92}{section.5.3}
+\contentsline {section}{\numberline {5.4}Logging}{93}{section.5.4}
+\contentsline {section}{\numberline {5.5}Command line}{94}{section.5.5}
+\contentsline {section}{\numberline {5.6}Git - code management}{95}{section.5.6}
+\contentsline {section}{\numberline {5.7}Write the documentation}{96}{section.5.7}
+\contentsline {section}{\numberline {5.8}License of used python modules}{96}{section.5.8}
+\contentsline {chapter}{\numberline {6}Indices and tables}{99}{chapter.6}
+\contentsline {chapter}{Python Module Index}{101}{section*.417}

@@ -3726,6 +3726,185 @@ It is not used direclty by HABBY.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="lammi">
+<h2>LAMMI<a class="headerlink" href="#lammi" title="Permalink to this headline">¶</a></h2>
+<p>in src/lammi.py</p>
+<p>This module contains functions used to load data from LAMMI. For more information on LAMMI, please see the pdf document <a class="reference download internal" href="_downloads/LAMMIGuideMetho.pdf" download=""><code class="xref download docutils literal"><span class="pre">LAMMI.pdf</span></code></a></p>
+<span class="target" id="module-src.lammi"></span><dl class="function">
+<dt id="src.lammi.coord_lammi">
+<code class="descclassname">src.lammi.</code><code class="descname">coord_lammi</code><span class="sig-paren">(</span><em>dist_all</em>, <em>vel_all</em>, <em>height_all</em>, <em>sub_all</em>, <em>length_all</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.coord_lammi" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function takes the data from the lammi outputs and get the coordinate for the river. It also
+reform the data to put it in the needed for HABBY (as the other 1.5D hydraulic model as hec_ras).</p>
+<p>To get the coordinates, we assume that the river is straight, that each facies is one after the other and
+that the river passes by the deepest point of the profile. In addition we assume that the profile are straight
+and perpendicular to the river.</p>
+<p>We loop through all the profiles for all reach all time steps. For each profile, the x coordinate is identical
+for all point of the profile and is calculated using length_all. When a new reach starts, a meter is added to the x
+coordinate. To find the y coordainte, we first pass from cell data (in lammi) to point data. The poitn are in the
+center of the cell. In addtion, one point is added at the start an end of the profile with a water heigth of zero.
+Then, we find the height water height and we assume that the passes there. There is the zeros y-ccordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dist_all</strong> &#8211; the distance along profile by reach (or facies) and by time step</li>
+<li><strong>vel_all</strong> &#8211; the velocity along profile by reach (or facies) and by time step</li>
+<li><strong>height_all</strong> &#8211; the height along profile by reach (or facies) and by time step</li>
+<li><strong>sub_all</strong> &#8211; the substrate data along profile by reach (or facies) and by time step. Eacu subtrate data is a list
+of eight number representing the percentage of each of the eight subtrate class.</li>
+<li><strong>length_all</strong> &#8211; the distance between profile</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coord_pro, nb_pro_reach and vh_pro in the same form as in hec-ras (final form)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.lammi.fig_lammi">
+<code class="descclassname">src.lammi.</code><code class="descname">fig_lammi</code><span class="sig-paren">(</span><em>vh_pro</em>, <em>coord_pro</em>, <em>nb_pro_reach</em>, <em>pro_num</em>, <em>sim_num</em>, <em>fig_opt</em>, <em>path_im</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.fig_lammi" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function create a figure with the loaded lammi data.
+It work only for one time steps gven by the number sim_num.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>vh_pro</strong> &#8211; dist along the profile, height, vel</li>
+<li><strong>coord_pro</strong> &#8211; x,y, dist along profile, height</li>
+<li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach</li>
+<li><strong>pro_num</strong> &#8211; the profile to plot</li>
+<li><strong>sim_num</strong> &#8211; the time step (or simuation) to plot</li>
+<li><strong>fig_opt</strong> &#8211; the option for the figure</li>
+<li><strong>path_im</strong> &#8211; path path where to save the figure</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.lammi.get_transect_filename">
+<code class="descclassname">src.lammi.</code><code class="descname">get_transect_filename</code><span class="sig-paren">(</span><em>facies_path</em>, <em>facies_name</em>, <em>transect_path</em>, <em>transect_name</em>, <em>new_dir</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.get_transect_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>For each facies, we obtain the name of the transect file and the length of this reach</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>facies_path</strong> &#8211; the path the facies.txt file</li>
+<li><strong>facies_name</strong> &#8211; the name of the facies file, usually &#8216;Facies.txt&#8217;</li>
+<li><strong>transect_path</strong> &#8211; the path to the transect.txt path</li>
+<li><strong>transect_name</strong> &#8211; the name of the transect file, usually &#8216;Transect.txt&#8217;</li>
+<li><strong>new_dir</strong> &#8211; If the folder with the transect have been moved, this argument allos it to be corrected without
+modification to transect.txt</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the length of each transect (arranged by facies and station) and the filename with the transect info</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.lammi.load_lammi">
+<code class="descclassname">src.lammi.</code><code class="descname">load_lammi</code><span class="sig-paren">(</span><em>facies_path</em>, <em>transect_path</em>, <em>path_im</em>, <em>new_dir=''</em>, <em>fig_opt=[]</em>, <em>transect_name='Transect.txt'</em>, <em>facies_name='Facies.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.load_lammi" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the data from the LAMMI model. A description of the LAMMI model is available in the
+documentation folder (LAMMIGuideMetho.pdf).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>transect_path</strong> &#8211; the path to the transect.txt path</li>
+<li><strong>facies_path</strong> &#8211; the path the facies.txt file</li>
+<li><strong>path_im</strong> &#8211; the path where to save the image</li>
+<li><strong>fig_opt</strong> &#8211; the figure option</li>
+<li><strong>new_dir</strong> &#8211; if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt</li>
+<li><strong>transect_name</strong> &#8211; the name of the transect file, usually &#8216;Transect.txt&#8217;</li>
+<li><strong>facies_name</strong> &#8211; the name of the facies file, usually &#8216;Facies.txt&#8217;</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical Comments</strong></p>
+<p>LAMMI is organised aroung group of transects. Transect are river profile which describe the river geometry.
+In LAMMI, there are four way of grouping transect. The facies is the a group a transect which is considered by HABBY
+to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is possible
+to use the function &#8220;load_station&#8221; to get the station info if needed. The group Secteur are used in case where
+water is brought to the river.</p>
+<p>To load LAMMI data, we first load the facies file, which gives which transect are in which facies. Then, we use
+the transect file to know the length of each transect (length between transects along the river) and the
+name of the file containing the transect precise data. The name of the file is an absolute path to the file.
+This can be annoying if one want to move the files. Hence, we add the variable new_dir which correct the transect
+file in case the files containing the transect data have been moved (they should however all be in the same
+directory). This is done by the function get_transect_name().</p>
+<p>Then it uses the function load_transect_data to read all this data , file by file. Consequentely, we have
+the data in memory but no(x,y) coordinate. In addition, this data is is in the different form than in the other
+hydraulic model.</p>
+<p>To obtain the coordainte of the river and to put the data is the form usually needed by HABBY for 1.5D model
+(coord_pro, vh_pro, nb_pro_reach), we use the coord_lammi() function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.lammi.load_station">
+<code class="descclassname">src.lammi.</code><code class="descname">load_station</code><span class="sig-paren">(</span><em>station_path</em>, <em>station_name</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.load_station" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the station data from the LAMMI model. This is the data contains in Station.txt. It is not used
+by HABBY but it could be useful.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>station_path</strong> &#8211; the path to the station.txt file</li>
+<li><strong>transect_path</strong> &#8211; the path to the transect.txt path</li>
+<li><strong>facies_path</strong> &#8211; the path the facies.txt file</li>
+<li><strong>new_dir</strong> &#8211; if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt</li>
+<li><strong>station_name</strong> &#8211; the name of the station file, usually &#8216;Station.txt&#8217;</li>
+<li><strong>transect_name</strong> &#8211; the name of the transect file, usually &#8216;Transect.txt&#8217;</li>
+<li><strong>facies_name</strong> &#8211; the name of the facies file, usually &#8216;Facies.txt&#8217;</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the length of the station (list of float) and the id of the facies for each station (list of list)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.lammi.load_transect_data">
+<code class="descclassname">src.lammi.</code><code class="descname">load_transect_data</code><span class="sig-paren">(</span><em>fac_filename_all</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.load_transect_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the transect data. In this data, there are the subtrate, the height and the velocity data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fac_filename_all</strong> &#8211; the list of transect name organized by facies</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.lammi.main">
+<code class="descclassname">src.lammi.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to test this module</p>
+</dd></dl>
+
+</div>
 <div class="section" id="load-habby-hdf5-file">
 <h2>Load HABBY hdf5 file<a class="headerlink" href="#load-habby-hdf5-file" title="Permalink to this headline">¶</a></h2>
 <p>in src/load_hdf5.py</p>
@@ -4487,7 +4666,7 @@ is more adequate in this case.</p>
 <dl class="function">
 <dt id="src.manage_grid_8.inside_polygon">
 <code class="descclassname">src.manage_grid_8.</code><code class="descname">inside_polygon</code><span class="sig-paren">(</span><em>seg_poly</em>, <em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.inside_polygon" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function find if a point is inside a polygon, using a ray casting algorythm. It is called by various functions.</p>
+<dd><p>This function find if a point is inside a polygon, using a ray casting algorythm.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5582,7 +5761,7 @@ in the xml project file.</p>
 <div class="section" id="substrate">
 <h2>Substrate<a class="headerlink" href="#substrate" title="Permalink to this headline">¶</a></h2>
 <p>in src/substrate.py</p>
-<p>This module contains the function to manage the substrate data and to merge the grid with the substrate and hydrological data.</p>
+<p>This module contains the function to load and manage the substrate data.</p>
 <span class="target" id="module-src.substrate"></span><dl class="function">
 <dt id="src.substrate.create_dummy_substrate_from_hydro">
 <code class="descclassname">src.substrate.</code><code class="descname">create_dummy_substrate_from_hydro</code><span class="sig-paren">(</span><em>h5name</em>, <em>path</em>, <em>new_name</em>, <em>code_type</em>, <em>attribute_type</em>, <em>nb_point=200</em>, <em>path_out='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.create_dummy_substrate_from_hydro" title="Permalink to this definition">¶</a></dt>
@@ -5626,28 +5805,6 @@ of the LAMMI manual. THIS IS NOT RIGHT AS CLASS ARE NOT SPEAREATED IDENTICALLY, 
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> &#8211; the substrate data in code edf</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the substrate data in code cemagref</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.fig_merge_grid">
-<code class="descclassname">src.substrate.</code><code class="descname">fig_merge_grid</code><span class="sig-paren">(</span><em>point_all_both_t</em>, <em>ikle_both_t</em>, <em>path_im</em>, <em>ikle_orr=[]</em>, <em>point_all_orr=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.fig_merge_grid" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to plot the grid after it was merged with the substrate data.
-It plots one time step at the time.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>point_all_both_t</strong> &#8211; the coordinate of the points of the updated grid</li>
-<li><strong>ikle_both_t</strong> &#8211; the connectivity table</li>
-<li><strong>path_im</strong> &#8211; the path where the image should be saved</li>
-<li><strong>ikle_orr</strong> &#8211; the orginial ikle</li>
-<li><strong>point_all_orr</strong> &#8211; the orginal point_all</li>
-</ul>
-</td>
 </tr>
 </tbody>
 </table>
@@ -5702,30 +5859,6 @@ is [name(str), type (F,N), int, int]</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="src.substrate.get_new_vel_height_data">
-<code class="descclassname">src.substrate.</code><code class="descname">get_new_vel_height_data</code><span class="sig-paren">(</span><em>newp</em>, <em>point_old</em>, <em>data_old</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.get_new_vel_height_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function gets the height and velcoity data for a new point in or on the side of an element. It does an
-average of the data (velocity or height) given at the node of the original (old) elements. This average is weighted
-as a function of the distance of the point.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>newp</strong> &#8211; the coordinates of the new points</li>
-<li><strong>point_old</strong> &#8211; the coordinates of thre three old points (would work with more than three)</li>
-<li><strong>data_old</strong> &#8211; the data for the point in point_old</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new data</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="src.substrate.get_useful_attribute">
 <code class="descclassname">src.substrate.</code><code class="descname">get_useful_attribute</code><span class="sig-paren">(</span><em>attributes</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.get_useful_attribute" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function find if the substrate was given in percentage or coarser/dominant/accesory and get the attribute
@@ -5739,109 +5872,6 @@ attribute in order (S1, S2, S3) and not (S3, S1,S2) for this function and the ne
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The attribute type as int (percentage=1 and coarser/... = 0 and failed = -99) and the attribute names
 If we are in the attribute type 0, attribute list is in the order of: coarser, dominant, and accessory</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.grid_update_sub2">
-<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub2" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to find the updated grid with the substrate. More complicated than grid_update3 because it tries to makes
-new cell based on the lines linkes the centroid and the side of the trianlge. Looks more elegant at first but
-quite complicated and do not work for all cases. So it is not used.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ikle</strong> &#8211; the hydrological grid to be merge with the substrate grid</li>
-<li><strong>coord_p</strong> &#8211; the coordinate of the point of the hydrological grid</li>
-<li><strong>point_crossing</strong> &#8211; the crossing point, with the elemtn of the hydrological grid linked with it and the
-direction (nx,ny) of the substrate line at this point</li>
-<li><strong>coord_sub</strong> &#8211; the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-cell of the hydrological grid</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new grid</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.grid_update_sub3">
-<code class="descclassname">src.substrate.</code><code class="descname">grid_update_sub3</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>point_crossing</em>, <em>coord_sub</em>, <em>new_data_sub_pg</em>, <em>new_data_sub_dom</em>, <em>vel</em>, <em>height</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.grid_update_sub3" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function to update the grid after finding the crossing points and finsihed to get the substrate_data.
-We still needs to get the substrate data correclty for complicated geometry</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ikle</strong> &#8211; the hydrological grid to be merge with the substrate grid</li>
-<li><strong>coord_p</strong> &#8211; the coordinate of the point of the hydrological grid</li>
-<li><strong>point_crossing</strong> &#8211; the crossing point, with the elemtn of the hydrological grid linked with it and the
-direction (nx,ny) of the substrate line at this point</li>
-<li><strong>coord_sub</strong> &#8211; the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-cell of the hydrological grid</li>
-<li><strong>new_data_sub_pg</strong> &#8211; the coarser substrate data by hydrological cell (3 information by cells realted to
-the three points)</li>
-<li><strong>new_data_sub_dom</strong> &#8211; the dominant substrate data by hydrological cell (3 information by cells realted to
-the three points)</li>
-<li><strong>vel</strong> &#8211; the velocity (one time step, one reach) for each point in coord_p</li>
-<li><strong>height</strong> &#8211; the water height (one time step, one reach) for each point in coord_p</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new grid</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>** Technical comments**</p>
-<p>This function corrects all element of the grids where a crossing point have been found by the function point_cross2()</p>
-<p>First, we find on which side of the triangle is the crossing points.</p>
-<p>Next there are three cases: a) one one crossing point -&gt; no change b) two crossing points -&gt; done manually c)
-more than two crossing point on the elements -&gt; We call the extrenal module triangle to re-do a small triagulation
-into the element. This last cases covers many possible case, but it is slow. To optimize, we can think about writing
-more individual cases. The triangle module has the advtage of covering all cases, including special ones. However,
-nothing indicates the the internal triangulation would follow the side of the substrate cells. We only knowns that
-it will account for the crossing point between hydrological and substrate grid and for the substrate and
-hydrological points. This is sufficient in most cases, but there are cases where the trnagulation will not
-be reflected of the form of the subtrate grids.</p>
-<p>In the trianlge case, we do not have a good management of the substrate data yet. All new elements into in the
-old elements which do not touch one of the orginal trianlgular node are the given the first substrate data type.</p>
-<p>If a substrate cells is totally in the hydrological cells, it is considerated too small to be accounted for and
-it is neglected by the present function. It can be changed but it will be really slower as it would mean looping
-over all element (or to get a list of not found element in the function above).</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.intersec_cross">
-<code class="descclassname">src.substrate.</code><code class="descname">intersec_cross</code><span class="sig-paren">(</span><em>hyd1</em>, <em>hyd2</em>, <em>sub1</em>, <em>sub2</em>, <em>e=-99</em>, <em>nx=[]</em>, <em>ny=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.intersec_cross" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function function to calculate the intersection, segment are not parrallel,
-used in case where we know that the intersection exists
-Also save various info with the intersection (element, direction, etc.)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>hyd1</strong> &#8211; the first hydrological point</li>
-<li><strong>hyd2</strong> &#8211; the second</li>
-<li><strong>sub1</strong> &#8211; the first substrate point</li>
-<li><strong>sub2</strong> &#8211; the second</li>
-<li><strong>e</strong> &#8211; the element of the hydrological grid (optional)</li>
-<li><strong>nx</strong> &#8211; the direction of the cutting part of the substrate grid (x dir)</li>
-<li><strong>ny</strong> &#8211; the direction of the cutting part of the substrate grid (y dir)</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersection and the direction of cutting part.</p>
-</td>
 </tr>
 </tbody>
 </table>
@@ -5905,8 +5935,230 @@ and an array with substrate type and (x,y,sub) of the orginal data</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="src.substrate.merge_grid_and_save">
-<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_and_save</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>path_hdf5</em>, <em>default_data</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>q=[]</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_and_save" title="Permalink to this definition">¶</a></dt>
+<dt id="src.substrate.open_shp">
+<code class="descclassname">src.substrate.</code><code class="descname">open_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.open_shp" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open a ArcGIS shpaefile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> &#8211; the name of the shapefile</li>
+<li><strong>path</strong> &#8211; the path to this shapefile</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a shapefile object as define in the model</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.sandre_to_cemagref">
+<code class="descclassname">src.substrate.</code><code class="descname">sandre_to_cemagref</code><span class="sig-paren">(</span><em>records</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.sandre_to_cemagref" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function passes the substrate data from the code type &#8220;Sandre&#8221; to the code type &#8220;Cemagref&#8221;. This function is
+not optimized yet. For the definition of the code, see the tabular at the 14 of the LAMMI manual.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> &#8211; the substrate data in code samdre</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the substrate data in code cemagref</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="merge-the-grid">
+<h2>Merge the grid<a class="headerlink" href="#merge-the-grid" title="Permalink to this headline">¶</a></h2>
+<p>in src/mesh_grid2.py</p>
+<p>This module contains the function to merge the substrate grid and the hydrological grid.
+It cut the hydrological grid to the form of each of the substrate. An important hypothesis
+is that each polygon forming the subtrate should convex.</p>
+<span class="target" id="module-src.mesh_grid2"></span><dl class="function">
+<dt id="src.mesh_grid2.create_merge_grid">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">create_merge_grid</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>data_sub_pg</em>, <em>data_sub_dom</em>, <em>vel</em>, <em>height</em>, <em>ikle_sub</em>, <em>default_data</em>, <em>data_crossing</em>, <em>sub_cell</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.create_merge_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to update the grid after finding the crossing points. It also get the substrate_data for each cell
+of the new grid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the hydrological grid to be merge with the substrate grid</li>
+<li><strong>coord_p</strong> &#8211; the coordinate of the point of the hydrological grid</li>
+<li><strong>data_sub_pg</strong> &#8211; the coarser substrate data by hydrological cell (3 information by cells realted to
+the three points)</li>
+<li><strong>data_sub_dom</strong> &#8211; the dominant substrate data by hydrological cell (3 information by cells realted to
+the three points)</li>
+<li><strong>vel</strong> &#8211; the velocity (one time step, one reach) for each point in coord_p</li>
+<li><strong>height</strong> &#8211; the water height (one time step, one reach) for each point in coord_p</li>
+<li><strong>ikle_sub</strong> &#8211; the connectivity table for the substrate</li>
+<li><strong>default_data</strong> &#8211; the default substrate data</li>
+<li><strong>data_crossing</strong> &#8211; the hydrological elment with a crossing and the info for this crossing (a list of list)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new grid</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments</strong></p>
+<p>This function corrects all element of the grids where a crossing point have been found by the
+function find_sub_and_cross()</p>
+<p>There are three cases:</p>
+<ol class="loweralpha simple">
+<li>one crossing point -&gt; no change</li>
+<li>two crossing points and subtrate point inside -&gt; done manually. We take the two crossing point and the side on
+which the crossing is done. Based on this, we correct the grid.</li>
+<li>more than two crossing point on the elements -&gt; We call the extrenal module
+triangle to re-do some triagulations into the element. This last cases covers many possible case, but it is slow.
+To optimize, we can think about writing more individual cases. To follow the border of each subtrate cell in
+the &#8220;special cell&#8221;, we do one triangulation by subtrate element, so we can have two or three triangulation.
+It is also important there that the substrate is convex as the triangulation is not constrained.</li>
+</ol>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mesh_grid2.fig_merge_grid">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">fig_merge_grid</code><span class="sig-paren">(</span><em>point_all_both_t</em>, <em>ikle_both_t</em>, <em>path_im</em>, <em>ikle_orr=[]</em>, <em>point_all_orr=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.fig_merge_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function to plot the grid after it was merged with the substrate data.
+It plots one time step at the time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>point_all_both_t</strong> &#8211; the coordinate of the points of the updated grid</li>
+<li><strong>ikle_both_t</strong> &#8211; the connectivity table</li>
+<li><strong>path_im</strong> &#8211; the path where the image should be saved</li>
+<li><strong>ikle_orr</strong> &#8211; the orginial ikle</li>
+<li><strong>point_all_orr</strong> &#8211; the orginal point_all</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mesh_grid2.find_sub_and_cross">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">find_sub_and_cross</code><span class="sig-paren">(</span><em>ikle_sub</em>, <em>coord_p_sub</em>, <em>ikle</em>, <em>coord_p</em>, <em>data_sub_pg</em>, <em>data_sub_dom</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.find_sub_and_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function which find where the crossing points are. Crossing points are the points on the triangular side of the
+hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
+are in the same polygon using a ray casting method. We assume that the polygon forming the subtrate grid are convex.
+Otherwise it would not work in all cases. We could do a small function to test or correct this.
+We also neglect the case where a substrate cell at the border of the subtrate grid is fully in a hydrological cell.</p>
+<p>IMPORTANT: polygon should be convex.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle_sub</strong> &#8211; the connectivity table for the substrate</li>
+<li><strong>coord_p_sub</strong> &#8211; the coordinates of the poitn forming the subtrate</li>
+<li><strong>ikle</strong> &#8211; the connectivity table for the hydrology</li>
+<li><strong>coord_p</strong> &#8211; the coordinate of the hydrology</li>
+<li><strong>data_sub_dom</strong> &#8211; the subtrate data by subtrate cell (dominant)</li>
+<li><strong>data_sub_pg</strong> &#8211; the substrate data by substrate cell (coarser)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new substrate grid (ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom, sub_cell), the data for
+the crossing point (hydrological element with a crossing, crossing point, substrate element linked with
+the crossing point, point of substrate inside, substrate element linked with the substrate point,
+side of the crossing points, substrate leemnt link with hydro_point).</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mesh_grid2.get_new_vel_height_data">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">get_new_vel_height_data</code><span class="sig-paren">(</span><em>newp</em>, <em>point_old</em>, <em>data_old</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.get_new_vel_height_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets the height and velcoity data for a new point in or on the side of an element. It does an
+average of the data (velocity or height) given at the node of the original (old) elements. This average is weighted
+as a function of the distance of the point.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>newp</strong> &#8211; the coordinates of the new points</li>
+<li><strong>point_old</strong> &#8211; the coordinates of thre three old points (would work with more than three)</li>
+<li><strong>data_old</strong> &#8211; the data for the point in point_old</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the new data</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mesh_grid2.inside_trigon">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">inside_trigon</code><span class="sig-paren">(</span><em>pt</em>, <em>p0</em>, <em>p1</em>, <em>p2</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.inside_trigon" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function check if a point is in a triangle using the barycentric coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pt</strong> &#8211; the point to determine if it is in or not</li>
+<li><strong>p0</strong> &#8211; the first point of triangle</li>
+<li><strong>p1</strong> &#8211; the second point of triangle</li>
+<li><strong>p2</strong> &#8211; the third point of triangle</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A boolean (Ture if pt inside of triangle)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mesh_grid2.intersec_cross">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">intersec_cross</code><span class="sig-paren">(</span><em>hyd1</em>, <em>hyd2</em>, <em>sub1</em>, <em>sub2</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.intersec_cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function function to calculate the intersection, segment are not parrallel,
+used in case where we know that the intersection exists</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hyd1</strong> &#8211; the first hydrological point</li>
+<li><strong>hyd2</strong> &#8211; the second</li>
+<li><strong>sub1</strong> &#8211; the first substrate point</li>
+<li><strong>sub2</strong> &#8211; the second</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersection</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mesh_grid2.main">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used to test this module.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.mesh_grid2.merge_grid_and_save">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">merge_grid_and_save</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>path_hdf5</em>, <em>default_data</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>q=[]</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.merge_grid_and_save" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function call the merging of the grid between the grid from the hydrological data and the substrate data.
 It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
 thread to avoid freezin gthe GUI. This is why we have this extra-function just to call save_hdf5() and
@@ -5933,12 +6185,11 @@ merge_grid_hydro_sub().</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="src.substrate.merge_grid_hydro_sub">
-<code class="descclassname">src.substrate.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>path_hdf5</em>, <em>default_data</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
+<dt id="src.mesh_grid2.merge_grid_hydro_sub">
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">merge_grid_hydro_sub</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>hdf5_name_sub</em>, <em>path_hdf5</em>, <em>default_data=1</em>, <em>path_prj=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.merge_grid_hydro_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>After the data for the substrate and the hydrological data are loaded, they are still in different grids.
 This functions will merge both grid together. This is done for all time step and all reaches. If a
 constant substrate is there, the hydrological hdf5 is just copied.</p>
-<p>!TO BE CORRECTED if there is more than one intersection on a substrate side!</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -5954,96 +6205,6 @@ constant substrate is there, the hydrological hdf5 is just copied.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.</p>
 </td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.open_shp">
-<code class="descclassname">src.substrate.</code><code class="descname">open_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.open_shp" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function open a ArcGIS shpaefile.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> &#8211; the name of the shapefile</li>
-<li><strong>path</strong> &#8211; the path to this shapefile</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a shapefile object as define in the model</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.point_cross2">
-<code class="descclassname">src.substrate.</code><code class="descname">point_cross2</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em>, <em>data_sub_pg</em>, <em>data_sub_dom</em>, <em>default_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross2" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function which find where the crossing points are. Crossing points are the points on the triangular side of the
-hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
-are in the same polygon using a ray casting method</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ikle</strong> &#8211; the connectivity table for the hydrological data</li>
-<li><strong>coord_p</strong> &#8211; the coordinates of the points of the hydrological grid</li>
-<li><strong>ikle_sub</strong> &#8211; the connecity vity table of the substrate</li>
-<li><strong>coord_p_sub</strong> &#8211; the coordinates of the points of the substrate grid</li>
-<li><strong>data_sub_pg</strong> &#8211; the data of the coaser  substrate in cemargef code(one data by cell)</li>
-<li><strong>data_sub_dom</strong> &#8211; the data of the  dominant substratein cemargef code(one data by cell)</li>
-<li><strong>default_sub</strong> &#8211; the default_data</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersection</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.point_cross_bis">
-<code class="descclassname">src.substrate.</code><code class="descname">point_cross_bis</code><span class="sig-paren">(</span><em>ikle</em>, <em>coord_p</em>, <em>ikle_sub</em>, <em>coord_p_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.point_cross_bis" title="Permalink to this definition">¶</a></dt>
-<dd><p>A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
-hydrological grid which cross with a side of the substrate grid. Easier than point_cross 2 but slow.         So it is not used.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>ikle</strong> &#8211; the connectivity table for the hydrological data</li>
-<li><strong>coord_p</strong> &#8211; the coordinates of the points of the hydrological grid</li>
-<li><strong>ikle_sub</strong> &#8211; the connecity vity table of the substrate</li>
-<li><strong>coord_p_sub</strong> &#8211; the coordinates of the points of the substrate grid</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">intersection</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="src.substrate.sandre_to_cemagref">
-<code class="descclassname">src.substrate.</code><code class="descname">sandre_to_cemagref</code><span class="sig-paren">(</span><em>records</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.sandre_to_cemagref" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function passes the substrate data from the code type &#8220;Sandre&#8221; to the code type &#8220;Cemagref&#8221;. This function is
-not optimized yet. For the definition of the code, see the tabular at the 14 of the LAMMI manual.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> &#8211; the substrate data in code samdre</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">the substrate data in code cemagref</td>
 </tr>
 </tbody>
 </table>
@@ -6955,6 +7116,7 @@ fail.</p>
 <li><a class="reference internal" href="#river-2d">River 2D</a></li>
 <li><a class="reference internal" href="#rubar">Rubar</a></li>
 <li><a class="reference internal" href="#telemac">Telemac</a></li>
+<li><a class="reference internal" href="#lammi">LAMMI</a></li>
 <li><a class="reference internal" href="#load-habby-hdf5-file">Load HABBY hdf5 file</a><ul>
 <li><a class="reference internal" href="#form-of-the-hdf5-files">Form of the hdf5 files</a></li>
 </ul>
@@ -6965,6 +7127,7 @@ fail.</p>
 <li><a class="reference internal" href="#stathab-source">Stathab - source</a></li>
 <li><a class="reference internal" href="#fstress-source">FStress - source</a></li>
 <li><a class="reference internal" href="#substrate">Substrate</a></li>
+<li><a class="reference internal" href="#merge-the-grid">Merge the grid</a></li>
 <li><a class="reference internal" href="#biological-info">Biological Info</a></li>
 <li><a class="reference internal" href="#calculation-habitat">Calculation habitat</a></li>
 <li><a class="reference internal" href="#create-paraview-files">Create Paraview Files</a></li>

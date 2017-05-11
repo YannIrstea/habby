@@ -241,6 +241,16 @@ This module contains the functions used to load the Telemac data.
    :members:
    :undoc-members:
 
+LAMMI
+------------------------
+in src/lammi.py
+
+This module contains functions used to load data from LAMMI. For more information on LAMMI, please see the pdf document :download:`LAMMI.pdf <LAMMIGuideMetho.pdf>`
+
+.. automodule:: src.lammi
+   :members:
+   :undoc-members:
+
 
 Load HABBY hdf5 file
 --------------------------------------
@@ -349,9 +359,21 @@ Substrate
 -------------------
 in src/substrate.py
 
-This module contains the function to manage the substrate data and to merge the grid with the substrate and hydrological data.
+This module contains the function to load and manage the substrate data.
 
 .. automodule:: src.substrate
+   :members:
+   :undoc-members:
+
+Merge the grid
+------------------
+in src/mesh_grid2.py
+
+This module contains the function to merge the substrate grid and the hydrological grid.
+It cut the hydrological grid to the form of each of the substrate. An important hypothesis
+is that each polygon forming the subtrate should convex.
+
+.. automodule:: src.mesh_grid2
    :members:
    :undoc-members:
 

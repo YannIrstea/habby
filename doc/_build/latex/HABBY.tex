@@ -41,7 +41,7 @@
 
 
 \title{HABBY Documentation}
-\date{Apr 19, 2017}
+\date{May 11, 2017}
 \release{1}
 \author{Diane von Gunten, Yann Le Coarer and Fabrice Zaoui}
 \newcommand{\sphinxlogo}{}
@@ -59,7 +59,7 @@ HABBY is a program to estimate the habitat of fish using various hydrological mo
 
 
 \chapter{How to execute HABBY}
-\label{\detokenize{index:welcome-to-habby-s-documentation}}\label{\detokenize{index:how-to-execute-habby}}\begin{description}
+\label{\detokenize{index:how-to-execute-habby}}\label{\detokenize{index:welcome-to-habby-s-documentation}}\begin{description}
 \item[{To execute HABBY:}] \leavevmode\begin{itemize}
 \item {} 
 Go to folder which contains habby.py using the command line.
@@ -4851,6 +4851,242 @@ It is not used direclty by HABBY.
 
 
 
+\section{LAMMI}
+\label{\detokenize{index:lammi}}
+in src/lammi.py
+
+This module contains functions used to load data from LAMMI. For more information on LAMMI, please see the pdf document \sphinxcode{LAMMI.pdf}
+\phantomsection\label{\detokenize{index:module-src.lammi}}\index{src.lammi (module)}\index{coord\_lammi() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.coord_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{coord\_lammi}}{\emph{dist\_all}, \emph{vel\_all}, \emph{height\_all}, \emph{sub\_all}, \emph{length\_all}}{}
+This function takes the data from the lammi outputs and get the coordinate for the river. It also
+reform the data to put it in the needed for HABBY (as the other 1.5D hydraulic model as hec\_ras).
+
+To get the coordinates, we assume that the river is straight, that each facies is one after the other and
+that the river passes by the deepest point of the profile. In addition we assume that the profile are straight
+and perpendicular to the river.
+
+We loop through all the profiles for all reach all time steps. For each profile, the x coordinate is identical
+for all point of the profile and is calculated using length\_all. When a new reach starts, a meter is added to the x
+coordinate. To find the y coordainte, we first pass from cell data (in lammi) to point data. The poitn are in the
+center of the cell. In addtion, one point is added at the start an end of the profile with a water heigth of zero.
+Then, we find the height water height and we assume that the passes there. There is the zeros y-ccordinates.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{dist\_all} -- the distance along profile by reach (or facies) and by time step
+
+\item {} 
+\sphinxstyleliteralstrong{vel\_all} -- the velocity along profile by reach (or facies) and by time step
+
+\item {} 
+\sphinxstyleliteralstrong{height\_all} -- the height along profile by reach (or facies) and by time step
+
+\item {} 
+\sphinxstyleliteralstrong{sub\_all} -- the substrate data along profile by reach (or facies) and by time step. Eacu subtrate data is a list
+of eight number representing the percentage of each of the eight subtrate class.
+
+\item {} 
+\sphinxstyleliteralstrong{length\_all} -- the distance between profile
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+coord\_pro, nb\_pro\_reach and vh\_pro in the same form as in hec-ras (final form)
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{fig\_lammi() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.fig_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{fig\_lammi}}{\emph{vh\_pro}, \emph{coord\_pro}, \emph{nb\_pro\_reach}, \emph{pro\_num}, \emph{sim\_num}, \emph{fig\_opt}, \emph{path\_im}}{}
+This function create a figure with the loaded lammi data.
+It work only for one time steps gven by the number sim\_num.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{vh\_pro} -- dist along the profile, height, vel
+
+\item {} 
+\sphinxstyleliteralstrong{coord\_pro} -- x,y, dist along profile, height
+
+\item {} 
+\sphinxstyleliteralstrong{nb\_pro\_reach} -- the number of profile by reach
+
+\item {} 
+\sphinxstyleliteralstrong{pro\_num} -- the profile to plot
+
+\item {} 
+\sphinxstyleliteralstrong{sim\_num} -- the time step (or simuation) to plot
+
+\item {} 
+\sphinxstyleliteralstrong{fig\_opt} -- the option for the figure
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- path path where to save the figure
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{get\_transect\_filename() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.get_transect_filename}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{get\_transect\_filename}}{\emph{facies\_path}, \emph{facies\_name}, \emph{transect\_path}, \emph{transect\_name}, \emph{new\_dir}}{}
+For each facies, we obtain the name of the transect file and the length of this reach
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{facies\_path} -- the path the facies.txt file
+
+\item {} 
+\sphinxstyleliteralstrong{facies\_name} -- the name of the facies file, usually `Facies.txt'
+
+\item {} 
+\sphinxstyleliteralstrong{transect\_path} -- the path to the transect.txt path
+
+\item {} 
+\sphinxstyleliteralstrong{transect\_name} -- the name of the transect file, usually `Transect.txt'
+
+\item {} 
+\sphinxstyleliteralstrong{new\_dir} -- If the folder with the transect have been moved, this argument allos it to be corrected without
+modification to transect.txt
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the length of each transect (arranged by facies and station) and the filename with the transect info
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{load\_lammi() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.load_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{load\_lammi}}{\emph{facies\_path}, \emph{transect\_path}, \emph{path\_im}, \emph{new\_dir='`}, \emph{fig\_opt={[}{]}}, \emph{transect\_name='Transect.txt'}, \emph{facies\_name='Facies.txt'}}{}
+This function loads the data from the LAMMI model. A description of the LAMMI model is available in the
+documentation folder (LAMMIGuideMetho.pdf).
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{transect\_path} -- the path to the transect.txt path
+
+\item {} 
+\sphinxstyleliteralstrong{facies\_path} -- the path the facies.txt file
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- the path where to save the image
+
+\item {} 
+\sphinxstyleliteralstrong{fig\_opt} -- the figure option
+
+\item {} 
+\sphinxstyleliteralstrong{new\_dir} -- if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
+
+\item {} 
+\sphinxstyleliteralstrong{transect\_name} -- the name of the transect file, usually `Transect.txt'
+
+\item {} 
+\sphinxstyleliteralstrong{facies\_name} -- the name of the facies file, usually `Facies.txt'
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+
+
+\end{description}\end{quote}
+
+\sphinxstylestrong{Technical Comments}
+
+LAMMI is organised aroung group of transects. Transect are river profile which describe the river geometry.
+In LAMMI, there are four way of grouping transect. The facies is the a group a transect which is considered by HABBY
+to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is possible
+to use the function ``load\_station'' to get the station info if needed. The group Secteur are used in case where
+water is brought to the river.
+
+To load LAMMI data, we first load the facies file, which gives which transect are in which facies. Then, we use
+the transect file to know the length of each transect (length between transects along the river) and the
+name of the file containing the transect precise data. The name of the file is an absolute path to the file.
+This can be annoying if one want to move the files. Hence, we add the variable new\_dir which correct the transect
+file in case the files containing the transect data have been moved (they should however all be in the same
+directory). This is done by the function get\_transect\_name().
+
+Then it uses the function load\_transect\_data to read all this data , file by file. Consequentely, we have
+the data in memory but no(x,y) coordinate. In addition, this data is is in the different form than in the other
+hydraulic model.
+
+To obtain the coordainte of the river and to put the data is the form usually needed by HABBY for 1.5D model
+(coord\_pro, vh\_pro, nb\_pro\_reach), we use the coord\_lammi() function.
+
+\end{fulllineitems}
+
+\index{load\_station() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.load_station}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{load\_station}}{\emph{station\_path}, \emph{station\_name}}{}
+This function loads the station data from the LAMMI model. This is the data contains in Station.txt. It is not used
+by HABBY but it could be useful.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{station\_path} -- the path to the station.txt file
+
+\item {} 
+\sphinxstyleliteralstrong{transect\_path} -- the path to the transect.txt path
+
+\item {} 
+\sphinxstyleliteralstrong{facies\_path} -- the path the facies.txt file
+
+\item {} 
+\sphinxstyleliteralstrong{new\_dir} -- if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
+
+\item {} 
+\sphinxstyleliteralstrong{station\_name} -- the name of the station file, usually `Station.txt'
+
+\item {} 
+\sphinxstyleliteralstrong{transect\_name} -- the name of the transect file, usually `Transect.txt'
+
+\item {} 
+\sphinxstyleliteralstrong{facies\_name} -- the name of the facies file, usually `Facies.txt'
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the length of the station (list of float) and the id of the facies for each station (list of list)
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{load\_transect\_data() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.load_transect_data}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{load\_transect\_data}}{\emph{fac\_filename\_all}}{}
+This function loads the transect data. In this data, there are the subtrate, the height and the velocity data.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{fac\_filename\_all} -- the list of transect name organized by facies
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{main() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.main}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{main}}{}{}
+Used to test this module
+
+\end{fulllineitems}
+
+
+
 \section{Load HABBY hdf5 file}
 \label{\detokenize{index:load-habby-hdf5-file}}
 in src/load\_hdf5.py
@@ -5891,7 +6127,7 @@ is more adequate in this case.
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.manage_grid_8.inside_polygon}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{inside\_polygon}}{\emph{seg\_poly}, \emph{point}}{}
-This function find if a point is inside a polygon, using a ray casting algorythm. It is called by various functions.
+This function find if a point is inside a polygon, using a ray casting algorythm.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -7203,7 +7439,7 @@ This function writes the txt outputs for FStress
 \label{\detokenize{index:substrate}}
 in src/substrate.py
 
-This module contains the function to manage the substrate data and to merge the grid with the substrate and hydrological data.
+This module contains the function to load and manage the substrate data.
 \phantomsection\label{\detokenize{index:module-src.substrate}}\index{src.substrate (module)}\index{create\_dummy\_substrate\_from\_hydro() (in module src.substrate)}
 
 \begin{fulllineitems}
@@ -7259,35 +7495,6 @@ of the LAMMI manual. THIS IS NOT RIGHT AS CLASS ARE NOT SPEAREATED IDENTICALLY, 
 
 \item[{Returns}] \leavevmode
 the substrate data in code cemagref
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{fig\_merge\_grid() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.fig_merge_grid}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{fig\_merge\_grid}}{\emph{point\_all\_both\_t}, \emph{ikle\_both\_t}, \emph{path\_im}, \emph{ikle\_orr={[}{]}}, \emph{point\_all\_orr={[}{]}}}{}
-A function to plot the grid after it was merged with the substrate data.
-It plots one time step at the time.
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{point\_all\_both\_t} -- the coordinate of the points of the updated grid
-
-\item {} 
-\sphinxstyleliteralstrong{ikle\_both\_t} -- the connectivity table
-
-\item {} 
-\sphinxstyleliteralstrong{path\_im} -- the path where the image should be saved
-
-\item {} 
-\sphinxstyleliteralstrong{ikle\_orr} -- the orginial ikle
-
-\item {} 
-\sphinxstyleliteralstrong{point\_all\_orr} -- the orginal point\_all
-
-\end{itemize}
 
 \end{description}\end{quote}
 
@@ -7357,33 +7564,6 @@ is {[}name(str), type (F,N), int, int{]}
 
 \end{fulllineitems}
 
-\index{get\_new\_vel\_height\_data() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.get_new_vel_height_data}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{get\_new\_vel\_height\_data}}{\emph{newp}, \emph{point\_old}, \emph{data\_old}}{}
-This function gets the height and velcoity data for a new point in or on the side of an element. It does an
-average of the data (velocity or height) given at the node of the original (old) elements. This average is weighted
-as a function of the distance of the point.
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{newp} -- the coordinates of the new points
-
-\item {} 
-\sphinxstyleliteralstrong{point\_old} -- the coordinates of thre three old points (would work with more than three)
-
-\item {} 
-\sphinxstyleliteralstrong{data\_old} -- the data for the point in point\_old
-
-\end{itemize}
-
-\item[{Returns}] \leavevmode
-the new data
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
 \index{get\_useful\_attribute() (in module src.substrate)}
 
 \begin{fulllineitems}
@@ -7398,144 +7578,6 @@ attribute in order (S1, S2, S3) and not (S3, S1,S2) for this function and the ne
 \item[{Returns}] \leavevmode
 The attribute type as int (percentage=1 and coarser/... = 0 and failed = -99) and the attribute names
 If we are in the attribute type 0, attribute list is in the order of: coarser, dominant, and accessory
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{grid\_update\_sub2() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.grid_update_sub2}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{grid\_update\_sub2}}{\emph{ikle}, \emph{coord\_p}, \emph{point\_crossing}, \emph{coord\_sub}}{}
-A function to find the updated grid with the substrate. More complicated than grid\_update3 because it tries to makes
-new cell based on the lines linkes the centroid and the side of the trianlge. Looks more elegant at first but
-quite complicated and do not work for all cases. So it is not used.
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{ikle} -- the hydrological grid to be merge with the substrate grid
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_p} -- the coordinate of the point of the hydrological grid
-
-\item {} 
-\sphinxstyleliteralstrong{point\_crossing} -- the crossing point, with the elemtn of the hydrological grid linked with it and the
-direction (nx,ny) of the substrate line at this point
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_sub} -- the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-cell of the hydrological grid
-
-\end{itemize}
-
-\item[{Returns}] \leavevmode
-the new grid
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{grid\_update\_sub3() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.grid_update_sub3}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{grid\_update\_sub3}}{\emph{ikle}, \emph{coord\_p}, \emph{point\_crossing}, \emph{coord\_sub}, \emph{new\_data\_sub\_pg}, \emph{new\_data\_sub\_dom}, \emph{vel}, \emph{height}}{}
-A function to update the grid after finding the crossing points and finsihed to get the substrate\_data.
-We still needs to get the substrate data correclty for complicated geometry
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{ikle} -- the hydrological grid to be merge with the substrate grid
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_p} -- the coordinate of the point of the hydrological grid
-
-\item {} 
-\sphinxstyleliteralstrong{point\_crossing} -- the crossing point, with the elemtn of the hydrological grid linked with it and the
-direction (nx,ny) of the substrate line at this point
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_sub} -- the coordinate of the substrate, only useful to if the the substrate cut two time the samie of a
-cell of the hydrological grid
-
-\item {} 
-\sphinxstyleliteralstrong{new\_data\_sub\_pg} -- the coarser substrate data by hydrological cell (3 information by cells realted to
-the three points)
-
-\item {} 
-\sphinxstyleliteralstrong{new\_data\_sub\_dom} -- the dominant substrate data by hydrological cell (3 information by cells realted to
-the three points)
-
-\item {} 
-\sphinxstyleliteralstrong{vel} -- the velocity (one time step, one reach) for each point in coord\_p
-
-\item {} 
-\sphinxstyleliteralstrong{height} -- the water height (one time step, one reach) for each point in coord\_p
-
-\end{itemize}
-
-\item[{Returns}] \leavevmode
-the new grid
-
-\end{description}\end{quote}
-
-** Technical comments**
-
-This function corrects all element of the grids where a crossing point have been found by the function point\_cross2()
-
-First, we find on which side of the triangle is the crossing points.
-
-Next there are three cases: a) one one crossing point -\textgreater{} no change b) two crossing points -\textgreater{} done manually c)
-more than two crossing point on the elements -\textgreater{} We call the extrenal module triangle to re-do a small triagulation
-into the element. This last cases covers many possible case, but it is slow. To optimize, we can think about writing
-more individual cases. The triangle module has the advtage of covering all cases, including special ones. However,
-nothing indicates the the internal triangulation would follow the side of the substrate cells. We only knowns that
-it will account for the crossing point between hydrological and substrate grid and for the substrate and
-hydrological points. This is sufficient in most cases, but there are cases where the trnagulation will not
-be reflected of the form of the subtrate grids.
-
-In the trianlge case, we do not have a good management of the substrate data yet. All new elements into in the
-old elements which do not touch one of the orginal trianlgular node are the given the first substrate data type.
-
-If a substrate cells is totally in the hydrological cells, it is considerated too small to be accounted for and
-it is neglected by the present function. It can be changed but it will be really slower as it would mean looping
-over all element (or to get a list of not found element in the function above).
-
-\end{fulllineitems}
-
-\index{intersec\_cross() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.intersec_cross}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{intersec\_cross}}{\emph{hyd1}, \emph{hyd2}, \emph{sub1}, \emph{sub2}, \emph{e=-99}, \emph{nx={[}{]}}, \emph{ny={[}{]}}}{}
-A function function to calculate the intersection, segment are not parrallel,
-used in case where we know that the intersection exists
-Also save various info with the intersection (element, direction, etc.)
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{hyd1} -- the first hydrological point
-
-\item {} 
-\sphinxstyleliteralstrong{hyd2} -- the second
-
-\item {} 
-\sphinxstyleliteralstrong{sub1} -- the first substrate point
-
-\item {} 
-\sphinxstyleliteralstrong{sub2} -- the second
-
-\item {} 
-\sphinxstyleliteralstrong{e} -- the element of the hydrological grid (optional)
-
-\item {} 
-\sphinxstyleliteralstrong{nx} -- the direction of the cutting part of the substrate grid (x dir)
-
-\item {} 
-\sphinxstyleliteralstrong{ny} -- the direction of the cutting part of the substrate grid (y dir)
-
-\end{itemize}
-
-\item[{Returns}] \leavevmode
-intersection and the direction of cutting part.
 
 \end{description}\end{quote}
 
@@ -7608,10 +7650,291 @@ Used to test this module.
 
 \end{fulllineitems}
 
-\index{merge\_grid\_and\_save() (in module src.substrate)}
+\index{open\_shp() (in module src.substrate)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.merge_grid_and_save}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{merge\_grid\_and\_save}}{\emph{hdf5\_name\_hyd}, \emph{hdf5\_name\_sub}, \emph{path\_hdf5}, \emph{default\_data}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{q={[}{]}}, \emph{print\_cmd=False}}{}
+\phantomsection\label{\detokenize{index:src.substrate.open_shp}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{open\_shp}}{\emph{filename}, \emph{path}}{}
+This function open a ArcGIS shpaefile.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{filename} -- the name of the shapefile
+
+\item {} 
+\sphinxstyleliteralstrong{path} -- the path to this shapefile
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+a shapefile object as define in the model
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{sandre\_to\_cemagref() (in module src.substrate)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.substrate.sandre_to_cemagref}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{sandre\_to\_cemagref}}{\emph{records}}{}
+This function passes the substrate data from the code type ``Sandre'' to the code type ``Cemagref''. This function is
+not optimized yet. For the definition of the code, see the tabular at the 14 of the LAMMI manual.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{records} -- the substrate data in code samdre
+
+\item[{Returns}] \leavevmode
+the substrate data in code cemagref
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+
+\section{Merge the grid}
+\label{\detokenize{index:merge-the-grid}}
+in src/mesh\_grid2.py
+
+This module contains the function to merge the substrate grid and the hydrological grid.
+It cut the hydrological grid to the form of each of the substrate. An important hypothesis
+is that each polygon forming the subtrate should convex.
+\phantomsection\label{\detokenize{index:module-src.mesh_grid2}}\index{src.mesh\_grid2 (module)}\index{create\_merge\_grid() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.create_merge_grid}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{create\_merge\_grid}}{\emph{ikle}, \emph{coord\_p}, \emph{data\_sub\_pg}, \emph{data\_sub\_dom}, \emph{vel}, \emph{height}, \emph{ikle\_sub}, \emph{default\_data}, \emph{data\_crossing}, \emph{sub\_cell}}{}
+A function to update the grid after finding the crossing points. It also get the substrate\_data for each cell
+of the new grid.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{ikle} -- the hydrological grid to be merge with the substrate grid
+
+\item {} 
+\sphinxstyleliteralstrong{coord\_p} -- the coordinate of the point of the hydrological grid
+
+\item {} 
+\sphinxstyleliteralstrong{data\_sub\_pg} -- the coarser substrate data by hydrological cell (3 information by cells realted to
+the three points)
+
+\item {} 
+\sphinxstyleliteralstrong{data\_sub\_dom} -- the dominant substrate data by hydrological cell (3 information by cells realted to
+the three points)
+
+\item {} 
+\sphinxstyleliteralstrong{vel} -- the velocity (one time step, one reach) for each point in coord\_p
+
+\item {} 
+\sphinxstyleliteralstrong{height} -- the water height (one time step, one reach) for each point in coord\_p
+
+\item {} 
+\sphinxstyleliteralstrong{ikle\_sub} -- the connectivity table for the substrate
+
+\item {} 
+\sphinxstyleliteralstrong{default\_data} -- the default substrate data
+
+\item {} 
+\sphinxstyleliteralstrong{data\_crossing} -- the hydrological elment with a crossing and the info for this crossing (a list of list)
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the new grid
+
+\end{description}\end{quote}
+
+\sphinxstylestrong{Technical comments}
+
+This function corrects all element of the grids where a crossing point have been found by the
+function find\_sub\_and\_cross()
+
+There are three cases:
+\begin{enumerate}
+\item {} 
+one crossing point -\textgreater{} no change
+
+\item {} 
+two crossing points and subtrate point inside -\textgreater{} done manually. We take the two crossing point and the side on
+which the crossing is done. Based on this, we correct the grid.
+
+\item {} 
+more than two crossing point on the elements -\textgreater{} We call the extrenal module
+triangle to re-do some triagulations into the element. This last cases covers many possible case, but it is slow.
+To optimize, we can think about writing more individual cases. To follow the border of each subtrate cell in
+the ``special cell'', we do one triangulation by subtrate element, so we can have two or three triangulation.
+It is also important there that the substrate is convex as the triangulation is not constrained.
+
+\end{enumerate}
+
+\end{fulllineitems}
+
+\index{fig\_merge\_grid() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.fig_merge_grid}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{fig\_merge\_grid}}{\emph{point\_all\_both\_t}, \emph{ikle\_both\_t}, \emph{path\_im}, \emph{ikle\_orr={[}{]}}, \emph{point\_all\_orr={[}{]}}}{}
+A function to plot the grid after it was merged with the substrate data.
+It plots one time step at the time.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{point\_all\_both\_t} -- the coordinate of the points of the updated grid
+
+\item {} 
+\sphinxstyleliteralstrong{ikle\_both\_t} -- the connectivity table
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- the path where the image should be saved
+
+\item {} 
+\sphinxstyleliteralstrong{ikle\_orr} -- the orginial ikle
+
+\item {} 
+\sphinxstyleliteralstrong{point\_all\_orr} -- the orginal point\_all
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{find\_sub\_and\_cross() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.find_sub_and_cross}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{find\_sub\_and\_cross}}{\emph{ikle\_sub}, \emph{coord\_p\_sub}, \emph{ikle}, \emph{coord\_p}, \emph{data\_sub\_pg}, \emph{data\_sub\_dom}}{}
+A function which find where the crossing points are. Crossing points are the points on the triangular side of the
+hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
+are in the same polygon using a ray casting method. We assume that the polygon forming the subtrate grid are convex.
+Otherwise it would not work in all cases. We could do a small function to test or correct this.
+We also neglect the case where a substrate cell at the border of the subtrate grid is fully in a hydrological cell.
+
+IMPORTANT: polygon should be convex.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{ikle\_sub} -- the connectivity table for the substrate
+
+\item {} 
+\sphinxstyleliteralstrong{coord\_p\_sub} -- the coordinates of the poitn forming the subtrate
+
+\item {} 
+\sphinxstyleliteralstrong{ikle} -- the connectivity table for the hydrology
+
+\item {} 
+\sphinxstyleliteralstrong{coord\_p} -- the coordinate of the hydrology
+
+\item {} 
+\sphinxstyleliteralstrong{data\_sub\_dom} -- the subtrate data by subtrate cell (dominant)
+
+\item {} 
+\sphinxstyleliteralstrong{data\_sub\_pg} -- the substrate data by substrate cell (coarser)
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the new substrate grid (ikle\_sub, coord\_p\_sub, data\_sub\_pg, data\_sub\_dom, sub\_cell), the data for
+the crossing point (hydrological element with a crossing, crossing point, substrate element linked with
+the crossing point, point of substrate inside, substrate element linked with the substrate point,
+side of the crossing points, substrate leemnt link with hydro\_point).
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{get\_new\_vel\_height\_data() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.get_new_vel_height_data}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{get\_new\_vel\_height\_data}}{\emph{newp}, \emph{point\_old}, \emph{data\_old}}{}
+This function gets the height and velcoity data for a new point in or on the side of an element. It does an
+average of the data (velocity or height) given at the node of the original (old) elements. This average is weighted
+as a function of the distance of the point.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{newp} -- the coordinates of the new points
+
+\item {} 
+\sphinxstyleliteralstrong{point\_old} -- the coordinates of thre three old points (would work with more than three)
+
+\item {} 
+\sphinxstyleliteralstrong{data\_old} -- the data for the point in point\_old
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the new data
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{inside\_trigon() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.inside_trigon}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{inside\_trigon}}{\emph{pt}, \emph{p0}, \emph{p1}, \emph{p2}}{}
+This function check if a point is in a triangle using the barycentric coordinates.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{pt} -- the point to determine if it is in or not
+
+\item {} 
+\sphinxstyleliteralstrong{p0} -- the first point of triangle
+
+\item {} 
+\sphinxstyleliteralstrong{p1} -- the second point of triangle
+
+\item {} 
+\sphinxstyleliteralstrong{p2} -- the third point of triangle
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+A boolean (Ture if pt inside of triangle)
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{intersec\_cross() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.intersec_cross}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{intersec\_cross}}{\emph{hyd1}, \emph{hyd2}, \emph{sub1}, \emph{sub2}}{}
+A function function to calculate the intersection, segment are not parrallel,
+used in case where we know that the intersection exists
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{hyd1} -- the first hydrological point
+
+\item {} 
+\sphinxstyleliteralstrong{hyd2} -- the second
+
+\item {} 
+\sphinxstyleliteralstrong{sub1} -- the first substrate point
+
+\item {} 
+\sphinxstyleliteralstrong{sub2} -- the second
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+intersection
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{main() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.main}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{main}}{}{}
+Used to test this module.
+
+\end{fulllineitems}
+
+\index{merge\_grid\_and\_save() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.merge_grid_and_save}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{merge\_grid\_and\_save}}{\emph{hdf5\_name\_hyd}, \emph{hdf5\_name\_sub}, \emph{path\_hdf5}, \emph{default\_data}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{q={[}{]}}, \emph{print\_cmd=False}}{}
 This function call the merging of the grid between the grid from the hydrological data and the substrate data.
 It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
 thread to avoid freezin gthe GUI. This is why we have this extra-function just to call save\_hdf5() and
@@ -7651,15 +7974,13 @@ merge\_grid\_hydro\_sub().
 
 \end{fulllineitems}
 
-\index{merge\_grid\_hydro\_sub() (in module src.substrate)}
+\index{merge\_grid\_hydro\_sub() (in module src.mesh\_grid2)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.merge_grid_hydro_sub}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{merge\_grid\_hydro\_sub}}{\emph{hdf5\_name\_hyd}, \emph{hdf5\_name\_sub}, \emph{path\_hdf5}, \emph{default\_data}, \emph{path\_prj='`}}{}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.merge_grid_hydro_sub}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{merge\_grid\_hydro\_sub}}{\emph{hdf5\_name\_hyd}, \emph{hdf5\_name\_sub}, \emph{path\_hdf5}, \emph{default\_data=1}, \emph{path\_prj='`}}{}
 After the data for the substrate and the hydrological data are loaded, they are still in different grids.
 This functions will merge both grid together. This is done for all time step and all reaches. If a
 constant substrate is there, the hydrological hdf5 is just copied.
-
-!TO BE CORRECTED if there is more than one intersection on a substrate side!
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -7681,113 +8002,6 @@ constant substrate is there, the hydrological hdf5 is just copied.
 
 \item[{Returns}] \leavevmode
 the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{open\_shp() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.open_shp}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{open\_shp}}{\emph{filename}, \emph{path}}{}
-This function open a ArcGIS shpaefile.
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{filename} -- the name of the shapefile
-
-\item {} 
-\sphinxstyleliteralstrong{path} -- the path to this shapefile
-
-\end{itemize}
-
-\item[{Returns}] \leavevmode
-a shapefile object as define in the model
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{point\_cross2() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.point_cross2}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{point\_cross2}}{\emph{ikle}, \emph{coord\_p}, \emph{ikle\_sub}, \emph{coord\_p\_sub}, \emph{data\_sub\_pg}, \emph{data\_sub\_dom}, \emph{default\_sub}}{}
-A function which find where the crossing points are. Crossing points are the points on the triangular side of the
-hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
-are in the same polygon using a ray casting method
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{ikle} -- the connectivity table for the hydrological data
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_p} -- the coordinates of the points of the hydrological grid
-
-\item {} 
-\sphinxstyleliteralstrong{ikle\_sub} -- the connecity vity table of the substrate
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_p\_sub} -- the coordinates of the points of the substrate grid
-
-\item {} 
-\sphinxstyleliteralstrong{data\_sub\_pg} -- the data of the coaser  substrate in cemargef code(one data by cell)
-
-\item {} 
-\sphinxstyleliteralstrong{data\_sub\_dom} -- the data of the  dominant substratein cemargef code(one data by cell)
-
-\item {} 
-\sphinxstyleliteralstrong{default\_sub} -- the default\_data
-
-\end{itemize}
-
-\item[{Returns}] \leavevmode
-intersection
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{point\_cross\_bis() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.point_cross_bis}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{point\_cross\_bis}}{\emph{ikle}, \emph{coord\_p}, \emph{ikle\_sub}, \emph{coord\_p\_sub}}{}
-A function which find where the crossing points are. Crossing pitn are the points on the triangular side of the
-hydrological grid which cross with a side of the substrate grid. Easier than point\_cross 2 but slow.         So it is not used.
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode\begin{itemize}
-\item {} 
-\sphinxstyleliteralstrong{ikle} -- the connectivity table for the hydrological data
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_p} -- the coordinates of the points of the hydrological grid
-
-\item {} 
-\sphinxstyleliteralstrong{ikle\_sub} -- the connecity vity table of the substrate
-
-\item {} 
-\sphinxstyleliteralstrong{coord\_p\_sub} -- the coordinates of the points of the substrate grid
-
-\end{itemize}
-
-\item[{Returns}] \leavevmode
-intersection
-
-\end{description}\end{quote}
-
-\end{fulllineitems}
-
-\index{sandre\_to\_cemagref() (in module src.substrate)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.substrate.sandre_to_cemagref}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{sandre\_to\_cemagref}}{\emph{records}}{}
-This function passes the substrate data from the code type ``Sandre'' to the code type ``Cemagref''. This function is
-not optimized yet. For the definition of the code, see the tabular at the 14 of the LAMMI manual.
-\begin{quote}\begin{description}
-\item[{Parameters}] \leavevmode
-\sphinxstyleliteralstrong{records} -- the substrate data in code samdre
-
-\item[{Returns}] \leavevmode
-the substrate data in code cemagref
 
 \end{description}\end{quote}
 
@@ -9025,9 +9239,11 @@ shutil:
 \item {\sphinxstyleindexentry{src.func\_for\_cmd}}\sphinxstyleindexpageref{index:\detokenize{module-src.func_for_cmd}}
 \item {\sphinxstyleindexentry{src.Hec\_ras06}}\sphinxstyleindexpageref{index:\detokenize{module-src.Hec_ras06}}
 \item {\sphinxstyleindexentry{src.hec\_ras2D}}\sphinxstyleindexpageref{index:\detokenize{module-src.hec_ras2D}}
+\item {\sphinxstyleindexentry{src.lammi}}\sphinxstyleindexpageref{index:\detokenize{module-src.lammi}}
 \item {\sphinxstyleindexentry{src.load\_hdf5}}\sphinxstyleindexpageref{index:\detokenize{module-src.load_hdf5}}
 \item {\sphinxstyleindexentry{src.manage\_grid\_8}}\sphinxstyleindexpageref{index:\detokenize{module-src.manage_grid_8}}
 \item {\sphinxstyleindexentry{src.mascaret}}\sphinxstyleindexpageref{index:\detokenize{module-src.mascaret}}
+\item {\sphinxstyleindexentry{src.mesh\_grid2}}\sphinxstyleindexpageref{index:\detokenize{module-src.mesh_grid2}}
 \item {\sphinxstyleindexentry{src.new\_create\_vtk}}\sphinxstyleindexpageref{index:\detokenize{module-src.new_create_vtk}}
 \item {\sphinxstyleindexentry{src.river2d}}\sphinxstyleindexpageref{index:\detokenize{module-src.river2d}}
 \item {\sphinxstyleindexentry{src.rubar}}\sphinxstyleindexpageref{index:\detokenize{module-src.rubar}}

@@ -265,141 +265,150 @@
 \indexentry{load\_telemac() (in module src.selafin\_habby1)|hyperpage}{53}
 \indexentry{load\_telemac\_and\_cut\_grid() (in module src.selafin\_habby1)|hyperpage}{53}
 \indexentry{plot\_vel\_h() (in module src.selafin\_habby1)|hyperpage}{54}
-\indexentry{src.load\_hdf5 (module)|hyperpage}{54}
-\indexentry{copy\_files() (in module src.load\_hdf5)|hyperpage}{54}
-\indexentry{get\_all\_filename() (in module src.load\_hdf5)|hyperpage}{55}
-\indexentry{get\_hdf5\_name() (in module src.load\_hdf5)|hyperpage}{55}
-\indexentry{load\_hdf5\_hyd() (in module src.load\_hdf5)|hyperpage}{55}
-\indexentry{load\_hdf5\_sub() (in module src.load\_hdf5)|hyperpage}{55}
-\indexentry{open\_hdf5() (in module src.load\_hdf5)|hyperpage}{55}
-\indexentry{save\_hdf5() (in module src.load\_hdf5)|hyperpage}{55}
-\indexentry{save\_hdf5\_sub() (in module src.load\_hdf5)|hyperpage}{57}
-\indexentry{src.dist\_vistess2 (module)|hyperpage}{58}
-\indexentry{dist\_velocity\_hecras() (in module src.dist\_vistess2)|hyperpage}{58}
-\indexentry{distribute\_velocity() (in module src.dist\_vistess2)|hyperpage}{59}
-\indexentry{get\_manning() (in module src.dist\_vistess2)|hyperpage}{59}
-\indexentry{get\_manning\_arr() (in module src.dist\_vistess2)|hyperpage}{60}
-\indexentry{main() (in module src.dist\_vistess2)|hyperpage}{60}
-\indexentry{plot\_dist\_vit() (in module src.dist\_vistess2)|hyperpage}{60}
-\indexentry{preparetest\_velocity() (in module src.dist\_vistess2)|hyperpage}{61}
-\indexentry{src.manage\_grid\_8 (module)|hyperpage}{61}
-\indexentry{add\_point() (in module src.manage\_grid\_8)|hyperpage}{61}
-\indexentry{create\_dummy\_substrate() (in module src.manage\_grid\_8)|hyperpage}{61}
-\indexentry{create\_grid() (in module src.manage\_grid\_8)|hyperpage}{62}
-\indexentry{create\_grid\_only\_1\_profile() (in module src.manage\_grid\_8)|hyperpage}{62}
-\indexentry{cut\_2d\_grid() (in module src.manage\_grid\_8)|hyperpage}{63}
-\indexentry{cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8)|hyperpage}{63}
-\indexentry{find\_profile\_between() (in module src.manage\_grid\_8)|hyperpage}{63}
-\indexentry{get\_crossing\_segment\_sub() (in module src.manage\_grid\_8)|hyperpage}{63}
-\indexentry{get\_new\_point\_and\_cell\_1\_profil() (in module src.manage\_grid\_8)|hyperpage}{64}
-\indexentry{grid\_and\_interpo() (in module src.manage\_grid\_8)|hyperpage}{64}
-\indexentry{inside\_polygon() (in module src.manage\_grid\_8)|hyperpage}{65}
-\indexentry{interp\_weights() (in module src.manage\_grid\_8)|hyperpage}{65}
-\indexentry{interpo\_linear() (in module src.manage\_grid\_8)|hyperpage}{65}
-\indexentry{interpo\_nearest() (in module src.manage\_grid\_8)|hyperpage}{65}
-\indexentry{interpolate\_opti() (in module src.manage\_grid\_8)|hyperpage}{66}
-\indexentry{intersection\_seg() (in module src.manage\_grid\_8)|hyperpage}{66}
-\indexentry{linear\_h\_cross() (in module src.manage\_grid\_8)|hyperpage}{66}
-\indexentry{main() (in module src.manage\_grid\_8)|hyperpage}{66}
-\indexentry{newp() (in module src.manage\_grid\_8)|hyperpage}{67}
-\indexentry{pass\_grid\_cell\_to\_node\_lin() (in module src.manage\_grid\_8)|hyperpage}{67}
-\indexentry{plot\_grid() (in module src.manage\_grid\_8)|hyperpage}{67}
-\indexentry{plot\_grid\_simple() (in module src.manage\_grid\_8)|hyperpage}{68}
-\indexentry{update\_coord\_pro\_with\_vh\_pro() (in module src.manage\_grid\_8)|hyperpage}{68}
-\indexentry{src.estimhab (module)|hyperpage}{68}
-\indexentry{estimhab() (in module src.estimhab)|hyperpage}{68}
-\indexentry{main() (in module src.estimhab)|hyperpage}{69}
-\indexentry{pass\_to\_float\_estimhab() (in module src.estimhab)|hyperpage}{69}
-\indexentry{src.stathab\_c (module)|hyperpage}{70}
-\indexentry{Stathab (class in src.stathab\_c)|hyperpage}{70}
-\indexentry{create\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{70}
-\indexentry{dengauss() (src.stathab\_c.Stathab method)|hyperpage}{70}
-\indexentry{dist\_h() (src.stathab\_c.Stathab method)|hyperpage}{70}
-\indexentry{dist\_h\_trop() (src.stathab\_c.Stathab method)|hyperpage}{70}
-\indexentry{dist\_v() (src.stathab\_c.Stathab method)|hyperpage}{70}
-\indexentry{dist\_v\_trop() (src.stathab\_c.Stathab method)|hyperpage}{71}
-\indexentry{find\_path\_hdf5\_stat() (src.stathab\_c.Stathab method)|hyperpage}{71}
-\indexentry{find\_sh0() (src.stathab\_c.Stathab method)|hyperpage}{71}
-\indexentry{find\_sh0\_maxvrais() (src.stathab\_c.Stathab method)|hyperpage}{71}
-\indexentry{load\_stathab\_from\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{71}
-\indexentry{load\_stathab\_from\_txt() (src.stathab\_c.Stathab method)|hyperpage}{71}
-\indexentry{power\_law() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{save\_xml\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{savefig\_stahab() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{savetxt\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{stathab\_calc() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{stathab\_trop\_biv() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{stathab\_trop\_univ() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{test\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{72}
-\indexentry{test\_stathab\_trop\_biv() (src.stathab\_c.Stathab method)|hyperpage}{73}
-\indexentry{test\_stathab\_trop\_uni() (src.stathab\_c.Stathab method)|hyperpage}{73}
-\indexentry{load\_float\_stathab() (in module src.stathab\_c)|hyperpage}{73}
-\indexentry{load\_namereach() (in module src.stathab\_c)|hyperpage}{73}
-\indexentry{load\_pref() (in module src.stathab\_c)|hyperpage}{73}
-\indexentry{load\_pref\_trop\_biv() (in module src.stathab\_c)|hyperpage}{73}
-\indexentry{load\_pref\_trop\_uni() (in module src.stathab\_c)|hyperpage}{73}
-\indexentry{main() (in module src.stathab\_c)|hyperpage}{74}
-\indexentry{src.fstress (module)|hyperpage}{74}
-\indexentry{denstress() (in module src.fstress)|hyperpage}{74}
-\indexentry{figure\_fstress() (in module src.fstress)|hyperpage}{74}
-\indexentry{fstress\_test() (in module src.fstress)|hyperpage}{74}
-\indexentry{func\_stress() (in module src.fstress)|hyperpage}{74}
-\indexentry{main() (in module src.fstress)|hyperpage}{75}
-\indexentry{read\_fstress\_hdf5() (in module src.fstress)|hyperpage}{75}
-\indexentry{read\_pref() (in module src.fstress)|hyperpage}{75}
-\indexentry{run\_fstress() (in module src.fstress)|hyperpage}{75}
-\indexentry{save\_fstress() (in module src.fstress)|hyperpage}{75}
-\indexentry{write\_txt() (in module src.fstress)|hyperpage}{76}
-\indexentry{src.substrate (module)|hyperpage}{76}
-\indexentry{create\_dummy\_substrate\_from\_hydro() (in module src.substrate)|hyperpage}{76}
-\indexentry{edf\_to\_cemagref() (in module src.substrate)|hyperpage}{77}
-\indexentry{fig\_merge\_grid() (in module src.substrate)|hyperpage}{77}
-\indexentry{fig\_substrate() (in module src.substrate)|hyperpage}{77}
-\indexentry{get\_all\_attribute() (in module src.substrate)|hyperpage}{77}
-\indexentry{get\_new\_vel\_height\_data() (in module src.substrate)|hyperpage}{78}
-\indexentry{get\_useful\_attribute() (in module src.substrate)|hyperpage}{78}
-\indexentry{grid\_update\_sub2() (in module src.substrate)|hyperpage}{78}
-\indexentry{grid\_update\_sub3() (in module src.substrate)|hyperpage}{78}
-\indexentry{intersec\_cross() (in module src.substrate)|hyperpage}{79}
-\indexentry{load\_sub\_shp() (in module src.substrate)|hyperpage}{79}
+\indexentry{src.lammi (module)|hyperpage}{54}
+\indexentry{coord\_lammi() (in module src.lammi)|hyperpage}{54}
+\indexentry{fig\_lammi() (in module src.lammi)|hyperpage}{55}
+\indexentry{get\_transect\_filename() (in module src.lammi)|hyperpage}{55}
+\indexentry{load\_lammi() (in module src.lammi)|hyperpage}{55}
+\indexentry{load\_station() (in module src.lammi)|hyperpage}{56}
+\indexentry{load\_transect\_data() (in module src.lammi)|hyperpage}{56}
+\indexentry{main() (in module src.lammi)|hyperpage}{56}
+\indexentry{src.load\_hdf5 (module)|hyperpage}{57}
+\indexentry{copy\_files() (in module src.load\_hdf5)|hyperpage}{57}
+\indexentry{get\_all\_filename() (in module src.load\_hdf5)|hyperpage}{57}
+\indexentry{get\_hdf5\_name() (in module src.load\_hdf5)|hyperpage}{57}
+\indexentry{load\_hdf5\_hyd() (in module src.load\_hdf5)|hyperpage}{57}
+\indexentry{load\_hdf5\_sub() (in module src.load\_hdf5)|hyperpage}{58}
+\indexentry{open\_hdf5() (in module src.load\_hdf5)|hyperpage}{58}
+\indexentry{save\_hdf5() (in module src.load\_hdf5)|hyperpage}{58}
+\indexentry{save\_hdf5\_sub() (in module src.load\_hdf5)|hyperpage}{59}
+\indexentry{src.dist\_vistess2 (module)|hyperpage}{60}
+\indexentry{dist\_velocity\_hecras() (in module src.dist\_vistess2)|hyperpage}{60}
+\indexentry{distribute\_velocity() (in module src.dist\_vistess2)|hyperpage}{61}
+\indexentry{get\_manning() (in module src.dist\_vistess2)|hyperpage}{62}
+\indexentry{get\_manning\_arr() (in module src.dist\_vistess2)|hyperpage}{62}
+\indexentry{main() (in module src.dist\_vistess2)|hyperpage}{62}
+\indexentry{plot\_dist\_vit() (in module src.dist\_vistess2)|hyperpage}{62}
+\indexentry{preparetest\_velocity() (in module src.dist\_vistess2)|hyperpage}{63}
+\indexentry{src.manage\_grid\_8 (module)|hyperpage}{64}
+\indexentry{add\_point() (in module src.manage\_grid\_8)|hyperpage}{64}
+\indexentry{create\_dummy\_substrate() (in module src.manage\_grid\_8)|hyperpage}{64}
+\indexentry{create\_grid() (in module src.manage\_grid\_8)|hyperpage}{64}
+\indexentry{create\_grid\_only\_1\_profile() (in module src.manage\_grid\_8)|hyperpage}{65}
+\indexentry{cut\_2d\_grid() (in module src.manage\_grid\_8)|hyperpage}{65}
+\indexentry{cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8)|hyperpage}{65}
+\indexentry{find\_profile\_between() (in module src.manage\_grid\_8)|hyperpage}{66}
+\indexentry{get\_crossing\_segment\_sub() (in module src.manage\_grid\_8)|hyperpage}{66}
+\indexentry{get\_new\_point\_and\_cell\_1\_profil() (in module src.manage\_grid\_8)|hyperpage}{66}
+\indexentry{grid\_and\_interpo() (in module src.manage\_grid\_8)|hyperpage}{67}
+\indexentry{inside\_polygon() (in module src.manage\_grid\_8)|hyperpage}{67}
+\indexentry{interp\_weights() (in module src.manage\_grid\_8)|hyperpage}{67}
+\indexentry{interpo\_linear() (in module src.manage\_grid\_8)|hyperpage}{68}
+\indexentry{interpo\_nearest() (in module src.manage\_grid\_8)|hyperpage}{68}
+\indexentry{interpolate\_opti() (in module src.manage\_grid\_8)|hyperpage}{68}
+\indexentry{intersection\_seg() (in module src.manage\_grid\_8)|hyperpage}{68}
+\indexentry{linear\_h\_cross() (in module src.manage\_grid\_8)|hyperpage}{69}
+\indexentry{main() (in module src.manage\_grid\_8)|hyperpage}{69}
+\indexentry{newp() (in module src.manage\_grid\_8)|hyperpage}{69}
+\indexentry{pass\_grid\_cell\_to\_node\_lin() (in module src.manage\_grid\_8)|hyperpage}{69}
+\indexentry{plot\_grid() (in module src.manage\_grid\_8)|hyperpage}{70}
+\indexentry{plot\_grid\_simple() (in module src.manage\_grid\_8)|hyperpage}{70}
+\indexentry{update\_coord\_pro\_with\_vh\_pro() (in module src.manage\_grid\_8)|hyperpage}{70}
+\indexentry{src.estimhab (module)|hyperpage}{71}
+\indexentry{estimhab() (in module src.estimhab)|hyperpage}{71}
+\indexentry{main() (in module src.estimhab)|hyperpage}{72}
+\indexentry{pass\_to\_float\_estimhab() (in module src.estimhab)|hyperpage}{72}
+\indexentry{src.stathab\_c (module)|hyperpage}{72}
+\indexentry{Stathab (class in src.stathab\_c)|hyperpage}{72}
+\indexentry{create\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{72}
+\indexentry{dengauss() (src.stathab\_c.Stathab method)|hyperpage}{72}
+\indexentry{dist\_h() (src.stathab\_c.Stathab method)|hyperpage}{72}
+\indexentry{dist\_h\_trop() (src.stathab\_c.Stathab method)|hyperpage}{72}
+\indexentry{dist\_v() (src.stathab\_c.Stathab method)|hyperpage}{73}
+\indexentry{dist\_v\_trop() (src.stathab\_c.Stathab method)|hyperpage}{73}
+\indexentry{find\_path\_hdf5\_stat() (src.stathab\_c.Stathab method)|hyperpage}{73}
+\indexentry{find\_sh0() (src.stathab\_c.Stathab method)|hyperpage}{73}
+\indexentry{find\_sh0\_maxvrais() (src.stathab\_c.Stathab method)|hyperpage}{73}
+\indexentry{load\_stathab\_from\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{load\_stathab\_from\_txt() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{power\_law() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{save\_xml\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{savefig\_stahab() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{savetxt\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{stathab\_calc() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{stathab\_trop\_biv() (src.stathab\_c.Stathab method)|hyperpage}{74}
+\indexentry{stathab\_trop\_univ() (src.stathab\_c.Stathab method)|hyperpage}{75}
+\indexentry{test\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{75}
+\indexentry{test\_stathab\_trop\_biv() (src.stathab\_c.Stathab method)|hyperpage}{75}
+\indexentry{test\_stathab\_trop\_uni() (src.stathab\_c.Stathab method)|hyperpage}{75}
+\indexentry{load\_float\_stathab() (in module src.stathab\_c)|hyperpage}{75}
+\indexentry{load\_namereach() (in module src.stathab\_c)|hyperpage}{75}
+\indexentry{load\_pref() (in module src.stathab\_c)|hyperpage}{75}
+\indexentry{load\_pref\_trop\_biv() (in module src.stathab\_c)|hyperpage}{76}
+\indexentry{load\_pref\_trop\_uni() (in module src.stathab\_c)|hyperpage}{76}
+\indexentry{main() (in module src.stathab\_c)|hyperpage}{76}
+\indexentry{src.fstress (module)|hyperpage}{76}
+\indexentry{denstress() (in module src.fstress)|hyperpage}{76}
+\indexentry{figure\_fstress() (in module src.fstress)|hyperpage}{76}
+\indexentry{fstress\_test() (in module src.fstress)|hyperpage}{77}
+\indexentry{func\_stress() (in module src.fstress)|hyperpage}{77}
+\indexentry{main() (in module src.fstress)|hyperpage}{77}
+\indexentry{read\_fstress\_hdf5() (in module src.fstress)|hyperpage}{77}
+\indexentry{read\_pref() (in module src.fstress)|hyperpage}{77}
+\indexentry{run\_fstress() (in module src.fstress)|hyperpage}{77}
+\indexentry{save\_fstress() (in module src.fstress)|hyperpage}{78}
+\indexentry{write\_txt() (in module src.fstress)|hyperpage}{78}
+\indexentry{src.substrate (module)|hyperpage}{79}
+\indexentry{create\_dummy\_substrate\_from\_hydro() (in module src.substrate)|hyperpage}{79}
+\indexentry{edf\_to\_cemagref() (in module src.substrate)|hyperpage}{79}
+\indexentry{fig\_substrate() (in module src.substrate)|hyperpage}{79}
+\indexentry{get\_all\_attribute() (in module src.substrate)|hyperpage}{80}
+\indexentry{get\_useful\_attribute() (in module src.substrate)|hyperpage}{80}
+\indexentry{load\_sub\_shp() (in module src.substrate)|hyperpage}{80}
 \indexentry{load\_sub\_txt() (in module src.substrate)|hyperpage}{80}
 \indexentry{main() (in module src.substrate)|hyperpage}{80}
-\indexentry{merge\_grid\_and\_save() (in module src.substrate)|hyperpage}{80}
-\indexentry{merge\_grid\_hydro\_sub() (in module src.substrate)|hyperpage}{80}
-\indexentry{open\_shp() (in module src.substrate)|hyperpage}{81}
-\indexentry{point\_cross2() (in module src.substrate)|hyperpage}{81}
-\indexentry{point\_cross\_bis() (in module src.substrate)|hyperpage}{81}
+\indexentry{open\_shp() (in module src.substrate)|hyperpage}{80}
 \indexentry{sandre\_to\_cemagref() (in module src.substrate)|hyperpage}{81}
-\indexentry{src.bio\_info (module)|hyperpage}{82}
-\indexentry{change\_unit() (in module src.bio\_info)|hyperpage}{82}
-\indexentry{create\_and\_fill\_database() (in module src.bio\_info)|hyperpage}{82}
-\indexentry{execute\_request() (in module src.bio\_info)|hyperpage}{82}
-\indexentry{figure\_pref() (in module src.bio\_info)|hyperpage}{82}
-\indexentry{get\_stage() (in module src.bio\_info)|hyperpage}{83}
-\indexentry{load\_evha\_curve() (in module src.bio\_info)|hyperpage}{83}
-\indexentry{load\_xml\_name() (in module src.bio\_info)|hyperpage}{83}
-\indexentry{main() (in module src.bio\_info)|hyperpage}{83}
-\indexentry{plot\_hydrosignature() (in module src.bio\_info)|hyperpage}{83}
-\indexentry{read\_pref() (in module src.bio\_info)|hyperpage}{84}
-\indexentry{test\_evah\_xml\_pref() (in module src.bio\_info)|hyperpage}{84}
-\indexentry{src.calcul\_hab (module)|hyperpage}{84}
-\indexentry{calc\_hab() (in module src.calcul\_hab)|hyperpage}{84}
-\indexentry{calc\_hab\_norm() (in module src.calcul\_hab)|hyperpage}{84}
-\indexentry{find\_pref\_value() (in module src.calcul\_hab)|hyperpage}{85}
-\indexentry{save\_hab\_fig\_spu() (in module src.calcul\_hab)|hyperpage}{85}
-\indexentry{save\_hab\_shape() (in module src.calcul\_hab)|hyperpage}{85}
-\indexentry{save\_hab\_txt() (in module src.calcul\_hab)|hyperpage}{86}
-\indexentry{save\_spu\_txt() (in module src.calcul\_hab)|hyperpage}{86}
-\indexentry{save\_vh\_fig\_2d() (in module src.calcul\_hab)|hyperpage}{86}
-\indexentry{src.new\_create\_vtk (module)|hyperpage}{87}
-\indexentry{habitat\_to\_vtu() (in module src.new\_create\_vtk)|hyperpage}{87}
-\indexentry{main() (in module src.new\_create\_vtk)|hyperpage}{87}
-\indexentry{writePVD() (in module src.new\_create\_vtk)|hyperpage}{87}
-\indexentry{src.func\_for\_cmd (module)|hyperpage}{88}
-\indexentry{load\_fstress\_text() (in module src.func\_for\_cmd)|hyperpage}{88}
-\indexentry{load\_manning\_txt() (in module src.func\_for\_cmd)|hyperpage}{88}
-\indexentry{habby\_cmd (module)|hyperpage}{92}
-\indexentry{all\_command() (in module habby\_cmd)|hyperpage}{92}
-\indexentry{habby\_on\_all() (in module habby\_cmd)|hyperpage}{92}
-\indexentry{habby\_restart() (in module habby\_cmd)|hyperpage}{93}
-\indexentry{main() (in module habby\_cmd)|hyperpage}{93}
+\indexentry{src.mesh\_grid2 (module)|hyperpage}{81}
+\indexentry{create\_merge\_grid() (in module src.mesh\_grid2)|hyperpage}{81}
+\indexentry{fig\_merge\_grid() (in module src.mesh\_grid2)|hyperpage}{82}
+\indexentry{find\_sub\_and\_cross() (in module src.mesh\_grid2)|hyperpage}{82}
+\indexentry{get\_new\_vel\_height\_data() (in module src.mesh\_grid2)|hyperpage}{82}
+\indexentry{inside\_trigon() (in module src.mesh\_grid2)|hyperpage}{83}
+\indexentry{intersec\_cross() (in module src.mesh\_grid2)|hyperpage}{83}
+\indexentry{main() (in module src.mesh\_grid2)|hyperpage}{83}
+\indexentry{merge\_grid\_and\_save() (in module src.mesh\_grid2)|hyperpage}{83}
+\indexentry{merge\_grid\_hydro\_sub() (in module src.mesh\_grid2)|hyperpage}{83}
+\indexentry{src.bio\_info (module)|hyperpage}{84}
+\indexentry{change\_unit() (in module src.bio\_info)|hyperpage}{84}
+\indexentry{create\_and\_fill\_database() (in module src.bio\_info)|hyperpage}{84}
+\indexentry{execute\_request() (in module src.bio\_info)|hyperpage}{84}
+\indexentry{figure\_pref() (in module src.bio\_info)|hyperpage}{85}
+\indexentry{get\_stage() (in module src.bio\_info)|hyperpage}{85}
+\indexentry{load\_evha\_curve() (in module src.bio\_info)|hyperpage}{85}
+\indexentry{load\_xml\_name() (in module src.bio\_info)|hyperpage}{85}
+\indexentry{main() (in module src.bio\_info)|hyperpage}{86}
+\indexentry{plot\_hydrosignature() (in module src.bio\_info)|hyperpage}{86}
+\indexentry{read\_pref() (in module src.bio\_info)|hyperpage}{86}
+\indexentry{test\_evah\_xml\_pref() (in module src.bio\_info)|hyperpage}{86}
+\indexentry{src.calcul\_hab (module)|hyperpage}{86}
+\indexentry{calc\_hab() (in module src.calcul\_hab)|hyperpage}{86}
+\indexentry{calc\_hab\_norm() (in module src.calcul\_hab)|hyperpage}{87}
+\indexentry{find\_pref\_value() (in module src.calcul\_hab)|hyperpage}{87}
+\indexentry{save\_hab\_fig\_spu() (in module src.calcul\_hab)|hyperpage}{87}
+\indexentry{save\_hab\_shape() (in module src.calcul\_hab)|hyperpage}{87}
+\indexentry{save\_hab\_txt() (in module src.calcul\_hab)|hyperpage}{88}
+\indexentry{save\_spu\_txt() (in module src.calcul\_hab)|hyperpage}{88}
+\indexentry{save\_vh\_fig\_2d() (in module src.calcul\_hab)|hyperpage}{88}
+\indexentry{src.new\_create\_vtk (module)|hyperpage}{89}
+\indexentry{habitat\_to\_vtu() (in module src.new\_create\_vtk)|hyperpage}{89}
+\indexentry{main() (in module src.new\_create\_vtk)|hyperpage}{89}
+\indexentry{writePVD() (in module src.new\_create\_vtk)|hyperpage}{89}
+\indexentry{src.func\_for\_cmd (module)|hyperpage}{90}
+\indexentry{load\_fstress\_text() (in module src.func\_for\_cmd)|hyperpage}{90}
+\indexentry{load\_manning\_txt() (in module src.func\_for\_cmd)|hyperpage}{90}
+\indexentry{habby\_cmd (module)|hyperpage}{94}
+\indexentry{all\_command() (in module habby\_cmd)|hyperpage}{94}
+\indexentry{habby\_on\_all() (in module habby\_cmd)|hyperpage}{94}
+\indexentry{habby\_restart() (in module habby\_cmd)|hyperpage}{95}
+\indexentry{main() (in module habby\_cmd)|hyperpage}{95}
