@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj, model_type,
                         q=[], print_cmd=False):
-
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
@@ -154,7 +153,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     # print(m1 - m)
 
     # merge the grid for each time step (the time step 0 is the full profile)
-    for t in range(0, len(ikle_all)): #
+    for t in range(0, len(ikle_all)): # len(ikle_all)
 
         ikle_all2 = []
         point_all2 = []
@@ -302,7 +301,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_s
         i += 1
     ikle_sub = np.array(ikle_sub2)
     if len(ikle_sub) < 1:
-        return [], data_sub_pg, data_sub_dom
+        return ikle_sub, coord_p_sub, data_sub_pg,  data_sub_dom, [[]], sub_cell
     data_sub_pg = np.copy(data_sub_pg2)
     data_sub_dom = np.copy(data_sub_dom2)
 
@@ -333,9 +332,6 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_s
 
     # for each hydrological cell
     for e in range(0, nb_tri):
-
-        if e % 1000 == 0:
-            print(e)
 
         # find the first substrate cell with x > xmin (quick because ordered)
         xhyd = coord_hyd_x[ikle[e, 0]]
@@ -641,6 +637,7 @@ def inside_trigon(pt, p0, p1, p2):
     else:
         return False
 
+
 def intersec_cross(hyd1, hyd2, sub1, sub2):
     """
     A function function to calculate the intersection, segment are not parrallel,
@@ -696,7 +693,7 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
     :param data_crossing: the hydrological elment with a crossing and the info for this crossing (a list of list)
     :return: the new grid
 
-    ** Technical comments**
+    **Technical comments**
 
     This function corrects all element of the grids where a crossing point have been found by the
     function find_sub_and_cross()
@@ -704,15 +701,13 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
     There are three cases:
 
     a) one crossing point -> no change
-
-    b) two crossing points and subtrate point inside -> done manually. We k the two crossing point and the side on
-    which the crossing is done. Based on this, we correct the grid.
-
+    b) two crossing points and subtrate point inside -> done manually. We take the two crossing point and the side on
+       which the crossing is done. Based on this, we correct the grid.
     c) more than two crossing point on the elements -> We call the extrenal module
-    triangle to re-do some triagulations into the element. This last cases covers many possible case, but it is slow.
-    To optimize, we can think about writing more individual cases. To follow the border of each subtrate cell in
-    the "special cell", we do one triangulation by subtrate element, so we can have two or three triangulation.
-    It is also important there that the substrate is convex as the triangulation is not constrained.
+       triangle to re-do some triagulations into the element. This last cases covers many possible case, but it is slow.
+       To optimize, we can think about writing more individual cases. To follow the border of each subtrate cell in
+       the "special cell", we do one triangulation by subtrate element, so we can have two or three triangulation.
+       It is also important there that the substrate is convex as the triangulation is not constrained.
 
     """
 
@@ -731,13 +726,7 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
     hydro_el = data_crossing[6]
     to_delete = []
 
-    print('number of crossing element')
-    print(len(el_cross))
-
     for idx, e in enumerate(el_cross):
-
-        if idx %1000 == 0:
-            print(idx)
 
         pc_here = point_cross[idx]
         which_side = side_point_cross[idx]
@@ -750,18 +739,11 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
         if len(pc_here) < 3 and len(psub_in) < 3:
             pass
 
+
         # if simple crossing do it 'by hand"(i.e. witbout the triangle module)
         # this is the case used most often so it must be quick
         # calling triangle is slow, so we used it only for rare case
         # analyze if other case should be handled separately
-
-        # elif len(pc_here) < 4:
-        #     print('new')
-        #     print(pc_here)
-        #     print(hydroe)
-        #     print(sube)
-        #     print(pce)
-
         elif len(pc_here) == 4 and len(psub_in) == 0:  # not on the same side if len(psub_in) == 0
 
             # will delete the old element at the end(ikle and substrate)
@@ -845,57 +827,61 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
             hyd3 = list(coord_p[ikle[e][2]])
             hyd_all = [[hyd1], [hyd2], [hyd3]]
 
-            # get all substrate element
-            all_sub2 = deepcopy(hydroe)
-            all_sub2.extend(pce)
-            all_sub2.extend(sube)
-            all_sub = list(set(all_sub2))  # only unique element
-            for es in all_sub:
+            # if we have element with a area of zero (should not happend but did), let's erase this element
+            if hyd1 == hyd2 or hyd2 == hyd3 or hyd1 == hyd3:
+                pass
+            else:
+                # get all substrate element
+                all_sub2 = deepcopy(hydroe)
+                all_sub2.extend(pce)
+                all_sub2.extend(sube)
+                all_sub = list(set(all_sub2))  # only unique element
+                for es in all_sub:
 
-                # get the point for this triangulation
-                point_new = [a[0] for idx, a in enumerate(hyd_all) if hydroe[idx] == es]
-                if len(pc_here) > 0:
-                    point_new.extend([a for idx, a in enumerate(pc_here) if pce[idx] == es])
-                if len(psub_in) > 0:
-                    point_new.extend([a for idx, a in enumerate(psub_in) if sube[idx] == es])
+                    # get the point for this triangulation
+                    point_new = [a[0] for idx, a in enumerate(hyd_all) if hydroe[idx] == es]
+                    if len(pc_here) > 0:
+                        point_new.extend([a for idx, a in enumerate(pc_here) if pce[idx] == es])
+                    if len(psub_in) > 0:
+                        point_new.extend([a for idx, a in enumerate(psub_in) if sube[idx] == es])
 
-                # for each substrate element, get a new triangulation
-                if len(point_new)> 2:
-                    dict_point = dict(vertices=point_new)
-                    grid_dict = triangle.triangulate(dict_point)  # 'p'
+                    # for each substrate element, get a new triangulation
+                    if len(point_new)> 2:
+                        dict_point = dict(vertices=point_new)
+                        grid_dict = triangle.triangulate(dict_point)  # 'p'
 
-                    try:
-                        ikle_new = grid_dict['triangles']
-                        point_new = grid_dict['vertices']
-                        # add this triagulation to the ikle
-                        ikle.extend(list(np.array(ikle_new) + len(coord_p)))
-                        coord_p.extend(point_new)
+                        try:
+                            ikle_new = grid_dict['triangles']
+                            point_new = grid_dict['vertices']
+                            # add this triagulation to the ikle
+                            ikle.extend(list(np.array(ikle_new) + len(coord_p)))
+                            coord_p.extend(point_new)
 
-                        # add the elelement to sub_cell
-                        sub_new = [es] * len(ikle_new)
-                        sub_cell.extend(sub_new)
+                            # add the elelement to sub_cell
+                            sub_new = [es] * len(ikle_new)
+                            sub_cell.extend(sub_new)
 
-                        # add new velcoity and height data
-                        if len(vel) > 0:
-                            point_old = [coord_p[ikle[e][0]], coord_p[ikle[e][1]], coord_p[ikle[e][2]]]
-                            vel_here = [vel[ikle[e][0]], vel[ikle[e][1]], vel[ikle[e][2]]]
-                            for i in point_new:
-                                h_here = [height[ikle[e][0]], height[ikle[e][1]], height[ikle[e][2]]]
-                                vel_new1 = get_new_vel_height_data(i, point_old, vel_here)
-                                vel.append(vel_new1)
-                                h_new1 = get_new_vel_height_data(i, point_old, h_here)
-                                height.append(h_new1)
-                    except KeyError:
-                        # in case triangulation was not ok
-                        print('Warning: an empty triangle was found by merge grid (1) \n')
-                        print(point_new)
-                        print(hydroe)
-                        print(hyd_all)
-                        print(pce)
-                        print(pc_here)
+                            # add new velcoity and height data
+                            if len(vel) > 0:
+                                point_old = [coord_p[ikle[e][0]], coord_p[ikle[e][1]], coord_p[ikle[e][2]]]
+                                vel_here = [vel[ikle[e][0]], vel[ikle[e][1]], vel[ikle[e][2]]]
+                                for i in point_new:
+                                    h_here = [height[ikle[e][0]], height[ikle[e][1]], height[ikle[e][2]]]
+                                    vel_new1 = get_new_vel_height_data(i, point_old, vel_here)
+                                    vel.append(vel_new1)
+                                    h_new1 = get_new_vel_height_data(i, point_old, h_here)
+                                    height.append(h_new1)
+                        except KeyError:
+                            # in case triangulation was not ok
+                            print('Warning: an empty triangle was found by merge grid (1) \n')
+                            # print(point_new)
+                            # print(hydroe)
+                            # print(hyd_all)
+                            # print(pce)
+                            # print(pc_here)
 
-                else:
-                    print('Warning: an empty triangle was found by merge grid (2) \n')
+                    else:
+                        print('Warning: an empty triangle was found by merge grid (2) \n')
 
     # create the new substrate data
     print('create the new substrate data')
@@ -910,18 +896,11 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
             data_sub_pg_ok[i] = data_sub_pg[int(s)]
 
     # remove element from ikle and new_data_sub
-    a1 = time.time()
-    # ikle = [i for j, i in enumerate(ikle) if j not in to_delete]
-    for d in reversed(to_delete):
+    # ikle = [i for j, i in enumerate(ikle) if j not in to_delete]  # slow
+    for d in reversed(to_delete):  # to_delete is ordered
         del ikle[d]
-    a2 = time.time()
-    print('time to delete ikle:')
-    print(str(a2 - a1))
     data_sub_pg_ok = np.delete(data_sub_pg_ok, to_delete)
     data_sub_dom_ok = np.delete(data_sub_dom_ok, to_delete)
-    a4 = time.time()
-    print('time to delete sub:')
-    print(str(a4-a2))
 
     return ikle, coord_p, data_sub_pg_ok, data_sub_dom_ok, vel, height
 

@@ -181,9 +181,7 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
 
     # if percentage type
     if attribute_type == 1:
-        attribute_name_all = get_all_attribute(filename, path)
         record_all = []
-        indf = 0
         # get the data and pass it int
         for f in fields:
             if f[0] in attribute_name:
@@ -197,33 +195,13 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
                     return failload
                 record_all.append(record_here)
                 ind += 1
-        record_all = np.array(record_all)
-        # get the domainant abd coarser from the percentage
-        sub_dom = [0] * len(record_all[0])
-        sub_pg = [0] * len(record_all[0])
-        for e in range(0, len(record_all[0])):
-            record_all_i = record_all[:, e]
-            # let find the dominant
-            # we cannot use argmax as we need all maximum value, not only the first
-            inds = list(np.argwhere(record_all_i == np.max(record_all_i)).flatten())
-            if len(inds) > 1:
-                # if we have the same percentage for two dominant we send back the function to the GUI to ask the
-                # user. It is called again with the arg dominant_case
-                if dominant_case == 0:
-                    return [-99], [-99], [-99], [-99], False
-                elif dominant_case == 1:
-                    sub_dom[e] = inds[-1]+1
-                elif dominant_case == -1:
-                    #sub_dom[e] = int(attribute_name_all[inds[0]][0][1])
-                    sub_dom[e] = inds[0]+1
-            else:
-                sub_dom[e] = inds[0]+1
-            # let find the coarser (the last one not equal to zero)
-            ind = np.where(record_all_i[record_all_i != 0])[0]
-            sub_pg[e] = ind[-1] + 1
-        # now let's checked and change code
-        if np.any(sum(sub_pg)) !=100 and np.any(sum(sub_dom)) != 100:
-            print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
+        record_all = np.array(record_all).T
+        # get the domainant and coarser from the percentage
+        [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
+        if len(sub_dom) == 1:
+            if sub_dom[0] == -99:
+                return  [-99], [-99], [-99], [-99], False
+        # transform to cemagref substrate form
         if code_type == 'Cemagref':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
                 print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
@@ -396,10 +374,61 @@ def sandre_to_cemagref(records):
     return new_record
 
 
+def percentage_to_domcoarse(sub_data, dominant_case, coord_in=False):
+    """
+    This function is used to pass from percentage data
+
+    :param sub_data: the subtrate data in percentage from Lammi
+    :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+           maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+           if 0, we do not know.
+    :param coord_in: if True, the two first data from each list composing sub_data are the x,y, coordinates
+           (used by lammi.py)
+    :return:
+    """
+    sub_data = np.array(sub_data)
+
+    len_sub = len(sub_data)
+    sub_dom = [0] * len_sub
+    sub_pg = [0] * len_sub
+    for e in range(0, len_sub):
+        record_all_i = sub_data[e]
+        if coord_in:
+            record_all_i = record_all_i[1:]
+        if sum(record_all_i) != 100:
+            print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
+        # let find the dominant
+        # we cannot use argmax as we need all maximum value, not only the first
+        inds = list(np.argwhere(record_all_i == np.max(record_all_i)).flatten())
+        if len(inds) > 1:
+            # if we have the same percentage for two dominant we send back the function to the GUI to ask the
+            # user. It is called again with the arg dominant_case
+            if dominant_case == 0:
+                print('Warning: no dominant case')
+                return [-99], [-99]
+            elif dominant_case == 1:
+                sub_dom[e] = inds[-1] + 1
+            elif dominant_case == -1:
+                # sub_dom[e] = int(attribute_name_all[inds[0]][0][1])
+                sub_dom[e] = inds[0] + 1
+        else:
+            sub_dom[e] = inds[0] + 1
+        # let find the coarser (the last one not equal to zero)
+        ind = np.where(record_all_i[record_all_i != 0])[0]
+        if len(ind) > 1:
+            sub_pg[e] = ind[-1] + 1
+        elif ind:  #just a float
+            sub_pg[e] = ind + 1
+        else: # no zeros
+            sub_pg[e] = len(record_all_i)
+
+    return sub_dom, sub_pg
+
+
 def load_sub_txt(filename, path, code_type):
     """
     A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
-    xoarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
+    coarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
     transformation.
 
     :param filename: the name of the shapefile
@@ -696,8 +725,10 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     fig, ax = plt.subplots(1)
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map1'])
-    colors_val = np.array((sub_pg - np.min(sub_pg)) / (
-    np.max(sub_pg) - np.min(sub_pg))) # convert nfloors to colors that we can use later
+    colors_val = np.array(sub_pg) # convert nfloors to colors that we can use later (cemagref)
+    # Set norm to correspond to the data for which
+    # the colorbar will be used.
+    norm = mpl.colors.Normalize(vmin=1, vmax=8)
     n = len(sub_pg)
     for i in range(0, n):
         verts = []
@@ -706,7 +737,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True,edgecolor='w')
         patches.append(polygon)
-    collection = PatchCollection(patches, linewidth=0.0, cmap=cmap)
+    collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
     ax.add_collection(collection)
     #collection.set_color(colors)
     collection.set_array(colors_val)
@@ -717,9 +748,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     plt.title('Substrate Grid - Coarser Data')
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
     # colorbar
-    # Set norm to correspond to the data for which
-    # the colorbar will be used.
-    norm = mpl.colors.Normalize(vmin=1, vmax=8)
+
     # ColorbarBase derives from ScalarMappable and puts a colorbar
     # in a specified axes, so it has everything needed for a
     # standalone colorbar.  There are many more kwargs, but the
@@ -743,8 +772,10 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     fig, ax = plt.subplots(1)
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map2'])
-    colors_val = np.array((sub_dom - np.min(sub_dom)) / (
-        np.max(sub_dom) - np.min(sub_dom)))  # convert nfloors to colors that we can use later
+    colors_val = np.array(sub_dom)  # convert nfloors to colors that we can use later
+    # Set norm to correspond to the data for which
+    # the colorbar will be used.
+    norm = mpl.colors.Normalize(vmin=1, vmax=8)
     n = len(sub_dom)
     for i in range(0, n):
         verts = []
@@ -753,7 +784,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
-    collection = PatchCollection(patches,linewidth=0.0, cmap=cmap)
+    collection = PatchCollection(patches,linewidth=0.0, cmap=cmap, norm=norm)
     ax.add_collection(collection)
     collection.set_array(colors_val)
     ax.autoscale_view()
@@ -766,9 +797,6 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7]) # posistion x2, sizex2, 1= top of the figure
-    # Set norm to correspond to the data for which
-    # the colorbar will be used.
-    norm = mpl.colors.Normalize(vmin=1, vmax=8)
     # ColorbarBase derives from ScalarMappable and puts a colorbar
     # in a specified axes, so it has everything needed for a
     # standalone colorbar.  There are many more kwargs, but the

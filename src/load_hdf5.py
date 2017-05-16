@@ -373,7 +373,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         root = doc.getroot()
         child = root.find(".//" + model_name2)
         if child is not None:
-            if model_name == 'MERGE':
+            if model_name == 'MERGE' or model_name == 'LAMMI':
                 child = root.findall(".//" + model_name2 + '/hdf5_mergedata')
             elif model_name == 'SUBSTRATE':
                 child = root.findall(".//" + model_name2 + '/hdf5_substrate')

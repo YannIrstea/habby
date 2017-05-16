@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLa
     QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView
 import h5py
 np.set_printoptions(threshold=np.inf)
-from multiprocessing import Process, Queue, Pool
+from multiprocessing import Process, Queue
 import time
 try:
     import xml.etree.cElementTree as ET
@@ -26,8 +26,7 @@ from src import manage_grid_8
 from src import load_hdf5
 from src_GUI import output_fig_GUI
 from src import mesh_grid2
-
-#import matplotlib.pyplot as plt
+from src import lammi
 
 class Hydro2W(QWidget):
     """
@@ -80,7 +79,7 @@ class Hydro2W(QWidget):
         #self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20", "TELEMAC", "HABBY HDF5"]  # "MAGE"
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20", "TELEMAC", "HABBY HDF5"]  # "MAGE"
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -112,10 +111,12 @@ class Hydro2W(QWidget):
         self.rubar1d = Rubar1D(self.path_prj, self.name_prj)
         self.mascar = Mascaret(self.path_prj, self.name_prj)
         self.riverhere2d = River2D(self.path_prj, self.name_prj)
+        self.lammi = LAMMI(self.path_prj, self.name_prj)
         self.habbyhdf5 = HabbyHdf5(self.path_prj, self.name_prj)
         self.stack.addWidget(self.free)  # order matters in the next lines!
         self.stack.addWidget(self.hecras1D)
         self.stack.addWidget(self.hecras2D)
+        self.stack.addWidget(self.lammi)
         self.stack.addWidget(self.mascar)
         self.stack.addWidget(self.riverhere2d)
         self.stack.addWidget(self.rubar1d)
@@ -726,7 +727,7 @@ class SubHydroW(QWidget):
                     if self.fig_opt['time_step'][0] == -99:  # all time steps
                         for t in range(1, len(ikle_all_t)):  # do not plot full profile
                             if t < len(ikle_all_t):
-                                if self.model_type == 'SUBSTRATE':
+                                if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                                     manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
                                                                    inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
                                 else:
@@ -736,7 +737,7 @@ class SubHydroW(QWidget):
                     else:
                         for t in self.fig_opt['time_step']:  # range(0, len(vel_cell)):
                             if t < len(ikle_all_t):
-                                if self.model_type == 'SUBSTRATE':
+                                if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                                     manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
                                                                    inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
                                 else:
@@ -750,7 +751,7 @@ class SubHydroW(QWidget):
                 else:
                     self.send_log.emit(self.tr("The hydrological model was not found. Figures could not be shown"))
 
-            if self.model_type == 'SUBSTRATE':
+            if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                 self.send_log.emit(self.tr("Merging of substrate and hydrological data finished."))
                 self.drop_merge.emit()
             else:
@@ -2023,6 +2024,191 @@ class TELEMAC(SubHydroW):
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
 
+class LAMMI(SubHydroW):
+    """
+    The class LAMMI is there to manage the link between the graphical interface and the functions in src/lammi.py
+    which loads the lammi data. It inherits from SubHydroW() so it have all the methods and the variables
+    from the class SubHydroW().
+    """
+
+    drop_merge = pyqtSignal()
+    """
+    A pyqtsignal which signal that hydro data from lammi is ready. The signal is for the bioinfo_tab and is collected
+    by MainWindows1.py. Data from lammi contains substrate data.
+    """
+
+    def __init__(self, path_prj, name_prj):
+
+        super().__init__(path_prj, name_prj)
+
+        self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
+        # the third path is the directory when the output files are found. Only useful, if the output files were moved
+        self.pathfile = ['.', '.', '.', 'Directory from transect.txt']
+        self.file_entree = ['Facies.txt', 'Transect.txt']
+        self.attributexml = ['lammi_facies', 'lammi_transect', 'lammi_output']
+        self.model_type = 'LAMMI'
+        self.extension = [['.txt'], ['.txt']]
+        self.nb_dim = 1.5
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        Used by __init__() during the initialization.
+        """
+
+
+        # if there is the project file with lammi info, update the label and attibutes
+        self.was_model_loaded_before(0)
+        self.was_model_loaded_before(1)
+        self.was_model_loaded_before(2)
+
+        # geometry and output data
+        l1 = QLabel(self.tr('<b> General data </b>'))
+        self.h2d_t2 = QLabel(self.namefile[0] + ', ' + self.namefile[1], self)
+        self.h2d_b = QPushButton(self.tr("Select the 'Entree' directory"), self)
+        self.h2d_b.clicked.connect(lambda: self.show_dialog_lammi(0))
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0] + ', ' + self.namefile[1]))
+        l2 =  QLabel(self.tr('<b> Output data </b>'))
+        self.dirlab = QLabel(self.pathfile[2])
+        self.dirbut = QPushButton(self.tr("Select the 'SimHydro' directory"))
+        self.dirbut.clicked.connect(lambda: self.show_dialog_lammi(1))
+        self.dirbut.clicked.connect(lambda: self.dirlab.setText(self.pathfile[2]))
+
+        # show the directory as tooltip
+        self.h2d_t2.setToolTip(self.pathfile[0])
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+
+        # grid creation
+        l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+        l2D2 = QLabel(self.tr("Only 'Interpolation by Block' possible for LAMMI data"))
+
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
+
+        # load button
+        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.clicked.connect(self.load_lammi_gui)
+        self.spacer = QSpacerItem(1, 150)
+        self.cb = QCheckBox(self.tr('Show figures'), self)
+
+        # layout
+        self.layout_hec2 = QGridLayout()
+        self.layout_hec2.addWidget(l1, 1, 0)
+        self.layout_hec2.addWidget(self.h2d_t2, 1, 1)
+        self.layout_hec2.addWidget(self.h2d_b, 1, 2)
+        self.layout_hec2.addWidget(l2, 2, 0)
+        self.layout_hec2.addWidget(self.dirlab, 2, 1)
+        self.layout_hec2.addWidget(self.dirbut, 2, 2)
+        self.layout_hec2.addWidget(l2D1, 3, 0)
+        self.layout_hec2.addWidget(l2D2, 3, 1, 1, 2)
+        self.layout_hec2.addWidget(lh, 4, 0)
+        self.layout_hec2.addWidget(self.hname, 4, 1)
+        self.layout_hec2.addWidget(self.load_b, 5, 2)
+        self.layout_hec2.addWidget(self.cb, 6, 2)
+        self.layout_hec2.addItem(self.spacer, 7, 1)
+        self.setLayout(self.layout_hec2)
+
+    def show_dialog_lammi(self, i = 0):
+        """
+        When using lammi data, the user selects a directory and not a file. Hence, we need to modify the ususal
+        show_dialog function. Hence, function the show_dilaog_lammi() obtain the directory chosen by the user.
+        This method open a dialog so that the user select a directory. The files are NOT loaded here. The name and path
+         \to the files are saved in an attribute.
+
+        :param i: If i ==0, we obtain the Entree dirctory, if i == 1, the Resu directory.
+        """
+
+        # get the directory
+        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
+        if dir_name == '':  # cancel case
+            self.send_log.emit("Warning: No selected directory for lammi\n")
+            return
+
+        # get the files if entree
+        if i == 0:
+            for f in range(0, 2):
+                filename = self.file_entree[f]
+                # check files
+                if os.path.isfile(os.path.join(dir_name, filename)):
+                    pass
+                else:
+                    self.send_log.emit("Error: Transect.txt or Facies.txt was not found in the selected directory.\n")
+                    return
+                # keep the name in an attribute until we save it
+                self.pathfile[f] = dir_name
+                self.namefile[f] = filename
+
+            # add the default name of the hdf5 file to the QLineEdit
+            self.name_hdf5 = 'Merge_' + self.model_type
+            self.hname.setText(self.name_hdf5)
+
+        if i == 1:
+            # test if there is at least one output file in the proposed output directory
+            filenames = load_hdf5.get_all_filename(dir_name, '.prn')
+            if len(filenames) > 0:
+                self.pathfile[2] = dir_name
+                self.namefile[2] = os.path.basename(filenames[0])
+            else:
+                self.send_log.emit("Error: No output (.prn) file found in the selected directory.\n")
+                return
+
+
+        else:
+            return
+
+    def load_lammi_gui(self):
+        """
+        This function loads the lammi data, save the text file to the xml project file and create the grid
+        """
+
+        # for error management and figures
+        self.timer.start(1000)
+
+        # write the new file name in the project file
+        self.save_xml(0)
+        self.save_xml(1)
+        self.save_xml(2)
+        self.load_b.setDisabled(True)
+
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_hdf5()
+        self.name_hdf5 = self.hname.text()
+        # get the image and load option
+        path_im = self.find_path_im()
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        show_all_fig = bool(self.fig_opt['raw_data'])
+
+        if not os.path.isdir(self.pathfile[2]):
+            self.pathfile[2] = []
+
+        # load the lammi data
+        self.q = Queue()
+        self.p = Process(target=lammi.open_lammi_and_create_grid,
+                         args=(self.pathfile[0], self.pathfile[1], path_im, self.name_hdf5, self.name_prj, self.path_prj
+                               , path_hdf5, self.pathfile[2], self.fig_opt, show_all_fig,  self.namefile[1],
+                               self.namefile[0], False, self.q, 1, self.model_type))
+        self.p.start()
+
+        # path input
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
+        # log info
+        self.send_log.emit(self.tr('# Loading: LAMMI data.'))
+        self.send_err_log()
+        self.send_log.emit("py    dir1='" + self.pathfile[0] + "'")
+        self.send_log.emit("py    dir2='" + self.pathfile[1] + "'")
+        self.send_log.emit("py    dir3='" + self.pathfile[2] + "'")
+        self.send_log.emit("py    lammi.open_lammi_and_create_grid(dir1, dir2, path_prj, 'lammi_hdf5', "
+                           "name_prj, path_prj, path_prj, dir3, [], False, 'Transect.txt, 'Facies.txt', True)\n")
+        self.send_log.emit("restart LOAD_LAMMI")
+        self.send_log.emit("restart    dir1: " + self.pathfile[0])
+        self.send_log.emit("restart    dir3: " + self.pathfile[2])
+
 class HabbyHdf5(SubHydroW):
     """
     This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
@@ -2340,8 +2526,8 @@ class SubstrateW(SubHydroW):
                     [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
                         self.namefile[0],self.pathfile[0], code_type, dom_solve)
                 sys.stdout = sys.__stdout__
-
                 self.send_err_log()
+
                 if self.ikle_sub == [-99]:
                     self.send_log.emit('Error: Substrate data not loaded')
                     self.load_b.setDisabled(False)

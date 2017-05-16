@@ -173,9 +173,10 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 h_pref_c = find_pref_value(h_cell, pref_height)
                 v_pref_c = find_pref_value(v_cell, pref_vel)
                 s_pref_c = find_pref_value(s, pref_sub)
+
                 try:
                     vh = h_pref_c * v_pref_c * s_pref_c
-                    vh = np.round(vh,3)  # necessary ofr shapefile, do not get above 8 digits of precision
+                    vh = np.round(vh, 3)  # necessary for  shapefile, do not get above 8 digits of precision
                 except ValueError:
                     print('Error: One time step misses substrate, velocity or water height value \n')
                     vh = [-99]
@@ -213,6 +214,8 @@ def find_pref_value(data, pref):
 
     for d in data:
         indh = bisect.bisect(pref_d, d) - 1  # about 3 time quicker than max(np.where(x_ini <= x_p[i]))
+        if indh < 0:
+            indh = 0
         dmin = pref_d[indh]
         prefmin = pref_f[indh]
         if indh < len(pref_d) - 1:
@@ -222,7 +225,7 @@ def find_pref_value(data, pref):
                 pref_data_here = prefmin
             else:
                 a1 = (prefmax - prefmin) / (dmax - dmin)
-                b1 = prefmax - a1 * dmax
+                b1 = prefmin - a1 * dmin
                 pref_data_here = a1 * d + b1
                 if pref_data_here < 0 or pref_data_here > 1:
                     # the linear interpolation sometimes creates value like -5.55e-17
@@ -232,7 +235,12 @@ def find_pref_value(data, pref):
                         pref_data_here = 1
                     else:
                         print('Warning: preference data is not between 0 and 1. \n')
-                        print(pref_data_here)
+                        # print(pref_data_here)
+                        # print(d)
+                        # print(prefmax)
+                        # print(prefmin)
+                        # print(dmax)
+                        # print(dmin)
             pref_data.append(pref_data_here)
         else:
             pref_data.append(pref_f[indh])
@@ -572,9 +580,10 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 ax.autoscale_view()
                 # cbar = plt.colorbar()
                 # cbar.ax.set_ylabel('Substrate')
-                plt.xlabel('x coord []')
-                plt.ylabel('y coord []')
-                plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
+                if r == 0:
+                    plt.xlabel('x coord []')
+                    plt.ylabel('y coord []')
+                    plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
                 ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
                 rt +=1
 

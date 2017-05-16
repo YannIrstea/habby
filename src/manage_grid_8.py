@@ -712,7 +712,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro, point_c_all
 
 
-def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
+def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], sub_pg =[], sub_dom=[]):
     """
     This function creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
     The interpolation of the data is done in this function also, contrarily to create_grid().
@@ -720,6 +720,8 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
     :param coord_pro: the profile coordinates (x,y, h, dist along) the profile
     :param nb_pro_reach: the number of profile by reach
     :param vh_pro_t: the data with heigh and velocity, giving the river limits
+    :param sub_pg: the data from the coarser substrate, in case the hydraulic model already contains substrate data
+    :param sub_dom: the data from the dominant substrate, in case the hydraulic model already contains substrate data
     :return: the connevtivity table, the coordinate of the grid, the centroid of the grid, the velocity data on this
              grid, the height data on this grid.
 
@@ -733,6 +735,8 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
     # perimeter and points where the velocity is given (might not be all profil points).
     inter_vel_all = []
     inter_height_all = []
+    inter_dom_all = []
+    inter_pg_all = []
     all_point_midx = []
     all_point_midy = []
     if vh_pro_t:
@@ -746,7 +750,8 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
         point_c = []
         inter_vel = []
         inter_height = []
-        # get rid of island for the data
+        inter_sub_pg = []
+        inter_sub_dom = []
         if vh_pro_t:
             data_height_old = [val for val in vh_pro_t[nb_pro_reach[r]][1] for blob in (0, 1)]
             # was used for created the island, not needed
@@ -755,6 +760,9 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
             # data_height_old = [val for val in data_height0 if val > 0]  # island
             data_vel_old = [val for val in vh_pro_t[nb_pro_reach[r]][2] for blob in (0, 1)]
             # data_vel_old = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
+            if sub_pg:
+                data_pg_old = [val for val in sub_pg[nb_pro_reach[r]] for blob in (0, 1)]
+                data_dom_old = [val for val in sub_dom[nb_pro_reach[r]] for blob in (0, 1)]
 
         for p in range(nb_pro_reach[r]+1, nb_pro_reach[r+1]):
             coord_pro_p0 = coord_pro[p-1]
@@ -777,6 +785,9 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
             if vh_pro_t:
                 inter_vel += data_vel_old
                 inter_height += data_height_old
+                if sub_pg:
+                    inter_sub_pg += data_pg_old
+                    inter_sub_dom += data_dom_old
             #  create cells for the profile after the middle profile
             if len(coord_pro_p1[0]) > 0:
                 if vh_pro_t:
@@ -798,14 +809,27 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
                 inter_height += data_height
                 data_vel_old = data_vel
                 data_height_old = data_height
+                if sub_pg:
+                    data_pg = [val for val in sub_pg[p] for blob in (0, 1)]
+                    data_dom = [val for val in sub_dom[p] for blob in (0, 1)]
+                    inter_sub_pg += data_pg
+                    inter_sub_dom += data_dom
+                    data_pg_old = data_pg
+                    data_dom_old = data_dom
         point_all_reach.append(np.array(point_all))
         point_c_all.append(np.array(point_c))
         # possible check which could be added:
         # take out triangle with an area hwich is smaller than a certain threshold
+        if sub_pg:
+            if len(ikle) != len(inter_sub_dom) or len(ikle) != len(inter_sub_pg):
+                print('Warning: the length of the subtrate data and ikle is not coherent \n')
         ikle_all.append(np.array(ikle))
         if vh_pro_t:
             inter_vel_all.append(np.array(inter_vel))
             inter_height_all.append(np.array(inter_height))
+            if sub_pg:
+                inter_dom_all.append(np.array(inter_sub_dom))
+                inter_pg_all.append(np.array(inter_sub_pg))
 
         # useful to control the middle profile 9\(added between two profiles)
         # plt.figure()
@@ -822,7 +846,10 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[]):
            # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
         #plt.show()
 
-    return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
+    if sub_pg:
+        return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all
+    else:
+        return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
 
 
 def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_mid_y, point_all, ikle, point_c, dir):
@@ -1139,7 +1166,10 @@ def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
         norm2 = np.sqrt((coord_pro_p1[0][-1] - coord_pro_p1[0][0]) ** 2 +
                         (coord_pro_p1[1][-1] - coord_pro_p1[1][0]) ** 2)
         dist_in_m = coord_pro_p1[3][-1] - coord_pro_p1[3][0]
-        coord_change.extend([norm2 / dist_in_m])
+        if dist_in_m ==0:
+            coord_change.extend([1])
+        else:
+            coord_change.extend([norm2 / dist_in_m])
         # for loop is needed because profile not always straight
         # so nx and ny should be calculated more than once
         w = -99
@@ -2075,7 +2105,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     plt.figure()
 
     # the grid
-    plt.subplot(3,1,1) # nb_fig, nb_fig, position
+    plt.subplot(3, 1, 1) # nb_fig, nb_fig, position
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     for r in range(0, len(ikle_all)):
@@ -2109,7 +2139,11 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                     ylist.append(None)
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
-    plt.title('Computational Grid  - Time Step ' + str(time_step))
+    if time_step == -1:
+        plt.title('Computational Grid  - Last Time Step ')
+    else:
+        plt.title('Computational Grid  - Time Step ' + str(time_step))
+    plt.tight_layout()
 
     # plot the interpolated velocity
     if len(inter_vel_all) > 0:  # 0

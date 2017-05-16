@@ -575,6 +575,7 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.path_prj = self.path_prj
         self.central_widget.stathab_tab.path_prj = self.path_prj
         self.central_widget.output_tab.path_prj = self.path_prj
+        self.central_widget.output_tab.path_prj = self.path_prj
         self.central_widget.bioinfo_tab.path_prj= self.path_prj
         self.central_widget.hydro_tab.hecras1D.name_prj = self.name_prj
         self.central_widget.hydro_tab.hecras2D.name_prj = self.name_prj
@@ -584,6 +585,7 @@ class MainWindows(QMainWindow):
         self.central_widget.hydro_tab.mascar.name_prj = self.name_prj
         self.central_widget.hydro_tab.riverhere2d.name_prj = self.name_prj
         self.central_widget.hydro_tab.habbyhdf5.name_prj = self.name_prj
+        self.central_widget.hydro_tab.lammi.name_prj = self.name_prj
         self.central_widget.hydro_tab.hecras1D.path_prj = self.path_prj
         self.central_widget.hydro_tab.hecras2D.path_prj = self.path_prj
         self.central_widget.hydro_tab.telemac.path_prj = self.path_prj
@@ -596,6 +598,7 @@ class MainWindows(QMainWindow):
         self.central_widget.stathab_tab.mystathab.name_prj = self.name_prj
         self.central_widget.fstress_tab.path_prj = self.path_prj
         self.central_widget.fstress_tab.name_prj = self.name_prj
+        self.central_widget.hydro_tab.lammi.path_prj = self.path_prj
 
         self.central_widget.add_all_tab()
         # write log
@@ -1307,6 +1310,7 @@ class CentralW(QWidget):
         self.hydro_tab.telemac.show_fig.connect(self.showfig)
         self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
         self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
+        self.hydro_tab.lammi.show_fig.connect(self.showfig)
         self.substrate_tab.show_fig.connect(self.showfig)
         self.statmod_tab.show_fig.connect(self.showfig)
         self.stathab_tab.show_fig.connect(self.showfig)
@@ -1325,6 +1329,7 @@ class CentralW(QWidget):
         self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
         self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
         self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+        self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
         # connect signal for the log
         self.connect_signal_log()
@@ -1465,6 +1470,7 @@ class CentralW(QWidget):
         self.output_tab.send_log.connect(self.write_log)
         self.bioinfo_tab.send_log.connect(self.write_log)
         self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
+        self.hydro_tab.lammi.send_log.connect(self.write_log)
         self.fstress_tab.send_log.connect(self.write_log)
 
     def write_log(self, text_log):

@@ -1,13 +1,127 @@
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+from io import StringIO
 from collections import OrderedDict
 from src_GUI import output_fig_GUI
+from src import substrate
+from src import manage_grid_8
+from src import load_hdf5
 
 
-def load_lammi(facies_path, transect_path, path_im, new_dir='', fig_opt=[], transect_name='Transect.txt',
-               facies_name = 'Facies.txt'):
+def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, name_prj, path_prj, path_hdf5, new_dir='',
+                               fig_opt=[], savefig1d=False, transect_name='Transect.txt', facies_name = 'Facies.txt',
+                               print_cmd=False, q=[], dominant_case=1, model_type = 'LAMMI'):
+    """
+    This function loads the data from the LAMMI model using the load_lammi() function., create the grid and save the
+    data in an hdf5 file. A description of the LAMMI model is available in the documentation folder (LAMMIGuideMetho.pdf).
+
+    :param transect_path: the path to the transect.txt path
+    :param facies_path: the path the facies.txt file
+    :param path_im: the path where to save the image
+    :param fig_opt: the figure option
+    :param savefig1d: create and save the figure related to the loading of the data (profile and so on)
+    :param name_hdf5: the name of the hdf5 to be created
+    :param name_prj: the name of the project (string)
+    :param path_prj: the path of the project
+    :param path_hdf5: the path to the hdf5 data
+    :param new_dir: if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
+    :param transect_name: the name of the transect file, usually 'Transect.txt'
+    :param facies_name: the name of the facies file, ususally 'Facies.txt
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param q: used if this function is send using the second thread
+    :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+           maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+           if 0, we do not know.
+    :return:
+
+    **Technical comments**
+
+    LAMMI has a special way of creating a grid from its data. Because spatial information is not very good in LAMMI,
+    we can only used the create_grid_only_1_profile() function. The function which uses triangle to create the grid can
+    not be used here as the developper fomr LAMMI did not wish to introduce an interpolation method in their outputs.
+    In addition, LAMMI integrates substrate data which should be direclty added to the grid while other hydraulic model
+    get their substrate data from another sources.
+    """
+
+    # preapration
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+    inter_vel_all_t = []
+    inter_h_all_t = []
+    ikle_all_t = []
+    point_all_t = []
+    point_c_all_t = []
+    sub_dom_all_t = []
+    sub_pg_all_t = []
+
+    # open the data ( and save the 1d figure if needed)
+    [coord_pro, vh_pro, nb_pro_reach, sub_pro] = load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt,
+                                                            savefig1d, transect_name, facies_name)
+
+    # manage failed cases
+    if coord_pro == [-99] or len(vh_pro) < 1:
+        print('Error: LAMMI data not loaded')
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put(mystdout)
+            return
+        else:
+            return
+
+    # create the grid
+    # first, create the grid for the whole profile (no need for velcoity and height data)
+    [ikle_all, point_all_reach, point_c_all, blob, blob] \
+        = manage_grid_8.create_grid_only_1_profile(coord_pro[0], nb_pro_reach)
+    inter_vel_all_t.append([])
+    inter_h_all_t.append([])
+    sub_dom_all_t.append([])
+    sub_pg_all_t.append([])
+    ikle_all_t.append(ikle_all)
+    point_all_t.append(point_all_reach)
+    point_c_all_t.append(point_c_all)
+
+    for t in range(0, len(coord_pro)):
+        # pass the subtrate data from percentage in edf code to [sub?dom] form in cemagref code
+        sub_dom = []
+        sub_pg = []
+        for subp in sub_pro[t]:
+            [sub_domp, sub_pgp] = substrate.percentage_to_domcoarse(subp, dominant_case, True)
+            # careful, there are real uncertainties here !!!!
+            sub_domp = substrate.edf_to_cemagref(sub_domp)
+            sub_pgp = substrate.edf_to_cemagref(sub_pgp)
+            sub_pg.append(sub_pgp)
+            sub_dom.append(sub_domp)
+
+        # create the grid for this time step (including substrate data)
+        [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all] = \
+            manage_grid_8.create_grid_only_1_profile(coord_pro[t], nb_pro_reach, vh_pro[t], sub_pg, sub_dom)
+        inter_vel_all_t.append(inter_vel_all)
+        inter_h_all_t.append(inter_height_all)
+        ikle_all_t.append(ikle_all)
+        point_all_t.append(point_all_reach)
+        point_c_all_t.append(point_c_all)
+        sub_dom_all_t.append(inter_dom_all)
+        sub_pg_all_t.append(inter_pg_all)
+
+    # save the data in an hdf5 (merge) file with hydro and subtrate data
+    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 2, path_hdf5, ikle_all_t,
+                        point_all_t, [], inter_vel_all_t, inter_h_all_t, [], [], [], [], True,
+                        sub_pg_all_t, sub_dom_all_t)
+
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
+    if q:
+        q.put(mystdout)
+        return
+    else:
+        return
+
+
+def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d, transect_name,
+               facies_name):
     """
     This function loads the data from the LAMMI model. A description of the LAMMI model is available in the
     documentation folder (LAMMIGuideMetho.pdf).
@@ -16,12 +130,13 @@ def load_lammi(facies_path, transect_path, path_im, new_dir='', fig_opt=[], tran
     :param facies_path: the path the facies.txt file
     :param path_im: the path where to save the image
     :param fig_opt: the figure option
+    :param savefig1d: create and save the figure related to the loading of the data (profile and so on)
     :param new_dir: if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
     :param transect_name: the name of the transect file, usually 'Transect.txt'
     :param facies_name: the name of the facies file, usually 'Facies.txt'
     :return:
 
-    ** Technical Comments **
+    **Technical Comments**
 
     LAMMI is organised aroung group of transects. Transect are river profile which describe the river geometry.
     In LAMMI, there are four way of grouping transect. The facies is the a group a transect which is considered by HABBY
@@ -61,11 +176,15 @@ def load_lammi(facies_path, transect_path, path_im, new_dir='', fig_opt=[], tran
         if dist_all[0] == -99:
             return
 
-    # get the (not realistic) coordinates of the rivers
-    [coord_pro, vh_pro, nb_pro_reach] = coord_lammi(dist_all, vel_all, height_all, sub_all, length_all)
+    # get the (not realistic) coordinates of the rivers and  the coordinate of the substrate
+    [coord_pro, vh_pro, nb_pro_reach, sub_pro] = coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_im)
 
     # create the figure
-    fig_lammi(vh_pro, coord_pro, nb_pro_reach, [0,1,2], 0, fig_opt, path_im)
+    if savefig1d:
+        fig_lammi(vh_pro, coord_pro, nb_pro_reach, [0, 1, 2], 0, fig_opt, path_im)
+        plt.close() # avoid problem with matplotlib
+
+    return coord_pro, vh_pro, nb_pro_reach, sub_pro
 
 
 def load_station(station_path, station_name):
@@ -407,14 +526,14 @@ def load_transect_data(fac_filename_all):
     return dist_all, vel_all, height_all, sub_all, q_step
 
 
-def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
+def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_sub):
     """
     This function takes the data from the lammi outputs and get the coordinate for the river. It also
     reform the data to put it in the needed for HABBY (as the other 1.5D hydraulic model as hec_ras).
 
     To get the coordinates, we assume that the river is straight, that each facies is one after the other and
     that the river passes by the deepest point of the profile. In addition we assume that the profile are straight
-    and perpendicular to the river.
+    and perpendicular to the river. We assume that each facies (or reach for HABBY) is separated by a constant value
 
     We loop through all the profiles for all reach all time steps. For each profile, the x coordinate is identical
     for all point of the profile and is calculated using length_all. When a new reach starts, a meter is added to the x
@@ -428,14 +547,15 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
     :param sub_all: the substrate data along profile by reach (or facies) and by time step. Eacu subtrate data is a list
            of eight number representing the percentage of each of the eight subtrate class.
     :param length_all: the distance between profile
-    :return: coord_pro, nb_pro_reach and vh_pro in the same form as in hec-ras (final form)
+    :param: path_sub: the path where to save the subtrate
+    :return: coord_pro, nb_pro_reach and vh_pro in the same form as in final form for hec-ras, a variable with (dist
+    and the eight subtrate data) called sub_pro
     """
 
     coord_pro = []
     nb_pro_reach = [0]
     vh_pro = []
     sub_pro = []
-    x = 0
     t = 0
 
     # for each "time" step
@@ -447,8 +567,10 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
 
         coord_prot = []
         vh_prot = []
+        sub_prot = []
         t+=1
         f = 0
+        x = 0
 
         # facies/reach
         for fi in range(0, len(dist_allt)):
@@ -466,6 +588,7 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
                 sub_allp = sub_allf[pi]
                 rivind = np.argmax(np.array(height_allp))
                 dist_here = 0
+                sub_here = []
 
                 # point
                 dist_allp_new = [0]
@@ -479,29 +602,47 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
                     if di == len(dist_allp)-1:
                         dist_here += dist_allp[di]/2
                         dist_allp_new.append(dist_here)
+                    sub_here.append([dist_here]+sub_allp[di])
 
                 # x, y coordinate (0 at the middle of the river for y)
                 ypro = [i - dist_allp_new[rivind + 1] for i in dist_allp_new]
-                x += length_all[fi][pi]
                 xpro = [x] * len(dist_allp_new)
+                x += length_all[fi][pi]
+
+                # if height_allp[0] <= 0.0:
+                #     sub_here = sub_here[1:]
+                # if height_allp[-1] <= 0.0:
+                #     sub_here = sub_here[:-1]
+                sub_here = [val for ind, val in enumerate(sub_here) if height_allp[ind] >0]
+
                 # data
                 vel_allp = [0] + vel_allp + [0]
                 height_allp = [0] + height_allp + [0]
 
                 # data for the profile
                 vh_prop = [dist_allp_new, height_allp, vel_allp]
-                coord_pro_p = [xpro, ypro, dist_allp_new, height_allp]
+                coord_pro_p = np.array([xpro, ypro, height_allp,dist_allp_new])
                 coord_prot.append(coord_pro_p)
                 vh_prot.append(vh_prop)
+                sub_prot.append(sub_here)
+
+            # add the last profile to avoid having reach with only one profile
+            if len(dist_allf)> 0:
+                xpro = [x] * len(dist_allp_new)
+                coord_pro_p = np.array([xpro, ypro, height_allp, dist_allp_new])
+                coord_prot.append(coord_pro_p)
+                vh_prot.append(vh_prop)
+                sub_prot.append(sub_here)
 
             if ti == 0:
-                nb_pro_reach.append(nb_pro_reach[-1] + len(dist_allf))
-            x += 1  # reach is separated by 1m along the river
+                nb_pro_reach.append(nb_pro_reach[-1] + len(dist_allf) +1)
+            x += 5  # reach is separated by 5m along the river
 
         coord_pro.append(coord_prot)
         vh_pro.append(vh_prot)
+        sub_pro.append(sub_prot)
 
-    return coord_pro, vh_pro, nb_pro_reach
+    return coord_pro, vh_pro, nb_pro_reach, sub_pro
 
 
 def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_im):
@@ -530,7 +671,7 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
 
     # get the profile data
     for id,i in enumerate(pro_num):
-        dist = coord_pro[i][2]
+        dist = coord_pro[i][3,:]
         vel = vh_pro[i][2]
         vel[0] = vel[1]
         vel[-1] = vel[-2]
@@ -554,15 +695,15 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
         plt.ylim([np.min(-h) * 1.05, np.max(h)/3])
         # save
-        # if format == 0 or format == 1:
-        #     plt.savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-        #                          '.png'), dpi=fig_opt['resolution'])
-        # if format == 0 or format == 3:
-        #     plt.savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-        #                          '.pdf'), dpi=fig_opt['resolution'])
-        # if format == 2:
-        #     plt.savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-        #                          '.jpg'), dpi=fig_opt['resolution'])
+        if format == 0 or format == 1:
+            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'), dpi=fig_opt['resolution'])
+        if format == 0 or format == 3:
+            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.pdf'), dpi=fig_opt['resolution'])
+        if format == 2:
+            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.jpg'), dpi=fig_opt['resolution'])
 
     # get an (x,y) view of the progile position
     fig2 = plt.figure(len(pro_num))
@@ -581,23 +722,23 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         plt.plot(coord_pro[j][0], coord_pro[j][1],  col, label="Facies " + str(nb_fac +1), markersize=3)  # profile
     plt.xlabel("x coord []")
     plt.ylabel("y coord []")
+    plt.xlim(coord_pro[0][0][0] - 20, coord_pro[-1][0][0] + 20)
     plt.title("Position of the profiles (conceptual only)")
     #plt.axis('equal')  # if right angle are needed
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys(),bbox_to_anchor=(1.1, 1), prop={'size': 10})
-    # if format == 0 or format == 1:
-    #     plt.savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-    #             dpi=fig_opt['resolution'])
-    # if format == 0 or format == 3:
-    #     plt.savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-    #             dpi=fig_opt['resolution'])
-    # if format == 2:
-    #     plt.savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-    #             dpi=fig_opt['resolution'])
+    if format == 0 or format == 1:
+        plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                dpi=fig_opt['resolution'])
+    if format == 0 or format == 3:
+        plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                dpi=fig_opt['resolution'])
+    if format == 2:
+        plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                dpi=fig_opt['resolution'])
 
-
-    plt.show()
+    #plt.show()
 
 
 def main():
@@ -609,7 +750,9 @@ def main():
     path = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Entree'
     new_dir = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\SimHydro'
     path_im = '.'
-    load_lammi(path, path, path_im, new_dir)
+
+    open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
+                               'Transect.txt', 'Facies.txt', True)
 
 
 if __name__ == '__main__':
