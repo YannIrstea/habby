@@ -2502,7 +2502,7 @@ class SubstrateW(SubHydroW):
                     return
 
                 # load substrate
-                sys.stdout = self.mystdout = StringIO()
+                #sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0],
                                                                                   self.pathfile[0], code_type)
                 # we have a case where two dominant substrate are "equally" dominant
@@ -2525,8 +2525,8 @@ class SubstrateW(SubHydroW):
                         dom_solve = -1
                     [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
                         self.namefile[0],self.pathfile[0], code_type, dom_solve)
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
+                #sys.stdout = sys.__stdout__
+                #self.send_err_log()
 
                 if self.ikle_sub == [-99]:
                     self.send_log.emit('Error: Substrate data not loaded')

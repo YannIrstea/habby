@@ -240,14 +240,16 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
         for f in fields:
             if f[0] == attribute_name[0] or f[0] == attribute_name[1]:  # [0] coarser and [1] pg
                 # read for all code type
+                a = int('2')
                 record_here = sf.records()
                 record_here = np.array(record_here)
                 record_here = record_here[:, ind-1]
                 try:
+                    record_here = list(map(float, record_here))  # int('2.000' ) throw an error
                     record_here = list(map(int, record_here))
                 except ValueError:
-                    print('Error: The substate code should be formed by an int.\n')
-                    return failload
+                   print('Error: The substrate code should be formed by an int.\n')
+                   return failload
 
                 # code type cemagref - checked
                 if code_type == 'Cemagref':
@@ -291,6 +293,9 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
     else:
         print('Error: Type of attribute not recognized.\n')
         return failload
+
+    # having a convex subtrate grid is really practical
+    [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
 
     return xy, ikle, sub_dom, sub_pg, True
 
@@ -533,6 +538,98 @@ def load_sub_txt(filename, path, code_type):
         return failload
 
     return xy, ikle, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg
+
+
+def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
+    """
+    This function check if the grid in entry is composed of convex cell. Indeed, it is possible to have concave
+    cells in the substrate grid. However, this is unpractical when the hydrological grid is merged with the subtrate
+    grid. Hence, we find here the concave cells. These cells are then modified using the triangle module.
+
+    The algotithm is based on the idea that when you have a convex polygon you turn always in the same direction.
+    When you have a concave polygon sometime you will turn left, sometime you will turn right. To check this,
+    we can take the determinant betwen each vector which compose the cells and check if they have the same sign.
+    Triangle are always convex.
+
+    :param ikle: the connectivity table of the grid (one reach, one time step as substrate grid is constant)
+    :param point_all: the point of the grid
+    :param sub_pg: the coarser substrate, one data by cell
+    :param sub_dom: the dominant subtrate, one data by cell
+    :return: ikle, point_all with only convexe cells
+    """
+
+    point_alla = np.array(point_all)
+
+    to_delete = []
+    for ic, c in enumerate(ikle):
+        concave = False
+        lenc = len(c)
+        sign_old = 0
+        if lenc > 3: # triangle are convex
+            v00 = point_alla[c[1]] - point_alla[c[0]]
+            v0 = v00
+            for ind in range(0, lenc):
+                # find vector
+                if ind < lenc - 2:
+                    v1 = point_alla[c[ind+2]] - point_alla[c[ind+1]]
+                elif ind == lenc - 2:
+                    v1 = point_alla[c[0]] - point_alla[c[ind+1]]
+                elif ind == lenc -1:
+                    v1 = v00
+                # calulate deteminant (x0y1 - x1y0)
+                det = v0[0]*v1[1] - v1[0] * v0[1]
+                # check sign
+                if ind == 0:
+                    sign_old = np.sign(det)
+                else:
+                    sign = np.sign(det)
+                    if sign != sign_old:
+                        concave = True
+                    break
+                v0 = v1
+
+        # if concave, correct the substrate grid
+        if concave:
+            to_delete.append(ic)
+            # create triangle intput
+            point_cell = np.zeros((lenc, 2))
+            seg_cell = np.zeros((lenc, 2))
+            for ind in range(0, lenc):
+                point_cell[ind] = point_all[c[ind]]
+                if ind < lenc-1:
+                    seg_cell[ind] = [ind, ind+1]
+                else:
+                    seg_cell[ind] = [ind, 0]
+            # triangulate
+            try:
+                dict_point = dict(vertices=point_cell, segments=seg_cell)
+                grid_dict = triangle.triangulate(dict_point, 'p')
+            except:
+                # to be done: create a second threat so that the error management will function
+                print('Triangulation failed')
+                return
+
+            try:
+                ikle_new = grid_dict['triangles']
+                point_new = grid_dict['vertices']
+                # add this triagulation to the ikle
+                ikle.extend(list(np.array(ikle_new) + len(point_all)))
+                point_all.extend(point_new)
+                for m in range(0, len(ikle_new)):
+                    sub_pg.append(sub_pg[ic])
+                    sub_dom.append(sub_dom[ic])
+            except KeyError:
+                # in case triangulation was not ok
+                print('Warning: A concave element of the substrate grid could not be corrected \n')
+
+    # remove element
+    if len(to_delete)>0:
+        for d in reversed(to_delete):  # to_delete is ordered
+            del ikle[d]
+        sub_pg = np.delete(sub_pg, to_delete)
+        sub_dom = np.delete(sub_dom, to_delete)
+
+    return ikle, point_all, sub_pg, sub_dom
 
 
 def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribute_type, nb_point=200, path_out='.'):

@@ -712,7 +712,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro, point_c_all
 
 
-def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], sub_pg =[], sub_dom=[]):
+def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], sub_pg =[], sub_dom=[],
+                               virtual_startend=False, divgiv = []):
     """
     This function creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
     The interpolation of the data is done in this function also, contrarily to create_grid().
@@ -722,6 +723,10 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
     :param vh_pro_t: the data with heigh and velocity, giving the river limits
     :param sub_pg: the data from the coarser substrate, in case the hydraulic model already contains substrate data
     :param sub_dom: the data from the dominant substrate, in case the hydraulic model already contains substrate data
+    :param virtual_startend: this indicates that the first and the lst profile is doubled. This is used so that the
+           grid around the last and the first profile extend after or before this profile, so that all porfile have
+           the same weight. Useful for LAMMI moslty.
+    :param divgiv: one value by profile, in case we do not want to middle profile to be at an equal distance of both profile
     :return: the connevtivity table, the coordinate of the grid, the centroid of the grid, the velocity data on this
              grid, the height data on this grid.
 
@@ -741,8 +746,10 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
     all_point_midy = []
     if vh_pro_t:
         coord_pro = update_coord_pro_with_vh_pro(coord_pro, vh_pro_t)
+    # double the first and the last profile (useful to gind "midlle
+
     b = time.time()
-    a = 0
+
     # for each reach
     for r in range(0, len(nb_pro_reach) - 1):
         point_all = []
@@ -754,12 +761,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
         inter_sub_dom = []
         if vh_pro_t:
             data_height_old = [val for val in vh_pro_t[nb_pro_reach[r]][1] for blob in (0, 1)]
-            # was used for created the island, not needed
-            # because the island information is contained in ikle
-            # be caseful in case where it do not work
-            # data_height_old = [val for val in data_height0 if val > 0]  # island
             data_vel_old = [val for val in vh_pro_t[nb_pro_reach[r]][2] for blob in (0, 1)]
-            # data_vel_old = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
             if sub_pg:
                 data_pg_old = [val for val in sub_pg[nb_pro_reach[r]] for blob in (0, 1)]
                 data_dom_old = [val for val in sub_dom[nb_pro_reach[r]] for blob in (0, 1)]
@@ -770,52 +772,64 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
 
             # find the middle profile
             if len(coord_pro_p0[0]) > 0 and len(coord_pro_p1[0]) > 0:
-                [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False)
+                if divgiv:
+                    [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False, divgiv[p-1])
+                else:
+                    [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False)
                 all_point_midx.extend([point_mid_x[0]])
                 all_point_midy.extend([point_mid_y[0]])
 
             # create cells for the profile before the middle profile
-            if len(coord_pro_p0[0]) > 0:
-                # wet profile
+            if p == nb_pro_reach[r]+1 and virtual_startend:
+                # if we have double profile ignore the first triangle line
+                # draw it to get it, the idea is that each profil would weight equally.
+                pass
+            else:
+                if len(coord_pro_p0[0]) > 0: # just to check
+                    # wet profile
+                    if vh_pro_t:
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t[p - 1], point_mid_x, point_mid_y, point_all, ikle, point_c, 1)
+                    # whole profile
+                    else:
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t, point_mid_x, point_mid_y,point_all, ikle, point_c, 1)
                 if vh_pro_t:
-                    [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t[p - 1], point_mid_x, point_mid_y, point_all, ikle, point_c, 1)
-                # whole profile
-                else:
-                    [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t, point_mid_x, point_mid_y,point_all, ikle, point_c, 1)
-            if vh_pro_t:
-                inter_vel += data_vel_old
-                inter_height += data_height_old
-                if sub_pg:
-                    inter_sub_pg += data_pg_old
-                    inter_sub_dom += data_dom_old
+                    inter_vel += data_vel_old
+                    inter_height += data_height_old
+                    if sub_pg:
+                        inter_sub_pg += data_pg_old
+                        inter_sub_dom += data_dom_old
             #  create cells for the profile after the middle profile
-            if len(coord_pro_p1[0]) > 0:
+            if p == nb_pro_reach[r+1]-1 and virtual_startend:
+                # if we have double profile ignore the last triangle line
+                pass
+            else:
+                if len(coord_pro_p1[0]) > 0:
+                    if vh_pro_t:
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t[p], point_mid_x,
+                                                                                     point_mid_y, point_all, ikle, point_c, -1)
+                    else:
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t, point_mid_x,
+                                                                                     point_mid_y, point_all, ikle, point_c, -1)
+                # get the data
                 if vh_pro_t:
-                    [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t[p], point_mid_x,
-                                                                                 point_mid_y, point_all, ikle, point_c, -1)
-                else:
-                    [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t, point_mid_x,
-                                                                                 point_mid_y, point_all, ikle, point_c, -1)
-            # get the data
-            if vh_pro_t:
-                data_height = [val for val in vh_pro_t[p][1] for blob in (0, 1)]
-                # was used for created the island, not needed
-                # because the island information is contained in ikle
-                # be caseful in case where it do not work
-                # data_height = [val for val in data_height0 if val > 0]  # island
-                data_vel = [val for val in vh_pro_t[p][2] for blob in (0, 1)]
-                # data_vel = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
-                inter_vel += data_vel
-                inter_height += data_height
-                data_vel_old = data_vel
-                data_height_old = data_height
-                if sub_pg:
-                    data_pg = [val for val in sub_pg[p] for blob in (0, 1)]
-                    data_dom = [val for val in sub_dom[p] for blob in (0, 1)]
-                    inter_sub_pg += data_pg
-                    inter_sub_dom += data_dom
-                    data_pg_old = data_pg
-                    data_dom_old = data_dom
+                    data_height = [val for val in vh_pro_t[p][1] for blob in (0, 1)]
+                    # was used for created the island, not needed
+                    # because the island information is contained in ikle
+                    # be caseful in case where it do not work
+                    # data_height = [val for val in data_height0 if val > 0]  # island
+                    data_vel = [val for val in vh_pro_t[p][2] for blob in (0, 1)]
+                    # data_vel = [j for (i, j) in zip(data_height0, data_vel) if i > 0]
+                    inter_vel += data_vel
+                    inter_height += data_height
+                    data_vel_old = data_vel
+                    data_height_old = data_height
+                    if sub_pg:
+                        data_pg = [val for val in sub_pg[p] for blob in (0, 1)]
+                        data_dom = [val for val in sub_dom[p] for blob in (0, 1)]
+                        inter_sub_pg += data_pg
+                        inter_sub_dom += data_dom
+                        data_pg_old = data_pg
+                        data_dom_old = data_dom
         point_all_reach.append(np.array(point_all))
         point_c_all.append(np.array(point_c))
         # possible check which could be added:
@@ -931,28 +945,57 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
             # plt.show()
             # return
         if s0 == 1:
-            point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
+            xafter = coord_pro_p[0][0] - far * nx * dir
+            yafter = coord_pro_p[1][0] - far * ny * dir
+            xbefore = coord_pro_p[0][0] + nx * dir * far
+            ybefore = coord_pro_p[1][0] + ny * dir * far
+            p1hyd = [xbefore, ybefore]
+            p2hyd = [xafter, yafter]
+            m0 = 0  # x coord
+            for m in range(m0, len(point_mid_x) - 1):  # to be optimized
+                if max(point_mid_x[m], point_mid_x[m + 1]) >= min(p1hyd[0], p2hyd[0]) \
+                        and max(point_mid_y[m], point_mid_y[m + 1]) >= min(p1hyd[1], p2hyd[1]):
+                    p1 = [point_mid_x[m], point_mid_y[m]]
+                    p2 = [point_mid_x[m + 1], point_mid_y[m + 1]]
+                    [inter, pc0] = intersection_seg(p1hyd, p2hyd, p1, p2, False)  # do not change this to True (or check)
+                    if inter:
+                        break
+            if not inter:
+                print('Error: Point not found')
+            point_all.append([pc0[0][0], pc0[0][1]])
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
         point_all.append([coord_pro_p[0][s0], coord_pro_p[1][s0]])
         point_all.append([pc[0][0], pc[0][1]])
         # add the two new cells to ikle and point_c
         if vh_pro_t_p:
-            if vh_pro_t_p[1][s0] > 0:
+            if vh_pro_t_p[1][s0] >= 0:
                 l = len(point_all) - 1
-                ikle.append([l - 1, l - 3, l - 2])
-                cx = (point_all[l - 1][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
-                cy = (point_all[l - 1][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
-                point_c.append([cx, cy])
+                if s0 == 1:
+                    ikle.append([l, l - 3, l - 2])
+                    cx = (point_all[l][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
+                    cy = (point_all[l][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+                    point_c.append([cx, cy])
+                else:
+                    ikle.append([l - 1, l - 3, l - 2])
+                    cx = (point_all[l - 1][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
+                    cy = (point_all[l - 1][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+                    point_c.append([cx, cy])
                 ikle.append([l - 1, l - 2, l])
                 cx = (point_all[l - 1][0] + point_all[l - 2][0] + point_all[l][0]) / 3
                 cy = (point_all[l - 1][1] + point_all[l - 2][1] + point_all[l][1]) / 3
                 point_c.append([cx, cy])
         else:
             l = len(point_all) - 1
-            ikle.append([l - 1, l - 3, l - 2])
-            cx = (point_all[l - 1][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
-            cy = (point_all[l - 1][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
-            point_c.append([cx, cy])
+            if s0 == 1:
+                ikle.append([l, l - 3, l - 2])
+                cx = (point_all[l][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
+                cy = (point_all[l][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+                point_c.append([cx, cy])
+            else:
+                ikle.append([l - 1, l - 3, l - 2])
+                cx = (point_all[l - 1][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
+                cy = (point_all[l - 1][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+                point_c.append([cx, cy])
             ikle.append([l - 1, l - 2, l])
             cx = (point_all[l - 1][0] + point_all[l - 2][0] + point_all[l][0]) / 3
             cy = (point_all[l - 1][1] + point_all[l - 2][1] + point_all[l][1]) / 3
@@ -1745,7 +1788,7 @@ def interpolate_opti(values, vtx, wts):
     return np.einsum('nj,nj->n', np.take(values, vtx), wts)  # summation based on einstein notation
 
 
-def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
+def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv = []):
     """
     Find n profile between two profiles which are not straight. This functions is useful to create the grid from 1D model
     as profile in 1D model are often far away from another.
@@ -1754,6 +1797,7 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     :param coord_pro_p1: the coord_pro (x,y,h, z) of the second profile
     :param nb_pro: the number of profile to add
     :param trim: If True cut the end and start of profile to avoid to have part of the grid outside of the water limit
+    :param divgiv: one value by profile, used to not put the middle profile at an euql distance of two profile
     :return: a list with the updated profiles
     """
 
@@ -1931,7 +1975,10 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True):
     len1 = len(x1all[no_inter1 ==0])
     for n in range(0, nb_pro):
         pm_all = np.zeros((len0 + len1, 2))  # x, y, dist to be ordered
-        div = (n+1) / (nb_pro + 1)
+        if divgiv:
+            div = divgiv
+        else:
+            div = (n+1) / (nb_pro + 1)
         div2 = 1 - div
 
         # point linked with the first profile
@@ -2117,7 +2164,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         if ikle is not None:  # case empty grid
             xlist = []
             ylist = []
-            for i in range(0, len(ikle) - 1):
+            for i in range(0, len(ikle)):
                 pi = 0
                 ikle_i = ikle[i]
                 if len(ikle_i) == 3:
@@ -2137,6 +2184,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                     xlist.append(None)
                     ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                     ylist.append(None)
+
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
     if time_step == -1:

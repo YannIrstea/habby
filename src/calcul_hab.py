@@ -569,7 +569,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             verts.append(verts_j)
                         polygon = Polygon(verts, closed=True, edgecolor='w')
                         patches.append(polygon)
-                        all_patches.append(patches)
+                    all_patches.append(patches)
                 else:
                     patches = all_patches[rt]
 
@@ -600,7 +600,5 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 cb1.set_label('HSI []')
                 name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
                            time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'
-                c = time.time()
                 plt.savefig(os.path.join(path_im, name_fig), dpi=800)
-                d = time.time()
 
