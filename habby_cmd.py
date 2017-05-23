@@ -22,6 +22,7 @@ from src import calcul_hab
 from src import new_create_vtk
 from src import bio_info
 from src import mesh_grid2
+from src import lammi
 
 
 def all_command(all_arg, name_prj, path_prj, path_bio):
@@ -51,13 +52,15 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         print('LOAD_HYDRO_HDF5: load an hydrological hdf5. Input: the name of the hdf5 (with the path)')
         print("LOAD_MASCARET: load the mascaret data. Input: name of the three inputs files - xcas, geo, opt, "
               "manning coefficient, interpolation choice, (number of profile to add), (output name), (nb_point_vel=x)")
-        print("LOAD_RIVER_2D: load the river 2d data. Input folder containing the cdg file, (output name)")
+        print("LOAD_RIVER_2D: load the river 2d data. Input: folder containing the cdg file, (output name)")
         print("LOAD_RUBAR_1D: load the Rubar data in 1D. Input: name of input file .rbe, name of the profile input "
               "file, manning coefficient, interpolation choice, (number of profile to add), (output name),"
               "(nb_point_vel=x)")
         print("LOAD_RUBAR_2D: load the Rubar data in 2D. Input: name of .dat or .mai file, name of input .tps file "
               "(output name)")
         print("LOAD_TELEMAC: load the telemac data. Input: name of the .res file, (output name)")
+        print("LOAD_LAMMI: load lammi data. Input: the name of the folder containing transect.txt and facies.txt and "
+              "the name of the folder with the HydroSim result, (output name)")
 
         print('\n')
         print('MERGE_GRID: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5'
@@ -382,6 +385,29 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # load rubar
         rubar.load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'RUBAR1D', namefile, pathfile,
                                      inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
+
+# ----------------------------------------------------------------------------------------
+    elif all_arg[1] == 'LOAD_LAMMI':
+
+        if not 3 < len(all_arg) < 6:
+            print('The function LOAD_LAMMI needs two to three inputs. Call LIST_COMMAND for more '
+                  'information.')
+            return
+
+        facies_path = all_arg[2]
+        transect_path = all_arg[2]
+        new_dir = all_arg[3]
+
+        if len(all_arg) == 4:
+            name_hdf5 = 'Merge_LAMMI_'
+            path_hdf5 = path_prj
+        if len(all_arg) == 5:
+            namepath_hdf5 = all_arg[3]
+            name_hdf5 = os.path.basename(namepath_hdf5)
+            path_hdf5 = os.path.dirname(namepath_hdf5)
+
+        lammi.open_lammi_and_create_grid(facies_path, transect_path, path_prj, name_hdf5, name_prj, path_prj, path_prj,
+                                   new_dir, [], False, 'Transect.txt', 'Facies.txt', True, [], 1, 'LAMMI')
 # ----------------------------------------------------------------------------------------
     elif all_arg[1] == 'RUN_ESTIMHAB':
         if not len(all_arg) == 12:

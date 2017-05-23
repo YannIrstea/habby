@@ -3,6 +3,7 @@ from src import load_hdf5
 import numpy as np
 from src import calcul_hab
 from src import hl
+import time
 
 
 def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, height_c_data, vel_c_data, name_fish,
@@ -48,7 +49,7 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
     nb_time = len(ikle_all_t)
 
     for r in range(0, len(ikle_all_t[0])):
-        fileName = file_name_base + '_' + 'Reach' + str(r) + '_'
+        fileName = file_name_base + '_' + 'Reach' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_'
 
         # create one vtu file by time step
         # for the moment we do not show the time step zero with the full profile without data

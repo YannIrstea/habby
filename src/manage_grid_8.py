@@ -244,9 +244,9 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
             ind_e.extend([len(point_all) - 1])  # end
             ind_p.extend([len(point_all)])
         # do not add profile at a junction
-        #point_all2 = list(point_all)  # because you shall not use np.concatenate
         if np.all(p != np.array(nb_pro_reach)):
             if len(coord_pro_p1[0]) > 1 and len(coord_pro_p0[0]) > 1:
+                # not used but quicker if we know that all profile are straight
                 if all_straight:
                     # find the start/end of the original profile
                     x0all = coord_pro_p0[0]
@@ -292,9 +292,9 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     # show the created profile, used to debug
     # plt.figure()
     # plt.plot(point_all[:, 0], point_all[:, 1], '.m')
-    # for p in range(0, len(coord_pro)):
-    #     plt.plot(coord_pro[p][0], coord_pro[p][1], '.b')
-    # plt.axis('equal')
+    # # for p in range(0, len(coord_pro)):
+    # #     plt.plot(coord_pro[p][0], coord_pro[p][1], '.b')
+    # # plt.axis('equal')
     # plt.show()
 
     # manage islands
@@ -474,8 +474,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                                         close = False
                                         for da in range(0, 4):
                                             dist = np.sqrt((seg4[da][0] - pc[0][0])**2 + (seg4[da][1] - pc[0][1])**2)
-                                            if dist < 10**-1:
-                                                print('blob')
+                                            if dist < 10**-4:
+                                                print('Warning: low distance found. \n')
                                                 point_all[seg_island[ind4[da], 0]] = pc[0]
                                                 close = True
                                         if not close:
@@ -485,7 +485,6 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                                             to_be_delete_hole.append(isl_here)
                                             to_be_delete_hole.append(isl_here)
             to_be_delete = list(set(to_be_delete))
-            print(to_be_delete)
             seg_island = np.delete(seg_island, to_be_delete, axis=0)
             hole_all_i = list(np.delete(hole_all_i, to_be_delete_hole, axis=0))
 
@@ -507,7 +506,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                                                                       point_all[:, 1]) < point_all[0, 0] * 1e-7)[0]
                 point_all[ind, :] = point_all[ind, :] * 0.99
 
-    # check if they here identical points and send a warning if yes
+    # check if they here identical points and make a corrrection if yes
     # using an idea from http://stackoverflow.com/questions/31097247/remove-duplicate-rows-of-a-numpy-array
     # should be reasonlaby quick
     # test: point_all2 = np.array([[1,1], [2,3], [1,2], [3,4], [1,2]])
@@ -517,15 +516,16 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     if len(test_unique) != len(point_all):
         print('Warning: There is duplicate points. The triangulation will be modified.\n')
         # this is slow , but it might solve problems
-        j = 0
         unique_find = []
+        j = 0
         for p in point_all:
             p = list(p)
             if p not in unique_find:
                 unique_find.append(p)
+                j = 0
             else:
                 point_all[j] = [p[0]+0.00001*j, p[1]+0.000001*j]
-            j += 1
+                j += 1
 
     # put data in order and find the limits
     seg_to_be_added2 = []
@@ -567,86 +567,18 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         lim_by_reach.append(lim_by_reach_r)
         lim_isl_for_sub.append(lim_isl_for_subr)
 
-    # add the segments and points related to the substrate (not used)
-    add_sub = False
-    if add_sub:
-        lim_here_all = []
-        lim_herei_all = []
-        si = 0
-        sub_analyzed = np.zeros((len(ikle_sub)*4, 4))
-        for i in range(0, len(ikle_sub)):
-            # it is probably a triangular grid but it might not be always true
-            for j in range(0, len(ikle_sub[i])):
-                # get the substrate segment
-                if j < len(ikle_sub[i])-1:
-                    p1sub = np.array(coord_sub[int(ikle_sub[i][j])])
-                    p2sub = np.array(coord_sub[int(ikle_sub[i][j+1])])
-                else:
-                    p1sub = np.array(coord_sub[int(ikle_sub[i][j])])
-                    p2sub = np.array(coord_sub[int(ikle_sub[i][0])])
-                # there is segment more than one time in ikle, we do not want to do it more than once
-                p12sub = np.array([p1sub[0], p1sub[1], p2sub[0], p2sub[1]])
-                p21sub = np.array([p2sub[0], p2sub[1], p1sub[0], p1sub[1]])
-                if np.any(np.sum(sub_analyzed - p12sub, axis=1) == 0) or np.any(np.sum(sub_analyzed - p21sub,axis=1) == 0):
-                    break
-                else:
-                    sub_analyzed[si, :] = p12sub
-                    si +=1
-
-                # to get a better quality mesh it is often useful to use smaller segments
-                # hence we cut the substrate segment in smaller entities
-                p1sub0 = copy.deepcopy(p1sub)
-                p2sub0 = copy.deepcopy(p2sub)
-                for pnew in range(0, pnew_add):
-                    # we redfine p1sub and p2sub here
-                    if pnew > 0:
-                        p1sub = copy.deepcopy(p2sub)
-                    p2sub[0] = p1sub0[0] + (pnew+1) / pnew_add * (p2sub0[0] - p1sub0[0])
-                    p2sub[1] = p1sub0[1] + (pnew+1) / pnew_add * (p2sub0[1] - p1sub0[1])
-                    # find the new segments
-                    for r in range(0, len(nb_pro_reach)-1):
-                        sp1 = []
-                        sp2 = []
-                        sp3 = []
-                        sp4 = []
-                        if i == 0 and j == 0 and pnew == 0:
-                            # create the limits of the reach with coordinates and not indices
-                            lim_here = []
-                            for w0 in range(0, len(lim_by_reach_for_sub[r])):
-                                p1here = point_all[lim_by_reach_for_sub[r][w0][0]]
-                                p2here = point_all[lim_by_reach_for_sub[r][w0][1]]
-                                lim_here.append([p1here, p2here])
-                            lim_here_all.append(lim_here)
-                        else:
-                            lim_here = lim_here_all[r]
-                        # check if crossing with a segment of the reach
-                        # add the substrate segment to lim_by_reach and point_all
-                        ind_seg_sub_ini0 = len(lim_by_reach[r])
-                        [point_all, lim_by_reach[r]] = \
-                            get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reach[r], point_all, False)
-                        ind_seg_sub_ini1 = len(lim_by_reach[r])
-                        # create the limits of the island with coordinates and not indices
-                        if i == 0 and j == 0 and pnew ==0 :
-                            lim_here = []
-                            for w0 in range(0, len(lim_isl_for_sub[r])):
-                                p1here = point_all[lim_isl_for_sub[r][w0][0]]
-                                p2here = point_all[lim_isl_for_sub[r][w0][1]]
-                                lim_here.append([p1here, p2here])
-                            lim_herei_all.append(lim_here)
-                        else:
-                            lim_here = lim_herei_all[r]
-                        # check if crossing with a segment of the island
-                        # add the substrate segment to lim_by_reach and point_all (if not already in)
-                        # we need to correct
-                        ind_seg_sub_ini = np.arange(ind_seg_sub_ini0, ind_seg_sub_ini1)
-                        [point_all, lim_by_reach[r]] = get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reach[r],
-                                                                                point_all, True, ind_seg_sub_ini)
-
     # triangulate. Overlaping elements are just flagged in the variable overlap
     ikle_all = []
     point_all_reach = []
     point_c_all = []
     overlap = []
+
+    # debug triangulation input (only point)
+    # plt.figure()
+    # plt.plot(point_all[:, 0], point_all[:, 1], '.m')
+    # plt.axis('equal')
+    # plt.show()
+
     print('triangulation')
     for r in range(0, len(nb_pro_reach)-1):
         # do the triangulation
@@ -662,7 +594,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         else:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r])
         try:
-            grid_dict = triangle.triangulate(dict_point,'p')  # 'p' allows for constraint V for verbose q for angle (mesh improvement)
+            grid_dict = triangle.triangulate(dict_point,'p')  # 'p' allows for constraint
         except:
             print('blob')
         try:
@@ -1229,8 +1161,8 @@ def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
                                (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
                 if norm == 0:
                     print('Warning: Two identical point in profile. Profile will be modified.\n')
-                    coord_pro_p1[0][w] += 0.0001
-                    coord_pro_p1[1][w] += 0.0001
+                    coord_pro_p1[0][w] += 0.000001
+                    coord_pro_p1[1][w] += 0.000001
                     norm = np.sqrt((coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) ** 2 +
                                    (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
                 nx = (coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) * (1 / norm)
@@ -2201,10 +2133,10 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
             if len(point_here[:, 1]) == len(inter_vel) and len(ikle_all[r]) > 2:
-                mh = np.median(inter_vel[inter_vel> 0]) * 2
+                mh = np.median(inter_vel[inter_vel>= 0]) * 2
                 bounds = np.linspace(0, mh, 10)
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm, vmin=0,
-                                     vmax=mh, levels=bounds, extend='both')
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm,cmin=0,
+                                     cmax=mh, levels=bounds, extend='both')
                 if r == len(inter_vel_all) - 1:
                     # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
@@ -2343,7 +2275,7 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
             inter_vel = inter_vel_all[r]
             if len(point_here[:, 0]) == len(inter_vel):
                 sc = plt.tricontourf(point_here[:, 0],point_here[:, 1], ikle_all[r], inter_vel
-                                     , min=0, max=np.nanmax(inter_vel), cmap=cm)
+                                     , min=-1e-5, max=np.nanmax(inter_vel), cmap=cm)
                 if r == len(inter_vel_all) -1:
                     #plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)

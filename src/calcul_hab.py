@@ -471,6 +471,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
     :param path_im: the path where to save the image
     :param name_base: a string on which to base the name of the files
     """
+    if len(spu_all) != len(name_fish):
+        print('Error: Number of fish name and number of WUA data is not coherent')
+        return
 
     nb_reach = len(max(area_all, key=len)) # we might have failes
     for id,n in enumerate(name_fish):
@@ -478,20 +481,19 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
 
     # one time step - bar
     if len(area_all) == 1 or len(area_all) == 2:
-        data_bar = []
-        r = 0
         for r in range(0, nb_reach):
+            data_bar = []
             for s in range(0, len(name_fish)):
                 data_bar.append(spu_all[s][1][r])
-        y_pos = np.arange(len(spu_all))
-        plt.figure()
-        if data_bar:
-            plt.bar(y_pos, data_bar)
-            plt.xticks(y_pos+0.5, name_fish)
-        plt.ylabel('WUA []')
-        plt.title('Weighted Usable Area for the Reach ' + str(r))
-        name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
-        plt.savefig(os.path.join(path_im, name))
+            y_pos = np.arange(len(spu_all))
+            plt.figure()
+            if data_bar:
+                plt.bar(y_pos, data_bar)
+                plt.xticks(y_pos+0.5, name_fish)
+            plt.ylabel('WUA []')
+            plt.title('Weighted Usable Area for the Reach ' + str(r))
+            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
+            plt.savefig(os.path.join(path_im, name))
 
     # many time step - lines
     elif len(area_all) > 2:
