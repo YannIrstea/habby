@@ -250,6 +250,83 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge=False):
         return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom
 
 
+def load_sub_percent(hdf5_name_hyd, path_hdf5 = ''):
+    """
+    This function loads the substrate in percent form, if this info is present in the hdf5 file. It send a warning
+    otherwise.
+
+    :param hdf5_name_hyd: filename of the hdf5 file (string)
+    :param path_hdf5: the path to the hdf5 file
+    :return:
+    """
+    failload = [-99]
+    sub_per_all_t = []
+
+    # open the file with checking for the path
+    if os.path.isabs(hdf5_name_hyd):
+        file_hydro = open_hdf5(hdf5_name_hyd)
+    else:
+        if path_hdf5:
+            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name_hyd))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return failload
+    if file_hydro is None:
+        print('Error: hdf5 file could not be open. \n')
+        return failload
+
+    # load the number of time steps
+    basename1 = 'Data_gen'
+    try:
+        gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
+    except KeyError:
+        print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name_hyd
+              + ' an hydrological input? \n')
+        return failload
+    try:
+        nb_t = list(gen_dataset.values())[0]
+    except IndexError:
+        print('Error: Time step are not found')
+        return failload
+    nb_t = np.array(nb_t)
+    nb_t = int(nb_t)
+
+    # load the number of reach
+    try:
+        gen_dataset = file_hydro[basename1 + "/Nb_reach"]
+    except KeyError:
+        print(
+            'Error: the number of time step is missing from the hdf5 file. \n')
+        return failload
+    nb_r = list(gen_dataset.values())[0]
+    nb_r = np.array(nb_r)
+    nb_r = int(nb_r)
+
+    # load the data of substrate in percentage
+    basename1 = 'Data_2D'
+    sub_per_all_t.append([])
+    for t in range(0, nb_t):
+        sub_per_all = []
+        for r in range(0, nb_r):
+            name_per = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/data_substrate_percentage"
+            try:
+                gen_datasetpg = file_hydro[name_per]
+            except KeyError:
+                print('Error: the dataset for substrate in percentage form is missing from the hdf5 file. \n')
+                return failload
+            try:
+                sub_per = list(gen_datasetpg.values())[0]
+            except IndexError:
+                print('Error: the dataset for substrate in precentage is missing from the hdf5 file (2). \n')
+                return failload
+            sub_per = np.array(sub_per).flatten()
+            sub_per = np.reshape(sub_per, (int(len(sub_per)/8), 8))
+            sub_per_all.append(sub_per)
+        sub_per_all_t.append(sub_per_all)
+
+    return sub_per_all_t
+
+
 def load_hdf5_sub(hdf5_name_sub, path_hdf5):
     """
     A function to load the substrate data contained in the hdf5 file. It also manage
@@ -393,7 +470,8 @@ def get_hdf5_name(model_name, name_prj, path_prj):
 
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
-              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[], sub_dom_all_t=[]):
+              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[],
+              sub_dom_all_t=[], sub_per_all_t=[]):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -415,6 +493,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param merge: If True, the data is coming from the merging of substrate and hydrological data.
     :param sub_pg_all_t: the data of the coarser substrate given on the merged grid by cell. Only used if merge is True.
     :param sub_dom_all_t: the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
+    :param sub_per_all_t: the data of the substreate by percentage. Only used with lammi (mostly)
+
 
     **Technical comments**
 
@@ -511,14 +591,17 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                 else:
                     print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
                     ikleg.create_dataset(h5name, [len(ikle_all_t[t][r])], data=ikle_all_t[t][r])
+
                 # coordinates
                 point_allg = rhere.create_group('point_all')
                 point_allg.create_dataset(h5name, [len(point_all_t[t][r]), 2], data=point_all_t[t][r])
+
                 # coordinates center
                 point_cg = rhere.create_group('point_c_all')
                 if len(point_c_all_t)>0:
                     if len(point_c_all_t[t]) > 0 and not isinstance(point_c_all_t[t][0], float):
                         point_cg.create_dataset(h5name, [len(point_c_all_t[t][r]), 2], data=point_c_all_t[t][r])
+
                 # velocity
                 inter_velg = rhere.create_group('inter_vel_all')
                 if len(inter_vel_all_t)>0:
@@ -531,6 +614,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                     if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
                         inter_hg.create_dataset(h5name, [len(inter_h_all_t[t][r]), 1],
                                                 data=inter_h_all_t[t][r])
+
                 # substrate data in the case it is a merged grid
                 if merge:
                     data_subg = rhere.create_group('data_substrate_dom')
@@ -543,6 +627,10 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                         if len(sub_pg_all_t[t]) > 0 and not isinstance(sub_pg_all_t[t][0], float):
                             data_subg.create_dataset(h5name, [len(sub_pg_all_t[t][r]), 1],
                                                      data=sub_pg_all_t[t][r])
+                    if sub_per_all_t:
+                        data_subg = rhere.create_group('data_substrate_percentage')
+                        if len(sub_per_all_t[t]) > 0:
+                            data_subg.create_dataset(h5name, [len(sub_per_all_t[t][r]), 8], data=sub_per_all_t[t][r])
 
     file.close()
 

@@ -644,8 +644,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro, point_c_all
 
 
-def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], sub_pg =[], sub_dom=[],
-                               virtual_startend=False, divgiv = []):
+def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], sub_pg =[], sub_dom=[], sub_per = [],
+                               virtual_startend=False, divgiv=[], h0ok=False):
     """
     This function creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
     The interpolation of the data is done in this function also, contrarily to create_grid().
@@ -655,10 +655,12 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
     :param vh_pro_t: the data with heigh and velocity, giving the river limits
     :param sub_pg: the data from the coarser substrate, in case the hydraulic model already contains substrate data
     :param sub_dom: the data from the dominant substrate, in case the hydraulic model already contains substrate data
+    :param sub_per: the data from the subtrate in a percentage form
     :param virtual_startend: this indicates that the first and the lst profile is doubled. This is used so that the
            grid around the last and the first profile extend after or before this profile, so that all porfile have
            the same weight. Useful for LAMMI moslty.
-    :param divgiv: one value by profile, in case we do not want to middle profile to be at an equal distance of both profile
+    :param divgiv: in case we do not want to middle profile to be at an equal distance of both profile(one value by profile)
+    :param h0ok: if we want to keep in the grid the cell with an height or velocity of zero (False usually)
     :return: the connevtivity table, the coordinate of the grid, the centroid of the grid, the velocity data on this
              grid, the height data on this grid.
 
@@ -674,6 +676,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
     inter_height_all = []
     inter_dom_all = []
     inter_pg_all = []
+    inter_per_all = []
     all_point_midx = []
     all_point_midy = []
     if vh_pro_t:
@@ -690,6 +693,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
         inter_vel = []
         inter_height = []
         inter_sub_pg = []
+        inter_sub_per = []
         inter_sub_dom = []
         if vh_pro_t:
             data_height_old = [val for val in vh_pro_t[nb_pro_reach[r]][1] for blob in (0, 1)]
@@ -697,6 +701,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
             if sub_pg:
                 data_pg_old = [val for val in sub_pg[nb_pro_reach[r]] for blob in (0, 1)]
                 data_dom_old = [val for val in sub_dom[nb_pro_reach[r]] for blob in (0, 1)]
+                data_per_old = [val for val in sub_per[nb_pro_reach[r]] for blob in (0, 1)]
 
         for p in range(nb_pro_reach[r]+1, nb_pro_reach[r+1]):
             coord_pro_p0 = coord_pro[p-1]
@@ -720,7 +725,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
                 if len(coord_pro_p0[0]) > 0: # just to check
                     # wet profile
                     if vh_pro_t:
-                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t[p - 1], point_mid_x, point_mid_y, point_all, ikle, point_c, 1)
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t[p - 1], point_mid_x, point_mid_y, point_all, ikle, point_c, 1, h0ok)
                     # whole profile
                     else:
                         [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t, point_mid_x, point_mid_y,point_all, ikle, point_c, 1)
@@ -730,6 +735,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
                     if sub_pg:
                         inter_sub_pg += data_pg_old
                         inter_sub_dom += data_dom_old
+                        inter_sub_per += data_per_old
             #  create cells for the profile after the middle profile
             if p == nb_pro_reach[r+1]-1 and virtual_startend:
                 # if we have double profile ignore the last triangle line
@@ -738,7 +744,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
                 if len(coord_pro_p1[0]) > 0:
                     if vh_pro_t:
                         [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t[p], point_mid_x,
-                                                                                     point_mid_y, point_all, ikle, point_c, -1)
+                                                                                     point_mid_y, point_all, ikle, point_c, -1, h0ok)
                     else:
                         [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t, point_mid_x,
                                                                                      point_mid_y, point_all, ikle, point_c, -1)
@@ -758,10 +764,13 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
                     if sub_pg:
                         data_pg = [val for val in sub_pg[p] for blob in (0, 1)]
                         data_dom = [val for val in sub_dom[p] for blob in (0, 1)]
+                        data_per = [val for val in sub_per[p] for blob in (0, 1)]
                         inter_sub_pg += data_pg
                         inter_sub_dom += data_dom
+                        inter_sub_per += data_per
                         data_pg_old = data_pg
                         data_dom_old = data_dom
+                        data_per_old = data_per
         point_all_reach.append(np.array(point_all))
         point_c_all.append(np.array(point_c))
         # possible check which could be added:
@@ -776,6 +785,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
             if sub_pg:
                 inter_dom_all.append(np.array(inter_sub_dom))
                 inter_pg_all.append(np.array(inter_sub_pg))
+                inter_per_all.append(np.array(inter_sub_per))
 
         # useful to control the middle profile 9\(added between two profiles)
         # plt.figure()
@@ -793,12 +803,14 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
         #plt.show()
 
     if sub_pg:
-        return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all
+        return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all,\
+               inter_per_all
     else:
         return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
 
 
-def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_mid_y, point_all, ikle, point_c, dir):
+def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_mid_y, point_all, ikle, point_c, dir,
+                                    h0ok=False):
     """
     This function is use by create_grid_one_profile. It creates the grid for one profile (one "line" of triangle).
     To create the whole grod this function is called for each profile.
@@ -811,6 +823,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     :param ikle: the connectivity table of the grid
     :param point_c: the central point of each cell
     :param dir: in which direction are we going around the profile (upstream/downstram)
+    :param h0ok: if True, cell with a water height or a velocity of zero are kept
     :return: point_all, ikle, point_c (the centroid of the cell)
 
     For more info, see the document "More info on the grid".
@@ -901,21 +914,22 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         # add the two new cells to ikle and point_c
         if vh_pro_t_p:
             if vh_pro_t_p[1][s0] >= 0:
-                l = len(point_all) - 1
-                if s0 == 1:
-                    ikle.append([l, l - 3, l - 2])
-                    cx = (point_all[l][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
-                    cy = (point_all[l][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+                if vh_pro_t_p[1][s0] >0 or h0ok:
+                    l = len(point_all) - 1
+                    if s0 == 1:
+                        ikle.append([l, l - 3, l - 2])
+                        cx = (point_all[l][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
+                        cy = (point_all[l][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+                        point_c.append([cx, cy])
+                    else:
+                        ikle.append([l - 1, l - 3, l - 2])
+                        cx = (point_all[l - 1][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
+                        cy = (point_all[l - 1][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
+                        point_c.append([cx, cy])
+                    ikle.append([l - 1, l - 2, l])
+                    cx = (point_all[l - 1][0] + point_all[l - 2][0] + point_all[l][0]) / 3
+                    cy = (point_all[l - 1][1] + point_all[l - 2][1] + point_all[l][1]) / 3
                     point_c.append([cx, cy])
-                else:
-                    ikle.append([l - 1, l - 3, l - 2])
-                    cx = (point_all[l - 1][0] + point_all[l - 3][0] + point_all[l - 2][0]) / 3
-                    cy = (point_all[l - 1][1] + point_all[l - 3][1] + point_all[l - 2][1]) / 3
-                    point_c.append([cx, cy])
-                ikle.append([l - 1, l - 2, l])
-                cx = (point_all[l - 1][0] + point_all[l - 2][0] + point_all[l][0]) / 3
-                cy = (point_all[l - 1][1] + point_all[l - 2][1] + point_all[l][1]) / 3
-                point_c.append([cx, cy])
         else:
             l = len(point_all) - 1
             if s0 == 1:
@@ -2084,7 +2098,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     plt.figure()
 
     # the grid
-    plt.subplot(3, 1, 1) # nb_fig, nb_fig, position
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     for r in range(0, len(ikle_all)):
@@ -2096,7 +2109,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         if ikle is not None:  # case empty grid
             xlist = []
             ylist = []
-            for i in range(0, len(ikle)):
+            for i in range(0, len(ikle)):  # len(ikle)
                 pi = 0
                 ikle_i = ikle[i]
                 if len(ikle_i) == 3:
@@ -2117,7 +2130,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                     ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                     ylist.append(None)
 
-
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
     if time_step == -1:
         plt.title('Computational Grid  - Last Time Step ')
@@ -2125,18 +2137,47 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         plt.title('Computational Grid  - Time Step ' + str(time_step))
     plt.tight_layout()
 
+    # save figures
+    if merge_case:
+        suffix = 'Merge_t_grid' + str(time_step) + '_'
+    else:
+        suffix = 'Hydro_t_grid' + str(time_step) + '_'
+    if format1 == 0 or format1 == 1:
+        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                    dpi=fig_opt['resolution'])
+    if format1 == 0 or format1 == 3:
+        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                    dpi=fig_opt['resolution'])
+    if format1 == 2:
+        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                    dpi=fig_opt['resolution'])
+
     # plot the interpolated velocity
+    bounds = []
+    plt.figure()
+    if time_step == -1:
+        plt.title('Hydraulic Data - Last Time Step ')
+    else:
+        plt.title('Hydraulic Data - Time Step ' + str(time_step))
     if len(inter_vel_all) > 0:  # 0
+        #plt.subplot(2, 1, 1)
+        # get colormap limit
         cm = plt.cm.get_cmap(fig_opt['color_map1'])
-        plt.subplot(3, 1, 2)
+        mvc = 0.1
+        for r in range(0, len(inter_vel_all)):
+            inter_vel = inter_vel_all[r]
+            if len(inter_vel) > 0:
+                mv = np.median(inter_vel[inter_vel >= 0]) * 2.7
+                if mv > mvc:
+                    mvc = mv
+        bounds = np.linspace(0, mvc, 15)
+        # do the figure for all reach
         for r in range(0, len(inter_vel_all)):
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
             if len(point_here[:, 1]) == len(inter_vel) and len(ikle_all[r]) > 2:
-                mh = np.median(inter_vel[inter_vel>= 0]) * 2
-                bounds = np.linspace(0, mh, 10)
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm,cmin=0,
-                                     cmax=mh, levels=bounds, extend='both')
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel, cmap=cm,
+                                     cmin=0, cmax=mvc, levels=bounds, extend='both')
                 if r == len(inter_vel_all) - 1:
                     # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
@@ -2149,17 +2190,25 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
+        #plt.figure()
+        plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        # color map (the same for al reach)
+        mvc = 0.1
         cm = plt.cm.get_cmap(fig_opt['color_map2'])
-        plt.subplot(3, 1, 3)
+        for r in range(0, len(inter_h_all)):
+            inter_h = inter_h_all[r]
+            if len(inter_h) > 0:
+                mv = np.median(inter_h[inter_h >= 0]) * 2.5
+                if mv > mvc:
+                    mvc = mv
+        bounds = np.linspace(0, mvc, 15)
         for r in range(0, len(inter_h_all)):
             point_here = np.array(point_all_reach[r])
             inter_h = inter_h_all[r]
             if len(point_here) == len(inter_h) and len(ikle_all[r]) > 2:
                 inter_h[inter_h < 0] = 0
-                mh = np.median(inter_h[inter_h > 0]) * 2
-                bounds = np.linspace(0, mh, 10)
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, vmin=0, vmax=mh,
-                                     cmap=cm, levels=bounds, extend='both')
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm,
+                                     vmin=0, vmax=mvc,levels=bounds, extend='both')
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
                     cbar.ax.set_ylabel('Water height [m]')
@@ -2168,6 +2217,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
+    plt.tight_layout()
 
     # save figures
     if merge_case:

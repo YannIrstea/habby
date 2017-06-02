@@ -68,14 +68,6 @@ class Example(QMainWindow):
 
         self.setCentralWidget(self.stack)
 
-
-##        change = QPushButton('Changer Texte', self)
-##        change.clicked.connect(self.change_me)
-##
-##        vbox = QGridLayout()
-##        vbox.addWidget(change,1,1)
-##        self.setLayout(vbox)
-
         #set geometry
         self.setGeometry(300, 300, 300, 200)
         self.setWindowTitle('Change Windows 2')
@@ -102,24 +94,13 @@ class Example(QMainWindow):
          layout2.addWidget(change2,1,2)
          self.stack2.setLayout(layout2)
 
-
     def change_me(self):
 
         if self.n_wid == 0:
             self.n_wid = 1
         else:
             self.n_wid = 0
-
         self.stack.setCurrentIndex(self.n_wid)
-
-
-
-
-
-
-
-
-
 
 def main():
     app = QApplication(sys.argv)

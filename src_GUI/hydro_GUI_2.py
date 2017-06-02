@@ -923,7 +923,10 @@ class HEC_RAS1D(SubHydroW):
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        show_all_fig = bool(self.fig_opt['raw_data'])
+        if self.fig_opt['raw_data'] == 'True':  # from the xml
+            show_all_fig = True
+        else:
+            show_all_fig = False
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
@@ -1271,6 +1274,8 @@ class Mascaret(SubHydroW):
         # preparation for the velocity distibution
         manning_float = False
         # we have two cases possible: a manning array or a manning float. here we take the case manning as float
+        if isinstance(self.manning_arr, float) or isinstance(self.manning_arr, np.float):
+            self.manning_arr = []
         if len(self.manning_arr) == 0:
             try:
                     manning_float = True
@@ -1729,14 +1734,19 @@ class Rubar1D(SubHydroW):
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        show_all_fig = bool(self.fig_opt['raw_data'])
-        if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
+        if self.fig_opt['raw_data'] == 'True': # xml, string
+            show_all_fig = True
+        else:
+            show_all_fig = False
+        if self.cb.isChecked() and path_im != 'no_path':
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
 
         # preparation for the velocity distibution
         manning_float = False
         # we have two cases possible: a manning array or a manning float. here we take the case manning as float
+        if isinstance(self.manning_arr, float) or isinstance(self.manning_arr, np.float):
+            self.manning_arr = []
         if len(self.manning_arr) == 0:
             try:
                     manning_float = True
@@ -2056,7 +2066,6 @@ class LAMMI(SubHydroW):
         Used by __init__() during the initialization.
         """
 
-
         # if there is the project file with lammi info, update the label and attibutes
         self.was_model_loaded_before(0)
         self.was_model_loaded_before(1)
@@ -2179,7 +2188,10 @@ class LAMMI(SubHydroW):
         # get the image and load option
         path_im = self.find_path_im()
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        show_all_fig = bool(self.fig_opt['raw_data'])
+        if self.fig_opt['raw_data'] == 'True':  # saved before in the xml file!
+            show_all_fig = True
+        else:
+            show_all_fig = False
 
         if not os.path.isdir(self.pathfile[2]):
             self.pathfile[2] = []

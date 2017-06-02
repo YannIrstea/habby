@@ -9,10 +9,11 @@ import sys
 import copy
 from src import stathab_c
 from src import load_hdf5
+from src_GUI import estimhab_GUI
 import xml.etree.ElementTree as ET
 
 
-class StathabW(QWidget):
+class StathabW(estimhab_GUI.StatModUseful):
     """
     The class to load and manage the widget controlling the Stathab model.
 
@@ -731,29 +732,6 @@ class StathabW(QWidget):
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-
-    def add_fish(self):
-        """
-        This function add the name of one fish species to the selected list of fish species.
-        """
-        items = self.list_f.selectedItems()
-        if items:
-            for i in range(0,len(items)):
-                # avoid to have the same fish multiple times
-                if items[i].text() in self.fish_selected:
-                    pass
-                else:
-                    self.list_s.addItem(items[i].text())
-                    self.fish_selected.append(items[i].text())
-
-    def remove_fish(self):
-        """
-        This function remove the name of one fish species to the selected list of fish species.
-        """
-
-        item = self.list_s.takeItem(self.list_s.currentRow())
-        self.fish_selected.remove(item.text())
-        item = None
 
     def add_all_fish(self):
         """

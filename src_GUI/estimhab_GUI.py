@@ -58,8 +58,17 @@ class StatModUseful(QWidget):
                 if items[i].text() in self.fish_selected:
                     pass
                 else:
-                    self.list_s.addItem(items[i].text())
+                    #self.list_s.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
+
+        # order the list (careful QLIstWidget do not order as sort from list)
+        if self.fish_selected:
+            self.fish_selected.sort()
+            self.list_s.clear()
+            self.list_s.addItems(self.fish_selected)
+
+        # remove a fish from list f
+        self.list_f.takeItem(self.list_f.currentRow())
 
     def remove_fish(self):
         """
@@ -67,6 +76,8 @@ class StatModUseful(QWidget):
         """
         item = self.list_s.takeItem(self.list_s.currentRow())
         self.fish_selected.remove(item.text())
+        self.list_f.addItem(item)
+        self.list_f.sortItems()
         item = None
 
     def find_path_im_est(self):

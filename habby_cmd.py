@@ -636,7 +636,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # create a random substrate in a shp form
         h5name = os.path.basename(hdf5_name_hyd)
         path_h5 = os.path.dirname(hdf5_name_hyd)
-        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Cemagref', 0, 500, path_prj)
+        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Const_cemagref', 0, 500, path_prj)
 
         # save it in hdf5 form
         filename_shp = 'random_sub.shp'

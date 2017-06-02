@@ -339,6 +339,24 @@ def edf_to_cemagref(records):
     return new_record
 
 
+def edf_to_cemagref_by_percentage(records):
+    """
+    This function change the subtrate in a percetage form from edf code to cemagref code
+    :param records: the subtrate data (in 8x len tabular)
+    :return:
+    """
+    new_record = []
+    for r in records:
+        r[0] = 0.5 * (r[0] + r[1])
+        r[1] = r[2]
+        r[2] = r[3]
+        r[3] = r[4]
+        r[4] = r[5]
+        new_record.append(r)
+
+    return new_record
+
+
 def sandre_to_cemagref(records):
     """
     This function passes the substrate data from the code type "Sandre" to the code type "Cemagref". This function is
@@ -379,16 +397,15 @@ def sandre_to_cemagref(records):
     return new_record
 
 
-def percentage_to_domcoarse(sub_data, dominant_case, coord_in=False):
+def percentage_to_domcoarse(sub_data, dominant_case):
     """
-    This function is used to pass from percentage data
+    This function is used to pass from percentage data to dominant/coarse. As the code 8 from the subtrate in
+    Cemagref code is slab, we do not the 8 code as the coarser substrate.
 
     :param sub_data: the subtrate data in percentage from Lammi
     :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
            maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
            if 0, we do not know.
-    :param coord_in: if True, the two first data from each list composing sub_data are the x,y, coordinates
-           (used by lammi.py)
     :return:
     """
     sub_data = np.array(sub_data)
@@ -396,10 +413,9 @@ def percentage_to_domcoarse(sub_data, dominant_case, coord_in=False):
     len_sub = len(sub_data)
     sub_dom = [0] * len_sub
     sub_pg = [0] * len_sub
+
     for e in range(0, len_sub):
         record_all_i = sub_data[e]
-        if coord_in:
-            record_all_i = record_all_i[1:]
         if sum(record_all_i) != 100:
             print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
         # let find the dominant
@@ -426,6 +442,9 @@ def percentage_to_domcoarse(sub_data, dominant_case, coord_in=False):
             sub_pg[e] = ind + 1
         else: # no zeros
             sub_pg[e] = len(record_all_i)
+        # cas des dalles
+        if sub_pg[e] == 8:
+            sub_pg[e] = sub_dom[e]
 
     return sub_dom, sub_pg
 
@@ -646,7 +665,8 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     :param h5name: the name of the hydrological hdf5 file
     :param path: the path to this file
     :param new_name: the name of the create shape file wihtout the shp (string)
-    :param code_type: the code type for the substrate (Sandre, Cemagref or EDF)
+    :param code_type: the code type for the substrate (Sandre, Cemagref, Const_cemagref, or EDF). All subtrate value
+           to 4 for Const_cemagref.
     :param attribute_type: if the substrate is given in the type coarser/dominant/..(0) or in percenctage (1)
     :param nb_point: the number of point needed (more points results in smaller substrate form)
     :param path_out: the path where to save the new substrate shape
@@ -706,6 +726,9 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
             elif code_type == 'Sandre':
                 s1 = randrange(1, 12)
                 s2 = randrange(1, 12)
+            elif code_type == 'Const_cemagref':
+                s1 = 4
+                s2 = 4
             else:
                 print('code not recognized')
                 return

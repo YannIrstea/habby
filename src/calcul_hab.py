@@ -38,6 +38,10 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
         print('Error: Number of stage and species is not coherent. \n')
         return failload
 
+    if len(bio_names) == 0:
+        print('No fish species chosen. \n')
+        return failload
+
     # load merge
     # test if file exists in load_hdf5_hyd
     [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] = \
@@ -74,6 +78,15 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
                     [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all,inter_height_all, substrate_all_dom,
                                       pref_vel, pref_height, pref_sub)
+                elif opt == 2:  # percentage
+                    sub_per = load_hdf5.load_sub_percent(merge_name, path_merge)
+                    if len(sub_per) == 1:
+                        print('Error: Substrate data in percentage form is not found. Habitat by percentage cannot be'
+                              ' computed. \n')
+                        return failload
+                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
+                        calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, sub_per,
+                                      pref_vel, pref_height, pref_sub, True)
                 else:
                     print('Error: the calculation method is not found. \n')
                     return failload
@@ -90,7 +103,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp
 
 
-def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub):
+def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub, percent=False):
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
     all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
@@ -103,6 +116,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
     :param pref_vel: the preference index for the velcoity (for one life stage)
     :param pref_sub: the preference index for the substrate  (for one life stage)
     :param pref_height: the preference index for the height  (for one life stage)
+    :param percent: If True, the variable sub is in percent form, not in the form dominant/coarser
     :return: vh of one life stage, area, habitat value
 
     """
@@ -165,18 +179,28 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 d2 = np.sqrt((p3[:, 0] - p2[:, 0])**2 + (p3[:, 1] - p2[:, 1])**2)
                 d3 = np.sqrt((p3[:, 0] - p1[:, 0])**2 + (p3[:, 1] - p1[:, 1])**2)
                 s2 = (d1 + d2 + d3)/2
-                area = (s2 * (s2-d1) * (s2-d2) * (s2-d3))
+                area = s2 * (s2-d1) * (s2-d2) * (s2-d3)
                 area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
                 area = area**0.5
                 area_reach = np.sum(area)
                 # get pref value
                 h_pref_c = find_pref_value(h_cell, pref_height)
                 v_pref_c = find_pref_value(v_cell, pref_vel)
-                s_pref_c = find_pref_value(s, pref_sub)
+                if percent:
+                    for st in range(0, 8):
+                        s0 = s[:, st]
+                        sthere = np.zeros((len(s0),)) + st+1
+                        s_pref_st = find_pref_value(sthere, pref_sub)
+                        if st == 0:
+                            s_pref_c = s_pref_st *s0/100
+                        else:
+                            s_pref_c += s0/100*s_pref_st
+                else:
+                    s_pref_c = find_pref_value(s, pref_sub)
 
                 try:
                     vh = h_pref_c * v_pref_c * s_pref_c
-                    vh = np.round(vh, 3)  # necessary for  shapefile, do not get above 8 digits of precision
+                    vh = np.round(vh, 5)  # necessary for  shapefile, do not get above 8 digits of precision
                 except ValueError:
                     print('Error: One time step misses substrate, velocity or water height value \n')
                     vh = [-99]
@@ -203,7 +227,7 @@ def find_pref_value(data, pref):
     point of the preference curve under the data and it makes a linear interpolation with the next data to
     find the preference value. As preference value is sorted, it uses the module bisect to accelerate the process.
 
-    :param data: the data on the cell
+    :param data: the data on the cells (for one time step, on reach)
     :param pref: the pref data [pref, class data]
     """
 

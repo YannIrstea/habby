@@ -11,12 +11,13 @@ from src import manage_grid_8
 from src import load_hdf5
 
 
-def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, name_prj, path_prj, path_hdf5, new_dir='',
-                               fig_opt=[], savefig1d=False, transect_name='Transect.txt', facies_name = 'Facies.txt',
-                               print_cmd=False, q=[], dominant_case=1, model_type = 'LAMMI'):
+def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, name_prj, path_prj, path_hdf5,
+                               new_dir='', fig_opt=[], savefig1d=False, transect_name='Transect.txt',
+                               facies_name='Facies.txt', print_cmd=False, q=[], dominant_case=1, model_type='LAMMI'):
     """
     This function loads the data from the LAMMI model using the load_lammi() function., create the grid and save the
-    data in an hdf5 file. A description of the LAMMI model is available in the documentation folder (LAMMIGuideMetho.pdf).
+    data in an hdf5 file. A description of the LAMMI model is available in the documentation folder
+    (LAMMIGuideMetho.pdf).
 
     :param transect_path: the path to the transect.txt path
     :param facies_path: the path the facies.txt file
@@ -35,6 +36,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
            maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
            if 0, we do not know.
+    :param model_type: which type of model (LAMMI in this case). It is as an argument just in case (lammi, Lammi, etc.)
     :return:
 
     **Technical comments**
@@ -47,6 +49,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     """
 
     # preapration
+    mystdout = None
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
     inter_vel_all_t = []
@@ -56,10 +59,11 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     point_c_all_t = []
     sub_dom_all_t = []
     sub_pg_all_t = []
+    sub_per_all_t = []
 
     # open the data ( and save the 1d figure if needed)
     [coord_pro, vh_pro, nb_pro_reach, sub_pro, div] = load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt,
-                                                            savefig1d, transect_name, facies_name)
+                                                                 savefig1d, transect_name, facies_name)
 
     # manage failed cases
     if coord_pro == [-99] or len(vh_pro) < 1:
@@ -79,6 +83,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     inter_h_all_t.append([])
     sub_dom_all_t.append([])
     sub_pg_all_t.append([])
+    sub_per_all_t.append([])
     ikle_all_t.append(ikle_all)
     point_all_t.append(point_all_reach)
     point_c_all_t.append(point_c_all)
@@ -87,17 +92,19 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         # pass the subtrate data from percentage in edf code to [sub?dom] form in cemagref code
         sub_dom = []
         sub_pg = []
-        for subp in sub_pro[t]:
-            [sub_domp, sub_pgp] = substrate.percentage_to_domcoarse(subp, dominant_case, True)
+        for ind, subp in enumerate(sub_pro[t]):
+            [sub_domp, sub_pgp] = substrate.percentage_to_domcoarse(subp, dominant_case)
             # careful, there are real uncertainties here !!!!
-            sub_domp = substrate.edf_to_cemagref(sub_domp)
-            sub_pgp = substrate.edf_to_cemagref(sub_pgp)
+            #sub_pro[t][ind] = substrate.edf_to_cemagref_by_percentage(subp)
+            #sub_domp = substrate.edf_to_cemagref(sub_domp)
+            #sub_pgp = substrate.edf_to_cemagref(sub_pgp)
             sub_pg.append(sub_pgp)
             sub_dom.append(sub_domp)
 
         # create the grid for this time step (including substrate data)
-        [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all] = \
-            manage_grid_8.create_grid_only_1_profile(coord_pro[t], nb_pro_reach, vh_pro[t], sub_pg, sub_dom, True, div[t])
+        [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all,
+         inter_per_all] = manage_grid_8.create_grid_only_1_profile(coord_pro[t], nb_pro_reach, vh_pro[t], sub_pg,
+                                                                   sub_dom, sub_pro[t], True, div[t], True)
         inter_vel_all_t.append(inter_vel_all)
         inter_h_all_t.append(inter_height_all)
         ikle_all_t.append(ikle_all)
@@ -105,11 +112,12 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         point_c_all_t.append(point_c_all)
         sub_dom_all_t.append(inter_dom_all)
         sub_pg_all_t.append(inter_pg_all)
+        sub_per_all_t.append(inter_per_all)
 
     # save the data in an hdf5 (merge) file with hydro and subtrate data
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 2, path_hdf5, ikle_all_t,
                         point_all_t, [], inter_vel_all_t, inter_h_all_t, [], [], [], [], True,
-                        sub_pg_all_t, sub_dom_all_t)
+                        sub_pg_all_t, sub_dom_all_t, sub_per_all_t)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -140,9 +148,9 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
 
     LAMMI is organised aroung group of transects. Transect are river profile which describe the river geometry.
     In LAMMI, there are four way of grouping transect. The facies is the a group a transect which is considered by HABBY
-    to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is possible
-    to use the function "load_station" to get the station info if needed. The group Secteur are used in case where
-    water is brought to the river.
+    to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is
+    possible to use the function "load_station" to get the station info if needed. The group Secteur are used in case
+    where water is brought to the river.
 
     To load LAMMI data, we first load the facies file, which gives which transect are in which facies. Then, we use
     the transect file to know the length of each transect (length between transects along the river) and the
@@ -177,13 +185,13 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
             return
 
     # get the (not realistic) coordinates of the rivers and  the coordinate of the substrate
-    [coord_pro, vh_pro, nb_pro_reach, sub_pro, div] = coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_im)
+    [coord_pro, vh_pro, nb_pro_reach, sub_pro, div] = coord_lammi(dist_all, vel_all, height_all, sub_all, length_all)
 
     # create the figure
     if savefig1d:
         fig_lammi(vh_pro, coord_pro, nb_pro_reach, [0, 1, 2], 0, fig_opt, path_im)
-        #plt.show()
-        plt.close() # avoid problem with matplotlib
+        # plt.show()
+        plt.close()  # avoid problem with matplotlib
 
     return coord_pro, vh_pro, nb_pro_reach, sub_pro, div
 
@@ -194,12 +202,7 @@ def load_station(station_path, station_name):
     by HABBY but it could be useful.
 
     :param station_path: the path to the station.txt file
-    :param transect_path: the path to the transect.txt path
-    :param facies_path: the path the facies.txt file
-    :param new_dir: if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
     :param station_name: the name of the station file, usually 'Station.txt'
-    :param transect_name: the name of the transect file, usually 'Transect.txt'
-    :param facies_name: the name of the facies file, usually 'Facies.txt'
     :return: the length of the station (list of float) and the id of the facies for each station (list of list)
     """
     failload = [-99], [-99]
@@ -254,7 +257,7 @@ def load_station(station_path, station_name):
                     print('Error: The number of facies of one station could not be found \n')
                     return failload
         # read the info from the station loaded before
-        if 'Num' in l and 'ro du faci' in l: # avoid accent
+        if 'Num' in l and 'ro du faci' in l:  # avoid accent
             try:
                 id_fac_here = float(data_station[idx + 1])
             except ValueError or IndexError:
@@ -307,7 +310,7 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
     # read facies data
     lfac = []
     facies_id = []
-    for idx,n in enumerate(data_facies):
+    for idx, n in enumerate(data_facies):
         # new facies
         if 'Longueur du facies' in n:
             try:
@@ -527,7 +530,7 @@ def load_transect_data(fac_filename_all):
     return dist_all, vel_all, height_all, sub_all, q_step
 
 
-def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_sub):
+def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
     """
     This function takes the data from the lammi outputs and get the coordinate for the river. It also
     reform the data to put it in the needed for HABBY (as the other 1.5D hydraulic model as hec_ras).
@@ -547,6 +550,9 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_sub):
     profile, these profiles would have less wight than the other which is a problem to reproduce lammi results. This
     also avoid the case of a facies with only one profile, which is cmoplicated to maange for the grid creation.
 
+    To keep as much as possible the same data than in Lammi, we create four points for each orginal lammi cells. The
+    three first points have the cell value of lammi and the last one is the average of the value of these cells and
+    the next. The point are disposed so that the first and last points are close to the end of the cells.
 
     :param dist_all: the distance along profile by reach (or facies) and by time step
     :param vel_all: the velocity along profile by reach (or facies) and by time step
@@ -554,10 +560,9 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_sub):
     :param sub_all: the substrate data along profile by reach (or facies) and by time step. Eacu subtrate data is a list
            of eight number representing the percentage of each of the eight subtrate class.
     :param length_all: the distance between profile
-    :param: path_sub: the path where to save the subtrate
-    :return: coord_pro, nb_pro_reach and vh_pro in the same form as in final form for hec-ras, a variable with (dist
-             and the eight subtrate data) called sub_pro and a variable to find the position of the middle profile (used by
-             manage grid)
+    :return: coord_pro, nb_pro_reach and vh_pro in the same form as in final form for hec-ras, a variable with the eight
+             subtrate data in a percetage form (sub_pro) and a variable to find the position of the middle profile
+             (used by manage grid)
     """
 
     coord_pro = []
@@ -585,7 +590,7 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_sub):
 
         # facies/reach
         for fi in range(0, len(dist_allt)):
-            f +=1
+            f += 1
             dist_allf = dist_allt[fi]
             vel_allf = vel_allt[fi]
             height_allf = height_allt[fi]
@@ -606,24 +611,31 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_sub):
                 ind = -1
 
                 # point to get ditance, velocity, height, substrate
-                for di in range(0, len(dist_allp)*2):
-                    if di % 2 == 0:
+                for di in range(0, len(dist_allp)*4):
+                    if di % 4 == 0:
                         ind += 1
                         vel_here.append(vel_allp[ind])
                         height_here.append(height_allp[ind])
-                    else:
-                        if di == len(dist_allp)*2 -1:
+                        dist_here += 1 * dist_allp[ind] / 100
+                    if di % 4 == 1 or di % 4 == 2:
+                        vel_here.append(vel_allp[ind])
+                        height_here.append(height_allp[ind])
+                        dist_here += 49 * dist_allp[ind] / 100
+                    if di % 4 == 3:
+                        if di == len(dist_allp) * 4 - 1:
                             vel_here.append(0)
                             height_here.append(0)
                         else:
-                            v1 = 0.5 * (vel_allp[ind] + vel_allp[ind+1])
+                            v1 = 0.5 * (vel_allp[ind] + vel_allp[ind + 1])
                             vel_here.append(v1)
-                            h1 = 0.5 * (height_allp[ind] + height_allp[ind+1])
+                            h1 = 0.5 * (height_allp[ind] + height_allp[ind + 1])
                             height_here.append(h1)
+                        dist_here += 1 * dist_allp[ind] / 100
+
                     # new dist_all at the center of the cell
-                    dist_here += dist_allp[ind]/2
+
                     dist_allp_new.append(dist_here)
-                    sub_here.append([dist_here] + sub_allp[ind])
+                    sub_here.append(sub_allp[ind])
 
                 # y coordinate (0 at the middle of the river for y)
                 ypro = [i - dist_allp_new[rivind + 1] for i in dist_allp_new]
@@ -656,7 +668,7 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all, path_sub):
                 divt.append(0.5 * length_all[fi][pi] / xhere)
 
             # add the last profile to avoid having reach with only one profile
-            if len(dist_allf)> 0:
+            if len(dist_allf) > 0:
                 xpro = [x] * len(dist_allp_new)
                 coord_pro_p = np.array([xpro, ypro, height_here, dist_allp_new])
                 coord_prot.append(coord_pro_p)
@@ -693,7 +705,7 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format = int(fig_opt['format'])
+    formate = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
 
     # time step
@@ -704,10 +716,10 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     for id,i in enumerate(pro_num):
         dist = coord_pro[i][3,:]
         vel = vh_pro[i][2]
-        #vel[0] = vel[1]
-        #vel[-1] = vel[-2]
+        # vel[0] = vel[1]
+        # vel[-1] = vel[-2]
         h = np.array(vh_pro[i][1])
-        fig = plt.figure(id)
+        plt.figure(id)
         plt.suptitle("")
         ax1 = plt.subplot(313)
         # print velocity
@@ -726,25 +738,25 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
         plt.ylim([np.min(-h) * 1.05, np.max(h)/3])
         # save
-        if format == 0 or format == 1:
-            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=fig_opt['resolution'])
-        if format == 0 or format == 3:
-            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=fig_opt['resolution'])
-        if format == 2:
-            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=fig_opt['resolution'])
+        if formate == 0 or formate == 1:
+            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S" + '.png'), dpi=fig_opt['resolution']))
+        if formate == 0 or formate == 3:
+            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'])
+        if formate == 2:
+            plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") +  '.jpg'), dpi=fig_opt['resolution'])
 
     # get an (x,y) view of the progile position
-    fig2 = plt.figure(len(pro_num))
+    plt.figure(len(pro_num))
     color_all = ['-xb', '-xg', '-xr', '-xc', '-xm', '-xy', '-xk']
     col = color_all[0]
     c = 0
     nb_fac = -1
     for j in range(0, len(coord_pro)):
         if j in nb_pro_reach:
-            nb_fac +=1
+            nb_fac += 1
             col = color_all[c]
             if c == len(color_all)-1:
                 c = 0
@@ -755,21 +767,21 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     plt.ylabel("y coord []")
     plt.xlim(coord_pro[0][0][0] - 20, coord_pro[-1][0][0] + 20)
     plt.title("Position of the profiles (conceptual only)")
-    #plt.axis('equal')  # if right angle are needed
+    # plt.axis('equal')  # if right angle are needed
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys(),bbox_to_anchor=(1.1, 1), prop={'size': 10})
-    if format == 0 or format == 1:
+    if formate == 0 or formate == 1:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                dpi=fig_opt['resolution'])
-    if format == 0 or format == 3:
+                    dpi=fig_opt['resolution'])
+    if formate == 0 or formate == 3:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                dpi=fig_opt['resolution'])
-    if format == 2:
+                    dpi=fig_opt['resolution'])
+    if formate == 2:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'])
 
-    #plt.show()
+    # plt.show()
 
 
 def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
@@ -847,19 +859,21 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
 
 
     # plot habby_lammi spu
-    plot_spu = True
+    plot_spu = False
     if plot_spu:
         for r in range(0, int(max(reach_habby))): # int(max(reach_habby))
             plt.figure()
             plt.plot(q_lammi[reach_lammi == r+1], spu_habby[reach_habby == r] * area_habby[reach_habby == r], 'b')
             plt.plot(q_lammi[reach_lammi == r+1], spu_lammi[reach_lammi == r+1], 'g')
+            #plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r], 'b')
+            #plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
             plt.legend(('habby', 'lammi'))
             plt.xlabel('discharge [m^3/sec]')
             plt.ylabel('SPU')
             plt.title('Comparaison lammi-habby for the facies '+str(r+1))
 
     # plot the surface of each facies
-    plot_sur = False
+    plot_sur = True
     if plot_sur:
         for r in range(0, int(max(reach_habby))):  # int(max(reach_habby))
             plt.figure()
@@ -886,7 +900,9 @@ def main():
     # open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
     #                            'Transect.txt', 'Facies.txt', True)
 
-    filename_habby = r'D:\Diane_work\dummy_folder\Projet2\text_output\spu__18_05_2017_at_10_48_27.txt'
+    # spu__23_05_2017_at_14_14_04.txt spu__23_05_2017_at_14_08_05.txt
+
+    filename_habby = r'D:\Diane_work\dummy_folder\Projet2\text_output\spu_at_11_12_34.h5_31_05_2017_at_11_50_08.txt'
     filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
     filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
     compare_lammi(filename_habby, filename_lammi, filename_sur)

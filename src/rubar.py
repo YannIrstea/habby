@@ -18,7 +18,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
     """
     This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
     by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
-    Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.
+   Rubar() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.
 
     :param name_hdf5: the name of the hdf5 to be created (string)
     :param path_hdf5: the path to the hdf5 to be created (string)
@@ -655,7 +655,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
                 plt.plot(x, cote, '-k')
                 plt.xlabel('Distance along the river [m]')
                 plt.ylabel('Elevation [m]')
-                plt.legend(('water height', 'river slope'))
+                plt.legend(('water surface', 'river bottom'))
                 ax1 = plt.subplot(212)
                 plt.plot(x, v_t, '-r')
                 plt.xlabel('Distance along the river [m]')
@@ -673,7 +673,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
             print('Warning: Too many reaches to plot them all. Only the ten first reaches plotted. \n')
             warn_reach = False
 
-    plt.show()
+    #plt.show()
 
 
 def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,

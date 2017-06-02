@@ -43,7 +43,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # stage have to be the first attribute !
         self.attribute_acc = ['Stage', 'French_common_name','English_common_name', 'Code_ONEMA', 'Code_Sandre',
                               'LatinName', 'CdBiologicalModel']
-        self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate')]
+        self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate'), self.tr('By Percentage')]
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
         #self.name_database = 'pref_bio.db'
 
@@ -220,7 +220,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the description
         data = root.findall('.//Description')
         if len(data)>0:
-            found= False
+            found = False
             for d in data:
                 if d.attrib['Language'] == self.lang:
                     self.descr.setText(d.text)
@@ -359,11 +359,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         run_choice = self.choice_run.currentIndex()
 
         # run the data
-        sys.stdout = self.mystdout = StringIO()
+        #sys.stdout = self.mystdout = StringIO()
         [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all] = \
             calcul_hab.calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, self.path_bio, run_choice)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
+        #sys.stdout = sys.__stdout__
+        #self.send_err_log()
 
         if vh_all_t_sp == [-99]:
             return
