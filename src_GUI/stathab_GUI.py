@@ -42,6 +42,9 @@ class StathabW(estimhab_GUI.StatModUseful):
 
     An important attribute of StathabW() is self.mystathab. This is an object fo the stahab class. The stathab model,
     which is in the form of a class and not a function, will be run on this object.
+
+    StathabW inherit StatModUseful, which is a class mostly used to manage the exchange of the fish name between the
+    two QListWidget (selected fish and available fish).
     """
 
     send_log = pyqtSignal(str, name='send_log')
@@ -68,9 +71,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.firstitemreach = []  # the first item of a reach
         self.list_file = QListWidget()
         self.list_needed = QListWidget()
-        self.list_s = QListWidget()
         self.list_re = QListWidget()
-        self.list_f = QListWidget()
         # name of all the text file (see stathabinfo.pdf)
         self.listrivname = 'listriv'
         self.end_file_reach = ['deb', 'qhw', 'gra', 'dis']  # .txt or .csv

@@ -62,11 +62,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l1 = QLabel(self.tr('<b> Available Fish and Guild </b>'))
         l2 = QLabel(self.tr('<b> Selected Fish and Guild </b>'))
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list_f.itemClicked.connect(self.add_fish)
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list_s.itemClicked.connect(self.remove_fish)
-        self.list_f.itemActivated.connect(self.add_fish)
-        self.list_s.itemActivated.connect(self.remove_fish)
+        # add/remove fish done in the functions self.show_fish_sel and self.show_fish_avai
 
         # run habitat value
         self.l9 = QLabel(' <b> Options for the computation </b>')
@@ -112,7 +109,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.scroll.setFrameStyle(QFrame.NoFrame)
         self.vbar = self.scroll.verticalScrollBar()
         self.descr.setWordWrap(True)
-        self.descr.setMaximumSize(200,210)
+        self.descr.setMaximumSize(200, 210)
         self.descr.setAlignment(Qt.AlignTop)
         self.descr.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.descr.setTextFormat(Qt.RichText)
@@ -144,8 +141,17 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.data_fish = bio_info.load_xml_name(self.path_bio, self.attribute_acc)
         sys.stdout = sys.__stdout__
         self.send_err_log()
-        self.list_f.addItems(self.data_fish[:, 0])
-        self.list_f.itemClicked.connect(self.show_info_fish)
+        # order data fish by alphabetical order on the first column
+        ind = self.data_fish[:,0].argsort()
+        self.data_fish = self.data_fish[ind, :]
+        self.list_f.addItems(self.data_fish[:,0])
+        self.list_f.itemClicked.connect(self.show_info_fish_avai)
+        self.list_s.itemClicked.connect(self.show_info_fish_sel)
+
+        # erase fish selection
+        self.butdel = QPushButton(self.tr("Erase Selection"))
+        self.butdel.clicked.connect(self.remove_all_fish)
+
         # fill hdf5 list
         self.update_merge_list()
 
@@ -172,6 +178,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.runhab, 4, 3)
         self.layout4.addWidget(self.pref_curve, 8, 3)
         self.layout4.addWidget(self.hs, 9, 3)
+        self.layout4.addWidget(self.butdel, 1, 3)
 
         self.layout4.addWidget(l3, 11, 0)
         self.layout4.addWidget(self.keys, 12, 0)
@@ -183,14 +190,28 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # self.layout4.addItem(spacer2, 3, 3)
         self.setLayout(self.layout4)
 
-    def show_info_fish(self):
+    def show_info_fish(self, select=False):
         """
         This function shows the useful information concerning the selected fish on the GUI
+        :param select: If False, the selected items comes from the QListWidgetcontaining the available fish.
+               If True, the items comes the QListWidget with the selected fish
         """
 
         # get the file
-        i = self.list_f.currentRow() # show the info concerning the one selected fish
-        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
+        if not select:
+            i1 = self.list_f.currentItem()  # show the info concerning the one selected fish
+        else:
+            i1 = self.list_s.currentItem()
+        if i1 is None:
+            return
+        name_fish = i1.text()
+        name_fish = name_fish.split(':')[0]
+        i = np.where(self.data_fish[:, 7] == name_fish)[0]
+        if len(i) > 0:
+            xmlfile = os.path.join(self.path_bio, self.data_fish[i[0], 2])
+        else:
+             return
+
 
         # open the file
         try:
@@ -237,6 +258,26 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # use full ABSOLUTE path to the image, not relative
                 self.pic.setPixmap(QPixmap(name_imhere).scaled(200, 90, Qt.KeepAspectRatio))  # 800 500
 
+    def show_info_fish_sel(self):
+        """
+        This function shows the useful information concerning the already selected fish on the GUI and
+        remove the selected fish from the list of selected fish. This is what happens when the user click on the
+        second QListWidget (the one called selected fish and guild).
+        """
+
+        self.show_info_fish(True)
+        self.remove_fish()
+
+    def show_info_fish_avai(self):
+        """
+        This function shows the useful information concerning the available fish on the GUI and
+        add the fish to  the selected fish This is what happens when the user click on the
+        first QListWidget (the one called available fish).
+        """
+
+        self.show_info_fish(False)
+        self.add_fish()
+
     def show_hydrosignature(self):
         """
         This function make the link with function in bio_info.py which allows to load and plot the data realted
@@ -273,7 +314,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get the new selection
         for ind in inds:
-            self.list_f.setCurrentRow(int(ind))
+            for i in range(0, self.list_f.count()):
+                item = self.list_f.item(i)
+                if item.text() == self.data_fish[ind, 0]:
+                    break
+            self.list_f.setCurrentRow(i)
             # add the fish to the QListView
             self.add_fish()
 

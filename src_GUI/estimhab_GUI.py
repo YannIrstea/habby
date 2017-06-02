@@ -80,6 +80,13 @@ class StatModUseful(QWidget):
         self.list_f.sortItems()
         item = None
 
+    def remove_all_fish(self):
+        """
+        This function removes all fishes from the selected fish
+        """
+        self.list_s.clear()
+        self.fish_selected = []
+
     def find_path_im_est(self):
         """
         A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.

@@ -531,7 +531,8 @@ def load_xml_name(path_bio, attributes):
 
         # put data in the new list
         for s in stages:
-                data_s = [data[4] + ': ' + s + ' - ' + data[5], s, preffile] # order mattter HERE! (ind: +3)
+                # careful the char : is necessary for the function  show_info_fish() from bio_info_GUI
+                data_s = [data[4] + ': ' + s + ' - ' + data[5], s, preffile]  # order mattter HERE! (ind: +3)
                 data_s.extend(data)
                 data_fish.append(data_s)
         found_one = True
@@ -540,7 +541,6 @@ def load_xml_name(path_bio, attributes):
         print('Error: No preference file could be read. Please check the biology folder.\n')
 
     data_fish = np.array(data_fish)
-    print(data_fish)
 
     return data_fish
 
