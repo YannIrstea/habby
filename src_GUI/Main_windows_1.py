@@ -61,6 +61,9 @@ class MainWindows(QMainWindow):
     """
 
     def __init__(self):
+        # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
+        self.nb_recent = 5
+
         # load user setting
         self.settings = QSettings('HABBY', 'irstea')
         name_prj_set = self.settings.value('name_prj')
@@ -71,6 +74,11 @@ class MainWindows(QMainWindow):
         # recent project: list of string
         recent_projects_set = self.settings.value('recent_project_name')
         recent_projects_path_set = self.settings.value('recent_project_path')
+
+        if len(recent_projects_set) > self.nb_recent:
+            self.settings.setValue('recent_project_name', recent_projects_set[ -self.nb_recent+1:])
+            self.settings.setValue('recent_project_path', recent_projects_path_set[-self.nb_recent+1:])
+
         del self.settings
 
         # set up tranlsation
@@ -99,18 +107,18 @@ class MainWindows(QMainWindow):
         else:
             self.path_prj = '.'
         if recent_projects_set:
-            self.recent_project = recent_projects_set
+            self.recent_project = recent_projects_set[::-1]
         else:
             self.recent_project = []
         if recent_projects_path_set:
-            self.recent_project_path = recent_projects_path_set
+            self.recent_project_path = recent_projects_path_set[::-1]
         else:
             self.recent_project_path = []
+
         self.username_prj = "NoUserName"
         self.descri_prj = ""
         self.does_it_work = True
-        # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
-        self.nb_recent = 5
+
         # the path to the biological data by default (HABBY force the user to use this path)
         self.path_bio_default = "./biology\\"
 
@@ -626,7 +634,8 @@ class MainWindows(QMainWindow):
         """
 
         # open an xml file
-        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj, self.tr("XML (*.xml)"))[0]
+        path_here = os.path.dirname(self.path_prj)
+        filename_path = QFileDialog.getOpenFileName(self, 'Open File', path_here, self.tr("XML (*.xml)"))[0]
         if not filename_path:  # cancel
             return
         blob, ext_xml = os.path.splitext(filename_path)
@@ -642,7 +651,7 @@ class MainWindows(QMainWindow):
                 docxml2 = ET.parse(filename_path)
                 root2 = docxml2.getroot()
             except IOError:
-                self.central_widget.write_log("Error: the selected project file does not exist\n.")
+                self.central_widget.write_log("Error: the selected project file does not exist. \n")
                 self.close_project()
                 return
         except ET.ParseError:
@@ -655,7 +664,7 @@ class MainWindows(QMainWindow):
         self.path_prj = root2.find(".//Path_Projet").text
 
         if self.name_prj is None or self.path_prj is None:
-            self.central_widget.write_log('Error: Project xml file is not understood')
+            self.central_widget.write_log('Error: Project xml file is not understood \n')
             return
 
         # check coherence
@@ -692,6 +701,24 @@ class MainWindows(QMainWindow):
         self.central_widget.update_hydro_hdf5_name()
         self.central_widget.substrate_tab.update_sub_hdf5_name()
 
+        # recreate new widget
+        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+
+        # set the central widget
+        for i in range(self.central_widget.tab_widget.count(), 0, -1):
+            self.central_widget.tab_widget.removeTab(i)
+        self.central_widget.name_prj_c = self.name_prj
+        self.central_widget.path_prj_c = self.path_prj
+        self.central_widget.add_all_tab()
+        self.central_widget.welcome_tab.name_prj = self.name_prj
+        self.central_widget.welcome_tab.path_prj = self.path_prj
+
         return
 
     def open_recent_project(self, j):
@@ -712,7 +739,7 @@ class MainWindows(QMainWindow):
                 docxml = ET.parse(filename_path)
                 root = docxml.getroot()
             except IOError:
-                self.central_widget.write_log("Error: the selected project file does not exist\n")
+                self.central_widget.write_log("Error: the selected project file does not exist.\n")
                 self.close_project()
                 return
         except ET.ParseError:
@@ -807,6 +834,7 @@ class MainWindows(QMainWindow):
                 self.createnew.close()
             else:
                 return
+
         # save project if unique name in the selected folder
         else:
             self.save_project()
@@ -825,6 +853,24 @@ class MainWindows(QMainWindow):
         else:
             child1.text = 'figures'
         doc.write(fname)
+
+        # recreate new widget
+        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+
+        # set the central widget
+        for i in range(self.central_widget.tab_widget.count(), 0, -1):
+            self.central_widget.tab_widget.removeTab(i)
+        self.central_widget.name_prj_c = self.name_prj
+        self.central_widget.path_prj_c = self.path_prj
+        self.central_widget.add_all_tab()
+        self.central_widget.welcome_tab.name_prj = self.name_prj
+        self.central_widget.welcome_tab.path_prj = self.path_prj
 
     def change_name_project(self):
         """
@@ -1177,7 +1223,7 @@ class CreateNewProject(QWidget):
     def __init__(self, lang, path_trans, file_langue, oldpath_prj):
 
         if oldpath_prj and os.path.isdir(oldpath_prj):
-            self.default_fold = oldpath_prj
+            self.default_fold = os.path.dirname(oldpath_prj)
         else:
             self.default_fold = os.getcwd()
         self.default_name = 'DefaultProj'
@@ -1615,7 +1661,7 @@ class CentralW(QWidget):
             else:
                 path_hdf5 = os.path.join(self.path_prj_c, child.text)
         else:
-            self.write_log(self.tr('Error: Project is not saved'))
+            self.write_log(self.tr('Error: Project is not saved. \n'))
             return
 
         # read name

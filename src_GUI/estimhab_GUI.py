@@ -103,7 +103,12 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = self.path_prj
+                path_test = os.path.join(self.path_prj, '/figures')
+                print(path_test)
+                if os.path.isdir(path_test):
+                    path_im = path_test
+                else:
+                    path_im = self.path_prj
             else:
                 path_im = os.path.join(self.path_prj, child.text)
         else:

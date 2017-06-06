@@ -404,11 +404,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         run_choice = self.choice_run.currentIndex()
 
         # run the data
-        #sys.stdout = self.mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()
         [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all] = \
             calcul_hab.calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, self.path_bio, run_choice)
-        #sys.stdout = sys.__stdout__
-        #self.send_err_log()
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
 
         if vh_all_t_sp == [-99]:
             return
