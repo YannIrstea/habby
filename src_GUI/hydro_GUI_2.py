@@ -398,7 +398,10 @@ class SubHydroW(QWidget):
                 self.namefile[i] = filename
 
             # add the default name of the hdf5 file to the QLineEdit
-            filename2, ext = os.path.splitext(filename)
+            filename2 = filename.split('.')[0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
+            ext = filename.split('.')[-1]
+            if ext == filename2:
+                ext = ''
             if self.model_type == 'SUBSTRATE':
                 if len(filename) > 9:
                     self.name_hdf5 = 'Substrate_' + filename2[:9] + '_' + ext[1:]
@@ -2220,6 +2223,7 @@ class LAMMI(SubHydroW):
         self.send_log.emit("restart LOAD_LAMMI")
         self.send_log.emit("restart    dir1: " + self.pathfile[0])
         self.send_log.emit("restart    dir3: " + self.pathfile[2])
+
 
 class HabbyHdf5(SubHydroW):
     """

@@ -196,7 +196,7 @@ class Stathab:
         root = doc.getroot()
         child = root.find(".//hdf5Stathab")
         if child is None:  # if there is data for STATHAB
-            print("Error: No hdf5 file is written in the xml project file. \n")
+            print("Error: No hdf5 file for Stathab is written in the xml project file. \n")
             return
         if not child.text:
             print("Error: No hdf5 file is written in the xml project file. (2) \n")

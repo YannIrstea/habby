@@ -651,7 +651,7 @@ class MainWindows(QMainWindow):
                 docxml2 = ET.parse(filename_path)
                 root2 = docxml2.getroot()
             except IOError:
-                self.central_widget.write_log("Error: the selected project file does not exist. \n")
+                self.central_widget.write_log("Error: the selected project file does not exist.\n")
                 self.close_project()
                 return
         except ET.ParseError:
@@ -679,6 +679,7 @@ class MainWindows(QMainWindow):
             self.path_prj = os.path.dirname(filename_path)
             root2.find(".//Path_Projet").text = self.path_prj
             root2.find(".//Path_Figure").text = self.path_prj
+        stathab_info = root2.find(".//hdf5Stathab")
         self.username_prj = root2.find(".//User_Name").text
         self.descri_prj = root2.find(".//Description").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
@@ -694,7 +695,8 @@ class MainWindows(QMainWindow):
         self.save_project()
 
         # update estimhab and stathab
-        self.central_widget.stathab_tab.load_from_hdf5_gui()
+        if stathab_info is not None :  # if there is data for STATHAB
+            self.central_widget.stathab_tab.load_from_hdf5_gui()
         self.central_widget.statmod_tab.open_estimhab_hdf5()
 
         # update hydro
@@ -752,6 +754,7 @@ class MainWindows(QMainWindow):
         self.path_prj = root.find(".//Path_Projet").text
         self.username_prj = root.find(".//User_Name").text
         self.descri_prj = root.find(".//Description").text
+        stathab_info = root.find(".//hdf5Stathab")
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
@@ -766,7 +769,8 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # update stathab and estimhab
-        self.central_widget.stathab_tab.load_from_hdf5_gui()
+        if stathab_info is not None:
+            self.central_widget.stathab_tab.load_from_hdf5_gui()
         self.central_widget.statmod_tab.open_estimhab_hdf5()
 
     def new_project(self):
@@ -1579,7 +1583,7 @@ class CentralW(QWidget):
         # add comments to Qlabel and .log file
         if text_log[0] == '#':
             t = self.l2.text()
-            self.l2.setText(t + text_log[1:] + '<br>')
+            self.l2.setText(t + "<FONT COLOR='#000000'>" + text_log[1:] + '</br><br>')
             self.write_log_file(text_log, pathname_logfile)
         # add python code to the .log file
         elif text_log[:2] == 'py':
@@ -1599,7 +1603,7 @@ class CentralW(QWidget):
         # other case not accounted for
         else:
             t = self.l2.text()
-            self.l2.setText(t + text_log + '<br>')
+            self.l2.setText(t + "<FONT COLOR='#000000'>" + text_log + '</br><br>')
 
     def write_log_file(self, text_log, pathname_logfile):
         """
@@ -1721,7 +1725,7 @@ class WelcomeW(QWidget):
 
         super().__init__()
         self.imname = os.path.join('translation','test3.jpg') # image shoulfd in the translation folder
-        #self.imname = os.path.join('translation', 'beaver.png')  # image shoulfd in the translation folder
+        # self.imname = os.path.join('translation', 'beaver.png')  # image should in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.init_iu()
@@ -1772,7 +1776,13 @@ class WelcomeW(QWidget):
         pic.setMaximumSize(1000, 200)
         # use full ABSOLUTE path to the image, not relative
         pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
-        #pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
+        # pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
+
+        # insist on white background color (for linux)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
 
         # layout (in two parts)
         layout2 = QGridLayout()

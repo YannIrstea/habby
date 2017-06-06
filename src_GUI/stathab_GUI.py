@@ -182,7 +182,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                 self.msge.setText(self.tr("Stathab: The selected directory for stathab does not exist."))
                 self.msge.setStandardButtons(QMessageBox.Ok)
                 self.msge.show()
-        if self.hdf5_name != 'No hdf5 selected' and self.typeload == 'hdf5':
+        elif self.hdf5_name != self.tr('No hdf5 selected') and self.typeload == 'hdf5':
             if os.path.isfile(self.hdf5_name):
                 self.load_from_hdf5_gui()
                 if not self.mystathab.load_ok:
