@@ -2160,14 +2160,14 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     else:
         plt.title('Hydraulic Data - Time Step ' + str(time_step))
     if len(inter_vel_all) > 0:  # 0
-        #plt.subplot(2, 1, 1)
+        plt.subplot(2, 1, 1)
         # get colormap limit
         cm = plt.cm.get_cmap(fig_opt['color_map1'])
         mvc = 0.1
         for r in range(0, len(inter_vel_all)):
             inter_vel = inter_vel_all[r]
             if len(inter_vel) > 0:
-                mv = np.median(inter_vel[inter_vel >= 0]) * 2.7
+                mv = np.median(inter_vel[inter_vel >= 0]) * 2
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2190,7 +2190,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
-        #plt.figure()
         plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
         # color map (the same for al reach)
         mvc = 0.1
@@ -2198,7 +2197,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         for r in range(0, len(inter_h_all)):
             inter_h = inter_h_all[r]
             if len(inter_h) > 0:
-                mv = np.median(inter_h[inter_h >= 0]) * 2.5
+                mv = np.median(inter_h[inter_h >= 0]) * 2
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)

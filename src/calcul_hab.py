@@ -204,7 +204,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 except ValueError:
                     print('Error: One time step misses substrate, velocity or water height value \n')
                     vh = [-99]
-                spu_reach = 1/area_reach * np.sum(vh*area)
+                spu_reach = np.sum(vh*area)
 
                 vh_all.append(list(vh))
                 vel_c.append(v_cell)
@@ -387,14 +387,14 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
         # header
         header = 'time_step reach reach_area'
         for i in range(0, len(name_fish)):
-            header += ' WUA' + str(i)
+            header += ' WUA' + str(i) + ' HV' + str(i)
         header += '\n'
         f.write(header)
         # header 2
-        header = '[] [] [m2] '
+        header = '[] [] [m2] [m2] []'
         for i in name_fish:
             i = i.replace(' ', '_')  # so space is always a separator
-            header += ' ' + i
+            header += ' ' + i + ' ' + i
         header += '\n'
         f.write(header)
 
@@ -403,6 +403,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
                 data_here = str(t) + ' ' + str(r) + ' ' + str(area_all[t][r])
                 for i in range(0, len(name_fish)):
                     data_here += ' ' + str(spu_all[i][t][r])
+                    data_here += ' ' + str(spu_all[i][t][r]/area_all[t][r])
                 data_here += '\n'
                 f.write(data_here)
 
@@ -506,24 +507,40 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
     # one time step - bar
     if len(area_all) == 1 or len(area_all) == 2:
         for r in range(0, nb_reach):
+            # SPU
             data_bar = []
             for s in range(0, len(name_fish)):
                 data_bar.append(spu_all[s][1][r])
             y_pos = np.arange(len(spu_all))
-            plt.figure()
+            fig = plt.figure()
+            fig.add_subplot(211)
             if data_bar:
-                plt.bar(y_pos, data_bar)
-                plt.xticks(y_pos+0.5, name_fish)
-            plt.ylabel('WUA []')
+                data_bar2 = np.array(data_bar)
+                plt.bar(y_pos, data_bar2, 0.5)
+                plt.xticks(y_pos+0.25, name_fish)
+            plt.ylabel('WUA [m^2]')
+            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
             plt.title('Weighted Usable Area for the Reach ' + str(r))
+            # VH
+            fig.add_subplot(212)
+            if data_bar:
+                data_bar2 = np.array(data_bar)
+                plt.bar(y_pos, data_bar2/area_all[-1], 0.5)
+                plt.xticks(y_pos + 0.25, name_fish)
+            plt.ylabel('HV (WUA/A) []')
+            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+            plt.title('Habitat value for the Reach ' + str(r))
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
+            plt.tight_layout()
             plt.savefig(os.path.join(path_im, name))
 
     # many time step - lines
     elif len(area_all) > 2:
         data_plot = []
         for r in range(0, nb_reach):
-            plt.figure()
+            # SPU
+            fig = plt.figure()
+            fig.add_subplot(211)
             for s in range(0, len(spu_all)):
                 data_plot = []
                 t_all = []
@@ -533,9 +550,24 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
                         t_all.append(t)
                 plt.plot(t_all,data_plot, label=name_fish[s])
             plt.xlabel('Time step [ ]')
-            plt.ylabel('WUA []')
+            plt.ylabel('WUA [m^2]')
             plt.title('Weighted Usable Area for the Reach ' + str(r))
             plt.legend()
+            # VH
+            fig.add_subplot(212)
+            for s in range(0, len(spu_all)):
+                data_plot = []
+                t_all = []
+                for t in range(0, len(area_all)):
+                    if spu_all[s][t]:
+                        data_plot.append(spu_all[s][t][r]/area_all[t][r])
+                        t_all.append(t)
+                plt.plot(t_all, data_plot, label=name_fish[s])
+            plt.xlabel('Time step [ ]')
+            plt.ylabel('HV (WUA/A) []')
+            plt.title('Habitat value for the Reach ' + str(r))
+            plt.legend()
+            plt.tight_layout()
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
             plt.savefig(os.path.join(path_im, name))
 

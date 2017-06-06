@@ -747,11 +747,13 @@ class MainWindows(QMainWindow):
         This function open an empty project and guide the user to create a new project, using a new Windows
         of the class CreateNewProject
         """
-        # create an empty project
-        self.empty_project()
+        pathprj_old = self.path_prj
+
+        # create an empty project to remplace the old one
+        # self.empty_project()
 
         # open a new Windows to ask for the info for the project
-        self.createnew = CreateNewProject(self.lang, self.path_trans, self.file_langue)
+        self.createnew = CreateNewProject(self.lang, self.path_trans, self.file_langue, pathprj_old)
         self.createnew.show()
         self.createnew.save_project.connect(self.save_project_if_new_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
@@ -912,7 +914,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e3.setText('')
 
         # save the project
-        self.save_project()
+        # self.save_project()
 
     def save_project_estimhab(self):
         """
@@ -1172,9 +1174,12 @@ class CreateNewProject(QWidget):
        A PyQt signal used to write the log
     """
 
-    def __init__(self, lang, path_trans, file_langue):
+    def __init__(self, lang, path_trans, file_langue, oldpath_prj):
 
-        self.default_fold = os.getcwd()
+        if oldpath_prj and os.path.isdir(oldpath_prj):
+            self.default_fold = oldpath_prj
+        else:
+            self.default_fold = os.getcwd()
         self.default_name = 'DefaultProj'
         super().__init__()
         #translation
@@ -1196,7 +1201,7 @@ class CreateNewProject(QWidget):
         button2 = QPushButton(self.tr('Set Folder'), self)
         button2.clicked.connect(self.setfolder)
         self.button3 = QPushButton(self.tr('Save project'))
-        self.button3.clicked.connect(self.save_project)
+        self.button3.clicked.connect(self.save_project)  # is a PyQtSignal
 
         layoutl = QGridLayout()
         layoutl.addWidget(lg, 0, 0)
@@ -1215,7 +1220,9 @@ class CreateNewProject(QWidget):
         """
         This function is used by the user to select the folder where the xml project file will be located.
         """
-        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))  # check for invalid null parameter on Linuxgit
+        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.default_fold,
+                                                    )  # check for invalid null parameter on Linuxgit
+        # os.getenv('HOME')
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project. \n')
