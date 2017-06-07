@@ -18,7 +18,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
     """
     This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
     by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
-   Rubar() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.
+    Rubar() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.
 
     :param name_hdf5: the name of the hdf5 to be created (string)
     :param path_hdf5: the path to the hdf5 to be created (string)

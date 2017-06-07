@@ -197,9 +197,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def show_info_fish(self, select=False):
         """
-        This function shows the useful information concerning the selected fish on the GUI
-        :param select: If False, the selected items comes from the QListWidgetcontaining the available fish.
-               If True, the items comes the QListWidget with the selected fish
+        This function shows the useful information concerning the selected fish on the GUI.
+
+        :param select:If False, the selected items comes from the QListWidgetcontaining the available fish.
+                      If True, the items comes the QListWidget with the selected fish
         """
 
         # get the file

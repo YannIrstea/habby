@@ -2219,7 +2219,7 @@ class LAMMI(SubHydroW):
         When using lammi data, the user selects a directory and not a file. Hence, we need to modify the ususal
         show_dialog function. Hence, function the show_dilaog_lammi() obtain the directory chosen by the user.
         This method open a dialog so that the user select a directory. The files are NOT loaded here. The name and path
-         \to the files are saved in an attribute.
+        to the files are saved in an attribute.
 
         :param i: If i ==0, we obtain the Entree dirctory, if i == 1, the Resu directory.
         """

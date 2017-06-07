@@ -132,6 +132,13 @@ changing even if a lot of text appears. Hence, the setSizePolicy should be fixed
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.connect_signal_fig_and_drop">
+<code class="descname">connect_signal_fig_and_drop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.connect_signal_fig_and_drop" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function connect the PyQtsignal to show figure and to connect the log. It is a function to
+improve lisibility.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.Main_windows_1.CentralW.connect_signal_log">
 <code class="descname">connect_signal_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.connect_signal_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>connect all the signal linked to the log. This is in a function only to improve lisibility.</p>
@@ -229,7 +236,7 @@ CentralW in MainWindows.py.</p>
 
 <dl class="class">
 <dt id="src_GUI.Main_windows_1.CreateNewProject">
-<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">CreateNewProject</code><span class="sig-paren">(</span><em>lang</em>, <em>path_trans</em>, <em>file_langue</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CreateNewProject" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">CreateNewProject</code><span class="sig-paren">(</span><em>lang</em>, <em>path_trans</em>, <em>file_langue</em>, <em>oldpath_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CreateNewProject" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class which is used to help the user to create a new project</p>
 <dl class="method">
 <dt id="src_GUI.Main_windows_1.CreateNewProject.init_iu">
@@ -314,7 +321,8 @@ project with a new name and copy the file for the log with a new name</p>
 <dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.closeEvent">
 <code class="descname">closeEvent</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.closeEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.</p>
+<dd><p>Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.
+Also done because we might have more than one thread</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -336,6 +344,12 @@ project with a new name and copy the file for the log with a new name</p>
 <code class="descname">close_rech</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.close_rech" title="Permalink to this definition">¶</a></dt>
 <dd><p>Close the additional research menu (see open_rech for more information). For the moment, ONLY works with
 two research tabs. Modify this function if a different number of tab is needed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.create_menu_right">
+<code class="descname">create_menu_right</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.create_menu_right" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function create the menu for right click</p>
 </dd></dl>
 
 <dl class="method">
@@ -380,8 +394,19 @@ are too many of them.</p>
 
 <dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.my_menu_bar">
-<code class="descname">my_menu_bar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.my_menu_bar" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function creates the menu bar of HABBY.</p>
+<code class="descname">my_menu_bar</code><span class="sig-paren">(</span><em>right_menu=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.my_menu_bar" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function creates the menu bar of HABBY when call without argument or with the argument right_menu is False.
+if right menu is True, it creates a very similar menu but we use a QMenu() instead of a QMenuBar() as it
+is the menu open when the user right click</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>right_menu</strong> &#8211; If call with True, we create a menu for the right click and not for the menu part on the top
+of the screen.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -389,6 +414,20 @@ are too many of them.</p>
 <code class="descname">new_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.new_project" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function open an empty project and guide the user to create a new project, using a new Windows
 of the class CreateNewProject</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.on_context_menu">
+<code class="descname">on_context_menu</code><span class="sig-paren">(</span><em>point</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.on_context_menu" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to show the menu on right click</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>point</strong> &#8211; Not understood, linke with the position of the menu.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -688,6 +727,15 @@ in the manage_grid.py based on the interpolation type wished by the user (linear
 The variable self.name_hdf5() is taken from the GUI.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.HEC_RAS1D.propose_next_file">
+<code class="descname">propose_next_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS1D.propose_next_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function proposes the second hec-ras file when the first is selected.  Indeed, to load hec-ras, we need
+one file with the geometry data and one file with the simulation results. If the user selects a file, this
+function looks if a file with the same name but with the extension of the other file type exists in the
+selected folder. Careful, when using hec-ras more than one extension type is possible.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -814,6 +862,51 @@ asks for detailed information.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="src_GUI.hydro_GUI_2.LAMMI">
+<em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">LAMMI</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.LAMMI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
+<p>The class LAMMI is there to manage the link between the graphical interface and the functions in src/lammi.py
+which loads the lammi data. It inherits from SubHydroW() so it have all the methods and the variables
+from the class SubHydroW().</p>
+<dl class="attribute">
+<dt id="src_GUI.hydro_GUI_2.LAMMI.drop_merge">
+<code class="descname">drop_merge</code><a class="headerlink" href="#src_GUI.hydro_GUI_2.LAMMI.drop_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>A pyqtsignal which signal that hydro data from lammi is ready. The signal is for the bioinfo_tab and is collected
+by MainWindows1.py. Data from lammi contains substrate data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.LAMMI.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.LAMMI.init_iu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used by __init__() during the initialization.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.LAMMI.load_lammi_gui">
+<code class="descname">load_lammi_gui</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.LAMMI.load_lammi_gui" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the lammi data, save the text file to the xml project file and create the grid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.LAMMI.show_dialog_lammi">
+<code class="descname">show_dialog_lammi</code><span class="sig-paren">(</span><em>i=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.LAMMI.show_dialog_lammi" title="Permalink to this definition">¶</a></dt>
+<dd><p>When using lammi data, the user selects a directory and not a file. Hence, we need to modify the ususal
+show_dialog function. Hence, function the show_dilaog_lammi() obtain the directory chosen by the user.
+This method open a dialog so that the user select a directory. The files are NOT loaded here. The name and path
+to the files are saved in an attribute.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>i</strong> &#8211; If i ==0, we obtain the Entree dirctory, if i == 1, the Resu directory.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="src_GUI.hydro_GUI_2.Mascaret">
 <em class="property">class </em><code class="descclassname">src_GUI.hydro_GUI_2.</code><code class="descname">Mascaret</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
@@ -839,6 +932,14 @@ load_manning_text of the class SubHydroW for more information)</p>
 <dd><p>The function is used to load the mascaret data, calling the function contained in the script mascaret.py.
 It also create a 2D grid from the 1D data and distribute the velocity.
 All of theses tasks are done on a second thread to avoid freezing the GUI.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Mascaret.propose_next_file">
+<code class="descname">propose_next_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Mascaret.propose_next_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function proposes the two other mascaret when the first is selected. If the user selects the first file,
+this function looks if a file with the same name but with the extension of the other file types exists in the
+selected folder.</p>
 </dd></dl>
 
 </dd></dl>
@@ -942,6 +1043,13 @@ it distribute the velocity along the profiles by calling self.distribute_velocit
 by calling the method self.grid_and_interpo.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="src_GUI.hydro_GUI_2.Rubar1D.propose_next_file">
+<code class="descname">propose_next_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.Rubar1D.propose_next_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function proposes the other rubar file when the first is selected. If the user selects the first file,
+this function looks if a file of the form profil.name exist</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -976,8 +1084,7 @@ nodes. So we use linear interpolation to correct for this.</p>
 <dd><p>This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
 one file with the geometry data and one file with the simulation results. If the user selects a file, this
 function looks if a file with the same name but with the extension of the other file type exists in the
-selected folder. This could be done for all hydrological models, but the function is harder
-to write when more than one extension is possible, so it has not been done yet.</p>
+selected folder.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1366,17 +1473,13 @@ anymore. For example, somebody erased the directory with the Stathab data in the
 a pop-up message open and warn the user.</p>
 <p>An important attribute of StathabW() is self.mystathab. This is an object fo the stahab class. The stathab model,
 which is in the form of a class and not a function, will be run on this object.</p>
+<p>StathabW inherit StatModUseful, which is a class mostly used to manage the exchange of the fish name between the
+two QListWidget (selected fish and available fish).</p>
 <dl class="method">
 <dt id="src_GUI.stathab_GUI.StathabW.add_all_fish">
 <code class="descname">add_all_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.stathab_GUI.StathabW.add_all_fish" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. Careful,
 a similar function exists in Fstress_GUI. Modify both if needed.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src_GUI.stathab_GUI.StathabW.add_fish">
-<code class="descname">add_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.stathab_GUI.StathabW.add_fish" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function add the name of one fish species to the selected list of fish species.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1460,12 +1563,6 @@ the user can click on the name of the reach. When he does this, HABBY selects th
 with this reach and shows it in self.list_f. This first file is highlighted and the list is scrolled
 down so that the files linked with the selected reach are shown. This function manages this. It is connected
 with the list self.list_re, which is the list with the name of the reaches.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="src_GUI.stathab_GUI.StathabW.remove_fish">
-<code class="descname">remove_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.stathab_GUI.StathabW.remove_fish" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function remove the name of one fish species to the selected list of fish species.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1727,6 +1824,12 @@ two classes, which saves a bit of coding.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.add_sel_fish">
+<code class="descname">add_sel_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.add_sel_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the xml file and check if some fish were selected before. If yes, we add them to the list</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_hdf5_est">
 <code class="descname">find_path_hdf5_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_hdf5_est" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py and in
@@ -1767,6 +1870,12 @@ path_out is in the project folder in the folder &#8216;other_output.</p>
 <code class="descname">find_path_text_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_text_est" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
 path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.remove_all_fish">
+<code class="descname">remove_all_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.remove_all_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function removes all fishes from the selected fish</p>
 </dd></dl>
 
 <dl class="method">
@@ -1820,6 +1929,7 @@ to find path_im and path_bio (the path wher to save image) and to manage lists.<
 <code class="descname">run_habitat_value</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.run_habitat_value" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function runs HABBY to get the habitat value based on the data in a &#8220;merged&#8221; hdf5 file and the chosen
 preference files.</p>
+<p>We should not add a comma in the name of the selected fish.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1838,9 +1948,37 @@ to the hydrosignature.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.show_image_hab">
+<code class="descname">show_image_hab</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_image_hab" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is linked with the timer started in run_habitat_value. It is run regulary and
+check if the function on the second thread have finised created the figures. If yes,
+this function create the 1d figure for the HABBY GUI.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.bio_info_GUI.BioInfo.show_info_fish">
-<code class="descname">show_info_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_info_fish" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function shows the useful information concerning the selected fish on the GUI</p>
+<code class="descname">show_info_fish</code><span class="sig-paren">(</span><em>select=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_info_fish" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function shows the useful information concerning the selected fish on the GUI.</p>
+<dl class="docutils">
+<dt>:param select:If False, the selected items comes from the QListWidgetcontaining the available fish.</dt>
+<dd>If True, the items comes the QListWidget with the selected fish</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.show_info_fish_avai">
+<code class="descname">show_info_fish_avai</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_info_fish_avai" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function shows the useful information concerning the available fish on the GUI and
+add the fish to  the selected fish This is what happens when the user click on the
+first QListWidget (the one called available fish).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.bio_info_GUI.BioInfo.show_info_fish_sel">
+<code class="descname">show_info_fish_sel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.bio_info_GUI.BioInfo.show_info_fish_sel" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function shows the useful information concerning the already selected fish on the GUI and
+remove the selected fish from the list of selected fish. This is what happens when the user click on the
+second QListWidget (the one called selected fish and guild).</p>
 </dd></dl>
 
 <dl class="method">
@@ -3415,7 +3553,7 @@ and v the velocity</p>
 <code class="descclassname">src.rubar.</code><code class="descname">load_rubar1d_and_create_grid</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>path_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>namefile</em>, <em>pathfile</em>, <em>interpo_choice</em>, <em>manning_data</em>, <em>nb_point_vel</em>, <em>show_fig_1D</em>, <em>pro_add</em>, <em>q=[]</em>, <em>path_im='.'</em>, <em>print_cmd=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.rubar.load_rubar1d_and_create_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
 by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
-Mascaret() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.</p>
+Rubar() in Hydro_grid_2(). It also distribute the velocity by calling dist_vitess2.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3731,18 +3869,45 @@ It is not used direclty by HABBY.</p>
 <p>in src/lammi.py</p>
 <p>This module contains functions used to load data from LAMMI. For more information on LAMMI, please see the pdf document <a class="reference download internal" href="_downloads/LAMMIGuideMetho.pdf" download=""><code class="xref download docutils literal"><span class="pre">LAMMI.pdf</span></code></a></p>
 <span class="target" id="module-src.lammi"></span><dl class="function">
+<dt id="src.lammi.compare_lammi">
+<code class="descclassname">src.lammi.</code><code class="descname">compare_lammi</code><span class="sig-paren">(</span><em>filename_habby</em>, <em>filename_lammi</em>, <em>filename_lammi_sur</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.compare_lammi" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function compares the SPU for the trut done by lammi and by HABBY (using hydrological lammi output). It is
+not directly used by HABBY, but it can be useful to check the differences.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>filename_habby</strong> &#8211; the name and path of the text file giving the spu from HABBY (spu_xxx.txt)</li>
+<li><strong>filename_lammi</strong> &#8211; the name and the file of the lammi spu (FaciesTRF.txt)</li>
+<li><strong>filename_lammi_sur</strong> &#8211; the name and the file of the lammi surface</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.lammi.coord_lammi">
 <code class="descclassname">src.lammi.</code><code class="descname">coord_lammi</code><span class="sig-paren">(</span><em>dist_all</em>, <em>vel_all</em>, <em>height_all</em>, <em>sub_all</em>, <em>length_all</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.coord_lammi" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function takes the data from the lammi outputs and get the coordinate for the river. It also
 reform the data to put it in the needed for HABBY (as the other 1.5D hydraulic model as hec_ras).</p>
 <p>To get the coordinates, we assume that the river is straight, that each facies is one after the other and
 that the river passes by the deepest point of the profile. In addition we assume that the profile are straight
-and perpendicular to the river.</p>
+and perpendicular to the river. We assume that each facies (or reach for HABBY) is separated by a constant value</p>
 <p>We loop through all the profiles for all reach all time steps. For each profile, the x coordinate is identical
-for all point of the profile and is calculated using length_all. When a new reach starts, a meter is added to the x
-coordinate. To find the y coordainte, we first pass from cell data (in lammi) to point data. The poitn are in the
-center of the cell. In addtion, one point is added at the start an end of the profile with a water heigth of zero.
-Then, we find the height water height and we assume that the passes there. There is the zeros y-ccordinates.</p>
+for all point of the profile and is calculated using length_all. When a new reach starts, a xconstant distance
+is added to the x coordinate. To find the y coordainte, we first pass from cell data (in lammi) to point data.
+The point are the center of each cell and the border of this cells.  Then, we find the higher water height and
+we assume that the river passes there. Hence, this is the origin of y-coordinate axes.</p>
+<p>We double the last and the first profile of each reach/facies. Indded, in HABBY,the informtion of a profile are
+given to the cells of the grid before and after the profile. If no cell would be done before or after the last/first
+profile, these profiles would have less wight than the other which is a problem to reproduce lammi results. This
+also avoid the case of a facies with only one profile, which is cmoplicated to maange for the grid creation.</p>
+<p>To keep as much as possible the same data than in Lammi, we create four points for each orginal lammi cells. The
+three first points have the cell value of lammi and the last one is the average of the value of these cells and
+the next. The point are disposed so that the first and last points are close to the end of the cells.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -3757,7 +3922,9 @@ of eight number representing the percentage of each of the eight subtrate class.
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coord_pro, nb_pro_reach and vh_pro in the same form as in hec-ras (final form)</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">coord_pro, nb_pro_reach and vh_pro in the same form as in final form for hec-ras, a variable with the eight
+subtrate data in a percetage form (sub_pro) and a variable to find the position of the middle profile
+(used by manage grid)</p>
 </td>
 </tr>
 </tbody>
@@ -3815,7 +3982,7 @@ modification to transect.txt</li>
 
 <dl class="function">
 <dt id="src.lammi.load_lammi">
-<code class="descclassname">src.lammi.</code><code class="descname">load_lammi</code><span class="sig-paren">(</span><em>facies_path</em>, <em>transect_path</em>, <em>path_im</em>, <em>new_dir=''</em>, <em>fig_opt=[]</em>, <em>transect_name='Transect.txt'</em>, <em>facies_name='Facies.txt'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.load_lammi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.lammi.</code><code class="descname">load_lammi</code><span class="sig-paren">(</span><em>facies_path</em>, <em>transect_path</em>, <em>path_im</em>, <em>new_dir</em>, <em>fig_opt</em>, <em>savefig1d</em>, <em>transect_name</em>, <em>facies_name</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.load_lammi" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function loads the data from the LAMMI model. A description of the LAMMI model is available in the
 documentation folder (LAMMIGuideMetho.pdf).</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -3827,6 +3994,7 @@ documentation folder (LAMMIGuideMetho.pdf).</p>
 <li><strong>facies_path</strong> &#8211; the path the facies.txt file</li>
 <li><strong>path_im</strong> &#8211; the path where to save the image</li>
 <li><strong>fig_opt</strong> &#8211; the figure option</li>
+<li><strong>savefig1d</strong> &#8211; create and save the figure related to the loading of the data (profile and so on)</li>
 <li><strong>new_dir</strong> &#8211; if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt</li>
 <li><strong>transect_name</strong> &#8211; the name of the transect file, usually &#8216;Transect.txt&#8217;</li>
 <li><strong>facies_name</strong> &#8211; the name of the facies file, usually &#8216;Facies.txt&#8217;</li>
@@ -3841,9 +4009,9 @@ documentation folder (LAMMIGuideMetho.pdf).</p>
 <p><strong>Technical Comments</strong></p>
 <p>LAMMI is organised aroung group of transects. Transect are river profile which describe the river geometry.
 In LAMMI, there are four way of grouping transect. The facies is the a group a transect which is considered by HABBY
-to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is possible
-to use the function &#8220;load_station&#8221; to get the station info if needed. The group Secteur are used in case where
-water is brought to the river.</p>
+to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is
+possible to use the function &#8220;load_station&#8221; to get the station info if needed. The group Secteur are used in case
+where water is brought to the river.</p>
 <p>To load LAMMI data, we first load the facies file, which gives which transect are in which facies. Then, we use
 the transect file to know the length of each transect (length between transects along the river) and the
 name of the file containing the transect precise data. The name of the file is an absolute path to the file.
@@ -3868,12 +4036,7 @@ by HABBY but it could be useful.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>station_path</strong> &#8211; the path to the station.txt file</li>
-<li><strong>transect_path</strong> &#8211; the path to the transect.txt path</li>
-<li><strong>facies_path</strong> &#8211; the path the facies.txt file</li>
-<li><strong>new_dir</strong> &#8211; if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt</li>
 <li><strong>station_name</strong> &#8211; the name of the station file, usually &#8216;Station.txt&#8217;</li>
-<li><strong>transect_name</strong> &#8211; the name of the transect file, usually &#8216;Transect.txt&#8217;</li>
-<li><strong>facies_name</strong> &#8211; the name of the facies file, usually &#8216;Facies.txt&#8217;</li>
 </ul>
 </td>
 </tr>
@@ -3902,6 +4065,51 @@ by HABBY but it could be useful.</p>
 <dt id="src.lammi.main">
 <code class="descclassname">src.lammi.</code><code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.main" title="Permalink to this definition">¶</a></dt>
 <dd><p>Used to test this module</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.lammi.open_lammi_and_create_grid">
+<code class="descclassname">src.lammi.</code><code class="descname">open_lammi_and_create_grid</code><span class="sig-paren">(</span><em>facies_path</em>, <em>transect_path</em>, <em>path_im</em>, <em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>path_hdf5</em>, <em>new_dir=''</em>, <em>fig_opt=[]</em>, <em>savefig1d=False</em>, <em>transect_name='Transect.txt'</em>, <em>facies_name='Facies.txt'</em>, <em>print_cmd=False</em>, <em>q=[]</em>, <em>dominant_case=1</em>, <em>model_type='LAMMI'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.open_lammi_and_create_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the data from the LAMMI model using the load_lammi() function., create the grid and save the
+data in an hdf5 file. A description of the LAMMI model is available in the documentation folder
+(LAMMIGuideMetho.pdf).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>transect_path</strong> &#8211; the path to the transect.txt path</li>
+<li><strong>facies_path</strong> &#8211; the path the facies.txt file</li>
+<li><strong>path_im</strong> &#8211; the path where to save the image</li>
+<li><strong>fig_opt</strong> &#8211; the figure option</li>
+<li><strong>savefig1d</strong> &#8211; create and save the figure related to the loading of the data (profile and so on)</li>
+<li><strong>name_hdf5</strong> &#8211; the name of the hdf5 to be created</li>
+<li><strong>name_prj</strong> &#8211; the name of the project (string)</li>
+<li><strong>path_prj</strong> &#8211; the path of the project</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 data</li>
+<li><strong>new_dir</strong> &#8211; if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt</li>
+<li><strong>transect_name</strong> &#8211; the name of the transect file, usually &#8216;Transect.txt&#8217;</li>
+<li><strong>facies_name</strong> &#8211; the name of the facies file, ususally &#8216;Facies.txt</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
+<li><strong>q</strong> &#8211; used if this function is send using the second thread</li>
+<li><strong>dominant_case</strong> &#8211; an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+if 0, we do not know.</li>
+<li><strong>model_type</strong> &#8211; which type of model (LAMMI in this case). It is as an argument just in case (lammi, Lammi, etc.)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Technical comments</strong></p>
+<p>LAMMI has a special way of creating a grid from its data. Because spatial information is not very good in LAMMI,
+we can only used the create_grid_only_1_profile() function. The function which uses triangle to create the grid can
+not be used here as the developper fomr LAMMI did not wish to introduce an interpolation method in their outputs.
+In addition, LAMMI integrates substrate data which should be direclty added to the grid while other hydraulic model
+get their substrate data from another sources.</p>
 </dd></dl>
 
 </div>
@@ -4023,6 +4231,28 @@ vairable (based on a grid) cases. The code should be of cemagref type and the da
 </dd></dl>
 
 <dl class="function">
+<dt id="src.load_hdf5.load_sub_percent">
+<code class="descclassname">src.load_hdf5.</code><code class="descname">load_sub_percent</code><span class="sig-paren">(</span><em>hdf5_name_hyd</em>, <em>path_hdf5=''</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_sub_percent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function loads the substrate in percent form, if this info is present in the hdf5 file. It send a warning
+otherwise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hdf5_name_hyd</strong> &#8211; filename of the hdf5 file (string)</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the hdf5 file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.load_hdf5.open_hdf5">
 <code class="descclassname">src.load_hdf5.</code><code class="descname">open_hdf5</code><span class="sig-paren">(</span><em>hdf5_name</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.open_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a function which open an hdf5 file and check that it exists. it does not load the data. It only opens the
@@ -4032,7 +4262,7 @@ files.
 
 <dl class="function">
 <dt id="src.load_hdf5.save_hdf5">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em>, <em>merge=False</em>, <em>sub_pg_all_t=[]</em>, <em>sub_dom_all_t=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em>, <em>merge=False</em>, <em>sub_pg_all_t=[]</em>, <em>sub_dom_all_t=[]</em>, <em>sub_per_all_t=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function save the hydrological data in the hdf5 format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4057,6 +4287,7 @@ files.
 <li><strong>merge</strong> &#8211; If True, the data is coming from the merging of substrate and hydrological data.</li>
 <li><strong>sub_pg_all_t</strong> &#8211; the data of the coarser substrate given on the merged grid by cell. Only used if merge is True.</li>
 <li><strong>sub_dom_all_t</strong> &#8211; the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.</li>
+<li><strong>sub_per_all_t</strong> &#8211; the data of the substreate by percentage. Only used with lammi (mostly)</li>
 </ul>
 </td>
 </tr>
@@ -4465,7 +4696,7 @@ in the form dist along profile, h , v for the analyzed time step. f not given, g
 
 <dl class="function">
 <dt id="src.manage_grid_8.create_grid_only_1_profile">
-<code class="descclassname">src.manage_grid_8.</code><code class="descname">create_grid_only_1_profile</code><span class="sig-paren">(</span><em>coord_pro, nb_pro_reach=[0, 10000000000.0], vh_pro_t=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.create_grid_only_1_profile" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">create_grid_only_1_profile</code><span class="sig-paren">(</span><em>coord_pro, nb_pro_reach=[0, 10000000000.0], vh_pro_t=[], sub_pg=[], sub_dom=[], sub_per=[], virtual_startend=False, divgiv=[], h0ok=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.create_grid_only_1_profile" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
 The interpolation of the data is done in this function also, contrarily to create_grid().</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4476,6 +4707,14 @@ The interpolation of the data is done in this function also, contrarily to creat
 <li><strong>coord_pro</strong> &#8211; the profile coordinates (x,y, h, dist along) the profile</li>
 <li><strong>nb_pro_reach</strong> &#8211; the number of profile by reach</li>
 <li><strong>vh_pro_t</strong> &#8211; the data with heigh and velocity, giving the river limits</li>
+<li><strong>sub_pg</strong> &#8211; the data from the coarser substrate, in case the hydraulic model already contains substrate data</li>
+<li><strong>sub_dom</strong> &#8211; the data from the dominant substrate, in case the hydraulic model already contains substrate data</li>
+<li><strong>sub_per</strong> &#8211; the data from the subtrate in a percentage form</li>
+<li><strong>virtual_startend</strong> &#8211; this indicates that the first and the lst profile is doubled. This is used so that the
+grid around the last and the first profile extend after or before this profile, so that all porfile have
+the same weight. Useful for LAMMI moslty.</li>
+<li><strong>divgiv</strong> &#8211; in case we do not want to middle profile to be at an equal distance of both profile(one value by profile)</li>
+<li><strong>h0ok</strong> &#8211; if we want to keep in the grid the cell with an height or velocity of zero (False usually)</li>
 </ul>
 </td>
 </tr>
@@ -4541,7 +4780,7 @@ velocity on the updated grid fro all reaches</p>
 
 <dl class="function">
 <dt id="src.manage_grid_8.find_profile_between">
-<code class="descclassname">src.manage_grid_8.</code><code class="descname">find_profile_between</code><span class="sig-paren">(</span><em>coord_pro_p0</em>, <em>coord_pro_p1</em>, <em>nb_pro</em>, <em>trim=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.find_profile_between" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">find_profile_between</code><span class="sig-paren">(</span><em>coord_pro_p0</em>, <em>coord_pro_p1</em>, <em>nb_pro</em>, <em>trim=True</em>, <em>divgiv=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.find_profile_between" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find n profile between two profiles which are not straight. This functions is useful to create the grid from 1D model
 as profile in 1D model are often far away from another.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4553,6 +4792,7 @@ as profile in 1D model are often far away from another.</p>
 <li><strong>coord_pro_p1</strong> &#8211; the coord_pro (x,y,h, z) of the second profile</li>
 <li><strong>nb_pro</strong> &#8211; the number of profile to add</li>
 <li><strong>trim</strong> &#8211; If True cut the end and start of profile to avoid to have part of the grid outside of the water limit</li>
+<li><strong>divgiv</strong> &#8211; one value by profile, used to not put the middle profile at an euql distance of two profile</li>
 </ul>
 </td>
 </tr>
@@ -4595,7 +4835,7 @@ inside the polygon is outside the river. If island is false, lim_here is the lim
 
 <dl class="function">
 <dt id="src.manage_grid_8.get_new_point_and_cell_1_profil">
-<code class="descclassname">src.manage_grid_8.</code><code class="descname">get_new_point_and_cell_1_profil</code><span class="sig-paren">(</span><em>coord_pro_p</em>, <em>vh_pro_t_p</em>, <em>point_mid_x</em>, <em>point_mid_y</em>, <em>point_all</em>, <em>ikle</em>, <em>point_c</em>, <em>dir</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.get_new_point_and_cell_1_profil" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">get_new_point_and_cell_1_profil</code><span class="sig-paren">(</span><em>coord_pro_p</em>, <em>vh_pro_t_p</em>, <em>point_mid_x</em>, <em>point_mid_y</em>, <em>point_all</em>, <em>ikle</em>, <em>point_c</em>, <em>dir</em>, <em>h0ok=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.get_new_point_and_cell_1_profil" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is use by create_grid_one_profile. It creates the grid for one profile (one &#8220;line&#8221; of triangle).
 To create the whole grod this function is called for each profile.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -4611,6 +4851,7 @@ To create the whole grod this function is called for each profile.</p>
 <li><strong>ikle</strong> &#8211; the connectivity table of the grid</li>
 <li><strong>point_c</strong> &#8211; the central point of each cell</li>
 <li><strong>dir</strong> &#8211; in which direction are we going around the profile (upstream/downstram)</li>
+<li><strong>h0ok</strong> &#8211; if True, cell with a water height or a velocity of zero are kept</li>
 </ul>
 </td>
 </tr>
@@ -5780,7 +6021,8 @@ shapefile is not big enough).</p>
 <li><strong>h5name</strong> &#8211; the name of the hydrological hdf5 file</li>
 <li><strong>path</strong> &#8211; the path to this file</li>
 <li><strong>new_name</strong> &#8211; the name of the create shape file wihtout the shp (string)</li>
-<li><strong>code_type</strong> &#8211; the code type for the substrate (Sandre, Cemagref or EDF)</li>
+<li><strong>code_type</strong> &#8211; the code type for the substrate (Sandre, Cemagref, Const_cemagref, or EDF). All subtrate value
+to 4 for Const_cemagref.</li>
 <li><strong>attribute_type</strong> &#8211; if the substrate is given in the type coarser/dominant/..(0) or in percenctage (1)</li>
 <li><strong>nb_point</strong> &#8211; the number of point needed (more points results in smaller substrate form)</li>
 <li><strong>path_out</strong> &#8211; the path where to save the new substrate shape</li>
@@ -5808,6 +6050,14 @@ of the LAMMI manual. THIS IS NOT RIGHT AS CLASS ARE NOT SPEAREATED IDENTICALLY, 
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.edf_to_cemagref_by_percentage">
+<code class="descclassname">src.substrate.</code><code class="descname">edf_to_cemagref_by_percentage</code><span class="sig-paren">(</span><em>records</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.edf_to_cemagref_by_percentage" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function change the subtrate in a percetage form from edf code to cemagref code
+:param records: the subtrate data (in 8x len tabular)
+:return:</p>
 </dd></dl>
 
 <dl class="function">
@@ -5907,7 +6157,7 @@ and an array with substrate type and a boolean which allows to get the case wher
 <dt id="src.substrate.load_sub_txt">
 <code class="descclassname">src.substrate.</code><code class="descname">load_sub_txt</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em>, <em>code_type</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_txt" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
-xoarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
+coarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
 transformation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -5935,6 +6185,35 @@ and an array with substrate type and (x,y,sub) of the orginal data</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="src.substrate.modify_grid_if_concave">
+<code class="descclassname">src.substrate.</code><code class="descname">modify_grid_if_concave</code><span class="sig-paren">(</span><em>ikle</em>, <em>point_all</em>, <em>sub_pg</em>, <em>sub_dom</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.modify_grid_if_concave" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function check if the grid in entry is composed of convex cell. Indeed, it is possible to have concave
+cells in the substrate grid. However, this is unpractical when the hydrological grid is merged with the subtrate
+grid. Hence, we find here the concave cells. These cells are then modified using the triangle module.</p>
+<p>The algotithm is based on the idea that when you have a convex polygon you turn always in the same direction.
+When you have a concave polygon sometime you will turn left, sometime you will turn right. To check this,
+we can take the determinant betwen each vector which compose the cells and check if they have the same sign.
+Triangle are always convex.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ikle</strong> &#8211; the connectivity table of the grid (one reach, one time step as substrate grid is constant)</li>
+<li><strong>point_all</strong> &#8211; the point of the grid</li>
+<li><strong>sub_pg</strong> &#8211; the coarser substrate, one data by cell</li>
+<li><strong>sub_dom</strong> &#8211; the dominant subtrate, one data by cell</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">ikle, point_all with only convexe cells</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.substrate.open_shp">
 <code class="descclassname">src.substrate.</code><code class="descname">open_shp</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.open_shp" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function open a ArcGIS shpaefile.</p>
@@ -5949,6 +6228,30 @@ and an array with substrate type and (x,y,sub) of the orginal data</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a shapefile object as define in the model</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="src.substrate.percentage_to_domcoarse">
+<code class="descclassname">src.substrate.</code><code class="descname">percentage_to_domcoarse</code><span class="sig-paren">(</span><em>sub_data</em>, <em>dominant_case</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.percentage_to_domcoarse" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to pass from percentage data to dominant/coarse. As the code 8 from the subtrate in
+Cemagref code is slab, we do not the 8 code as the coarser substrate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sub_data</strong> &#8211; the subtrate data in percentage from Lammi</li>
+<li><strong>dominant_case</strong> &#8211; an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+if 0, we do not know.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"></p>
 </td>
 </tr>
 </tbody>
@@ -6478,8 +6781,45 @@ which metho to use. 0-&gt; usde coarser substrate, 1 -&gt; use dominant substrat
 </dd></dl>
 
 <dl class="function">
+<dt id="src.calcul_hab.calc_hab_and_output">
+<code class="descclassname">src.calcul_hab.</code><code class="descname">calc_hab_and_output</code><span class="sig-paren">(</span><em>hdf5_file</em>, <em>path_hdf5</em>, <em>pref_list</em>, <em>stages_chosen</em>, <em>name_fish</em>, <em>name_fish_sh</em>, <em>run_choice</em>, <em>path_bio</em>, <em>path_txt</em>, <em>path_out</em>, <em>path_im</em>, <em>q=[]</em>, <em>print_cmd=False</em>, <em>fig_opt={}</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.calc_hab_and_output" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
+output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
+is done on the main thread as we want to show it to the user on the GUI. This function is called by bio_info_GUI.py
+on a second thread to minimize the freezing on the GUI.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hdf5_file</strong> &#8211; the name of the hdf5 with the results</li>
+<li><strong>path_hdf5</strong> &#8211; the path to the merged file</li>
+<li><strong>pref_list</strong> &#8211; the name of the xml biological data</li>
+<li><strong>stages_chosen</strong> &#8211; the stage chosen (youngs, adults, etc.). List with the same length as bio_names.</li>
+<li><strong>name_fish</strong> &#8211; the name of the chosen fish</li>
+<li><strong>name_fish_sh</strong> &#8211; In a shapefile, max 8 character for the column name. Hence, a modified name_fish is needed.</li>
+<li><strong>run_choice</strong> &#8211; an int fron 0 to n. Gives which calculation method should be used</li>
+<li><strong>path_bio</strong> &#8211; The path to the biological folder (with all files given in bio_names)</li>
+<li><strong>path_txt</strong> &#8211; the path where to save the text file</li>
+<li><strong>path_out</strong> &#8211; the path where to save shapefile and paraview output</li>
+<li><strong>path_im</strong> &#8211; the path where to save the image</li>
+<li><strong>q</strong> &#8211; used in the second thread</li>
+<li><strong>print_cmd</strong> &#8211; if True the print command is directed in the cmd, False if directed to the GUI</li>
+<li><strong>fig_opt</strong> &#8211; the options to crete the figure if save_fig1d is True</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>** Technical comments**</p>
+<p>This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.calcul_hab.calc_hab_norm">
-<code class="descclassname">src.calcul_hab.</code><code class="descname">calc_hab_norm</code><span class="sig-paren">(</span><em>ikle_all_t</em>, <em>point_all_t</em>, <em>vel</em>, <em>height</em>, <em>sub</em>, <em>pref_vel</em>, <em>pref_height</em>, <em>pref_sub</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.calc_hab_norm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.calcul_hab.</code><code class="descname">calc_hab_norm</code><span class="sig-paren">(</span><em>ikle_all_t</em>, <em>point_all_t</em>, <em>vel</em>, <em>height</em>, <em>sub</em>, <em>pref_vel</em>, <em>pref_height</em>, <em>pref_sub</em>, <em>percent=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.calc_hab_norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
 all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -6495,6 +6835,7 @@ all habitat suitability index weighted by the cell area for each reach. It is ca
 <li><strong>pref_vel</strong> &#8211; the preference index for the velcoity (for one life stage)</li>
 <li><strong>pref_sub</strong> &#8211; the preference index for the substrate  (for one life stage)</li>
 <li><strong>pref_height</strong> &#8211; the preference index for the height  (for one life stage)</li>
+<li><strong>percent</strong> &#8211; If True, the variable sub is in percent form, not in the form dominant/coarser</li>
 </ul>
 </td>
 </tr>
@@ -6516,7 +6857,7 @@ find the preference value. As preference value is sorted, it uses the module bis
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>data</strong> &#8211; the data on the cell</li>
+<li><strong>data</strong> &#8211; the data on the cells (for one time step, on reach)</li>
 <li><strong>pref</strong> &#8211; the pref data [pref, class data]</li>
 </ul>
 </td>
@@ -6527,7 +6868,7 @@ find the preference value. As preference value is sorted, it uses the module bis
 
 <dl class="function">
 <dt id="src.calcul_hab.save_hab_fig_spu">
-<code class="descclassname">src.calcul_hab.</code><code class="descname">save_hab_fig_spu</code><span class="sig-paren">(</span><em>area_all</em>, <em>spu_all</em>, <em>name_fish</em>, <em>path_im</em>, <em>name_base</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_hab_fig_spu" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.calcul_hab.</code><code class="descname">save_hab_fig_spu</code><span class="sig-paren">(</span><em>area_all</em>, <em>spu_all</em>, <em>name_fish</em>, <em>path_im</em>, <em>name_base</em>, <em>fig_opt={}</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_hab_fig_spu" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates the figure of the spu as a function of time for each reach. if there is only one
 time step, it reverse to a bar plot. Otherwise it is a line plot.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -6539,6 +6880,7 @@ time step, it reverse to a bar plot. Otherwise it is a line plot.</p>
 <li><strong>spu_all</strong> &#8211; the &#8220;surface pondere utile&#8221; (SPU) for each reach</li>
 <li><strong>name_fish</strong> &#8211; the list of fish latin name + stage</li>
 <li><strong>path_im</strong> &#8211; the path where to save the image</li>
+<li><strong>fig_opt</strong> &#8211; the dictionnary with the figure options</li>
 <li><strong>name_base</strong> &#8211; a string on which to base the name of the files</li>
 </ul>
 </td>
@@ -6629,7 +6971,7 @@ reach and the spu for each fish species.</p>
 
 <dl class="function">
 <dt id="src.calcul_hab.save_vh_fig_2d">
-<code class="descclassname">src.calcul_hab.</code><code class="descname">save_vh_fig_2d</code><span class="sig-paren">(</span><em>name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, time_step=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_vh_fig_2d" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.calcul_hab.</code><code class="descname">save_vh_fig_2d</code><span class="sig-paren">(</span><em>name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.save_vh_fig_2d" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates 2D map of the habitat value for each species at
 the time step asked. All reaches are ploted on the same figure.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -6643,6 +6985,7 @@ the time step asked. All reaches are ploted on the same figure.</p>
 <li><strong>path_im</strong> &#8211; the path where to save the figure</li>
 <li><strong>name_fish</strong> &#8211; the name and stage of the studied species</li>
 <li><strong>name_base</strong> &#8211; the string on which to base the figure name</li>
+<li><strong>fig_opt</strong> &#8211; the dictionnary with the figure options</li>
 <li><strong>time_step</strong> &#8211; which time step should be plotted</li>
 </ul>
 </td>

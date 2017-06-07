@@ -787,10 +787,9 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
 def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     """
     This function compares the SPU for the trut done by lammi and by HABBY (using hydrological lammi output). It is
-    not directly used by HABBY, but it can be useful to check the differences. NOT FINISHED. Check where
-    are the spu column for habby.
+    not directly used by HABBY, but it can be useful to check the differences.
 
-    :param filename_habby: the name and path of the text file giving the spu from HABBY (spu_....txt)
+    :param filename_habby: the name and path of the text file giving the spu from HABBY (spu_xxx.txt)
     :param filename_lammi:  the name and the file of the lammi spu (FaciesTRF.txt)
     :param filename_lammi_sur: the name and the file of the lammi surface
     """

@@ -41,7 +41,7 @@
 
 
 \title{HABBY Documentation}
-\date{May 11, 2017}
+\date{Jun 07, 2017}
 \release{1}
 \author{Diane von Gunten, Yann Le Coarer and Fabrice Zaoui}
 \newcommand{\sphinxlogo}{}
@@ -161,6 +161,15 @@ The write\_log() and write\_log\_file() method are explained in the section abou
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.add_all_tab}}\pysiglinewithargsret{\sphinxbfcode{add\_all\_tab}}{}{}
 This function add the different tab to habby (used by init and by save\_project)
+
+\end{fulllineitems}
+
+\index{connect\_signal\_fig\_and\_drop() (src\_GUI.Main\_windows\_1.CentralW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.connect_signal_fig_and_drop}}\pysiglinewithargsret{\sphinxbfcode{connect\_signal\_fig\_and\_drop}}{}{}
+This function connect the PyQtsignal to show figure and to connect the log. It is a function to
+improve lisibility.
 
 \end{fulllineitems}
 
@@ -295,7 +304,7 @@ A function to write to the .log text. Called by write\_log.
 \index{CreateNewProject (class in src\_GUI.Main\_windows\_1)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CreateNewProject}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{CreateNewProject}}{\emph{lang}, \emph{path\_trans}, \emph{file\_langue}}{}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CreateNewProject}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{CreateNewProject}}{\emph{lang}, \emph{path\_trans}, \emph{file\_langue}, \emph{oldpath\_prj}}{}
 A class which is used to help the user to create a new project
 \index{init\_iu() (src\_GUI.Main\_windows\_1.CreateNewProject method)}
 
@@ -409,6 +418,7 @@ Clear the log in the GUI.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.closeEvent}}\pysiglinewithargsret{\sphinxbfcode{closeEvent}}{\emph{event}}{}
 Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.
+Also done because we might have more than one thread
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
 \sphinxstyleliteralstrong{event} -- managed by the operating system.
@@ -431,6 +441,14 @@ This function close the current project wihout opening a new project
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.close_rech}}\pysiglinewithargsret{\sphinxbfcode{close\_rech}}{}{}
 Close the additional research menu (see open\_rech for more information). For the moment, ONLY works with
 two research tabs. Modify this function if a different number of tab is needed.
+
+\end{fulllineitems}
+
+\index{create\_menu\_right() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.create_menu_right}}\pysiglinewithargsret{\sphinxbfcode{create\_menu\_right}}{}{}
+This function create the menu for right click
 
 \end{fulllineitems}
 
@@ -487,8 +505,16 @@ Used by \_\_init\_\_() to create an instance of the class MainWindows
 \index{my\_menu\_bar() (src\_GUI.Main\_windows\_1.MainWindows method)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.my_menu_bar}}\pysiglinewithargsret{\sphinxbfcode{my\_menu\_bar}}{}{}
-This function creates the menu bar of HABBY.
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.my_menu_bar}}\pysiglinewithargsret{\sphinxbfcode{my\_menu\_bar}}{\emph{right\_menu=False}}{}
+This function creates the menu bar of HABBY when call without argument or with the argument right\_menu is False.
+if right menu is True, it creates a very similar menu but we use a QMenu() instead of a QMenuBar() as it
+is the menu open when the user right click
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{right\_menu} -- If call with True, we create a menu for the right click and not for the menu part on the top
+of the screen.
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -498,6 +524,29 @@ This function creates the menu bar of HABBY.
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.new_project}}\pysiglinewithargsret{\sphinxbfcode{new\_project}}{}{}
 This function open an empty project and guide the user to create a new project, using a new Windows
 of the class CreateNewProject
+
+\end{fulllineitems}
+
+\index{on\_context\_menu() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.on_context_menu}}\pysiglinewithargsret{\sphinxbfcode{on\_context\_menu}}{\emph{point}}{}
+This function is used to show the menu on right click
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{point} -- Not understood, linke with the position of the menu.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{open\_help() (src\_GUI.Main\_windows\_1.MainWindows method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.open_help}}\pysiglinewithargsret{\sphinxbfcode{open\_help}}{}{}
+This function open the html which form the help from HABBY. For the moment, it is the full documentation
+with all the coding detail, but we should create a new html or a new pdf file which would be more pratical
+for the user.
 
 \end{fulllineitems}
 
@@ -880,6 +929,17 @@ The variable self.name\_hdf5() is taken from the GUI.
 
 \end{fulllineitems}
 
+\index{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HEC_RAS1D.propose_next_file}}\pysiglinewithargsret{\sphinxbfcode{propose\_next\_file}}{}{}
+This function proposes the second hec-ras file when the first is selected.  Indeed, to load hec-ras, we need
+one file with the geometry data and one file with the simulation results. If the user selects a file, this
+function looks if a file with the same name but with the extension of the other file type exists in the
+selected folder. Careful, when using hec-ras more than one extension type is possible.
+
+\end{fulllineitems}
+
 
 \end{fulllineitems}
 
@@ -1041,6 +1101,59 @@ A PyQt signal to send the log.
 
 \end{fulllineitems}
 
+\index{LAMMI (class in src\_GUI.hydro\_GUI\_2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.LAMMI}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.hydro\_GUI\_2.}\sphinxbfcode{LAMMI}}{\emph{path\_prj}, \emph{name\_prj}}{}
+Bases: {\hyperref[\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW}]{\sphinxcrossref{\sphinxcode{src\_GUI.hydro\_GUI\_2.SubHydroW}}}}
+
+The class LAMMI is there to manage the link between the graphical interface and the functions in src/lammi.py
+which loads the lammi data. It inherits from SubHydroW() so it have all the methods and the variables
+from the class SubHydroW().
+\index{drop\_merge (src\_GUI.hydro\_GUI\_2.LAMMI attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.LAMMI.drop_merge}}\pysigline{\sphinxbfcode{drop\_merge}}
+A pyqtsignal which signal that hydro data from lammi is ready. The signal is for the bioinfo\_tab and is collected
+by MainWindows1.py. Data from lammi contains substrate data.
+
+\end{fulllineitems}
+
+\index{init\_iu() (src\_GUI.hydro\_GUI\_2.LAMMI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.LAMMI.init_iu}}\pysiglinewithargsret{\sphinxbfcode{init\_iu}}{}{}
+Used by \_\_init\_\_() during the initialization.
+
+\end{fulllineitems}
+
+\index{load\_lammi\_gui() (src\_GUI.hydro\_GUI\_2.LAMMI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.LAMMI.load_lammi_gui}}\pysiglinewithargsret{\sphinxbfcode{load\_lammi\_gui}}{}{}
+This function loads the lammi data, save the text file to the xml project file and create the grid
+
+\end{fulllineitems}
+
+\index{show\_dialog\_lammi() (src\_GUI.hydro\_GUI\_2.LAMMI method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.LAMMI.show_dialog_lammi}}\pysiglinewithargsret{\sphinxbfcode{show\_dialog\_lammi}}{\emph{i=0}}{}
+When using lammi data, the user selects a directory and not a file. Hence, we need to modify the ususal
+show\_dialog function. Hence, function the show\_dilaog\_lammi() obtain the directory chosen by the user.
+This method open a dialog so that the user select a directory. The files are NOT loaded here. The name and path
+to the files are saved in an attribute.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{i} -- If i ==0, we obtain the Entree dirctory, if i == 1, the Resu directory.
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
 \index{Mascaret (class in src\_GUI.hydro\_GUI\_2)}
 
 \begin{fulllineitems}
@@ -1072,6 +1185,16 @@ Used in the initialization by \_\_init\_\_()
 The function is used to load the mascaret data, calling the function contained in the script mascaret.py.
 It also create a 2D grid from the 1D data and distribute the velocity.
 All of theses tasks are done on a second thread to avoid freezing the GUI.
+
+\end{fulllineitems}
+
+\index{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.Mascaret method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.Mascaret.propose_next_file}}\pysiglinewithargsret{\sphinxbfcode{propose\_next\_file}}{}{}
+This function proposes the two other mascaret when the first is selected. If the user selects the first file,
+this function looks if a file with the same name but with the extension of the other file types exists in the
+selected folder.
 
 \end{fulllineitems}
 
@@ -1214,6 +1337,15 @@ by calling the method self.grid\_and\_interpo.
 
 \end{fulllineitems}
 
+\index{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.Rubar1D method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.Rubar1D.propose_next_file}}\pysiglinewithargsret{\sphinxbfcode{propose\_next\_file}}{}{}
+This function proposes the other rubar file when the first is selected. If the user selects the first file,
+this function looks if a file of the form profil.name exist
+
+\end{fulllineitems}
+
 
 \end{fulllineitems}
 
@@ -1257,8 +1389,7 @@ A second thread is used to avoid ``freezing'' the GUI.
 This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
 one file with the geometry data and one file with the simulation results. If the user selects a file, this
 function looks if a file with the same name but with the extension of the other file type exists in the
-selected folder. This could be done for all hydrological models, but the function is harder
-to write when more than one extension is possible, so it has not been done yet.
+selected folder.
 
 \end{fulllineitems}
 
@@ -1731,20 +1862,15 @@ a pop-up message open and warn the user.
 
 An important attribute of StathabW() is self.mystathab. This is an object fo the stahab class. The stathab model,
 which is in the form of a class and not a function, will be run on this object.
+
+StathabW inherit StatModUseful, which is a class mostly used to manage the exchange of the fish name between the
+two QListWidget (selected fish and available fish).
 \index{add\_all\_fish() (src\_GUI.stathab\_GUI.StathabW method)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.stathab_GUI.StathabW.add_all_fish}}\pysiglinewithargsret{\sphinxbfcode{add\_all\_fish}}{}{}
 This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. Careful,
 a similar function exists in Fstress\_GUI. Modify both if needed.
-
-\end{fulllineitems}
-
-\index{add\_fish() (src\_GUI.stathab\_GUI.StathabW method)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.stathab_GUI.StathabW.add_fish}}\pysiglinewithargsret{\sphinxbfcode{add\_fish}}{}{}
-This function add the name of one fish species to the selected list of fish species.
 
 \end{fulllineitems}
 
@@ -1849,14 +1975,6 @@ the user can click on the name of the reach. When he does this, HABBY selects th
 with this reach and shows it in self.list\_f. This first file is highlighted and the list is scrolled
 down so that the files linked with the selected reach are shown. This function manages this. It is connected
 with the list self.list\_re, which is the list with the name of the reaches.
-
-\end{fulllineitems}
-
-\index{remove\_fish() (src\_GUI.stathab\_GUI.StathabW method)}
-
-\begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.stathab_GUI.StathabW.remove_fish}}\pysiglinewithargsret{\sphinxbfcode{remove\_fish}}{}{}
-This function remove the name of one fish species to the selected list of fish species.
 
 \end{fulllineitems}
 
@@ -2202,6 +2320,14 @@ The function is used to select a new fish species (or inverterbrate)
 
 \end{fulllineitems}
 
+\index{add\_sel\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.estimhab_GUI.StatModUseful.add_sel_fish}}\pysiglinewithargsret{\sphinxbfcode{add\_sel\_fish}}{}{}
+This function loads the xml file and check if some fish were selected before. If yes, we add them to the list
+
+\end{fulllineitems}
+
 \index{find\_path\_hdf5\_est() (src\_GUI.estimhab\_GUI.StatModUseful method)}
 
 \begin{fulllineitems}
@@ -2249,6 +2375,14 @@ path\_out is in the project folder in the folder `other\_output.
 \phantomsection\label{\detokenize{index:src_GUI.estimhab_GUI.StatModUseful.find_path_text_est}}\pysiglinewithargsret{\sphinxbfcode{find\_path\_text\_est}}{}{}
 A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab\_GUI.py. By default,
 path\_hdf5 is in the project folder in the folder `fichier\_hdf5'.
+
+\end{fulllineitems}
+
+\index{remove\_all\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.estimhab_GUI.StatModUseful.remove_all_fish}}\pysiglinewithargsret{\sphinxbfcode{remove\_all\_fish}}{}{}
+This function removes all fishes from the selected fish
 
 \end{fulllineitems}
 
@@ -2319,6 +2453,8 @@ Used in the initialization by \_\_init\_\_()
 This function runs HABBY to get the habitat value based on the data in a ``merged'' hdf5 file and the chosen
 preference files.
 
+We should not add a comma in the name of the selected fish.
+
 \end{fulllineitems}
 
 \index{select\_fish() (src\_GUI.bio\_info\_GUI.BioInfo method)}
@@ -2340,11 +2476,46 @@ to the hydrosignature.
 
 \end{fulllineitems}
 
+\index{show\_image\_hab() (src\_GUI.bio\_info\_GUI.BioInfo method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.show_image_hab}}\pysiglinewithargsret{\sphinxbfcode{show\_image\_hab}}{}{}
+This function is linked with the timer started in run\_habitat\_value. It is run regulary and
+check if the function on the second thread have finised created the figures. If yes,
+this function create the 1d figure for the HABBY GUI.
+
+\end{fulllineitems}
+
 \index{show\_info\_fish() (src\_GUI.bio\_info\_GUI.BioInfo method)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.show_info_fish}}\pysiglinewithargsret{\sphinxbfcode{show\_info\_fish}}{}{}
-This function shows the useful information concerning the selected fish on the GUI
+\phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.show_info_fish}}\pysiglinewithargsret{\sphinxbfcode{show\_info\_fish}}{\emph{select=False}}{}
+This function shows the useful information concerning the selected fish on the GUI.
+\begin{description}
+\item[{:param select:If False, the selected items comes from the QListWidgetcontaining the available fish.}] \leavevmode
+If True, the items comes the QListWidget with the selected fish
+
+\end{description}
+
+\end{fulllineitems}
+
+\index{show\_info\_fish\_avai() (src\_GUI.bio\_info\_GUI.BioInfo method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.show_info_fish_avai}}\pysiglinewithargsret{\sphinxbfcode{show\_info\_fish\_avai}}{}{}
+This function shows the useful information concerning the available fish on the GUI and
+add the fish to  the selected fish This is what happens when the user click on the
+first QListWidget (the one called available fish).
+
+\end{fulllineitems}
+
+\index{show\_info\_fish\_sel() (src\_GUI.bio\_info\_GUI.BioInfo method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.show_info_fish_sel}}\pysiglinewithargsret{\sphinxbfcode{show\_info\_fish\_sel}}{}{}
+This function shows the useful information concerning the already selected fish on the GUI and
+remove the selected fish from the list of selected fish. This is what happens when the user click on the
+second QListWidget (the one called selected fish and guild).
 
 \end{fulllineitems}
 
@@ -4427,7 +4598,7 @@ and v the velocity
 \phantomsection\label{\detokenize{index:src.rubar.load_rubar1d_and_create_grid}}\pysiglinewithargsret{\sphinxcode{src.rubar.}\sphinxbfcode{load\_rubar1d\_and\_create\_grid}}{\emph{name\_hdf5}, \emph{path\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{namefile}, \emph{pathfile}, \emph{interpo\_choice}, \emph{manning\_data}, \emph{nb\_point\_vel}, \emph{show\_fig\_1D}, \emph{pro\_add}, \emph{q={[}{]}}, \emph{path\_im='.'}, \emph{print\_cmd=False}}{}
 This function is used to load rubar 1d data by calling the load\_rubar1d() function and to create the grid
 by calling the grid\_and\_interpo function in manage\_grid\_8. This function is called in a second thread by the class
-Mascaret() in Hydro\_grid\_2(). It also distribute the velocity by calling dist\_vitess2.
+Rubar() in Hydro\_grid\_2(). It also distribute the velocity by calling dist\_vitess2.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -4856,7 +5027,30 @@ It is not used direclty by HABBY.
 in src/lammi.py
 
 This module contains functions used to load data from LAMMI. For more information on LAMMI, please see the pdf document \sphinxcode{LAMMI.pdf}
-\phantomsection\label{\detokenize{index:module-src.lammi}}\index{src.lammi (module)}\index{coord\_lammi() (in module src.lammi)}
+\phantomsection\label{\detokenize{index:module-src.lammi}}\index{src.lammi (module)}\index{compare\_lammi() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.compare_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{compare\_lammi}}{\emph{filename\_habby}, \emph{filename\_lammi}, \emph{filename\_lammi\_sur}}{}
+This function compares the SPU for the trut done by lammi and by HABBY (using hydrological lammi output). It is
+not directly used by HABBY, but it can be useful to check the differences.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{filename\_habby} -- the name and path of the text file giving the spu from HABBY (spu\_xxx.txt)
+
+\item {} 
+\sphinxstyleliteralstrong{filename\_lammi} -- the name and the file of the lammi spu (FaciesTRF.txt)
+
+\item {} 
+\sphinxstyleliteralstrong{filename\_lammi\_sur} -- the name and the file of the lammi surface
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{coord\_lammi() (in module src.lammi)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.lammi.coord_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{coord\_lammi}}{\emph{dist\_all}, \emph{vel\_all}, \emph{height\_all}, \emph{sub\_all}, \emph{length\_all}}{}
@@ -4865,13 +5059,22 @@ reform the data to put it in the needed for HABBY (as the other 1.5D hydraulic m
 
 To get the coordinates, we assume that the river is straight, that each facies is one after the other and
 that the river passes by the deepest point of the profile. In addition we assume that the profile are straight
-and perpendicular to the river.
+and perpendicular to the river. We assume that each facies (or reach for HABBY) is separated by a constant value
 
 We loop through all the profiles for all reach all time steps. For each profile, the x coordinate is identical
-for all point of the profile and is calculated using length\_all. When a new reach starts, a meter is added to the x
-coordinate. To find the y coordainte, we first pass from cell data (in lammi) to point data. The poitn are in the
-center of the cell. In addtion, one point is added at the start an end of the profile with a water heigth of zero.
-Then, we find the height water height and we assume that the passes there. There is the zeros y-ccordinates.
+for all point of the profile and is calculated using length\_all. When a new reach starts, a xconstant distance
+is added to the x coordinate. To find the y coordainte, we first pass from cell data (in lammi) to point data.
+The point are the center of each cell and the border of this cells.  Then, we find the higher water height and
+we assume that the river passes there. Hence, this is the origin of y-coordinate axes.
+
+We double the last and the first profile of each reach/facies. Indded, in HABBY,the informtion of a profile are
+given to the cells of the grid before and after the profile. If no cell would be done before or after the last/first
+profile, these profiles would have less wight than the other which is a problem to reproduce lammi results. This
+also avoid the case of a facies with only one profile, which is cmoplicated to maange for the grid creation.
+
+To keep as much as possible the same data than in Lammi, we create four points for each orginal lammi cells. The
+three first points have the cell value of lammi and the last one is the average of the value of these cells and
+the next. The point are disposed so that the first and last points are close to the end of the cells.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -4893,7 +5096,9 @@ of eight number representing the percentage of each of the eight subtrate class.
 \end{itemize}
 
 \item[{Returns}] \leavevmode
-coord\_pro, nb\_pro\_reach and vh\_pro in the same form as in hec-ras (final form)
+coord\_pro, nb\_pro\_reach and vh\_pro in the same form as in final form for hec-ras, a variable with the eight
+subtrate data in a percetage form (sub\_pro) and a variable to find the position of the middle profile
+(used by manage grid)
 
 \end{description}\end{quote}
 
@@ -4969,7 +5174,7 @@ the length of each transect (arranged by facies and station) and the filename wi
 \index{load\_lammi() (in module src.lammi)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.lammi.load_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{load\_lammi}}{\emph{facies\_path}, \emph{transect\_path}, \emph{path\_im}, \emph{new\_dir='`}, \emph{fig\_opt={[}{]}}, \emph{transect\_name='Transect.txt'}, \emph{facies\_name='Facies.txt'}}{}
+\phantomsection\label{\detokenize{index:src.lammi.load_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{load\_lammi}}{\emph{facies\_path}, \emph{transect\_path}, \emph{path\_im}, \emph{new\_dir}, \emph{fig\_opt}, \emph{savefig1d}, \emph{transect\_name}, \emph{facies\_name}}{}
 This function loads the data from the LAMMI model. A description of the LAMMI model is available in the
 documentation folder (LAMMIGuideMetho.pdf).
 \begin{quote}\begin{description}
@@ -4985,6 +5190,9 @@ documentation folder (LAMMIGuideMetho.pdf).
 
 \item {} 
 \sphinxstyleliteralstrong{fig\_opt} -- the figure option
+
+\item {} 
+\sphinxstyleliteralstrong{savefig1d} -- create and save the figure related to the loading of the data (profile and so on)
 
 \item {} 
 \sphinxstyleliteralstrong{new\_dir} -- if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
@@ -5006,9 +5214,9 @@ documentation folder (LAMMIGuideMetho.pdf).
 
 LAMMI is organised aroung group of transects. Transect are river profile which describe the river geometry.
 In LAMMI, there are four way of grouping transect. The facies is the a group a transect which is considered by HABBY
-to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is possible
-to use the function ``load\_station'' to get the station info if needed. The group Secteur are used in case where
-water is brought to the river.
+to form a reach. The facies can then begroup in station. HABBY do not considered station directly, but it is
+possible to use the function ``load\_station'' to get the station info if needed. The group Secteur are used in case
+where water is brought to the river.
 
 To load LAMMI data, we first load the facies file, which gives which transect are in which facies. Then, we use
 the transect file to know the length of each transect (length between transects along the river) and the
@@ -5038,22 +5246,7 @@ by HABBY but it could be useful.
 \sphinxstyleliteralstrong{station\_path} -- the path to the station.txt file
 
 \item {} 
-\sphinxstyleliteralstrong{transect\_path} -- the path to the transect.txt path
-
-\item {} 
-\sphinxstyleliteralstrong{facies\_path} -- the path the facies.txt file
-
-\item {} 
-\sphinxstyleliteralstrong{new\_dir} -- if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
-
-\item {} 
 \sphinxstyleliteralstrong{station\_name} -- the name of the station file, usually `Station.txt'
-
-\item {} 
-\sphinxstyleliteralstrong{transect\_name} -- the name of the transect file, usually `Transect.txt'
-
-\item {} 
-\sphinxstyleliteralstrong{facies\_name} -- the name of the facies file, usually `Facies.txt'
 
 \end{itemize}
 
@@ -5082,6 +5275,82 @@ This function loads the transect data. In this data, there are the subtrate, the
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.lammi.main}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{main}}{}{}
 Used to test this module
+
+\end{fulllineitems}
+
+\index{open\_lammi\_and\_create\_grid() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.open_lammi_and_create_grid}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{open\_lammi\_and\_create\_grid}}{\emph{facies\_path}, \emph{transect\_path}, \emph{path\_im}, \emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{path\_hdf5}, \emph{new\_dir='`}, \emph{fig\_opt={[}{]}}, \emph{savefig1d=False}, \emph{transect\_name='Transect.txt'}, \emph{facies\_name='Facies.txt'}, \emph{print\_cmd=False}, \emph{q={[}{]}}, \emph{dominant\_case=1}, \emph{model\_type='LAMMI'}}{}
+This function loads the data from the LAMMI model using the load\_lammi() function., create the grid and save the
+data in an hdf5 file. A description of the LAMMI model is available in the documentation folder
+(LAMMIGuideMetho.pdf).
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{transect\_path} -- the path to the transect.txt path
+
+\item {} 
+\sphinxstyleliteralstrong{facies\_path} -- the path the facies.txt file
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- the path where to save the image
+
+\item {} 
+\sphinxstyleliteralstrong{fig\_opt} -- the figure option
+
+\item {} 
+\sphinxstyleliteralstrong{savefig1d} -- create and save the figure related to the loading of the data (profile and so on)
+
+\item {} 
+\sphinxstyleliteralstrong{name\_hdf5} -- the name of the hdf5 to be created
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path of the project
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- the path to the hdf5 data
+
+\item {} 
+\sphinxstyleliteralstrong{new\_dir} -- if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
+
+\item {} 
+\sphinxstyleliteralstrong{transect\_name} -- the name of the transect file, usually `Transect.txt'
+
+\item {} 
+\sphinxstyleliteralstrong{facies\_name} -- the name of the facies file, ususally `Facies.txt
+
+\item {} 
+\sphinxstyleliteralstrong{print\_cmd} -- if True the print command is directed in the cmd, False if directed to the GUI
+
+\item {} 
+\sphinxstyleliteralstrong{q} -- used if this function is send using the second thread
+
+\item {} 
+\sphinxstyleliteralstrong{dominant\_case} -- an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+if 0, we do not know.
+
+\item {} 
+\sphinxstyleliteralstrong{model\_type} -- which type of model (LAMMI in this case). It is as an argument just in case (lammi, Lammi, etc.)
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+
+
+\end{description}\end{quote}
+
+\sphinxstylestrong{Technical comments}
+
+LAMMI has a special way of creating a grid from its data. Because spatial information is not very good in LAMMI,
+we can only used the create\_grid\_only\_1\_profile() function. The function which uses triangle to create the grid can
+not be used here as the developper fomr LAMMI did not wish to introduce an interpolation method in their outputs.
+In addition, LAMMI integrates substrate data which should be direclty added to the grid while other hydraulic model
+get their substrate data from another sources.
 
 \end{fulllineitems}
 
@@ -5217,6 +5486,29 @@ vairable (based on a grid) cases. The code should be of cemagref type and the da
 
 \end{fulllineitems}
 
+\index{load\_sub\_percent() (in module src.load\_hdf5)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.load_hdf5.load_sub_percent}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{load\_sub\_percent}}{\emph{hdf5\_name\_hyd}, \emph{path\_hdf5='`}}{}
+This function loads the substrate in percent form, if this info is present in the hdf5 file. It send a warning
+otherwise.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{hdf5\_name\_hyd} -- filename of the hdf5 file (string)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- the path to the hdf5 file
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{open\_hdf5() (in module src.load\_hdf5)}
 
 \begin{fulllineitems}
@@ -5230,7 +5522,7 @@ files.
 \index{save\_hdf5() (in module src.load\_hdf5)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.load_hdf5.save_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{save\_hdf5}}{\emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{point\_c\_all\_t}, \emph{inter\_vel\_all\_t}, \emph{inter\_h\_all\_t}, \emph{xhzv\_data={[}{]}}, \emph{coord\_pro={[}{]}}, \emph{vh\_pro={[}{]}}, \emph{nb\_pro\_reach={[}{]}}, \emph{merge=False}, \emph{sub\_pg\_all\_t={[}{]}}, \emph{sub\_dom\_all\_t={[}{]}}}{}
+\phantomsection\label{\detokenize{index:src.load_hdf5.save_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{save\_hdf5}}{\emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{point\_c\_all\_t}, \emph{inter\_vel\_all\_t}, \emph{inter\_h\_all\_t}, \emph{xhzv\_data={[}{]}}, \emph{coord\_pro={[}{]}}, \emph{vh\_pro={[}{]}}, \emph{nb\_pro\_reach={[}{]}}, \emph{merge=False}, \emph{sub\_pg\_all\_t={[}{]}}, \emph{sub\_dom\_all\_t={[}{]}}, \emph{sub\_per\_all\_t={[}{]}}}{}
 This function save the hydrological data in the hdf5 format.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -5287,6 +5579,9 @@ This function save the hydrological data in the hdf5 format.
 
 \item {} 
 \sphinxstyleliteralstrong{sub\_dom\_all\_t} -- the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
+
+\item {} 
+\sphinxstyleliteralstrong{sub\_per\_all\_t} -- the data of the substreate by percentage. Only used with lammi (mostly)
 
 \end{itemize}
 
@@ -5864,7 +6159,7 @@ For more info, see the document ``More info on the grid''.
 \index{create\_grid\_only\_1\_profile() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.manage_grid_8.create_grid_only_1_profile}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{create\_grid\_only\_1\_profile}}{\emph{coord\_pro, nb\_pro\_reach={[}0, 10000000000.0{]}, vh\_pro\_t={[}{]}}}{}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.create_grid_only_1_profile}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{create\_grid\_only\_1\_profile}}{\emph{coord\_pro, nb\_pro\_reach={[}0, 10000000000.0{]}, vh\_pro\_t={[}{]}, sub\_pg={[}{]}, sub\_dom={[}{]}, sub\_per={[}{]}, virtual\_startend=False, divgiv={[}{]}, h0ok=False}}{}
 This function creates the grid from the coord\_pro data using one additional profil in the middle. No triangulation.
 The interpolation of the data is done in this function also, contrarily to create\_grid().
 \begin{quote}\begin{description}
@@ -5877,6 +6172,26 @@ The interpolation of the data is done in this function also, contrarily to creat
 
 \item {} 
 \sphinxstyleliteralstrong{vh\_pro\_t} -- the data with heigh and velocity, giving the river limits
+
+\item {} 
+\sphinxstyleliteralstrong{sub\_pg} -- the data from the coarser substrate, in case the hydraulic model already contains substrate data
+
+\item {} 
+\sphinxstyleliteralstrong{sub\_dom} -- the data from the dominant substrate, in case the hydraulic model already contains substrate data
+
+\item {} 
+\sphinxstyleliteralstrong{sub\_per} -- the data from the subtrate in a percentage form
+
+\item {} 
+\sphinxstyleliteralstrong{virtual\_startend} -- this indicates that the first and the lst profile is doubled. This is used so that the
+grid around the last and the first profile extend after or before this profile, so that all porfile have
+the same weight. Useful for LAMMI moslty.
+
+\item {} 
+\sphinxstyleliteralstrong{divgiv} -- in case we do not want to middle profile to be at an equal distance of both profile(one value by profile)
+
+\item {} 
+\sphinxstyleliteralstrong{h0ok} -- if we want to keep in the grid the cell with an height or velocity of zero (False usually)
 
 \end{itemize}
 
@@ -5954,7 +6269,7 @@ velocity on the updated grid fro all reaches
 \index{find\_profile\_between() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.manage_grid_8.find_profile_between}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{find\_profile\_between}}{\emph{coord\_pro\_p0}, \emph{coord\_pro\_p1}, \emph{nb\_pro}, \emph{trim=True}}{}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.find_profile_between}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{find\_profile\_between}}{\emph{coord\_pro\_p0}, \emph{coord\_pro\_p1}, \emph{nb\_pro}, \emph{trim=True}, \emph{divgiv={[}{]}}}{}
 Find n profile between two profiles which are not straight. This functions is useful to create the grid from 1D model
 as profile in 1D model are often far away from another.
 \begin{quote}\begin{description}
@@ -5970,6 +6285,9 @@ as profile in 1D model are often far away from another.
 
 \item {} 
 \sphinxstyleliteralstrong{trim} -- If True cut the end and start of profile to avoid to have part of the grid outside of the water limit
+
+\item {} 
+\sphinxstyleliteralstrong{divgiv} -- one value by profile, used to not put the middle profile at an euql distance of two profile
 
 \end{itemize}
 
@@ -6025,7 +6343,7 @@ the updated point\_all and lim\_by\_reach
 \index{get\_new\_point\_and\_cell\_1\_profil() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.manage_grid_8.get_new_point_and_cell_1_profil}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{get\_new\_point\_and\_cell\_1\_profil}}{\emph{coord\_pro\_p}, \emph{vh\_pro\_t\_p}, \emph{point\_mid\_x}, \emph{point\_mid\_y}, \emph{point\_all}, \emph{ikle}, \emph{point\_c}, \emph{dir}}{}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.get_new_point_and_cell_1_profil}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{get\_new\_point\_and\_cell\_1\_profil}}{\emph{coord\_pro\_p}, \emph{vh\_pro\_t\_p}, \emph{point\_mid\_x}, \emph{point\_mid\_y}, \emph{point\_all}, \emph{ikle}, \emph{point\_c}, \emph{dir}, \emph{h0ok=False}}{}
 This function is use by create\_grid\_one\_profile. It creates the grid for one profile (one ``line'' of triangle).
 To create the whole grod this function is called for each profile.
 \begin{quote}\begin{description}
@@ -6053,6 +6371,9 @@ To create the whole grod this function is called for each profile.
 
 \item {} 
 \sphinxstyleliteralstrong{dir} -- in which direction are we going around the profile (upstream/downstram)
+
+\item {} 
+\sphinxstyleliteralstrong{h0ok} -- if True, cell with a water height or a velocity of zero are kept
 
 \end{itemize}
 
@@ -7464,7 +7785,8 @@ shapefile is not big enough).
 \sphinxstyleliteralstrong{new\_name} -- the name of the create shape file wihtout the shp (string)
 
 \item {} 
-\sphinxstyleliteralstrong{code\_type} -- the code type for the substrate (Sandre, Cemagref or EDF)
+\sphinxstyleliteralstrong{code\_type} -- the code type for the substrate (Sandre, Cemagref, Const\_cemagref, or EDF). All subtrate value
+to 4 for Const\_cemagref.
 
 \item {} 
 \sphinxstyleliteralstrong{attribute\_type} -- if the substrate is given in the type coarser/dominant/..(0) or in percenctage (1)
@@ -7497,6 +7819,16 @@ of the LAMMI manual. THIS IS NOT RIGHT AS CLASS ARE NOT SPEAREATED IDENTICALLY, 
 the substrate data in code cemagref
 
 \end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{edf\_to\_cemagref\_by\_percentage() (in module src.substrate)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.substrate.edf_to_cemagref_by_percentage}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{edf\_to\_cemagref\_by\_percentage}}{\emph{records}}{}
+This function change the subtrate in a percetage form from edf code to cemagref code
+:param records: the subtrate data (in 8x len tabular)
+:return:
 
 \end{fulllineitems}
 
@@ -7619,7 +7951,7 @@ and an array with substrate type and a boolean which allows to get the case wher
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.substrate.load_sub_txt}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{load\_sub\_txt}}{\emph{filename}, \emph{path}, \emph{code\_type}}{}
 A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
-xoarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
+coarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
 transformation.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -7650,6 +7982,41 @@ Used to test this module.
 
 \end{fulllineitems}
 
+\index{modify\_grid\_if\_concave() (in module src.substrate)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.substrate.modify_grid_if_concave}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{modify\_grid\_if\_concave}}{\emph{ikle}, \emph{point\_all}, \emph{sub\_pg}, \emph{sub\_dom}}{}
+This function check if the grid in entry is composed of convex cell. Indeed, it is possible to have concave
+cells in the substrate grid. However, this is unpractical when the hydrological grid is merged with the subtrate
+grid. Hence, we find here the concave cells. These cells are then modified using the triangle module.
+
+The algotithm is based on the idea that when you have a convex polygon you turn always in the same direction.
+When you have a concave polygon sometime you will turn left, sometime you will turn right. To check this,
+we can take the determinant betwen each vector which compose the cells and check if they have the same sign.
+Triangle are always convex.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{ikle} -- the connectivity table of the grid (one reach, one time step as substrate grid is constant)
+
+\item {} 
+\sphinxstyleliteralstrong{point\_all} -- the point of the grid
+
+\item {} 
+\sphinxstyleliteralstrong{sub\_pg} -- the coarser substrate, one data by cell
+
+\item {} 
+\sphinxstyleliteralstrong{sub\_dom} -- the dominant subtrate, one data by cell
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+ikle, point\_all with only convexe cells
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{open\_shp() (in module src.substrate)}
 
 \begin{fulllineitems}
@@ -7667,6 +8034,31 @@ This function open a ArcGIS shpaefile.
 
 \item[{Returns}] \leavevmode
 a shapefile object as define in the model
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{percentage\_to\_domcoarse() (in module src.substrate)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.substrate.percentage_to_domcoarse}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{percentage\_to\_domcoarse}}{\emph{sub\_data}, \emph{dominant\_case}}{}
+This function is used to pass from percentage data to dominant/coarse. As the code 8 from the subtrate in
+Cemagref code is slab, we do not the 8 code as the coarser substrate.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{sub\_data} -- the subtrate data in percentage from Lammi
+
+\item {} 
+\sphinxstyleliteralstrong{dominant\_case} -- an int to manage the case where the transfomation form percentage to dominnat is unclear (two
+maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+if 0, we do not know.
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+
 
 \end{description}\end{quote}
 
@@ -8312,10 +8704,74 @@ the habiatat value for all species, all time, all reach, all cells.
 
 \end{fulllineitems}
 
+\index{calc\_hab\_and\_output() (in module src.calcul\_hab)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.calcul_hab.calc_hab_and_output}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{calc\_hab\_and\_output}}{\emph{hdf5\_file}, \emph{path\_hdf5}, \emph{pref\_list}, \emph{stages\_chosen}, \emph{name\_fish}, \emph{name\_fish\_sh}, \emph{run\_choice}, \emph{path\_bio}, \emph{path\_txt}, \emph{path\_out}, \emph{path\_im}, \emph{q={[}{]}}, \emph{print\_cmd=False}, \emph{fig\_opt=\{\}}}{}
+This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
+output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
+is done on the main thread as we want to show it to the user on the GUI. This function is called by bio\_info\_GUI.py
+on a second thread to minimize the freezing on the GUI.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{hdf5\_file} -- the name of the hdf5 with the results
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- the path to the merged file
+
+\item {} 
+\sphinxstyleliteralstrong{pref\_list} -- the name of the xml biological data
+
+\item {} 
+\sphinxstyleliteralstrong{stages\_chosen} -- the stage chosen (youngs, adults, etc.). List with the same length as bio\_names.
+
+\item {} 
+\sphinxstyleliteralstrong{name\_fish} -- the name of the chosen fish
+
+\item {} 
+\sphinxstyleliteralstrong{name\_fish\_sh} -- In a shapefile, max 8 character for the column name. Hence, a modified name\_fish is needed.
+
+\item {} 
+\sphinxstyleliteralstrong{run\_choice} -- an int fron 0 to n. Gives which calculation method should be used
+
+\item {} 
+\sphinxstyleliteralstrong{path\_bio} -- The path to the biological folder (with all files given in bio\_names)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_txt} -- the path where to save the text file
+
+\item {} 
+\sphinxstyleliteralstrong{path\_out} -- the path where to save shapefile and paraview output
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- the path where to save the image
+
+\item {} 
+\sphinxstyleliteralstrong{q} -- used in the second thread
+
+\item {} 
+\sphinxstyleliteralstrong{print\_cmd} -- if True the print command is directed in the cmd, False if directed to the GUI
+
+\item {} 
+\sphinxstyleliteralstrong{fig\_opt} -- the options to crete the figure if save\_fig1d is True
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+** Technical comments**
+
+This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
+
+\end{fulllineitems}
+
 \index{calc\_hab\_norm() (in module src.calcul\_hab)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.calcul_hab.calc_hab_norm}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{calc\_hab\_norm}}{\emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{vel}, \emph{height}, \emph{sub}, \emph{pref\_vel}, \emph{pref\_height}, \emph{pref\_sub}}{}
+\phantomsection\label{\detokenize{index:src.calcul_hab.calc_hab_norm}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{calc\_hab\_norm}}{\emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{vel}, \emph{height}, \emph{sub}, \emph{pref\_vel}, \emph{pref\_height}, \emph{pref\_sub}, \emph{percent=False}}{}
 This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
 all habitat suitability index weighted by the cell area for each reach. It is called by clac\_hab\_norm.
 \begin{quote}\begin{description}
@@ -8344,6 +8800,9 @@ all habitat suitability index weighted by the cell area for each reach. It is ca
 \item {} 
 \sphinxstyleliteralstrong{pref\_height} -- the preference index for the height  (for one life stage)
 
+\item {} 
+\sphinxstyleliteralstrong{percent} -- If True, the variable sub is in percent form, not in the form dominant/coarser
+
 \end{itemize}
 
 \item[{Returns}] \leavevmode
@@ -8363,7 +8822,7 @@ find the preference value. As preference value is sorted, it uses the module bis
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
-\sphinxstyleliteralstrong{data} -- the data on the cell
+\sphinxstyleliteralstrong{data} -- the data on the cells (for one time step, on reach)
 
 \item {} 
 \sphinxstyleliteralstrong{pref} -- the pref data {[}pref, class data{]}
@@ -8377,7 +8836,7 @@ find the preference value. As preference value is sorted, it uses the module bis
 \index{save\_hab\_fig\_spu() (in module src.calcul\_hab)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.calcul_hab.save_hab_fig_spu}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{save\_hab\_fig\_spu}}{\emph{area\_all}, \emph{spu\_all}, \emph{name\_fish}, \emph{path\_im}, \emph{name\_base}}{}
+\phantomsection\label{\detokenize{index:src.calcul_hab.save_hab_fig_spu}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{save\_hab\_fig\_spu}}{\emph{area\_all}, \emph{spu\_all}, \emph{name\_fish}, \emph{path\_im}, \emph{name\_base}, \emph{fig\_opt=\{\}}}{}
 This function creates the figure of the spu as a function of time for each reach. if there is only one
 time step, it reverse to a bar plot. Otherwise it is a line plot.
 \begin{quote}\begin{description}
@@ -8393,6 +8852,9 @@ time step, it reverse to a bar plot. Otherwise it is a line plot.
 
 \item {} 
 \sphinxstyleliteralstrong{path\_im} -- the path where to save the image
+
+\item {} 
+\sphinxstyleliteralstrong{fig\_opt} -- the dictionnary with the figure options
 
 \item {} 
 \sphinxstyleliteralstrong{name\_base} -- a string on which to base the name of the files
@@ -8520,7 +8982,7 @@ reach and the spu for each fish species.
 \index{save\_vh\_fig\_2d() (in module src.calcul\_hab)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.calcul_hab.save_vh_fig_2d}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{save\_vh\_fig\_2d}}{\emph{name\_merge\_hdf5, path\_hdf5, vh\_all\_t\_sp, path\_im, name\_fish, name\_base, time\_step={[}-1{]}}}{}
+\phantomsection\label{\detokenize{index:src.calcul_hab.save_vh_fig_2d}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{save\_vh\_fig\_2d}}{\emph{name\_merge\_hdf5, path\_hdf5, vh\_all\_t\_sp, path\_im, name\_fish, name\_base, fig\_opt=\{\}, time\_step={[}-1{]}}}{}
 This function creates 2D map of the habitat value for each species at
 the time step asked. All reaches are ploted on the same figure.
 \begin{quote}\begin{description}
@@ -8542,6 +9004,9 @@ the time step asked. All reaches are ploted on the same figure.
 
 \item {} 
 \sphinxstyleliteralstrong{name\_base} -- the string on which to base the figure name
+
+\item {} 
+\sphinxstyleliteralstrong{fig\_opt} -- the dictionnary with the figure options
 
 \item {} 
 \sphinxstyleliteralstrong{time\_step} -- which time step should be plotted

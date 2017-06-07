@@ -323,8 +323,9 @@ class MainWindows(QMainWindow):
         lAction2.triggered.connect(lambda: self.setlangue(1))
 
         # Menu to obtain help and programme version
-        helpm = QAction(self.tr('Help'), self)
+        helpm = QAction(self.tr('Developper Help'), self)
         helpm.setStatusTip(self.tr('Get help to use the programme'))
+        helpm.triggered.connect(self.open_help)
 
         # add all first level menu
         if right_menu:
@@ -1215,6 +1216,15 @@ class MainWindows(QMainWindow):
         # log
         t = self.central_widget.l2.text()
         self.central_widget.l2.setText(t + self.tr('Images deleted. <br>'))
+
+    def open_help(self):
+        """
+        This function open the html which form the help from HABBY. For the moment, it is the full documentation
+        with all the coding detail, but we should create a new html or a new pdf file which would be more pratical
+        for the user.
+        """
+        filename_help = os.getcwd() + os.path.normpath(r'\doc\_build\html\index.html')
+        os.startfile(filename_help)
 
 
 
