@@ -87,6 +87,32 @@ class StatModUseful(QWidget):
         self.list_s.clear()
         self.fish_selected = []
 
+    def add_sel_fish(self):
+        """
+        This function loads the xml file and check if some fish were selected before. If yes, we add them to the list
+        """
+
+        # open the xml file
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            # get the selected fish
+            child = root.find(".//Habitat/Fish_Selected")
+            if child is not None:
+                fish_selected_b = child.text
+                if ',' in fish_selected_b:
+                    fish_selected_b = fish_selected_b.split(',')
+                # show it
+                for i in range(0, self.list_f.count()):
+                    self.list_f.clearSelection()
+                    self.list_f.setCurrentRow(i)
+                    items = self.list_f.selectedItems()
+                    if items:
+                        fish_l = items[0].text()
+                        if fish_l in fish_selected_b:  # do not work with space here
+                            self.add_fish()
+
     def find_path_im_est(self):
         """
         A function to find the path where to save the figues. Careful there is similar function in hydro_GUI_2.py.

@@ -857,7 +857,6 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
                 print('Error: Could not read lammi output files (2)')
                 return
 
-
     # plot habby_lammi spu
     plot_spu = False
     if plot_spu:
@@ -865,8 +864,8 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
             plt.figure()
             plt.plot(q_lammi[reach_lammi == r+1], spu_habby[reach_habby == r] * area_habby[reach_habby == r], 'b')
             plt.plot(q_lammi[reach_lammi == r+1], spu_lammi[reach_lammi == r+1], 'g')
-            #plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r], 'b')
-            #plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
+            # plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r], 'b')
+            # plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
             plt.legend(('habby', 'lammi'))
             plt.xlabel('discharge [m^3/sec]')
             plt.ylabel('SPU')

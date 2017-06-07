@@ -49,7 +49,7 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
     nb_time = len(ikle_all_t)
 
     for r in range(0, len(ikle_all_t[0])):
-        fileName = file_name_base + '_' + 'Reach' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_'
+        fileName = file_name_base + '_' + 'Reach' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
         # create one vtu file by time step
         # for the moment we do not show the time step zero with the full profile without data
@@ -85,11 +85,12 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
                 cellData['dominant sub'] = sub_dom_data[t][r]
 
                 # create the grid and the vtu files
-                hl.unstructuredGridToVTK(file_name_base + str(t), x, y, z, connectivity, offsets, cell_types, cellData)
-                file_names_all.append(fileName + str(t) + '.vtu')
+                hl.unstructuredGridToVTK(fileName + '_t' + str(t), x, y, z, connectivity, offsets, cell_types, cellData)
+                file_names_all.append(fileName + '_t' + str(t) + '.vtu')
 
         # create the "grouping" file to read all time step together
         writePVD(fileName + '.pvd', file_names_all)
+        file_names_all = []
 
 
 def writePVD(fileName, fileNames):

@@ -153,6 +153,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.butdel = QPushButton(self.tr("Erase Selection"))
         self.butdel.clicked.connect(self.remove_all_fish)
 
+        # fish selected fish
+        self.add_sel_fish()
+
         # fill hdf5 list
         self.update_merge_list()
 
@@ -381,6 +384,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         This function runs HABBY to get the habitat value based on the data in a "merged" hdf5 file and the chosen
         preference files.
+
+        We should not add a comma in the name of the selected fish.
         """
 
         # disable the button
@@ -392,6 +397,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         stages_chosen = []
         name_fish = []
         name_fish_sh = [] # because max 10 characters in attribute table of shapefile
+        name_fish_sel = ''  # for the xml project file
         for i in range(0, self.list_s.count()):
             fish_item = self.list_s.item(i)
             for j in range(0, self.list_f.count()):
@@ -400,6 +406,30 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     stages_chosen.append(self.data_fish[j][1])
                     name_fish.append(self.data_fish[j][7])
                     name_fish_sh.append(self.data_fish[j][5][:3]+self.data_fish[j][1][:3])
+                    name_fish_sel += fish_item.text() + ','
+
+        # save the selected fish in the xml project file
+        try:
+            try:
+                filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+                docxml = ET.parse(filename_path_pro)
+                root = docxml.getroot()
+            except IOError:
+                print("Warning: the xml project file does not exist \n")
+                return
+        except ET.ParseError:
+            print("Warning: the xml project file is not well-formed.\n")
+            return
+        hab_child = root.find(".//Habitat")
+        if hab_child is None:
+            blob = ET.SubElement(root, "Habitat")
+            hab_child = root.find(".//Habitat")
+        fish_child = root.find(".//Habitat/Fish_Selected")
+        if fish_child is None:
+            blob = ET.SubElement(hab_child, "Fish_Selected")
+            fish_child = root.find(".//Habitat/Fish_Selected")
+        fish_child.text = name_fish_sel[:-1]  # last comma
+        docxml.write(filename_path_pro)
 
         # get the name of the merged file
         path_hdf5 = self.find_path_hdf5_est()

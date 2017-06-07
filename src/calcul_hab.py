@@ -69,8 +69,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # prepare name for the output (there is more or less one form by output)
     for id, n in enumerate(name_fish):
         name_fish[id] = n + '_' + stages_chosen[id]
-    if len(hdf5_file) > 35:
-        name_base = hdf5_file[11: -25]
+    if len(hdf5_file) > 37:
+        name_base = hdf5_file[12: -25]
     else:
         name_base = hdf5_file
 
@@ -733,6 +733,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
             point_t = point_all_t[t]
             vh_t = vh_all_t[t]
             fig, ax = plt.subplots(1) # new figure
+            norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
             for r in range(0, len(vh_t)):
                 ikle = ikle_t[r]
@@ -740,7 +741,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 vh = vh_t[r]
 
                 # plot the habitat value
-                cmap = plt.get_cmap(fig_opt['color_map1'])
+                cmap = plt.get_cmap(fig_opt['color_map2'])
                 colors = cmap(vh)
                 if sp == 0: # for optimization (the grid is always the same for each species)
                     n = len(vh)
@@ -757,7 +758,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 else:
                     patches = all_patches[rt]
 
-                collection = PatchCollection(patches, linewidth=0.0)
+                collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
                 #collection.set_color(colors) too slow
                 collection.set_array(np.array(vh))
                 ax.add_collection(collection)
@@ -767,14 +768,16 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 if r == 0:
                     plt.xlabel('x coord []')
                     plt.ylabel('y coord []')
-                    plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
+                    if t == -1:
+                        plt.title('Habitat Value of ' + name_fish[sp] + '- Last Time Step')
+                    else:
+                        plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
                 ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
                 rt +=1
 
                 # colorbar
                 # Set norm to correspond to the data for which
                 # the colorbar will be used.
-                norm = mpl.colors.Normalize(vmin=0, vmax=1)
                 # ColorbarBase derives from ScalarMappable and puts a colorbar
                 # in a specified axes, so it has everything needed for a
                 # standalone colorbar.  There are many more kwargs, but the

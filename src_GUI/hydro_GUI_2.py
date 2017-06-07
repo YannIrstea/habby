@@ -839,6 +839,7 @@ class HEC_RAS1D(SubHydroW):
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
+        self.geo_b.clicked.connect(self.propose_next_file)
 
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (.xml, .sdf, or .res file)', self)
@@ -976,6 +977,41 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
         self.send_log.emit("restart    interpolation: " + str(self.interpo_choice))
         self.send_log.emit("restart    number of added profile: " + str(self.pro_add))
+
+    def propose_next_file(self):
+        """
+        This function proposes the second hec-ras file when the first is selected.  Indeed, to load hec-ras, we need
+        one file with the geometry data and one file with the simulation results. If the user selects a file, this
+        function looks if a file with the same name but with the extension of the other file type exists in the
+        selected folder. Careful, when using hec-ras more than one extension type is possible.
+        """
+
+        if self.out_t2.text() == 'unknown file':
+            blob = self.namefile[0]
+
+            for ev in range(0,3):
+                if ev == 0: # version 1 from hec-ras
+                    for i in range(0, 10):  # max O09.xml is ok
+                        new_name = blob[:-len(self.extension[0][0])] + '.O0' + str(i) + self.extension[1][0]
+                        pathfilename = os.path.join(self.pathfile[0], new_name)
+                        if os.path.isfile(pathfilename):
+                            self.out_t2.setText(new_name)
+                            # keep the name in an attribute until we save it
+                            self.pathfile[1] = self.pathfile[0]
+                            self.namefile[1] = new_name
+                            break
+                else: # version 4 from hec-ras
+                    if ev == 2:
+                        new_name = blob[:-len(self.extension[0][0])] + '.RASexport' + self.extension[1][ev]
+                    if ev == 1:
+                        new_name = blob[:-len(self.extension[0][0])] + self.extension[1][ev]
+                    pathfilename = os.path.join(self.pathfile[0], new_name)
+                    if os.path.isfile(pathfilename):
+                        self.out_t2.setText(new_name)
+                        # keep the name in an attribute until we save it
+                        self.pathfile[1] = self.pathfile[0]
+                        self.namefile[1] = new_name
+                        break
 
 
 class Rubar2D(SubHydroW):
@@ -1119,10 +1155,13 @@ class Rubar2D(SubHydroW):
         if len(self.extension[1]) == 1:
             if self.out_t2.text() == 'unknown file':
                 blob = self.namefile[0]
-                self.out_t2.setText(blob[:-len(self.extension[0][0])] + self.extension[1][0])
-                # keep the name in an attribute until we save it
-                self.pathfile[1] = self.pathfile[0]
-                self.namefile[1] = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+                new_name = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+                pathfilename = os.path.join(self.pathfile[0], new_name)
+                if os.path.isfile(pathfilename):
+                    self.out_t2.setText(new_name)
+                    # keep the name in an attribute until we save it
+                    self.pathfile[1] = self.pathfile[0]
+                    self.namefile[1] = new_name
 
 
 class Mascaret(SubHydroW):
@@ -2092,7 +2131,7 @@ class LAMMI(SubHydroW):
 
         # grid creation
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
-        l2D2 = QLabel(self.tr("Only 'Interpolation by Block' possible for LAMMI data"))
+        l2D2 = QLabel(self.tr("Only 'Interpolation by Block' possible for LAMMI data. Substrate data is included."))
 
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
