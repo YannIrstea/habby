@@ -60,6 +60,8 @@ class StatModUseful(QWidget):
                 else:
                     #self.list_s.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
+                    inds = self.list_f.selectedIndexes()
+                    self.list_f.takeItem(inds[0].row())
 
         # order the list (careful QLIstWidget do not order as sort from list)
         if self.fish_selected:
@@ -68,7 +70,7 @@ class StatModUseful(QWidget):
             self.list_s.addItems(self.fish_selected)
 
         # remove a fish from list f
-        self.list_f.takeItem(self.list_f.currentRow())
+        #self.list_f.takeItem(self.list_f.currentRow())
 
     def remove_fish(self):
         """
@@ -85,7 +87,9 @@ class StatModUseful(QWidget):
         This function removes all fishes from the selected fish
         """
         self.list_s.clear()
+        self.list_f.clear()
         self.fish_selected = []
+        self.list_f.addItems(self.data_fish[:, 0])
 
     def add_sel_fish(self):
         """

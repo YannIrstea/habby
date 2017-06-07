@@ -4,6 +4,7 @@ import numpy as np
 # from src import calcul_hab  useful to test, but do not work with the whole programm
 from src import hl
 import time
+import xml.dom.minidom
 
 
 def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, height_c_data, vel_c_data, name_fish,
@@ -105,9 +106,6 @@ def writePVD(fileName, fileNames):
     :param fileNames: the names of all the files for this time step (usually only for one reach but could be changed).
 
     """
-
-    outFile = open(fileName, 'w')
-    import xml.dom.minidom
 
     pvd = xml.dom.minidom.Document()
     pvd_root = pvd.createElementNS("VTK", "VTKFile")

@@ -78,7 +78,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # spacer2 = QSpacerItem(1, 1)
 
         # find the path bio
-        # open the file
         try:
             try:
                 docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.xml'))
@@ -94,7 +93,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if os.path.isdir(pathbio_child.text):
                 self.path_bio = pathbio_child.text
 
-        # info on pref
+        # info on preference curve
         l4 = QLabel(self.tr('<b> Information on the suitability curve</b>'))
         l5 = QLabel(self.tr('Latin Name: '))
         self.com_name = QLabel()
@@ -143,9 +142,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         sys.stdout = sys.__stdout__
         self.send_err_log()
         # order data fish by alphabetical order on the first column
-        ind = self.data_fish[:,0].argsort()
+        ind = self.data_fish[:, 0].argsort()
         self.data_fish = self.data_fish[ind, :]
         self.list_f.addItems(self.data_fish[:,0])
+
+        # show information about the fish
         self.list_f.itemClicked.connect(self.show_info_fish_avai)
         self.list_s.itemClicked.connect(self.show_info_fish_sel)
 
@@ -215,7 +216,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             xmlfile = os.path.join(self.path_bio, self.data_fish[i[0], 2])
         else:
              return
-
 
         # open the file
         try:

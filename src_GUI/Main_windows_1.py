@@ -11,7 +11,7 @@ except ImportError:
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
-    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog
+    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog, QMenu
 from PyQt5.QtGui import QPixmap, QFont
 import h5py
 import matplotlib
@@ -130,6 +130,7 @@ class MainWindows(QMainWindow):
         else:
             lang_bio = 'English'
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj, lang_bio)
+
         self.msg2 = QMessageBox()
 
         # call the normal constructor of QWidget
@@ -150,6 +151,11 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
         self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+
+        #  right click
+        self.create_menu_right()
+        self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
         self.setGeometry(200, 200, 900, 600)
@@ -224,13 +230,22 @@ class MainWindows(QMainWindow):
         self.settings.setValue('language_code', self.lang)
         del self.settings
 
-    def my_menu_bar(self):
+    def my_menu_bar(self, right_menu=False):
         """
-        This function creates the menu bar of HABBY.
+        This function creates the menu bar of HABBY when call without argument or with the argument right_menu is False.
+        if right menu is True, it creates a very similar menu but we use a QMenu() instead of a QMenuBar() as it
+        is the menu open when the user right click
+
+        :param right_menu: If call with True, we create a menu for the right click and not for the menu part on the top
+               of the screen.
         """
 
-        self.menubar = self.menuBar()
-        self.menubar.clear()
+        if right_menu:
+            self.menu_right = QMenu()
+            self.menu_right.clear()
+        else:
+            self.menubar = self.menuBar()
+            self.menubar.clear()
 
         # Menu to open and close file
         exitAction = QAction(self.tr('Exit'), self)
@@ -311,9 +326,21 @@ class MainWindows(QMainWindow):
         helpm = QAction(self.tr('Help'), self)
         helpm.setStatusTip(self.tr('Get help to use the programme'))
 
-        # add all menu together
-        self.menubar = self.menuBar()
-        fileMenu = self.menubar.addMenu(self.tr('&File'))
+        # add all first level menu
+        if right_menu:
+            self.menu_right = QMenu()
+            fileMenu = self.menu_right.addMenu(self.tr('&File'))
+            fileMenu4 = self.menu_right.addMenu(self.tr('Options'))
+            fileMenu2 = self.menu_right.addMenu(self.tr('Language'))
+            fileMenu3 = self.menu_right.addMenu(self.tr('Help'))
+        else:
+            self.menubar = self.menuBar()
+            fileMenu = self.menubar.addMenu(self.tr('&File'))
+            fileMenu4 = self.menubar.addMenu(self.tr('Options'))
+            fileMenu2 = self.menubar.addMenu(self.tr('Language'))
+            fileMenu3 = self.menubar.addMenu(self.tr('Help'))
+
+        # add al the rest
         fileMenu.addAction(saveprj)
         fileMenu.addAction(openprj)
         recentpMenu = fileMenu.addMenu(self.tr('Open Recent Project'))
@@ -322,7 +349,6 @@ class MainWindows(QMainWindow):
         fileMenu.addAction(closeprj)
         fileMenu.addAction(newprj)
         fileMenu.addAction(exitAction)
-        fileMenu4 = self.menubar.addMenu(self.tr('Options'))
         log_all = fileMenu4.addMenu(self.tr('Log'))
         log_all.addAction(logc)
         log_all.addAction(logn)
@@ -334,21 +360,35 @@ class MainWindows(QMainWindow):
         re_all = fileMenu4.addMenu(self.tr('Research options'))
         re_all.addAction(rech)
         re_all.addAction(rechc)
-        fileMenu2 = self.menubar.addMenu(self.tr('Language'))
         fileMenu2.addAction(lAction1)
         fileMenu2.addAction(lAction2)
-        fileMenu3 = self.menubar.addMenu(self.tr('Help'))
         fileMenu3.addAction(helpm)
 
-        # add the status bar
-        self.statusBar()
+        if not right_menu:
+            # add the status bar
+            self.statusBar()
 
-        # add the title of the windows
-        # let it here as it should be changes if language changes
-        self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
+            # add the title of the windows
+            # let it here as it should be changes if language changes
+            self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
 
-        # in case we need a tool bar
-        # self.toolbar = self.addToolBar('')
+            # in case we need a tool bar
+            # self.toolbar = self.addToolBar('')
+
+    def create_menu_right(self):
+        """
+        This function create the menu for right click
+        """
+
+        self.my_menu_bar(True)
+
+    def on_context_menu(self, point):
+        """
+        This function is used to show the menu on right click
+
+        :param point: Not understood, linke with the position of the menu.
+        """
+        self.menu_right.exec_(self.central_widget.mapToGlobal(point))
 
     def save_project(self):
         """
@@ -842,7 +882,6 @@ class MainWindows(QMainWindow):
             child1.text = 'figures'
         doc.write(fname)
 
-
     def change_name_project(self):
         """
         This function is used to change the name of the current project. To do this, it copies the xml
@@ -1176,6 +1215,8 @@ class MainWindows(QMainWindow):
         # log
         t = self.central_widget.l2.text()
         self.central_widget.l2.setText(t + self.tr('Images deleted. <br>'))
+
+
 
 
 class CreateNewProject(QWidget):
