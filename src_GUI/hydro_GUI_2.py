@@ -1149,8 +1149,7 @@ class Rubar2D(SubHydroW):
         This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
         one file with the geometry data and one file with the simulation results. If the user selects a file, this
         function looks if a file with the same name but with the extension of the other file type exists in the
-        selected folder. This could be done for all hydrological models, but the function is harder
-        to write when more than one extension is possible, so it has not been done yet.
+        selected folder.
         """
         if len(self.extension[1]) == 1:
             if self.out_t2.text() == 'unknown file':
@@ -1211,6 +1210,7 @@ class Mascaret(SubHydroW):
         self.gen_b = QPushButton('Choose file (.xcas, .cas)', self)
         self.gen_b.clicked.connect(lambda: self.show_dialog(0))
         self.gen_b.clicked.connect(lambda: self.gen_t2.setText(self.namefile[0]))
+        self.gen_b.clicked.connect(self.propose_next_file)
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
         self.geo_b = QPushButton('Choose file (.geo)', self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(1))
@@ -1382,6 +1382,35 @@ class Mascaret(SubHydroW):
         self.send_log.emit("restart    interpo: " + str(self.interpo_choice))
         if self.interpo_choice > 0:
             self.send_log.emit("restart    pro_add: " + str(self.pro_add))
+
+    def propose_next_file(self):
+        """
+        This function proposes the two other mascaret when the first is selected. If the user selects the first file,
+        this function looks if a file with the same name but with the extension of the other file types exists in the
+        selected folder.
+        """
+
+        if self.out_t2.text() == 'unknown file':
+            blob = self.namefile[0]
+
+            # second file (geo file)
+            new_name = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+            pathfilename = os.path.join(self.pathfile[0], new_name)
+            if os.path.isfile(pathfilename):
+                self.geo_t2.setText(new_name)
+                # keep the name in an attribute until we save it
+                self.pathfile[1] = self.pathfile[0]
+                self.namefile[1] = new_name
+
+            # thris file (output)
+            for i in range(0, 2):
+                new_name = blob[:-len(self.extension[0][0])] + self.extension[2][i]
+                pathfilename = os.path.join(self.pathfile[0], new_name)
+                if os.path.isfile(pathfilename):
+                    self.out_t2.setText(new_name)
+                    # keep the name in an attribute until we save it
+                    self.pathfile[2] = self.pathfile[0]
+                    self.namefile[2] = new_name
 
 
 class River2D(SubHydroW):
@@ -1672,7 +1701,9 @@ class Rubar1D(SubHydroW):
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
         self.pathfile = ['.', '.', '.', '.']
         self.model_type = 'RUBAR1D'
-        self.extension = [[''], ['']]  # no useful extension in this case
+        # no useful extension in this case, rbe is assumed
+        # the function propose_next_file() uses the fact that .rbe is 4 char
+        self.extension = [[''], ['']]
         self.nb_dim = 1
 
         # if there is the project file with rubar geo info, update the label and attibutes
@@ -1689,6 +1720,7 @@ class Rubar1D(SubHydroW):
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
         self.geo_b = QPushButton('Choose file (.rbe)', self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
+        self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
         self.out_b = QPushButton('Choose file \n (profil.X)', self)
@@ -1851,6 +1883,26 @@ class Rubar1D(SubHydroW):
         self.send_log.emit("restart    interpo: " + str(self.interpo_choice))
         if self.interpo_choice > 0:
             self.send_log.emit("restart    pro_add: " + str(self.pro_add))
+
+    def propose_next_file(self):
+        """
+        This function proposes the other rubar file when the first is selected. If the user selects the first file,
+        this function looks if a file of the form profil.name exist
+        """
+
+        if self.out_t2.text() == 'unknown file':
+            blob = self.namefile[0]
+
+            # second file (geo file)
+            new_name = 'profil.' + blob[:-4]
+            print(new_name)
+            pathfilename = os.path.join(self.pathfile[0], new_name)
+            if os.path.isfile(pathfilename):
+                self.out_t2.setText(new_name)
+                # keep the name in an attribute until we save it
+                self.pathfile[1] = self.pathfile[0]
+                self.namefile[1] = new_name
+
 
 
 class HEC_RAS2D(SubHydroW):
