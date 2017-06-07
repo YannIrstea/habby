@@ -462,7 +462,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
                 print('Warning: the data for the model ' + model_name + ' was not found (1)')
                 return ''
         else:
-            print('Warning: the data for the model ' + model_name + ' was not found (2)')
+            # print('Warning: the data for the model ' + model_name + ' was not found (2)')
             return ''
     else:
         print('Error: no project found by load_hdf5')

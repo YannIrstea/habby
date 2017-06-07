@@ -2,6 +2,8 @@ import os
 import numpy as np
 import bisect
 import time
+import sys
+from io import StringIO
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import PatchCollection
@@ -9,6 +11,102 @@ from matplotlib.patches import Polygon
 from src import load_hdf5
 from src import bio_info
 import shapefile
+from src import new_create_vtk
+from src_GUI import output_fig_GUI
+
+
+def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fish, name_fish_sh, run_choice, path_bio,
+                        path_txt, path_out, path_im, q=[], print_cmd=False, fig_opt={}):
+
+    """
+    This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
+    output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
+    is done on the main thread as we want to show it to the user on the GUI. This function is called by bio_info_GUI.py
+    on a second thread to minimize the freezing on the GUI.
+
+    :param hdf5_file: the name of the hdf5 with the results
+    :param path_hdf5: the path to the merged file
+    :param pref_list: the name of the xml biological data
+    :param stages_chosen: the stage chosen (youngs, adults, etc.). List with the same length as bio_names.
+    :param name_fish: the name of the chosen fish
+    :param name_fish_sh: In a shapefile, max 8 character for the column name. Hence, a modified name_fish is needed.
+    :param run_choice: an int fron 0 to n. Gives which calculation method should be used
+    :param path_bio: The path to the biological folder (with all files given in bio_names)
+    :param path_txt: the path where to save the text file
+    :param path_out: the path where to save shapefile and paraview output
+    :param path_im: the path where to save the image
+    :param q: used in the second thread
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param fig_opt: the options to crete the figure if save_fig1d is True
+
+    ** Technical comments**
+
+    This function redirect the sys.stdout. The point of doing this is because this function will be call by the GUI or
+    by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
+    If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
+    """
+
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
+    # calcuation habitat
+    [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all] = \
+        calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
+
+    if vh_all_t_sp == [-99]:
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put([mystdout, [-99], [-99], [-99], [-99], [-99]])
+            return
+        else:
+            return
+
+    # to get which output must be created
+    create_text = bool(fig_opt['text_output'])
+    create_shape = bool(fig_opt['shape_output'])
+    create_para = bool(fig_opt['paraview'])
+
+    # prepare name for the output (there is more or less one form by output)
+    for id, n in enumerate(name_fish):
+        name_fish[id] = n + '_' + stages_chosen[id]
+    if len(hdf5_file) > 35:
+        name_base = hdf5_file[11: -25]
+    else:
+        name_base = hdf5_file
+
+    # text output
+    if create_text:
+        save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base)
+
+        save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base)
+
+    # shape output
+    if create_shape:
+        save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
+                       name_fish_sh, path_out, name_base)
+
+    # paraview outputs
+    if create_para:
+        new_create_vtk.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
+                                      vel_c_all_t, name_fish, False)
+
+    # figure
+    # 2d figure
+    t = list(range(1, len(vh_all_t_sp[0]))) # time step 0 is full profile, no data
+    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, t)
+    # 1d figure (done on the main thread, so not necessary)
+    # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
+
+    print('Habitat calculation is finished. \n')
+    print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
+
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
+    if q:
+        q.put([mystdout, area_all, spu_all, name_fish, name_base, vh_all_t_sp])
+        return
+    else:
+        return
 
 
 def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
@@ -485,7 +583,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
             w.save(os.path.join(path_shp, name1))
 
 
-def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
+def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -494,13 +592,22 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
     :param spu_all: the "surface pondere utile" (SPU) for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
+    :param fig_opt: the dictionnary with the figure options
     :param name_base: a string on which to base the name of the files
     """
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+
     if len(spu_all) != len(name_fish):
         print('Error: Number of fish name and number of WUA data is not coherent')
         return
 
-    nb_reach = len(max(area_all, key=len)) # we might have failes
+    nb_reach = len(max(area_all, key=len)) # we might have failed cases
     for id,n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
@@ -530,9 +637,14 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
             plt.ylabel('HV (WUA/A) []')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
             plt.title('Habitat value for the Reach ' + str(r))
-            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
+            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             plt.tight_layout()
-            plt.savefig(os.path.join(path_im, name))
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name +'.png'), dpi=fig_opt['resolution'])
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
 
     # many time step - lines
     elif len(area_all) > 2:
@@ -568,11 +680,16 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base):
             plt.title('Habitat value for the Reach ' + str(r))
             plt.legend()
             plt.tight_layout()
-            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'
-            plt.savefig(os.path.join(path_im, name))
+            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'])
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
 
 
-def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, time_step=[-1]):
+def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1]):
     """
     This function creates 2D map of the habitat value for each species at
     the time step asked. All reaches are ploted on the same figure.
@@ -583,9 +700,17 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     :param path_im: the path where to save the figure
     :param name_fish: the name and stage of the studied species
     :param name_base: the string on which to base the figure name
+    :param fig_opt: the dictionnary with the figure options
     :param time_step: which time step should be plotted
 
     """
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
 
     b= 0
     # get grid data from hdf5
@@ -615,7 +740,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 vh = vh_t[r]
 
                 # plot the habitat value
-                cmap = plt.get_cmap('jet')
+                cmap = plt.get_cmap(fig_opt['color_map1'])
                 colors = cmap(vh)
                 if sp == 0: # for optimization (the grid is always the same for each species)
                     n = len(vh)
@@ -627,7 +752,8 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             verts.append(verts_j)
                         polygon = Polygon(verts, closed=True, edgecolor='w')
                         patches.append(polygon)
-                    all_patches.append(patches)
+                    if len(vh_all_t_sp) > 1:
+                        all_patches.append(patches)
                 else:
                     patches = all_patches[rt]
 
@@ -656,7 +782,15 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 # and labels.
                 cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
                 cb1.set_label('HSI []')
-                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
-                           time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'
-                plt.savefig(os.path.join(path_im, name_fig), dpi=800)
+
+            # save figure
+            name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
+                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'])
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'])
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'])
+
 

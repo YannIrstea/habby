@@ -1,10 +1,9 @@
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
-    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QSizePolicy, QScrollArea, QFrame
+from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout,  QLineEdit, QComboBox, QAbstractItemView, \
+    QSizePolicy, QScrollArea, QFrame
 from PyQt5.QtGui import QPixmap, QFont
-from multiprocessing import Process, Queue, Pool
+from multiprocessing import Process, Queue
 import os
 import sys
 import time
@@ -17,7 +16,6 @@ from src import bio_info
 from src_GUI import estimhab_GUI
 from src import calcul_hab
 from src_GUI import output_fig_GUI
-from src import new_create_vtk
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -46,6 +44,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate'), self.tr('By Percentage')]
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
         #self.name_database = 'pref_bio.db'
+        self.timer = QTimer()
+        self.timer.setInterval(1000)
+        self.timer.timeout.connect(self.show_image_hab)
 
         self.init_iu()
 
@@ -381,6 +382,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         This function runs HABBY to get the habitat value based on the data in a "merged" hdf5 file and the chosen
         preference files.
         """
+
+        # disable the button
+        self.runhab.setDisabled(True)
+        self.send_log.emit(" Calculating habitat value... \n")
+
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
         stages_chosen = []
@@ -400,64 +406,31 @@ class BioInfo(estimhab_GUI.StatModUseful):
         ind = self.m_all.currentIndex()
         hdf5_file = self.hdf5_merge[ind]
 
-        # get the type of option choosen
+        # get the path where to save the different outputs (function in estimhab_GUI.py)
+        path_txt = self.find_path_text_est()
+        path_im = self.find_path_im_est()
+        path_out = self.find_path_output_est()
+
+        # get the type of option choosen for the habitat calculation
         run_choice = self.choice_run.currentIndex()
 
-        # run the data
-        sys.stdout = self.mystdout = StringIO()
-        [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all] = \
-            calcul_hab.calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, self.path_bio, run_choice)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-
-        if vh_all_t_sp == [-99]:
-            return
-
-        # create the output based on the choices given in the output tab
+        # get the figure options and the type of output to be created
         fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        create_text = bool(fig_dict['text_output'])
-        create_shape = bool(fig_dict['shape_output'])
-        create_para = bool(fig_dict['paraview'])
 
-        # prepare
-        for id, n in enumerate(name_fish):
-            name_fish[id] = n + '_' + stages_chosen[id]
-        if len(hdf5_file) > 35:
-            name_base = hdf5_file[11: -25]
-        else:
-            name_base = self.name_prj
+        # only useful if we want to also show the 2d figure in the GUI
+        self.hdf5_file = hdf5_file
+        self.path_hdf5 = path_hdf5
 
-        # text output
-        if create_text:
-            path_txt = self.find_path_text_est()
-            sys.stdout = self.mystdout = StringIO()
-            calcul_hab.save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish,
-                                    path_txt, name_base)
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
-            self.p3 = Process(target=calcul_hab.save_spu_txt, args =(area_all, spu_all, name_fish, path_txt, name_base))
-            self.p3.start()
-        if create_shape:
-            path_shp = self.find_path_output_est()
-            self.p = Process(target=calcul_hab.save_hab_shape, args=(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t,
-                                                                     height_c_all_t, name_fish_sh, path_shp, name_base))
-            self.p.start()
-        if create_para:
-            path_out = self.find_path_output_est()
-            self.p2 = Process(target=new_create_vtk.habitat_to_vtu, args=(name_base, path_out, path_hdf5,
-                                                                               hdf5_file, vh_all_t_sp, height_c_all_t,
-                                                                               vel_c_all_t, name_fish, False))
-            self.p2.start()
-
-        # create image in all cases
-        path_im = self.find_path_im_est()
-        calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base)
-        calcul_hab.save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base)
-        self.send_err_log()
-        self.show_fig.emit()
+        # send the calculation of habitat and the creation of output
+        self.timer.start(1000)  # to know when to show image
+        self.q4 = Queue()
+        self.p4 = Process(target=calcul_hab.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
+                                                                       name_fish, name_fish_sh, run_choice,
+                                                                       self.path_bio, path_txt, path_out, path_im,
+                                                                       self.q4, False, fig_dict))
+        self.p4.start()
 
         # log
-        self.send_log.emit(self.tr('# Calculation: habitat value'))
         self.send_log.emit("py    file1='" + hdf5_file + "'")
         self.send_log.emit("py    path1= os.path.join(path_prj, 'fichier_hdf5')")
         self.send_log.emit("py    pref_list= [" + ', '.join(pref_list) + ']')
@@ -468,11 +441,39 @@ class BioInfo(estimhab_GUI.StatModUseful):
             "py    vh_all_t_sp = calcul_hab.calc_hab(file1, path1 ,pref_list, stages, path_bio, type)")
         self.send_log.emit("restart CALCULATE_HAB")
         self.send_log.emit("restart    file1: " + hdf5_file)
-        self.send_log.emit("restart    list of preference file: [" + ', '.join(pref_list) +']')
-        self.send_log.emit("restart    stages chosen: [" + ', '.join(stages_chosen) +']')
+        self.send_log.emit("restart    list of preference file: [" + ', '.join(pref_list) + ']')
+        self.send_log.emit("restart    stages chosen: [" + ', '.join(stages_chosen) + ']')
         self.send_log.emit("restart    type of calculation: " + str(run_choice))
 
+    def show_image_hab(self):
+        """
+        This function is linked with the timer started in run_habitat_value. It is run regulary and
+        check if the function on the second thread have finised created the figures. If yes,
+        this function create the 1d figure for the HABBY GUI.
+        """
 
+        # when the loading is finished
+        if not self.q4.empty():
+            # manage error
+            self.timer.stop()
+            data_second = self.q4.get()
+            self.mystdout = data_second[0]
+            area_all = data_second[1]
+            spu_all = data_second[2]
+            name_fish = data_second[3]
+            name_base = data_second[4]
+            vh_all_t_sp = data_second[5]
+            self.send_err_log()
 
+            # give the possibility of sending a new simulation
+            self.runhab.setDisabled(False)
 
+            # show one image (quick to create)
+            path_im = self.find_path_im_est()
+            fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]], path_im, name_fish, name_base,
+                                      fig_dict, [-1])
+            calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict)
 
+            # show figure
+            self.show_fig.emit()

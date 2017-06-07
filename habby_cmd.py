@@ -756,7 +756,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
         # figure
         calcul_hab.save_hab_fig_spu(area_all_t, spu_all_t_sp, name_fish, path_prj, name_base)
-        calcul_hab.save_vh_fig_2d(merge_name, path_merge, vh_all_t_sp, path_prj, name_fish, name_base, [-1])
+        calcul_hab.save_vh_fig_2d(merge_name, path_merge, vh_all_t_sp, path_prj, name_fish, name_base, [], [-1])
         print("Figure saved ...")
 
         # paraview

@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import shutil
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, QTimer, Qt
+from PyQt5.QtCore import QTranslator, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView

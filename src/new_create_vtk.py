@@ -1,7 +1,7 @@
 import os
 from src import load_hdf5
 import numpy as np
-from src import calcul_hab
+# from src import calcul_hab  useful to test, but do not work with the whole programm
 from src import hl
 import time
 
@@ -142,8 +142,8 @@ def main():
     fileName = os.path.join(path_vtk,'test')
     path_bio = r'C:\Users\diane.von-gunten\HABBY\biology'
 
-    [vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp] = calcul_hab.calc_hab(name_hdf5, path_hdf5, ['BAM01.xml'], ['juvenile'], path_bio, 0)
-    habitat_to_vtu(fileName, path_vtk, path_hdf5, name_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, ['BAM'], True)
+    #[vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp] = calcul_hab.calc_hab(name_hdf5, path_hdf5, ['BAM01.xml'], ['juvenile'], path_bio, 0)
+    #habitat_to_vtu(fileName, path_vtk, path_hdf5, name_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, ['BAM'], True)
 
 
 if __name__ == '__main__':

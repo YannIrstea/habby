@@ -144,7 +144,7 @@ class MainWindows(QMainWindow):
         self.my_menu_bar()
 
         # connect the signals of the welcome tab with the different functions (careful if changes this copy 3 times
-        # in set_langue and save_proje
+        # in set_langue and save_project
         self.central_widget.welcome_tab.save_signal.connect(self.save_project)
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
@@ -159,10 +159,11 @@ class MainWindows(QMainWindow):
     def closeEvent(self, event):
         """
         Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.
+        Also done because we might have more than one thread
 
         :param event: managed by the operating system.
         """
-        sys.exit()
+        os._exit(1)  # why 1?
 
     def setlangue(self, nb_lang):
         """
@@ -564,49 +565,32 @@ class MainWindows(QMainWindow):
                 os.makedirs(pathin_text)
             if not os.path.exists(path_output):
                 os.makedirs(path_output)
+
+        # update central widget
+        self.central_widget.name_prj_c = self.name_prj
+        self.central_widget.path_prj_c = self.path_prj
+        self.central_widget.welcome_tab.name_prj = self.name_prj
+        self.central_widget.welcome_tab.path_prj = self.path_prj
+
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
             self.central_widget.tab_widget.removeTab(i)
-        self.central_widget.name_prj_c = self.name_prj
-        self.central_widget.path_prj_c = self.path_prj
-        self.central_widget.welcome_tab.name_prj = self.name_prj
-        self.central_widget.statmod_tab.name_prj = self.name_prj
-        self.central_widget.hydro_tab.name_prj = self.name_prj
-        self.central_widget.substrate_tab.name_prj = self.name_prj
-        self.central_widget.stathab_tab.name_prj = self.name_prj
-        self.central_widget.output_tab.name_prj = self.name_prj
-        self.central_widget.bioinfo_tab.name_prj = self.name_prj
-        self.central_widget.welcome_tab.path_prj = self.path_prj
-        self.central_widget.statmod_tab.path_prj = self.path_prj
-        self.central_widget.hydro_tab.path_prj = self.path_prj
-        self.central_widget.substrate_tab.path_prj = self.path_prj
-        self.central_widget.stathab_tab.path_prj = self.path_prj
-        self.central_widget.output_tab.path_prj = self.path_prj
-        self.central_widget.output_tab.path_prj = self.path_prj
-        self.central_widget.bioinfo_tab.path_prj= self.path_prj
-        self.central_widget.hydro_tab.hecras1D.name_prj = self.name_prj
-        self.central_widget.hydro_tab.hecras2D.name_prj = self.name_prj
-        self.central_widget.hydro_tab.telemac.name_prj = self.name_prj
-        self.central_widget.hydro_tab.rubar2d.name_prj = self.name_prj
-        self.central_widget.hydro_tab.rubar1d.name_prj = self.name_prj
-        self.central_widget.hydro_tab.mascar.name_prj = self.name_prj
-        self.central_widget.hydro_tab.riverhere2d.name_prj = self.name_prj
-        self.central_widget.hydro_tab.habbyhdf5.name_prj = self.name_prj
-        self.central_widget.hydro_tab.lammi.name_prj = self.name_prj
-        self.central_widget.hydro_tab.hecras1D.path_prj = self.path_prj
-        self.central_widget.hydro_tab.hecras2D.path_prj = self.path_prj
-        self.central_widget.hydro_tab.telemac.path_prj = self.path_prj
-        self.central_widget.hydro_tab.rubar2d.path_prj = self.path_prj
-        self.central_widget.hydro_tab.rubar1d.path_prj = self.path_prj
-        self.central_widget.hydro_tab.mascar.path_prj = self.path_prj
-        self.central_widget.hydro_tab.riverhere2d.path_prj = self.path_prj
-        self.central_widget.hydro_tab.habbyhdf5.path_prj= self.path_prj
-        self.central_widget.stathab_tab.mystathab.path_prj = self.path_prj
-        self.central_widget.stathab_tab.mystathab.name_prj = self.name_prj
-        self.central_widget.fstress_tab.path_prj = self.path_prj
-        self.central_widget.fstress_tab.name_prj = self.name_prj
-        self.central_widget.hydro_tab.lammi.path_prj = self.path_prj
+
+        # create new tab
+        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+
+        # re-connect signals for the tab
+        self.central_widget.connect_signal_fig_and_drop()
+        self.central_widget.connect_signal_log()
+
+        self.central_widget.update_hydro_hdf5_name()
 
         self.central_widget.add_all_tab()
         # write log
@@ -858,23 +842,6 @@ class MainWindows(QMainWindow):
             child1.text = 'figures'
         doc.write(fname)
 
-        # recreate new widget
-        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
-        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
-        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
-        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-
-        # set the central widget
-        for i in range(self.central_widget.tab_widget.count(), 0, -1):
-            self.central_widget.tab_widget.removeTab(i)
-        self.central_widget.name_prj_c = self.name_prj
-        self.central_widget.path_prj_c = self.path_prj
-        self.central_widget.add_all_tab()
-        self.central_widget.welcome_tab.name_prj = self.name_prj
-        self.central_widget.welcome_tab.path_prj = self.path_prj
 
     def change_name_project(self):
         """
@@ -1361,32 +1328,8 @@ class CentralW(QWidget):
         self.other_tab = EmptyTab()
         self.other_tab2 = EmptyTab()
 
-        # connect signals save figures
-        self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
-        self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
-        self.hydro_tab.telemac.show_fig.connect(self.showfig)
-        self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
-        self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
-        self.hydro_tab.lammi.show_fig.connect(self.showfig)
-        self.substrate_tab.show_fig.connect(self.showfig)
-        self.statmod_tab.show_fig.connect(self.showfig)
-        self.stathab_tab.show_fig.connect(self.showfig)
-        self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
-        self.hydro_tab.mascar.show_fig.connect(self.showfig)
-        self.fstress_tab.show_fig.connect(self.showfig)
-        self.bioinfo_tab.show_fig.connect(self.showfig)
-
-        # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
-        self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.telemac.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.rubar2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-        self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+        # connect signal figure and drop-down menus
+        self.connect_signal_fig_and_drop()
 
         # connect signal for the log
         self.connect_signal_log()
@@ -1529,6 +1472,39 @@ class CentralW(QWidget):
         self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
         self.hydro_tab.lammi.send_log.connect(self.write_log)
         self.fstress_tab.send_log.connect(self.write_log)
+
+    def connect_signal_fig_and_drop(self):
+        """
+        This function connect the PyQtsignal to show figure and to connect the log. It is a function to
+        improve lisibility.
+        """
+
+        # connect signals save figures
+        self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
+        self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
+        self.hydro_tab.telemac.show_fig.connect(self.showfig)
+        self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
+        self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
+        self.hydro_tab.lammi.show_fig.connect(self.showfig)
+        self.substrate_tab.show_fig.connect(self.showfig)
+        self.statmod_tab.show_fig.connect(self.showfig)
+        self.stathab_tab.show_fig.connect(self.showfig)
+        self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
+        self.hydro_tab.mascar.show_fig.connect(self.showfig)
+        self.fstress_tab.show_fig.connect(self.showfig)
+        self.bioinfo_tab.show_fig.connect(self.showfig)
+
+        # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
+        self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.telemac.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.rubar2d.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
+        self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+        self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
         """
