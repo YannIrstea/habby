@@ -657,5 +657,5 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.send_log.emit("py    fstress.figure_fstress(qmod, vh, inv_select,'.', riv_name)")
         self.send_log.emit("restart FStress")
 
-
-
+if __name__ == '__main__':
+    pass

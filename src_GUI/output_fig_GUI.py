@@ -426,7 +426,8 @@ def create_default_figoption():
     return fig_dict
 
 
-
+if __name__ == '__main__':
+    pass
 
 
 

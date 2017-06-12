@@ -509,9 +509,12 @@ Here are some common problems:
 
 Practically:
 
-* go to the folder called executable
+* go to the folder called executable and copy the current HABBY source there.
+* copy createexe.bat in the habby folder.
 * run createexe.bat (only on Windows)
-* copy all files in the mklall folder to the folder dist/habby
+* ignore the executable created in the "built" folder Use the one is in the "dist" folder.
+* copy all files in the mklall folder to the folder dist/habby and the file which NOT python file from the original src_GUI folder to the one just
+created (or you know, improve the bat file...)
 * run habby by writing habby on the cmd
 * test and correct problems. It can be long!
 

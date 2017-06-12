@@ -95,9 +95,9 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         for ind, subp in enumerate(sub_pro[t]):
             [sub_domp, sub_pgp] = substrate.percentage_to_domcoarse(subp, dominant_case)
             # careful, there are real uncertainties here !!!!
-            #sub_pro[t][ind] = substrate.edf_to_cemagref_by_percentage(subp)
-            #sub_domp = substrate.edf_to_cemagref(sub_domp)
-            #sub_pgp = substrate.edf_to_cemagref(sub_pgp)
+            # sub_pro[t][ind] = substrate.edf_to_cemagref_by_percentage(subp)
+            # sub_domp = substrate.edf_to_cemagref(sub_domp)
+            # sub_pgp = substrate.edf_to_cemagref(sub_pgp)
             sub_pg.append(sub_pgp)
             sub_dom.append(sub_domp)
 
@@ -857,7 +857,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
                 return
 
     # plot habby_lammi spu
-    plot_spu = False
+    plot_spu = True
     if plot_spu:
         for r in range(0, int(max(reach_habby))): # int(max(reach_habby))
             plt.figure()
@@ -871,7 +871,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
             plt.title('Comparaison lammi-habby for the facies '+str(r+1))
 
     # plot the surface of each facies
-    plot_sur = True
+    plot_sur = False
     if plot_sur:
         for r in range(0, int(max(reach_habby))):  # int(max(reach_habby))
             plt.figure()
@@ -900,7 +900,7 @@ def main():
 
     # spu__23_05_2017_at_14_14_04.txt spu__23_05_2017_at_14_08_05.txt
 
-    filename_habby = r'D:\Diane_work\dummy_folder\Projet2\text_output\spu_at_11_12_34.h5_31_05_2017_at_11_50_08.txt'
+    filename_habby = r'D:\Diane_work\dummy_folder\Projet6\text_output\spu_Merge_LAMMI_12_06_2017_at_09_37_59.txt'
     filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
     filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
     compare_lammi(filename_habby, filename_lammi, filename_sur)

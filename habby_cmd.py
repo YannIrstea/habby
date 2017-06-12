@@ -761,7 +761,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
 
         # paraview
         new_create_vtk.habitat_to_vtu(name_base, path_prj, path_merge, merge_name, vh_all_t_sp, height_c_all_t,
-                                           vel_c_all_t, name_fish, False)
+                                           vel_c_all_t, name_fish)
         print("Paraview output created...")
         print("All done.")
 

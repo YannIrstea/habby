@@ -75,9 +75,10 @@ class MainWindows(QMainWindow):
         recent_projects_set = self.settings.value('recent_project_name')
         recent_projects_path_set = self.settings.value('recent_project_path')
 
-        if len(recent_projects_set) > self.nb_recent:
-            self.settings.setValue('recent_project_name', recent_projects_set[ -self.nb_recent+1:])
-            self.settings.setValue('recent_project_path', recent_projects_path_set[-self.nb_recent+1:])
+        if recent_projects_set is not None:
+            if len(recent_projects_set) > self.nb_recent:
+                self.settings.setValue('recent_project_name', recent_projects_set[ -self.nb_recent+1:])
+                self.settings.setValue('recent_project_path', recent_projects_path_set[-self.nb_recent+1:])
 
         del self.settings
 
@@ -556,16 +557,10 @@ class MainWindows(QMainWindow):
             pathtxt_child = root.find(".//Path_Text")
             pathin_child = root.find(".//Path_Input")
             pathout_child = root.find(".//Path_Output")
-            #  if pathim is the default one, change it. Otherwise keep the user chosen directory
-            # if pathim_child is not None:
-            #     if os.path.isfile(os.path.join(path_prj_before, self.name_prj +'.xml')):
-            #         if os.path.samefile(pathim_child.text, os.path.join(path_prj_before, self.name_prj +'.xml')):
-            #             pathim_child.text = os.path.join(self.path_prj, self.name_prj)
-            # check
             if pathim_child is None:
                 pathim_text = 'figures'
             else:
-                pathim_text = 'figures'
+                pathim_text = pathim_child.text
             if pathdf5_child is None:
                 pathhdf5_text = 'fichier_hdf5'
             else:
@@ -1227,8 +1222,6 @@ class MainWindows(QMainWindow):
         os.startfile(filename_help)
 
 
-
-
 class CreateNewProject(QWidget):
     """
     A class which is used to help the user to create a new project
@@ -1455,8 +1448,8 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
             self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
             self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-            self.tab_widget.addTab(self.output_tab, self.tr("Output"))
-            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Biology Info"))
+            self.tab_widget.addTab(self.output_tab, self.tr("Output Opt."))
+            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calcul"))
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
@@ -2087,39 +2080,8 @@ class ShowImageW(QWidget):
         self.image_list.addItems(all_file_nice)
 
 
-# class MyMplCanvas(FigureCanvas):
-#     #Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.).
-#     def __init__(self, parent=None, width=5, height=4, dpi=100):
-#         fig = Figure(figsize=(width, height), dpi=dpi)
-#         self.fig = fig
-#         self.axes = fig.add_subplot(111)
-#         # We want the axes cleared every time plot() is called
-#         self.axes.hold(False)
-#
-#         self.compute_initial_figure()
-#         FigureCanvas.__init__(self, fig)
-#         self.setParent(parent)
-#
-#         FigureCanvas.setSizePolicy(self,
-#                                    QSizePolicy.Expanding,
-#                                    QSizePolicy.Expanding)
-#         FigureCanvas.updateGeometry(self)
-#
-#     def compute_initial_figure(self):
-#         pass
-#
-#
-# class MyStaticMplCanvas(MyMplCanvas):
-#     #Simple canvas with a sine plot.
-#     def compute_initial_figure(self):
-#         plt.show()
-#         #figure()
-#         #t = np.arange(0.0, 3.0, 0.01)
-#         #s = np.sin(2*np.pi*t)
-#         print(plt.gcf())
-#
-#         #self.axes = plt.gca()
-#         self.fig = plt.gcf()
+if __name__ == '__main__':
+    pass
 
 
 

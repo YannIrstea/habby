@@ -1,9 +1,12 @@
 import sys
 from src_GUI import Main_windows_1
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QApplication
 import multiprocessing
+# from PyQt5.QtCore import pyqtRemoveInputHook
 
 def main():
+
+    # pyqtRemoveInputHook()  # should remove a QCoreApplication:: exec Warning
 
     # create app
     app = QApplication(sys.argv)

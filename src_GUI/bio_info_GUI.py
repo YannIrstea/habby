@@ -508,3 +508,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # show figure
             self.show_fig.emit()
+
+if __name__ == '__main__':
+    pass

@@ -517,15 +517,13 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         print('Warning: There is duplicate points. The triangulation will be modified.\n')
         # this is slow , but it might solve problems
         unique_find = []
-        j = 0
-        for p in point_all:
+        a = len(point_all)
+        for ind,p in enumerate(point_all):
             p = list(p)
             if p not in unique_find:
                 unique_find.append(p)
-                j = 0
             else:
-                point_all[j] = [p[0]+0.00001*j, p[1]+0.000001*j]
-                j += 1
+                point_all[ind] = [p[0] + p[0]*0.001*ind/a, p[1] + p[1]*0.001*ind/a]
 
     # put data in order and find the limits
     seg_to_be_added2 = []
@@ -588,13 +586,12 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         # if all point are tested, this is obviouly slower than the current version.
         # But overlapping points are often at the end/start of the reach.
         # Performance might depend on the criteria chosen to test the points.
-        # the current version is actually the quickest one which I know. Might not be the quickest.
         if hole_all_i:
-            dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)  #
+            dict_point = dict(vertices=point_all, segments=lim_by_reach[r], holes=hole_all_i)
         else:
             dict_point = dict(vertices=point_all, segments=lim_by_reach[r])
         try:
-            grid_dict = triangle.triangulate(dict_point,'p')  # 'p' allows for constraint
+            grid_dict = triangle.triangulate(dict_point, 'p')  # 'p' allows for constraint
         except:
             print('blob')
         try:

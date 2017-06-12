@@ -74,7 +74,6 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
 
         figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig_opt, name_pro, name_reach, path_im,
                         pro, tfig, reach)
-        plt.show()
 
     # distribute the velocity
     vh_pro = dist_vistess2.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile)
@@ -350,7 +349,7 @@ def correct_duplicate(seq, send_warn, idfun=None):
         def idfun(x): return x
     seen = {}
     result = []
-    c = 0
+    c = 1
     le = len(seq)
     for item in seq:
         marker = idfun(item)
@@ -698,7 +697,7 @@ def profil_coord_non_georef(coord_pro, coord_r, nr, nb_pro_reach, bt=None):
     :param bt: optional, it indicates which points in the profiles are in the minor/major bed
     :return: the velocity and height data, the timestep
     """
-    print("Warning: Data is not georeferenced. HYP: profiles perpendicular to the river \n")
+    #print("Warning: Data is not georeferenced. HYP: profiles perpendicular to the river \n")
     coord = []
     for r in range(0, len(coord_r)):
         coord_pro_r = coord_pro[nb_pro_reach[r]: nb_pro_reach[r+1]]
@@ -723,6 +722,7 @@ def profil_coord_non_georef(coord_pro, coord_r, nr, nb_pro_reach, bt=None):
             xcoord = coord_r[r][p][0] + dist_from_river * (-1) * nr[r][1]
             ycoord = coord_r[r][p][1] + dist_from_river * nr[r][0]
             coord.append([xcoord, ycoord])
+
     return coord
 
 

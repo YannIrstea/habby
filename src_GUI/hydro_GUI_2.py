@@ -1308,10 +1308,14 @@ class Mascaret(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        show_all_fig = self.fig_opt['raw_data']
+        if self.fig_opt['raw_data'] == 'True':  # from the xml
+            show_all_fig = True
+        else:
+            show_all_fig = False
         if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
+        path_im = self.find_path_im()
 
         # preparation for the velocity distibution
         manning_float = False
@@ -1339,7 +1343,8 @@ class Mascaret(SubHydroW):
                                                                               self.path_prj,self.model_type, self.namefile,
                                                                               self.pathfile, self.interpo_choice,
                                                                               self.manning_arr, self.np_point_vel,
-                                                                              show_all_fig,self.pro_add, self.q))
+                                                                              show_all_fig,self.pro_add, self.q,
+                                                                              path_im))
         self.p.start()
 
         # copy input file
@@ -1902,7 +1907,6 @@ class Rubar1D(SubHydroW):
                 # keep the name in an attribute until we save it
                 self.pathfile[1] = self.pathfile[0]
                 self.namefile[1] = new_name
-
 
 
 class HEC_RAS2D(SubHydroW):
@@ -2839,7 +2843,8 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart    defval: -99")
 
 
-
+if __name__ == '__main__':
+    pass
 
 
 

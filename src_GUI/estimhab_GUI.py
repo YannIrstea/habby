@@ -60,8 +60,8 @@ class StatModUseful(QWidget):
                 else:
                     #self.list_s.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
-                    inds = self.list_f.selectedIndexes()
-                    self.list_f.takeItem(inds[0].row())
+                    #inds = self.list_f.selectedIndexes()
+                    #self.list_f.takeItem(inds[0].row())
 
         # order the list (careful QLIstWidget do not order as sort from list)
         if self.fish_selected:
@@ -69,8 +69,6 @@ class StatModUseful(QWidget):
             self.list_s.clear()
             self.list_s.addItems(self.fish_selected)
 
-        # remove a fish from list f
-        #self.list_f.takeItem(self.list_f.currentRow())
 
     def remove_fish(self):
         """
@@ -78,8 +76,8 @@ class StatModUseful(QWidget):
         """
         item = self.list_s.takeItem(self.list_s.currentRow())
         self.fish_selected.remove(item.text())
-        self.list_f.addItem(item)
-        self.list_f.sortItems()
+        #self.list_f.addItem(item)
+        #self.list_f.sortItems()
         item = None
 
     def remove_all_fish(self):
@@ -587,4 +585,5 @@ class EstimhabW(StatModUseful):
         if path_im != 'no_path':
             self.show_fig.emit()
 
-
+if __name__ == '__main__':
+    pass

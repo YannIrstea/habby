@@ -48,10 +48,13 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+        #mystdout = ''
 
+    a = time.time()
     # calcuation habitat
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all] = \
         calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
+    b = time.time()
 
     if vh_all_t_sp == [-99]:
         if q:
@@ -62,15 +65,24 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
             return
 
     # to get which output must be created
-    create_text = bool(fig_opt['text_output'])
-    create_shape = bool(fig_opt['shape_output'])
-    create_para = bool(fig_opt['paraview'])
+    if fig_opt['text_output'] == 'True':  # from the xml, string only
+        create_text = True
+    else:
+        create_text = False
+    if fig_opt['shape_output'] == 'True':  # from the xml, string only
+        create_shape = True
+    else:
+        create_shape = False
+    if fig_opt['paraview'] == 'True':  # from the xml, string only
+        create_para = True
+    else:
+        create_para = False
 
     # prepare name for the output (there is more or less one form by output)
     for id, n in enumerate(name_fish):
         name_fish[id] = n + '_' + stages_chosen[id]
-    if len(hdf5_file) > 37:
-        name_base = hdf5_file[12: -25]
+    if len(hdf5_file) > 25:
+        name_base = hdf5_file[: -25]
     else:
         name_base = hdf5_file
 
@@ -79,6 +91,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base)
 
         save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base)
+    c = time.time()
 
     # shape output
     if create_shape:
@@ -88,14 +101,18 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # paraview outputs
     if create_para:
         new_create_vtk.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
-                                      vel_c_all_t, name_fish, False)
+                                      vel_c_all_t, name_fish)
+    d = time.time()
+
 
     # figure
     # 2d figure
-    t = list(range(1, len(vh_all_t_sp[0]))) # time step 0 is full profile, no data
-    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, t)
+    timestep = list(fig_opt['time_step'])
+    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep)
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
+    e = time.time()
+    print(e-d)
 
     print('Habitat calculation is finished. \n')
     print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
@@ -253,8 +270,11 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 s = np.array(sub_t[r])
                 p = np.array(point_t[r])
 
+                if len(ikle) == 0:
+                    print('Error: The connectivity table was not well-formed (1) \n')
+                    return [-99], [-99], [-99], [-99], [-99]
                 if len(ikle[0]) < 3:
-                    print('Error: The connectivity table was not well-formed \n')
+                    print('Error: The connectivity table was not well-formed (2) \n')
                     return  [-99],[-99], [-99], [-99], [-99]
 
                 # get data by cells

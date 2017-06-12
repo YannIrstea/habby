@@ -7,17 +7,16 @@ import time
 import xml.dom.minidom
 
 
-def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, height_c_data, vel_c_data, name_fish,
-                   binary_data=False):
+def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, height_c_data, vel_c_data, name_fish):
     """
     This function creates paraview input in the new, non-legacy xml format. This function called the evtk class
     written by Paulo Herrera, which is available at https://bitbucket.org/pauloh/pyevtk/downloads/
 
-    The format for paravier input file is decirbed in paraview_file_format.pdf in the doc folder of HABBY.
+    The format for paravier input file is descirbed in paraview_file_format.pdf in the doc folder of HABBY.
 
-    The data of the paraview file created here  is usually not in a binary form, but it could be put in binary if the
-    switch binary_data is True. The idea of paraview for a binary file is to keep the same usual xml file. The data is
-    encoded to base64. Before the binary array, there is a 32-bits interger which contains the data length in bytes.
+    The data of the paraview file created here  is usually in binary form. The idea of paraview for a binary file is
+    to keep the same usual xml file. The data is encoded to base64. Before the binary array, there is a 32-bits interger
+    which contains the data length in bytes.
     More info: http://www.earthmodels.org/software/vtk-and-paraview/vtk-file-formats.
 
     Paraview can handle a group of file which compose an output with than one time step. This is the reason to create a
@@ -31,43 +30,44 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
     :param vel_c_data: the velocity by cell by reach by time step
     :param name_fish: the name of fish and stage
     :param path_out: the path where to save the data
-    :param binary_data: If True will create binary data. DO NOT WORK YET, let it to FALSE
 
     """
 
     file_names_all = []
-    file_name_base = os.path.join(path_out, file_name_base)
-
+    if len(file_name_base)>25:
+        file_name_base = os.path.join(path_out, file_name_base)[:-25]
+    else:
+        file_name_base = os.path.join(path_out, file_name_base)
     # format the name of species and stage
     for id, n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
-    # load grid (could also be used if velcoity and height point data is neded)
+    # load grid (could also be used if velcoity and height point data is needed)
     [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, True)
     if ikle_all_t == [-99]:
         return
     nb_time = len(ikle_all_t)
 
-    for r in range(0, len(ikle_all_t[0])):
+    for r in range(0, len(ikle_all_t[1])):
         fileName = file_name_base + '_' + 'Reach' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
         # create one vtu file by time step
         # for the moment we do not show the time step zero with the full profile without data
         for t in range(1, nb_time):
-            ikle = ikle_all_t[t][0]
+            ikle = ikle_all_t[t][r]
             if len(ikle) < 3:  # if something is wrong
                 pass
                 # print('Error: Connectivity table missing or illogical. One time step not created. \n')
             else:
 
                 # grid data preparation for vtk
-                point = np.array(point_all_t[t][0])
+                point = np.array(point_all_t[t][r])
 
                 x = np.array(point[:, 0])
                 y = np.array(point[:, 1])
                 z = np.zeros(len(x), )
-                connectivity = np.reshape(ikle, (len(ikle) *3,))
+                connectivity = np.reshape(ikle, (len(ikle) * 3,))
 
                 offsets = np.arange(3, len(ikle) * 3 + 3, 3)
                 offsets = np.array(list(map(int, offsets)))

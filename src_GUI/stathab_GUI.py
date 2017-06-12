@@ -123,7 +123,11 @@ class StathabW(estimhab_GUI.StatModUseful):
             child = root.find(".//hdf5Stathab")
             if child is not None:
                 try:
-                    rivintstr = child.attrib['riverint']
+                    try:
+                        rivintstr = child.attrib['riverint']
+                    except KeyError:
+                        self.send_log.emit('Warning: River type not recongnized')
+                        rivintstr = '0'
                     self.riverint = int(rivintstr)
                     if self.riverint > 2:
                         self.riverint = 0
@@ -826,3 +830,6 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit("restart    RUN_STATHAB_AND_SAVE_RESULTS")
             self.send_log.emit("restart    folder: " + self.dir_name)
 
+
+if __name__ == '__main__':
+    pass
