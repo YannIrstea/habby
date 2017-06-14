@@ -52,6 +52,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     mystdout = None
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+        #mystdout = ''
     inter_vel_all_t = []
     inter_h_all_t = []
     ikle_all_t = []
@@ -95,9 +96,9 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         for ind, subp in enumerate(sub_pro[t]):
             [sub_domp, sub_pgp] = substrate.percentage_to_domcoarse(subp, dominant_case)
             # careful, there are real uncertainties here !!!!
-            # sub_pro[t][ind] = substrate.edf_to_cemagref_by_percentage(subp)
-            # sub_domp = substrate.edf_to_cemagref(sub_domp)
-            # sub_pgp = substrate.edf_to_cemagref(sub_pgp)
+            sub_pro[t][ind] = substrate.edf_to_cemagref_by_percentage(subp)
+            sub_domp = substrate.edf_to_cemagref(sub_domp)
+            sub_pgp = substrate.edf_to_cemagref(sub_pgp)
             sub_pg.append(sub_pgp)
             sub_dom.append(sub_domp)
 
@@ -514,7 +515,6 @@ def load_transect_data(fac_filename_all):
                     except ValueError:
                         print('Error: Substrate data is not understood (2) \n')
                         return failload
-
             # last time step
             if dist_all[t][fa][0] is not None:
                 dist_all[t][fa].append(distt)
@@ -798,8 +798,8 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     data_habby = np.loadtxt(filename_habby, skiprows=2)
     t_habby = data_habby[:, 0]
     reach_habby = data_habby[:, 1]
-    area_habby = data_habby[:,2]
-    spu_habby = data_habby[:, 6]
+    area_habby = data_habby[:, 2]
+    spu_habby = data_habby[:, 3]
 
     # load data from lammi spu
     # order of spu: adu, juv, ale, fray
@@ -861,10 +861,10 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     if plot_spu:
         for r in range(0, int(max(reach_habby))): # int(max(reach_habby))
             plt.figure()
-            plt.plot(q_lammi[reach_lammi == r+1], spu_habby[reach_habby == r] * area_habby[reach_habby == r], 'b')
+            plt.plot(q_lammi[reach_lammi == r+1], spu_habby[reach_habby == r], 'b')
             plt.plot(q_lammi[reach_lammi == r+1], spu_lammi[reach_lammi == r+1], 'g')
-            # plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r], 'b')
-            # plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
+            #plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r]/area_habby[reach_habby == r], 'b')
+            #plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
             plt.legend(('habby', 'lammi'))
             plt.xlabel('discharge [m^3/sec]')
             plt.ylabel('SPU')
@@ -898,9 +898,7 @@ def main():
     # open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
     #                            'Transect.txt', 'Facies.txt', True)
 
-    # spu__23_05_2017_at_14_14_04.txt spu__23_05_2017_at_14_08_05.txt
-
-    filename_habby = r'D:\Diane_work\dummy_folder\Projet6\text_output\spu_Merge_LAMMI_12_06_2017_at_09_37_59.txt'
+    filename_habby = r'D:\Diane_work\dummy_folder\LammiTest\text_output\spu_Merge_LAMMI_14_06_2017_at_13_48_25.txt'
     filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
     filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
     compare_lammi(filename_habby, filename_lammi, filename_sur)

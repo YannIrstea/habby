@@ -322,7 +322,7 @@ class outputW(QWidget):
             doc.write(fname)
 
         self.send_log.emit('The new options for the figures are saved. \n')
-        self.send_log.emit('py     save_option_fig() - correct this')
+        self.send_log.emit('# Modifications of figure options. \n')
         self.send_log.emit('restart     SAVE_OPTION_FIG')
 
 

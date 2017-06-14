@@ -453,12 +453,8 @@ class SubHydroW(QWidget):
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.end_log.emit('Error: The project is not saved. '
+                              'Save the project in the General tab before saving hydrological data. \n')
         else:
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -530,12 +526,8 @@ class SubHydroW(QWidget):
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Save the path to the fichier hdf5"))
-            self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+            self.send_log.emit("Error: The project is not saved. Save the project in the General tab "
+                               "before calling hdf5 files. \n")
 
         return path_hdf5
 
@@ -970,7 +962,7 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
         self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
         self.send_log.emit(
-            "py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hec_hec_ras_and_create_grid(new_filename,new_path"
+            "py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hec_hec_ras_and_create_grid('re_run',path_prj"
             ", name_prj, path_prj, 'HECRAS1D', files, paths, interp, '.', False, False, pro_add)\n")
         self.send_log.emit("restart LOAD_HECRAS_1D")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
@@ -1900,7 +1892,6 @@ class Rubar1D(SubHydroW):
 
             # second file (geo file)
             new_name = 'profil.' + blob[:-4]
-            print(new_name)
             pathfilename = os.path.join(self.pathfile[0], new_name)
             if os.path.isfile(pathfilename):
                 self.out_t2.setText(new_name)
@@ -2126,7 +2117,7 @@ class TELEMAC(SubHydroW):
         self.send_err_log()
         self.send_log.emit("py    file1='" + self.namefile[0] + "'")
         self.send_log.emit("py    path1='" + path_input + "'")
-        self.send_log.emit("py   selafin_habby1.load_telemac_and_cut_grid(file1, path1, name_prj, path_prj, 'TELEMAC', "
+        self.send_log.emit("py    selafin_habby1.load_telemac_and_cut_grid(file1, path1, name_prj, path_prj, 'TELEMAC', "
                            "2, '.' )\n")
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
@@ -2314,7 +2305,7 @@ class LAMMI(SubHydroW):
         self.send_log.emit("py    dir2='" + self.pathfile[1] + "'")
         self.send_log.emit("py    dir3='" + self.pathfile[2] + "'")
         self.send_log.emit("py    lammi.open_lammi_and_create_grid(dir1, dir2, path_prj, 'lammi_hdf5', "
-                           "name_prj, path_prj, path_prj, dir3, [], False, 'Transect.txt, 'Facies.txt', True)\n")
+                           "name_prj, path_prj, path_prj, dir3, [], False, 'Transect.txt', 'Facies.txt', True)\n")
         self.send_log.emit("restart LOAD_LAMMI")
         self.send_log.emit("restart    dir1: " + self.pathfile[0])
         self.send_log.emit("restart    dir3: " + self.pathfile[2])
@@ -2395,7 +2386,7 @@ class HabbyHdf5(SubHydroW):
         # save the new file name in the xml file of the project
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(filename_prj):
-            print('Error: No project saved. Please create a project first in the General tab.\n')
+            self.send_log.emit('Error: No project saved. Please create a project first in the General tab.\n')
             return
         else:
             doc = ET.parse(filename_prj)
@@ -2799,7 +2790,7 @@ class SubstrateW(SubHydroW):
 
         This function can be slow so it call on a second thread.
         """
-        self.send_log.emit('# Start merging substrate and hydrological grid')
+        self.send_log.emit('# Merging substrate and hydrological grid.')
 
         # get usfule data
         if len(self.drop_hyd) >1:
@@ -2832,7 +2823,7 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("py    defval='" + self.e3.text() + "'")
         else:
             self.send_log.emit("py    defval=-99")
-        self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = substrate.merge_grid_hydro_sub(file_hyd,"
+        self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = mesh_grid2.merge_grid_hydro_sub(file_hyd,"
                            " file_sub, defval)\n")
         self.send_log.emit("restart MERGE_GRID_SUB")
         self.send_log.emit("restart    file_hyd:" + self.hyd_name[self.drop_hyd.currentIndex()-1])

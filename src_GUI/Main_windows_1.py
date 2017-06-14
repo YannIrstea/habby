@@ -121,7 +121,7 @@ class MainWindows(QMainWindow):
         self.does_it_work = True
 
         # the path to the biological data by default (HABBY force the user to use this path)
-        self.path_bio_default = "./biology\\"
+        self.path_bio_default = "biology"
 
         # create the central widget
         if self.lang == 0:
@@ -151,7 +151,8 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         #  right click
         self.create_menu_right()
@@ -282,7 +283,7 @@ class MainWindows(QMainWindow):
         saveprj.triggered.connect(self.save_project)
         closeprj = QAction(self.tr('Close Project'), self)
         closeprj.setShortcut('Ctrl+W')
-        closeprj.setStatusTip(self.tr('Close the cuurent project without opening a new one'))
+        closeprj.setStatusTip(self.tr('Close the current project without opening a new one'))
         closeprj.triggered.connect(self.close_project)
 
         # Menu to open menu research
@@ -302,6 +303,9 @@ class MainWindows(QMainWindow):
         showim = QAction(self.tr("Show Images"), self)
         showim.setStatusTip(self.tr('Open the window to view the created figures.'))
         showim.triggered.connect(self.central_widget.showfig2)
+        closeim = QAction(self.tr("Close All Images"), self)
+        closeim.setStatusTip(self.tr('Close the figures which are currently created.'))
+        closeim.triggered.connect(self.central_widget.closefig)
         optim = QAction(self.tr("More Options"), self)
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
         optim.triggered.connect(self.central_widget.optfig)
@@ -358,6 +362,7 @@ class MainWindows(QMainWindow):
         im_all = fileMenu4.addMenu(self.tr('Image options'))
         im_all.addAction(showim)
         im_all.addAction(savi)
+        im_all.addAction(closeim)
         im_all.addAction(optim)
         re_all = fileMenu4.addMenu(self.tr('Research options'))
         re_all.addAction(rech)
@@ -610,17 +615,21 @@ class MainWindows(QMainWindow):
 
         # send the new name to all widget and re-connect signal
         t = self.central_widget.l2.text()
-        for i in range(self.central_widget.tab_widget.count(), 0, -1):
+        m = self.central_widget.tab_widget.count()
+
+        for i in range(m, 0, -1):
             self.central_widget.tab_widget.removeTab(i)
 
-        # create new tab
+        # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
         self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
         self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
         self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
         self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+
+        self.central_widget.add_all_tab()
 
         # re-connect signals for the tab
         self.central_widget.connect_signal_fig_and_drop()
@@ -628,7 +637,6 @@ class MainWindows(QMainWindow):
 
         self.central_widget.update_hydro_hdf5_name()
 
-        self.central_widget.add_all_tab()
         # write log
         if len(t) > 26:
             # no need to write #log of habby started two times
@@ -637,6 +645,7 @@ class MainWindows(QMainWindow):
         self.central_widget.write_log('# Project saved sucessfully.')
         self.central_widget.write_log("py    name_prj= '" + self.name_prj + "'")
         self.central_widget.write_log("py    path_prj= '" + self.path_prj + "'")
+        self.central_widget.write_log("py    path_bio= '" + os.path.join(os.getcwd(), self.path_bio_default) + "'")
         self.central_widget.write_log("restart NAME_PROJECT")
         self.central_widget.write_log("restart    Name of the project: " + self.name_prj)
         self.central_widget.write_log("restart    Path of the project: " + self.path_prj)
@@ -1343,16 +1352,19 @@ class CentralW(QWidget):
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
-        self.welcome_tab = WelcomeW(path_prj, name_prj)
-        self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
-        self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
-        self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
-        self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
-        self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
-        self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
-        self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
+
+        self.welcome_tab = WelcomeW(path_prj, name_prj)
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+            self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
+            self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
+            self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
+            self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
+            self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
+            self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
+            self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
+
         self.scroll = QScrollArea()
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
@@ -1486,6 +1498,12 @@ class CentralW(QWidget):
         self.child_win.selectionchange(-1)
         self.child_win.show()
 
+    def closefig(self):
+        """
+        A small function to close the images open in HABBY and managed by matplotlib
+        """
+        plt.close('all')
+
     def optfig(self):
         """
         A small function which open the output tab. It contains the different options for the figures.
@@ -1498,24 +1516,26 @@ class CentralW(QWidget):
         connect all the signal linked to the log. This is in a function only to improve lisibility.
         """
 
-        self.hydro_tab.send_log.connect(self.write_log)
-        self.hydro_tab.hecras1D.send_log.connect(self.write_log)
-        self.hydro_tab.hecras2D.send_log.connect(self.write_log)
-        self.hydro_tab.rubar2d.send_log.connect(self.write_log)
-        self.hydro_tab.rubar1d.send_log.connect(self.write_log)
-        self.hydro_tab.telemac.send_log.connect(self.write_log)
-        self.substrate_tab.send_log.connect(self.write_log)
-        self.statmod_tab.send_log.connect(self.write_log)
-        self.stathab_tab.send_log.connect(self.write_log)
-        self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
-        self.hydro_tab.mascar.send_log.connect(self.write_log)
-        self.child_win.send_log.connect(self.write_log)
         self.welcome_tab.send_log.connect(self.write_log)
-        self.output_tab.send_log.connect(self.write_log)
-        self.bioinfo_tab.send_log.connect(self.write_log)
-        self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
-        self.hydro_tab.lammi.send_log.connect(self.write_log)
-        self.fstress_tab.send_log.connect(self.write_log)
+
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+            self.hydro_tab.send_log.connect(self.write_log)
+            self.hydro_tab.hecras1D.send_log.connect(self.write_log)
+            self.hydro_tab.hecras2D.send_log.connect(self.write_log)
+            self.hydro_tab.rubar2d.send_log.connect(self.write_log)
+            self.hydro_tab.rubar1d.send_log.connect(self.write_log)
+            self.hydro_tab.telemac.send_log.connect(self.write_log)
+            self.substrate_tab.send_log.connect(self.write_log)
+            self.statmod_tab.send_log.connect(self.write_log)
+            self.stathab_tab.send_log.connect(self.write_log)
+            self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
+            self.hydro_tab.mascar.send_log.connect(self.write_log)
+            self.child_win.send_log.connect(self.write_log)
+            self.output_tab.send_log.connect(self.write_log)
+            self.bioinfo_tab.send_log.connect(self.write_log)
+            self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
+            self.hydro_tab.lammi.send_log.connect(self.write_log)
+            self.fstress_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
@@ -1523,32 +1543,33 @@ class CentralW(QWidget):
         improve lisibility.
         """
 
-        # connect signals save figures
-        self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
-        self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
-        self.hydro_tab.telemac.show_fig.connect(self.showfig)
-        self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
-        self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
-        self.hydro_tab.lammi.show_fig.connect(self.showfig)
-        self.substrate_tab.show_fig.connect(self.showfig)
-        self.statmod_tab.show_fig.connect(self.showfig)
-        self.stathab_tab.show_fig.connect(self.showfig)
-        self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
-        self.hydro_tab.mascar.show_fig.connect(self.showfig)
-        self.fstress_tab.show_fig.connect(self.showfig)
-        self.bioinfo_tab.show_fig.connect(self.showfig)
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+            # connect signals save figures
+            self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
+            self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
+            self.hydro_tab.telemac.show_fig.connect(self.showfig)
+            self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
+            self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
+            self.hydro_tab.lammi.show_fig.connect(self.showfig)
+            self.substrate_tab.show_fig.connect(self.showfig)
+            self.statmod_tab.show_fig.connect(self.showfig)
+            self.stathab_tab.show_fig.connect(self.showfig)
+            self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
+            self.hydro_tab.mascar.show_fig.connect(self.showfig)
+            self.fstress_tab.show_fig.connect(self.showfig)
+            self.bioinfo_tab.show_fig.connect(self.showfig)
 
-        # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
-        self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.telemac.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.rubar2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
-        self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-        self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
+            self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.telemac.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.rubar2d.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
         """
@@ -1670,48 +1691,50 @@ class CentralW(QWidget):
         CentralW in MainWindows.py.
 
         """
-        # clear QCombox from Hydro2W() and Substratew()
-        self.substrate_tab.drop_hyd.clear()
-        self.hydro_tab.drop_hyd.clear()
 
-        # get the hdf5 path
-        filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            child = root.find(".//Path_Hdf5")
-            if child is None:
-                path_hdf5 = os.path.join(self.path_prj_c, self.name_prj_c)
-            else:
-                path_hdf5 = os.path.join(self.path_prj_c, child.text)
-        else:
-            self.write_log(self.tr('Error: Project is not saved. \n'))
-            return
+        if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
+            # clear QCombox from Hydro2W() and Substratew()
+            self.substrate_tab.drop_hyd.clear()
+            self.hydro_tab.drop_hyd.clear()
 
-        # read name
-        self.hyd_name = self.substrate_tab.read_attribute_xml('hdf5_hydrodata')
-        self.hyd_name = self.hyd_name.split(',')
-        if not os.path.isabs(self.hyd_name[0]):
-            for i in range(0, len(self.hyd_name)):
-                self.hyd_name[i] = os.path.join(path_hdf5, self.hyd_name[i])
-        hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
-        for i in range(0, len(self.hyd_name)):
-            if os.path.isfile(self.hyd_name[i]):
-                hyd_name2.append(self.hyd_name[i])
-        self.hyd_name = hyd_name2
-        self.substrate_tab.hyd_name = self.hyd_name
-
-        # add new name to the QComboBox()
-        for i in range(0, len(self.hyd_name)):
-            if i == 0 and len(self.hyd_name) > 1:
-                self.substrate_tab.drop_hyd.addItem(' ')
-            if os.path.isfile(self.hyd_name[i]):
-                if len(self.hyd_name[i]) > self.max_lengthshow:
-                    self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
-                    self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
+            # get the hdf5 path
+            filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+            if os.path.isfile(filename_path_pro):
+                doc = ET.parse(filename_path_pro)
+                root = doc.getroot()
+                child = root.find(".//Path_Hdf5")
+                if child is None:
+                    path_hdf5 = os.path.join(self.path_prj_c, self.name_prj_c)
                 else:
-                    self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
-                    self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+                    path_hdf5 = os.path.join(self.path_prj_c, child.text)
+            else:
+                self.write_log(self.tr('Error: Project is not saved. \n'))
+                return
+
+            # read name
+            self.hyd_name = self.substrate_tab.read_attribute_xml('hdf5_hydrodata')
+            self.hyd_name = self.hyd_name.split(',')
+            if not os.path.isabs(self.hyd_name[0]):
+                for i in range(0, len(self.hyd_name)):
+                    self.hyd_name[i] = os.path.join(path_hdf5, self.hyd_name[i])
+            hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
+            for i in range(0, len(self.hyd_name)):
+                if os.path.isfile(self.hyd_name[i]):
+                    hyd_name2.append(self.hyd_name[i])
+            self.hyd_name = hyd_name2
+            self.substrate_tab.hyd_name = self.hyd_name
+
+            # add new name to the QComboBox()
+            for i in range(0, len(self.hyd_name)):
+                if i == 0 and len(self.hyd_name) > 1:
+                    self.substrate_tab.drop_hyd.addItem(' ')
+                if os.path.isfile(self.hyd_name[i]):
+                    if len(self.hyd_name[i]) > self.max_lengthshow:
+                        self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
+                        self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i][:self.max_lengthshow]))
+                    else:
+                        self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+                        self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
 
 class WelcomeW(QWidget):

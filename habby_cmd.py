@@ -636,7 +636,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         # create a random substrate in a shp form
         h5name = os.path.basename(hdf5_name_hyd)
         path_h5 = os.path.dirname(hdf5_name_hyd)
-        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Const_cemagref', 0, 500, path_prj)
+        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Const_cemagref', 0, 10, path_prj)
 
         # save it in hdf5 form
         filename_shp = 'random_sub.shp'
@@ -673,6 +673,12 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         if ikle_both == [-99]:
             print('Error: data not merged.')
             return
+
+        # plot last time step
+        if len(hdf5_name_hyd) > 33:
+            mesh_grid2.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_prj, h5name[6:-26])
+        else:
+            mesh_grid2.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_prj, h5name)
 
         # save it
         load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,

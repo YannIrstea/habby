@@ -83,10 +83,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.xml'))
                 root = docxml.getroot()
             except IOError:
-                print("Warning: the xml file does not exist \n")
+                # self.send_log.emit("Warning: the xml p file does not exist \n")
                 return
         except ET.ParseError:
-            print("Warning: the xml file is not well-formed.\n")
+            self.send_log.emit("Warning: the xml file is not well-formed.\n")
             return
         pathbio_child = root.find(".//Path_Bio")
         if pathbio_child is not None:
@@ -462,18 +462,18 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.p4.start()
 
         # log
+        self.send_log.emit('#  Habitat calculation')
         self.send_log.emit("py    file1='" + hdf5_file + "'")
         self.send_log.emit("py    path1= os.path.join(path_prj, 'fichier_hdf5')")
-        self.send_log.emit("py    pref_list= [" + ', '.join(pref_list) + ']')
-        self.send_log.emit("py    stages= [" + ', '.join(stages_chosen) +']')
-        self.send_log.emit("py    path_bio='" + self.path_bio + "'")
+        self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
+        self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
         self.send_log.emit("py    type='" + str(run_choice) + "'")
         self.send_log.emit(
             "py    vh_all_t_sp = calcul_hab.calc_hab(file1, path1 ,pref_list, stages, path_bio, type)")
         self.send_log.emit("restart CALCULATE_HAB")
         self.send_log.emit("restart    file1: " + hdf5_file)
-        self.send_log.emit("restart    list of preference file: [" + ', '.join(pref_list) + ']')
-        self.send_log.emit("restart    stages chosen: [" + ', '.join(stages_chosen) + ']')
+        self.send_log.emit("restart    list of preference file: [" + "', '".join(pref_list) + ']')
+        self.send_log.emit("restart    stages chosen: [" + " ', ' ".join(stages_chosen) + ']')
         self.send_log.emit("restart    type of calculation: " + str(run_choice))
 
     def show_image_hab(self):

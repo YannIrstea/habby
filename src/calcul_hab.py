@@ -112,7 +112,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
     e = time.time()
-    print(e-d)
 
     print('Habitat calculation is finished. \n')
     print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
@@ -318,7 +317,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
 
                 try:
                     vh = h_pref_c * v_pref_c * s_pref_c
-                    vh = np.round(vh, 5)  # necessary for  shapefile, do not get above 8 digits of precision
+                    vh = np.round(vh, 7)  # necessary for  shapefile, do not get above 8 digits of precision
                 except ValueError:
                     print('Error: One time step misses substrate, velocity or water height value \n')
                     vh = [-99]
@@ -377,12 +376,6 @@ def find_pref_value(data, pref):
                         pref_data_here = 1
                     else:
                         print('Warning: preference data is not between 0 and 1. \n')
-                        # print(pref_data_here)
-                        # print(d)
-                        # print(prefmax)
-                        # print(prefmin)
-                        # print(dmax)
-                        # print(dmin)
             pref_data.append(pref_data_here)
         else:
             pref_data.append(pref_f[indh])
@@ -624,10 +617,15 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     plt.rcParams['axes.grid'] = fig_opt['grid']
 
     if len(spu_all) != len(name_fish):
-        print('Error: Number of fish name and number of WUA data is not coherent')
+        print('Error: Number of fish name and number of WUA data is not coherent \n')
         return
 
-    nb_reach = len(max(area_all, key=len)) # we might have failed cases
+    try:
+        nb_reach = len(max(area_all, key=len)) # we might have failed time step
+    except TypeError:  # or all failed time steps -99
+        # print('Error: No reach found. Is the hdf5 corrupted? \n')
+        return
+
     for id,n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
@@ -698,6 +696,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.xlabel('Time step [ ]')
             plt.ylabel('HV (WUA/A) []')
             plt.title('Habitat value for the Reach ' + str(r))
+            plt.ylim(ymin=-0.02)
             plt.legend()
             plt.tight_layout()
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -751,7 +750,10 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
         for t in time_step:
             ikle_t = ikle_all_t[t]
             point_t = point_all_t[t]
-            vh_t = vh_all_t[t]
+            if t > len(vh_all_t):
+                vh_t = vh_all_t[t]
+            else:
+                return
             fig, ax = plt.subplots(1) # new figure
             norm = mpl.colors.Normalize(vmin=0, vmax=1)
 

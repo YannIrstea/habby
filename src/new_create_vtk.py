@@ -49,14 +49,14 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
         return
     nb_time = len(ikle_all_t)
 
-    for r in range(0, len(ikle_all_t[1])):
+    for r in range(0, len(ikle_all_t[-1])):
         fileName = file_name_base + '_' + 'Reach' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
         # create one vtu file by time step
         # for the moment we do not show the time step zero with the full profile without data
         for t in range(1, nb_time):
             ikle = ikle_all_t[t][r]
-            if len(ikle) < 3:  # if something is wrong
+            if len(ikle) < 3 or t > len(height_c_data):  # if something is wrong
                 pass
                 # print('Error: Connectivity table missing or illogical. One time step not created. \n')
             else:

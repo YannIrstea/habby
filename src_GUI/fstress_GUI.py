@@ -15,7 +15,6 @@ from src import fstress
 from src_GUI import output_fig_GUI
 
 
-
 class FstressW(estimhab_GUI.StatModUseful):
     """
     This class provides the graphical user interface for the habby version of Fstress. The Fstress model is described in
@@ -154,7 +153,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # look in the xml project file if an Fstress model exist
         fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(fnamep):
-            print("The project is not saved. Save the project in the Start tab before saving FStress data")
+            self.send_log.emit("The project is not saved. Save the project in the Start tab before saving FStress data")
             return
 
         doc = ET.parse(fnamep)

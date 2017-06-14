@@ -241,12 +241,14 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False):
 
         axarr[1].plot(vel[0][0], vel[0][1], '-xr')
         axarr[1].set_xlabel('Velocity [m/sec]')
+        axarr[1].set_ylabel('Coeff. Pref. ' + stade[0])
         axarr[1].set_ylim([0, 1.1])
 
         axarr[2].bar(sub[0][0], sub[0][1], facecolor='c',align='center')
         axarr[2].set_xlabel('Substrate [class]')
         axarr[2].set_ylabel('Coeff. Pref. ' + stade[0])
         axarr[2].set_ylim([0, 1.1])
+    plt.tight_layout()
 
     if get_fig:
         return f, axarr

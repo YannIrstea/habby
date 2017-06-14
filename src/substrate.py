@@ -315,12 +315,7 @@ def edf_to_cemagref(records):
     one_give_one = False
     for r in records:
         if r == 1:
-            if one_give_one:
-                new_record.append(1)
-                one_give_one = False
-            else:
-                new_record.append(2)
-                one_give_one = True
+            new_record.append(2)
         elif r == 2:
             new_record.append(3)
         elif r == 3:
@@ -330,7 +325,13 @@ def edf_to_cemagref(records):
         elif r == 5:
             new_record.append(6)
         elif r == 6:
-            new_record.append(6)
+            if one_give_one:
+                new_record.append(6)
+                one_give_one = False
+            else:
+                new_record.append(7)
+                one_give_one = True
+            #new_record.append(6)
         elif r == 7:
             new_record.append(7)
         elif r == 8:  # slabs? -> check this
@@ -347,12 +348,16 @@ def edf_to_cemagref_by_percentage(records):
     """
     new_record = []
     for r in records:
-        r[0] = 0.5 * (r[0] + r[1])
-        r[1] = r[2]
-        r[2] = r[3]
-        r[3] = r[4]
-        r[4] = r[5]
-        new_record.append(r)
+        r2 = [0, 0, 0, 0, 0, 0, 0, 0]
+        r2[0] = 0
+        r2[1] = r[0]
+        r2[2] = r[1]
+        r2[3] = r[2]
+        r2[4] = r[3]
+        r2[5] = r[4] + r[5] * 0.5
+        r2[6] = r[6] + r[5] * 0.5
+        r2[7] = r[7]
+        new_record.append(r2)
 
     return new_record
 

@@ -926,7 +926,7 @@ def get_new_vel_height_data(newp, point_old, data_old):
     return data_new
 
 
-def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr=[], point_all_orr=[]):
+def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, name_add='', ikle_orr=[], point_all_orr=[]):
     """
     A function to plot the grid after it was merged with the substrate data.
     It plots one time step at the time.
@@ -934,6 +934,7 @@ def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr=[], point_al
     :param point_all_both_t: the coordinate of the points of the updated grid
     :param ikle_both_t: the connectivity table
     :param path_im: the path where the image should be saved
+    :param name_add: the anem to be added to the figure name
     :param ikle_orr: the orginial ikle
     :param point_all_orr: the orginal point_all
     """
@@ -976,8 +977,10 @@ def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, ikle_orr=[], point_al
     plt.xlabel('x coordinate')
     plt.ylabel('y coordinate')
     #plt.show()
-    plt.savefig(os.path.join(path_im, "Grid_merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=1000)
-    plt.savefig(os.path.join(path_im, "Grid_merge_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=1000)
+    plt.savefig(os.path.join(path_im, "Grid_merge_" + name_add + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                dpi=1000)
+    plt.savefig(os.path.join(path_im, "Grid_merge_" + name_add + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                dpi=1000)
 
 
 def main():
