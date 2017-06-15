@@ -15,6 +15,13 @@ from src import bio_info
 from src import load_hdf5
 from src import fstress
 from src import river2d
+from src import lammi
+from src import bio_info
+from src import calcul_hab
+from src import new_create_vtk
+from src import fstress
+from src import mesh_grid2
+from src import substrate
 
 
 # start the main program

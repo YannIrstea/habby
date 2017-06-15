@@ -368,6 +368,11 @@ def find_pref_value(data, pref):
                 a1 = (prefmax - prefmin) / (dmax - dmin)
                 b1 = prefmin - a1 * dmin
                 pref_data_here = a1 * d + b1
+                # This is a test to reproduce lammi result as best as possible
+                # if pref_data_here > 0.98:
+                #     pref_data_here = 1
+                # if pref_data_here < 0.02:
+                #     pref_data_here = 0
                 if pref_data_here < 0 or pref_data_here > 1:
                     # the linear interpolation sometimes creates value like -5.55e-17
                     if -1e-3 < pref_data_here < 0:

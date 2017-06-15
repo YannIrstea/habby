@@ -167,8 +167,15 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
     To obtain the coordainte of the river and to put the data is the form usually needed by HABBY for 1.5D model
     (coord_pro, vh_pro, nb_pro_reach), we use the coord_lammi() function.
 
+    There is also an optionnal check to control that the conversion between lammi and cemagref code is as normal.
+    This check is only done if HABBY can find the habitat.txt file where the conversion can be modified by the user.
+    Otherwise we assume that the normal conversion is used. Obviously, this check should be modifed if the edf
+    to cemagref conversion is modified.
+
 
     """
+    failload = [-99], [-99], [-99], [-99], [-99]
+
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -183,7 +190,18 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
     [dist_all, vel_all, height_all, sub_all, q_step] = load_transect_data(fac_filename_all)
     if len(dist_all) == 1:
         if dist_all[0] == -99:
-            return
+            return failload
+
+    # check if habitat.txt exist.
+    # This is a lammi file which can be used to change the passage from lammi code to
+    # cemagref code. This is very very rarely done and the info can not be transfered to HABBY.
+    # Hence we just test if this habitat file and we refuse to execute if the code is not the right one.
+    # If we do not find habitat.txt, we carry on
+    code_ok = check_code_change(facies_path)
+    if not code_ok:
+        print('Error: The conversion from the EDF code to the Cemagref code given in habitat.txt was not the one'
+              ' known by HABBY. Could not execute. \n')
+        return failload
 
     # get the (not realistic) coordinates of the rivers and  the coordinate of the substrate
     [coord_pro, vh_pro, nb_pro_reach, sub_pro, div] = coord_lammi(dist_all, vel_all, height_all, sub_all, length_all)
@@ -195,6 +213,43 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
         plt.close()  # avoid problem with matplotlib
 
     return coord_pro, vh_pro, nb_pro_reach, sub_pro, div
+
+
+def check_code_change(facies_path):
+    """
+    If we can find the habitat.txt file, we check that the conversion from EDF to Cemagref code was done as in HABBY.
+    In most case, the habiat.txt file will not be found. This is not a problem.
+    :param facies_path: the path to the facies.txt file
+    :return: a boolean
+    """
+    path_hab = os.path.join(os.path.dirname(facies_path), 'Fortran')
+    pathname_hab = os.path.join(path_hab, 'Habitat.txt')
+
+    # read habitat.txt
+    if os.path.isfile(pathname_hab):
+        try:
+            with open(pathname_hab, 'rt') as f:
+                data_hab = f.read()
+        except IOError:
+            print('Error: The file Habitat.txt could be found but could not be open. \n')
+            return False
+        data_hab = data_hab.split('\n')
+
+        # check if we have the same code conversion
+        stat_sub = False
+        for ind, d in enumerate(data_hab):
+            if d[:32] == 'Passage codification Utilisateur':
+                try:
+                    if int(data_hab[ind+1]) == 2 and int(data_hab[ind+2]) == 3 and int(data_hab[ind+3]) == 4:
+                        if int(data_hab[ind+4]) == 5 and int(data_hab[ind+5]) == 6 and float(data_hab[ind+6]) == 6.5:
+                            if int(data_hab[ind+7]) == 7 and int(data_hab[ind+8]) == 8:
+                                return True
+                except ValueError:
+                    return False
+                return False
+    else:
+        # we do not mind if the file is not found
+        return True
 
 
 def load_station(station_path, station_name):
@@ -898,9 +953,10 @@ def main():
     # open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
     #                            'Transect.txt', 'Facies.txt', True)
 
-    filename_habby = r'D:\Diane_work\dummy_folder\LammiTest\text_output\spu_Merge_LAMMI_14_06_2017_at_13_48_25.txt'
-    filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
-    filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
+    filename_habby = r'D:\Diane_work\dummy_folder\LammiTest\text_output\spu_Merge_LAMMI_15_06_2017_at_09_55_47.txt'
+    #filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
+    filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\FacTRF.txt'
+    filename_sur = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\SurfMouilFac.txt'
     compare_lammi(filename_habby, filename_lammi, filename_sur)
 
 

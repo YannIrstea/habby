@@ -70,7 +70,9 @@ class outputW(QWidget):
         self.fig5 = QLineEdit(str(fig_dict['font_size']))
         self.fig6 = QLineEdit(str(fig_dict['line_width']))
         self.fig7a = QCheckBox(self.tr('On'), self)
+        self.fig7a.clicked.connect(lambda: self.check_uncheck(self.fig7a, self.fig7b))
         self.fig7b = QCheckBox(self.tr('Off'), self)
+        self.fig7b.clicked.connect(lambda: self.check_uncheck(self.fig7b, self.fig7a))
         if fig_dict['grid'] == 'True':   # is a string not a boolean
             self.fig7a.setChecked(True)
             self.fig7b.setChecked(False)
@@ -84,7 +86,9 @@ class outputW(QWidget):
 
         # choose if we should plot the data from the loaded model (before the grid is created)
         self.fig9a = QCheckBox(self.tr('Yes'), self)
+        self.fig9a.clicked.connect(lambda: self.check_uncheck(self.fig9a, self.fig9b))
         self.fig9b = QCheckBox(self.tr('No'), self)
+        self.fig9b.clicked.connect(lambda: self.check_uncheck(self.fig9b, self.fig9a))
         if fig_dict['raw_data'] == 'True':   # is a string not a boolean
             self.fig9a.setChecked(True)
             self.fig9b.setChecked(False)
@@ -100,7 +104,9 @@ class outputW(QWidget):
         self.out0 = QLabel(self.tr(' <b> Output Options </b>'))
         self.out1 = QLabel(self.tr('Text file'))
         self.out1a = QCheckBox(self.tr('Yes'))
+        self.out1a.clicked.connect(lambda: self.check_uncheck(self.out1a, self.out1b))
         self.out1b = QCheckBox(self.tr('No'))
+        self.out1b.clicked.connect(lambda: self.check_uncheck(self.out1b, self.out1a))
         if fig_dict['text_output'] == 'True':   # is a string not a boolean
             self.out1a.setChecked(True)
             self.out1b.setChecked(False)
@@ -109,7 +115,9 @@ class outputW(QWidget):
             self.out1b.setChecked(True)
         self.out2 = QLabel(self.tr('Shapefile'))
         self.out2a = QCheckBox(self.tr('Yes'))
+        self.out2a.clicked.connect(lambda: self.check_uncheck(self.out2a, self.out2b))
         self.out2b = QCheckBox(self.tr('No'))
+        self.out2b.clicked.connect(lambda: self.check_uncheck(self.out2b, self.out2a))
         if fig_dict['shape_output'] == 'True':   # is a string not a boolean
             self.out2a.setChecked(True)
             self.out2b.setChecked(False)
@@ -118,7 +126,9 @@ class outputW(QWidget):
             self.out2b.setChecked(True)
         self.out3 = QLabel(self.tr('Paraview input'))
         self.out3a = QCheckBox(self.tr('Yes'))
+        self.out3a.clicked.connect(lambda: self.check_uncheck(self.out3a, self.out3b))
         self.out3b = QCheckBox(self.tr('No'))
+        self.out3b.clicked.connect(lambda: self.check_uncheck(self.out3b, self.out3a))
         if fig_dict['paraview'] == 'True':   # is a string not a boolean
             self.out3a.setChecked(True)
             self.out3b.setChecked(False)
@@ -175,6 +185,16 @@ class outputW(QWidget):
         #self.layout.addItem(spacer2, 8, 2)
 
         self.setLayout(self.layout)
+
+    def check_uncheck(self, main_checkbox, other_checkbox):
+        """
+        This function is used to check a box when the user clied on it and unckeked another passed as parameter
+
+        :param main_checkbox: A QCheckBox which sould by selected
+        :param other_checkbox: A QCheckbox which should be "unticked" when main_checkbox is selected by the user
+        """
+        main_checkbox.setChecked(True)
+        other_checkbox.setChecked(False)
 
     def save_option_fig(self):
         """
