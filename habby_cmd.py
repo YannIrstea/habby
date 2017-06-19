@@ -67,8 +67,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
               ', the name of the substrate hdf5, the default data for the substrate (in cemagref code), (output name)')
         print('LOAD_SUB_SHP: load the substrate from a shapefile. Input: filename of the shapefile,'
               'code_type as Cemagref or Sandre, (dominant_case as 1 or -1)')
-        print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the shapefile,'
+        print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the texte file,'
               'code_type as Cemagref or Sandre')
+        print('LOAD_SUB_CONST: Create and hdf5 with a constant substrate. Input: value of the substrate between 1 and'
+              ' 8. Code_type Cemagref, (output name with path)')
         print('LOAD_SUB_HDF5: load the substrate data in an hdf5 form. Input: the name of the hdf5 file (with path)')
         print('CREATE_RAND_SUB: create random substrate in the same geographical location of the hydrological files. '
               'Will be created  in the cemagref code in the type coarser?dominant/... '
@@ -322,6 +324,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
             print('The function LOAD_RUBAR_1D needs four to seven inputs. Call LIST_COMMAND for more '
                   'information.')
             return
+        pro_add_is_here = False
 
         # get filename
         filename_geo = all_arg[2]
@@ -567,6 +570,31 @@ def all_command(all_arg, name_prj, path_prj, path_bio):
         load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, '', False, 'SUBSTRATE')
 
     # ----------------------------------------------------------------------------------------
+    elif all_arg[1] == 'LOAD_SUB_CONST':
+        if not 2 < len(all_arg) < 5:
+            print('LOAD_SUB_CONST needs one input or two inputs. See LIST_COMMAND for more information. ')
+            return
+        try:
+            sub_val = int(all_arg[2])
+        except ValueError:
+            print('The substrate value should be a number.')
+            return
+
+        if sub_val > 8 or sub_val < 1:
+            print('The substrate value should be in the cemagref code.')
+            return
+
+        if len(all_arg) == 4:
+            namepath_hdf5 = all_arg[3]
+            name_hdf5 = os.path.basename(namepath_hdf5)
+            path_hdf5 = os.path.dirname(namepath_hdf5)
+        else:
+            name_hdf5 = 'Substrate_CONST_'
+            path_hdf5 = path_prj
+
+        load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], name_hdf5, True, 'SUBSTRATE')
+
+    #----------------------------------------------------------------
     elif all_arg[1] == 'MERGE_GRID_SUB':
 
         if not 4 < len(all_arg) < 7:
