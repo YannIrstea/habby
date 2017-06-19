@@ -467,7 +467,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit("py    path1= os.path.join(path_prj, 'fichier_hdf5')")
         self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
         self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
-        self.send_log.emit("py    type='" + str(run_choice) + "'")
+        self.send_log.emit("py    type=" + str(run_choice))
         self.send_log.emit(
             "py    vh_all_t_sp = calcul_hab.calc_hab(file1, path1 ,pref_list, stages, path_bio, type)")
         self.send_log.emit("restart CALCULATE_HAB")

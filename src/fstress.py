@@ -182,7 +182,7 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
     dataset = list(dataset.values())[0]
     for i in range(0, len(dataset)):
         dataset_i = str(dataset[i])
-        fish_name.append(dataset_i[2:-1]) # because hdf5 give the string b'sdfsd', no it is not a binary!
+        fish_name.append(dataset_i[3:-2]) # because hdf5 give the string b'sdfsd', no it is not a binary!
 
     return qhw, qrange, river_name, fish_name
 

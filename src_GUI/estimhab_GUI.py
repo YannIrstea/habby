@@ -561,7 +561,7 @@ class EstimhabW(StatModUseful):
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' +str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']' )
-        self.send_log.emit("py    path1='" + self.path_bio_estimhab + "'")
+        self.send_log.emit("py    path1= os.path.join(os.path.dirname(path_bio),'" + self.path_bio_estimhab + "')")
         fish_list_str = "py    fish_list = ["
         for i in range(0,len(fish_list)):
             fish_list_str += "'" + fish_list[i] + "',"

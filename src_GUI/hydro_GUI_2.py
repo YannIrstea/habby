@@ -951,19 +951,20 @@ class HEC_RAS1D(SubHydroW):
         self.p2.start()
 
         # log info
+
         self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
         self.send_err_log()
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1='" + path_input + "'")
-        self.send_log.emit("py    path2='" + path_input + "'")
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit("py    path2=r'" + path_input + "'")
         self.send_log.emit("py    files = [file1, file2]")
         self.send_log.emit("py    paths = [path1, path2]")
-        self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
-        self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
+        self.send_log.emit("py    interp=" + str(self.interpo_choice) )
+        self.send_log.emit("py    pro_add=" + str(self.pro_add))
         self.send_log.emit(
-            "py    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hec_hec_ras_and_create_grid('re_run',path_prj"
-            ", name_prj, path_prj, 'HECRAS1D', files, paths, interp, '.', False, False, pro_add)\n")
+            "py    Hec_ras06.open_hec_hec_ras_and_create_grid('re_run',path_prj"
+            ", name_prj, path_prj, 'HECRAS1D', files, paths, interp, '.', False, pro_add, [], True)\n")
         self.send_log.emit("restart LOAD_HECRAS_1D")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
@@ -1126,12 +1127,12 @@ class Rubar2D(SubHydroW):
         # log info
         self.send_log.emit(self.tr('# Loading: Rubar 2D data.'))
         #self.send_err_log()
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1='" + path_input + "'")
-        self.send_log.emit("py    path2='" + path_input + "'")
-        self.send_log.emit("py    load_rubar2d_and_create_grid(new_filename,file1, file2, path1, path2, path2, True, "
-                           "name_projet, path_projet, 'RUBAR2D', 2, '.', )\n")
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit("py    path2=r'" + path_input + "'")
+        self.send_log.emit("py    rubar.load_rubar2d_and_create_grid('Hydro_rubar2d_log',file1, file2, path1, path2,"
+                           " path_prj, name_prj, path_prj, 'RUBAR2D', 2, path_prj, [])\n")
         self.send_log.emit("restart LOAD_RUBAR_2D")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
@@ -1346,12 +1347,12 @@ class Mascaret(SubHydroW):
 
         #log info
         self.send_log.emit(self.tr('# Loading: Mascaret data.'))
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    file3='" + self.namefile[2] + "'")
-        self.send_log.emit("py    path1='" + path_input + "'")
-        self.send_log.emit("py    path2='" + path_input + "'")
-        self.send_log.emit("py    path3='" + path_input + "'")
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+        self.send_log.emit("py    file3=r'" + self.namefile[2] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit("py    path2=r'" + path_input + "'")
+        self.send_log.emit("py    path3=r'" + path_input + "'")
         self.send_log.emit("py    files = [file1, file2, file3]")
         self.send_log.emit("py    paths = [path1, path2, path3]")
         self.send_log.emit("py    interp=" + str(self.interpo_choice))
@@ -1363,9 +1364,9 @@ class Mascaret(SubHydroW):
             blob = blob.replace('\n', '')
             self.send_log.emit("py    manning1 = np.array(" + blob + ')')
         self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
-        self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
-                           " = mascaret.load_mascaret_and_create_grid('Hydro_mascaret_log', path_prj, name_prj, path_prj,"
-                           " 'mascaret',files, paths, interp,manning_data, np_point_vel,'.', False, pro_add, [], True)\n")
+        self.send_log.emit("py    mascaret.load_mascaret_and_create_grid('Hydro_mascaret_log', path_prj, name_prj, "
+                           "path_prj, 'mascaret', files, paths, interp, manning1, np_point_vel, False, pro_add, "
+                           "[], '.')\n")
         self.send_log.emit("restart LOAD_MASCARET")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
@@ -1660,7 +1661,7 @@ class River2D(SubHydroW):
         namefile_arr = np.array(self.namefile)
         blob = np.array2string(namefile_arr, separator=',', )
         blob = blob.replace('\n', '')
-        self.send_log.emit("py    files== np.array(" + blob + ')')
+        self.send_log.emit("py    files= np.array(" + blob + ')')
         # all path inputs
         path_inputs = []
         for i in range(0, len(self.namefile)):
@@ -1668,7 +1669,7 @@ class River2D(SubHydroW):
         path_inputs = np.array(path_inputs)
         blob = np.array2string(path_inputs, separator=',', )
         blob = blob.replace('\n', '')
-        self.send_log.emit("py    paths== np.array(" + blob + ')')
+        self.send_log.emit("py    paths= np.array(" + blob + ')')
         self.send_log.emit("py    river2d.load_river2d_and_cut_grid('Hydro_river2d_log', files, paths, name_prj, "
                            "path_prj, 'RIVER2D', 2, path_prj, [], True) \n")
 
@@ -1849,14 +1850,14 @@ class Rubar1D(SubHydroW):
 
         # log info
         self.send_log.emit(self.tr('# Loading: Rubar 1D data.'))
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    file2='" + self.namefile[1] + "'")
-        self.send_log.emit("py    path1='" + path_input + "'")
-        self.send_log.emit("py    path2='" + path_input + "'")
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit("py    path2=r'" + path_input + "'")
         self.send_log.emit("py    files = [file1, file2]")
         self.send_log.emit("py    paths = [path1, path2]")
-        self.send_log.emit("py    interp='" + str(self.interpo_choice) + "'")
-        self.send_log.emit("py    pro_add='" + str(self.pro_add) + "'")
+        self.send_log.emit("py    interp=" + str(self.interpo_choice))
+        self.send_log.emit("py    pro_add=" + str(self.pro_add))
         if manning_float:
             self.send_log.emit("py    manning1 = " + str(self.manning_text.text()))
         else:
@@ -1865,8 +1866,7 @@ class Rubar1D(SubHydroW):
             blob = blob.replace('\n', '')
             self.send_log.emit("py    manning1 = np.array(" + blob + ')')
         self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
-        self.send_log.emit("py    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] "
-                           " = rubar.load_rubar1d_and_create_grid(filename_new, pathname_new, name_prj, path_prj,"
+        self.send_log.emit("py    rubar.load_rubar1d_and_create_grid('Hydro_rubar1d_log', path_prj, name_prj, path_prj,"
                            " 'RUBAR1D',files, paths, interp,manning_array, np_point_vel,'.', False, pro_add)\n")
         self.send_log.emit("restart LOAD_RUBAR_1D")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
@@ -2007,8 +2007,8 @@ class HEC_RAS2D(SubHydroW):
 
         # log info
         self.send_log.emit(self.tr('# Loading: HEC-RAS 2D.'))
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    path1='" + path_input + "'")
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
         self.send_log.emit("py    interpo=" + str(self.interpo_choice) )
         self.send_log.emit("py    pro_add=" + str(self.pro_add) )
         self.send_log.emit("py    hec_ras2D.load_hec_ras_2d_and_cut_grid('HEC_RAS2D_log', file1, path1, name_prj, "
@@ -2115,10 +2115,10 @@ class TELEMAC(SubHydroW):
         # log info
         self.send_log.emit(self.tr('# Loading: TELEMAC data.'))
         self.send_err_log()
-        self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-        self.send_log.emit("py    path1='" + path_input + "'")
-        self.send_log.emit("py    selafin_habby1.load_telemac_and_cut_grid(file1, path1, name_prj, path_prj, 'TELEMAC', "
-                           "2, '.' )\n")
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit("py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
+                           "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
         self.send_log.emit("restart LOAD_TELEMAC")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
@@ -2301,9 +2301,9 @@ class LAMMI(SubHydroW):
         # log info
         self.send_log.emit(self.tr('# Loading: LAMMI data.'))
         self.send_err_log()
-        self.send_log.emit("py    dir1='" + self.pathfile[0] + "'")
-        self.send_log.emit("py    dir2='" + self.pathfile[1] + "'")
-        self.send_log.emit("py    dir3='" + self.pathfile[2] + "'")
+        self.send_log.emit("py    dir1=r'" + self.pathfile[0] + "'")
+        self.send_log.emit("py    dir2=r'" + self.pathfile[1] + "'")
+        self.send_log.emit("py    dir3=r'" + self.pathfile[2] + "'")
         self.send_log.emit("py    lammi.open_lammi_and_create_grid(dir1, dir2, path_prj, 'lammi_hdf5', "
                            "name_prj, path_prj, path_prj, dir3, [], False, 'Transect.txt', 'Facies.txt', True)\n")
         self.send_log.emit("restart LOAD_LAMMI")
@@ -2579,6 +2579,18 @@ class SubstrateW(SubHydroW):
             sys.stdout = sys.__stdout__
             self.send_err_log()
             path_im = self.find_path_im()  #needed
+
+            # log info
+            self.send_log.emit(self.tr('# Load: Substrate data - constant value'))
+            self.send_log.emit("py    val_c=" + str(data_sub))
+            self.send_log.emit(
+                "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], 're_run_const_sub'"
+                ", True, 'SUBSTRATE') \n")
+            self.send_log.emit("restart LOAD_SUB_CONST")
+            self.send_log.emit("restart    val_c: " + str(data_sub))
+
+
+
         else:
             # save path and name substrate
             self.save_xml(0)
@@ -2678,7 +2690,7 @@ class SubstrateW(SubHydroW):
                 # log info
                 self.send_log.emit(self.tr('# Load: Substrate data - text file'))
                 self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-                self.send_log.emit("py    path1='" + path_input + "'")
+                self.send_log.emit("py    path1=r'" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
                 self.send_log.emit(
                     "py    [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(file1, path1,"
@@ -2817,17 +2829,18 @@ class SubstrateW(SubHydroW):
 
         # log
         # functions if ind is zero also
-        self.send_log.emit("py    file_hyd='" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
-        self.send_log.emit("py    file_sub='" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
+        self.send_log.emit("py    file_hyd=r'" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
+        self.send_log.emit("py    name_sub=r'" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
+        self.send_log.emit("py    path_sub=r'" + self.sub_name[self.drop_sub.currentIndex() - 1] + "'")
         if len(self.e3.text()) > 0:
-            self.send_log.emit("py    defval='" + self.e3.text() + "'")
+            self.send_log.emit("py    defval=" + self.e3.text())
         else:
             self.send_log.emit("py    defval=-99")
         self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = mesh_grid2.merge_grid_hydro_sub(file_hyd,"
-                           " file_sub, defval)\n")
+                           " name_sub, path_sub, defval)\n")
         self.send_log.emit("restart MERGE_GRID_SUB")
-        self.send_log.emit("restart    file_hyd:" + self.hyd_name[self.drop_hyd.currentIndex()-1])
-        self.send_log.emit("restart    file_sub:" + os.path.join(self.path_prj, self.sub_name[self.drop_sub.currentIndex()-1]))
+        self.send_log.emit("restart    file_hyd: " + self.hyd_name[self.drop_hyd.currentIndex()-1])
+        self.send_log.emit("restart    file_sub: " + os.path.join(self.path_prj, self.sub_name[self.drop_sub.currentIndex()-1]))
         if  len(self.e3.text()) > 0:
             self.send_log.emit("restart    defval: " + self.e3.text())
         else:

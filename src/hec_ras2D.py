@@ -40,8 +40,6 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     inter_vel_all_t = []
     inter_h_all_t = []
 
-    print('blob1')
-
     # load hec-ras data
     if not print_cmd:
         sys.stdout = mystdout = StringIO()

@@ -309,7 +309,8 @@ class FstressW(estimhab_GUI.StatModUseful):
             # get the river name
             with open(filename_path, 'rt') as f:
                 for line in f:
-                    self.riv_name.append(line.strip())
+                    if len(line) > 0:
+                        self.riv_name.append(line.strip())
             # add the file names (deb and qhw.txt)
             for r in self.riv_name:
                 f_found = [None, None]
@@ -421,7 +422,7 @@ class FstressW(estimhab_GUI.StatModUseful):
     def show_data_one_river(self):
         """
         This function shows the qhw and the [qmin, qmax] data on the GUI for the river selected by the user.
-        The river must have been loaded before.
+        The river must have been loaded before. It also show the selected fish
         """
 
         riv = self.riv.currentText()
@@ -454,6 +455,15 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.eq2.clear()
             self.ew2.clear()
             self.eh2.clear()
+
+        for ind, f in enumerate(self.fish_selected):
+            for ind2 in range(0, self.list_f.count()):
+                item = self.list_f.item(ind2)
+                if f == item.text():
+                    self.list_f.setCurrentItem(item)
+                    self.add_fish()
+
+
 
     def load_data_fstress(self, rind):
         """
@@ -635,9 +645,11 @@ class FstressW(estimhab_GUI.StatModUseful):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
         self.send_log.emit(self.tr('# Run: FStress'))
-        strhydro = np.array_str(np.array(self.qhw))
+        strhydro = np.array_repr(np.array(self.qhw))
+        strhydro = strhydro[5:-1]
         self.send_log.emit("py    data = " + strhydro)
-        strhydro2 = np.array_str(np.array(self.qrange))
+        strhydro2 = np.array_repr(np.array(self.qrange))
+        strhydro2 = strhydro2[5:-1]
         self.send_log.emit("py    qrange =" + strhydro2)
         self.send_log.emit("py    path1='" + self.path_bio + "'")
         fish_list_str = "py    fish_list = ["
@@ -647,12 +659,12 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.send_log.emit(fish_list_str)
         riv_name_str = "py    riv_name = ["
         for i in range(0, len(self.riv_name)):
-            riv_name_str += "'" + fish_list[i] + "',"
+            riv_name_str += "'" + self.riv_name[i] + "',"
         riv_name_str= riv_name_str[:-1] + ']'
         self.send_log.emit(riv_name_str)
-        self.send_log.emit("py    [pref_inver, all_inv_name] = read_pref('/biology', 'pref_fstress.txt')")
+        self.send_log.emit("py    [pref_inver, all_inv_name] = fstress.read_pref('/biology', 'pref_fstress.txt')")
         self.send_log.emit("py    [vh, qmod, inv_select] = fstress.run_fstress(data, qrange, riv_name, fish_list, "
-                           "pref_inver, all_inv_name, name_prj, path_prj")
+                           "pref_inver, all_inv_name, name_prj, path_prj)")
         self.send_log.emit("py    fstress.figure_fstress(qmod, vh, inv_select,'.', riv_name)")
         self.send_log.emit("restart FStress")
 

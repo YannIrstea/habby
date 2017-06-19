@@ -64,7 +64,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q:
+    if q and not print_cmd:
         q.put(mystdout)
         return
     else:

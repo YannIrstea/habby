@@ -42,22 +42,23 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
     is more adequate in this case.
 
     """
+    failload = [-99], [-99], [-99], [-99], [-99]
     # check input
     if not isinstance(interpo_choice, int):
         print('Error: Interpolation method is not recognized (Type).\n')
-        return
+        return failload
     if len(vh_pro) == 0:
         print('Warning: Velocity and height data is empty (from grid_and_interpo).\n')
-        return
+        return failload
     if len(vh_pro) == 1 and vh_pro == [-99]:
         print('Error: Velocity and height data were not created.\n')
-        return
+        return failload
     if interpo_choice > 0 and not isinstance(pro_add, int):
         print('Error: Number of added profile is not recognized (Type).\n')
-        return
+        return failload
     if interpo_choice > 0 and (pro_add < 1 or pro_add > 100):
         print('Error: a number of added profile between 1 and 100 must be given.\n')
-        return
+        return failload
 
     # prepare outputs for all reaches and all time steps
     inter_vel_all_t = []

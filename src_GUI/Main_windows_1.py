@@ -642,10 +642,10 @@ class MainWindows(QMainWindow):
             # no need to write #log of habby started two times
             # to breack line habby use <br> there, should not be added again
             self.central_widget.write_log(t[26:-4])
-        self.central_widget.write_log('# Project saved sucessfully.')
-        self.central_widget.write_log("py    name_prj= '" + self.name_prj + "'")
-        self.central_widget.write_log("py    path_prj= '" + self.path_prj + "'")
-        self.central_widget.write_log("py    path_bio= '" + os.path.join(os.getcwd(), self.path_bio_default) + "'")
+        self.central_widget.write_log('# Project saved successfully.')
+        self.central_widget.write_log("py    name_prj= r'" + self.name_prj + "'")
+        self.central_widget.write_log("py    path_prj= r'" + self.path_prj + "'")
+        self.central_widget.write_log("py    path_bio= r'" + os.path.join(os.getcwd(), self.path_bio_default) + "'")
         self.central_widget.write_log("restart NAME_PROJECT")
         self.central_widget.write_log("restart    Name of the project: " + self.name_prj)
         self.central_widget.write_log("restart    Path of the project: " + self.path_prj)

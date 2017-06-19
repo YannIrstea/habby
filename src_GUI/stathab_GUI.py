@@ -496,19 +496,25 @@ class StathabW(estimhab_GUI.StatModUseful):
             return
         var1 = 'py    var1 = ['
         for i in range(0, len(self.end_file_reach)):
-            var1 += "'" + self.end_file_reach[i] + "',"
+            if '.txt' in self.end_file_reach[i]:
+                var1 += "'" + self.end_file_reach[i] + "',"
+            else:
+                var1 += "'" + self.end_file_reach[i] + ".txt',"
         var1 = var1[:-1] + "]"
         self.send_log.emit(var1)
         var2 = 'py    var2 = ['
         for i in range(0, len(self.end_file_reach)):
-            var2 += "'" + self.name_file_allreach[i] + "',"
+            if '.txt' in self.name_file_allreach[i]:
+                var2 += "'" + self.name_file_allreach[i] + "',"
+            else:
+                var2 += "'" + self.name_file_allreach[i] + ".txt',"
         var2 = var2[:-1] + "]"
         self.send_log.emit(var2)
         self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
         self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
         self.send_log.emit("py    mystathab.load_stathab_from_txt('listriv', var1, var2, dir_name)")
-        self.send_log.emit("py    self.mystathab.create_hdf5()")
-        self.send_log.emit("py    self.mystathab.save_xml_stathab()")
+        self.send_log.emit("py    mystathab.create_hdf5()")
+        self.send_log.emit("py    mystathab.save_xml_stathab()")
 
     def select_hdf5(self):
         """
@@ -820,9 +826,9 @@ class StathabW(estimhab_GUI.StatModUseful):
         sys.stdout = sys.__stdout__
         self.send_err_log()
 
-        self.send_log.emit("py    path_bio = '" + self.path_bio_stathab + "'")
+        self.send_log.emit("py    path_bio2 = os.path.join(os.path.dirname(path_bio),'" + self.path_bio_stathab + "')")
         if self.riverint == 0:
-            self.send_log.emit("py    mystathab.stathab_calc(path_bio)")
+            self.send_log.emit("py    mystathab.stathab_calc(path_bio2)")
         self.send_log.emit("py    mystathab.savetxt_stathab()")
         self.send_log.emit("py    mystathab.path_im = '.'")
         self.send_log.emit("py    mystathab.savefig_stahab()")

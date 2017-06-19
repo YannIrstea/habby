@@ -52,7 +52,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     # load the hec-ra data (the function is just below)
     [coord_pro, vh_pro, nb_pro_reach] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
                                                     save_fig1d, fig_opt)
-
+    # manager error
     if save_fig1d:  # to avoid problem with matplotlib
         close()
     if coord_pro == [-99] or len(vh_pro) <1:
@@ -67,6 +67,16 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     # create the grid
     [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \
         = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
+
+    # manage error
+    if ikle_all_t == [-99]:
+        print('Error: HEC-RAS data could not be tranfred to the grid. \n')
+        if q:
+            sys.stdout = sys.__stdout__
+            q.put(mystdout)
+            return
+        else:
+            return
 
     # save the hdf5 file
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
