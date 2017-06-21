@@ -498,14 +498,15 @@ def load_sub_txt(filename, path, code_type):
     ygrid = xy[:, 1]
     ikle = vor.regions
     ikle = [var for var in ikle if var]  # erase empy element
+
     # because Qhul from Vornoi has strange results
     # it create element with a value -1. this is not the last point!
     # so we take out all element with -1
     ikle = [var for var in ikle if len(var) == len([i for i in var if i>0])]
     # in addition it creates cells which are areally far away for the center
     ind_bad = []
-    maxxy = [max(x), max(y)]
-    minxy = [min(x), min(y)]
+    maxxy = [max(x) *2, max(y)*2]
+    minxy = [min(x) /2, min(y) /2]
     i = 0
     for xyi in xy:
         if xyi[0] > maxxy[0] or xyi[1] >maxxy[1]:
@@ -514,9 +515,31 @@ def load_sub_txt(filename, path, code_type):
             ind_bad.append(i)
         i+=1
     ikle = [var for var in ikle if len(var) == len([i for i in var if i not in ind_bad])]
-    #voronoi_plot_2d(vor) # figure to debug
-    #plt.show()
+
+    # we only want triangle but voronoi might do polygon
+    xy_new = list(xy)
+    ikle_new = []
+    for c in ikle:
+        if len(c) > 3:
+            c_center = (1 / len(c)) * sum(xy[c])
+            xy_new.append(c_center)
+            for ind in range(0, len(c) - 1):
+                ikle_new.append([len(xy_new) - 1, c[ind], c[ind + 1]])
+            ikle_new.append([len(xy_new) - 1, c[ind + 1], c[0]])
+        else:
+            ikle_new.append(c)
+    xy = np.array(xy_new)
+    xgrid = xy[:, 0]
+    ygrid = xy[:, 1]
+    ikle = ikle_new
+
+    # voronoi_plot_2d(vor) # figure to debug
+    # plt.show()
+
     # find one sub data by triangle ?
+    if len(ikle) == 0:
+        print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
+        return failload
     sub_dom2 = np.zeros(len(ikle),)
     sub_pg2 = np.zeros(len(ikle), )
     for e in range(0, len(ikle)):

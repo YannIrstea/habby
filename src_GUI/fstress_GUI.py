@@ -646,12 +646,11 @@ class FstressW(estimhab_GUI.StatModUseful):
                 self.send_log.emit(str_found[i])
         self.send_log.emit(self.tr('# Run: FStress'))
         strhydro = np.array_repr(np.array(self.qhw))
-        strhydro = strhydro[5:-1]
+        strhydro = strhydro[6:-1]
         self.send_log.emit("py    data = " + strhydro)
         strhydro2 = np.array_repr(np.array(self.qrange))
-        strhydro2 = strhydro2[5:-1]
+        strhydro2 = strhydro2[6:-1]
         self.send_log.emit("py    qrange =" + strhydro2)
-        self.send_log.emit("py    path1='" + self.path_bio + "'")
         fish_list_str = "py    fish_list = ["
         for i in range(0, len(fish_list)):
             fish_list_str += "'" + fish_list[i] + "',"
@@ -662,7 +661,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             riv_name_str += "'" + self.riv_name[i] + "',"
         riv_name_str= riv_name_str[:-1] + ']'
         self.send_log.emit(riv_name_str)
-        self.send_log.emit("py    [pref_inver, all_inv_name] = fstress.read_pref('/biology', 'pref_fstress.txt')")
+        self.send_log.emit("py    [pref_inver, all_inv_name] = fstress.read_pref(path_bio, 'pref_fstress.txt')")
         self.send_log.emit("py    [vh, qmod, inv_select] = fstress.run_fstress(data, qrange, riv_name, fish_list, "
                            "pref_inver, all_inv_name, name_prj, path_prj)")
         self.send_log.emit("py    fstress.figure_fstress(qmod, vh, inv_select,'.', riv_name)")

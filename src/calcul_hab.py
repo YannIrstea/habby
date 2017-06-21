@@ -48,7 +48,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-        #mystdout = ''
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
 
     a = time.time()
     # calcuation habitat
@@ -107,7 +108,14 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     # figure
     # 2d figure
-    timestep = list(fig_opt['time_step'])
+    timestep = fig_opt['time_step']
+    timestep = timestep.split(',')
+    print(timestep)
+    try:
+        timestep = list(map(int, timestep))
+    except ValueError:
+        print('Error: Time step was not recognized. \n')
+        return
     save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep)
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)

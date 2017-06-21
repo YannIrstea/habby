@@ -1360,9 +1360,11 @@ class Mascaret(SubHydroW):
         if manning_float:
             self.send_log.emit("py    manning1 = " + str(self.manning_text.text()))  # to be corrected to include text result
         else:
+            self.manning_arr = np.array(self.manning_arr)
             blob = np.array2string(self.manning_arr, separator=',', )
             blob = blob.replace('\n', '')
             self.send_log.emit("py    manning1 = np.array(" + blob + ')')
+
         self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
         self.send_log.emit("py    mascaret.load_mascaret_and_create_grid('Hydro_mascaret_log', path_prj, name_prj, "
                            "path_prj, 'mascaret', files, paths, interp, manning1, np_point_vel, False, pro_add, "
@@ -1867,7 +1869,7 @@ class Rubar1D(SubHydroW):
             self.send_log.emit("py    manning1 = np.array(" + blob + ')')
         self.send_log.emit("py    np_point_vel = " + str(self.np_point_vel))
         self.send_log.emit("py    rubar.load_rubar1d_and_create_grid('Hydro_rubar1d_log', path_prj, name_prj, path_prj,"
-                           " 'RUBAR1D',files, paths, interp,manning_array, np_point_vel,'.', False, pro_add)\n")
+                           " 'RUBAR1D',files, paths, interp,manning1, np_point_vel, False, pro_add, [])\n")
         self.send_log.emit("restart LOAD_RUBAR_1D")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
         self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
@@ -2569,7 +2571,7 @@ class SubstrateW(SubHydroW):
             except ValueError:
                 self.send_log.emit('The substrate data should be between 1 and 8')
                 return
-            if not 0 <data_sub<9:
+            if not 0 < data_sub <9:
                 self.send_log.emit('The substrate data should be between 1 and 8')
             self.name_hdf5 = self.hname2.text()
             path_hdf5 = self.find_path_hdf5()
@@ -2588,9 +2590,6 @@ class SubstrateW(SubHydroW):
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
-
-
-
         else:
             # save path and name substrate
             self.save_xml(0)
@@ -2616,7 +2615,7 @@ class SubstrateW(SubHydroW):
                     return
 
                 # load substrate
-                #sys.stdout = self.mystdout = StringIO()
+                sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0],
                                                                                   self.pathfile[0], code_type)
                 # we have a case where two dominant substrate are "equally" dominant
@@ -2659,7 +2658,8 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("py    file1='" + self.namefile[0] + "'")
                 self.send_log.emit("py    path1='" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
-                self.send_log.emit("py    [coord_p, ikle_sub, sub_info] = substrate.load_sub_shp(file1, path1, type)\n")
+                self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
+                                   "(file1, path1, type)\n")
                 self.send_log.emit("restart LOAD_SUB_SHP")
                 self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
                 self.send_log.emit("restart    code_type: " + code_type)
@@ -2671,10 +2671,10 @@ class SubstrateW(SubHydroW):
             elif ext == '.txt' or ext == ".asc":
 
                 # load
-                sys.stdout = self.mystdout = StringIO()
+                #sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, x, y, sub1, sub2] = \
                     substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type)
-                sys.stdout = sys.__stdout__
+                #sys.stdout = sys.__stdout__
                 self.send_err_log()
 
                 if self.ikle_sub == [-99]:
@@ -2693,13 +2693,13 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("py    path1=r'" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
                 self.send_log.emit(
-                    "py    [coord_pt, ikle_subt, sub_infot, x, y, sub] = substrate.load_sub_txt(file1, path1,"
-                    " code_type)\n")
+                    "py    [coord_pt, ikle_subt, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg] = substrate.load_sub_txt("
+                    "file1, path1, type)\n")
                 self.send_log.emit("restart LOAD_SUB_TXT")
                 self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
                 self.send_log.emit("restart    code_type: " + code_type)
 
-                if self.cb.isChecked():
+                if self.cb2.isChecked():
                     substrate.fig_substrate(self.coord_p, self.ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
             # case unknown
             else:
@@ -2831,21 +2831,21 @@ class SubstrateW(SubHydroW):
         # functions if ind is zero also
         self.send_log.emit("py    file_hyd=r'" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
         self.send_log.emit("py    name_sub=r'" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
-        self.send_log.emit("py    path_sub=r'" + self.sub_name[self.drop_sub.currentIndex() - 1] + "'")
+        self.send_log.emit("py    path_sub=r'" + path_hdf5 + "'")
         if len(self.e3.text()) > 0:
             self.send_log.emit("py    defval=" + self.e3.text())
         else:
             self.send_log.emit("py    defval=-99")
-        self.send_log.emit("py    [ikle, coord_p, sub_data, vel, height] = mesh_grid2.merge_grid_hydro_sub(file_hyd,"
-                           " name_sub, path_sub, defval)\n")
+        self.send_log.emit("py    mesh_grid2.merge_grid_and_save(file_hyd,name_sub, path_sub, defval, name_prj, "
+                           "path_prj, 'SUBSTRATE', [], True) \n")
         self.send_log.emit("restart MERGE_GRID_SUB")
         self.send_log.emit("restart    file_hyd: " + self.hyd_name[self.drop_hyd.currentIndex()-1])
-        self.send_log.emit("restart    file_sub: " + os.path.join(self.path_prj, self.sub_name[self.drop_sub.currentIndex()-1]))
+        self.send_log.emit("restart    file_sub: " + os.path.join(self.path_prj,
+                                                                  self.sub_name[self.drop_sub.currentIndex()-1]))
         if  len(self.e3.text()) > 0:
             self.send_log.emit("restart    defval: " + self.e3.text())
         else:
             self.send_log.emit("restart    defval: -99")
-
 
 if __name__ == '__main__':
     pass

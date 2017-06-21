@@ -163,7 +163,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
         height2 = []
 
         if len(ikle_all[t]) > 0:
-            print('Timestep: ' + str(t))
+            # print('Timestep: ' + str(t))
             for r in range(0, len(ikle_all[t])):
                 point_before = np.array(point_all[t][r])
                 ikle_before = np.array(ikle_all[t][r])
@@ -185,15 +185,15 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                     break
 
                 # find intersection betweeen hydrology and substrate
-                a = time.time()
+                # a = time.time()
                 [ikle_sub, coord_p_sub, data_sub_pg,  data_sub_dom, data_crossing, sub_cell] = \
                     find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg, data_sub_dom)
 
-                b = time.time()
-                print('time crossing')
-                print(b - a)
+                # b = time.time()
+                # print('time crossing')
+                # print(b - a)
 
-                print('found all crossing')
+                # print('found all crossing')
 
                 # if no intersection found
                 if len(data_crossing[0]) < 1:
@@ -218,8 +218,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                                       ikle_sub, default_data, data_crossing, sub_cell)
                 c = time.time()
 
-                print('TIME NEW GRID')
-                print(c - b)
+                # print('TIME NEW GRID')
+                # print(c - b)
                 ikle_all2.append(np.array(ikle_here))
                 point_all2.append(np.array(point_all_here))
                 data_sub2_pg.append(new_data_sub_pg)

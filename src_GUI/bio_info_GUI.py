@@ -435,7 +435,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the name of the merged file
         path_hdf5 = self.find_path_hdf5_est()
         ind = self.m_all.currentIndex()
-        hdf5_file = self.hdf5_merge[ind]
+        if len(self.hdf5_merge) > 0:
+            hdf5_file = self.hdf5_merge[ind]
+        else:
+            self.runhab.setDisabled(False)
+            self.send_log.emit('Error: No merged hydraulic files available \n')
+            return
 
         # get the path where to save the different outputs (function in estimhab_GUI.py)
         path_txt = self.find_path_text_est()
@@ -468,8 +473,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
         self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
         self.send_log.emit("py    type=" + str(run_choice))
+        self.send_log.emit("py    name_fish1 = ['"+ "', '".join(name_fish) + "']")
+        self.send_log.emit("py    name_fish2 = ['" + "', '".join(name_fish_sh) + "']")
         self.send_log.emit(
-            "py    vh_all_t_sp = calcul_hab.calc_hab(file1, path1 ,pref_list, stages, path_bio, type)")
+            "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_list, stages, name_fish1, name_fish2, type, "
+            "path_bio, path_prj, path_prj, path_prj, [], True, [])")
         self.send_log.emit("restart CALCULATE_HAB")
         self.send_log.emit("restart    file1: " + hdf5_file)
         self.send_log.emit("restart    list of preference file: [" + "', '".join(pref_list) + ']')
