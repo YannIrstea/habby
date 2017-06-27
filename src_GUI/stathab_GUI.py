@@ -495,12 +495,14 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit('Error: Could not load stathab data.\n')
             return
         var1 = 'py    var1 = ['
-        for i in range(0, len(self.end_file_reach)):
-            if '.txt' in self.end_file_reach[i]:
-                var1 += "'" + self.end_file_reach[i] + "',"
-            elif self.riverint == 0:
-                var1 += "'" + self.end_file_reach[i] + ".txt',"
-            else:
+        if self.riverint == 0:
+            for i in range(0, len(self.end_file_reach)):
+                if '.txt' in self.end_file_reach[i]:
+                    var1 += "'" + self.end_file_reach[i] + "',"
+                else:
+                    var1 += "'" + self.end_file_reach[i] + ".txt',"
+        else:
+            for i in range(0, len(self.end_file_reach_trop)):
                 var1 += "'" + self.end_file_reach_trop[i] + ".csv',"
         var1 = var1[:-1] + "]"
         self.send_log.emit(var1)
@@ -509,13 +511,15 @@ class StathabW(estimhab_GUI.StatModUseful):
             for i in range(0, len(self.end_file_reach)):
                 if '.txt' in self.name_file_allreach[i]:
                     var2 += "'" + self.name_file_allreach[i] + "',"
-                var2 += "'" + self.name_file_allreach[i] + ".txt',"
-                var2 = var2[:-1] + "]"
+                else:
+                    var2 += "'" + self.name_file_allreach[i] + ".txt',"
+            var2 = var2[:-1] + "]"
         else:
             var2 = 'py    var2 = []'
         self.send_log.emit(var2)
         self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
         self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
+        self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
         self.send_log.emit("py    mystathab.load_stathab_from_txt('listriv', var1, var2, dir_name)")
         self.send_log.emit("py    mystathab.create_hdf5()")
         self.send_log.emit("py    mystathab.save_xml_stathab()")
@@ -837,12 +841,15 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit("py    mystathab.stathab_calc(path_bio2)")
         elif self.riverint == 1:
             self.send_log.emit("py    by_vol = " + str(by_vol))
+            self.send_log.emit('py    mystathab.fish_chosen = ' + "['"+ "', '".join(self.mystathab.fish_chosen) + "']")
             self.send_log.emit("py    mystathab.stathab_trop_univ(path_bio2, by_vol)")
         elif self.riverint == 2:
+            self.send_log.emit('py    mystathab.fish_chosen = ' + "['" + "', '".join(self.mystathab.fish_chosen) + "']")
             self.send_log.emit("py    mystathab.stathab_trop_biv(path_bio2)")
-        self.send_log.emit("py    mystathab.savetxt_stathab()")
+        if self.riverint == 0:
+            self.send_log.emit("py    mystathab.savetxt_stathab()")
         self.send_log.emit("py    mystathab.path_im = '.'")
-        self.send_log.emit("py    mystathab.savefig_stahab()")
+        self.send_log.emit("py    mystathab.savefig_stahab(False)")
         self.send_log.emit("restart RUN_STATHAB")
         self.send_log.emit("restart    folder: " + self.dir_name)
         self.send_log.emit("restart    river type: " + str(self.riverint))
