@@ -300,9 +300,9 @@ class MainWindows(QMainWindow):
         savi = QAction(self.tr("Clear Images and h5 Files"), self)
         savi.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
         savi.triggered.connect(self.erase_pict)
-        showim = QAction(self.tr("Show Images"), self)
-        showim.setStatusTip(self.tr('Open the window to view the created figures.'))
-        showim.triggered.connect(self.central_widget.showfig2)
+        #showim = QAction(self.tr("Show Images"), self)
+        #showim.setStatusTip(self.tr('Open the window to view the created figures.'))
+        #showim.triggered.connect(self.central_widget.showfig2)
         closeim = QAction(self.tr("Close All Images"), self)
         closeim.setStatusTip(self.tr('Close the figures which are currently created.'))
         closeim.triggered.connect(self.central_widget.closefig)
@@ -360,7 +360,7 @@ class MainWindows(QMainWindow):
         log_all.addAction(logn)
         log_all.addAction(logy)
         im_all = fileMenu4.addMenu(self.tr('Image options'))
-        im_all.addAction(showim)
+        #im_all.addAction(showim)
         im_all.addAction(savi)
         im_all.addAction(closeim)
         im_all.addAction(optim)
@@ -1192,7 +1192,7 @@ class MainWindows(QMainWindow):
             if child is None:
                 path_im = os.path.join(self.path_prj, 'figures')
             else:
-                path_im = child.text
+                path_im = os.path.join(self.path_prj, child.text)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
@@ -1955,7 +1955,7 @@ class EmptyTab(QWidget):
 class ShowImageW(QWidget):
     """
     The widget which shows the saved images. Used only to show all the saved figure together iwhtout zoom or other
-    options.
+    options. Not really used anymore in HABBY but it still there as it can be useful in the future.
 
     **Technical comments**
 

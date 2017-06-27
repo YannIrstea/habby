@@ -498,17 +498,21 @@ class StathabW(estimhab_GUI.StatModUseful):
         for i in range(0, len(self.end_file_reach)):
             if '.txt' in self.end_file_reach[i]:
                 var1 += "'" + self.end_file_reach[i] + "',"
-            else:
+            elif self.riverint == 0:
                 var1 += "'" + self.end_file_reach[i] + ".txt',"
+            else:
+                var1 += "'" + self.end_file_reach_trop[i] + ".csv',"
         var1 = var1[:-1] + "]"
         self.send_log.emit(var1)
-        var2 = 'py    var2 = ['
-        for i in range(0, len(self.end_file_reach)):
-            if '.txt' in self.name_file_allreach[i]:
-                var2 += "'" + self.name_file_allreach[i] + "',"
-            else:
+        if self.riverint == 0:
+            var2 = 'py    var2 = ['
+            for i in range(0, len(self.end_file_reach)):
+                if '.txt' in self.name_file_allreach[i]:
+                    var2 += "'" + self.name_file_allreach[i] + "',"
                 var2 += "'" + self.name_file_allreach[i] + ".txt',"
-        var2 = var2[:-1] + "]"
+                var2 = var2[:-1] + "]"
+        else:
+            var2 = 'py    var2 = []'
         self.send_log.emit(var2)
         self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
         self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
@@ -773,6 +777,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # get the chosen fish
         self.mystathab.fish_chosen = []
         fish_list = []
+        by_vol = True
         if self.list_s.count() == 0:
             self.send_log.emit('Error: no fish chosen')
             return
@@ -790,7 +795,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # run stathab for tropical rivers
         elif self.riverint == 1:
             sys.stdout = self.mystdout = StringIO()
-            self.mystathab.stathab_trop_univ(self.path_bio_stathab, True)
+            self.mystathab.stathab_trop_univ(self.path_bio_stathab, by_vol)
             sys.stdout = sys.__stdout__
             self.send_err_log()
         elif self.riverint == 2:
@@ -827,14 +832,20 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.send_err_log()
 
         self.send_log.emit("py    path_bio2 = os.path.join(os.path.dirname(path_bio),'" + self.path_bio_stathab + "')")
+        # mystathab created before
         if self.riverint == 0:
             self.send_log.emit("py    mystathab.stathab_calc(path_bio2)")
+        elif self.riverint == 1:
+            self.send_log.emit("py    by_vol = " + str(by_vol))
+            self.send_log.emit("py    mystathab.stathab_trop_univ(path_bio2, by_vol)")
+        elif self.riverint == 2:
+            self.send_log.emit("py    mystathab.stathab_trop_biv(path_bio2)")
         self.send_log.emit("py    mystathab.savetxt_stathab()")
         self.send_log.emit("py    mystathab.path_im = '.'")
         self.send_log.emit("py    mystathab.savefig_stahab()")
-        if self.riverint == 0:
-            self.send_log.emit("restart    RUN_STATHAB_AND_SAVE_RESULTS")
-            self.send_log.emit("restart    folder: " + self.dir_name)
+        self.send_log.emit("restart RUN_STATHAB")
+        self.send_log.emit("restart    folder: " + self.dir_name)
+        self.send_log.emit("restart    river type: " + str(self.riverint))
 
 
 if __name__ == '__main__':

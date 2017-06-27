@@ -106,7 +106,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35], [1, 1]])
 
     # special cases and checks
-    if len(ikle_all) == 1 and ikle_all[0][0][0][0] == [-99]:
+    if len(ikle_all) == 1 and ikle_all[0] == [-99]:
         print('Error: hydrological data could not be loaded.')
         return failload
     elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
@@ -199,9 +199,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                 if len(data_crossing[0]) < 1:
                     print('Warning: No intersection between the grid and the substrate for one reach.\n')
                     try:
-                        sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)  # check if ok for float
+                        sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
                     except ValueError:
-                        print('Error: no float in substrate. (only float accepted fro now)')
+                        print('Error: no float in substrate. (only float accepted for now).\n')
                         return failload
                     data_sub2_pg.append(sub_data_here)
                     data_sub2_dom.append(sub_data_here)
@@ -209,28 +209,28 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                     height2.append(height_before)
                     ikle_all2.append(ikle_before)
                     point_all2.append(point_before)
-                    break  # next time step
+                else:
 
-                # create the new grid based on intersection found
-                b = time.time()
-                [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
-                    create_merge_grid(ikle_before, point_before, data_sub_pg, data_sub_dom, vel_before, height_before,
-                                      ikle_sub, default_data, data_crossing, sub_cell)
-                c = time.time()
+                    # create the new grid based on intersection found
+                    b = time.time()
+                    [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
+                        create_merge_grid(ikle_before, point_before, data_sub_pg, data_sub_dom, vel_before, height_before,
+                                          ikle_sub, default_data, data_crossing, sub_cell)
+                    c = time.time()
 
-                # print('TIME NEW GRID')
-                # print(c - b)
-                ikle_all2.append(np.array(ikle_here))
-                point_all2.append(np.array(point_all_here))
-                data_sub2_pg.append(new_data_sub_pg)
-                data_sub2_dom.append(new_data_sub_dom)
-                vel2.append(vel_new)
-                height2.append(height_new)
+                    # print('TIME NEW GRID')
+                    # print(c - b)
+                    ikle_all2.append(np.array(ikle_here))
+                    point_all2.append(np.array(point_all_here))
+                    data_sub2_pg.append(new_data_sub_pg)
+                    data_sub2_dom.append(new_data_sub_dom)
+                    vel2.append(vel_new)
+                    height2.append(height_new)
 
-                # print('Time to find the intersection point')
-                # print(b-a)
-                # print('Time to find the merge grid')
-                # print(c-b)
+                    # print('Time to find the intersection point')
+                    # print(b-a)
+                    # print('Time to find the merge grid')
+                    # print(c-b)
 
         ikle_both.append(ikle_all2)
         point_all_both.append(point_all2)

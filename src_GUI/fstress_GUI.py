@@ -463,8 +463,6 @@ class FstressW(estimhab_GUI.StatModUseful):
                     self.list_f.setCurrentItem(item)
                     self.add_fish()
 
-
-
     def load_data_fstress(self, rind):
         """
         This function loads the data for fstress and add it to the variable self.qrange and self.qhw for the river
@@ -665,7 +663,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.send_log.emit("py    [vh, qmod, inv_select] = fstress.run_fstress(data, qrange, riv_name, fish_list, "
                            "pref_inver, all_inv_name, name_prj, path_prj)")
         self.send_log.emit("py    fstress.figure_fstress(qmod, vh, inv_select,'.', riv_name)")
-        self.send_log.emit("restart FStress")
+        self.send_log.emit("restart RUN_FSTRESS")
+        self.send_log.emit("restart    path_fstress: " + self.path_fstress)
 
 if __name__ == '__main__':
     pass

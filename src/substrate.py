@@ -418,11 +418,13 @@ def percentage_to_domcoarse(sub_data, dominant_case):
     len_sub = len(sub_data)
     sub_dom = [0] * len_sub
     sub_pg = [0] * len_sub
+    warn = True
 
     for e in range(0, len_sub):
         record_all_i = sub_data[e]
-        if sum(record_all_i) != 100:
+        if sum(record_all_i) != 100 and warn:
             print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
+            warn = False
         # let find the dominant
         # we cannot use argmax as we need all maximum value, not only the first
         inds = list(np.argwhere(record_all_i == np.max(record_all_i)).flatten())

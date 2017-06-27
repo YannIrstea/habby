@@ -634,7 +634,7 @@ class Stathab:
 
         # get the preference info based on the files known
         code_fish = self.fish_chosen
-        data_pref_all = load_pref_trop_biv(code_fish,path_bio)
+        data_pref_all = load_pref_trop_biv(code_fish, path_bio)
         nb_fish = len(data_pref_all)
         if nb_fish == 0:
             print('Error: No fish found \n')
@@ -1050,7 +1050,7 @@ class Stathab:
             if format == 2 or format > 2:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                         "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
-            fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+            fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
                         dpi=self.fig_opt['resolution'])
             plt.show()
 
@@ -1366,6 +1366,7 @@ def load_pref_trop_uni(code_fish, path):
     :param path: the path to files
     :return: the height data and velcoity data (h, pref) and (v,pref)
     """
+
     datah_all = []
     datav_all = []
 
@@ -1385,7 +1386,6 @@ def load_pref_trop_uni(code_fish, path):
         fv = fh.replace('uni-h','uni-v')
         fileh = os.path.join(path,fh)
         filev = os.path.join(path,fv)
-        print(filev)
 
         # load file
         if not os.path.isfile(fileh) or not os.path.isfile(filev):
@@ -1458,6 +1458,7 @@ def load_namereach(path, name_file_reach='listriv'):
             data = f.read()
     else:
         print('Error:  The file containing the names of the reaches was not found (listriv).\n')
+        print(filename2)
         return [-99]
     if not data:
         print('Error:  The file containing the names of the reaches could not be read (listriv.txt).\n')

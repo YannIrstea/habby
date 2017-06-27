@@ -1184,7 +1184,7 @@ class Mascaret(SubHydroW):
         self.attributexml = ['gen_data', 'geodata_mas', 'resdata_mas', 'manning_mas']
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
         self.pathfile = ['.', '.', '.', '.']
-        self.model_type = 'mascaret'
+        self.model_type = 'MASCARET'
         self.extension = [['.xcas'], ['.geo'], ['.opt', '.rub']]
         self.nb_dim = 1
 
@@ -2372,10 +2372,14 @@ class HabbyHdf5(SubHydroW):
 
         # copy the file and update the attribute
         path_hdf5 = self.find_path_hdf5()
+        path_input = self.find_path_input()
         if os.path.isdir(path_hdf5):
             new_name = 'COPY_' + os.path.basename(fname_h5)
             pathnewname = os.path.join(path_hdf5, new_name)
             shutil.copyfile(fname_h5, pathnewname)
+            # necessary for the restart function
+            pathnewname2 = os.path.join(path_input, new_name)
+            shutil.copyfile(fname_h5, pathnewname2)
         else:
             self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
             return
@@ -2411,7 +2415,7 @@ class HabbyHdf5(SubHydroW):
         self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
         self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
         self.send_log.emit('restart LOAD_HYDRO_HDF5')
-        self.send_log.emit('restart    file hdf5: ' + fname_h5)
+        self.send_log.emit('restart    file hdf5: ' + pathnewname2)
         self.drop_hydro.emit()
 
 

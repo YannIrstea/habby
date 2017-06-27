@@ -125,8 +125,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge=False):
             try:
                 gen_dataset = file_hydro[name_ik]
             except KeyError:
-                print(
-                    'Error: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
+                print('Error: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
                 return failload
             try:
                 ikle_whole = list(gen_dataset.values())[0]

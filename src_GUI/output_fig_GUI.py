@@ -48,7 +48,7 @@ class outputW(QWidget):
         self.fig7l = QLabel(self.tr('Grid'), self)
         self.fig8l = QLabel(self.tr('Time step [for all time steps: -99]'))
         self.fig9l = QLabel(self.tr('Plot raw loaded data'))
-        self.fig10l = QLabel(self.tr('Format'))
+        self.fig10l = QLabel(self.tr('Figure Format'))
         self.fig11l = QLabel(self.tr('Resolution [dpi]'))
 
         # then fill the size
@@ -96,7 +96,8 @@ class outputW(QWidget):
             self.fig9a.setChecked(False)
             self.fig9b.setChecked(True)
         self.fig10 = QComboBox()
-        self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf'])  # DO NOT change order here 0,1,2,3 aew used afterward
+        # DO NOT change order here 0,1,2,3 aew used afterward
+        self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not saved figures')])
         self.fig10.setCurrentIndex(int(fig_dict['format']))
         self.fig11 = QLineEdit(str(fig_dict['resolution']))
 

@@ -105,11 +105,11 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
                                       vel_c_all_t, name_fish)
     d = time.time()
 
-
     # figure
     # 2d figure
     timestep = fig_opt['time_step']
-    timestep = timestep.split(',')
+    if not isinstance(timestep, (list, tuple)):
+        timestep = timestep.split(',')
     print(timestep)
     try:
         timestep = list(map(int, timestep))
@@ -761,7 +761,11 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
         rt = 0
 
         for t in time_step:
-            ikle_t = ikle_all_t[t]
+            try:
+                ikle_t = ikle_all_t[t]
+            except IndexError:
+                print('Error: Figure not created. Number of time step was not coherent with hydrological info. \n')
+                return
             point_t = point_all_t[t]
             if t > len(vh_all_t):
                 vh_t = vh_all_t[t]
