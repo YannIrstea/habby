@@ -41,7 +41,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # stage have to be the first attribute !
         self.attribute_acc = ['Stage', 'French_common_name','English_common_name', 'Code_ONEMA', 'Code_Sandre',
                               'LatinName', 'CdBiologicalModel']
-        self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate'), self.tr('By Percentage')]
+        self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate'), self.tr('By Percentage'),
+                               self.tr('Neglect Substrate')]
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
         #self.name_database = 'pref_bio.db'
         self.timer = QTimer()

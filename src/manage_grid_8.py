@@ -578,7 +578,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     # plt.axis('equal')
     # plt.show()
 
-    print('triangulation')
+    #print('triangulation')
     for r in range(0, len(nb_pro_reach)-1):
         # do the triangulation
         # perfomance note: Obviously sending only the point_all from this reach would save time
@@ -621,13 +621,17 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         # get the centroid of the grid elements
         point_here = np.array(point_all_reach[r])
         # reshape allows for a quicker selection
-        ikle_here = np.reshape(ikle_all[r], (len(ikle_all[r])*3, 1))
-        p1s = point_here[ikle_here[::3]]
-        p2s = point_here[ikle_here[1::3]]
-        p3s = point_here[ikle_here[2::3]]
-        point_c = (p1s + p2s + p3s) / 3
-        point_c = np.squeeze(np.array(point_c))  # why squeeze?
-        point_c_all.append(point_c)
+        try:
+            ikle_here = np.reshape(ikle_all[r], (len(ikle_all[r])*3, 1))
+            p1s = point_here[ikle_here[::3]]
+            p2s = point_here[ikle_here[1::3]]
+            p3s = point_here[ikle_here[2::3]]
+            point_c = (p1s + p2s + p3s) / 3
+            point_c = np.squeeze(np.array(point_c))  # why squeeze?
+            point_c_all.append(point_c)
+        except TypeError:
+            print('Warning: Could not calculate centroid on one reach.\n')
+            point_c_all.append([])
 
     if q:
         q.put(point_all_reach)
@@ -677,6 +681,7 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
     inter_per_all = []
     all_point_midx = []
     all_point_midy = []
+    coord_pro_old = coord_pro
     if vh_pro_t:
         coord_pro = update_coord_pro_with_vh_pro(coord_pro, vh_pro_t)
     # double the first and the last profile (useful to gind "midlle
@@ -828,10 +833,12 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     """
 
     p_not_found = []
+    pc = []
+    pc0 = []
     inter = False
-    far = 1e5 * abs(coord_pro_p[0][-1] - coord_pro_p[0][0])
+    far = 1e2 * abs(coord_pro_p[0][-1] - coord_pro_p[0][0])
     if far == 0:
-        far = 1e5
+        far = 1e2
     warn_inter = False
 
     # elongate midlle profile
@@ -857,6 +864,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         nx = ny = 1
 
     # add the cells and points to point_all and ikle
+    mi = 0
     for s0 in range(1, len(coord_pro_p[0])):
 
         # find which part of the middle profile to use
@@ -866,18 +874,23 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         ybefore = coord_pro_p[1][s0] + ny * dir *far
         p1hyd = [xbefore, ybefore]
         p2hyd = [xafter, yafter]
-        m0 = 0  # x coord
-        for m in range(m0, len(point_mid_x)-1):  # to be optimized
-            if max(point_mid_x[m], point_mid_x[m+1]) >= min(p1hyd[0], p2hyd[0]) \
-                    and max(point_mid_y[m], point_mid_y[m+1]) >= min(p1hyd[1], p2hyd[1]):
-                p1 = [point_mid_x[m], point_mid_y[m]]
-                p2 = [point_mid_x[m+1], point_mid_y[m+1]]
+        if mi > 3:  # to optimize
+            mi -= 2
+        for m in range(0, len(point_mid_x)-1):  # to be optimized
+            if max(point_mid_x[mi], point_mid_x[mi+1]) >= min(p1hyd[0], p2hyd[0]) \
+                    and max(point_mid_y[mi], point_mid_y[mi+1]) >= min(p1hyd[1], p2hyd[1]):
+                p1 = [point_mid_x[mi], point_mid_y[mi]]
+                p2 = [point_mid_x[mi+1], point_mid_y[mi+1]]
                 [inter, pc] = intersection_seg(p1hyd, p2hyd, p1, p2, False)  # do not change this to True (or check)
                 if inter:
-                    m0 = m
                     break
+            mi += 1
+            if mi > len(point_mid_x) - 2:
+                mi = 0
+
         if not inter:
-            print('Error: Point not found')
+            pass
+            #print('Warning: Point not found')
             # plt.figure()
             # plt.plot()
             # plt.plot(p1hyd[0], p1hyd[1], 'xb')
@@ -904,15 +917,24 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
                     if inter:
                         break
             if not inter:
-                print('Error: Point not found')
-            point_all.append([pc0[0][0], pc0[0][1]])
+                pass
+                #print('Warning: Point not found')
+            try:
+                point_all.append([pc0[0][0], pc0[0][1]])
+            except IndexError:
+                print('Warning: one cell is erased. (1) \n')
+                point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
         point_all.append([coord_pro_p[0][s0], coord_pro_p[1][s0]])
-        point_all.append([pc[0][0], pc[0][1]])
+        try:
+            point_all.append([pc[0][0], pc[0][1]])
+        except IndexError:
+            print('Warning: one cell is erased. (2) \n')
+            point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
         # add the two new cells to ikle and point_c
         if vh_pro_t_p:
             if vh_pro_t_p[1][s0] >= 0:
-                if vh_pro_t_p[1][s0] >0 or h0ok:
+                if (vh_pro_t_p[1][s0] >0 and vh_pro_t_p[1][s0-1] > 0) or h0ok: #
                     l = len(point_all) - 1
                     if s0 == 1:
                         ikle.append([l, l - 3, l - 2])
@@ -1542,38 +1564,44 @@ def interpo_linear(point_all, coord_pro, vh_pro_t):
     inter_height_all = []
     for r in range(0, len(point_all)):  # reaches
         point_p = point_all[r]
-        # velocity
-        x = []
-        y = []
-        values = []
-        for p in range(0, len(coord_pro)):
-            coord_pro_p = coord_pro[p]
-            x.extend(coord_pro_p[0])
-            y.extend(coord_pro_p[1])
-            values.extend(vh_pro_t[p][2])
-        xy = np.array([x, y]).T
-        values = np.array(values)
-        inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='linear')
-        # sometime value like -1e17 is added because of the maching precision, we do no want this
-        inter_vel[np.isnan(inter_vel)] = 0
-        inter_vel[inter_vel < 0] = 0
+        if point_p is not None:
+            # velocity
+            x = []
+            y = []
+            values = []
+            for p in range(0, len(coord_pro)):
+                coord_pro_p = coord_pro[p]
+                x.extend(coord_pro_p[0])
+                y.extend(coord_pro_p[1])
+                values.extend(vh_pro_t[p][2])
+            xy = np.array([x, y]).T
+            values = np.array(values)
+            inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='linear')
+            # sometime value like -1e17 is added because of the machine precision, we do no want this
+            inter_vel[np.isnan(inter_vel)] = 0
+            inter_vel[inter_vel < 0] = 0
+        else:
+            inter_vel = []
         inter_vel_all.append(inter_vel)
 
         # height
-        x = []
-        y = []
-        values = []
-        for p in range(0, len(coord_pro)):
-            coord_pro_p = coord_pro[p]
-            x.extend(coord_pro_p[0])
-            y.extend(coord_pro_p[1])
-            values.extend(vh_pro_t[p][1])  # height here
-        xy = np.array([x, y]).T
-        values = np.array(values)
-        inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
-        # sometime value like -1e17 is added because of the maching precision, we do no want this
-        inter_height[np.isnan(inter_height)] = 0
-        inter_height[inter_height < 0] = 0
+        if point_p is not None:
+            x = []
+            y = []
+            values = []
+            for p in range(0, len(coord_pro)):
+                coord_pro_p = coord_pro[p]
+                x.extend(coord_pro_p[0])
+                y.extend(coord_pro_p[1])
+                values.extend(vh_pro_t[p][1])  # height here
+            xy = np.array([x, y]).T
+            values = np.array(values)
+            inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
+            # sometime value like -1e17 is added because of the machine precision, we do no want this
+            inter_height[np.isnan(inter_height)] = 0
+            inter_height[inter_height < 0] = 0
+        else:
+            inter_height = []
         inter_height_all.append(inter_height)
 
     return inter_vel_all, inter_height_all
@@ -1596,38 +1624,44 @@ def interpo_nearest(point_all, coord_pro, vh_pro_t):
     inter_height_all = []
     for r in range(0, len(point_all)):  # reaches
         point_p = point_all[r]
-        # velocity
-        x = []
-        y = []
-        values = []
-        for p in range(0, len(coord_pro)):
-            coord_pro_p = coord_pro[p]
-            x.extend(coord_pro_p[0])
-            y.extend(coord_pro_p[1])
-            values.extend(vh_pro_t[p][2])  # velocity
-        xy = np.array([x, y]).T
-        values = np.array(values)
-        inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
-        # sometime value like -1e17 is added because of the maching precision, we do no want this
-        inter_vel[np.isnan(inter_vel)] = 0
-        inter_vel[inter_vel < 0] = 0
+        if point_p is not None:
+            # velocity
+            x = []
+            y = []
+            values = []
+            for p in range(0, len(coord_pro)):
+                coord_pro_p = coord_pro[p]
+                x.extend(coord_pro_p[0])
+                y.extend(coord_pro_p[1])
+                values.extend(vh_pro_t[p][2])  # velocity
+            xy = np.array([x, y]).T
+            values = np.array(values)
+            inter_vel = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
+            # sometime value like -1e17 is added because of the maching precision, we do no want this
+            inter_vel[np.isnan(inter_vel)] = 0
+            inter_vel[inter_vel < 0] = 0
+        else:
+            inter_vel = []
         inter_vel_all.append(inter_vel)
 
         # height
-        x = []
-        y = []
-        values = []
-        for p in range(0, len(coord_pro)):
-            coord_pro_p = coord_pro[p]
-            x.extend(coord_pro_p[0])
-            y.extend(coord_pro_p[1])
-            values.extend(vh_pro_t[p][1])  # height here
-        xy = np.array([x, y]).T
-        values = np.array(values)
-        inter_height = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
-        # sometime value like -1e17 is added because of the maching precision, we do no want this
-        inter_height[np.isnan(inter_height)] = 0
-        inter_height[inter_height < 0] = 0
+        if point_p is not None:
+            x = []
+            y = []
+            values = []
+            for p in range(0, len(coord_pro)):
+                coord_pro_p = coord_pro[p]
+                x.extend(coord_pro_p[0])
+                y.extend(coord_pro_p[1])
+                values.extend(vh_pro_t[p][1])  # height here
+            xy = np.array([x, y]).T
+            values = np.array(values)
+            inter_height = scipy.interpolate.griddata(xy, values, point_p, method='nearest')
+            # sometime value like -1e17 is added because of the maching precision, we do no want this
+            inter_height[np.isnan(inter_height)] = 0
+            inter_height[inter_height < 0] = 0
+        else:
+            inter_height = []
         inter_height_all.append(inter_height)
 
     return inter_vel_all, inter_height_all
@@ -1773,9 +1807,9 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
     ny = -(x2-x1) / norm
 
     # !!! test!!!
-    norm = np.sqrt((x1all[0]-x1)**2+(y1all[0]-y1)**2)
-    nx = (x1all[0] - x1)/norm
-    ny = (y1all[0] - y1) / norm
+    # norm = np.sqrt((x1all[0]-x1)**2+(y1all[0]-y1)**2)
+    # nx = (x1all[0] - x1)/norm
+    # ny = (y1all[0] - y1) / norm
 
     # project points from both profil perpendiculary on the line
     # from https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line

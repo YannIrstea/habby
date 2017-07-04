@@ -209,6 +209,10 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
                     [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, sub_per,
                                       pref_vel, pref_height, pref_sub, True)
+                elif opt == 3:
+                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
+                        calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
+                                      pref_vel, pref_height, pref_sub, False, False)
                 else:
                     print('Error: the calculation method is not found. \n')
                     return failload
@@ -225,7 +229,8 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp
 
 
-def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub, percent=False):
+def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub, percent=False,
+                  take_sub =True):
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
     all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
@@ -239,12 +244,14 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
     :param pref_sub: the preference index for the substrate  (for one life stage)
     :param pref_height: the preference index for the height  (for one life stage)
     :param percent: If True, the variable sub is in percent form, not in the form dominant/coarser
+    :param take_sub: If False, the substrate data is neglected.
     :return: vh of one life stage, area, habitat value
 
     """
 
     if len(height) != len(vel) or len(height) != len(sub):
         return [-99],[-99], [-99], [-99], [-99]
+    s_pref_c = 1
 
     vh_all_t = [[]] # time step 0 is whole profile, no data
     spu_all_t = [[]]
@@ -278,58 +285,70 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 p = np.array(point_t[r])
 
                 if len(ikle) == 0:
-                    print('Error: The connectivity table was not well-formed (1) \n')
-                    return [-99], [-99], [-99], [-99], [-99]
-                if len(ikle[0]) < 3:
-                    print('Error: The connectivity table was not well-formed (2) \n')
-                    return  [-99],[-99], [-99], [-99], [-99]
-
-                # get data by cells
-                v1 = v[ikle[:, 0]]
-                v2 = v[ikle[:, 1]]
-                v3 = v[ikle[:, 2]]
-                v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-
-                h1 = h[ikle[:, 0]]
-                h2 = h[ikle[:, 1]]
-                h3 = h[ikle[:, 2]]
-                h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
-
-                # get area (based on Heron's formula)
-                p1 = p[ikle[:, 0], :]
-                p2 = p[ikle[:, 1], :]
-                p3 = p[ikle[:, 2], :]
-
-                d1 = np.sqrt((p2[:, 0] - p1[:, 0])**2 + (p2[:, 1] - p1[:, 1])**2)
-                d2 = np.sqrt((p3[:, 0] - p2[:, 0])**2 + (p3[:, 1] - p2[:, 1])**2)
-                d3 = np.sqrt((p3[:, 0] - p1[:, 0])**2 + (p3[:, 1] - p1[:, 1])**2)
-                s2 = (d1 + d2 + d3)/2
-                area = s2 * (s2-d1) * (s2-d2) * (s2-d3)
-                area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-                area = area**0.5
-                area_reach = np.sum(area)
-                # get pref value
-                h_pref_c = find_pref_value(h_cell, pref_height)
-                v_pref_c = find_pref_value(v_cell, pref_vel)
-                if percent:
-                    for st in range(0, 8):
-                        s0 = s[:, st]
-                        sthere = np.zeros((len(s0),)) + st+1
-                        s_pref_st = find_pref_value(sthere, pref_sub)
-                        if st == 0:
-                            s_pref_c = s_pref_st *s0/100
-                        else:
-                            s_pref_c += s0/100*s_pref_st
-                else:
-                    s_pref_c = find_pref_value(s, pref_sub)
-
-                try:
-                    vh = h_pref_c * v_pref_c * s_pref_c
-                    vh = np.round(vh, 7)  # necessary for  shapefile, do not get above 8 digits of precision
-                except ValueError:
-                    print('Error: One time step misses substrate, velocity or water height value \n')
+                    print('Warning: The connectivity table was not well-formed for one reach (1) \n')
                     vh = [-99]
-                spu_reach = np.sum(vh*area)
+                    v_cell = [-99]
+                    h_cell = [-99]
+                    area_reach = [-99]
+                    spu_reach = -99
+                elif len(ikle[0]) < 3:
+                    print('Warning: The connectivity table was not well-formed for one reach (2) \n')
+                    vh = [-99]
+                    v_cell = [-99]
+                    h_cell = [-99]
+                    area_reach = [-99]
+                    spu_reach = -99
+                else:
+
+                    # get data by cells
+                    v1 = v[ikle[:, 0]]
+                    v2 = v[ikle[:, 1]]
+                    v3 = v[ikle[:, 2]]
+                    v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+
+                    h1 = h[ikle[:, 0]]
+                    h2 = h[ikle[:, 1]]
+                    h3 = h[ikle[:, 2]]
+                    h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+
+                    # get area (based on Heron's formula)
+                    p1 = p[ikle[:, 0], :]
+                    p2 = p[ikle[:, 1], :]
+                    p3 = p[ikle[:, 2], :]
+
+                    d1 = np.sqrt((p2[:, 0] - p1[:, 0])**2 + (p2[:, 1] - p1[:, 1])**2)
+                    d2 = np.sqrt((p3[:, 0] - p2[:, 0])**2 + (p3[:, 1] - p2[:, 1])**2)
+                    d3 = np.sqrt((p3[:, 0] - p1[:, 0])**2 + (p3[:, 1] - p1[:, 1])**2)
+                    s2 = (d1 + d2 + d3)/2
+                    area = s2 * (s2-d1) * (s2-d2) * (s2-d3)
+                    area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+                    area = area**0.5
+                    area_reach = np.sum(area)
+                    # get pref value
+                    h_pref_c = find_pref_value(h_cell, pref_height)
+                    v_pref_c = find_pref_value(v_cell, pref_vel)
+                    if percent:
+                        for st in range(0, 8):
+                            s0 = s[:, st]
+                            sthere = np.zeros((len(s0),)) + st+1
+                            s_pref_st = find_pref_value(sthere, pref_sub)
+                            if st == 0:
+                                s_pref_c = s_pref_st *s0/100
+                            else:
+                                s_pref_c += s0/100*s_pref_st
+                    else:
+                        s_pref_c = find_pref_value(s, pref_sub)
+
+                    try:
+                        if take_sub:
+                            vh = h_pref_c * v_pref_c * s_pref_c
+                        else:
+                            vh = h_pref_c * v_pref_c
+                        vh = np.round(vh, 7)  # necessary for  shapefile, do not get above 8 digits of precision
+                    except ValueError:
+                        print('Error: One time step misses substrate, velocity or water height value \n')
+                        vh = [-99]
+                    spu_reach = np.sum(vh*area)
 
                 vh_all.append(list(vh))
                 vel_c.append(v_cell)
@@ -645,40 +664,45 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     # one time step - bar
     if len(area_all) == 1 or len(area_all) == 2:
         for r in range(0, nb_reach):
-            # SPU
-            data_bar = []
-            for s in range(0, len(name_fish)):
-                data_bar.append(spu_all[s][1][r])
-            y_pos = np.arange(len(spu_all))
-            fig = plt.figure()
-            fig.add_subplot(211)
-            if data_bar:
-                data_bar2 = np.array(data_bar)
-                plt.bar(y_pos, data_bar2, 0.5)
-                plt.xticks(y_pos+0.25, name_fish)
-            plt.ylabel('WUA [m^2]')
-            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-            plt.title('Weighted Usable Area for the Reach ' + str(r))
-            # VH
-            fig.add_subplot(212)
-            if data_bar:
-                data_bar2 = np.array(data_bar)
-                plt.bar(y_pos, data_bar2/area_all[-1], 0.5)
-                plt.xticks(y_pos + 0.25, name_fish)
-            plt.ylabel('HV (WUA/A) []')
-            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-            plt.title('Habitat value for the Reach ' + str(r))
-            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            plt.tight_layout()
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name +'.png'), dpi=fig_opt['resolution'])
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
+            if len(spu_all[0][r])>0:
+                # SPU
+                data_bar = []
+                for s in range(0, len(name_fish)):
+                    data_bar.append(spu_all[s][1][r])
+                y_pos = np.arange(len(spu_all))
+                fig = plt.figure()
+                fig.add_subplot(211)
+                if data_bar:
+                    data_bar2 = np.array(data_bar)
+                    plt.bar(y_pos, data_bar2, 0.5)
+                    plt.xticks(y_pos+0.25, name_fish)
+                plt.ylabel('WUA [m^2]')
+                plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+                plt.title('Weighted Usable Area for the Reach ' + str(r))
+                # VH
+                fig.add_subplot(212)
+                if data_bar:
+                    data_bar2 = np.array(data_bar)
+                    plt.bar(y_pos, data_bar2/area_all[-1], 0.5)
+                    plt.xticks(y_pos + 0.25, name_fish)
+                plt.ylabel('HV (WUA/A) []')
+                plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+                plt.title('Habitat value for the Reach ' + str(r))
+                name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                plt.tight_layout()
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, name +'.png'), dpi=fig_opt['resolution'])
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
 
     # many time step - lines
     elif len(area_all) > 2:
+        sum_data_spu = np.zeros((len(spu_all), len(area_all)))
+        sum_data_spu_div = np.zeros((len(spu_all), len(area_all)))
+
+
         data_plot = []
         for r in range(0, nb_reach):
             # SPU
@@ -690,7 +714,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 for t in range(0, len(area_all)):
                     if spu_all[s][t]:
                         data_plot.append(spu_all[s][t][r])
+                        sum_data_spu[s][t] += spu_all[s][t][r]
                         t_all.append(t)
+                t_all_s = t_all
                 plt.plot(t_all,data_plot, label=name_fish[s])
             plt.xlabel('Time step [ ]')
             plt.ylabel('WUA [m^2]')
@@ -703,7 +729,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 t_all = []
                 for t in range(0, len(area_all)):
                     if spu_all[s][t]:
-                        data_plot.append(spu_all[s][t][r]/area_all[t][r])
+                        data_here = spu_all[s][t][r]/area_all[t][r]
+                        data_plot.append(data_here)
+                        sum_data_spu_div[s][t] += data_here
                         t_all.append(t)
                 plt.plot(t_all, data_plot, label=name_fish[s])
             plt.xlabel('Time step [ ]')
@@ -713,6 +741,34 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.legend()
             plt.tight_layout()
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'])
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
+
+        # all reach
+        if nb_reach > 1:
+            fig = plt.figure()
+            fig.add_subplot(211)
+            for s in range(0, len(spu_all)):
+                plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s])
+            plt.xlabel('Time step [ ]')
+            plt.ylabel('WUA [m^2]')
+            plt.title('Weighted Usable Area for the all Reaches')
+            plt.legend()
+            # VH
+            fig.add_subplot(212)
+            for s in range(0, len(spu_all)):
+                 plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s])
+            plt.xlabel('Time step [ ]')
+            plt.ylabel('HV (WUA/A) []')
+            plt.title('Habitat value for all Reaches')
+            plt.ylim(ymin=-0.02)
+            plt.legend()
+            plt.tight_layout()
+            name = 'WUA_' + name_base + 'All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'])
             if format1 == 0 or format1 == 3:

@@ -775,7 +775,7 @@ def open_sdffile(sdf_file, reach_name, path):
     nb_sim_str = re.findall(exp_reg6, data_sdf, re.DOTALL)
 
     if not nb_sim_str:
-        print("Warning: the number of profiles is not found in the .sdf file.\n")
+        print("Warning: the number of simulations is not found in the .sdf file.\n")
         return [-99], [-99], '-99', -99
     try:
         nb_sim = int(float(nb_sim_str[0]))
@@ -1045,7 +1045,7 @@ def pass_in_float_from_geo(data_str, len_number):
             data_profile_x = data_i[0::2]  # choose every 2 float
             data_profile_z = data_i[1::2]
             xz = np.column_stack((data_profile_x, data_profile_z))  # or xy
-            print("Warning: Two coordinates were not separated by space. HYP: Number of digit is 8 or 16.\n")
+            # print("Warning: Two coordinates were not separated by space. HYP: Number of digit is 8 or 16.\n")
         except ValueError:
             print("Error: Data are not number.\n")
     return xz
@@ -1264,7 +1264,7 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                     new_x = x_p[i]
                 else:
                     print('Error: x-coordinates are not increasing.\n')
-                    return [-99], [-99]
+                    return [-99], [-99], [-99]
                 h_p = np.concatenate((h_p[:i + 1], [0], h_p[i + 1:]))
                 x_p = np.concatenate((x_p[:i + 1], [new_x], x_p[i + 1:]))
                 zero_crossings += 1
@@ -1277,11 +1277,12 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
             zone_v_pro = zone_v[t][p]
             zone_v_new = np.zeros((len(h_p),))
             for i in range(0, len(h_p)):
-                if x_p[1] >= x_p[0]: # if coord increase along the profile (usually the case)
+                # if coord increase along the profile (usually the case)
+                if x_p[1] >= x_p[0] or abs(x_p[0] - x_p[1]) < 1e-10:
                     indv = bisect.bisect(zone_v_pro[:, 2], x_p[i]) - 1
                 else:
                     print('Error x-coordinate does not increase. \n')
-                    return [-99], [-99]
+                    return [-99], [-99], [-99]
                 #indv = np.argmin(abs(zone_v_pro[:, 2] - x_p[i]))
                 zone_v_new[i] = zone_v_pro[indv, 3]
             # velcoity is zeros if water height = 0, velocity is by zone and not by point

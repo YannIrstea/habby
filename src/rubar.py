@@ -507,12 +507,13 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
     :return: the list wihtout duplicate and the boolean which helps manage the warnings
     """
 
-    def find_point(seqf, result2, c2):
+    def find_point(seqf, result2, c2, add_l):
         """
         A sub function to find the update (x,y) coordinate bsed on the modification the disntance along the porfile
         :param seqf: the orginal data
         :param result2: the updated distance
         :param c2: where we are
+        :param add_l: the added distance from the last point
         :return:
         """
 
@@ -524,13 +525,17 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
             if result2[c2] > 0:
                 # as a direction for the new point use the general direction of the profil
                 # stright line from beginnning of the profil to point c2
-                nx = (seqf[0, c2] - seqf[0, 0]) * (1 / (result2[c2] - result2[0]))
-                ny = (seqf[1, c2] - seqf[1, 0]) * (1 / (result2[c2] - result2[0]))
+                nx = (seqf[0, c2] - seqf[0, 0]) / (result2[c2] - result2[0])
+                ny = (seqf[1, c2] - seqf[1, 0]) / (result2[c2] - result2[0])
             else:
                 # special case, chosen arbitrarily
                 nx = ny = 1
-            xf = seqf[0, c2] + nx * (result2[c2] - result2[c2 - 1])
-            yf = seqf[1, c2] + ny * (result2[c2] - result2[c2 - 1])
+            if nx == 0 or (result2[c2] - result2[c2 - 1]) == 0:
+                xf = seqf[0, c2] + 0.01 * c/10
+                yf = seqf[1, c2] + 0.01 * c/10
+            else:
+                xf = seqf[0, c2] + nx * add_l
+                yf = seqf[1, c2] + ny * add_l
 
         return xf, yf
 
@@ -550,21 +555,23 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
     for item in seq:
         marker = idfun(item)
         if marker in seen:
+            add_l = 0.01 * c / le
             if item > 0:
-                result.append(item + 0.01 * c / le)  # moving the duplicate a bit further to correct for it
-                [x,y] = find_point(seq3D, result, c)
+                result.append(item + add_l)  # moving the duplicate a bit further to correct for it
+                [x,y] = find_point(seq3D, result, c, add_l)
                 resultx.append(x)
                 resulty.append(y)
             elif item < 0:
-                result.append(item - 0.01 * c / le)
-                [x, y] = find_point(seq3D, result, c)
+                result.append(item - add_l)
+                [x, y] = find_point(seq3D, result, c, add_l)
                 resultx.append(x)
                 resulty.append(y)
             else:
-                result.append(0.01 * c / le)
-                [x, y] = find_point(seq3D, result, c)
+                result.append(add_l)
+                [x, y] = find_point(seq3D, result, c, add_l)
                 resultx.append(x)
                 resulty.append(y)
+
             if send_warn:
                  print('Warning: Vertical profile. One or more profiles were modified. \n')
                  send_warn = False

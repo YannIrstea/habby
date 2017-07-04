@@ -10,11 +10,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLa
 import h5py
 np.set_printoptions(threshold=np.inf)
 from multiprocessing import Process, Queue
-import time
-try:
-    import xml.etree.cElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET
+# import time
 from src import Hec_ras06
 from src import hec_ras2D
 from src import selafin_habby1
@@ -27,6 +23,11 @@ from src import load_hdf5
 from src_GUI import output_fig_GUI
 from src import mesh_grid2
 from src import lammi
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+
 
 class Hydro2W(QWidget):
     """
@@ -76,10 +77,11 @@ class Hydro2W(QWidget):
 
         super().__init__()
         self.mod = QComboBox()
-        #self.mod_loaded = QComboBox()
+        # self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20", "TELEMAC", "HABBY HDF5"]  # "MAGE"
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20",
+                           "TELEMAC", "HABBY HDF5"]  # "MAGE"
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -207,12 +209,12 @@ class SubHydroW(QWidget):
     SubHydroW is class which is the parent of the classes which can be used to open the hydrological models. This class
     is a bit special. It is not called directly by HABBY but by the classes which load the hydrological data and which
     inherits from this class. The advantage of this architecture is that all the children classes can use the methods
-    written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and can use
-    similar functions.
+    written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and
+    can use similar functions.
 
-    In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the widget for the
-    hydrological Tab and one class by hydrological model to really load the model. The latter classes have various
-    methods in common, so they inherit from SubHydroW, this class.
+    In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the
+    widget for the hydrological Tab and one class by hydrological model to really load the model. The latter classes
+    have various methods in common, so they inherit from SubHydroW, this class.
     """
 
     send_log = pyqtSignal(str, name='send_log')
@@ -582,12 +584,16 @@ class SubHydroW(QWidget):
 
         return data
 
-    def send_err_log(self):
+    def send_err_log(self, check_ok=False):
         """
         This function sends the errors and the warnings to the logs.
         The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
         to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
+
+        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
         """
+        error = False
+
         max_send = 100
         if self.mystdout is not None:
             str_found = self.mystdout.getvalue()
@@ -599,6 +605,10 @@ class SubHydroW(QWidget):
                 self.send_log.emit(str_found[i])
             if i == max_send-1:
                 self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+            if 'Error' in str_found[i] and check_ok:
+                error = True
+        if check_ok:
+            return error
 
     def load_manning_text(self):
         """
@@ -691,7 +701,7 @@ class SubHydroW(QWidget):
             # manage error
             self.timer.stop()
             self.mystdout = self.q.get()
-            self.send_err_log()
+            error = self.send_err_log(True)
 
             # enable to loading of another model
             self.load_b.setDisabled(False)
@@ -709,7 +719,7 @@ class SubHydroW(QWidget):
                     name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
                 sys.stdout = sys.__stdout__
                 self.send_err_log()
-                if name_hdf5:
+                if name_hdf5 and not error:
                     # load data
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
                                                                                                         path_hdf5)
@@ -775,8 +785,9 @@ class HEC_RAS1D(SubHydroW):
     """
    The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
    src/hec_ras06.py which loads the hec-ras data in 1D. The class HEC_RAS1D inherits from SubHydroW() so it have all
-   the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
-   the user is on the hydrological tab and click on hec-ras1D as hydrological model.
+   the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W().
+   So the class Hec-Ras 1D is called when the user is on the hydrological tab and click on hec-ras1D as hydrological
+   model.
     """
 
     def __init__(self, path_prj, name_prj):
@@ -812,7 +823,7 @@ class HEC_RAS1D(SubHydroW):
         self.attributexml = ['geodata', 'resdata']
         self.model_type = 'HECRAS1D'
         self.extension = [['.g01', '.g02', '.g03', '.g04','.g05 ', '.g06', '.g07', '.g08',
-                            '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
+                           '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
         self.nb_dim = 1.5
 
         # if there is the project file with hecras geo info, update the label and attibutes
@@ -834,7 +845,7 @@ class HEC_RAS1D(SubHydroW):
         self.geo_b.clicked.connect(self.propose_next_file)
 
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (.xml, .sdf, or .res file)', self)
+        self.out_b = QPushButton('Choose file \n (.xml, .sdf, or .rep file)', self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))

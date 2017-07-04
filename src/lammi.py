@@ -953,9 +953,9 @@ def main():
     # open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
     #                            'Transect.txt', 'Facies.txt', True)
 
-    filename_habby = r'D:\Diane_work\dummy_folder\LammiTest\text_output\spu_Merge_LAMMI_15_06_2017_at_09_55_47.txt'
-    #filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
-    filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\FacTRF.txt'
+    filename_habby = r'D:\Diane_work\dummy_folder\projre\text_output\spu_Merge_LAMMI_30_06_2017_at_11_03_31.txt'
+    filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
+    #filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\FacTRF.txt'
     filename_sur = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\SurfMouilFac.txt'
     compare_lammi(filename_habby, filename_lammi, filename_sur)
 
