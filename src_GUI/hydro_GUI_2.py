@@ -92,12 +92,10 @@ class Hydro2W(QWidget):
         Used in the initialization by __init__()
         """
         # generic label
-        #self.l1 = QLabel(self.tr('blob'))
         l2 = QLabel(self.tr('<b> LOAD NEW DATA </b>'))
         l3 = QLabel(self.tr('<b>Available hydrological models </b>'))
 
         # available model
-        #self.mod_loaded.addItems([""])
         self.mod.addItems(self.name_model)
         self.mod.currentIndexChanged.connect(self.selectionchange)
         self.button1 = QPushButton(self.tr('?'), self)

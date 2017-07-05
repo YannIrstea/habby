@@ -431,12 +431,20 @@ Various notes
 
 
 
-The legend of the plots are not shown.
+Figures and matplotlib
 ----------------------------------------
+
+**The legend of the plots are not shown.**
+
 Generally HABBY is able to save the figure while showing the legend (which is often outside of the figure) appropriately. However, 
 the figure shown to the user by matplotlib often have the legend outside of the visible area. To see the figure fully, one can modify
 the axes in the option of the figure (the menu in the axes on the top of the figure).
 
+
+**How to make figures editable in Adobe Illustrator**
+
+It is useful to have figures which we can edit in Adobe Illustrator. To achieve this, the following matplotlib option should be added:
+mpl.rcParams['ps.fonttype'] = 42. Moreover, matplolib should be imported (import matplotlib as mpl). It is also useful to add the tranparent option to the function to save the figure (transparent=True). This renders modification easier in many cases.
 
 
 Translation of HABBY

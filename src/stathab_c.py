@@ -982,6 +982,9 @@ class Stathab:
         plt.rcParams['axes.grid'] = self.fig_opt['grid']
         mpl.rcParams['ps.fonttype'] = 42  # So it is editable in Abobe Illustrator
         mpl.rcParams['pdf.fonttype'] = 42
+        if self.fig_opt['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = self.fig_opt['font_size'] - 2
+        #plt.rcParams['legend.loc'] = 'best'
 
         for r in range(0, len(self.name_reach)):
 
@@ -1043,7 +1046,7 @@ class Stathab:
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
             plt.title('Suitability index J')
-            lgd = plt.legend(bbox_to_anchor=(1.2, 1), loc='upper right', ncol=1, borderaxespad=0.)
+            lgd = plt.legend(fancybox=True, framealpha=0.5)
             if format == 0 or format == 1:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                         "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png')

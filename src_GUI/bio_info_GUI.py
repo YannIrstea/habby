@@ -426,6 +426,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                         name_fish.append(self.data_fish[j][4])
                     elif int(fig_dict['fish_name_type']) == 3:  # code onema
                         name_fish.append(self.data_fish[j][5])
+                    else:
+                        name_fish.append(self.data_fish[j][5])
                     name_fish_sh.append(self.data_fish[j][5][:3]+self.data_fish[j][1][:3])
                     name_fish_sel += fish_item.text() + ','
 

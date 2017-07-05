@@ -149,8 +149,11 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         plt.rcParams['lines.linewidth'] = fig_opt['line_width']
         format = int(fig_opt['format'])
         plt.rcParams['axes.grid'] = fig_opt['grid']
+        if fig_opt['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+        plt.rcParams['legend.loc'] = 'best'
 
-        plt.legend(fish_name)
+        plt.legend(fish_name, fancybox=True, framealpha=0.5)
         # saving with date and time
         name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 

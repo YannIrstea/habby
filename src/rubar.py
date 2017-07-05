@@ -617,6 +617,9 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['ps.fonttype'] = 42  # to make it editable in for Adobe Illustrator
     mpl.rcParams['pdf.fonttype'] = 42
+    if fig_opt['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
 
     # profiles in xy view
     riv_mid = np.zeros((len(coord_pro), 3))
@@ -665,7 +668,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
                 plt.plot(x, cote, '-k')
                 plt.xlabel('Distance along the river [m]')
                 plt.ylabel('Elevation [m]')
-                plt.legend(('water surface', 'river bottom'))
+                plt.legend(('water surface', 'river bottom'), fancybox=True, framealpha=0.5)
                 ax1 = plt.subplot(212)
                 plt.plot(x, v_t, '-r')
                 plt.xlabel('Distance along the river [m]')

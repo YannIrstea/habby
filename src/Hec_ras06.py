@@ -1367,6 +1367,9 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
+    if fig_opt['font_size'] > 7:
+        rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    rcParams['legend.loc'] = 'best'
 
     #close()
 
@@ -1426,7 +1429,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
             title("Profile " + str(i))
         else:
             title("Profile " + name_profile[i])
-        legend(("Profile", "Water surface"))
+        legend(("Profile", "Water surface"), fancybox=True, framealpha=0.5)
         xlim([np.min(xz[:, 0]-1)*0.95, np.max(xz[:, 0])*1.05])
         m += 1
         if format == 0 or format == 1:
@@ -1475,8 +1478,8 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     xlabel("x []")
     ylabel("y []")
     title("Position of the profiles")
-    axis('equal') # if right angle are needed
-    legend(bbox_to_anchor=(1.1, 1), prop={'size':10})
+    axis('equal')  # if right angle are needed
+    legend(fancybox=True, framealpha=0.5)
     if format == 0 or format == 1:
         savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"),
                 dpi=fig_opt['resolution'], transparent=True)

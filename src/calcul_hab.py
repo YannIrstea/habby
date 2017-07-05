@@ -645,6 +645,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         fig_opt = output_fig_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
+    if fig_opt['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
@@ -705,7 +708,6 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         sum_data_spu = np.zeros((len(spu_all), len(area_all)))
         sum_data_spu_div = np.zeros((len(spu_all), len(area_all)))
 
-
         data_plot = []
         for r in range(0, nb_reach):
             # SPU
@@ -724,9 +726,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.xlabel('Time step [ ]')
             plt.ylabel('WUA [m^2]')
             plt.title('Weighted Usable Area for the Reach ' + str(r))
-            plt.legend()
+            plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
             # VH
-            fig.add_subplot(212)
+            ax = fig.add_subplot(212)
             for s in range(0, len(spu_all)):
                 data_plot = []
                 t_all = []
@@ -741,15 +743,14 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.ylabel('HV (WUA/A) []')
             plt.title('Habitat value for the Reach ' + str(r))
             plt.ylim(ymin=-0.02)
-            plt.legend()
             plt.tight_layout()
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'],transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'],transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'],transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
         # all reach
         if nb_reach > 1:
@@ -760,7 +761,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.xlabel('Time step [ ]')
             plt.ylabel('WUA [m^2]')
             plt.title('Weighted Usable Area for the all Reaches')
-            plt.legend()
+            plt.legend(fancybox=True, framealpha=0.5)
             # VH
             fig.add_subplot(212)
             for s in range(0, len(spu_all)):
@@ -769,7 +770,6 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.ylabel('HV (WUA/A) []')
             plt.title('Habitat value for all Reaches')
             plt.ylim(ymin=-0.02)
-            plt.legend()
             plt.tight_layout()
             name = 'WUA_' + name_base + 'All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:

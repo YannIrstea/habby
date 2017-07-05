@@ -853,6 +853,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     """
     mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
+    plt.rcParams['legend.loc'] = 'best'
 
     # load data from habby
     data_habby = np.loadtxt(filename_habby, skiprows=2)
@@ -925,7 +926,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
             plt.plot(q_lammi[reach_lammi == r+1], spu_lammi[reach_lammi == r+1], 'g')
             #plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r]/area_habby[reach_habby == r], 'b')
             #plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
-            plt.legend(('habby', 'lammi'))
+            plt.legend(('habby', 'lammi'), fancybox=True, framealpha=0.5)
             plt.xlabel('discharge [m^3/sec]')
             plt.ylabel('SPU')
             plt.title('Comparaison lammi-habby for the facies '+str(r+1))
@@ -937,7 +938,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
             plt.figure()
             plt.plot(q_lammi[reach_lammi == r + 1], area_habby[reach_habby == r], 'b')
             plt.plot(q_lammi[reach_lammi == r + 1], area_lammi[reach_lammi == r + 1], 'g')
-            plt.legend(('habby', 'lammi'))
+            plt.legend(('habby', 'lammi'), fancybox=True, framealpha=0.5)
             plt.xlabel('discharge [m^3/sec]')
             plt.ylabel('Area')
             plt.title('Comparaison lammi-habby for the facies ' + str(r + 1))
