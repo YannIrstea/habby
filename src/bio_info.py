@@ -2,6 +2,7 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import sqlite3
 from src import load_hdf5
 try:
@@ -666,6 +667,9 @@ def plot_hydrosignature(xmlfile):
         return
 
     data = data.reshape((len(vclass)-1, len(hclass)-1))
+
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     plt.figure()
     plt.imshow(data, extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()], cmap='Blues',

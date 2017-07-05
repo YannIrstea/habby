@@ -9,6 +9,7 @@ import sys
 import time
 from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
     show, subplot, fill_between, rcParams, savefig, close, rcParams,suptitle
+import matplotlib as mpl
 from src import manage_grid_8
 from src import load_hdf5
 from src_GUI import output_fig_GUI
@@ -1364,6 +1365,9 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
+
     #close()
 
     # choose the simulation to plot
@@ -1435,7 +1439,6 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
             savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.jpg'), dpi=fig_opt['resolution'])
 
-
     # plot the profile in the (x,y) plane
     fig2 = figure(len(pro))
     txt_pro = "Profile position"
@@ -1476,13 +1479,13 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     legend(bbox_to_anchor=(1.1, 1), prop={'size':10})
     if format == 0 or format == 1:
         savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"),
-                dpi=fig_opt['resolution'])
+                dpi=fig_opt['resolution'], transparent=True)
     if format == 0 or format == 3:
         savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".pdf"),
-                dpi=fig_opt['resolution'])
+                dpi=fig_opt['resolution'], transparent=True)
     if format == 2:
         savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                dpi=fig_opt['resolution'])
+                dpi=fig_opt['resolution'], transparent=True)
     show()
 
 

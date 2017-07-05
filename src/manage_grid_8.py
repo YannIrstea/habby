@@ -1,6 +1,7 @@
 import numpy as np
 import triangle
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import time
 import scipy.interpolate
 import scipy.spatial.qhull as qhull
@@ -2127,6 +2128,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
+
     plt.figure()
 
     # the grid
@@ -2176,13 +2180,13 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         suffix = 'Hydro_t_grid' + str(time_step) + '_'
     if format1 == 0 or format1 == 1:
         plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
     if format1 == 0 or format1 == 3:
         plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
     if format1 == 2:
         plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
 
     # plot the interpolated velocity
     bounds = []
@@ -2257,16 +2261,17 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         suffix = 'Hydro_t'+str(time_step) + '_'
     if format1 == 0 or format1 == 1:
         plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
     if format1 == 0 or format1 == 3:
         plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
     if format1 == 2:
         plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
 
 
-def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[], inter_h_all=[], path_im = [], coord_pro2 = []):
+def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[],
+              inter_h_all=[], path_im=[]):
     """
     This is a function to plot a grid and the output. It is mosty used to debug the grid creation. Contrarily to the more
     simple function plot_grid_simple, it is posible to plot the position of the holes (which indicates the dry area),
@@ -2282,6 +2287,9 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     :param inter_h_all: the interpolated height
     :param path_im: the path where to save the image
     """
+
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     # plot only the grid
     plt.figure()
@@ -2342,8 +2350,8 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
     #        plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=2)
     #plt.axis('equal')
     plt.title('Computational Grid')
-    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), transparent=True)
+    plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), transparent=True)
     #plt.close()
     plt.show()
 

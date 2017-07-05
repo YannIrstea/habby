@@ -164,28 +164,34 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
     for i in timestep:
         plt.figure()
         cm = plt.cm.get_cmap('terrain')
-        sc = plt.scatter(coord_p2[:,0], coord_p2[:,1], c=h[i], vmin=np.nanmin(h[i]), vmax=np.nanmax(h[i]), s=6, cmap=cm, edgecolors='none')
+        sc = plt.scatter(coord_p2[:,0], coord_p2[:,1], c=h[i], vmin=np.nanmin(h[i]), vmax=np.nanmax(h[i]), s=6, cmap=cm,
+                         edgecolors='none')
         #sc = plt.tricontourf(coord_p2[:,0], coord_p2[:,1], ikle_all[r], h[i], min=0, max=np.nanmax(h[i]), cmap=cm)
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Telemac data - water height at time step '+str(i))
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Water height [m]')
-        plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-        plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'))
+        plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.pdf'))
         #plt.close()
 
         plt.figure()
         cm = plt.cm.get_cmap('terrain')
-        sc = plt.scatter(coord_p2[:, 0], coord_p2[:, 1], c=v[i], vmin=np.nanmin(v[i]), vmax=np.nanmax(v[i]), s=6, cmap=cm,
+        sc = plt.scatter(coord_p2[:, 0], coord_p2[:, 1], c=v[i], vmin=np.nanmin(v[i]), vmax=np.nanmax(v[i]), s=6,
+                         cmap=cm,
                          edgecolors='none')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Telemac data - velocity at time step '+str(i))
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Velocity [m/s]')
-        plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-        plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.png'))
+        plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                 '.pdf'))
         #plt.close()
     #plt.show()
 

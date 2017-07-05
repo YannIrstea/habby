@@ -929,7 +929,9 @@ def get_new_vel_height_data(newp, point_old, data_old):
 def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, name_add='', ikle_orr=[], point_all_orr=[]):
     """
     A function to plot the grid after it was merged with the substrate data.
-    It plots one time step at the time.
+    It plots one time step at the time. This function is not used anymore by Habby. Indded, mesh_grid2 uses the
+    function provided in manage_grid8.py to plot the grid and data after it is merged with the substrate. However,
+    this function could be useful to debug if one wants to only plots teh grid and not the height/velocity data
 
     :param point_all_both_t: the coordinate of the points of the updated grid
     :param ikle_both_t: the connectivity table

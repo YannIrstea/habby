@@ -14,6 +14,7 @@ except ImportError:
 from src_GUI import output_fig_GUI
 from src_GUI import estimhab_GUI
 from src import load_hdf5
+import matplotlib as mpl
 
 
 class Stathab:
@@ -979,6 +980,8 @@ class Stathab:
         plt.rcParams['lines.linewidth'] = self.fig_opt['line_width']
         format = int(self.fig_opt['format'])
         plt.rcParams['axes.grid'] = self.fig_opt['grid']
+        mpl.rcParams['ps.fonttype'] = 42  # So it is editable in Abobe Illustrator
+        mpl.rcParams['pdf.fonttype'] = 42
 
         for r in range(0, len(self.name_reach)):
 
@@ -1051,7 +1054,7 @@ class Stathab:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                         "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
             fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                        dpi=self.fig_opt['resolution'])
+                        dpi=self.fig_opt['resolution'], transparent=True)
             plt.show()
 
     def savetxt_stathab(self):

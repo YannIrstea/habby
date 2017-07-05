@@ -9,6 +9,7 @@ from src_GUI import output_fig_GUI
 from src import substrate
 from src import manage_grid_8
 from src import load_hdf5
+import matplotlib as mpl
 
 
 def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, name_prj, path_prj, path_hdf5,
@@ -762,6 +763,8 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     formate = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     # time step
     coord_pro = coord_pro[sim_num]
@@ -795,13 +798,13 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         # save
         if formate == 0 or formate == 1:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S" + '.png'), dpi=fig_opt['resolution']))
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S" + '.png'), dpi=fig_opt['resolution']), transparent=True)
         if formate == 0 or formate == 3:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'])
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
         if formate == 2:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") +  '.jpg'), dpi=fig_opt['resolution'])
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # get an (x,y) view of the progile position
     plt.figure(len(pro_num))
@@ -828,13 +831,13 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     plt.legend(by_label.values(), by_label.keys(),bbox_to_anchor=(1.1, 1), prop={'size': 10})
     if formate == 0 or formate == 1:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
     if formate == 0 or formate == 3:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
     if formate == 2:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
 
     # plt.show()
 
@@ -848,6 +851,8 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     :param filename_lammi:  the name and the file of the lammi spu (FaciesTRF.txt)
     :param filename_lammi_sur: the name and the file of the lammi surface
     """
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     # load data from habby
     data_habby = np.loadtxt(filename_habby, skiprows=2)

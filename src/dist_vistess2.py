@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import time
 import bisect
 
@@ -286,6 +287,9 @@ def plot_dist_vit(v_pro, coord_pro, xhzv_data, plot_timestep, pro, name_pro=[], 
     :param xy_h: output from hec-ras used to test dist_vitesse
 
     """
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
+
     # are we here to test the output
     if zone_v_all:
         test_v = True

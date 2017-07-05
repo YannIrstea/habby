@@ -2,6 +2,7 @@ import os
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from src import hec_ras2D
 import time
 from src import manage_grid_8
@@ -263,6 +264,9 @@ def figure_river2d(xyzhv, ikle, path_im, t=0):
     :return:
     """
     plt.rcParams['font.size'] = 10
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
+
     # grid
     [xlist, ylist] = hec_ras2D.prepare_grid(ikle, xyzhv[:, :2])
     fig = plt.figure()

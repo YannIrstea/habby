@@ -11,6 +11,7 @@ from src import manage_grid_8
 import xml.etree.ElementTree as Etree
 from src import dist_vistess2
 from src_GUI import output_fig_GUI
+import matplotlib as mpl
 
 
 def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
@@ -614,6 +615,8 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42  # to make it editable in for Adobe Illustrator
+    mpl.rcParams['pdf.fonttype'] = 42
 
     # profiles in xy view
     riv_mid = np.zeros((len(coord_pro), 3))
@@ -635,13 +638,13 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     # plt.axis('equal') # if right angle are needed
     if format == 0 or format == 1:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=fig_opt['resolution'])
+                                 '.png'), dpi=fig_opt['resolution'], transparent=True)
     if format == 0 or format == 3:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=fig_opt['resolution'])
+                                 '.pdf'), dpi=fig_opt['resolution'], transparent=True)
     if format == 2:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=fig_opt['resolution'])
+                                 '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # plot speeed and height
     warn_reach = True
@@ -669,13 +672,15 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
                 plt.ylabel('Velocity [m/sec]')
                 if format == 0 or format == 1:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
-                                             time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'])
+                                time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'],
+                                transparent=True)
                 if format == 0 or format == 3:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
-                                             time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'])
+                                time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'],
+                                transparent=True)
                 if format == 2:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=fig_opt['resolution'])
+                        "%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
         elif warn_reach:
             print('Warning: Too many reaches to plot them all. Only the ten first reaches plotted. \n')
             warn_reach = False

@@ -13,6 +13,7 @@ import triangle
 from random import randrange
 from src import load_hdf5
 from src_GUI import output_fig_GUI
+import matplotlib as mpl
 
 
 def open_shp(filename, path):
@@ -842,6 +843,8 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     sub_dom = np.array(sub_dom)
     sub_pg = np.array(sub_pg)
@@ -910,13 +913,13 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     cb1.set_label('Code Cemagrfef')
     if format == 0 or format == 1:
         plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=fig_opt['resolution'])
+                                 '.png'), dpi=fig_opt['resolution'], transparent=True)
     if format == 0 or format == 3:
         plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=fig_opt['resolution'])
+                                 '.pdf'), dpi=fig_opt['resolution'], transparent=True)
     if format == 2:
         plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=fig_opt['resolution'])
+                                 '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # substrate dominant
     fig, ax = plt.subplots(1)
@@ -960,13 +963,13 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     # save the figure
     if format == 0 or format == 1:
         plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=fig_opt['resolution'])
+                                 '.png'), dpi=fig_opt['resolution'], transparent=True)
     if format == 0 or format == 3:
         plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=fig_opt['resolution'])
+                                 '.pdf'), dpi=fig_opt['resolution'], transparent=True)
     if format == 2:
         plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=fig_opt['resolution'])
+                                 '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # if we start with txt data, plot the original data
     if xtxt != [-99]:
@@ -985,10 +988,10 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Original Substrate Data (x,y)')
-        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=1000)
-        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=1000)
-        #plt.show()
-        #plt.close()
+        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
+                    fig_opt['resolution'], transparent=True)
+        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
+                    fig_opt['resolution'], transparent=True)
 
     #plt.show()
 

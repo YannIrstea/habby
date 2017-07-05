@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import time
 from src_GUI import output_fig_GUI
+import matplotlib as mpl
 
 
 def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False, fig_opt={}):
@@ -85,6 +86,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
              'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
         plt.figure()
         plt.suptitle("ESTIMHAB - HABBY")
+        mpl.rcParams['ps.fonttype'] = 42
+        mpl.rcParams['pdf.fonttype'] = 42
 
     # get fish data
     VH = []
@@ -161,11 +164,11 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         # save
         np.savetxt(os.path.join(path_im, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header)
         if format == 0 or format ==1:
-            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'])
+            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'], transparent=True)
         if format == 0 or format ==3:
-            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=fig_opt['resolution'])
+            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
         if format == 2:
-            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=fig_opt['resolution'])
+            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
         # plt.show()
 
     return VH, SPU

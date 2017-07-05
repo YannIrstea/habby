@@ -155,6 +155,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.butdel = QPushButton(self.tr("Erase Selection"))
         self.butdel.clicked.connect(self.remove_all_fish)
 
+        # add discharge/ timestep
+        l41 = QLabel(self.tr('Discharge or time step (t1,t2,...)'))
+        self.namet = QLineEdit(self.tr('By Default'))
+        self.butname = QPushButton('Choose file (.txt)')
+
         # fish selected fish
         self.add_sel_fish()
 
@@ -166,31 +171,35 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
 
-        self.layout4.addWidget(l1, 1, 0)
-        self.layout4.addWidget(l2, 1, 1)
-        self.layout4.addWidget(self.list_f, 2, 0, 3, 1)
-        self.layout4.addWidget(self.list_s, 2, 1, 3, 2)
+        self.layout4.addWidget(l41, 1, 0)
+        self.layout4.addWidget(self.namet, 1, 1,1, 2)
+        self.layout4.addWidget(self.butname, 1, 3)
 
-        self.layout4.addWidget(l4, 5, 0)
-        self.layout4.addWidget(l5, 6, 0)
-        self.layout4.addWidget(self.com_name, 6, 1)
-        self.layout4.addWidget(l7, 7, 0)
-        self.layout4.addWidget(self.fish_code,7, 1)
-        self.layout4.addWidget(l8,8,0)
-        self.layout4.addWidget(self.scroll, 8, 1, 3, 2) # in fact self.descr is in self.scoll
-        self.layout4.addWidget(self.pic, 10, 0)
-        self.layout4.addWidget(self.l9, 2, 3)
-        self.layout4.addWidget(self.choice_run, 3, 3)
-        self.layout4.addWidget(self.runhab, 4, 3)
-        self.layout4.addWidget(self.pref_curve, 8, 3)
-        self.layout4.addWidget(self.hs, 9, 3)
-        self.layout4.addWidget(self.butdel, 1, 3)
+        self.layout4.addWidget(l1, 2, 0)
+        self.layout4.addWidget(l2, 2, 1)
+        self.layout4.addWidget(self.list_f, 3, 0, 3, 1)
+        self.layout4.addWidget(self.list_s, 3, 1, 3, 2)
 
-        self.layout4.addWidget(l3, 11, 0)
-        self.layout4.addWidget(self.keys, 12, 0)
-        self.layout4.addWidget(l02,12, 1)
-        self.layout4.addWidget(self.cond1, 12, 2)
-        self.layout4.addWidget(self.bs, 12, 3)
+        self.layout4.addWidget(l4, 6, 0)
+        self.layout4.addWidget(l5, 7, 0)
+        self.layout4.addWidget(self.com_name, 7, 1)
+        self.layout4.addWidget(l7, 8, 0)
+        self.layout4.addWidget(self.fish_code,8, 1)
+        self.layout4.addWidget(l8,9,0)
+        self.layout4.addWidget(self.scroll, 9, 1, 3, 2) # in fact self.descr is in self.scoll
+        self.layout4.addWidget(self.pic, 11, 0)
+        self.layout4.addWidget(self.l9, 3, 3)
+        self.layout4.addWidget(self.choice_run, 4, 3)
+        self.layout4.addWidget(self.runhab, 5, 3)
+        self.layout4.addWidget(self.pref_curve, 9, 3)
+        self.layout4.addWidget(self.hs, 10, 3)
+        self.layout4.addWidget(self.butdel, 2, 3)
+
+        self.layout4.addWidget(l3, 12, 0)
+        self.layout4.addWidget(self.keys, 13, 0)
+        self.layout4.addWidget(l02,13, 1)
+        self.layout4.addWidget(self.cond1, 13, 2)
+        self.layout4.addWidget(self.bs, 13, 3)
 
         # self.layout4.addItem(spacer1, 0, 2)
         # self.layout4.addItem(spacer2, 3, 3)

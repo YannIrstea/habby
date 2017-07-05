@@ -10,6 +10,7 @@ import numpy as np
 from src import stathab_c
 from scipy import stats
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from src_GUI import output_fig_GUI
 
 
@@ -431,6 +432,8 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     i = 0
     for r in name_river:
@@ -456,7 +459,7 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
             name_fig = os.path.join(path_im, 'Fstress_' + r +
                                     "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
         fig.savefig(os.path.join(path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
         i += 1
 
 
@@ -471,6 +474,9 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river,  path_rre):
     :param name_river: the name of the river
     :param path_rre: the path to the C output
     """
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
+
     i = 0
     for r in name_river:
         # get the C data for this river

@@ -13,6 +13,7 @@ from src import manage_grid_8
 from src import load_hdf5
 from src import dist_vistess2
 from src_GUI import output_fig_GUI
+import matplotlib as mpl
 
 
 def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
@@ -1100,6 +1101,8 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     if not coord_pro:
         print('Error: No data available to plot.\n')
@@ -1172,13 +1175,13 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
     plt.legend(bbox_to_anchor=(1.1, 1), prop={'size': 10})
     if format == 1 or format == 0:
         plt.savefig(os.path.join(path_im, "mascaret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                dpi=fig_opt['resolution'])
+                dpi=fig_opt['resolution'], transparent=True)
     if format == 0 or format == 3:
         plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                dpi=fig_opt['resolution'])
+                dpi=fig_opt['resolution'], transparent=True)
     if format == 2:
         plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                    dpi=fig_opt['resolution'])
+                    dpi=fig_opt['resolution'], transparent=True)
     # profiles (h, x) with water levels
     for p in pro:
         plt.figure()
@@ -1201,13 +1204,13 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
         plt.title('Profile ' + name_pro[p] + ' at the time step ' + str(t))
         if format == 1 or format == 0:
             plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=fig_opt['resolution'])
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=fig_opt['resolution'], transparent=True)
         if format == 0 or format == 3:
             plt.savefig(os.path.join(path_im, "masacret_pro_" + str(p) + '_time' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=fig_opt['resolution'])
-        if format ==2:
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+        if format == 2:
             plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time'+
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"), dpi=fig_opt['resolution'])
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
 
 def flat_coord_pro(coord_pro):

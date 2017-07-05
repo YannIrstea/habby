@@ -647,6 +647,8 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42
 
     if len(spu_all) != len(name_fish):
         print('Error: Number of fish name and number of WUA data is not coherent \n')
@@ -691,11 +693,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 plt.tight_layout()
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name +'.png'), dpi=fig_opt['resolution'])
+                    plt.savefig(os.path.join(path_im, name +'.png'), dpi=fig_opt['resolution'],transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'],transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'],transparent=True)
 
     # many time step - lines
     elif len(area_all) > 2:
@@ -742,11 +744,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.tight_layout()
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'],transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'],transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'],transparent=True)
 
         # all reach
         if nb_reach > 1:
@@ -770,11 +772,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.tight_layout()
             name = 'WUA_' + name_base + 'All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
 
 def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1]):
@@ -799,6 +801,8 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42  # to make them editable in Adobe Illustrator
+    mpl.rcParams['pdf.fonttype'] = 42
 
     b= 0
     # get grid data from hdf5
@@ -885,10 +889,10 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
             name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
                        time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'])
+                plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
 
