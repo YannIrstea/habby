@@ -599,8 +599,9 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                 # attribute
                 for n in name_fish_sh:
                     w.field('hsi'+n, 'F', 10, 8)
-                w.field('vel', 'F', 10, 8)
-                w.field('water height', 'F', 10, 8)
+                w.field('velocity', 'F', 10, 8)
+                w.field('water heig', 'F', 10, 8)
+                w.field('elem. flow', 'F', 10, 8)
                 w.field('sub_coarser', 'F', 10, 8)
                 w.field('sub_dom', 'F', 10, 8)
 
@@ -619,7 +620,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                             except IndexError:
                                 print('Error: Results could not be written to shape file \n')
                                 return
-                        data_here += vel[i], height[i], sub_pg[i], sub_dom[i]
+                        data_here += vel[i], height[i], vel[i]*height[i], sub_pg[i], sub_dom[i]
                         # the * pass tuple to function argument
                         w.record(*data_here)
 
