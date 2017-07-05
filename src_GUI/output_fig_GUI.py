@@ -50,6 +50,7 @@ class outputW(QWidget):
         self.fig9l = QLabel(self.tr('Plot raw loaded data'))
         self.fig10l = QLabel(self.tr('Figure Format'))
         self.fig11l = QLabel(self.tr('Resolution [dpi]'))
+        self.fig12l = QLabel(self.tr('Type of fish name'))
 
         # then fill the size
         self.fig1 = QLineEdit(str(fig_dict['width']) + ',' + str(fig_dict['height']))
@@ -84,7 +85,7 @@ class outputW(QWidget):
         self.fig8 = QLineEdit('0,1')
         self.fig8.setText(str(fig_dict['time_step'])[1:-1])  # [1:-1] because of []
 
-        # choose if we should plot the data from the loaded model (before the grid is created)
+        # choose if we should plot the data from the 1D model (before the grid is created)
         self.fig9a = QCheckBox(self.tr('Yes'), self)
         self.fig9a.clicked.connect(lambda: self.check_uncheck(self.fig9a, self.fig9b))
         self.fig9b = QCheckBox(self.tr('No'), self)
@@ -99,9 +100,17 @@ class outputW(QWidget):
         # DO NOT change order here 0,1,2,3 aew used afterward
         self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not saved figures')])
         self.fig10.setCurrentIndex(int(fig_dict['format']))
+
+        # choose the resolution of the figures
         self.fig11 = QLineEdit(str(fig_dict['resolution']))
 
-        # on the other half, choose the other option
+        # how to write the fish name in the calcul of habitat
+        self.fig12 = QComboBox()
+        self.fig12.addItems([self.tr('Latin Name'), self.tr('French Common Name'), self.tr('English Common Name'),
+                             self.tr('Code ONEMA')])  # order matters here, add stuff at the end!
+        self.fig12.setCurrentIndex(int(fig_dict['fish_name_type']))
+
+        # on the lower half, choose the output options
         self.out0 = QLabel(self.tr(' <b> Output Options </b>'))
         self.out1 = QLabel(self.tr('Text file'))
         self.out1a = QCheckBox(self.tr('Yes'))
@@ -156,6 +165,8 @@ class outputW(QWidget):
         self.layout.addWidget(self.fig9l, 8, 0)
         self.layout.addWidget(self.fig10l, 9, 0)
         self.layout.addWidget(self.fig11l, 10, 0)
+        self.layout.addWidget(self.fig12l, 11, 0)
+
 
         self.layout.addWidget(self.fig1, 1, 1,1,2)
         self.layout.addWidget(self.fig2, 2, 1, 1, 2)
@@ -169,19 +180,20 @@ class outputW(QWidget):
         self.layout.addWidget(self.fig9b, 8, 2, 1, 1)
         self.layout.addWidget(self.fig10, 9, 1, 1, 2)
         self.layout.addWidget(self.fig11, 10, 1, 1, 2)
+        self.layout.addWidget(self.fig12, 11, 1, 1, 2)
 
-        self.layout.addWidget(self.out0, 11, 0)
-        self.layout.addWidget(self.out1, 12, 0)
-        self.layout.addWidget(self.out1a, 12, 1, 1, 1)
-        self.layout.addWidget(self.out1b, 12, 2, 1, 1)
-        self.layout.addWidget(self.out2, 13, 0)
-        self.layout.addWidget(self.out2a, 13, 1, 1, 1)
-        self.layout.addWidget(self.out2b, 13, 2, 1, 1)
-        self.layout.addWidget(self.out3, 14, 0)
-        self.layout.addWidget(self.out3a, 14, 1, 1, 1)
-        self.layout.addWidget(self.out3b, 14, 2, 1, 1)
+        self.layout.addWidget(self.out0, 12, 0)
+        self.layout.addWidget(self.out1, 13, 0)
+        self.layout.addWidget(self.out1a, 13, 1, 1, 1)
+        self.layout.addWidget(self.out1b, 13, 2, 1, 1)
+        self.layout.addWidget(self.out2, 14, 0)
+        self.layout.addWidget(self.out2a, 14, 1, 1, 1)
+        self.layout.addWidget(self.out2b, 14, 2, 1, 1)
+        self.layout.addWidget(self.out3, 15, 0)
+        self.layout.addWidget(self.out3a, 15, 1, 1, 1)
+        self.layout.addWidget(self.out3b, 15, 2, 1, 1)
 
-        self.layout.addWidget(self.saveb, 15, 1, 1, 2)
+        self.layout.addWidget(self.saveb, 16, 1, 1, 2)
         self.layout.addItem(spacer, 5, 3)
         #self.layout.addItem(spacer2, 8, 2)
 
@@ -260,6 +272,8 @@ class outputW(QWidget):
         fig_dict['format'] = str(self.fig10.currentIndex())
         # resolution
         fig_dict['resolution'] = int(self.fig11.text())
+        # fish name type
+        fig_dict['fish_name_type'] = int(self.fig12.currentIndex())
         # outputs
         if self.out1a.isChecked() and self.out1b.isChecked():
             self.send_log.emit('Error: Text Output cannot be on and off at the same time. \n')
@@ -307,6 +321,7 @@ class outputW(QWidget):
                 raw1 = root.find(".//PlotRawData")
                 format1 = root.find(".//Format")
                 reso1 = root.find(".//Resolution")
+                fish1 = root.find(".//FishNameType")
                 text1 = root.find(".//TextOutput")
                 shape1 = root.find(".//ShapeOutput")
                 para1 = root.find(".//ParaviewOutput")
@@ -323,6 +338,7 @@ class outputW(QWidget):
                 raw1 = ET.SubElement(child1, "PlotRawData")
                 format1 = ET.SubElement(child1, "Format")
                 reso1 = ET.SubElement(child1, "Resolution")
+                fish1 = ET.SubElement(child1, "FishNameType")
                 text1 = ET.SubElement(child1, "TextOutput")
                 shape1 = ET.SubElement(child1, "ShapeOutput")
                 para1 = ET.SubElement(child1, "ParaviewOutput")
@@ -337,6 +353,10 @@ class outputW(QWidget):
             raw1.text = str(fig_dict['raw_data'])
             format1.text = str(fig_dict['format'])
             reso1.text = str(fig_dict['resolution'])
+            # usually not useful, but should be added to new options for comptability with older project
+            if fish1 is None:
+                fish1 = ET.SubElement(child1, "FishNameType")
+            fish1.text = str(fig_dict['fish_name_type'])
             text1.text = str(fig_dict['text_output'])
             shape1.text = str(fig_dict['shape_output'])
             para1.text = str(fig_dict['paraview'])
@@ -383,6 +403,7 @@ def load_fig_option(path_prj, name_prj):
             raw1 = root.find(".//PlotRawData")
             format1 = root.find(".//Format")
             reso1 = root.find(".//Resolution")
+            fish1 = root.find(".//FishNameType")
             text1 = root.find(".//TextOutput")
             shape1 = root.find(".//ShapeOutput")
             para1 = root.find(".//ParaviewOutput")
@@ -409,6 +430,8 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['format'] = format1.text
                 if reso1 is not None:
                     fig_dict['resolution'] = int(reso1.text)
+                if fish1 is not None:
+                    fig_dict['fish_name_type'] = int(fish1.text)
                 if text1 is not None:
                     fig_dict['text_output'] = text1.text
                 if shape1 is not None:
@@ -440,9 +463,11 @@ def create_default_figoption():
     fig_dict['raw_data'] = False
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800
+    fig_dict['fish_name_type'] = 0
     fig_dict['text_output'] = True
     fig_dict['shape_output'] = True
     fig_dict['paraview'] = True
+
 
     return fig_dict
 

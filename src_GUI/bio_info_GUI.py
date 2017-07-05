@@ -403,6 +403,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab.setDisabled(True)
         self.send_log.emit(" Calculating habitat value... \n")
 
+        # get the figure options and the type of output to be created
+        fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
         stages_chosen = []
@@ -415,7 +418,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if self.data_fish[j][0] == fish_item.text():
                     pref_list.append(self.data_fish[j][2])
                     stages_chosen.append(self.data_fish[j][1])
-                    name_fish.append(self.data_fish[j][7])
+                    if int(fig_dict['fish_name_type']) == 0:  # latin name
+                        name_fish.append(self.data_fish[j][7])
+                    elif int(fig_dict['fish_name_type']) == 1:  # french common name
+                        name_fish.append(self.data_fish[j][3])
+                    elif int(fig_dict['fish_name_type']) == 2:  # english common name
+                        name_fish.append(self.data_fish[j][4])
+                    elif int(fig_dict['fish_name_type']) == 3:  # code onema
+                        name_fish.append(self.data_fish[j][5])
                     name_fish_sh.append(self.data_fish[j][5][:3]+self.data_fish[j][1][:3])
                     name_fish_sel += fish_item.text() + ','
 
@@ -459,9 +469,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get the type of option choosen for the habitat calculation
         run_choice = self.choice_run.currentIndex()
-
-        # get the figure options and the type of output to be created
-        fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
 
         # only useful if we want to also show the 2d figure in the GUI
         self.hdf5_file = hdf5_file
