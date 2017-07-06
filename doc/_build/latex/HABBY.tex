@@ -41,7 +41,7 @@
 
 
 \title{HABBY Documentation}
-\date{Jun 07, 2017}
+\date{Jul 06, 2017}
 \release{1}
 \author{Diane von Gunten, Yann Le Coarer and Fabrice Zaoui}
 \newcommand{\sphinxlogo}{}
@@ -161,6 +161,14 @@ The write\_log() and write\_log\_file() method are explained in the section abou
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.add_all_tab}}\pysiglinewithargsret{\sphinxbfcode{add\_all\_tab}}{}{}
 This function add the different tab to habby (used by init and by save\_project)
+
+\end{fulllineitems}
+
+\index{closefig() (src\_GUI.Main\_windows\_1.CentralW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.closefig}}\pysiglinewithargsret{\sphinxbfcode{closefig}}{}{}
+A small function to close the images open in HABBY and managed by matplotlib
 
 \end{fulllineitems}
 
@@ -704,7 +712,7 @@ the tested variable var\_in
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.ShowImageW}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{ShowImageW}}{\emph{path\_prj}, \emph{name\_prj}}{}
 The widget which shows the saved images. Used only to show all the saved figure together iwhtout zoom or other
-options.
+options. Not really used anymore in HABBY but it still there as it can be useful in the future.
 
 \sphinxstylestrong{Technical comments}
 
@@ -880,8 +888,9 @@ Bases: {\hyperref[\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW}]{\sphinxcross
 
 The class Hec\_ras 1D is there to manage the link between the graphical interface and the functions in
 src/hec\_ras06.py which loads the hec-ras data in 1D. The class HEC\_RAS1D inherits from SubHydroW() so it have all
-the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
-the user is on the hydrological tab and click on hec-ras1D as hydrological model.
+the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W().
+So the class Hec-Ras 1D is called when the user is on the hydrological tab and click on hec-ras1D as hydrological
+model.
 \index{init\_iu() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method)}
 
 \begin{fulllineitems}
@@ -1405,12 +1414,12 @@ Bases: \sphinxcode{PyQt5.QtWidgets.QWidget}
 SubHydroW is class which is the parent of the classes which can be used to open the hydrological models. This class
 is a bit special. It is not called directly by HABBY but by the classes which load the hydrological data and which
 inherits from this class. The advantage of this architecture is that all the children classes can use the methods
-written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and can use
-similar functions.
+written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and
+can use similar functions.
 
-In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the widget for the
-hydrological Tab and one class by hydrological model to really load the model. The latter classes have various
-methods in common, so they inherit from SubHydroW, this class.
+In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the
+widget for the hydrological Tab and one class by hydrological model to really load the model. The latter classes
+have various methods in common, so they inherit from SubHydroW, this class.
 \index{dis\_enable\_nb\_profile() (src\_GUI.hydro\_GUI\_2.SubHydroW method)}
 
 \begin{fulllineitems}
@@ -1553,10 +1562,15 @@ messages.
 \index{send\_err\_log() (src\_GUI.hydro\_GUI\_2.SubHydroW method)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.send_err_log}}\pysiglinewithargsret{\sphinxbfcode{send\_err\_log}}{}{}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW.send_err_log}}\pysiglinewithargsret{\sphinxbfcode{send\_err\_log}}{\emph{check\_ok=False}}{}
 This function sends the errors and the warnings to the logs.
 The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
 to avoid freezing the GUI. A similar function exists in estimhab\_GUI.py. Correct both if necessary.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{check\_ok} -- This is an optional paramter. If True, it checks if the function returns any error
+
+\end{description}\end{quote}
 
 \end{fulllineitems}
 
@@ -1799,6 +1813,25 @@ the dictionary containing the figure options
 \phantomsection\label{\detokenize{index:src_GUI.output_fig_GUI.outputW}}\pysiglinewithargsret{\sphinxstrong{class }\sphinxcode{src\_GUI.output\_fig\_GUI.}\sphinxbfcode{outputW}}{\emph{path\_prj}, \emph{name\_prj}}{}
 The class which support the creation and management of the output. It is notably used to select the options to
 create the figures.
+\index{check\_uncheck() (src\_GUI.output\_fig\_GUI.outputW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.output_fig_GUI.outputW.check_uncheck}}\pysiglinewithargsret{\sphinxbfcode{check\_uncheck}}{\emph{main\_checkbox}, \emph{other\_checkbox}}{}
+This function is used to check a box when the user clied on it and unckeked another passed as parameter
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{main\_checkbox} -- A QCheckBox which sould by selected
+
+\item {} 
+\sphinxstyleliteralstrong{other\_checkbox} -- A QCheckbox which should be ``unticked'' when main\_checkbox is selected by the user
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{init\_iu() (src\_GUI.output\_fig\_GUI.outputW method)}
 
 \begin{fulllineitems}
@@ -1823,6 +1856,18 @@ A PyQtsignal used to write the log.
 
 \end{fulllineitems}
 
+
+\end{fulllineitems}
+
+\index{set\_lang\_fig() (in module src\_GUI.output\_fig\_GUI)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.output_fig_GUI.set_lang_fig}}\pysiglinewithargsret{\sphinxcode{src\_GUI.output\_fig\_GUI.}\sphinxbfcode{set\_lang\_fig}}{\emph{nb\_lang}, \emph{path\_prj}, \emph{name\_prj}}{}
+This function write in the xml file in which langugage the figures should be done. This is kept in the
+group of attribute in the Figure\_Option
+:param lang: An int indicating the langugage (0 for english, 1 for french,...)
+:param path\_prj: the path to the project
+:param name\_prj: the name of the project
 
 \end{fulllineitems}
 
@@ -2184,7 +2229,7 @@ It can be used to save the data given directely by the user or modified by him.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.fstress_GUI.FstressW.show_data_one_river}}\pysiglinewithargsret{\sphinxbfcode{show\_data\_one\_river}}{}{}
 This function shows the qhw and the {[}qmin, qmax{]} data on the GUI for the river selected by the user.
-The river must have been loaded before.
+The river must have been loaded before. It also show the selected fish
 
 \end{fulllineitems}
 
@@ -5027,7 +5072,18 @@ It is not used direclty by HABBY.
 in src/lammi.py
 
 This module contains functions used to load data from LAMMI. For more information on LAMMI, please see the pdf document \sphinxcode{LAMMI.pdf}
-\phantomsection\label{\detokenize{index:module-src.lammi}}\index{src.lammi (module)}\index{compare\_lammi() (in module src.lammi)}
+\phantomsection\label{\detokenize{index:module-src.lammi}}\index{src.lammi (module)}\index{check\_code\_change() (in module src.lammi)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.lammi.check_code_change}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{check\_code\_change}}{\emph{facies\_path}}{}
+If we can find the habitat.txt file, we check that the conversion from EDF to Cemagref code was done as in HABBY.
+In most case, the habiat.txt file will not be found. This is not a problem.
+:param facies\_path: the path to the facies.txt file
+:return: a boolean
+
+\end{fulllineitems}
+
+\index{compare\_lammi() (in module src.lammi)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.lammi.compare_lammi}}\pysiglinewithargsret{\sphinxcode{src.lammi.}\sphinxbfcode{compare\_lammi}}{\emph{filename\_habby}, \emph{filename\_lammi}, \emph{filename\_lammi\_sur}}{}
@@ -5231,6 +5287,11 @@ hydraulic model.
 
 To obtain the coordainte of the river and to put the data is the form usually needed by HABBY for 1.5D model
 (coord\_pro, vh\_pro, nb\_pro\_reach), we use the coord\_lammi() function.
+
+There is also an optionnal check to control that the conversion between lammi and cemagref code is as normal.
+This check is only done if HABBY can find the habitat.txt file where the conversion can be modified by the user.
+Otherwise we assume that the normal conversion is used. Obviously, this check should be modifed if the edf
+to cemagref conversion is modified.
 
 \end{fulllineitems}
 
@@ -6721,7 +6782,7 @@ interpolations-between-two-irregular-grids
 \index{plot\_grid() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.manage_grid_8.plot_grid}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{plot\_grid}}{\emph{point\_all\_reach}, \emph{ikle\_all}, \emph{lim\_by\_reach}, \emph{hole\_all}, \emph{overlap}, \emph{point\_c\_all={[}{]}}, \emph{inter\_vel\_all={[}{]}}, \emph{inter\_h\_all={[}{]}}, \emph{path\_im={[}{]}}, \emph{coord\_pro2={[}{]}}}{}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.plot_grid}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{plot\_grid}}{\emph{point\_all\_reach}, \emph{ikle\_all}, \emph{lim\_by\_reach}, \emph{hole\_all}, \emph{overlap}, \emph{point\_c\_all={[}{]}}, \emph{inter\_vel\_all={[}{]}}, \emph{inter\_h\_all={[}{]}}, \emph{path\_im={[}{]}}}{}
 This is a function to plot a grid and the output. It is mosty used to debug the grid creation. Contrarily to the more
 simple function plot\_grid\_simple, it is posible to plot the position of the holes (which indicates the dry area),
 the limits of the reaches used by triangle, the overlap between two reaches, and so on.
@@ -8162,9 +8223,11 @@ It is also important there that the substrate is convex as the triangulation is 
 \index{fig\_merge\_grid() (in module src.mesh\_grid2)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.mesh_grid2.fig_merge_grid}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{fig\_merge\_grid}}{\emph{point\_all\_both\_t}, \emph{ikle\_both\_t}, \emph{path\_im}, \emph{ikle\_orr={[}{]}}, \emph{point\_all\_orr={[}{]}}}{}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.fig_merge_grid}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{fig\_merge\_grid}}{\emph{point\_all\_both\_t}, \emph{ikle\_both\_t}, \emph{path\_im}, \emph{name\_add='`}, \emph{ikle\_orr={[}{]}}, \emph{point\_all\_orr={[}{]}}}{}
 A function to plot the grid after it was merged with the substrate data.
-It plots one time step at the time.
+It plots one time step at the time. This function is not used anymore by Habby. Indded, mesh\_grid2 uses the
+function provided in manage\_grid8.py to plot the grid and data after it is merged with the substrate. However,
+this function could be useful to debug if one wants to only plots teh grid and not the height/velocity data
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -8175,6 +8238,9 @@ It plots one time step at the time.
 
 \item {} 
 \sphinxstyleliteralstrong{path\_im} -- the path where the image should be saved
+
+\item {} 
+\sphinxstyleliteralstrong{name\_add} -- the anem to be added to the figure name
 
 \item {} 
 \sphinxstyleliteralstrong{ikle\_orr} -- the orginial ikle
@@ -8771,7 +8837,7 @@ If it is called by the cmd, we want the print function to be sent to the command
 \index{calc\_hab\_norm() (in module src.calcul\_hab)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.calcul_hab.calc_hab_norm}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{calc\_hab\_norm}}{\emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{vel}, \emph{height}, \emph{sub}, \emph{pref\_vel}, \emph{pref\_height}, \emph{pref\_sub}, \emph{percent=False}}{}
+\phantomsection\label{\detokenize{index:src.calcul_hab.calc_hab_norm}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{calc\_hab\_norm}}{\emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{vel}, \emph{height}, \emph{sub}, \emph{pref\_vel}, \emph{pref\_height}, \emph{pref\_sub}, \emph{percent=False}, \emph{take\_sub=True}}{}
 This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
 all habitat suitability index weighted by the cell area for each reach. It is called by clac\_hab\_norm.
 \begin{quote}\begin{description}
@@ -8802,6 +8868,9 @@ all habitat suitability index weighted by the cell area for each reach. It is ca
 
 \item {} 
 \sphinxstyleliteralstrong{percent} -- If True, the variable sub is in percent form, not in the form dominant/coarser
+
+\item {} 
+\sphinxstyleliteralstrong{take\_sub} -- If False, the substrate data is neglected.
 
 \end{itemize}
 
@@ -9033,15 +9102,15 @@ script then called one function in hl.py which then called the three other scrip
 \phantomsection\label{\detokenize{index:module-src.new_create_vtk}}\index{src.new\_create\_vtk (module)}\index{habitat\_to\_vtu() (in module src.new\_create\_vtk)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.new_create_vtk.habitat_to_vtu}}\pysiglinewithargsret{\sphinxcode{src.new\_create\_vtk.}\sphinxbfcode{habitat\_to\_vtu}}{\emph{file\_name\_base}, \emph{path\_out}, \emph{path\_hdf5}, \emph{name\_hdf5}, \emph{vh\_all\_t\_sp}, \emph{height\_c\_data}, \emph{vel\_c\_data}, \emph{name\_fish}, \emph{binary\_data=False}}{}
+\phantomsection\label{\detokenize{index:src.new_create_vtk.habitat_to_vtu}}\pysiglinewithargsret{\sphinxcode{src.new\_create\_vtk.}\sphinxbfcode{habitat\_to\_vtu}}{\emph{file\_name\_base}, \emph{path\_out}, \emph{path\_hdf5}, \emph{name\_hdf5}, \emph{vh\_all\_t\_sp}, \emph{height\_c\_data}, \emph{vel\_c\_data}, \emph{name\_fish}}{}
 This function creates paraview input in the new, non-legacy xml format. This function called the evtk class
 written by Paulo Herrera, which is available at \url{https://bitbucket.org/pauloh/pyevtk/downloads/}
 
-The format for paravier input file is decirbed in paraview\_file\_format.pdf in the doc folder of HABBY.
+The format for paravier input file is descirbed in paraview\_file\_format.pdf in the doc folder of HABBY.
 
-The data of the paraview file created here  is usually not in a binary form, but it could be put in binary if the
-switch binary\_data is True. The idea of paraview for a binary file is to keep the same usual xml file. The data is
-encoded to base64. Before the binary array, there is a 32-bits interger which contains the data length in bytes.
+The data of the paraview file created here  is usually in binary form. The idea of paraview for a binary file is
+to keep the same usual xml file. The data is encoded to base64. Before the binary array, there is a 32-bits interger
+which contains the data length in bytes.
 More info: \url{http://www.earthmodels.org/software/vtk-and-paraview/vtk-file-formats}.
 
 Paraview can handle a group of file which compose an output with than one time step. This is the reason to create a
@@ -9071,9 +9140,6 @@ pwd files which list the files composing all the time steps (one file by time st
 
 \item {} 
 \sphinxstyleliteralstrong{path\_out} -- the path where to save the data
-
-\item {} 
-\sphinxstyleliteralstrong{binary\_data} -- If True will create binary data. DO NOT WORK YET, let it to FALSE
 
 \end{itemize}
 
@@ -9168,20 +9234,24 @@ the manning as an array form
 \chapter{Various notes}
 \label{\detokenize{index:various-notes}}
 
-\section{The legend of the plots are not shown.}
-\label{\detokenize{index:the-legend-of-the-plots-are-not-shown}}
+\section{Figures and matplotlib}
+\label{\detokenize{index:figures-and-matplotlib}}
+\sphinxstylestrong{The legend of the plots are not shown.}
+
 Generally HABBY is able to save the figure while showing the legend (which is often outside of the figure) appropriately. However,
 the figure shown to the user by matplotlib often have the legend outside of the visible area. To see the figure fully, one can modify
 the axes in the option of the figure (the menu in the axes on the top of the figure).
+
+\sphinxstylestrong{How to make figures editable in Adobe Illustrator}
+
+It is useful to have figures which we can edit in Adobe Illustrator. To achieve this, the following matplotlib option should be added:
+mpl.rcParams{[}'ps.fonttype'{]} = 42. Moreover, matplolib should be imported (import matplotlib as mpl). It is also useful to add the tranparent option to the function to save the figure (transparent=True). This renders modification easier in many cases.
 
 
 \section{Translation of HABBY}
 \label{\detokenize{index:translation-of-habby}}
 In HABBY, it is possible to translate all strings which are in a python file (.py)
-which is in the src\_GUI folder. It should be possible to translate also strings which
-are in a .py file which is in the .src folder if one modifies the .pro file,
-but this is not done yet. Also, it might not be necessary because ./src contains
-code which is not linked with the graphical interface. Hence, English might be sufficient here.
+which is in the src\_GUI folder.
 
 To add a new string to translate:
 \begin{itemize}
@@ -9251,6 +9321,8 @@ When the translator has been created, it is necessary to re-do all Widgets and W
 The language should be saved in the user setting using Qsettings as it is done at the end of the
 setlangue function.
 
+In addition, every xml project file from HABBY has a part called ``FigureOPtion''. In the list of available options, there is the language currently used under the attibute ``LangFig''. The language is given using an int (0 for english, 1 for french). This is useful to translate the axis and the titles of the figures done by HABBY. To this end, one would first called the function ``load\_fig\_option'' in output\_fig\_GUI.py. This returns a dictionnary with a key called ``language'' (0 for english, 1 for french). Then, one can use an if statement to write the xlabel in french or english.
+
 
 \section{Create a .exe}
 \label{\detokenize{index:create-a-exe}}
@@ -9292,13 +9364,19 @@ Do not find log0.txt (or crash when saving project): create a folder called src\
 Practically:
 \begin{itemize}
 \item {} 
-go to the folder called executable
+go to the folder called executable and copy the current HABBY source there.
+
+\item {} 
+copy createexe.bat in the habby folder.
 
 \item {} 
 run createexe.bat (only on Windows)
 
 \item {} 
-copy all files in the mklall folder to the folder dist/habby
+ignore the executable created in the ``built'' folder Use the one is in the ``dist'' folder.
+
+\item {} 
+copy all files in the mklall folder to the folder dist/habby and the file which NOT python file from the original src\_GUI folder to the one just created (or you know, improve the bat file...)
 
 \item {} 
 run habby by writing habby on the cmd
@@ -9450,12 +9528,15 @@ module can also be used to run HABBY on a bunch of files contained in a folder.
 \phantomsection\label{\detokenize{index:module-habby_cmd}}\index{habby\_cmd (module)}\index{all\_command() (in module habby\_cmd)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:habby_cmd.all_command}}\pysiglinewithargsret{\sphinxcode{habby\_cmd.}\sphinxbfcode{all\_command}}{\emph{all\_arg}, \emph{name\_prj}, \emph{path\_prj}, \emph{path\_bio}}{}
+\phantomsection\label{\detokenize{index:habby_cmd.all_command}}\pysiglinewithargsret{\sphinxcode{habby\_cmd.}\sphinxbfcode{all\_command}}{\emph{all\_arg}, \emph{name\_prj}, \emph{path\_prj}, \emph{path\_bio}, \emph{option\_restart=False}}{}
 This function is used to call HABBY from the command line. The general form is to call:
 habby\_cmd command\_name input1 input2 .. input n. The list of the command\_name is given in the documentation and by
 calling the command ``python habby\_cmd.py LIST\_COMMAND''. This functiion is usually called direclty by the main()
 or it is called by the function restart which read a list of function line by line. Careful, new command cannot
 contain the symbol '':'' as it is used by restart.
+
+For the restart function, it is also important that the input folder is just in the folder ``next'' to the restart
+path. So the folder should not be moved randolmy inside the project folder or renamed.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -9469,6 +9550,10 @@ contain the symbol '':'' as it is used by restart.
 
 \item {} 
 \sphinxstyleliteralstrong{path\_bio} -- the path to the project
+
+\item {} 
+\sphinxstyleliteralstrong{option\_restart} -- If True the command are coming from a restart log (which have an impact on file name and
+location)
 
 \end{itemize}
 

@@ -2,6 +2,7 @@
 \indexentry{src\_GUI.Main\_windows\_1 (module)|hyperpage}{7}
 \indexentry{CentralW (class in src\_GUI.Main\_windows\_1)|hyperpage}{7}
 \indexentry{add\_all\_tab() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{8}
+\indexentry{closefig() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{8}
 \indexentry{connect\_signal\_fig\_and\_drop() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{8}
 \indexentry{connect\_signal\_log() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{8}
 \indexentry{init\_iu() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{8}
@@ -34,6 +35,7 @@
 \indexentry{my\_menu\_bar() (src\_GUI.Main\_windows\_1.MainWindows method)|hyperpage}{10}
 \indexentry{new\_project() (src\_GUI.Main\_windows\_1.MainWindows method)|hyperpage}{11}
 \indexentry{on\_context\_menu() (src\_GUI.Main\_windows\_1.MainWindows method)|hyperpage}{11}
+\indexentry{open\_help() (src\_GUI.Main\_windows\_1.MainWindows method)|hyperpage}{11}
 \indexentry{open\_project() (src\_GUI.Main\_windows\_1.MainWindows method)|hyperpage}{11}
 \indexentry{open\_recent\_project() (src\_GUI.Main\_windows\_1.MainWindows method)|hyperpage}{11}
 \indexentry{open\_rech() (src\_GUI.Main\_windows\_1.MainWindows method)|hyperpage}{11}
@@ -57,13 +59,13 @@
 \indexentry{save\_signal (src\_GUI.Main\_windows\_1.WelcomeW attribute)|hyperpage}{13}
 \indexentry{send\_log (src\_GUI.Main\_windows\_1.WelcomeW attribute)|hyperpage}{13}
 \indexentry{setfolder() (src\_GUI.Main\_windows\_1.WelcomeW method)|hyperpage}{13}
-\indexentry{src\_GUI.hydro\_GUI\_2 (module)|hyperpage}{13}
-\indexentry{FreeSpace (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{13}
+\indexentry{src\_GUI.hydro\_GUI\_2 (module)|hyperpage}{14}
+\indexentry{FreeSpace (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{14}
 \indexentry{HEC\_RAS1D (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{14}
 \indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method)|hyperpage}{14}
 \indexentry{load\_hec\_ras\_gui() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method)|hyperpage}{14}
-\indexentry{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method)|hyperpage}{14}
-\indexentry{HEC\_RAS2D (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{14}
+\indexentry{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.HEC\_RAS1D method)|hyperpage}{15}
+\indexentry{HEC\_RAS2D (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{15}
 \indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.HEC\_RAS2D method)|hyperpage}{15}
 \indexentry{load\_hec\_2d\_gui() (src\_GUI.hydro\_GUI\_2.HEC\_RAS2D method)|hyperpage}{15}
 \indexentry{HabbyHdf5 (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{15}
@@ -79,16 +81,16 @@
 \indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.LAMMI method)|hyperpage}{16}
 \indexentry{load\_lammi\_gui() (src\_GUI.hydro\_GUI\_2.LAMMI method)|hyperpage}{16}
 \indexentry{show\_dialog\_lammi() (src\_GUI.hydro\_GUI\_2.LAMMI method)|hyperpage}{16}
-\indexentry{Mascaret (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{16}
+\indexentry{Mascaret (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{17}
 \indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.Mascaret method)|hyperpage}{17}
 \indexentry{load\_mascaret\_gui() (src\_GUI.hydro\_GUI\_2.Mascaret method)|hyperpage}{17}
 \indexentry{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.Mascaret method)|hyperpage}{17}
 \indexentry{River2D (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{17}
 \indexentry{add\_all\_file() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{17}
 \indexentry{add\_file\_river2d() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{17}
-\indexentry{add\_file\_to\_list() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{17}
-\indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{17}
-\indexentry{load\_river2d\_gui() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{17}
+\indexentry{add\_file\_to\_list() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{18}
+\indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{18}
+\indexentry{load\_river2d\_gui() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{18}
 \indexentry{remove\_all\_file() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{18}
 \indexentry{remove\_file() (src\_GUI.hydro\_GUI\_2.River2D method)|hyperpage}{18}
 \indexentry{Rubar1D (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{18}
@@ -98,8 +100,8 @@
 \indexentry{Rubar2D (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{18}
 \indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.Rubar2D method)|hyperpage}{18}
 \indexentry{load\_rubar() (src\_GUI.hydro\_GUI\_2.Rubar2D method)|hyperpage}{18}
-\indexentry{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.Rubar2D method)|hyperpage}{18}
-\indexentry{SubHydroW (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{18}
+\indexentry{propose\_next\_file() (src\_GUI.hydro\_GUI\_2.Rubar2D method)|hyperpage}{19}
+\indexentry{SubHydroW (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{19}
 \indexentry{dis\_enable\_nb\_profile() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
 \indexentry{drop\_hydro (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{19}
 \indexentry{find\_path\_hdf5() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{19}
@@ -113,17 +115,17 @@
 \indexentry{send\_err\_log() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
 \indexentry{send\_log (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{20}
 \indexentry{show\_dialog() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
-\indexentry{show\_fig (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{20}
-\indexentry{was\_model\_loaded\_before() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{20}
+\indexentry{show\_fig (src\_GUI.hydro\_GUI\_2.SubHydroW attribute)|hyperpage}{21}
+\indexentry{was\_model\_loaded\_before() (src\_GUI.hydro\_GUI\_2.SubHydroW method)|hyperpage}{21}
 \indexentry{SubstrateW (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{21}
 \indexentry{drop\_merge (src\_GUI.hydro\_GUI\_2.SubstrateW attribute)|hyperpage}{21}
 \indexentry{get\_att\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
 \indexentry{get\_attribute\_from\_shp() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
 \indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
 \indexentry{load\_sub\_gui() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{log\_txt() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{send\_merge\_grid() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
-\indexentry{update\_sub\_hdf5\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{21}
+\indexentry{log\_txt() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{22}
+\indexentry{send\_merge\_grid() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{22}
+\indexentry{update\_sub\_hdf5\_name() (src\_GUI.hydro\_GUI\_2.SubstrateW method)|hyperpage}{22}
 \indexentry{TELEMAC (class in src\_GUI.hydro\_GUI\_2)|hyperpage}{22}
 \indexentry{init\_iu() (src\_GUI.hydro\_GUI\_2.TELEMAC method)|hyperpage}{22}
 \indexentry{load\_telemac\_gui() (src\_GUI.hydro\_GUI\_2.TELEMAC method)|hyperpage}{22}
@@ -131,48 +133,50 @@
 \indexentry{create\_default\_figoption() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{22}
 \indexentry{load\_fig\_option() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{22}
 \indexentry{outputW (class in src\_GUI.output\_fig\_GUI)|hyperpage}{22}
-\indexentry{init\_iu() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{22}
-\indexentry{save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{22}
-\indexentry{send\_log (src\_GUI.output\_fig\_GUI.outputW attribute)|hyperpage}{22}
-\indexentry{src\_GUI.stathab\_GUI (module)|hyperpage}{22}
-\indexentry{StathabW (class in src\_GUI.stathab\_GUI)|hyperpage}{22}
+\indexentry{check\_uncheck() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{22}
+\indexentry{init\_iu() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{23}
+\indexentry{save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{23}
+\indexentry{send\_log (src\_GUI.output\_fig\_GUI.outputW attribute)|hyperpage}{23}
+\indexentry{set\_lang\_fig() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{23}
+\indexentry{src\_GUI.stathab\_GUI (module)|hyperpage}{23}
+\indexentry{StathabW (class in src\_GUI.stathab\_GUI)|hyperpage}{23}
 \indexentry{add\_all\_fish() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{change\_riv\_type() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{init\_iu() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{load\_from\_hdf5\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{load\_from\_txt\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{23}
-\indexentry{reach\_selected() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
-\indexentry{run\_stathab\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
-\indexentry{select\_dir() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
+\indexentry{change\_riv\_type() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
+\indexentry{init\_iu() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
+\indexentry{load\_from\_hdf5\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
+\indexentry{load\_from\_txt\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{24}
+\indexentry{reach\_selected() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{25}
+\indexentry{run\_stathab\_gui() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{25}
+\indexentry{select\_dir() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{25}
 \indexentry{select\_hdf5() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{25}
 \indexentry{send\_err\_log() (src\_GUI.stathab\_GUI.StathabW method)|hyperpage}{25}
 \indexentry{send\_log (src\_GUI.stathab\_GUI.StathabW attribute)|hyperpage}{25}
 \indexentry{show\_fig (src\_GUI.stathab\_GUI.StathabW attribute)|hyperpage}{25}
 \indexentry{src\_GUI.fstress\_GUI (module)|hyperpage}{25}
 \indexentry{FstressW (class in src\_GUI.fstress\_GUI)|hyperpage}{25}
-\indexentry{add\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
-\indexentry{erase\_name() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
-\indexentry{init\_iu() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
-\indexentry{load\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{25}
+\indexentry{add\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
+\indexentry{erase\_name() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
+\indexentry{init\_iu() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
+\indexentry{load\_all\_fish() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
 \indexentry{load\_data\_fstress() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
 \indexentry{load\_hdf5\_fstress() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
 \indexentry{load\_txt() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
 \indexentry{modify\_name() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
 \indexentry{runsave\_fstress() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
 \indexentry{save\_river\_data() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
-\indexentry{show\_data\_one\_river() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
-\indexentry{update\_list\_riv() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
-\indexentry{was\_loaded\_before() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{26}
-\indexentry{src\_GUI.estimhab\_GUI (module)|hyperpage}{26}
-\indexentry{EstimhabW (class in src\_GUI.estimhab\_GUI)|hyperpage}{26}
-\indexentry{change\_folder() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{26}
-\indexentry{init\_iu() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{26}
+\indexentry{show\_data\_one\_river() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{27}
+\indexentry{update\_list\_riv() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{27}
+\indexentry{was\_loaded\_before() (src\_GUI.fstress\_GUI.FstressW method)|hyperpage}{27}
+\indexentry{src\_GUI.estimhab\_GUI (module)|hyperpage}{27}
+\indexentry{EstimhabW (class in src\_GUI.estimhab\_GUI)|hyperpage}{27}
+\indexentry{change\_folder() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{27}
+\indexentry{init\_iu() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{27}
 \indexentry{open\_estimhab\_hdf5() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{27}
 \indexentry{run\_estmihab() (src\_GUI.estimhab\_GUI.EstimhabW method)|hyperpage}{27}
-\indexentry{save\_signal\_estimhab (src\_GUI.estimhab\_GUI.EstimhabW attribute)|hyperpage}{27}
-\indexentry{StatModUseful (class in src\_GUI.estimhab\_GUI)|hyperpage}{27}
-\indexentry{add\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{27}
-\indexentry{add\_sel\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{27}
+\indexentry{save\_signal\_estimhab (src\_GUI.estimhab\_GUI.EstimhabW attribute)|hyperpage}{28}
+\indexentry{StatModUseful (class in src\_GUI.estimhab\_GUI)|hyperpage}{28}
+\indexentry{add\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
+\indexentry{add\_sel\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
 \indexentry{find\_path\_hdf5\_est() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
 \indexentry{find\_path\_im\_est() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
 \indexentry{find\_path\_input\_est() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
@@ -181,12 +185,12 @@
 \indexentry{remove\_all\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
 \indexentry{remove\_fish() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
 \indexentry{send\_err\_log() (src\_GUI.estimhab\_GUI.StatModUseful method)|hyperpage}{28}
-\indexentry{send\_log (src\_GUI.estimhab\_GUI.StatModUseful attribute)|hyperpage}{28}
-\indexentry{show\_fig (src\_GUI.estimhab\_GUI.StatModUseful attribute)|hyperpage}{28}
-\indexentry{src\_GUI.bio\_info\_GUI (module)|hyperpage}{28}
-\indexentry{BioInfo (class in src\_GUI.bio\_info\_GUI)|hyperpage}{28}
-\indexentry{init\_iu() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{28}
-\indexentry{run\_habitat\_value() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{28}
+\indexentry{send\_log (src\_GUI.estimhab\_GUI.StatModUseful attribute)|hyperpage}{29}
+\indexentry{show\_fig (src\_GUI.estimhab\_GUI.StatModUseful attribute)|hyperpage}{29}
+\indexentry{src\_GUI.bio\_info\_GUI (module)|hyperpage}{29}
+\indexentry{BioInfo (class in src\_GUI.bio\_info\_GUI)|hyperpage}{29}
+\indexentry{init\_iu() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
+\indexentry{run\_habitat\_value() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
 \indexentry{select\_fish() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
 \indexentry{show\_hydrosignature() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
 \indexentry{show\_image\_hab() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
@@ -194,7 +198,7 @@
 \indexentry{show\_info\_fish\_avai() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
 \indexentry{show\_info\_fish\_sel() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
 \indexentry{show\_pref() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
-\indexentry{update\_merge\_list() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{29}
+\indexentry{update\_merge\_list() (src\_GUI.bio\_info\_GUI.BioInfo method)|hyperpage}{30}
 \indexentry{src (module)|hyperpage}{31}
 \indexentry{src.Hec\_ras06 (module)|hyperpage}{31}
 \indexentry{coord\_profile\_non\_georeferenced() (in module src.Hec\_ras06)|hyperpage}{31}
@@ -280,10 +284,11 @@
 \indexentry{load\_telemac\_and\_cut\_grid() (in module src.selafin\_habby1)|hyperpage}{53}
 \indexentry{plot\_vel\_h() (in module src.selafin\_habby1)|hyperpage}{54}
 \indexentry{src.lammi (module)|hyperpage}{54}
+\indexentry{check\_code\_change() (in module src.lammi)|hyperpage}{54}
 \indexentry{compare\_lammi() (in module src.lammi)|hyperpage}{54}
 \indexentry{coord\_lammi() (in module src.lammi)|hyperpage}{55}
 \indexentry{fig\_lammi() (in module src.lammi)|hyperpage}{55}
-\indexentry{get\_transect\_filename() (in module src.lammi)|hyperpage}{55}
+\indexentry{get\_transect\_filename() (in module src.lammi)|hyperpage}{56}
 \indexentry{load\_lammi() (in module src.lammi)|hyperpage}{56}
 \indexentry{load\_station() (in module src.lammi)|hyperpage}{57}
 \indexentry{load\_transect\_data() (in module src.lammi)|hyperpage}{57}
@@ -303,7 +308,7 @@
 \indexentry{dist\_velocity\_hecras() (in module src.dist\_vistess2)|hyperpage}{62}
 \indexentry{distribute\_velocity() (in module src.dist\_vistess2)|hyperpage}{63}
 \indexentry{get\_manning() (in module src.dist\_vistess2)|hyperpage}{63}
-\indexentry{get\_manning\_arr() (in module src.dist\_vistess2)|hyperpage}{63}
+\indexentry{get\_manning\_arr() (in module src.dist\_vistess2)|hyperpage}{64}
 \indexentry{main() (in module src.dist\_vistess2)|hyperpage}{64}
 \indexentry{plot\_dist\_vit() (in module src.dist\_vistess2)|hyperpage}{64}
 \indexentry{preparetest\_velocity() (in module src.dist\_vistess2)|hyperpage}{64}
@@ -317,7 +322,7 @@
 \indexentry{find\_profile\_between() (in module src.manage\_grid\_8)|hyperpage}{67}
 \indexentry{get\_crossing\_segment\_sub() (in module src.manage\_grid\_8)|hyperpage}{68}
 \indexentry{get\_new\_point\_and\_cell\_1\_profil() (in module src.manage\_grid\_8)|hyperpage}{68}
-\indexentry{grid\_and\_interpo() (in module src.manage\_grid\_8)|hyperpage}{68}
+\indexentry{grid\_and\_interpo() (in module src.manage\_grid\_8)|hyperpage}{69}
 \indexentry{inside\_polygon() (in module src.manage\_grid\_8)|hyperpage}{69}
 \indexentry{interp\_weights() (in module src.manage\_grid\_8)|hyperpage}{69}
 \indexentry{interpo\_linear() (in module src.manage\_grid\_8)|hyperpage}{69}
@@ -328,13 +333,13 @@
 \indexentry{main() (in module src.manage\_grid\_8)|hyperpage}{71}
 \indexentry{newp() (in module src.manage\_grid\_8)|hyperpage}{71}
 \indexentry{pass\_grid\_cell\_to\_node\_lin() (in module src.manage\_grid\_8)|hyperpage}{71}
-\indexentry{plot\_grid() (in module src.manage\_grid\_8)|hyperpage}{71}
+\indexentry{plot\_grid() (in module src.manage\_grid\_8)|hyperpage}{72}
 \indexentry{plot\_grid\_simple() (in module src.manage\_grid\_8)|hyperpage}{72}
 \indexentry{update\_coord\_pro\_with\_vh\_pro() (in module src.manage\_grid\_8)|hyperpage}{72}
 \indexentry{src.estimhab (module)|hyperpage}{73}
 \indexentry{estimhab() (in module src.estimhab)|hyperpage}{73}
 \indexentry{main() (in module src.estimhab)|hyperpage}{73}
-\indexentry{pass\_to\_float\_estimhab() (in module src.estimhab)|hyperpage}{73}
+\indexentry{pass\_to\_float\_estimhab() (in module src.estimhab)|hyperpage}{74}
 \indexentry{src.stathab\_c (module)|hyperpage}{74}
 \indexentry{Stathab (class in src.stathab\_c)|hyperpage}{74}
 \indexentry{create\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{74}
@@ -346,7 +351,7 @@
 \indexentry{find\_path\_hdf5\_stat() (src.stathab\_c.Stathab method)|hyperpage}{75}
 \indexentry{find\_sh0() (src.stathab\_c.Stathab method)|hyperpage}{75}
 \indexentry{find\_sh0\_maxvrais() (src.stathab\_c.Stathab method)|hyperpage}{75}
-\indexentry{load\_stathab\_from\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{75}
+\indexentry{load\_stathab\_from\_hdf5() (src.stathab\_c.Stathab method)|hyperpage}{76}
 \indexentry{load\_stathab\_from\_txt() (src.stathab\_c.Stathab method)|hyperpage}{76}
 \indexentry{power\_law() (src.stathab\_c.Stathab method)|hyperpage}{76}
 \indexentry{save\_xml\_stathab() (src.stathab\_c.Stathab method)|hyperpage}{76}
@@ -396,7 +401,7 @@
 \indexentry{get\_new\_vel\_height\_data() (in module src.mesh\_grid2)|hyperpage}{85}
 \indexentry{inside\_trigon() (in module src.mesh\_grid2)|hyperpage}{85}
 \indexentry{intersec\_cross() (in module src.mesh\_grid2)|hyperpage}{85}
-\indexentry{main() (in module src.mesh\_grid2)|hyperpage}{85}
+\indexentry{main() (in module src.mesh\_grid2)|hyperpage}{86}
 \indexentry{merge\_grid\_and\_save() (in module src.mesh\_grid2)|hyperpage}{86}
 \indexentry{merge\_grid\_hydro\_sub() (in module src.mesh\_grid2)|hyperpage}{86}
 \indexentry{src.bio\_info (module)|hyperpage}{86}
@@ -428,8 +433,8 @@
 \indexentry{src.func\_for\_cmd (module)|hyperpage}{93}
 \indexentry{load\_fstress\_text() (in module src.func\_for\_cmd)|hyperpage}{93}
 \indexentry{load\_manning\_txt() (in module src.func\_for\_cmd)|hyperpage}{93}
-\indexentry{habby\_cmd (module)|hyperpage}{98}
-\indexentry{all\_command() (in module habby\_cmd)|hyperpage}{98}
-\indexentry{habby\_on\_all() (in module habby\_cmd)|hyperpage}{98}
+\indexentry{habby\_cmd (module)|hyperpage}{99}
+\indexentry{all\_command() (in module habby\_cmd)|hyperpage}{99}
+\indexentry{habby\_on\_all() (in module habby\_cmd)|hyperpage}{99}
 \indexentry{habby\_restart() (in module habby\_cmd)|hyperpage}{99}
-\indexentry{main() (in module habby\_cmd)|hyperpage}{99}
+\indexentry{main() (in module habby\_cmd)|hyperpage}{100}

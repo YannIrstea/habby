@@ -445,7 +445,10 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
             plt.plot(qmod, j[e, :], '-', label=name_inv[e])
         plt.xlabel('Q [m$^{3}$/sec]')
         plt.ylabel('Index J [ ]')
-        plt.title('Suitability index J - FStress -River: ' + r)
+        if fig_opt['language'] == 0:
+            plt.title('Suitability index J - River: ' + r)
+        elif fig_opt['language'] == 1:
+            plt.title('Index de suitabilité J - Rivère: ' + r)
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)

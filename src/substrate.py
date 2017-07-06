@@ -898,7 +898,10 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     plt.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
-    plt.title('Substrate Grid - Coarser Data')
+    if fig_opt['language'] == 0:
+        plt.title('Substrate Grid - Coarser Data')
+    elif fig_opt['language'] == 1:
+        plt.title('Maillage Substrat - Plus Gros')
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
     # colorbar
 
@@ -910,7 +913,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap,
                                     norm=norm,
                                     orientation='vertical')
-    cb1.set_label('Code Cemagrfef')
+    cb1.set_label('Code Cemagref')
     if format == 0 or format == 1:
         plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -946,7 +949,10 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     plt.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
-    plt.title('Substrate Grid - Dominant')
+    if fig_opt['language'] == 0:
+        plt.title('Substrate Grid - Dominant')
+    elif fig_opt['language'] == 1:
+        plt.title('Maillage Substrat - Dominant')
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7]) # posistion x2, sizex2, 1= top of the figure
@@ -958,7 +964,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap,
                                     norm=norm,
                                     orientation='vertical')
-    cb1.set_label('Code Cemagrfef')
+    cb1.set_label('Code Cemagref')
 
     # save the figure
     if format == 0 or format == 1:
@@ -987,7 +993,10 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         sc = plt.scatter(xtxt, ytxt, c=subtxt, vmin=np.nanmin(subtxt), vmax=np.nanmax(subtxt), s=34, cmap=cm, edgecolors='none')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
-        plt.title('Original Substrate Data (x,y)')
+        if fig_opt['language'] ==0:
+            plt.title('Original Substrate Data (x,y)')
+        elif fig_opt['language'] == 1:
+            plt.title('Données Substrat Original (x,y)')
         plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
                     fig_opt['resolution'], transparent=True)
         plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
@@ -1019,7 +1028,7 @@ def main():
     path1 = r'D:\Diane_work\dummy_folder\DefaultProj'
     hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.h5' )
     hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.h5')
-    [ikle_both, point_all_both, sub_data1, subdata2,  vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, -1)
+    #[ikle_both, point_all_both, sub_data1, subdata2,  vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, -1)
     # fig_merge_grid(point_all_both[0], ikle_both[0], path1)
     # plt.show()
 

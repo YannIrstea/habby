@@ -132,6 +132,12 @@ changing even if a lot of text appears. Hence, the setSizePolicy should be fixed
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.Main_windows_1.CentralW.closefig">
+<code class="descname">closefig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.closefig" title="Permalink to this definition">¶</a></dt>
+<dd><p>A small function to close the images open in HABBY and managed by matplotlib</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.Main_windows_1.CentralW.connect_signal_fig_and_drop">
 <code class="descname">connect_signal_fig_and_drop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.CentralW.connect_signal_fig_and_drop" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function connect the PyQtsignal to show figure and to connect the log. It is a function to
@@ -431,6 +437,14 @@ of the class CreateNewProject</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="src_GUI.Main_windows_1.MainWindows.open_help">
+<code class="descname">open_help</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.open_help" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function open the html which form the help from HABBY. For the moment, it is the full documentation
+with all the coding detail, but we should create a new html or a new pdf file which would be more pratical
+for the user.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.Main_windows_1.MainWindows.open_project">
 <code class="descname">open_project</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MainWindows.open_project" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to open an existing habby project by selecting an xml project file. Called by
@@ -556,7 +570,7 @@ the boolean self.does_it_work is used to know if the functions run until the end
 <dt id="src_GUI.Main_windows_1.ShowImageW">
 <em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">ShowImageW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW" title="Permalink to this definition">¶</a></dt>
 <dd><p>The widget which shows the saved images. Used only to show all the saved figure together iwhtout zoom or other
-options.</p>
+options. Not really used anymore in HABBY but it still there as it can be useful in the future.</p>
 <p><strong>Technical comments</strong></p>
 <p>The ShowImageW() class is used to show all the figures created by HABBY. It is a class which can only be
 called from the menu (In Option/Option Image). This is not the usual way of opening a figure which is usually done
@@ -690,8 +704,9 @@ the model he wants to load.</p>
 <dd><p>Bases: <a class="reference internal" href="#src_GUI.hydro_GUI_2.SubHydroW" title="src_GUI.hydro_GUI_2.SubHydroW"><code class="xref py py-class docutils literal"><span class="pre">src_GUI.hydro_GUI_2.SubHydroW</span></code></a></p>
 <p>The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
 src/hec_ras06.py which loads the hec-ras data in 1D. The class HEC_RAS1D inherits from SubHydroW() so it have all
-the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W(). So the class Hec-Ras 1D is called when
-the user is on the hydrological tab and click on hec-ras1D as hydrological model.</p>
+the methods and the variables from the class ubHydroW(). The class hec-ras 1D is added to the self.stack of Hydro2W().
+So the class Hec-Ras 1D is called when the user is on the hydrological tab and click on hec-ras1D as hydrological
+model.</p>
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.HEC_RAS1D.init_iu">
 <code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.HEC_RAS1D.init_iu" title="Permalink to this definition">¶</a></dt>
@@ -1096,11 +1111,11 @@ selected folder.</p>
 <p>SubHydroW is class which is the parent of the classes which can be used to open the hydrological models. This class
 is a bit special. It is not called directly by HABBY but by the classes which load the hydrological data and which
 inherits from this class. The advantage of this architecture is that all the children classes can use the methods
-written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and can use
-similar functions.</p>
-<p>In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the widget for the
-hydrological Tab and one class by hydrological model to really load the model. The latter classes have various
-methods in common, so they inherit from SubHydroW, this class.</p>
+written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and
+can use similar functions.</p>
+<p>In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the
+widget for the hydrological Tab and one class by hydrological model to really load the model. The latter classes
+have various methods in common, so they inherit from SubHydroW, this class.</p>
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.dis_enable_nb_profile">
 <code class="descname">dis_enable_nb_profile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.dis_enable_nb_profile" title="Permalink to this definition">¶</a></dt>
@@ -1217,10 +1232,18 @@ messages.</p>
 
 <dl class="method">
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.send_err_log">
-<code class="descname">send_err_log</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_err_log" title="Permalink to this definition">¶</a></dt>
+<code class="descname">send_err_log</code><span class="sig-paren">(</span><em>check_ok=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.send_err_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function sends the errors and the warnings to the logs.
 The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
 to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>check_ok</strong> &#8211; This is an optional paramter. If True, it checks if the function returns any error</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -1425,6 +1448,24 @@ function uses data by default which are in the fonction create_default_fig_optio
 <dd><p>The class which support the creation and management of the output. It is notably used to select the options to
 create the figures.</p>
 <dl class="method">
+<dt id="src_GUI.output_fig_GUI.outputW.check_uncheck">
+<code class="descname">check_uncheck</code><span class="sig-paren">(</span><em>main_checkbox</em>, <em>other_checkbox</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.check_uncheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function is used to check a box when the user clied on it and unckeked another passed as parameter</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>main_checkbox</strong> &#8211; A QCheckBox which sould by selected</li>
+<li><strong>other_checkbox</strong> &#8211; A QCheckbox which should be &#8220;unticked&#8221; when main_checkbox is selected by the user</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="src_GUI.output_fig_GUI.outputW.init_iu">
 <code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.init_iu" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1443,6 +1484,16 @@ figures. In the xml project file, the options for the figures are saved under th
 <dd><p>A PyQtsignal used to write the log.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="function">
+<dt id="src_GUI.output_fig_GUI.set_lang_fig">
+<code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">set_lang_fig</code><span class="sig-paren">(</span><em>nb_lang</em>, <em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.set_lang_fig" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function write in the xml file in which langugage the figures should be done. This is kept in the
+group of attribute in the Figure_Option
+:param lang: An int indicating the langugage (0 for english, 1 for french,...)
+:param path_prj: the path to the project
+:param name_prj: the name of the project</p>
 </dd></dl>
 
 </div>
@@ -1718,7 +1769,7 @@ It can be used to save the data given directely by the user or modified by him.<
 <dt id="src_GUI.fstress_GUI.FstressW.show_data_one_river">
 <code class="descname">show_data_one_river</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.show_data_one_river" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function shows the qhw and the [qmin, qmax] data on the GUI for the river selected by the user.
-The river must have been loaded before.</p>
+The river must have been loaded before. It also show the selected fish</p>
 </dd></dl>
 
 <dl class="method">
@@ -3869,6 +3920,15 @@ It is not used direclty by HABBY.</p>
 <p>in src/lammi.py</p>
 <p>This module contains functions used to load data from LAMMI. For more information on LAMMI, please see the pdf document <a class="reference download internal" href="_downloads/LAMMIGuideMetho.pdf" download=""><code class="xref download docutils literal"><span class="pre">LAMMI.pdf</span></code></a></p>
 <span class="target" id="module-src.lammi"></span><dl class="function">
+<dt id="src.lammi.check_code_change">
+<code class="descclassname">src.lammi.</code><code class="descname">check_code_change</code><span class="sig-paren">(</span><em>facies_path</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.check_code_change" title="Permalink to this definition">¶</a></dt>
+<dd><p>If we can find the habitat.txt file, we check that the conversion from EDF to Cemagref code was done as in HABBY.
+In most case, the habiat.txt file will not be found. This is not a problem.
+:param facies_path: the path to the facies.txt file
+:return: a boolean</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="src.lammi.compare_lammi">
 <code class="descclassname">src.lammi.</code><code class="descname">compare_lammi</code><span class="sig-paren">(</span><em>filename_habby</em>, <em>filename_lammi</em>, <em>filename_lammi_sur</em><span class="sig-paren">)</span><a class="headerlink" href="#src.lammi.compare_lammi" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function compares the SPU for the trut done by lammi and by HABBY (using hydrological lammi output). It is
@@ -4023,6 +4083,10 @@ the data in memory but no(x,y) coordinate. In addition, this data is is in the d
 hydraulic model.</p>
 <p>To obtain the coordainte of the river and to put the data is the form usually needed by HABBY for 1.5D model
 (coord_pro, vh_pro, nb_pro_reach), we use the coord_lammi() function.</p>
+<p>There is also an optionnal check to control that the conversion between lammi and cemagref code is as normal.
+This check is only done if HABBY can find the habitat.txt file where the conversion can be modified by the user.
+Otherwise we assume that the normal conversion is used. Obviously, this check should be modifed if the edf
+to cemagref conversion is modified.</p>
 </dd></dl>
 
 <dl class="function">
@@ -5136,7 +5200,7 @@ interpolations-between-two-irregular-grids</p>
 
 <dl class="function">
 <dt id="src.manage_grid_8.plot_grid">
-<code class="descclassname">src.manage_grid_8.</code><code class="descname">plot_grid</code><span class="sig-paren">(</span><em>point_all_reach</em>, <em>ikle_all</em>, <em>lim_by_reach</em>, <em>hole_all</em>, <em>overlap</em>, <em>point_c_all=[]</em>, <em>inter_vel_all=[]</em>, <em>inter_h_all=[]</em>, <em>path_im=[]</em>, <em>coord_pro2=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.plot_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.manage_grid_8.</code><code class="descname">plot_grid</code><span class="sig-paren">(</span><em>point_all_reach</em>, <em>ikle_all</em>, <em>lim_by_reach</em>, <em>hole_all</em>, <em>overlap</em>, <em>point_c_all=[]</em>, <em>inter_vel_all=[]</em>, <em>inter_h_all=[]</em>, <em>path_im=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.manage_grid_8.plot_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is a function to plot a grid and the output. It is mosty used to debug the grid creation. Contrarily to the more
 simple function plot_grid_simple, it is posible to plot the position of the holes (which indicates the dry area),
 the limits of the reaches used by triangle, the overlap between two reaches, and so on.</p>
@@ -6329,9 +6393,11 @@ It is also important there that the substrate is convex as the triangulation is 
 
 <dl class="function">
 <dt id="src.mesh_grid2.fig_merge_grid">
-<code class="descclassname">src.mesh_grid2.</code><code class="descname">fig_merge_grid</code><span class="sig-paren">(</span><em>point_all_both_t</em>, <em>ikle_both_t</em>, <em>path_im</em>, <em>ikle_orr=[]</em>, <em>point_all_orr=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.fig_merge_grid" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.mesh_grid2.</code><code class="descname">fig_merge_grid</code><span class="sig-paren">(</span><em>point_all_both_t</em>, <em>ikle_both_t</em>, <em>path_im</em>, <em>name_add=''</em>, <em>ikle_orr=[]</em>, <em>point_all_orr=[]</em><span class="sig-paren">)</span><a class="headerlink" href="#src.mesh_grid2.fig_merge_grid" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to plot the grid after it was merged with the substrate data.
-It plots one time step at the time.</p>
+It plots one time step at the time. This function is not used anymore by Habby. Indded, mesh_grid2 uses the
+function provided in manage_grid8.py to plot the grid and data after it is merged with the substrate. However,
+this function could be useful to debug if one wants to only plots teh grid and not the height/velocity data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -6340,6 +6406,7 @@ It plots one time step at the time.</p>
 <li><strong>point_all_both_t</strong> &#8211; the coordinate of the points of the updated grid</li>
 <li><strong>ikle_both_t</strong> &#8211; the connectivity table</li>
 <li><strong>path_im</strong> &#8211; the path where the image should be saved</li>
+<li><strong>name_add</strong> &#8211; the anem to be added to the figure name</li>
 <li><strong>ikle_orr</strong> &#8211; the orginial ikle</li>
 <li><strong>point_all_orr</strong> &#8211; the orginal point_all</li>
 </ul>
@@ -6819,7 +6886,7 @@ If it is called by the cmd, we want the print function to be sent to the command
 
 <dl class="function">
 <dt id="src.calcul_hab.calc_hab_norm">
-<code class="descclassname">src.calcul_hab.</code><code class="descname">calc_hab_norm</code><span class="sig-paren">(</span><em>ikle_all_t</em>, <em>point_all_t</em>, <em>vel</em>, <em>height</em>, <em>sub</em>, <em>pref_vel</em>, <em>pref_height</em>, <em>pref_sub</em>, <em>percent=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.calc_hab_norm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.calcul_hab.</code><code class="descname">calc_hab_norm</code><span class="sig-paren">(</span><em>ikle_all_t</em>, <em>point_all_t</em>, <em>vel</em>, <em>height</em>, <em>sub</em>, <em>pref_vel</em>, <em>pref_height</em>, <em>pref_sub</em>, <em>percent=False</em>, <em>take_sub=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.calcul_hab.calc_hab_norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
 all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -6836,6 +6903,7 @@ all habitat suitability index weighted by the cell area for each reach. It is ca
 <li><strong>pref_sub</strong> &#8211; the preference index for the substrate  (for one life stage)</li>
 <li><strong>pref_height</strong> &#8211; the preference index for the height  (for one life stage)</li>
 <li><strong>percent</strong> &#8211; If True, the variable sub is in percent form, not in the form dominant/coarser</li>
+<li><strong>take_sub</strong> &#8211; If False, the substrate data is neglected.</li>
 </ul>
 </td>
 </tr>
@@ -7007,13 +7075,13 @@ Pyevtk created by Paulo Herrera (<a class="reference external" href="https://bit
 script then called one function in hl.py which then called the three other scripts as in Pyevtk (not documented here).</p>
 <span class="target" id="module-src.new_create_vtk"></span><dl class="function">
 <dt id="src.new_create_vtk.habitat_to_vtu">
-<code class="descclassname">src.new_create_vtk.</code><code class="descname">habitat_to_vtu</code><span class="sig-paren">(</span><em>file_name_base</em>, <em>path_out</em>, <em>path_hdf5</em>, <em>name_hdf5</em>, <em>vh_all_t_sp</em>, <em>height_c_data</em>, <em>vel_c_data</em>, <em>name_fish</em>, <em>binary_data=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.new_create_vtk.habitat_to_vtu" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.new_create_vtk.</code><code class="descname">habitat_to_vtu</code><span class="sig-paren">(</span><em>file_name_base</em>, <em>path_out</em>, <em>path_hdf5</em>, <em>name_hdf5</em>, <em>vh_all_t_sp</em>, <em>height_c_data</em>, <em>vel_c_data</em>, <em>name_fish</em><span class="sig-paren">)</span><a class="headerlink" href="#src.new_create_vtk.habitat_to_vtu" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates paraview input in the new, non-legacy xml format. This function called the evtk class
 written by Paulo Herrera, which is available at <a class="reference external" href="https://bitbucket.org/pauloh/pyevtk/downloads/">https://bitbucket.org/pauloh/pyevtk/downloads/</a></p>
-<p>The format for paravier input file is decirbed in paraview_file_format.pdf in the doc folder of HABBY.</p>
-<p>The data of the paraview file created here  is usually not in a binary form, but it could be put in binary if the
-switch binary_data is True. The idea of paraview for a binary file is to keep the same usual xml file. The data is
-encoded to base64. Before the binary array, there is a 32-bits interger which contains the data length in bytes.
+<p>The format for paravier input file is descirbed in paraview_file_format.pdf in the doc folder of HABBY.</p>
+<p>The data of the paraview file created here  is usually in binary form. The idea of paraview for a binary file is
+to keep the same usual xml file. The data is encoded to base64. Before the binary array, there is a 32-bits interger
+which contains the data length in bytes.
 More info: <a class="reference external" href="http://www.earthmodels.org/software/vtk-and-paraview/vtk-file-formats">http://www.earthmodels.org/software/vtk-and-paraview/vtk-file-formats</a>.</p>
 <p>Paraview can handle a group of file which compose an output with than one time step. This is the reason to create a
 pwd files which list the files composing all the time steps (one file by time step)</p>
@@ -7030,7 +7098,6 @@ pwd files which list the files composing all the time steps (one file by time st
 <li><strong>vel_c_data</strong> &#8211; the velocity by cell by reach by time step</li>
 <li><strong>name_fish</strong> &#8211; the name of fish and stage</li>
 <li><strong>path_out</strong> &#8211; the path where to save the data</li>
-<li><strong>binary_data</strong> &#8211; If True will create binary data. DO NOT WORK YET, let it to FALSE</li>
 </ul>
 </td>
 </tr>
@@ -7118,19 +7185,20 @@ by the command line. Changes should be copied in both functions if necessary.</p
 </div>
 <div class="section" id="various-notes">
 <h1>Various notes<a class="headerlink" href="#various-notes" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="the-legend-of-the-plots-are-not-shown">
-<h2>The legend of the plots are not shown.<a class="headerlink" href="#the-legend-of-the-plots-are-not-shown" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="figures-and-matplotlib">
+<h2>Figures and matplotlib<a class="headerlink" href="#figures-and-matplotlib" title="Permalink to this headline">¶</a></h2>
+<p><strong>The legend of the plots are not shown.</strong></p>
 <p>Generally HABBY is able to save the figure while showing the legend (which is often outside of the figure) appropriately. However,
 the figure shown to the user by matplotlib often have the legend outside of the visible area. To see the figure fully, one can modify
 the axes in the option of the figure (the menu in the axes on the top of the figure).</p>
+<p><strong>How to make figures editable in Adobe Illustrator</strong></p>
+<p>It is useful to have figures which we can edit in Adobe Illustrator. To achieve this, the following matplotlib option should be added:
+mpl.rcParams[&#8216;ps.fonttype&#8217;] = 42. Moreover, matplolib should be imported (import matplotlib as mpl). It is also useful to add the tranparent option to the function to save the figure (transparent=True). This renders modification easier in many cases.</p>
 </div>
 <div class="section" id="translation-of-habby">
 <h2>Translation of HABBY<a class="headerlink" href="#translation-of-habby" title="Permalink to this headline">¶</a></h2>
 <p>In HABBY, it is possible to translate all strings which are in a python file (.py)
-which is in the src_GUI folder. It should be possible to translate also strings which
-are in a .py file which is in the .src folder if one modifies the .pro file,
-but this is not done yet. Also, it might not be necessary because ./src contains
-code which is not linked with the graphical interface. Hence, English might be sufficient here.</p>
+which is in the src_GUI folder.</p>
 <p>To add a new string to translate:</p>
 <ul class="simple">
 <li>Code as usual and write the string in English.</li>
@@ -7166,6 +7234,7 @@ the first language found.</p>
 <p>When the translator has been created, it is necessary to re-do all Widgets and Windows. This is not a problem when we open HABBY, but it can be a bit of work if the user asks for a change in language when HABBY is running. This is the function of the setlangue function. This function would work for all language (it takes an integer as input to know which language to use), but it needs to be modified if one modifies the Main_Windows Class strongly (notably if one add signals).
 The language should be saved in the user setting using Qsettings as it is done at the end of the
 setlangue function.</p>
+<p>In addition, every xml project file from HABBY has a part called &#8220;FigureOPtion&#8221;. In the list of available options, there is the language currently used under the attibute &#8220;LangFig&#8221;. The language is given using an int (0 for english, 1 for french). This is useful to translate the axis and the titles of the figures done by HABBY. To this end, one would first called the function &#8220;load_fig_option&#8221; in output_fig_GUI.py. This returns a dictionnary with a key called &#8220;language&#8221; (0 for english, 1 for french). Then, one can use an if statement to write the xlabel in french or english.</p>
 </div>
 <div class="section" id="create-a-exe">
 <h2>Create a .exe<a class="headerlink" href="#create-a-exe" title="Permalink to this headline">¶</a></h2>
@@ -7186,9 +7255,11 @@ setlangue function.</p>
 </ul>
 <p>Practically:</p>
 <ul class="simple">
-<li>go to the folder called executable</li>
+<li>go to the folder called executable and copy the current HABBY source there.</li>
+<li>copy createexe.bat in the habby folder.</li>
 <li>run createexe.bat (only on Windows)</li>
-<li>copy all files in the mklall folder to the folder dist/habby</li>
+<li>ignore the executable created in the &#8220;built&#8221; folder Use the one is in the &#8220;dist&#8221; folder.</li>
+<li>copy all files in the mklall folder to the folder dist/habby and the file which NOT python file from the original src_GUI folder to the one just created (or you know, improve the bat file...)</li>
 <li>run habby by writing habby on the cmd</li>
 <li>test and correct problems. It can be long!</li>
 </ul>
@@ -7268,12 +7339,14 @@ new_func and the class in the GUI my_class.</p>
 module can also be used to run HABBY on a bunch of files contained in a folder.</p>
 <span class="target" id="module-habby_cmd"></span><dl class="function">
 <dt id="habby_cmd.all_command">
-<code class="descclassname">habby_cmd.</code><code class="descname">all_command</code><span class="sig-paren">(</span><em>all_arg</em>, <em>name_prj</em>, <em>path_prj</em>, <em>path_bio</em><span class="sig-paren">)</span><a class="headerlink" href="#habby_cmd.all_command" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">habby_cmd.</code><code class="descname">all_command</code><span class="sig-paren">(</span><em>all_arg</em>, <em>name_prj</em>, <em>path_prj</em>, <em>path_bio</em>, <em>option_restart=False</em><span class="sig-paren">)</span><a class="headerlink" href="#habby_cmd.all_command" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to call HABBY from the command line. The general form is to call:
 habby_cmd command_name input1 input2 .. input n. The list of the command_name is given in the documentation and by
 calling the command &#8220;python habby_cmd.py LIST_COMMAND&#8221;. This functiion is usually called direclty by the main()
 or it is called by the function restart which read a list of function line by line. Careful, new command cannot
 contain the symbol &#8221;:&#8221; as it is used by restart.</p>
+<p>For the restart function, it is also important that the input folder is just in the folder &#8220;next&#8221; to the restart
+path. So the folder should not be moved randolmy inside the project folder or renamed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -7283,6 +7356,8 @@ contain the symbol &#8221;:&#8221; as it is used by restart.</p>
 <li><strong>name_prj</strong> &#8211; the name of the project, created by default by the main()</li>
 <li><strong>path_prj</strong> &#8211; the path to the project created by default bu the main()</li>
 <li><strong>path_bio</strong> &#8211; the path to the project</li>
+<li><strong>option_restart</strong> &#8211; If True the command are coming from a restart log (which have an impact on file name and
+location)</li>
 </ul>
 </td>
 </tr>
@@ -7478,7 +7553,7 @@ fail.</p>
 </ul>
 </li>
 <li><a class="reference internal" href="#various-notes">Various notes</a><ul>
-<li><a class="reference internal" href="#the-legend-of-the-plots-are-not-shown">The legend of the plots are not shown.</a></li>
+<li><a class="reference internal" href="#figures-and-matplotlib">Figures and matplotlib</a></li>
 <li><a class="reference internal" href="#translation-of-habby">Translation of HABBY</a></li>
 <li><a class="reference internal" href="#create-a-exe">Create a .exe</a></li>
 <li><a class="reference internal" href="#logging">Logging</a></li>

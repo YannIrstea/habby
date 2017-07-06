@@ -451,10 +451,7 @@ Translation of HABBY
 ------------------------
 
 In HABBY, it is possible to translate all strings which are in a python file (.py) 
-which is in the src_GUI folder. It should be possible to translate also strings which 
-are in a .py file which is in the .src folder if one modifies the .pro file, 
-but this is not done yet. Also, it might not be necessary because ./src contains 
-code which is not linked with the graphical interface. Hence, English might be sufficient here.
+which is in the src_GUI folder.
 
 To add a new string to translate:
 
@@ -497,6 +494,8 @@ When the translator has been created, it is necessary to re-do all Widgets and W
 The language should be saved in the user setting using Qsettings as it is done at the end of the 
 setlangue function.
 
+In addition, every xml project file from HABBY has a part called "FigureOPtion". In the list of available options, there is the language currently used under the attibute "LangFig". The language is given using an int (0 for english, 1 for french). This is useful to translate the axis and the titles of the figures done by HABBY. To this end, one would first called the function "load_fig_option" in output_fig_GUI.py. This returns a dictionnary with a key called "language" (0 for english, 1 for french). Then, one can use an if statement to write the xlabel in french or english.
+
 Create a .exe
 --------------------
 
@@ -521,8 +520,7 @@ Practically:
 * copy createexe.bat in the habby folder.
 * run createexe.bat (only on Windows)
 * ignore the executable created in the "built" folder Use the one is in the "dist" folder.
-* copy all files in the mklall folder to the folder dist/habby and the file which NOT python file from the original src_GUI folder to the one just
-created (or you know, improve the bat file...)
+* copy all files in the mklall folder to the folder dist/habby and the file which NOT python file from the original src_GUI folder to the one just created (or you know, improve the bat file...)
 * run habby by writing habby on the cmd
 * test and correct problems. It can be long!
 

@@ -2168,9 +2168,15 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
     if time_step == -1:
-        plt.title('Computational Grid  - Last Time Step ')
+        if fig_opt['language'] == 0:
+            plt.title('Computational Grid  - Last Time Step')
+        elif fig_opt['language'] == 1:
+            plt.title('Maillage - Dernier Pas de Temps')
     else:
-        plt.title('Computational Grid  - Time Step ' + str(time_step))
+        if fig_opt['language'] == 0:
+            plt.title('Computational Grid - Time Step ' + str(time_step))
+        elif fig_opt['language'] == 1:
+            plt.title('Maillage - Pas de Temps: ' + str(time_step))
     plt.tight_layout()
 
     # save figures
@@ -2192,9 +2198,15 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     bounds = []
     plt.figure()
     if time_step == -1:
-        plt.title('Hydraulic Data - Last Time Step ')
+        if fig_opt['language'] == 0:
+            plt.title('Hydraulic Data - Last Time Step')
+        elif fig_opt['language'] == 1:
+            plt.title('Données Hydrauliques - Dernier Pas de Temps')
     else:
-        plt.title('Hydraulic Data - Time Step ' + str(time_step))
+        if fig_opt['language'] == 0:
+            plt.title('Hydraulic Data - Time Step ' + str(time_step))
+        elif fig_opt['language'] == 1:
+            plt.title('Données Hydrauliques - Pas de Temps: ' + str(time_step))
     if len(inter_vel_all) > 0:  # 0
         plt.subplot(2, 1, 1)
         # get colormap limit
@@ -2217,12 +2229,18 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 if r == len(inter_vel_all) - 1:
                     # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
-                    cbar.ax.set_ylabel('Velocity [m/sec]')
+                    if fig_opt['language'] == 0:
+                        cbar.ax.set_ylabel('Velocity [m/sec]')
+                    elif fig_opt['language'] == 1:
+                        cbar.ax.set_ylabel('Vitesse [m/sec]')
             else:
                 print('Warning: One reach could not be drawn. \n')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
-        plt.title('Interpolated velocity')
+        if fig_opt['language'] == 0:
+            plt.title('Interpolated velocity')
+        elif fig_opt['language'] == 1:
+            plt.title('Vitesse interpolée')
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
@@ -2246,19 +2264,25 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                                      vmin=0, vmax=mvc,levels=bounds, extend='both')
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
-                    cbar.ax.set_ylabel('Water height [m]')
+                    if fig_opt['language'] == 0:
+                        cbar.ax.set_ylabel('Water height [m]')
+                    elif fig_opt['language'] == 1:
+                        cbar.ax.set_ylabel("Hauteur d'eau [m]")
             else:
                 print('Warning: One reach could not be drawn. \n')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
-        plt.title('Interpolated water height')
+        if fig_opt['language'] == 0:
+            plt.title('Interpolated water height')
+        elif fig_opt['language'] == 1:
+            plt.title("Hauteur d'eau interpolée")
     plt.tight_layout()
 
     # save figures
     if merge_case:
-        suffix = 'Merge_t'+str(time_step) + '_'
+        suffix = 'Merge_data_t'+str(time_step) + '_'
     else:
-        suffix = 'Hydro_t'+str(time_step) + '_'
+        suffix = 'Hydro_data_t'+str(time_step) + '_'
     if format1 == 0 or format1 == 1:
         plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
                     dpi=fig_opt['resolution'], transparent=True)

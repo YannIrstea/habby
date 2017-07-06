@@ -635,9 +635,15 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
        # riv_sect = lim_riv[p]
        # riv_mid[p, :] = riv_sect[1]
        # plt.plot(riv_mid[:, 0], riv_mid[:, 1], '-r')
-    plt.xlabel("x coordinate []")
-    plt.ylabel("y coordinate []")
-    plt.title("Position of the profiles")
+
+    if fig_opt['language'] == 0:
+        plt.xlabel("x coordinate []")
+        plt.ylabel("y coordinate []")
+        plt.title("Position of the profiles")
+    elif fig_opt['language'] == 1:
+        plt.xlabel("x coordonnées []")
+        plt.ylabel("y coordonnées []")
+        plt.title("Position des profils")
     # plt.axis('equal') # if right angle are needed
     if format == 0 or format == 1:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
@@ -660,19 +666,34 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
                 h_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r+1], 1]
                 v_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r+1], 3]
                 if t == -1:
-                    plt.suptitle("RUBAR1D - Last timestep ")
+                    if fig_opt['language'] == 0:
+                        plt.suptitle("RUBAR1D - Last timestep ")
+                    elif fig_opt['language'] == 1:
+                        plt.suptitle("RUBAR1D - Dernier Pas de temps")
                 else:
-                    plt.suptitle("RUBAR1D - Timestep " + str(t))
+                    if fig_opt['language'] == 0:
+                        plt.suptitle("RUBAR1D - Timestep " + str(t))
+                    if fig_opt['language'] == 1:
+                        plt.suptitle("RUBAR1D - Pas de Temps " + str(t))
                 ax1 = plt.subplot(211)
                 plt.plot(x, h_t + cote, '-b')
                 plt.plot(x, cote, '-k')
-                plt.xlabel('Distance along the river [m]')
-                plt.ylabel('Elevation [m]')
-                plt.legend(('water surface', 'river bottom'), fancybox=True, framealpha=0.5)
+                if fig_opt['language'] == 0:
+                    plt.xlabel('Distance along the river [m]')
+                    plt.ylabel('Elevation [m]')
+                    plt.legend(('water surface', 'river bottom'), fancybox=True, framealpha=0.5)
+                elif fig_opt['language'] == 1:
+                    plt.xlabel('Distance le long de la rivière [m]')
+                    plt.ylabel('Elevation [m]')
+                    plt.legend(("surface de l'eau", 'fond de la rivière'), fancybox=True, framealpha=0.5)
                 ax1 = plt.subplot(212)
                 plt.plot(x, v_t, '-r')
-                plt.xlabel('Distance along the river [m]')
-                plt.ylabel('Velocity [m/sec]')
+                if fig_opt['language'] == 0:
+                    plt.xlabel('Distance along the river [m]')
+                    plt.ylabel('Velocity [m/sec]')
+                elif fig_opt['language'] == 1:
+                    plt.xlabel('Distance le long de la rivière [m]')
+                    plt.ylabel('Vitesse [m/sec]')
                 if format == 0 or format == 1:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
                                 time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'],

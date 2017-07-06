@@ -87,7 +87,10 @@ class MainWindows(QMainWindow):
         self.path_trans = r'.\translation'
         self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm']
         if language_set:
-            self.lang = int(language_set)  # need to be sure to have an integer there
+            try:
+                self.lang = int(language_set)  # need to be sure to have an integer there
+            except ValueError:
+                self.lang = 0
         else:
             self.lang = 0
         app = QApplication.instance()
@@ -210,13 +213,25 @@ class MainWindows(QMainWindow):
             self.central_widget.tab_widget.removeTab(i)
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
-        self.central_widget.add_all_tab()
         self.central_widget.tab_widget.removeTab(0)  # WHY? I don't understand
+        self.central_widget.add_all_tab()
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
 
         # create the new menu
         self.my_menu_bar()
+
+        self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
+        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+        # re-connect signals for the tab
+        self.central_widget.connect_signal_fig_and_drop()
+        self.central_widget.connect_signal_log()
+
+        self.central_widget.update_hydro_hdf5_name()
 
         # pass the info to the bio info tab
         # to be modified if a new langugage is added !
@@ -231,6 +246,9 @@ class MainWindows(QMainWindow):
         self.settings = QSettings('HABBY', 'irstea')
         self.settings.setValue('language_code', self.lang)
         del self.settings
+
+        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
     def my_menu_bar(self, right_menu=False):
         """
@@ -887,6 +905,10 @@ class MainWindows(QMainWindow):
             child1.text = 'figures'
         doc.write(fname)
 
+        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+        self.central_widget.output_tab.save_option_fig()
+        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+
     def change_name_project(self):
         """
         This function is used to change the name of the current project. To do this, it copies the xml
@@ -1394,30 +1416,25 @@ class CentralW(QWidget):
         self.update_hydro_hdf5_name()
 
         # fill the general tab
-        self.welcome_tab.e1.setText(self.name_prj_c)
-        self.welcome_tab.e2.setText(self.path_prj_c)
+        #self.welcome_tab.e1.setText(self.name_prj_c)
+        #self.welcome_tab.e2.setText(self.path_prj_c)
 
-        # if the directoy to the project do not exist, leave the general tab empty
+        # get the log option (should we take log or not)
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if not os.path.isdir(self.path_prj_c) \
                 or not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Project file not found"))
-            self.msg2.setText( \
-                self.tr("The xml project file does not exists. \n Create or open a new project."))
+            self.msg2.setText(self.tr("The xml project file does not exists. \n Create or open a new project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
-        # otherwise, fill it
         else:
             doc = ET.parse(fname)
             root = doc.getroot()
-            user_child = root.find(".//User_Name")
-            des_child = root.find(".//Description")
-            self.welcome_tab.e4.setText(user_child.text)
-            self.welcome_tab.e3.setText(des_child.text)
             logon_child = root.find(".//Save_Log")
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
+
 
         # add the widgets to the list of tab if a project exist
         self.add_all_tab()
@@ -1799,9 +1816,9 @@ class WelcomeW(QWidget):
         # general into to put in the xml .prj file
         lg = QLabel(self.tr(" <b> Current Project </b>"))
         l1 = QLabel(self.tr('Project Name: '))
-        self.e1 = QLabel()
+        self.e1 = QLabel(self.name_prj)
         l2 = QLabel(self.tr('Main Folder: '))
-        self.e2 = QLabel()
+        self.e2 = QLabel(self.path_prj)
         button2 = QPushButton(self.tr('Set Folder'), self)
         button2.clicked.connect(self.setfolder)
         button3 = QPushButton(self.tr('Change Project Name'), self)
@@ -1826,6 +1843,24 @@ class WelcomeW(QWidget):
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
+
+        # if the directoy to the project do not exist, leave the general tab empty
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if not os.path.isdir(self.path_prj) \
+                or not os.path.isfile(fname):
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Project file not found"))
+            self.msg2.setText(self.tr("The xml project file does not exists. \n Create or open a new project."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+        # otherwise, fill it
+        else:
+            doc = ET.parse(fname)
+            root = doc.getroot()
+            user_child = root.find(".//User_Name")
+            des_child = root.find(".//Description")
+            self.e4.setText(user_child.text)
+            self.e3.setText(des_child.text)
 
         # layout (in two parts)
         layout2 = QGridLayout()

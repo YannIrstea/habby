@@ -783,22 +783,32 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         # print velocity
         plt.step(dist, vel,  where='mid', color='r')
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
-        plt.xlabel("distance along the profile [m]")
-        plt.ylabel(" Velocity [m/sec]")
+        if fig_opt['language'] == 0:
+            plt.xlabel("Distance along the profile [m]")
+            plt.ylabel(" Velocity [m/sec]")
+        elif fig_opt['language'] == 1:
+            plt.xlabel("Distance le long du profil [m]")
+            plt.ylabel(" Vitesse [m/sec]")
         # print water height
         ax1 = plt.subplot(211)
         plt.plot(dist, -h, 'k')  # profile
         plt.fill_between(dist, -h, [0]*len(h), where=h>=[0]*len(h), facecolor='blue', alpha=0.5, interpolate=True)
-        plt.xlabel("distance along the profile [m]")
-        plt.ylabel("altitude of the profile [m]")
-        plt.title("Profile " + str(i))
-        plt.legend(("Profile", "Water surface"))
+        if fig_opt['language'] == 0:
+            plt.xlabel("Distance along the profile [m]")
+            plt.ylabel("Altitude of the profile [m]")
+            plt.title("Profile " + str(i))
+            plt.legend(("Profile", "Water surface"))
+        elif fig_opt['language'] == 1:
+            plt.xlabel("Distance le long du profil[m]")
+            plt.ylabel("Elevation du profil [m]")
+            plt.title("Profil " + str(i))
+            plt.legend(("Profil", "Surface de l'eau"))
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
         plt.ylim([np.min(-h) * 1.05, np.max(h)/3])
         # save
         if formate == 0 or formate == 1:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S" + '.png'), dpi=fig_opt['resolution']), transparent=True)
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'], transparent=True)
         if formate == 0 or formate == 3:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
                         time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
@@ -824,7 +834,10 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     plt.xlabel("x coord []")
     plt.ylabel("y coord []")
     plt.xlim(coord_pro[0][0][0] - 20, coord_pro[-1][0][0] + 20)
-    plt.title("Position of the profiles (conceptual only)")
+    if fig_opt['language'] == 0:
+        plt.title("Position of the profiles (conceptual only)")
+    if fig_opt['language'] == 1:
+        plt.title("Position des profils (conceptuel)")
     # plt.axis('equal')  # if right angle are needed
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))

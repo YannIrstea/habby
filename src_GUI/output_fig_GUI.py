@@ -325,6 +325,7 @@ class outputW(QWidget):
                 text1 = root.find(".//TextOutput")
                 shape1 = root.find(".//ShapeOutput")
                 para1 = root.find(".//ParaviewOutput")
+                langfig1 = root.find(".//LangFig")
             else:  # save in case no fig option exist
                 child1 = ET.SubElement(root, 'Figure_Option')
                 width1 = ET.SubElement(child1, 'Width')
@@ -342,6 +343,7 @@ class outputW(QWidget):
                 text1 = ET.SubElement(child1, "TextOutput")
                 shape1 = ET.SubElement(child1, "ShapeOutput")
                 para1 = ET.SubElement(child1, "ParaviewOutput")
+                langfig1 = ET.SubElement(child1, "LangFig")
             width1.text = str(fig_dict['width'])
             height1.text = str(fig_dict['height'])
             colormap1.text = fig_dict['color_map1']
@@ -357,6 +359,9 @@ class outputW(QWidget):
             if fish1 is None:
                 fish1 = ET.SubElement(child1, "FishNameType")
             fish1.text = str(fig_dict['fish_name_type'])
+            if langfig1 is None:
+                langfig1 = ET.SubElement(child1, "LangFig")
+            langfig1.text = str(fig_dict['language'])
             text1.text = str(fig_dict['text_output'])
             shape1.text = str(fig_dict['shape_output'])
             para1.text = str(fig_dict['paraview'])
@@ -366,6 +371,34 @@ class outputW(QWidget):
         self.send_log.emit('# Modifications of figure options. \n')
         self.send_log.emit('restart     SAVE_OPTION_FIG')
 
+
+def set_lang_fig(nb_lang, path_prj, name_prj):
+    """
+    This function write in the xml file in which langugage the figures should be done. This is kept in the
+    group of attribute in the Figure_Option
+    :param lang: An int indicating the langugage (0 for english, 1 for french,...)
+    :param path_prj: the path to the project
+    :param name_prj: the name of the project
+    """
+
+    # save the data in the xml file
+    # open the xml project file
+    fname = os.path.join(path_prj, name_prj + '.xml')
+    # save the name and the path in the xml .prj file
+    if not os.path.isfile(fname):
+        print('Error: project is not found \n')
+    else:
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        child1 = root.find(".//Figure_Option")
+        if child1 is not None:  # modify existing option
+            langfig1 = root.find(".//LangFig")
+        else:
+            langfig1 = ET.SubElement(child1, "LangFig")
+        if langfig1 is None:
+            langfig1 = ET.SubElement(child1, "LangFig")
+        langfig1.text = str(nb_lang)
+        doc.write(fname)
 
 def load_fig_option(path_prj, name_prj):
     """
@@ -407,6 +440,7 @@ def load_fig_option(path_prj, name_prj):
             text1 = root.find(".//TextOutput")
             shape1 = root.find(".//ShapeOutput")
             para1 = root.find(".//ParaviewOutput")
+            langfig1 = root.find(".//LangFig")
             try:
                 if width1 is not None:
                     fig_dict['width'] = float(width1.text)
@@ -438,11 +472,14 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['shape_output'] = shape1.text
                 if para1 is not None:
                     fig_dict['paraview'] = para1.text
+                if langfig1 is not None:
+                    fig_dict['language'] = int(langfig1.text)
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
 
     fig_dict['time_step'] = fig_dict['time_step'].split(',')
     fig_dict['time_step'] = list(map(int, fig_dict['time_step']))
+
 
     return fig_dict
 
@@ -467,7 +504,8 @@ def create_default_figoption():
     fig_dict['text_output'] = True
     fig_dict['shape_output'] = True
     fig_dict['paraview'] = True
-
+    # this is dependant on the language of the application not the user choice in the output tab
+    fig_dict['language'] = 0  # 0 english, 1 french
 
     return fig_dict
 

@@ -188,8 +188,13 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
             tfig = range(0, len(zone_v))
         else:
             tfig = fig_opt['time_step']
-            tfig = tfig.split(',')
-            tfig = list(map(int,tfig))
+            if not isinstance(tfig, (list, tuple)):
+                tfig = tfig.split(',')
+            try:
+                tfig = list(map(int, tfig))
+            except ValueError:
+                print('Error: Time step was not recognized. \n')
+                return
         pro = [0, 1, 2]
         for t in tfig:
             t = int(t)
@@ -1418,18 +1423,31 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
         # print velocity
         step(v_xy_i_wet[:, 0], v_xy_i_wet[:, 1], where='post', color='r')
         xlim([np.min(xz[:, 0]-1)*0.95, np.max(xz[:, 0])*1.05])
-        xlabel("x [m or ft]")
-        ylabel(" Velocity [m or ft / sec]")
+        if fig_opt['language'] == 0:
+            xlabel("x [m or ft]")
+            ylabel(" Velocity [m/sec or ft/sec]")
+        elif fig_opt['language'] == 1:
+            xlabel("x [m ou ft]")
+            ylabel(" Vitesse [m/sec ou ft/sec]")
         ax1 = subplot(211)
         plot(xz[:, 0], xz[:, 1], 'k')  # profile
         fill_between(xz[:, 0], xz[:, 1],hi + xz[:, 1], where=xz[:, 1] < hi + xz[:, 1], facecolor='blue', alpha=0.5, interpolate=True)
-        xlabel("x [m or ft]")
-        ylabel("altitude of the profile [m or ft]")
-        if name_profile == 'no_name':
-            title("Profile " + str(i))
-        else:
-            title("Profile " + name_profile[i])
-        legend(("Profile", "Water surface"), fancybox=True, framealpha=0.5)
+        if fig_opt['language'] == 0:
+            xlabel("x [m or ft]")
+            ylabel("altitude of the profile [m or ft]")
+            if name_profile == 'no_name':
+                title("Profile " + str(i))
+            else:
+                title("Profile " + name_profile[i])
+            legend(("Profile", "Water surface"), fancybox=True, framealpha=0.5)
+        elif fig_opt['language'] == 1:
+            xlabel("x [m ou ft]")
+            ylabel("altitude du profil [m ou ft]")
+            if name_profile == 'no_name':
+                title("Profil " + str(i))
+            else:
+                title("Profil " + name_profile[i])
+            legend(("Profil", "Surface de l'eau"), fancybox=True, framealpha=0.5)
         xlim([np.min(xz[:, 0]-1)*0.95, np.max(xz[:, 0])*1.05])
         m += 1
         if format == 0 or format == 1:
@@ -1444,15 +1462,27 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
 
     # plot the profile in the (x,y) plane
     fig2 = figure(len(pro))
-    txt_pro = "Profile position"
-    txt_h = "Water height coordinates"
-    txt_v = "Velocity coordinates"
+    if fig_opt['language'] == 0:
+        txt_pro = "Profile position"
+        txt_h = "Water height coordinates"
+        txt_v = "Velocity coordinates"
+        txt_riv = "River "
+    elif fig_opt['language'] == 1:
+        txt_pro = "Position des profils"
+        txt_h = "Position des hauteurs d'eau"
+        txt_v = "Position des vitesses"
+        txt_riv = 'rivière '
+    else:
+        txt_pro = "Profile position"
+        txt_h = "Water height coordinates"
+        txt_v = "Velocity coordinates"
+        txt_riv = "River "
     xmip = 1000
     xmap = -1000
 
     for i in range(0,len(coord_r)):
         coord_r_i = coord_r[i]
-        plot(coord_r_i[:, 0], coord_r_i[:, 1], label='River')
+        plot(coord_r_i[:, 0], coord_r_i[:, 1], label=txt_riv + str(i))
     for j in range(0, len(coord_pro_old)):
         coord_j = coord_pro_old[j]
         xy_j = xy_h[j]
@@ -1477,7 +1507,10 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     ylim([xmip, xmap*1.05])
     xlabel("x []")
     ylabel("y []")
-    title("Position of the profiles")
+    if fig_opt['language'] == 0:
+        title("Position of the profiles")
+    elif fig_opt['language'] == 1:
+        title("Position des profils")
     axis('equal')  # if right angle are needed
     legend(fancybox=True, framealpha=0.5)
     if format == 0 or format == 1:

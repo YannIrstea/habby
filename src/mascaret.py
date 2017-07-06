@@ -1131,18 +1131,30 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
                 print('Error: The selected reach does not exist. It cannot be plotted. \n')
                 return
             plt.figure()
-            plt.suptitle("Mascaret - Reach " + name_reach[r] + " - Timestep " + str(t))
+            if fig_opt['language'] == 0:
+                plt.suptitle("Mascaret - Reach " + name_reach[r] + " - Timestep " + str(t))
+            elif fig_opt['language'] == 1:
+                plt.suptitle("Mascaret - Troncon " + name_reach[r] + " - Pas de Temps " + str(t))
             ax1 = plt.subplot(211)
             plt.plot(x_t, h_t + z_t, 'b')
             plt.plot(x_t, z_t, 'k')
             plt.plot(x_t, z_t, 'xk', markersize=4)
-            plt.xlabel('Distance along the river [m]')
-            plt.ylabel('Height [m]')
-            plt.legend(('water height', 'river slope', 'profile position'))
+            if fig_opt['language'] == 0:
+                plt.xlabel('Distance along the river [m]')
+                plt.ylabel('Height [m]')
+                plt.legend(('water height', 'river slope', 'profile position'))
+            elif fig_opt['language'] == 1:
+                plt.xlabel('Distance le long de la rivière [m]')
+                plt.ylabel('Hauteur [m]')
+                plt.legend(("hauteur d'eau", 'pente de la rivière', 'position du profil'))
             ax1 = plt.subplot(212)
             plt.plot(x_t, v_t, 'r')
-            plt.xlabel('Distance along the river [m]')
-            plt.ylabel('Velocity [m/sec]')
+            if fig_opt['language'] == 0:
+                plt.xlabel('Distance along the river [m]')
+                plt.ylabel('Velocity [m/sec]')
+            elif fig_opt['language'] ==1:
+                plt.xlabel('Distance le long de la rivière [m]')
+                plt.ylabel('Vitesse [m/sec]')
             if format == 1 or format == 0:
                 plt.savefig(os.path.join(path_im, "mascaret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                                          + ".png"), dpi = fig_opt['resolution'])
@@ -1168,7 +1180,10 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
            #plt.text(coord_p[0][-1] * 1.1, coord_p[1][-1], name_pro[p])
         txt_pro = '_nolegend_'
         txt_h = "_nolegend_"
-    plt.title('Profile (x,y)')
+    if fig_opt['language'] == 0:
+        plt.title('Profile (x,y)')
+    elif fig_opt['language'] == 1:
+        plt.title('Profil (x,y)')
     plt.xlabel('x coord. [m]')
     plt.ylabel('y coord. [m]')
     plt.axis('equal')
@@ -1199,9 +1214,14 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
             plt.xlim(-0.05, 1.05 * max(coord_p[3]))
         else:
             plt.xlim(a, 1.05 * max(coord_p[3]))
-        plt.xlabel('distance along the profile [m]')
-        plt.ylabel('Height of the river bed [m]')
-        plt.title('Profile ' + name_pro[p] + ' at the time step ' + str(t))
+        if fig_opt['language'] == 0:
+            plt.xlabel('Distance along the profile [m]')
+            plt.ylabel('Height of the river bed [m]')
+            plt.title('Profile ' + name_pro[p] + ' at the time step ' + str(t))
+        elif fig_opt['language'] ==1:
+            plt.xlabel('Distance le long du profil [m]')
+            plt.ylabel('Elevation du fond de la rivière [m]')
+            plt.title('Profil ' + name_pro[p] + ' au temps t=' + str(t))
         if format == 1 or format == 0:
             plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time' +
                         time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=fig_opt['resolution'], transparent=True)

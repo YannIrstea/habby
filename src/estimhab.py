@@ -125,25 +125,35 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         VH_f = const*part_q
         SPU_f = VH_f*w_all*100
         if pict:
+            if not fig_opt:
+                fig_opt = output_fig_GUI.create_default_figoption()
+
             plt.subplot(2, 1, 1)
             plt.grid(True)
             plt.plot(q_all, VH_f, color=c[f])
-            plt.xlabel('discharge [m3/sec]')
-            plt.ylabel('Valeur habitat []')
+            if fig_opt['language'] == 0:
+                plt.xlabel('Discharge [m$^{3}$/sec]')
+                plt.ylabel('Habitat Value[]')
+            elif fig_opt['language'] == 1:
+                plt.xlabel('Débit [m$^{3}$/sec]')
+                plt.ylabel('Valeur habitat []')
+
             plt.ylim(0, 1)
 
             plt.subplot(2, 1, 2)
             plt.grid(True)
             plt.plot(q_all, SPU_f, color=c[f])
-            plt.xlabel('discharge [m3/sec]')
-            plt.ylabel('SPU by 100 m')
+            if fig_opt['language'] == 0:
+                plt.xlabel('Discharge [m$^{3}$/sec]')
+                plt.ylabel('WUA by 100 m')
+            elif fig_opt['language'] == 1:
+                plt.xlabel('Débit [m$^{3}$/sec]')
+                plt.ylabel('SPU par 100 m')
 
         VH.append(VH_f)
         SPU.append(SPU_f)
 
     if pict:
-        if not fig_opt:
-            fig_opt = output_fig_GUI.create_default_figoption()
         plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
         plt.rcParams['font.size'] = fig_opt['font_size']
         plt.rcParams['lines.linewidth'] = fig_opt['line_width']
@@ -166,9 +176,9 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
 
         # save
         np.savetxt(os.path.join(path_im, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header)
-        if format == 0 or format ==1:
+        if format == 0 or format == 1:
             plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'], transparent=True)
-        if format == 0 or format ==3:
+        if format == 0 or format == 3:
             plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
         if format == 2:
             plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=fig_opt['resolution'], transparent=True)

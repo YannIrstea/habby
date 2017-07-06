@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.8.17)  7 JUN 2017 17:18
+This is pdfTeX, Version 3.14159265-2.6-1.40.16 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2016.8.17)  6 JUL 2017 15:56
 entering extended mode
 **C:/Users/diane.von-gunten/HABBY/doc/_build/latex/HABBY.tex
 (C:/Users/diane.von-gunten/HABBY/doc/_build/latex/HABBY.tex
@@ -1099,20 +1099,20 @@ LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <10> not available
 (Font)              Font shape `T1/pcr/m/sl' tried instead on input line 1.
  [14] [15] [16] [17] [18] [19] [20] [21] [22] [23] [24] [25]
 [26] [27] [28]
-Overfull \hbox (1.23029pt too wide) in paragraph at lines 2485--2487
+Overfull \hbox (1.23029pt too wide) in paragraph at lines 2540--2542
 []
  []
 
 [29] [30]
 Chapter 4.
 
-Underfull \hbox (badness 10000) in paragraph at lines 2621--2621
+Underfull \hbox (badness 10000) in paragraph at lines 2676--2676
 []\T1/ptm/m/it/10 data_bank_all\T1/ptm/m/n/10 , \T1/ptm/m/it/10 data_dist_all\T
 1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 2621--2621
+Underfull \hbox (badness 10000) in paragraph at lines 2676--2676
 \T1/ptm/m/it/10 data_river_all\T1/ptm/m/n/10 , \T1/ptm/m/it/10 data_profile_all
 \T1/ptm/m/n/10 ,
  []
@@ -1120,32 +1120,32 @@ Underfull \hbox (badness 10000) in paragraph at lines 2621--2621
 [31
 
 ]
-Underfull \hbox (badness 6961) in paragraph at lines 2739--2739
+Underfull \hbox (badness 6961) in paragraph at lines 2794--2794
 []\T1/ptm/m/it/10 coord_pro\T1/ptm/m/n/10 , \T1/ptm/m/it/10 data_profile\T1/ptm
 /m/n/10 , \T1/ptm/m/it/10 vel\T1/ptm/m/n/10 , \T1/ptm/m/it/10 wse\T1/ptm/m/n/10
  , \T1/ptm/m/it/10 nb_sim\T1/ptm/m/n/10 ,
  []
 
 [32] [33]
-Underfull \hbox (badness 10000) in paragraph at lines 2898--2898
+Underfull \hbox (badness 10000) in paragraph at lines 2953--2953
 []\T1/ptm/m/it/10 name_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_hdf5\T1/ptm/m/
 n/10 , \T1/ptm/m/it/10 name_prj\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 6220) in paragraph at lines 2898--2898
+Underfull \hbox (badness 6220) in paragraph at lines 2953--2953
 \T1/ptm/m/it/10 in-terpo_choice\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_im\T1/ptm/
 m/n/10 , \T1/ptm/m/it/10 save_fig1d\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 8056) in paragraph at lines 2898--2898
+Underfull \hbox (badness 8056) in paragraph at lines 2953--2953
 \T1/ptm/m/it/10 pro_add=1\T1/ptm/m/n/10 , \T1/ptm/m/it/10 q=[]\T1/ptm/m/n/10 , 
 \T1/ptm/m/it/10 print_cmd=False\T1/ptm/m/n/10 ,
  []
 
 [34]
-Underfull \hbox (badness 5245) in paragraph at lines 2962--2962
+Underfull \hbox (badness 5245) in paragraph at lines 3017--3017
 []\T1/ptm/m/it/10 geo_file\T1/ptm/m/n/10 , \T1/ptm/m/it/10 res_file\T1/ptm/m/n/
 10 , \T1/ptm/m/it/10 path_geo\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_res\T1/ptm/m
 /n/10 , \T1/ptm/m/it/10 path_im\T1/ptm/m/n/10 , \T1/ptm/m/it/10 save_fig=False\
@@ -1153,85 +1153,85 @@ T1/ptm/m/n/10 ,
  []
 
 [35] [36] [37] [38] [39]
-Underfull \hbox (badness 10000) in paragraph at lines 3487--3487
+Underfull \hbox (badness 10000) in paragraph at lines 3542--3542
 []\T1/ptm/m/it/10 name_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 file-name\T1/ptm/m/
 n/10 , \T1/ptm/m/it/10 path\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name_prj\T1/ptm/m/n
 /10 ,
  []
 
 [40] [41]
-Underfull \hbox (badness 10000) in paragraph at lines 3646--3646
+Underfull \hbox (badness 10000) in paragraph at lines 3701--3701
 []\T1/ptm/m/it/10 node_number\T1/ptm/m/n/10 , \T1/ptm/m/it/10 start_node\T1/ptm
 /m/n/10 , \T1/ptm/m/it/10 end_node\T1/ptm/m/n/10 , \T1/ptm/m/it/10 an-gles\T1/p
 tm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 3684--3684
+Underfull \hbox (badness 10000) in paragraph at lines 3739--3739
 \T1/ptm/m/it/10 name_pro, name_reach, path_im, pro, plot_timestep=[-1],
  []
 
 [42] [43]
-Underfull \hbox (badness 10000) in paragraph at lines 3893--3893
+Underfull \hbox (badness 10000) in paragraph at lines 3948--3948
 \T1/ptm/m/it/10 model_type\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name-file\T1/ptm/m/n
 /10 , \T1/ptm/m/it/10 path-file\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-
  []
 
 [44] [45]
-Underfull \hbox (badness 10000) in paragraph at lines 4109--4109
+Underfull \hbox (badness 10000) in paragraph at lines 4164--4164
 []\T1/ptm/m/it/10 file_gen\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_gen\T1/ptm/m/n/
 10 , \T1/ptm/m/it/10 ab-cisse\T1/ptm/m/n/10 ,
  []
 
 [46]
-Underfull \hbox (badness 10000) in paragraph at lines 4200--4200
+Underfull \hbox (badness 10000) in paragraph at lines 4255--4255
 []\T1/ptm/m/it/10 name_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name-files\T1/ptm/m
 /n/10 , \T1/ptm/m/it/10 paths\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name_prj\T1/ptm/m
 /n/10 ,
  []
 
 [47] [48] [49]
-Underfull \hbox (badness 10000) in paragraph at lines 4588--4588
+Underfull \hbox (badness 10000) in paragraph at lines 4643--4643
 []\T1/ptm/m/it/10 name_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_hdf5\T1/ptm/m/
 n/10 , \T1/ptm/m/it/10 name_prj\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_prj\T1/ptm
 /m/n/10 ,
  []
 
 [50] [51]
-Underfull \hbox (badness 7613) in paragraph at lines 4688--4688
+Underfull \hbox (badness 7613) in paragraph at lines 4743--4743
 []\T1/ptm/m/it/10 name_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ge-ofile\T1/ptm/m/n
 /10 , \T1/ptm/m/it/10 tps-file\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path-geo\T1/ptm/
 m/n/10 , \T1/ptm/m/it/10 pathtps\T1/ptm/m/n/10 ,
  []
 
-[52] [53] [54]
-Underfull \hbox (badness 10000) in paragraph at lines 5135--5135
+[52] [53] [54] [55]
+Underfull \hbox (badness 10000) in paragraph at lines 5201--5201
 []\T1/ptm/m/it/10 facies_path\T1/ptm/m/n/10 , \T1/ptm/m/it/10 fa-cies_name\T1/p
 tm/m/n/10 , \T1/ptm/m/it/10 tran-sect_path\T1/ptm/m/n/10 , \T1/ptm/m/it/10 tran
 -sect_name\T1/ptm/m/n/10 ,
  []
 
-[55] [56]
-Underfull \hbox (badness 10000) in paragraph at lines 5274--5274
+[56]
+Underfull \hbox (badness 10000) in paragraph at lines 5345--5345
 []\T1/ptm/m/it/10 facies_path\T1/ptm/m/n/10 , \T1/ptm/m/it/10 tran-sect_path\T1
 /ptm/m/n/10 , \T1/ptm/m/it/10 path_im\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name_hdf5
 \T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 5274--5274
+Underfull \hbox (badness 10000) in paragraph at lines 5345--5345
 \T1/ptm/m/it/10 save-fig1d=False\T1/ptm/m/n/10 , \T1/ptm/m/it/10 tran-sect_name
 ='Transect.txt'\T1/ptm/m/n/10 , \T1/ptm/m/it/10 fa-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 5274--5274
+Underfull \hbox (badness 10000) in paragraph at lines 5345--5345
 \T1/ptm/m/it/10 cies_name='Facies.txt'\T1/ptm/m/n/10 , \T1/ptm/m/it/10 print_cm
 d=False\T1/ptm/m/n/10 , \T1/ptm/m/it/10 q=[]\T1/ptm/m/n/10 ,
  []
 
 [57] [58]
-Underfull \hbox (badness 7397) in paragraph at lines 5515--5515
+Underfull \hbox (badness 7397) in paragraph at lines 5586--5586
 []\T1/ptm/m/it/10 name_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name_prj\T1/ptm/m/n
 /10 , \T1/ptm/m/it/10 path_prj\T1/ptm/m/n/10 , \T1/ptm/m/it/10 model_type\T1/pt
 m/m/n/10 , \T1/ptm/m/it/10 nb_dim\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_hdf5\T1/
@@ -1239,123 +1239,116 @@ ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 7832) in paragraph at lines 5515--5515
+Underfull \hbox (badness 7832) in paragraph at lines 5586--5586
 \T1/ptm/m/it/10 ikle_all_t\T1/ptm/m/n/10 , \T1/ptm/m/it/10 point_all_t\T1/ptm/m
 /n/10 , \T1/ptm/m/it/10 point_c_all_t\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-ter_ve
 l_all_t\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-ter_h_all_t\T1/ptm/m/n/10 ,
  []
 
 [59] [60]
-Underfull \hbox (badness 10000) in paragraph at lines 5632--5632
+Underfull \hbox (badness 10000) in paragraph at lines 5703--5703
 []\T1/ptm/m/it/10 path_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_prj\T1/ptm/m/n
 /10 , \T1/ptm/m/it/10 name_prj\T1/ptm/m/n/10 , \T1/ptm/m/it/10 sub_pg\T1/ptm/m/
 n/10 , \T1/ptm/m/it/10 sub_dom\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 5632--5632
+Underfull \hbox (badness 10000) in paragraph at lines 5703--5703
 \T1/ptm/m/it/10 ikle_sub=[]\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-ord_p=[]\T1/ptm/
 m/n/10 , \T1/ptm/m/it/10 name_hdf5='`\T1/ptm/m/n/10 , \T1/ptm/m/it/10 con-st-su
 b=False\T1/ptm/m/n/10 ,
  []
 
 [61] [62] [63] [64] [65]
-Underfull \hbox (badness 10000) in paragraph at lines 6152--6152
+Underfull \hbox (badness 10000) in paragraph at lines 6223--6223
 []\T1/ptm/m/it/10 coord_pro, nb_pro_reach=[0,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6152--6152
+Underfull \hbox (badness 10000) in paragraph at lines 6223--6223
 \T1/ptm/m/it/10 10000000000.0], vh_pro_t=[],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6152--6152
+Underfull \hbox (badness 10000) in paragraph at lines 6223--6223
 \T1/ptm/m/it/10 sub_pg=[], sub_dom=[], sub_per=[],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6152--6152
+Underfull \hbox (badness 10000) in paragraph at lines 6223--6223
 \T1/ptm/m/it/10 vir-tual_startend=False, di-v-giv=[],
  []
 
 [66] [67]
-Underfull \hbox (badness 10000) in paragraph at lines 6294--6294
+Underfull \hbox (badness 10000) in paragraph at lines 6365--6365
 []\T1/ptm/m/it/10 p1sub, p2sub, lim_here, lim_by_reachr,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6336--6336
+Underfull \hbox (badness 10000) in paragraph at lines 6407--6407
 []\T1/ptm/m/it/10 coord_pro_p\T1/ptm/m/n/10 , \T1/ptm/m/it/10 vh_pro_t_p\T1/ptm
 /m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6336--6336
+Underfull \hbox (badness 10000) in paragraph at lines 6407--6407
 \T1/ptm/m/it/10 point_mid_x\T1/ptm/m/n/10 , \T1/ptm/m/it/10 point_mid_y\T1/ptm/
 m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6336--6336
+Underfull \hbox (badness 10000) in paragraph at lines 6407--6407
 \T1/ptm/m/it/10 point_all\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ikle\T1/ptm/m/n/10 , 
 \T1/ptm/m/it/10 point_c\T1/ptm/m/n/10 , \T1/ptm/m/it/10 dir\T1/ptm/m/n/10 ,
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 6382--6382
+[68]
+Underfull \hbox (badness 10000) in paragraph at lines 6453--6453
 []\T1/ptm/m/it/10 vh_pro\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-ord_pro\T1/ptm/m/n/
 10 , \T1/ptm/m/it/10 nb_pro_reach\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-terpo_choi
 ce\T1/ptm/m/n/10 ,
  []
 
-[68]
-Underfull \hbox (badness 10000) in paragraph at lines 6421--6424
+
+Underfull \hbox (badness 10000) in paragraph at lines 6492--6495
 []
  []
 
 [69]
-Underfull \hbox (badness 5878) in paragraph at lines 6540--6542
+Underfull \hbox (badness 5878) in paragraph at lines 6611--6613
 \T1/ptm/m/n/10 This fuc-n-tion is called by in-terp_weights(). It is used in th
 e op-ti-miza-tion of the func-tion
  []
 
 [70]
-Underfull \hbox (badness 10000) in paragraph at lines 6666--6666
+Underfull \hbox (badness 10000) in paragraph at lines 6737--6737
 []\T1/ptm/m/it/10 point_all\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-ord_c\T1/ptm/m/n
 /10 , \T1/ptm/m/it/10 vel_in\T1/ptm/m/n/10 , \T1/ptm/m/it/10 height_in\T1/ptm/m
 /n/10 ,
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 6714--6714
+[71]
+Underfull \hbox (badness 10000) in paragraph at lines 6785--6785
 []\T1/ptm/m/it/10 point_all_reach\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ikle_all\T1/p
 tm/m/n/10 , \T1/ptm/m/it/10 lim_by_reach\T1/ptm/m/n/10 , \T1/ptm/m/it/10 hole_a
 ll\T1/ptm/m/n/10 , \T1/ptm/m/it/10 over-lap\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6714--6714
-\T1/ptm/m/it/10 point_c_all=[]\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-ter_vel_all=[
-]\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-ter_h_all=[]\T1/ptm/m/n/10 , \T1/ptm/m/it/
-10 path_im=[]\T1/ptm/m/n/10 ,
- []
-
-[71]
-Underfull \hbox (badness 10000) in paragraph at lines 6756--6756
+Underfull \hbox (badness 10000) in paragraph at lines 6827--6827
 []\T1/ptm/m/it/10 point_all_reach\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ikle_all\T1/p
 tm/m/n/10 , \T1/ptm/m/it/10 fig_opt\T1/ptm/m/n/10 , \T1/ptm/m/it/10 in-ter_vel_
 all=[]\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 6756--6756
+Underfull \hbox (badness 10000) in paragraph at lines 6827--6827
 \T1/ptm/m/it/10 in-ter_h_all=[]\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_im=[]\T1/p
 tm/m/n/10 , \T1/ptm/m/it/10 merge_case=False\T1/ptm/m/n/10 ,
  []
 
 [72] [73] [74] [75] [76] [77] [78] [79]
-Underfull \hbox (badness 10000) in paragraph at lines 7681--7681
+Underfull \hbox (badness 10000) in paragraph at lines 7752--7752
 []\T1/ptm/m/it/10 path_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_prj\T1/ptm/m/n
 /10 , \T1/ptm/m/it/10 name_prj\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name_bio\T1/ptm/
 m/n/10 , \T1/ptm/m/it/10 path_bio\T1/ptm/m/n/10 , \T1/ptm/m/it/10 riv_name\T1/p
@@ -1363,33 +1356,33 @@ tm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 7757--7757
+Underfull \hbox (badness 10000) in paragraph at lines 7828--7828
 \T1/ptm/m/it/10 at-tribute_type\T1/ptm/m/n/10 , \T1/ptm/m/it/10 nb_point=200\T1
 /ptm/m/n/10 ,
  []
 
 [80] [81] [82] [83]
-Underfull \hbox (badness 10000) in paragraph at lines 8155--8155
+Underfull \hbox (badness 10000) in paragraph at lines 8226--8226
 []\T1/ptm/m/it/10 point_all_both_t\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ikle_both_t\
-T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_im\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ikle_or
-r=[]\T1/ptm/m/n/10 ,
+T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_im\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name_ad
+d='`\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 8184--8184
+Underfull \hbox (badness 10000) in paragraph at lines 8260--8260
 []\T1/ptm/m/it/10 ikle_sub\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-ord_p_sub\T1/ptm/
 m/n/10 , \T1/ptm/m/it/10 ikle\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-ord_p\T1/ptm/m
 /n/10 , \T1/ptm/m/it/10 data_sub_pg\T1/ptm/m/n/10 ,
  []
 
 [84] [85]
-Underfull \hbox (badness 10000) in paragraph at lines 8362--8362
+Underfull \hbox (badness 10000) in paragraph at lines 8438--8438
 []\T1/ptm/m/it/10 hdf5_name_hyd\T1/ptm/m/n/10 , \T1/ptm/m/it/10 hdf5_name_sub\T
 1/ptm/m/n/10 , \T1/ptm/m/it/10 path_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 de-
  []
 
 [86] [87] [88] [89] [90] [91]
-Underfull \hbox (badness 10000) in paragraph at lines 9026--9026
+Underfull \hbox (badness 10000) in paragraph at lines 9105--9105
 []\T1/ptm/m/it/10 file_name_base\T1/ptm/m/n/10 , \T1/ptm/m/it/10 path_out\T1/pt
 m/m/n/10 , \T1/ptm/m/it/10 path_hdf5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 name_hdf5\
 T1/ptm/m/n/10 ,
@@ -1464,57 +1457,67 @@ Underfull \hbox (badness 10000) in paragraph at lines 51--53
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 54--56
+Underfull \hbox (badness 10000) in paragraph at lines 55--57
+[]\T1/ptm/m/n/10 check_uncheck() (src_GUI.output_fig_GUI.outputW
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 57--59
 []\T1/ptm/m/n/10 clear_log() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Overfull \hbox (5.52032pt too wide) in paragraph at lines 56--58
+Overfull \hbox (5.52032pt too wide) in paragraph at lines 59--61
 []\T1/ptm/m/n/10 close_project() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 63--65
-[]\T1/ptm/m/n/10 connect_signal_fig_and_drop()
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 63--65
-\T1/ptm/m/n/10 (src_GUI.Main_windows_1.CentralW
- []
-
-
-Overfull \hbox (10.06024pt too wide) in paragraph at lines 65--67
-[]\T1/ptm/m/n/10 connect_signal_log() (src_GUI.Main_windows_1.CentralW
+Underfull \hbox (badness 10000) in paragraph at lines 65--67
+[]\T1/ptm/m/n/10 closefig() (src_GUI.Main_windows_1.CentralW
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 68--70
+[]\T1/ptm/m/n/10 connect_signal_fig_and_drop()
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 68--70
+\T1/ptm/m/n/10 (src_GUI.Main_windows_1.CentralW
+ []
+
+
+Overfull \hbox (10.06024pt too wide) in paragraph at lines 70--72
+[]\T1/ptm/m/n/10 connect_signal_log() (src_GUI.Main_windows_1.CentralW
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 73--75
 []\T1/ptm/m/n/10 coord_profile_non_georeferenced() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 75--77
+Underfull \hbox (badness 10000) in paragraph at lines 80--82
 []\T1/ptm/m/n/10 create_default_figoption() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 77--79
+Underfull \hbox (badness 10000) in paragraph at lines 82--84
 []\T1/ptm/m/n/10 create_dummy_substrate() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 79--81
+Underfull \hbox (badness 10000) in paragraph at lines 84--86
 []\T1/ptm/m/n/10 create_dummy_substrate_from_hydro() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 82--84
+Underfull \hbox (badness 10000) in paragraph at lines 87--89
 []\T1/ptm/m/n/10 create_grid_only_1_profile() (in mod-ule
  []
 
 
-Overfull \hbox (27.18022pt too wide) in paragraph at lines 85--87
+Overfull \hbox (27.18022pt too wide) in paragraph at lines 90--92
 []\T1/ptm/m/n/10 create_menu_right() (src_GUI.Main_windows_1.MainWindows
  []
 
@@ -1522,598 +1525,603 @@ Overfull \hbox (27.18022pt too wide) in paragraph at lines 85--87
 
 
 ]
-Overfull \hbox (16.92102pt too wide) in paragraph at lines 101--103
+Overfull \hbox (16.92102pt too wide) in paragraph at lines 106--108
 []\T1/ptm/m/n/10 dis_enable_nb_profile() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 111--113
+Underfull \hbox (badness 10000) in paragraph at lines 116--118
 []\T1/ptm/m/n/10 do_log() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 113--115
+Underfull \hbox (badness 10000) in paragraph at lines 118--120
 []\T1/ptm/m/n/10 drop_hydro (src_GUI.hydro_GUI_2.SubHydroW at-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 117--119
+Underfull \hbox (badness 10000) in paragraph at lines 122--124
 []\T1/ptm/m/n/10 drop_merge (src_GUI.hydro_GUI_2.SubstrateW at-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 123--125
+Underfull \hbox (badness 10000) in paragraph at lines 128--130
 []\T1/ptm/m/n/10 edf_to_cemagref_by_percentage() (in mod-ule
  []
 
 
-Overfull \hbox (9.97038pt too wide) in paragraph at lines 125--127
+Overfull \hbox (9.97038pt too wide) in paragraph at lines 130--132
 []\T1/ptm/m/n/10 empty_project() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 130--132
+Underfull \hbox (badness 10000) in paragraph at lines 135--137
 []\T1/ptm/m/n/10 erase_pict() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 152--154
+Underfull \hbox (badness 10000) in paragraph at lines 157--159
 []\T1/ptm/m/n/10 find_path_hdf5() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Overfull \hbox (18.65009pt too wide) in paragraph at lines 154--156
+Overfull \hbox (18.65009pt too wide) in paragraph at lines 159--161
 []\T1/ptm/m/n/10 find_path_hdf5_est() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 158--160
+Underfull \hbox (badness 10000) in paragraph at lines 163--165
 []\T1/ptm/m/n/10 find_path_im() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Overfull \hbox (10.87991pt too wide) in paragraph at lines 160--162
+Overfull \hbox (10.87991pt too wide) in paragraph at lines 165--167
 []\T1/ptm/m/n/10 find_path_im_est() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 162--164
+Underfull \hbox (badness 10000) in paragraph at lines 167--169
 []\T1/ptm/m/n/10 find_path_input() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Overfull \hbox (20.87991pt too wide) in paragraph at lines 164--166
+Overfull \hbox (20.87991pt too wide) in paragraph at lines 169--171
 []\T1/ptm/m/n/10 find_path_input_est() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Overfull \hbox (25.87991pt too wide) in paragraph at lines 166--168
+Overfull \hbox (25.87991pt too wide) in paragraph at lines 171--173
 []\T1/ptm/m/n/10 find_path_output_est() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Overfull \hbox (15.16995pt too wide) in paragraph at lines 168--170
+Overfull \hbox (15.16995pt too wide) in paragraph at lines 173--175
 []\T1/ptm/m/n/10 find_path_text_est() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 188--190
+Underfull \hbox (badness 10000) in paragraph at lines 193--195
 []\T1/ptm/m/n/10 get_att_name() (src_GUI.hydro_GUI_2.SubstrateW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 190--192
+Underfull \hbox (badness 10000) in paragraph at lines 195--197
 []\T1/ptm/m/n/10 get_attribute_from_shp()
  []
 
 
-Underfull \hbox (badness 6658) in paragraph at lines 190--192
+Underfull \hbox (badness 6658) in paragraph at lines 195--197
 \T1/ptm/m/n/10 (src_GUI.hydro_GUI_2.SubstrateW method),
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 192--194
+Underfull \hbox (badness 10000) in paragraph at lines 197--199
 []\T1/ptm/m/n/10 get_crossing_segment_sub() (in mod-ule
  []
 
 
-Overfull \hbox (9.94154pt too wide) in paragraph at lines 201--203
+Overfull \hbox (9.94154pt too wide) in paragraph at lines 206--208
 []\T1/ptm/m/n/10 get_new_hydro_hdf5() (src_GUI.hydro_GUI_2.HabbyHdf5
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 203--205
+Underfull \hbox (badness 10000) in paragraph at lines 208--210
 []\T1/ptm/m/n/10 get_new_point_and_cell_1_profil() (in mod-ule
  []
 
-
-Overfull \hbox (3.03125pt too wide) in paragraph at lines 221--223
+[107]
+Overfull \hbox (3.03125pt too wide) in paragraph at lines 226--228
 []\T1/ptm/m/n/10 gethdf5_name_gui() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
-[107]
-Underfull \hbox (badness 10000) in paragraph at lines 225--227
+
+Underfull \hbox (badness 10000) in paragraph at lines 230--232
 []\T1/ptm/m/n/10 getheaderintegersslf() (src.selafin_habby1.Selafin
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 227--229
+Underfull \hbox (badness 10000) in paragraph at lines 232--234
 []\T1/ptm/m/n/10 getheadermetadataslf() (src.selafin_habby1.Selafin
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 235--237
+Underfull \hbox (badness 10000) in paragraph at lines 240--242
 []\T1/ptm/m/n/10 give_info_model() (src_GUI.hydro_GUI_2.Hydro2W
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 284--286
+Underfull \hbox (badness 10000) in paragraph at lines 289--291
 []\T1/ptm/m/n/10 init_iu() (src_GUI.Main_windows_1.CreateNewProject
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 288--290
+Underfull \hbox (badness 10000) in paragraph at lines 293--295
 []\T1/ptm/m/n/10 init_iu() (src_GUI.Main_windows_1.ShowImageW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 290--292
+Underfull \hbox (badness 10000) in paragraph at lines 295--297
 []\T1/ptm/m/n/10 init_iu() (src_GUI.Main_windows_1.WelcomeW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 296--298
+Underfull \hbox (badness 10000) in paragraph at lines 301--303
 []\T1/ptm/m/n/10 init_ui() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 325--327
+Underfull \hbox (badness 10000) in paragraph at lines 330--332
 []\T1/ptm/m/n/10 load_data_fstress() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 334--336
+Underfull \hbox (badness 10000) in paragraph at lines 339--341
 []\T1/ptm/m/n/10 load_from_txt_gui() (src_GUI.stathab_GUI.StathabW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 338--340
+Underfull \hbox (badness 10000) in paragraph at lines 343--345
 []\T1/ptm/m/n/10 load_hdf5_fstress() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Overfull \hbox (3.04128pt too wide) in paragraph at lines 342--344
+Overfull \hbox (3.04128pt too wide) in paragraph at lines 347--349
 []\T1/ptm/m/n/10 load_hec_2d_gui() (src_GUI.hydro_GUI_2.HEC_RAS2D
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 345--347
+Underfull \hbox (badness 10000) in paragraph at lines 350--352
 []\T1/ptm/m/n/10 load_hec_ras_2d_and_cut_grid() (in mod-ule
  []
 
 
-Overfull \hbox (4.70107pt too wide) in paragraph at lines 347--349
+Overfull \hbox (4.70107pt too wide) in paragraph at lines 352--354
 []\T1/ptm/m/n/10 load_hec_ras_gui() (src_GUI.hydro_GUI_2.HEC_RAS1D
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 350--352
+Underfull \hbox (badness 10000) in paragraph at lines 355--357
 []\T1/ptm/m/n/10 load_lammi_gui() (src_GUI.hydro_GUI_2.LAMMI
  []
 
 
-Overfull \hbox (5.11118pt too wide) in paragraph at lines 354--356
+Overfull \hbox (5.11118pt too wide) in paragraph at lines 359--361
 []\T1/ptm/m/n/10 load_manning_text() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 359--361
+[108]
+Underfull \hbox (badness 10000) in paragraph at lines 364--366
 []\T1/ptm/m/n/10 load_mascaret_and_create_grid() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 361--363
+Underfull \hbox (badness 10000) in paragraph at lines 366--368
 []\T1/ptm/m/n/10 load_mascaret_gui() (src_GUI.hydro_GUI_2.Mascaret
- []
-
-[108]
-Underfull \hbox (badness 10000) in paragraph at lines 372--374
-[]\T1/ptm/m/n/10 load_river2d_gui() (src_GUI.hydro_GUI_2.River2D
  []
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 377--379
+[]\T1/ptm/m/n/10 load_river2d_gui() (src_GUI.hydro_GUI_2.River2D
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 382--384
 []\T1/ptm/m/n/10 load_rubar1d() (src_GUI.hydro_GUI_2.Rubar1D
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 384--386
+Underfull \hbox (badness 10000) in paragraph at lines 389--391
 []\T1/ptm/m/n/10 load_stathab_from_hdf5() (src.stathab_c.Stathab
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 389--391
+Underfull \hbox (badness 10000) in paragraph at lines 394--396
 []\T1/ptm/m/n/10 load_sub_gui() (src_GUI.hydro_GUI_2.SubstrateW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 395--397
+Underfull \hbox (badness 10000) in paragraph at lines 400--402
 []\T1/ptm/m/n/10 load_telemac_and_cut_grid() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 436--438
+Underfull \hbox (badness 10000) in paragraph at lines 441--443
 []\T1/ptm/m/n/10 modify_name() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Overfull \hbox (9.97066pt too wide) in paragraph at lines 438--440
+Overfull \hbox (9.97066pt too wide) in paragraph at lines 443--445
 []\T1/ptm/m/n/10 my_menu_bar() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Overfull \hbox (1.38057pt too wide) in paragraph at lines 445--447
+Overfull \hbox (1.38057pt too wide) in paragraph at lines 450--452
 []\T1/ptm/m/n/10 new_project() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Overfull \hbox (23.71063pt too wide) in paragraph at lines 451--453
+Overfull \hbox (23.71063pt too wide) in paragraph at lines 456--458
 []\T1/ptm/m/n/10 on_context_menu() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Overfull \hbox (11.42021pt too wide) in paragraph at lines 453--455
+Overfull \hbox (11.42021pt too wide) in paragraph at lines 458--460
 []\T1/ptm/m/n/10 open_estimhab_hdf5() (src_GUI.estimhab_GUI.EstimhabW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 460--462
+Underfull \hbox (badness 10000) in paragraph at lines 465--467
 []\T1/ptm/m/n/10 open_hec_hec_ras_and_create_grid() (in mod-ule
  []
 
 
-Underfull \hbox (badness 6542) in paragraph at lines 465--467
+Underfull \hbox (badness 5022) in paragraph at lines 468--470
+[]\T1/ptm/m/n/10 open_help() (src_GUI.Main_windows_1.MainWindows
+ []
+
+
+Underfull \hbox (badness 6542) in paragraph at lines 472--474
 []\T1/ptm/m/n/10 open_proj (src_GUI.Main_windows_1.WelcomeW at-
  []
 
 
-Overfull \hbox (4.4106pt too wide) in paragraph at lines 467--469
+Overfull \hbox (4.4106pt too wide) in paragraph at lines 474--476
 []\T1/ptm/m/n/10 open_project() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Overfull \hbox (33.84027pt too wide) in paragraph at lines 469--471
+Overfull \hbox (33.84027pt too wide) in paragraph at lines 476--478
 []\T1/ptm/m/n/10 open_recent_project() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 5050) in paragraph at lines 471--473
+Underfull \hbox (badness 5050) in paragraph at lines 478--480
 []\T1/ptm/m/n/10 open_rech() (src_GUI.Main_windows_1.MainWindows
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 485--487
+[109]
+Underfull \hbox (badness 10000) in paragraph at lines 492--494
 []\T1/ptm/m/n/10 pass_grid_cell_to_node_lin() (in mod-ule
  []
 
-[109]
-Overfull \hbox (5.67116pt too wide) in paragraph at lines 507--509
+
+Overfull \hbox (5.67116pt too wide) in paragraph at lines 514--516
 []\T1/ptm/m/n/10 propose_next_file() (src_GUI.hydro_GUI_2.HEC_RAS1D
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 509--511
+Underfull \hbox (badness 10000) in paragraph at lines 516--518
 []\T1/ptm/m/n/10 propose_next_file() (src_GUI.hydro_GUI_2.Mascaret
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 511--513
+Underfull \hbox (badness 10000) in paragraph at lines 518--520
 []\T1/ptm/m/n/10 propose_next_file() (src_GUI.hydro_GUI_2.Rubar1D
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 513--515
+Underfull \hbox (badness 10000) in paragraph at lines 520--522
 []\T1/ptm/m/n/10 propose_next_file() (src_GUI.hydro_GUI_2.Rubar2D
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 520--522
+Underfull \hbox (badness 10000) in paragraph at lines 527--529
 []\T1/ptm/m/n/10 reach_selected() (src_GUI.stathab_GUI.StathabW
  []
 
 
-Overfull \hbox (3.94087pt too wide) in paragraph at lines 522--524
+Overfull \hbox (3.94087pt too wide) in paragraph at lines 529--531
 []\T1/ptm/m/n/10 read_attribute_xml() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 527--529
+Underfull \hbox (badness 10000) in paragraph at lines 534--536
 []\T1/ptm/m/n/10 remove_all_file() (src_GUI.hydro_GUI_2.River2D
  []
 
 
-Overfull \hbox (5.57011pt too wide) in paragraph at lines 529--531
+Overfull \hbox (5.57011pt too wide) in paragraph at lines 536--538
 []\T1/ptm/m/n/10 remove_all_fish() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 533--535
+Underfull \hbox (badness 10000) in paragraph at lines 540--542
 []\T1/ptm/m/n/10 remove_fish() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 537--539
+Underfull \hbox (badness 10000) in paragraph at lines 544--546
 []\T1/ptm/m/n/10 river_coord_non_georef_from_cas() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 539--541
+Underfull \hbox (badness 10000) in paragraph at lines 546--548
 []\T1/ptm/m/n/10 river_coord_non_georef_from_xcas() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 543--545
+Underfull \hbox (badness 10000) in paragraph at lines 550--552
 []\T1/ptm/m/n/10 run_estmihab() (src_GUI.estimhab_GUI.EstimhabW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 546--548
+Underfull \hbox (badness 10000) in paragraph at lines 553--555
 []\T1/ptm/m/n/10 run_habitat_value() (src_GUI.bio_info_GUI.BioInfo
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 548--550
+Underfull \hbox (badness 10000) in paragraph at lines 555--557
 []\T1/ptm/m/n/10 run_stathab_gui() (src_GUI.stathab_GUI.StathabW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 550--552
+Underfull \hbox (badness 10000) in paragraph at lines 557--559
 []\T1/ptm/m/n/10 runsave_fstress() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 564--566
+Underfull \hbox (badness 10000) in paragraph at lines 571--573
 []\T1/ptm/m/n/10 save_option_fig() (src_GUI.output_fig_GUI.outputW
  []
 
 
-Overfull \hbox (10.0002pt too wide) in paragraph at lines 566--568
+Overfull \hbox (10.0002pt too wide) in paragraph at lines 573--575
 []\T1/ptm/m/n/10 save_project (src_GUI.Main_windows_1.CreateNewProject
  []
 
 
-Overfull \hbox (2.39058pt too wide) in paragraph at lines 568--570
+Overfull \hbox (2.39058pt too wide) in paragraph at lines 575--577
 []\T1/ptm/m/n/10 save_project() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Overfull \hbox (43.50003pt too wide) in paragraph at lines 570--572
+Overfull \hbox (43.50003pt too wide) in paragraph at lines 577--579
 []\T1/ptm/m/n/10 save_project_estimhab() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 572--574
+Underfull \hbox (badness 10000) in paragraph at lines 579--581
 []\T1/ptm/m/n/10 save_project_if_new_project()
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 572--574
+Underfull \hbox (badness 10000) in paragraph at lines 579--581
 \T1/ptm/m/n/10 (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 574--576
+Underfull \hbox (badness 10000) in paragraph at lines 581--583
 []\T1/ptm/m/n/10 save_river_data() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Overfull \hbox (8.29994pt too wide) in paragraph at lines 578--580
+Overfull \hbox (8.29994pt too wide) in paragraph at lines 585--587
 []\T1/ptm/m/n/10 save_signal_estimhab (src_GUI.estimhab_GUI.EstimhabW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 582--584
+Underfull \hbox (badness 10000) in paragraph at lines 589--591
 []\T1/ptm/m/n/10 save_xml() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 591--593
+Underfull \hbox (badness 10000) in paragraph at lines 598--600
 []\T1/ptm/m/n/10 scrolldown() (src_GUI.Main_windows_1.CentralW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 600--602
+Underfull \hbox (badness 10000) in paragraph at lines 607--609
 []\T1/ptm/m/n/10 selectionchange() (src_GUI.hydro_GUI_2.Hydro2W
  []
 
 
-Overfull \hbox (14.24033pt too wide) in paragraph at lines 602--604
+Overfull \hbox (14.24033pt too wide) in paragraph at lines 609--611
 []\T1/ptm/m/n/10 selectionchange() (src_GUI.Main_windows_1.ShowImageW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 604--606
+Underfull \hbox (badness 10000) in paragraph at lines 611--613
 []\T1/ptm/m/n/10 send_data() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
-
-Underfull \hbox (badness 5652) in paragraph at lines 606--608
+[110]
+Underfull \hbox (badness 5652) in paragraph at lines 613--615
 []\T1/ptm/m/n/10 send_err_log() (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 608--610
+Underfull \hbox (badness 10000) in paragraph at lines 615--617
 []\T1/ptm/m/n/10 send_err_log() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 610--612
+Underfull \hbox (badness 10000) in paragraph at lines 617--619
 []\T1/ptm/m/n/10 send_err_log() (src_GUI.stathab_GUI.StathabW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 612--614
+Underfull \hbox (badness 10000) in paragraph at lines 619--621
 []\T1/ptm/m/n/10 send_log (src_GUI.estimhab_GUI.StatModUseful
  []
 
-[110]
-Underfull \hbox (badness 10000) in paragraph at lines 622--624
+
+Underfull \hbox (badness 10000) in paragraph at lines 629--631
 []\T1/ptm/m/n/10 send_log (src_GUI.Main_windows_1.WelcomeW at-
  []
 
 
-Underfull \hbox (badness 6380) in paragraph at lines 628--630
+Underfull \hbox (badness 6380) in paragraph at lines 635--637
 []\T1/ptm/m/n/10 send_merge_grid() (src_GUI.hydro_GUI_2.SubstrateW
  []
 
 
-Overfull \hbox (1.46004pt too wide) in paragraph at lines 630--632
+Overfull \hbox (1.46004pt too wide) in paragraph at lines 639--641
 []\T1/ptm/m/n/10 setfolder() (src_GUI.Main_windows_1.CreateNewProject
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 632--634
+Underfull \hbox (badness 10000) in paragraph at lines 641--643
 []\T1/ptm/m/n/10 setfolder() (src_GUI.Main_windows_1.WelcomeW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 634--636
+Underfull \hbox (badness 10000) in paragraph at lines 643--645
 []\T1/ptm/m/n/10 setlangue() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 636--638
+Underfull \hbox (badness 10000) in paragraph at lines 645--647
 []\T1/ptm/m/n/10 show_data_one_river() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 638--640
+Underfull \hbox (badness 10000) in paragraph at lines 647--649
 []\T1/ptm/m/n/10 show_dialog() (src_GUI.hydro_GUI_2.SubHydroW
  []
 
 
-Underfull \hbox (badness 6542) in paragraph at lines 640--642
+Underfull \hbox (badness 6542) in paragraph at lines 649--651
 []\T1/ptm/m/n/10 show_dialog_lammi() (src_GUI.hydro_GUI_2.LAMMI
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 642--644
+Underfull \hbox (badness 10000) in paragraph at lines 651--653
 []\T1/ptm/m/n/10 show_fig (src_GUI.estimhab_GUI.StatModUseful
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 650--652
+Underfull \hbox (badness 10000) in paragraph at lines 659--661
 []\T1/ptm/m/n/10 show_image_hab() (src_GUI.bio_info_GUI.BioInfo
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 652--654
+Underfull \hbox (badness 10000) in paragraph at lines 661--663
 []\T1/ptm/m/n/10 show_info_fish() (src_GUI.bio_info_GUI.BioInfo
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 654--656
+Underfull \hbox (badness 10000) in paragraph at lines 663--665
 []\T1/ptm/m/n/10 show_info_fish_avai() (src_GUI.bio_info_GUI.BioInfo
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 656--658
+Underfull \hbox (badness 10000) in paragraph at lines 665--667
 []\T1/ptm/m/n/10 show_info_fish_sel() (src_GUI.bio_info_GUI.BioInfo
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 660--662
+Underfull \hbox (badness 10000) in paragraph at lines 669--671
 []\T1/ptm/m/n/10 showfig() (src_GUI.Main_windows_1.CentralW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 662--664
+Underfull \hbox (badness 10000) in paragraph at lines 671--673
 []\T1/ptm/m/n/10 showfig2() (src_GUI.Main_windows_1.CentralW
  []
 
 
-Overfull \hbox (14.42021pt too wide) in paragraph at lines 707--709
+Overfull \hbox (14.42021pt too wide) in paragraph at lines 716--718
 []\T1/ptm/m/n/10 test_entry_float() (src_GUI.Main_windows_1.MainWindows
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 719--721
+Underfull \hbox (badness 10000) in paragraph at lines 728--730
 []\T1/ptm/m/n/10 update_coord_pro_with_vh_pro() (in mod-ule
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 721--723
+Underfull \hbox (badness 10000) in paragraph at lines 730--732
 []\T1/ptm/m/n/10 update_hydro_hdf5_name()
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 721--723
+Underfull \hbox (badness 10000) in paragraph at lines 730--732
 \T1/ptm/m/n/10 (src_GUI.Main_windows_1.CentralW
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 723--725
+[111]
+Underfull \hbox (badness 10000) in paragraph at lines 732--734
 []\T1/ptm/m/n/10 update_list_riv() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 725--727
+Underfull \hbox (badness 10000) in paragraph at lines 734--736
 []\T1/ptm/m/n/10 update_merge_list() (src_GUI.bio_info_GUI.BioInfo
  []
 
 
-Overfull \hbox (14.2506pt too wide) in paragraph at lines 727--729
+Overfull \hbox (14.2506pt too wide) in paragraph at lines 736--738
 []\T1/ptm/m/n/10 update_namefig() (src_GUI.Main_windows_1.ShowImageW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 730--732
+Underfull \hbox (badness 10000) in paragraph at lines 739--741
 []\T1/ptm/m/n/10 update_sub_hdf5_name()
  []
 
 
-Underfull \hbox (badness 6658) in paragraph at lines 730--732
+Underfull \hbox (badness 6658) in paragraph at lines 739--741
 \T1/ptm/m/n/10 (src_GUI.hydro_GUI_2.SubstrateW method),
  []
 
-[111]
-Underfull \hbox (badness 10000) in paragraph at lines 735--737
+
+Underfull \hbox (badness 10000) in paragraph at lines 744--746
 []\T1/ptm/m/n/10 was_loaded_before() (src_GUI.fstress_GUI.FstressW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 737--739
+Underfull \hbox (badness 10000) in paragraph at lines 746--748
 []\T1/ptm/m/n/10 was_model_loaded_before()
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 740--742
+Underfull \hbox (badness 10000) in paragraph at lines 749--751
 []\T1/ptm/m/n/10 write_log() (src_GUI.Main_windows_1.CentralW
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 742--744
+Underfull \hbox (badness 10000) in paragraph at lines 751--753
 []\T1/ptm/m/n/10 write_log_file() (src_GUI.Main_windows_1.CentralW
  []
 
 [112
 
 ])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 9720.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 9720.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 9815.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 9815.
  (HABBY.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 9720.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 9720.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 9815.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 9815.
 
 Package rerunfilecheck Info: File `HABBY.out' has not changed.
-(rerunfilecheck)             Checksum: FEA495E5701F5F9A17C69772830377A2;6783.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 9720.
+(rerunfilecheck)             Checksum: DC74B1B1E70F1459DB1E898ECE7F7F85;6688.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 9815.
  ) 
 Here is how much of TeX's memory you used:
- 14549 strings out of 493634
- 212073 string characters out of 3143711
- 300673 words of memory out of 3000000
- 17028 multiletter control sequences out of 15000+200000
+ 14559 strings out of 493634
+ 212348 string characters out of 3143711
+ 301889 words of memory out of 3000000
+ 17033 multiletter control sequences out of 15000+200000
  47711 words of font info for 67 fonts, out of 3000000 for 9000
  1026 hyphenation exceptions out of 8191
  37i,12n,51p,702b,633s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -2126,9 +2134,9 @@ ram Files/MiKTeX 2.9/fonts/type1/urw/helvetic/uhvr8a.pfb><C:/Program Files/MiKT
 eX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type
 1/urw/times/utmr8a.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/urw/times/utmri
 8a.pfb>
-Output written on HABBY.pdf (116 pages, 591723 bytes).
+Output written on HABBY.pdf (116 pages, 596387 bytes).
 PDF statistics:
- 1801 PDF objects out of 2073 (max. 8388607)
- 599 named destinations out of 1000 (max. 500000)
+ 1813 PDF objects out of 2073 (max. 8388607)
+ 604 named destinations out of 1000 (max. 500000)
  373 words of extra memory for PDF output out of 10000 (max. 10000000)
 

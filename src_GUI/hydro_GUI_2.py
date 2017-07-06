@@ -951,7 +951,8 @@ class HEC_RAS1D(SubHydroW):
                                                                                   self.model_type, self.namefile,
                                                                                   self.pathfile, self.interpo_choice,
                                                                                   path_im, show_all_fig,
-                                                                                  self.pro_add, self.q))
+                                                                                  self.pro_add, self.q, False,
+                                                                                  self.fig_opt))
         self.p.start()
 
         # copy input file
@@ -1817,7 +1818,7 @@ class Rubar1D(SubHydroW):
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        if self.fig_opt['raw_data'] == 'True': # xml, string
+        if self.fig_opt['raw_data'] == 'True':  # xml, string
             show_all_fig = True
         else:
             show_all_fig = False
@@ -1851,7 +1852,7 @@ class Rubar1D(SubHydroW):
                                                                         self.path_prj, self.model_type, self.namefile,
                                                                         self.pathfile, self.interpo_choice,
                                                                         self.manning_arr, self.np_point_vel,
-                                                                        show_all_fig, self.pro_add, self.q))
+                                                                        show_all_fig, self.pro_add, self.q, path_im))
         self.p.start()
 
         # path input

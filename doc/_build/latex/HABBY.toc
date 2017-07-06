@@ -3,13 +3,13 @@
 \contentsline {chapter}{\numberline {2}Main( ) and source code}{5}{chapter.2}
 \contentsline {chapter}{\numberline {3}Graphical interface}{7}{chapter.3}
 \contentsline {section}{\numberline {3.1}Main\_windows of HABBY}{7}{section.3.1}
-\contentsline {section}{\numberline {3.2}Hydrological information - GUI}{13}{section.3.2}
+\contentsline {section}{\numberline {3.2}Hydrological information - GUI}{14}{section.3.2}
 \contentsline {section}{\numberline {3.3}Figure Option - GUI}{22}{section.3.3}
-\contentsline {section}{\numberline {3.4}The Stathab model - GUI}{22}{section.3.4}
+\contentsline {section}{\numberline {3.4}The Stathab model - GUI}{23}{section.3.4}
 \contentsline {section}{\numberline {3.5}FStress model - GUI}{25}{section.3.5}
-\contentsline {section}{\numberline {3.6}Estimhab - GUI}{26}{section.3.6}
-\contentsline {section}{\numberline {3.7}Information Biological and Run habitat}{28}{section.3.7}
-\contentsline {subsection}{\numberline {3.7.1}Biological data - Estimhab}{29}{subsection.3.7.1}
+\contentsline {section}{\numberline {3.6}Estimhab - GUI}{27}{section.3.6}
+\contentsline {section}{\numberline {3.7}Information Biological and Run habitat}{29}{section.3.7}
+\contentsline {subsection}{\numberline {3.7.1}Biological data - Estimhab}{30}{subsection.3.7.1}
 \contentsline {chapter}{\numberline {4}Calculation of fish's habitat}{31}{chapter.4}
 \contentsline {section}{\numberline {4.1}Hec-ras model 1D}{31}{section.4.1}
 \contentsline {subsection}{\numberline {4.1.1}Notes on hec-ras outputs}{38}{subsection.4.1.1}
@@ -33,13 +33,13 @@
 \contentsline {section}{\numberline {4.18}Create Paraview Files}{92}{section.4.18}
 \contentsline {section}{\numberline {4.19}Function for the command lines}{93}{section.4.19}
 \contentsline {chapter}{\numberline {5}Various notes}{95}{chapter.5}
-\contentsline {section}{\numberline {5.1}The legend of the plots are not shown.}{95}{section.5.1}
+\contentsline {section}{\numberline {5.1}Figures and matplotlib}{95}{section.5.1}
 \contentsline {section}{\numberline {5.2}Translation of HABBY}{95}{section.5.2}
 \contentsline {section}{\numberline {5.3}Create a .exe}{96}{section.5.3}
 \contentsline {section}{\numberline {5.4}Logging}{97}{section.5.4}
-\contentsline {section}{\numberline {5.5}Command line}{98}{section.5.5}
-\contentsline {section}{\numberline {5.6}Git - code management}{99}{section.5.6}
-\contentsline {section}{\numberline {5.7}Write the documentation}{100}{section.5.7}
-\contentsline {section}{\numberline {5.8}License of used python modules}{100}{section.5.8}
+\contentsline {section}{\numberline {5.5}Command line}{99}{section.5.5}
+\contentsline {section}{\numberline {5.6}Git - code management}{100}{section.5.6}
+\contentsline {section}{\numberline {5.7}Write the documentation}{101}{section.5.7}
+\contentsline {section}{\numberline {5.8}License of used python modules}{101}{section.5.8}
 \contentsline {chapter}{\numberline {6}Indices and tables}{103}{chapter.6}
-\contentsline {chapter}{Python Module Index}{105}{section*.438}
+\contentsline {chapter}{Python Module Index}{105}{section*.443}

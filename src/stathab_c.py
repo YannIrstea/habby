@@ -239,6 +239,7 @@ class Stathab:
                 return
         except ValueError:
             print('The river type in the hdf5 was not well formed')
+            file_stathab.close()
             return
         self.riverint = riverint  # careful, must be "send" back to the GUI
 
@@ -246,6 +247,7 @@ class Stathab:
         try:
             gen_dataset = file_stathab[basename1 + "/reach_name"]
         except KeyError:
+            file_stathab.close()
             print('Error: the dataset reach_name is missing from the hdf5 file. Is ' + fname_h5 + ' a stathab input? \n')
             return
         if len(list(gen_dataset.values())) == 0:
@@ -255,6 +257,7 @@ class Stathab:
         gen_dataset = np.array(gen_dataset)
         if len(gen_dataset) == 0:
             print('Error: no reach names found in the hdf5 file. \n')
+            file_stathab.close()
             return
         # hdf5 cannot strore string directly, needs conversion
         #  array[3,-2] is needed after bytes to string conversion
@@ -270,10 +273,12 @@ class Stathab:
                     gen_dataset = file_stathab[basename1 + "/" + gen_dataset_name[i]]
                 except KeyError:
                     print("Error: the dataset" + gen_dataset_name[i] + "is missing from the hdf5 file.\n")
+                    file_stathab.close()
                     return
                 gen_dataset = list(gen_dataset.values())[0]
                 if len(np.array(gen_dataset)) < 2:
                     print('Error: Limits of surface/volume could not be extracted from the hdf5 file. \n')
+                    file_stathab.close()
                     return
                 self.lim_all.append(np.array(gen_dataset))
 
@@ -281,12 +286,14 @@ class Stathab:
             try:
                 gen_dataset = file_stathab[basename1 + "/fish_chosen"]
             except KeyError:
+                file_stathab.close()
                 print('Error: the dataset fish_chosen is missing from the hdf5 file. \n')
                 return
             gen_dataset = list(gen_dataset.values())[0]
             gen_dataset = np.array(gen_dataset)
             if len(gen_dataset) == 0:
                 print('Error: no fish names found in the hdf5 file.\n')
+                file_stathab.close()
                 return
             # hdf5 cannot strore string directly, needs conversion
             #  array[3,-2] is needed after bytes to string conversion
@@ -303,6 +310,7 @@ class Stathab:
             reach_var = [self.qlist, self.qwh, self.data_ii]
         else:
             print('Error: self.riverint should be lower than two.')
+            file_stathab.close()
             return
 
         for r in range(0, len(self.name_reach)):
@@ -311,6 +319,7 @@ class Stathab:
                     reach_dataset = file_stathab[self.name_reach[r] + "/" + reach_dataset_name[i]]
                 except KeyError:
                     print("Error: the dataset"+ reach_dataset_name[i]+ "is missing from the hdf5 file. \n")
+                    file_stathab.close()
                     return
                 reach_dataset = list(reach_dataset.values())[0]
                 if not reach_dataset:
@@ -318,6 +327,7 @@ class Stathab:
                 reach_var[i].append(reach_dataset)
 
         self.load_ok = True
+        file_stathab.close()
 
     def create_hdf5(self):
         """
@@ -330,7 +340,11 @@ class Stathab:
         fname_no_path = self.name_prj + '_STATHAB' + '.h5'
         path_hdf5 = self.find_path_hdf5_stat()
         fname = os.path.join(path_hdf5, fname_no_path)
-        file = h5py.File(fname, 'w')
+        try:
+            file = h5py.File(fname, 'w')
+        except OSError:
+            print('Error: Stathab file could not be loaded \n')
+            return
 
         # create all datasets and group
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
@@ -370,6 +384,7 @@ class Stathab:
                     data_iig.create_dataset(fname_no_path, data=self.data_ii[r])
             except IndexError:
                 print('Error: the length of the data is not compatible with the number of reach.\n')
+                file.close()
                 return
 
         allreach = file.create_group('Info_general')
@@ -984,7 +999,7 @@ class Stathab:
         mpl.rcParams['pdf.fonttype'] = 42
         if self.fig_opt['font_size'] > 7:
             plt.rcParams['legend.fontsize'] = self.fig_opt['font_size'] - 2
-        #plt.rcParams['legend.loc'] = 'best'
+        plt.rcParams['legend.loc'] = 'best'
 
         for r in range(0, len(self.name_reach)):
 
@@ -997,28 +1012,49 @@ class Stathab:
 
                 fig = plt.figure()
                 plt.subplot(221)
-                plt.title('Volume total')
+                if self.fig_opt['language'] == 0:
+                    plt.title('Total Volume')
+                    plt.ylabel('Volume for 1m of reach [m3]')
+                    plt.title('Surface by class for the granulometry')
+                elif self.fig_opt['language'] == 1:
+                    plt.title('Volume total')
+                    plt.ylabel('Volume pour 1m de troncon [m3]')
                 plt.plot(qmod, vol)
-                plt.ylabel('Volume for 1m reach [m3]')
                 plt.subplot(222)
-                plt.title('Surface by class for the granulometry')
+                if self.fig_opt['language'] == 0:
+                    plt.title('Surface by class for the granulometry')
+                    plt.ylabel('Surface by class [m$^{2}$]')
+                elif self.fig_opt['language'] == 1:
+                    plt.title('Surface par classe de granulométrie')
+                    plt.ylabel('Surface par classe [m$^{2}$]')
                 for g in range(0, len(rclass)):
                     plt.plot(qmod, rclass[g], '-', label='Class ' + str(g))
-                plt.ylabel('Surface by Class [m$^{2}$]')
                 lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
                 plt.subplot(223)
-                plt.title('Surface by class for the height')
+                if self.fig_opt['language'] == 0:
+                    plt.title('Surface by class for the height')
+                if self.fig_opt['language'] == 1:
+                    plt.title('Surface par classe pour la hauteur')
                 for g in range(0, len(hclass)):
                     plt.plot(qmod, hclass[g, :], '-', label='Class ' + str(g))
                 plt.xlabel('Q [m$^{3}$/sec]')
-                plt.ylabel('Surface by Class [m$^{2}$]')
+                if self.fig_opt['language'] == 0:
+                    plt.ylabel('Surface by class [m$^{2}$]')
+                elif self.fig_opt['language'] == 1:
+                    plt.ylabel('Surface par classe [m$^{2}$]')
                 lgd = plt.legend()
                 plt.subplot(224)
-                plt.title('Volume by class for the velocity')
+                if self.fig_opt['language'] == 0:
+                    plt.title('Volume by class for the velocity')
+                elif self.fig_opt['language'] == 1:
+                    plt.title('Volume par classe pour la vitesse')
                 for g in range(0, len(vclass)):
                     plt.plot(qmod, vclass[g], '-', label='Class ' + str(g))
                 plt.xlabel('Q [m$^{3}$/sec]')
-                plt.ylabel('Volume by Class [m$^{3}$]')
+                if self.fig_opt['language'] == 0:
+                    plt.ylabel('Volume by Class [m$^{3}$]')
+                elif self.fig_opt['language'] == 1:
+                    plt.ylabel('Volume par classe [m$^{3}$]')
                 lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
                 # save the figures
 
@@ -1045,7 +1081,11 @@ class Stathab:
                 plt.plot(qmod, self.j_all[0,0, :], '-', label=self.fish_chosen[0])
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
-            plt.title('Suitability index J')
+            if self.fig_opt['language'] == 0:
+                plt.title('Suitability index J')
+            elif self.fig_opt['language'] == 1:
+                plt.title('Index de suitabilité J')
+
             lgd = plt.legend(fancybox=True, framealpha=0.5)
             if format == 0 or format == 1:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +

@@ -110,7 +110,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     timestep = fig_opt['time_step']
     if not isinstance(timestep, (list, tuple)):
         timestep = timestep.split(',')
-    print(timestep)
     try:
         timestep = list(map(int, timestep))
     except ValueError:
@@ -601,7 +600,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                     w.field('hsi'+n, 'F', 10, 8)
                 w.field('velocity', 'F', 10, 8)
                 w.field('water heig', 'F', 10, 8)
-                w.field('elem. flow', 'F', 10, 8)
+                w.field('conveyance', 'F', 10, 8)
                 w.field('sub_coarser', 'F', 10, 8)
                 w.field('sub_dom', 'F', 10, 8)
 
@@ -722,10 +721,15 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         sum_data_spu[s][t] += spu_all[s][t][r]
                         t_all.append(t)
                 t_all_s = t_all
-                plt.plot(t_all,data_plot, label=name_fish[s])
-            plt.xlabel('Time step [ ]')
-            plt.ylabel('WUA [m^2]')
-            plt.title('Weighted Usable Area for the Reach ' + str(r))
+                plt.plot(t_all, data_plot, label=name_fish[s])
+            if fig_opt['language'] == 0:
+                plt.xlabel('Time step [ ]')
+                plt.ylabel('WUA [m^2]')
+                plt.title('Weighted Usable Area for the Reach ' + str(r))
+            elif fig_opt['language'] == 1:
+                plt.xlabel('Pas de temps [ ]')
+                plt.ylabel('SPU [m^2]')
+                plt.title('Surface Ponderée pour le troncon ' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
             # VH
             ax = fig.add_subplot(212)
@@ -739,9 +743,14 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         sum_data_spu_div[s][t] += data_here
                         t_all.append(t)
                 plt.plot(t_all, data_plot, label=name_fish[s])
-            plt.xlabel('Time step [ ]')
-            plt.ylabel('HV (WUA/A) []')
-            plt.title('Habitat value for the Reach ' + str(r))
+            if fig_opt['language'] == 0:
+                plt.xlabel('Time step [ ]')
+                plt.ylabel('HV (WUA/A) []')
+                plt.title('Habitat value for the Reach ' + str(r))
+            elif fig_opt['language'] == 1:
+                plt.xlabel('Pas de Temps [ ]')
+                plt.ylabel('HV (SPU/A) []')
+                plt.title("Valeur d'habitat pour le troncon " + str(r))
             plt.ylim(ymin=-0.02)
             plt.tight_layout()
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -758,17 +767,27 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             fig.add_subplot(211)
             for s in range(0, len(spu_all)):
                 plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s])
-            plt.xlabel('Time step [ ]')
-            plt.ylabel('WUA [m^2]')
-            plt.title('Weighted Usable Area for the all Reaches')
+            if fig_opt['language'] == 0:
+                plt.xlabel('Time step [ ]')
+                plt.ylabel('WUA [m^2]')
+                plt.title('Weighted Usable Area for All Reaches')
+            elif fig_opt['language'] == 1:
+                plt.xlabel('Pas de Temps [ ]')
+                plt.ylabel('SPU [m^2]')
+                plt.title('Surface Ponderée Pour Tous Les Troncons' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)
             # VH
             fig.add_subplot(212)
             for s in range(0, len(spu_all)):
                  plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s])
-            plt.xlabel('Time step [ ]')
-            plt.ylabel('HV (WUA/A) []')
-            plt.title('Habitat value for all Reaches')
+            if fig_opt['language'] == 0:
+                plt.xlabel('Time step [ ]')
+                plt.ylabel('HV (WUA/A) []')
+                plt.title('Habitat value for all Reaches')
+            elif fig_opt['language'] == 1:
+                plt.xlabel('Pas de Temps [ ]')
+                plt.ylabel('HV (SPU/A) []')
+                plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
             plt.ylim(ymin=-0.02)
             plt.tight_layout()
             name = 'WUA_' + name_base + 'All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -828,72 +847,79 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 print('Error: Figure not created. Number of time step was not coherent with hydrological info. \n')
                 return
             point_t = point_all_t[t]
-            if t > len(vh_all_t):
+            if abs(t) < len(vh_all_t):
                 vh_t = vh_all_t[t]
-            else:
-                return
-            fig, ax = plt.subplots(1) # new figure
-            norm = mpl.colors.Normalize(vmin=0, vmax=1)
+                fig, ax = plt.subplots(1) # new figure
+                norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
-            for r in range(0, len(vh_t)):
-                ikle = ikle_t[r]
-                coord_p = point_t[r]
-                vh = vh_t[r]
+                for r in range(0, len(vh_t)):
+                    ikle = ikle_t[r]
+                    coord_p = point_t[r]
+                    vh = vh_t[r]
 
-                # plot the habitat value
-                cmap = plt.get_cmap(fig_opt['color_map2'])
-                colors = cmap(vh)
-                if sp == 0: # for optimization (the grid is always the same for each species)
-                    n = len(vh)
-                    patches = []
-                    for i in range(0, n):
-                        verts = []
-                        for j in range(0, 3):
-                            verts_j = coord_p[int(ikle[i][j]), :]
-                            verts.append(verts_j)
-                        polygon = Polygon(verts, closed=True, edgecolor='w')
-                        patches.append(polygon)
-                    if len(vh_all_t_sp) > 1:
-                        all_patches.append(patches)
-                else:
-                    patches = all_patches[rt]
-
-                collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-                #collection.set_color(colors) too slow
-                collection.set_array(np.array(vh))
-                ax.add_collection(collection)
-                ax.autoscale_view()
-                # cbar = plt.colorbar()
-                # cbar.ax.set_ylabel('Substrate')
-                if r == 0:
-                    plt.xlabel('x coord []')
-                    plt.ylabel('y coord []')
-                    if t == -1:
-                        plt.title('Habitat Value of ' + name_fish[sp] + '- Last Time Step')
+                    # plot the habitat value
+                    cmap = plt.get_cmap(fig_opt['color_map2'])
+                    colors = cmap(vh)
+                    if sp == 0: # for optimization (the grid is always the same for each species)
+                        n = len(vh)
+                        patches = []
+                        for i in range(0, n):
+                            verts = []
+                            for j in range(0, 3):
+                                verts_j = coord_p[int(ikle[i][j]), :]
+                                verts.append(verts_j)
+                            polygon = Polygon(verts, closed=True, edgecolor='w')
+                            patches.append(polygon)
+                        if len(vh_all_t_sp) > 1:
+                            all_patches.append(patches)
                     else:
-                        plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
-                ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-                rt +=1
+                        patches = all_patches[rt]
 
-                # colorbar
-                # Set norm to correspond to the data for which
-                # the colorbar will be used.
-                # ColorbarBase derives from ScalarMappable and puts a colorbar
-                # in a specified axes, so it has everything needed for a
-                # standalone colorbar.  There are many more kwargs, but the
-                # following gives a basic continuous colorbar with ticks
-                # and labels.
-                cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-                cb1.set_label('HSI []')
+                    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+                    #collection.set_color(colors) too slow
+                    collection.set_array(np.array(vh))
+                    ax.add_collection(collection)
+                    ax.autoscale_view()
+                    # cbar = plt.colorbar()
+                    # cbar.ax.set_ylabel('Substrate')
+                    if r == 0:
+                        plt.xlabel('x coord []')
+                        plt.ylabel('y coord []')
+                        if t == -1:
+                            if fig_opt['language'] == 0:
+                                plt.title('Habitat Value of ' + name_fish[sp] + '- Last Time Step')
+                            elif fig_opt['language'] == 1:
+                                plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernier Pas de Temps')
+                        else:
+                            if fig_opt['language'] == 0:
+                                plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
+                            elif fig_opt['language'] == 1:
+                                plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de Temps: ' + str(t))
+                    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+                    rt +=1
 
-            # save figure
-            name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
-                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                    # colorbar
+                    # Set norm to correspond to the data for which
+                    # the colorbar will be used.
+                    # ColorbarBase derives from ScalarMappable and puts a colorbar
+                    # in a specified axes, so it has everything needed for a
+                    # standalone colorbar.  There are many more kwargs, but the
+                    # following gives a basic continuous colorbar with ticks
+                    # and labels.
+                    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+                    if fig_opt['language'] == 0:
+                        cb1.set_label('HSI []')
+                    elif fig_opt['language'] == 1:
+                        cb1.set_label('VH []')
+
+                # save figure
+                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
+                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
 

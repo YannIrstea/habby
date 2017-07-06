@@ -458,7 +458,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
             if len(child) > 0:
                 return child[-1].text
             else:
-                print('Warning: the data for the model ' + model_name + ' was not found (1)')
+                print('Error: the data for the model ' + model_name + ' was not found (1)')
                 return ''
         else:
             # print('Warning: the data for the model ' + model_name + ' was not found (2)')
