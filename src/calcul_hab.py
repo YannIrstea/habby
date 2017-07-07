@@ -53,7 +53,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     a = time.time()
     # calcuation habitat
-    [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all] = \
+    [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
         calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
     b = time.time()
 
@@ -105,8 +105,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
                                       vel_c_all_t, name_fish)
     d = time.time()
 
-    # figure
-    # 2d figure
+    # figure done always
+    # 2d figure and histogram of hydraulic data for certain timesteps
     timestep = fig_opt['time_step']
     if not isinstance(timestep, (list, tuple)):
         timestep = timestep.split(',')
@@ -116,9 +116,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         print('Error: Time step was not recognized. \n')
         return
     save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep)
+    plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
+                    name_base)
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
-    e = time.time()
 
     print('Habitat calculation is finished. \n')
     print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
@@ -152,7 +153,8 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     spu_all_t_sp = []
     vel_c_att_t = []
     height_c_all_t = []
-    area_all_t = []
+    area_all_t = []  # area by reach
+    area_c_all_t = []  # area by cell for each reach each time step
     found_stage = 0
 
     if len(bio_names) != len(stages):
@@ -192,11 +194,11 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
                 # calcul (one function for each calculation options)
                 if opt == 0:  # pg
                     # optmization possibility: feed_back the vel_c_att_t and height_c_all_t and area_all_t
-                    [vh_all_t,  vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
+                    [vh_all_t,  vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg,
                                       pref_vel, pref_height, pref_sub)
                 elif opt == 1:  # dom
-                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
+                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all,inter_height_all, substrate_all_dom,
                                       pref_vel, pref_height, pref_sub)
                 elif opt == 2:  # percentage
@@ -205,11 +207,11 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
                         print('Error: Substrate data in percentage form is not found. Habitat by percentage cannot be'
                               ' computed. \n')
                         return failload
-                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
+                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, sub_per,
                                       pref_vel, pref_height, pref_sub, True)
                 elif opt == 3:
-                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t] = \
+                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
                                       pref_vel, pref_height, pref_sub, False, False)
                 else:
@@ -224,8 +226,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
 
     b = time.time()
 
-
-    return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp
+    return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp, area_c_all_t
 
 
 def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub, percent=False,
@@ -257,11 +258,14 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
     area_all_t = [[]]
     height_c_all_t = [[[-1]]]
     vel_c_att_t = [[[-1]]]
+    area_c_all_t = [[[-1]]]
+
     for t in range(1, len(height)):  # time step 0 is whole profile
         vh_all = []
         height_c = []
         vel_c = []
         area_all = []
+        area_c_all = []
         spu_all = []
         height_t = height[t]
         vel_t = vel[t]
@@ -273,6 +277,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
             vh_all = [[-99]]
             vel_c = [[-99]]
             height_c = [[-99]]
+            area = [[-99]]
         else:
             for r in range(0, len(height_t)):
 
@@ -290,6 +295,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                     h_cell = [-99]
                     area_reach = [-99]
                     spu_reach = -99
+                    area = [-99]
                 elif len(ikle[0]) < 3:
                     print('Warning: The connectivity table was not well-formed for one reach (2) \n')
                     vh = [-99]
@@ -297,6 +303,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                     h_cell = [-99]
                     area_reach = [-99]
                     spu_reach = -99
+                    area = [-99]
                 else:
 
                     # get data by cells
@@ -353,6 +360,7 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                 vel_c.append(v_cell)
                 height_c.append(h_cell)
                 area_all.append(area_reach)
+                area_c_all.append(area)
                 spu_all.append(spu_reach)
 
         vh_all_t.append(vh_all)
@@ -360,8 +368,9 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
         height_c_all_t.append(height_c)
         spu_all_t.append(spu_all)
         area_all_t.append(area_all)
+        area_c_all_t.append(area_c_all)
 
-    return vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t
+    return vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t
 
 
 def find_pref_value(data, pref):
@@ -790,7 +799,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
             plt.ylim(ymin=-0.02)
             plt.tight_layout()
-            name = 'WUA_' + name_base + 'All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            name = 'WUA_' + name_base + '_All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
@@ -921,5 +930,125 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                     plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+
+
+def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all_t, fig_opt, path_im, timestep,
+                    name_base):
+    """
+    This function plots an historgram of the hydraulic and substrate data for the selected timestep. This historgramm
+    is weighted by the area of the cell. The data is based on the height and velocity data by cell and not on the node.
+
+    :param hdf5_file: the name of the hdf5 file
+    :param path_hdf5: the path to this file
+    :param vel_c_all_t: the velcoity for all reach all time step by cell
+    :param height_c_all_t: the water height for all reach all time step by cell
+    :param area_c_all_t: the aire of cells for all reach, all time step
+    :param fig_opt: the figure options
+    :param path_im: the path where to save the images
+    :param timestep: a list with the time step to be plotted
+    :param name_base: the base on which to form the figure name
+    """
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['ps.fonttype'] = 42  # to make them editable in Adobe Illustrator
+    mpl.rcParams['pdf.fonttype'] = 42
+
+    [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
+        load_hdf5.load_hdf5_hyd(hdf5_file, path_hdf5, True)
+    if ikle == [[-99]]:
+        return
+
+    # we do not print the first time step with the whole profile
+
+    for t in timestep:
+        ikle_here = ikle[t][0]
+        if len(ikle_here) < 2: # time step failed
+            pass
+        else:
+            vel_all = vel_c_all_t[t]
+            height_all = height_c_all_t[t]
+            sub_pg_all = sub_pg_data[t]
+            area_all = area_c_all_t[t]
+
+            for r in range(0, len(vel_all)):  # each reach
+                if r == 0:
+                    vel_app = list(vel_all[0])
+                    height_app = list(height_all[0])
+                    sub_pg_app = list(sub_pg_all[0])
+                    area_app = list(area_all[0])
+                else:
+                    vel_app.extend(list(vel_all[r]))
+                    height_app.extend(list(height_all[r]))
+                    sub_pg_app.extend(list(sub_pg_all[r]))
+                    area_app.extend(list(area_all[r]))
+
+            fig = plt.figure()
+            # velocity
+            fig.add_subplot(221)
+            plt.hist(vel_app, 20, weights=area_app, facecolor='blue')
+            if fig_opt['language'] == 0:
+                if t == -1:
+                    plt.suptitle('Last Time Step')
+                else:
+                    plt.suptitle('Time Step: ' + str(t))
+                plt.title('Velocity by Cells')
+                plt.xlabel('velocity [m/sec]')
+                plt.ylabel('number of occurence')
+            elif fig_opt['language'] == 0:
+                if t == -1:
+                    plt.suptitle('Histogramme de Données Hydrauliques - Dernier Pas de Temps')
+                else:
+                    plt.suptitle('Histogramme de Données Hydrauliques - Pas de Temps: ' + str(t))
+                plt.title('Vitesse par Cellule')
+                plt.xlabel('vitesse [m/sec]')
+                plt.ylabel('fréquence')
+            # height
+            fig.add_subplot(222)
+            plt.hist(height_app, 20, weights=area_app, facecolor='aquamarine')
+            if fig_opt['language'] == 0:
+                plt.title('Height by Cells')
+                plt.xlabel('velocity [m/sec]')
+                plt.ylabel('number of occurence')
+            elif fig_opt['language'] == 0:
+                plt.title("Hauteur d'eau par Cellule")
+                plt.xlabel('hauteur [m]')
+                plt.ylabel('fréquence')
+            # substrate
+            fig.add_subplot(224)
+            plt.hist(sub_pg_app, weights=area_app, facecolor='lightblue', bins=np.arange(0.5, 8.5))
+            if fig_opt['language'] == 0:
+                plt.title('Coarser Substrate Data')
+                plt.xlabel('substrat - code cemagref')
+                plt.ylabel('number of occurence')
+            elif fig_opt['language'] == 0:
+                plt.title('Données du Substrat - Plus Gros')
+                plt.xlabel('substrat - code cemagref')
+                plt.ylabel('fréquence')
+            # debit unitaire
+            fig.add_subplot(223)
+            q_unit = np.array(vel_app) * np.array(height_app)
+            plt.hist(q_unit, 20, weights=area_app, facecolor='deepskyblue')
+            if fig_opt['language'] == 0:
+                plt.title('Elementary Flow')
+                plt.xlabel('v * h * 1m [m$^{3}$/sec]')
+                plt.ylabel('number of occurence')
+            elif fig_opt['language'] == 0:
+                plt.title('Début Unitaire')
+                plt.xlabel('v * h * 1m [m$^{3}$/sec]')
+                plt.ylabel('fréquence')
+
+            plt.tight_layout()
+            name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
 
