@@ -43,6 +43,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
         else:
             return
 
+    # get time step name if they exists
+    sim_name = load_hdf5.load_timestep_name(hdf5_name_hyd, path_hdf5)
+
     # save hdf5
     if len(os.path.basename(hdf5_name_hyd)) > 25:
         name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-25]  # take out the date in most case
@@ -50,7 +53,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
         name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
     load_hdf5.save_hdf5(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
                         point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
-                        sub_pg_all_t, sub_dom_all_t)
+                        sub_pg_all_t, sub_dom_all_t, sim_name=sim_name)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

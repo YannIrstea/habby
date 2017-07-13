@@ -247,6 +247,11 @@ class MainWindows(QMainWindow):
         self.settings.setValue('language_code', self.lang)
         del self.settings
 
+        #  right click
+        self.create_menu_right()
+        self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
+
         # write the new langugage in the figure option to be able to get the title, axis in the right langugage
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
@@ -866,6 +871,8 @@ class MainWindows(QMainWindow):
         # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by save_project)
         self.central_widget.welcome_tab.e1.setText(name_prj_here)
         self.central_widget.welcome_tab.e2.setText(path_new_fold)
+        self.central_widget.welcome_tab.e3.setText('')
+        self.central_widget.welcome_tab.e4.setText('')
 
         # check if there is not another project with the same path_name
         fname = os.path.join(self.createnew.e2.text(), name_prj_here+'.xml')

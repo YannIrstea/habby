@@ -249,6 +249,47 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge=False):
         return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom
 
 
+def load_timestep_name(hdf5_name, path_hdf5=''):
+    """
+    This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
+    of the time steps, it retruns them. If not, it return an empty lists.
+
+    :param hdf5_name: the name of the merge or hydrological hdf5 file
+    :param path_hdf5: the path to the hdf5
+    :return: the name of the time step if they exist. Otherwise, an empty list
+    """
+    failload = []
+
+    # open the file with checking for the path
+    if os.path.isabs(hdf5_name):
+        file_hydro = open_hdf5(hdf5_name)
+    else:
+        if path_hdf5:
+            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return failload
+    if file_hydro is None:
+        print('Error: hdf5 file could not be open. \n')
+        return failload
+
+    # get the name of the time steps
+    basename1 = 'Data_2D'
+    try:
+        gen_dataset = file_hydro[basename1 + "/timestep_name"]
+    except KeyError:   # in this case it happens often, it is not really an error
+        return []
+    sim_name1 = list(gen_dataset.values())[0]
+
+    # bytes to string
+    sim_name = []
+    for i in range(0, len(sim_name1)):
+        sim_name.append(bytes(sim_name1[i]).decode('utf-8'))
+        sim_name[i] = sim_name[i].replace('\x00', '')  # why empty byte?
+
+    return sim_name
+
+
 def load_sub_percent(hdf5_name_hyd, path_hdf5 = ''):
     """
     This function loads the substrate in percent form, if this info is present in the hdf5 file. It send a warning
@@ -470,7 +511,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
               inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[],
-              sub_dom_all_t=[], sub_per_all_t=[]):
+              sub_dom_all_t=[], sub_per_all_t=[], sim_name=[]):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -493,6 +534,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param sub_pg_all_t: the data of the coarser substrate given on the merged grid by cell. Only used if merge is True.
     :param sub_dom_all_t: the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
     :param sub_per_all_t: the data of the substreate by percentage. Only used with lammi (mostly)
+    :param sim_name: the name of the simulation or the names of the time steps if the names are not [0,1,2,3, etc.]
 
 
     **Technical comments**
@@ -630,6 +672,12 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                         data_subg = rhere.create_group('data_substrate_percentage')
                         if len(sub_per_all_t[t]) > 0:
                             data_subg.create_dataset(h5name, [len(sub_per_all_t[t][r]), 8], data=sub_per_all_t[t][r])
+
+        # save the name of the simulation/time steps if they exist
+        if sim_name:
+            ascii_str = [n.strip().encode("ascii", "ignore") for n in sim_name]  # unicode is not ok with hdf5
+            tname_typeg = Data_2D.create_group('timestep_name')
+            tname_typeg.create_dataset(h5name, (len(sim_name), 1), data=ascii_str)
 
     file.close()
 

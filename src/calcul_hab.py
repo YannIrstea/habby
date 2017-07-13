@@ -87,17 +87,22 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     else:
         name_base = hdf5_file
 
+    # get the time step name
+    # get time step name if they exists
+    sim_name = load_hdf5.load_timestep_name(hdf5_file, path_hdf5)
+
     # text output
     if create_text:
-        save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base)
+        save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base,
+                     sim_name)
 
-        save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base)
+        save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name)
     c = time.time()
 
     # shape output
     if create_shape:
         save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
-                       name_fish_sh, path_out, name_base)
+                       name_fish_sh, path_out, name_base, sim_name)
 
     # paraview outputs
     if create_para:
@@ -115,9 +120,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     except ValueError:
         print('Error: Time step was not recognized. \n')
         return
-    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep)
+    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep, sim_name)
     plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
-                    name_base)
+                    name_base, sim_name)
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
@@ -425,7 +430,8 @@ def find_pref_value(data, pref):
     return pref_data
 
 
-def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_txt, name_base):
+def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_txt, name_base,
+                 sim_name=[]):
     """
     This function print the text output. We create one set of text file by time step. Each Reach is separated by the
     key work REACH follwoed by the reach number (strating from 0). There are three files by time steps: one file which
@@ -442,12 +448,16 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
     :param name_fish: the list of fish latin name + stage
     :param path_txt: the path where to save the text file
     :param name_base: a string on which to base the name of the files
+    :param sim_name: the name of the simulation
     """
 
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
     if ikle == [-99]:
         return
+
+    if len(sim_name) > 0 and len(sim_name) != len(ikle) - 1:
+        sim_name = []
 
     # we do not print the first time step with the whole profile
     nb_reach = len(ikle[0])
@@ -456,9 +466,20 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
         if len(ikle_here) < 2:
             print('Warning: One time step failed. \n')
         else:
-            name1 = 'xy_' + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-            name2 = 'gridcell_' + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-            name3 = 'result_' + 't_' + str(t) + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+
+            if not sim_name:
+                name1 = 'xy_' + 't_' + str(t) + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                name2 = 'gridcell_' + 't_' + str(t)+ '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
+                        + '.txt'
+                name3 = 'result_' + 't_' + str(t) + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
+                        + '.txt'
+            else:
+                name1 = 'xy_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +\
+                        '.txt'
+                name2 = 'gridcell_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + \
+                        time.strftime("%d_%m_%Y_at_%H_%M_%S")  + '.txt'
+                name3 = 'result_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
+                        + '.txt'
 
             if os.path.exists(path_txt):
                 name1 = os.path.join(path_txt, name1)
@@ -516,7 +537,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                                 str(sub_pg[i]) + ' ' +str(sub_dom[i]) + ' ' +vh_str + '\n')
 
 
-def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
+def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[]):
     """
     This function create a text files with the folowing columns: the tiem step, the reach number, the area of the
     reach and the spu for each fish species.
@@ -526,11 +547,15 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
     :param name_fish: the list of fish latin name + stage
     :param path_txt: the path where to save the text file
     :param name_base: a string on which to base the name of the files
+    :param sim_name: the name of the time step
     """
 
     name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
     if os.path.exists(path_txt):
         name = os.path.join(path_txt, name)
+
+    if len(sim_name) > 0 and len(sim_name) != len(area_all)-1:
+        sim_name = []
 
     # open text to write
     with open(name, 'wt', encoding='utf-8') as f:
@@ -550,8 +575,11 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
         f.write(header)
 
         for t in range(0, len(area_all)):
-            for r in range(0, len(area_all[t])):
-                data_here = str(t) + ' ' + str(r) + ' ' + str(area_all[t][r])
+            for r in range(0, len(area_all[t])):  # at t=0, whole profile len(area_all[t]) = 0
+                if not sim_name:
+                    data_here = str(t) + ' ' + str(r) + ' ' + str(area_all[t][r])
+                else:
+                    data_here = sim_name[t-1] + ' ' + str(r) + ' ' + str(area_all[t][r])
                 for i in range(0, len(name_fish)):
                     data_here += ' ' + str(spu_all[i][t][r])
                     data_here += ' ' + str(spu_all[i][t][r]/area_all[t][r])
@@ -559,7 +587,8 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base):
                 f.write(data_here)
 
 
-def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish_sh, path_shp, name_base):
+def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish_sh, path_shp, name_base,
+                   sim_name=[]):
     """
     This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
     all the reaches together. If there is overlap between reaches, it does not care. It create an attribute table
@@ -577,11 +606,15 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     :param name_fish_sh: the list of fish latin name + stage
     :param path_shp: the path where to save the shpaefile
     :param name_base: a string on which to base the name of the files
+    :param sim_name: the time step's name if not 0,1,2,3
     """
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
     if ikle == [[-99]]:
         return
+
+    if len(sim_name) > 0 and len(sim_name) != len(ikle) - 1:
+        sim_name = []
 
     # we do not print the first time step with the whole profile
     nb_reach = len(ikle[0])
@@ -633,11 +666,14 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                         w.record(*data_here)
 
             w.autoBalance = 1
-            name1 = name_base + 't_' + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+            if not sim_name:
+                name1 = name_base + '_t_' + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+            else:
+                name1 = name_base + '_t_' + sim_name[t-1] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
             w.save(os.path.join(path_shp, name1))
 
 
-def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}):
+def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}, sim_name=[]):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -648,6 +684,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     :param path_im: the path where to save the image
     :param fig_opt: the dictionnary with the figure options
     :param name_base: a string on which to base the name of the files
+    :param sim_name: the name of the time steps if not 0,1,2,3
     """
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
@@ -672,44 +709,46 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         # print('Error: No reach found. Is the hdf5 corrupted? \n')
         return
 
-    for id,n in enumerate(name_fish):
+    for id, n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
+
+    if sim_name and len(area_all)-1 != len(sim_name):
+        sim_name = []
 
     # one time step - bar
     if len(area_all) == 1 or len(area_all) == 2:
         for r in range(0, nb_reach):
-            if len(spu_all[0][r])>0:
-                # SPU
-                data_bar = []
-                for s in range(0, len(name_fish)):
-                    data_bar.append(spu_all[s][1][r])
-                y_pos = np.arange(len(spu_all))
-                fig = plt.figure()
-                fig.add_subplot(211)
-                if data_bar:
-                    data_bar2 = np.array(data_bar)
-                    plt.bar(y_pos, data_bar2, 0.5)
-                    plt.xticks(y_pos+0.25, name_fish)
-                plt.ylabel('WUA [m^2]')
-                plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-                plt.title('Weighted Usable Area for the Reach ' + str(r))
-                # VH
-                fig.add_subplot(212)
-                if data_bar:
-                    data_bar2 = np.array(data_bar)
-                    plt.bar(y_pos, data_bar2/area_all[-1], 0.5)
-                    plt.xticks(y_pos + 0.25, name_fish)
-                plt.ylabel('HV (WUA/A) []')
-                plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-                plt.title('Habitat value for the Reach ' + str(r))
-                name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                plt.tight_layout()
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name +'.png'), dpi=fig_opt['resolution'],transparent=True)
-                if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'],transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'],transparent=True)
+            # SPU
+            data_bar = []
+            for s in range(0, len(name_fish)):
+                data_bar.append(spu_all[s][1][r])
+            y_pos = np.arange(len(spu_all))
+            fig = plt.figure()
+            fig.add_subplot(211)
+            if data_bar:
+                data_bar2 = np.array(data_bar)
+                plt.bar(y_pos, data_bar2, 0.5)
+                plt.xticks(y_pos+0.25, name_fish)
+            plt.ylabel('WUA [m^2]')
+            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+            plt.title('Weighted Usable Area for the Reach ' + str(r))
+            # VH
+            fig.add_subplot(212)
+            if data_bar:
+                data_bar2 = np.array(data_bar)
+                plt.bar(y_pos, data_bar2/area_all[-1], 0.5)
+                plt.xticks(y_pos + 0.25, name_fish)
+            plt.ylabel('HV (WUA/A) []')
+            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+            plt.title('Habitat value for the Reach ' + str(r))
+            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            plt.tight_layout()
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # many time step - lines
     elif len(area_all) > 2:
@@ -717,6 +756,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         sum_data_spu_div = np.zeros((len(spu_all), len(area_all)))
 
         data_plot = []
+        t_all = []
         for r in range(0, nb_reach):
             # SPU
             fig = plt.figure()
@@ -732,16 +772,19 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 t_all_s = t_all
                 plt.plot(t_all, data_plot, label=name_fish[s])
             if fig_opt['language'] == 0:
-                plt.xlabel('Time step [ ]')
+                plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m^2]')
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps [ ]')
+                plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('SPU [m^2]')
                 plt.title('Surface Ponderée pour le troncon ' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
+            if sim_name:
+                plt.xticks(t_all, sim_name)
             # VH
             ax = fig.add_subplot(212)
+            t_all = []
             for s in range(0, len(spu_all)):
                 data_plot = []
                 t_all = []
@@ -757,11 +800,13 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat value for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de Temps [ ]')
+                plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeur d'habitat pour le troncon " + str(r))
             plt.ylim(ymin=-0.02)
             plt.tight_layout()
+            if sim_name:
+                plt.xticks(t_all, sim_name)
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -777,28 +822,32 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             for s in range(0, len(spu_all)):
                 plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s])
             if fig_opt['language'] == 0:
-                plt.xlabel('Time step [ ]')
+                plt.xlabel('Copmutational step [ ]')
                 plt.ylabel('WUA [m^2]')
                 plt.title('Weighted Usable Area for All Reaches')
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de Temps [ ]')
+                plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('SPU [m^2]')
                 plt.title('Surface Ponderée Pour Tous Les Troncons' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)
+            if sim_name:
+                plt.xticks(t_all_s, sim_name)
             # VH
             fig.add_subplot(212)
             for s in range(0, len(spu_all)):
                  plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s])
             if fig_opt['language'] == 0:
-                plt.xlabel('Time step [ ]')
+                plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat value for all Reaches')
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de Temps [ ]')
+                plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
             plt.ylim(ymin=-0.02)
             plt.tight_layout()
+            if sim_name:
+                plt.xticks(t_all, sim_name)
             name = 'WUA_' + name_base + '_All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -808,7 +857,8 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
 
-def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1]):
+def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1],
+                   sim_name=[], save_fig=True):
     """
     This function creates 2D map of the habitat value for each species at
     the time step asked. All reaches are ploted on the same figure.
@@ -821,6 +871,8 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     :param name_base: the string on which to base the figure name
     :param fig_opt: the dictionnary with the figure options
     :param time_step: which time step should be plotted
+    :param sim_name: the name of the time step if not 0,1,2,3
+    :param save_fig: If True the figure is saved
 
     """
     if not fig_opt:
@@ -843,6 +895,9 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     for id, n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
+    if max(time_step)-1 > len(sim_name):
+        sim_name = []
+
     # create the figure for each species, and each time step
     all_patches = []
     for sp in range(0, len(vh_all_t_sp)):
@@ -858,7 +913,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
             point_t = point_all_t[t]
             if abs(t) < len(vh_all_t):
                 vh_t = vh_all_t[t]
-                fig, ax = plt.subplots(1) # new figure
+                fig, ax = plt.subplots(1)  # new figure
                 norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
                 for r in range(0, len(vh_t)):
@@ -895,15 +950,32 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                         plt.xlabel('x coord []')
                         plt.ylabel('y coord []')
                         if t == -1:
-                            if fig_opt['language'] == 0:
-                                plt.title('Habitat Value of ' + name_fish[sp] + '- Last Time Step')
-                            elif fig_opt['language'] == 1:
-                                plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernier Pas de Temps')
+                            if not sim_name:
+                                if fig_opt['language'] == 0:
+                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
+                                elif fig_opt['language'] == 1:
+                                    plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernière Simulation')
+                            else:
+                                if fig_opt['language'] == 0:
+                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
+                                              sim_name[-1])
+                                elif fig_opt['language'] == 1:
+                                    plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
+                                              sim_name[-1])
                         else:
-                            if fig_opt['language'] == 0:
-                                plt.title('Habitat Value of ' + name_fish[sp] + '- Time Step: ' + str(t))
-                            elif fig_opt['language'] == 1:
-                                plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de Temps: ' + str(t))
+                            if not sim_name:
+                                if fig_opt['language'] == 0:
+                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' + str(t))
+                                elif fig_opt['language'] == 1:
+                                    plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: '
+                                              + str(t))
+                            else:
+                                if fig_opt['language'] == 0:
+                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Copmutational Step: '
+                                              + sim_name[t-1])
+                                elif fig_opt['language'] == 1:
+                                    plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
+                                              sim_name[t-1])
                     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
                     rt +=1
 
@@ -922,18 +994,34 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                         cb1.set_label('VH []')
 
                 # save figure
-                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + \
-                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                if save_fig:
+
+                    if not sim_name :
+                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + '_' +\
+                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    elif t-1 >= 0 and sim_name[t - 1]:
+                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[t - 1] + '_' +\
+                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    elif t == -1:
+                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[-1] + '_' + \
+                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    else:
+                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + '_' + \
+                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
+
+                    if format1 == 0 or format1 == 1:
+                        plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'],
+                                    transparent=True)
+                    if format1 == 0 or format1 == 3:
+                        plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'],
+                                    transparent=True)
+                    if format1 == 2:
+                        plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'],
+                                    transparent=True)
 
 
 def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all_t, fig_opt, path_im, timestep,
-                    name_base):
+                    name_base, sim_name=[]):
     """
     This function plots an historgram of the hydraulic and substrate data for the selected timestep. This historgramm
     is weighted by the area of the cell. The data is based on the height and velocity data by cell and not on the node.
@@ -947,6 +1035,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
     :param path_im: the path where to save the images
     :param timestep: a list with the time step to be plotted
     :param name_base: the base on which to form the figure name
+    :param sim_name: the name of the time steps when not 0,1,2,3
     """
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
@@ -957,6 +1046,9 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['ps.fonttype'] = 42  # to make them editable in Adobe Illustrator
     mpl.rcParams['pdf.fonttype'] = 42
+
+    if max(timestep)-1 > len(sim_name):
+        sim_name = []
 
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(hdf5_file, path_hdf5, True)
@@ -993,17 +1085,17 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             plt.hist(vel_app, 20, weights=area_app, facecolor='blue')
             if fig_opt['language'] == 0:
                 if t == -1:
-                    plt.suptitle('Last Time Step')
+                    plt.suptitle('Last Computational Step')
                 else:
-                    plt.suptitle('Time Step: ' + str(t))
+                    plt.suptitle('Computational Step: ' + str(t))
                 plt.title('Velocity by Cells')
                 plt.xlabel('velocity [m/sec]')
                 plt.ylabel('number of occurence')
             elif fig_opt['language'] == 0:
                 if t == -1:
-                    plt.suptitle('Histogramme de Données Hydrauliques - Dernier Pas de Temps')
+                    plt.suptitle('Histogramme de Données Hydrauliques - Dernier Pas de Temps/Débit')
                 else:
-                    plt.suptitle('Histogramme de Données Hydrauliques - Pas de Temps: ' + str(t))
+                    plt.suptitle('Histogramme de Données Hydrauliques - Pas de Temps/Débit: ' + str(t))
                 plt.title('Vitesse par Cellule')
                 plt.xlabel('vitesse [m/sec]')
                 plt.ylabel('fréquence')
@@ -1043,7 +1135,18 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.ylabel('fréquence')
 
             plt.tight_layout()
-            name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if not sim_name:
+                name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
+                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            elif t-1 >=0:
+                name = 'Histogramm_' + name_base + '_t_' + sim_name[t-1] + '_All_Reach_' + \
+                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            elif t ==-1:
+                name = 'Histogramm_' + name_base + '_t_' + sim_name[-1] + '_All_Reach_' + \
+                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            else:
+                name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
+                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:

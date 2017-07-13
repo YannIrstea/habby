@@ -82,7 +82,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
 
         # by time step
         for t in range(0, len(vh_pro)):
-            if t % 10 == 0:
+            if t % 10 == 0 and t > 2:
                 print('time step :'+str(t))
 
             [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
@@ -840,7 +840,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     far = 1e2 * abs(coord_pro_p[0][-1] - coord_pro_p[0][0])
     if far == 0:
         far = 1e2
-    warn_inter = False
+    warn_cell = True
 
     # elongate midlle profile
     dirmidx = point_mid_x[0][-1] - point_mid_x[0][0]
@@ -923,14 +923,18 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
             try:
                 point_all.append([pc0[0][0], pc0[0][1]])
             except IndexError:
-                print('Warning: one cell is erased. (1) \n')
+                if warn_cell:
+                    print('Warning: one cell or more is erased. (1) \n')
+                    warn_cell =False
                 point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
         point_all.append([coord_pro_p[0][s0], coord_pro_p[1][s0]])
         try:
             point_all.append([pc[0][0], pc[0][1]])
         except IndexError:
-            print('Warning: one cell is erased. (2) \n')
+            if warn_cell:
+                print('Warning: one cell or more is erased. (2) \n')
+                warn_cell = False
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
         # add the two new cells to ikle and point_c
         if vh_pro_t_p:

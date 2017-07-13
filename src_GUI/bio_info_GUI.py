@@ -15,6 +15,7 @@ except ImportError:
 from src import bio_info
 from src_GUI import estimhab_GUI
 from src import calcul_hab
+from src import load_hdf5
 from src_GUI import output_fig_GUI
 
 
@@ -155,11 +156,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.butdel = QPushButton(self.tr("Erase Selection"))
         self.butdel.clicked.connect(self.remove_all_fish)
 
-        # add discharge/ timestep
-        l41 = QLabel(self.tr('Discharge or time step (t1,t2,...)'))
-        self.namet = QLineEdit(self.tr('By Default'))
-        self.butname = QPushButton('Choose file (.txt)')
-
         # fish selected fish
         self.add_sel_fish()
 
@@ -170,10 +166,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4 = QGridLayout()
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
-
-        self.layout4.addWidget(l41, 1, 0)
-        self.layout4.addWidget(self.namet, 1, 1,1, 2)
-        self.layout4.addWidget(self.butname, 1, 3)
 
         self.layout4.addWidget(l1, 2, 0)
         self.layout4.addWidget(l2, 2, 1)
@@ -530,8 +522,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
             calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]], path_im, name_fish, name_base,
-                                      fig_dict, [-1])
-            calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict)
+                                      fig_dict, [-1], save_fig=False)
+            sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
+            calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict, sim_name)
 
             # show figure
             self.show_fig.emit()

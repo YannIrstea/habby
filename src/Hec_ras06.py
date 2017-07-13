@@ -51,7 +51,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
         fig_opt = output_fig_GUI.create_default_figoption()
 
     # load the hec-ra data (the function is just below)
-    [coord_pro, vh_pro, nb_pro_reach] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
+    [coord_pro, vh_pro, nb_pro_reach, sim_name] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
                                                     save_fig1d, fig_opt)
     # manager error
     if save_fig1d:  # to avoid problem with matplotlib
@@ -81,7 +81,8 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
 
     # save the hdf5 file
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
-                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
+                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
+                        sim_name=sim_name)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -145,33 +146,34 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
     """
     xy_h = [-99]
     zone_v = [-99]
+    sim_name = []
 
     # load the geometry file which contains info on the profile and the geometry
     [data_profile, coord_pro_old, coord_r, reach_name, data_bank, nb_pro_reach] = open_geofile(geo_file, path_geo)
     # test if data could be extracted
     if data_profile == [-99]:
-        return [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99]
 
     # load the xml, rep, or sdf file to get velocity and wse
     blob, ext = os.path.splitext(res_file)
     if ext == ".xml":
-         [vel, wse, riv_name, nb_sim] = open_xmlfile(res_file, reach_name, path_res)
+         [vel, wse, riv_name, nb_sim, sim_name] = open_xmlfile(res_file, reach_name, path_res)
     elif ext == ".sdf":
         try:
-            [vel, wse, riv_name, nb_sim] = open_sdffile(res_file, reach_name, path_res)
+            [vel, wse, riv_name, nb_sim, sim_name] = open_sdffile(res_file, reach_name, path_res)
         except ValueError:
             print("Error: Cannot open .sdf file. Is the model georeferenced? If not, use the .rep file.\n")
-            return [-99], [-99], [-99]
+            return [-99], [-99], [-99], [-99]
 
     elif ext == ".rep":
-        [vel, wse, riv_name, nb_sim] = open_repfile(res_file, reach_name, path_res, data_profile, data_bank)
+        [vel, wse, riv_name, nb_sim, sim_name] = open_repfile(res_file, reach_name, path_res, data_profile, data_bank)
     else:
         print("Warning: The file containing the results is not "
               "in XML, rep or sdf format. HABBY try to read it as XML file.\n")
-        [vel, wse, riv_name, nb_sim] = open_xmlfile(res_file, reach_name, path_res)
+        [vel, wse, riv_name, nb_sim, sim_name] = open_xmlfile(res_file, reach_name, path_res)
     # if data could not be extracted
     if vel == [-99]:
-        return  [-99], [-99], [-99]
+        return  [-99], [-99], [-99], [-99]
     # get water height in the (x,y coordinate) and get the velocity in the (x,y) coordinates
     # velocity is by zone (between 2 points) and height is on the node
     # maximum distance between two velocity point: yTO BE DEFINED
@@ -179,9 +181,9 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
         [xy_h, zone_v] = find_coord_height_velocity(coord_pro_old, data_profile, vel, wse, nb_sim, 1000)
     except IndexError:
         print('Error: The number of time steps might not be not coherent between geo and output files.')
-        return [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99]
     if xy_h == [-99]:
-        return [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99]
     # plot and check
     if save_fig:
         if fig_opt['time_step'][0] == -99:
@@ -204,7 +206,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
     # update the form of the vector to be coherent with rubar and mascaret
     [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
 
-    return coord_pro, vh_pro, nb_pro_reach
+    return coord_pro, vh_pro, nb_pro_reach, sim_name
 
 
 def open_xmlfile(xml_file, reach_name, path):
@@ -343,7 +345,8 @@ def open_xmlfile(xml_file, reach_name, path):
             print('Warning: The reach and rivers names of the .geo file could not be found in the xml file.\n')
 
     riv_name = riv_name[::nb_sim]  # get the name only once
-    return data_vel, data_wse, riv_name, nb_sim
+
+    return data_vel, data_wse, riv_name, nb_sim, sim_name
 
 
 def load_xml(xml_file, path):
@@ -765,6 +768,9 @@ def open_sdffile(sdf_file, reach_name, path):
     # get the reach and river name
     exp_reg_extra = "BEGIN CROSS-SECTIONS:(.+)END CROSS-SECTION"
     data_sdf2 = re.findall(exp_reg_extra, data_sdf, re.DOTALL)
+    if not data_sdf2:
+        print('Error: No data on cross section found. \n')
+        return [-99], [-99], '-99', -99
     exp_reg3 = "STREAM ID:\s*(.+)\n"
     stream_str = re.findall(exp_reg3, data_sdf2[0])
     exp_reg4 = "REACH ID:\s*(.+)\n"
@@ -789,6 +795,19 @@ def open_sdffile(sdf_file, reach_name, path):
         print('Error: The number of simulation could not be extracted from the .sdf file.\n')
         return [-99], [-99], '-99', -99
 
+    # get the simulation name or the name of the time steps
+    exp_reg_n = "PROFILE ID:(.+)\n|$" # $ to avoid problem if no match is found
+    sim_name_all = re.findall(exp_reg_n, data_sdf2[0])
+    sim_name = []
+    for s in sim_name_all:
+        if s not in sim_name:
+            sim_name.append(s)
+        else:
+            # the sim_name are ordered, so we get all the simulation name in the first cross-section
+            break
+    if not sim_name:
+        print('Warning: the names of the time steps could not be extracted from the sdf file. \n')
+
     # get the name of the profile (riv_name)
     exp_reg5 = "STATION:\s*(.+)\n"
     riv_name_a = re.findall(exp_reg5, data_sdf)
@@ -802,7 +821,7 @@ def open_sdffile(sdf_file, reach_name, path):
     [wse, vel, riv_name] = reorder_reach(wse, vel,riv_name, reach_name, reach_str, stream_str, nb_sim)
 
     riv_name = riv_name[::nb_sim]  # get the name only once
-    return vel, wse, riv_name, nb_sim
+    return vel, wse, riv_name, nb_sim, sim_name
 
 
 def reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim):
@@ -963,6 +982,19 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     stream_str = get_rid_of_white_space(stream_str)
     riv_name = pro_str # just to kkep the same variable name
 
+    # obtain the name of the time steps
+    exp_reg4 = 'Profile #(.+)'
+    sim_name_all = re.findall(exp_reg4, data_rep)
+    if not sim_name_all:
+        print('Warning: the name of the time steps was not found. \n')
+    sim_name = []
+    for s in sim_name_all:
+        if s not in sim_name:
+            sim_name.append(s)
+        else:
+            # simulation name are all given in the first cross section
+            break
+
     # obtain velocity data
     # if not georeferenced only 3 velocity by channel, other wise all velocity
     exp_reg = "Avg. Vel.\s*\(\D+\)([\d\.\s]+)\n"
@@ -1016,7 +1048,7 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
 
     [wse, vel, riv_name] = reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim)
 
-    return vel, wse, riv_name, nb_sim
+    return vel, wse, riv_name, nb_sim, sim_name
 
 
 def pass_in_float_from_geo(data_str, len_number):
