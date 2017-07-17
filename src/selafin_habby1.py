@@ -33,7 +33,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         sys.stdout = mystdout = StringIO()
 
     # load data
-    [v, h, coord_p, ikle, coord_c] = load_telemac(namefilet, pathfilet)
+    [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
 
     if len(v[0]) == 1 and v == [-99]:
         print('Error: Telemac data not loaded.')
@@ -59,8 +59,9 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         inter_h_all_t.append([water_height])
 
     # save data
+    timestep_str = list(map(str, timestep))
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
-                        inter_vel_all_t, inter_h_all_t)
+                        inter_vel_all_t, inter_h_all_t, sim_name=timestep_str)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -92,8 +93,12 @@ def load_telemac(namefilet, pathfilet):
     except ValueError or KeyError:
         print('Error: The telemac file cannot be loaded.')
         return [-99], [-99], [-99], [-99], [-99]
-    # put the data in the array and list
+
+    # time step name
     nbtimes = telemac_data.tags['times'].size
+    timestep = telemac_data.tags['times']
+
+    # put the velocity and height data in the array and list
     v = []
     h = []
     for t in range(0, nbtimes):
@@ -143,7 +148,7 @@ def load_telemac(namefilet, pathfilet):
     coord_c = np.array([coord_c_x, coord_c_y]).T
 
     del telemac_data
-    return v, h, coord_p, ikle, coord_c
+    return v, h, coord_p, ikle, coord_c, timestep
 
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):

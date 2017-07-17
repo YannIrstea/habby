@@ -50,7 +50,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
        sys.stdout = mystdout = StringIO()
 
     fig_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
-    [xhzv_data, coord_pro, lim_riv] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im,
+    [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im,
                                                    show_fig_1D, fig_opt)
     if show_fig_1D:
         plt.close() # just save the figure do not show them
@@ -74,8 +74,10 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
         = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
 
     # save the hdf5 file
+    timestep_str = list(map(str, timestep))
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
-                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
+                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
+                        sim_name=timestep_str)
     if print_cmd:
        sys.stdout = sys.__stdout__
     if q:
@@ -133,7 +135,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, fig_opt=
                 tfig = list(map(int, tfig))
             figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], tfig, nb_pro_reach, fig_opt)
 
-    return data_xhzv, coord_pro, lim_riv
+    return data_xhzv, coord_pro, lim_riv, timestep
 
 
 def load_mai_1d(mailfile, path):
@@ -743,7 +745,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     # load data
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-    [vel_cell, height_cell, coord_p, coord_c, ikle_base] \
+    [vel_cell, height_cell, coord_p, coord_c, ikle_base, timestep] \
         = load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, False)  # True to get figure
 
     if vel_cell == [-99]:
@@ -785,8 +787,9 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         warn1 = False
 
     # save data
+    timestep_str = list(map(str, timestep))
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
-                        inter_vel_all_t, inter_h_all_t)
+                        inter_vel_all_t, inter_h_all_t, sim_name=timestep_str)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -822,7 +825,7 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     if save_fig:
         figure_rubar2d(xy, coord_c, ikle, v, h, path_im, [-1])
 
-    return v, h, xy, coord_c, ikle
+    return v, h, xy, coord_c, ikle, timestep
 
 
 def load_mai_2d(geofile, path):

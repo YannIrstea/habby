@@ -788,7 +788,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 if len(sim_name) < 25:
                     plt.xticks(t_all, sim_name, rotation=rot)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             # VH
@@ -805,9 +805,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         t_all.append(t)
                 plt.plot(t_all, data_plot, label=name_fish[s])
             if fig_opt['language'] == 0:
-                plt.xlabel('Time step [ ]')
+                plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat value for the Reach ' + str(r))
+                plt.title('Habitat Value for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('HV (SPU/A) []')
@@ -821,7 +821,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 if len(sim_name) < 25:
                     plt.xticks(t_all, sim_name, rotation=rot)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             plt.tight_layout()
@@ -856,7 +856,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 if len(sim_name) < 25:
                     plt.xticks(t_all, sim_name, rotation=rot)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             # VH
@@ -866,7 +866,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat value for all Reaches')
+                plt.title('Habitat Value For All Reaches')
             elif fig_opt['language'] == 1:
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('HV (SPU/A) []')
@@ -881,7 +881,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 if len(sim_name) < 25:
                     plt.xticks(t_all, sim_name, rotation=rot)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             name = 'WUA_' + name_base + '_All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
