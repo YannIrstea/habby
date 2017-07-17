@@ -43,7 +43,7 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     # load hec-ras data
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-    [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
+    [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, timesteps] = load_hec_ras2d(filename, path)
     if isinstance(vel_cell[0], int):
         if vel_cell == [-99]:
             print("Error: HEC-RAS2D data could not be loaded.")
@@ -53,7 +53,6 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
                 return
             else:
                 return
-
 
     # mimic the "whole" profile for 1D model (t=0)
     point_all_t = [coord_p]
@@ -94,7 +93,7 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
 
     # save data
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
-                        inter_vel_all_t, inter_h_all_t)
+                        inter_vel_all_t, inter_h_all_t, sim_name=timesteps)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -253,11 +252,22 @@ def load_hec_ras2d(filename, path):
         water_depth_t_all.append(water_depth_t)
         vel_t_all.append(vel_t)
 
+    # name of the time step
+    timesteps = []
+    try:
+        timesteps = list(file2D["/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series"
+                                "/Time Date Stamp"])
+    except KeyError:
+        pass
+    for idx, t in enumerate(timesteps):
+        timesteps[idx] = t.decode('utf-8')
+        timesteps[idx] = timesteps[idx].replace(':', '-')
+
     # get a triangular grid as hec-ras output are not triangular
     [ikle_all, coord_c_all, coord_p_all, vel_t_all2, water_depth_t_all2] = get_triangular_grid_hecras(
         ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
 
-    return vel_t_all2, water_depth_t_all2, elev_all, coord_p_all, coord_c_all, ikle_all
+    return vel_t_all2, water_depth_t_all2, elev_all, coord_p_all, coord_c_all, ikle_all, timesteps
 
 
 def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):

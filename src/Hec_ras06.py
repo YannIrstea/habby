@@ -270,6 +270,8 @@ def open_xmlfile(xml_file, reach_name, path):
         sim_name = sim_name[1:-1] # erase firt and last " sign
         sim_name = sim_name.split('" "')
         nb_sim = len(sim_name)
+        for si in range(0, nb_sim):
+            sim_name[si] = sim_name[si].replace(':', '_')
     except AttributeError:
         print("Warning: the number and name of the simulation cannot be read from the XML file.\n")
         nb_sim = 1

@@ -765,7 +765,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 data_plot = []
                 t_all = []
                 for t in range(0, len(area_all)):
-                    if spu_all[s][t]:
+                    if spu_all[s][t] and spu_all[s][t][r] != -99:
                         data_plot.append(spu_all[s][t][r])
                         sum_data_spu[s][t] += spu_all[s][t][r]
                         t_all.append(t)
@@ -781,7 +781,16 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.title('Surface Ponderée pour le troncon ' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
             if sim_name:
-                plt.xticks(t_all, sim_name)
+                if len(sim_name[0]) > 5:
+                    rot = 'vertical'
+                else:
+                    rot = 'horizontal'
+                if len(sim_name) < 25:
+                    plt.xticks(t_all, sim_name, rotation=rot)
+                elif len(sim_name) < 100:
+                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                else:
+                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             # VH
             ax = fig.add_subplot(212)
             t_all = []
@@ -789,7 +798,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 data_plot = []
                 t_all = []
                 for t in range(0, len(area_all)):
-                    if spu_all[s][t]:
+                    if spu_all[s][t] and spu_all[s][t][r] != -99:
                         data_here = spu_all[s][t][r]/area_all[t][r]
                         data_plot.append(data_here)
                         sum_data_spu_div[s][t] += data_here
@@ -804,9 +813,18 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeur d'habitat pour le troncon " + str(r))
             plt.ylim(ymin=-0.02)
-            plt.tight_layout()
             if sim_name:
-                plt.xticks(t_all, sim_name)
+                if len(sim_name[0]) > 5:
+                    rot = 'vertical'
+                else:
+                    rot = 'horizontal'
+                if len(sim_name) < 25:
+                    plt.xticks(t_all, sim_name, rotation=rot)
+                elif len(sim_name) < 100:
+                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                else:
+                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+            plt.tight_layout()
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -831,7 +849,16 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.title('Surface Ponderée Pour Tous Les Troncons' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)
             if sim_name:
-                plt.xticks(t_all_s, sim_name)
+                if len(sim_name[0]) > 5:
+                    rot = 'vertical'
+                else:
+                    rot = 'horizontal'
+                if len(sim_name) < 25:
+                    plt.xticks(t_all, sim_name, rotation=rot)
+                elif len(sim_name) < 100:
+                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                else:
+                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             # VH
             fig.add_subplot(212)
             for s in range(0, len(spu_all)):
@@ -847,7 +874,16 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.ylim(ymin=-0.02)
             plt.tight_layout()
             if sim_name:
-                plt.xticks(t_all, sim_name)
+                if len(sim_name[0]) > 5:
+                    rot = 'vertical'
+                else:
+                    rot = 'horizontal'
+                if len(sim_name) < 25:
+                    plt.xticks(t_all, sim_name, rotation=rot)
+                elif len(sim_name) < 100:
+                    plt.xticks(t_all[::5], sim_name[::5], rotation=rot)
+                else:
+                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             name = 'WUA_' + name_base + '_All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -918,80 +954,83 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
 
                 for r in range(0, len(vh_t)):
                     ikle = ikle_t[r]
-                    coord_p = point_t[r]
-                    vh = vh_t[r]
-
-                    # plot the habitat value
-                    cmap = plt.get_cmap(fig_opt['color_map2'])
-                    colors = cmap(vh)
-                    if sp == 0: # for optimization (the grid is always the same for each species)
-                        n = len(vh)
-                        patches = []
-                        for i in range(0, n):
-                            verts = []
-                            for j in range(0, 3):
-                                verts_j = coord_p[int(ikle[i][j]), :]
-                                verts.append(verts_j)
-                            polygon = Polygon(verts, closed=True, edgecolor='w')
-                            patches.append(polygon)
-                        if len(vh_all_t_sp) > 1:
-                            all_patches.append(patches)
+                    if len(ikle) < 3:
+                        pass
                     else:
-                        patches = all_patches[rt]
+                        coord_p = point_t[r]
+                        vh = vh_t[r]
 
-                    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-                    #collection.set_color(colors) too slow
-                    collection.set_array(np.array(vh))
-                    ax.add_collection(collection)
-                    ax.autoscale_view()
-                    # cbar = plt.colorbar()
-                    # cbar.ax.set_ylabel('Substrate')
-                    if r == 0:
-                        plt.xlabel('x coord []')
-                        plt.ylabel('y coord []')
-                        if t == -1:
-                            if not sim_name:
-                                if fig_opt['language'] == 0:
-                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
-                                elif fig_opt['language'] == 1:
-                                    plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernière Simulation')
-                            else:
-                                if fig_opt['language'] == 0:
-                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
-                                              sim_name[-1])
-                                elif fig_opt['language'] == 1:
-                                    plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
-                                              sim_name[-1])
+                        # plot the habitat value
+                        cmap = plt.get_cmap(fig_opt['color_map2'])
+                        colors = cmap(vh)
+                        if sp == 0: # for optimization (the grid is always the same for each species)
+                            n = len(vh)
+                            patches = []
+                            for i in range(0, n):
+                                verts = []
+                                for j in range(0, 3):
+                                    verts_j = coord_p[int(ikle[i][j]), :]
+                                    verts.append(verts_j)
+                                polygon = Polygon(verts, closed=True, edgecolor='w')
+                                patches.append(polygon)
+                            if len(vh_all_t_sp) > 1:
+                                all_patches.append(patches)
                         else:
-                            if not sim_name:
-                                if fig_opt['language'] == 0:
-                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' + str(t))
-                                elif fig_opt['language'] == 1:
-                                    plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: '
-                                              + str(t))
-                            else:
-                                if fig_opt['language'] == 0:
-                                    plt.title('Habitat Value of ' + name_fish[sp] + '- Copmutational Step: '
-                                              + sim_name[t-1])
-                                elif fig_opt['language'] == 1:
-                                    plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
-                                              sim_name[t-1])
-                    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-                    rt +=1
+                            patches = all_patches[rt]
 
-                    # colorbar
-                    # Set norm to correspond to the data for which
-                    # the colorbar will be used.
-                    # ColorbarBase derives from ScalarMappable and puts a colorbar
-                    # in a specified axes, so it has everything needed for a
-                    # standalone colorbar.  There are many more kwargs, but the
-                    # following gives a basic continuous colorbar with ticks
-                    # and labels.
-                    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-                    if fig_opt['language'] == 0:
-                        cb1.set_label('HSI []')
-                    elif fig_opt['language'] == 1:
-                        cb1.set_label('VH []')
+                        collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+                        #collection.set_color(colors) too slow
+                        collection.set_array(np.array(vh))
+                        ax.add_collection(collection)
+                        ax.autoscale_view()
+                        # cbar = plt.colorbar()
+                        # cbar.ax.set_ylabel('Substrate')
+                        if r == 0:
+                            plt.xlabel('x coord []')
+                            plt.ylabel('y coord []')
+                            if t == -1:
+                                if not sim_name:
+                                    if fig_opt['language'] == 0:
+                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
+                                    elif fig_opt['language'] == 1:
+                                        plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernière Simulation')
+                                else:
+                                    if fig_opt['language'] == 0:
+                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
+                                                  sim_name[-1])
+                                    elif fig_opt['language'] == 1:
+                                        plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
+                                                  sim_name[-1])
+                            else:
+                                if not sim_name:
+                                    if fig_opt['language'] == 0:
+                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' + str(t))
+                                    elif fig_opt['language'] == 1:
+                                        plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: '
+                                                  + str(t))
+                                else:
+                                    if fig_opt['language'] == 0:
+                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Copmutational Step: '
+                                                  + sim_name[t-1])
+                                    elif fig_opt['language'] == 1:
+                                        plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
+                                                  sim_name[t-1])
+                        ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+                        rt +=1
+
+                        # colorbar
+                        # Set norm to correspond to the data for which
+                        # the colorbar will be used.
+                        # ColorbarBase derives from ScalarMappable and puts a colorbar
+                        # in a specified axes, so it has everything needed for a
+                        # standalone colorbar.  There are many more kwargs, but the
+                        # following gives a basic continuous colorbar with ticks
+                        # and labels.
+                        cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+                        if fig_opt['language'] == 0:
+                            cb1.set_label('HSI []')
+                        elif fig_opt['language'] == 1:
+                            cb1.set_label('VH []')
 
                 # save figure
                 if save_fig:

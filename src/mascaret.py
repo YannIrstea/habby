@@ -51,7 +51,7 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
     # load mascaret
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] \
+    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach, timestep] \
         = load_mascaret(namefile[0], namefile[1], namefile[2], pathfile[0], pathfile[1], pathfile[2])
     if coord_pro == [-99]:
         print('Error: Mascaret data not loaded. \n')
@@ -84,8 +84,11 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
         = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
 
     # save the hdf5 file
+    for idx, t in enumerate(timestep):
+        timestep[idx] = str(t)
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
-                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach)
+                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
+                        sim_name=timestep)
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
@@ -160,7 +163,7 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
         print('Error: the profile number was not coherent.\n')
         return -99, -99, -99, -99, -99, -99, -99
 
-    return coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach
+    return coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach, timestep
 
 
 def get_geo_name_from_xcas(file_gen, path_gen):
