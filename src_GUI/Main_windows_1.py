@@ -1281,13 +1281,6 @@ class CreateNewProject(QWidget):
             self.default_fold = os.getcwd()
         self.default_name = 'DefaultProj'
         super().__init__()
-        #translation
-        self.languageTranslator = QTranslator()
-        app = QApplication.instance()
-        app.removeTranslator(self.languageTranslator)
-        self.languageTranslator = QTranslator()
-        self.languageTranslator.load(file_langue[int(lang)], path_trans)
-        app.installTranslator(self.languageTranslator)
 
         self.init_iu()
 
