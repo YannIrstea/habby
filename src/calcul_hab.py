@@ -57,7 +57,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
     b = time.time()
 
-    if vh_all_t_sp == [-99]:
+    if vh_all_t_sp == [-99] or isinstance(name_fish[0], int):
         if q:
             sys.stdout = sys.__stdout__
             q.put([mystdout, [-99], [-99], [-99], [-99], [-99]])
@@ -97,7 +97,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
                      sim_name)
 
         save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name)
-    c = time.time()
 
     # shape output
     if create_shape:
@@ -108,7 +107,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     if create_para:
         new_create_vtk.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
                                       vel_c_all_t, name_fish)
-    d = time.time()
 
     # figure done always
     # 2d figure and histogram of hydraulic data for certain timesteps
@@ -127,8 +125,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
     print('Habitat calculation is finished. \n')
-    print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
-
+    if not print_cmd:
+        print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
+    else:
+        print("Outputs and 2d figures created from the habitat calculation. \n")
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
@@ -153,7 +153,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     :param opt: an int fron 0 to n. Gives which calculation method should be used
     :return: the habiatat value for all species, all time, all reach, all cells.
     """
-    failload = [-99], [-99], [-99], [-99], [-99]
+    failload = [-99], [-99], [-99], [-99], [-99], [-99]
     vh_all_t_sp = []
     spu_all_t_sp = []
     vel_c_att_t = []
@@ -255,10 +255,10 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
     """
 
     if len(height) != len(vel) or len(height) != len(sub):
-        return [-99],[-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99]
     s_pref_c = 1
 
-    vh_all_t = [[]] # time step 0 is whole profile, no data
+    vh_all_t = [[]]  # time step 0 is whole profile, no data
     spu_all_t = [[]]
     area_all_t = [[]]
     height_c_all_t = [[[-1]]]
@@ -344,12 +344,11 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
                             sthere = np.zeros((len(s0),)) + st+1
                             s_pref_st = find_pref_value(sthere, pref_sub)
                             if st == 0:
-                                s_pref_c = s_pref_st *s0/100
+                                s_pref_c = s_pref_st * s0 / 100
                             else:
                                 s_pref_c += s0/100*s_pref_st
                     else:
                         s_pref_c = find_pref_value(s, pref_sub)
-
                     try:
                         if take_sub:
                             vh = h_pref_c * v_pref_c * s_pref_c
@@ -729,18 +728,30 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 data_bar2 = np.array(data_bar)
                 plt.bar(y_pos, data_bar2, 0.5)
                 plt.xticks(y_pos+0.25, name_fish)
-            plt.ylabel('WUA [m^2]')
+            if fig_opt['language'] == 0:
+                plt.ylabel('WUA [m^2]')
+            if fig_opt['language'] == 1:
+                plt.ylabel('SPU [m^2]')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-            plt.title('Weighted Usable Area for the Reach ' + str(r))
+            if fig_opt['language'] == 0:
+                plt.title('Weighted Usable Area for the Reach ' + str(r))
+            if fig_opt['language'] == 1:
+                plt.title('Surface Ponderée Utile pour le Troncon: ' + str(r))
             # VH
             fig.add_subplot(212)
             if data_bar:
                 data_bar2 = np.array(data_bar)
                 plt.bar(y_pos, data_bar2/area_all[-1], 0.5)
                 plt.xticks(y_pos + 0.25, name_fish)
-            plt.ylabel('HV (WUA/A) []')
+            if fig_opt['language'] == 0:
+                plt.ylabel('HV (WUA/A) []')
+            if fig_opt['language'] == 1:
+                plt.ylabel('HV (SPU/A) []')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-            plt.title('Habitat value for the Reach ' + str(r))
+            if fig_opt['language'] == 0:
+                plt.title('Habitat value for the Reach ' + str(r))
+            if fig_opt['language'] == 1:
+                plt.title("Valeur d'Habitat:  " + str(r))
             name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             plt.tight_layout()
             if format1 == 0 or format1 == 1:
@@ -1097,8 +1108,12 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
     # we do not print the first time step with the whole profile
 
     for t in timestep:
-        ikle_here = ikle[t][0]
-        if len(ikle_here) < 2: # time step failed
+        try:
+            ikle_here = ikle[t][0]
+        except IndexError:
+            print('Error: Figure not created. Number of time step was not coherent with hydrological info.\n')
+            return
+        if len(ikle_here) < 2:  # time step failed
             pass
         else:
             vel_all = vel_c_all_t[t]

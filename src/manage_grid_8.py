@@ -2149,7 +2149,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         if ikle is not None:  # case empty grid
             xlist = []
             ylist = []
-            for i in range(0, len(ikle)):  # len(ikle)
+            for i in range(0, len(ikle)):
                 pi = 0
                 ikle_i = ikle[i]
                 if len(ikle_i) == 3:
@@ -2215,11 +2215,11 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         plt.subplot(2, 1, 1)
         # get colormap limit
         cm = plt.cm.get_cmap(fig_opt['color_map1'])
-        mvc = 0.1
+        mvc = 0.001
         for r in range(0, len(inter_vel_all)):
             inter_vel = inter_vel_all[r]
             if len(inter_vel) > 0:
-                mv = np.median(inter_vel[inter_vel >= 0]) * 2
+                mv = np.mean(inter_vel) * 3
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2242,20 +2242,20 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
-            plt.title('Interpolated velocity')
+            plt.title('Velocity')
         elif fig_opt['language'] == 1:
-            plt.title('Vitesse interpolée')
+            plt.title('Vitesse')
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
         plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
         # color map (the same for al reach)
-        mvc = 0.1
+        mvc = 0.001
         cm = plt.cm.get_cmap(fig_opt['color_map2'])
         for r in range(0, len(inter_h_all)):
             inter_h = inter_h_all[r]
             if len(inter_h) > 0:
-                mv = np.median(inter_h[inter_h >= 0]) * 2
+                mv = np.mean(inter_h[inter_h >= 0]) * 3
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2277,9 +2277,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
-            plt.title('Interpolated water height')
+            plt.title('Water height')
         elif fig_opt['language'] == 1:
-            plt.title("Hauteur d'eau interpolée")
+            plt.title("Hauteur d'eau")
     plt.tight_layout()
 
     # save figures

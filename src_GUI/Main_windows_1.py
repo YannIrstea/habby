@@ -8,7 +8,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, pyqtRemoveInputHook, qInstallMessageHandler
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
     QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog, QMenu
@@ -139,6 +139,7 @@ class MainWindows(QMainWindow):
 
         # call the normal constructor of QWidget
         super().__init__()
+        pyqtRemoveInputHook()
         # call an additional function during initialisation
         self.init_ui()
 
@@ -1394,6 +1395,7 @@ class CentralW(QWidget):
         self.vbar = self.scroll.verticalScrollBar()
         self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
         self.max_lengthshow = 90
+        pyqtRemoveInputHook()
 
         self.init_iu()
 
@@ -1495,6 +1497,8 @@ class CentralW(QWidget):
         """
         A small function to show the last figure
         """
+
+        matplotlib.interactive(True)
 
         # check if there is a path where to save the image
         filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')

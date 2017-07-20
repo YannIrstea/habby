@@ -195,6 +195,10 @@ class FstressW(estimhab_GUI.StatModUseful):
                                         self.tr('Enter the new river or reach name:'))
         if ok:
             self.riv.setItemText(self.riv.currentIndex(), text)
+            try:
+                self.riv_name[self.riv.currentIndex()] = text
+            except IndexError:
+                pass
 
     def save_river_data(self):
         """

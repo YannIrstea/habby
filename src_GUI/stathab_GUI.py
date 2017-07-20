@@ -478,7 +478,8 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # load now the text data, create the hdf5 and wrtie in the xml project file
         if self.list_needed.count() > 0:
-            self.send_log.emit('# Found part of the STATHAB files. Need re-load')
+            self.send_log.emit('Error: Found only a part of the needed STATHAB files. '
+                               'Need to re-load before execution\n')
             self.mystathab.save_xml_stathab(True)
             return
         self.list_needed.addItem('All files found')

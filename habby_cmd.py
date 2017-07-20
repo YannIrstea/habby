@@ -19,10 +19,10 @@ from src import stathab_c
 from src import substrate
 from src import fstress
 from src import calcul_hab
-from src import new_create_vtk
 from src import bio_info
 from src import mesh_grid2
 from src import lammi
+from src_GUI import output_fig_GUI
 
 
 def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
@@ -101,7 +101,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
               'on the dominant substrate (run_choice:1) or the substrate by percentage (run_choice:2).'
               'Input: pathname of merge file, name of xml prefence file with no path,  run_choice (output name). '
               'To get the calculation on more than one fish species, separate the names of the xml biological files'
-              ' by a comma without a space between the comman and the filenames. ')
+              ' by a comma without a space between the command and the filenames. ')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
@@ -963,6 +963,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             print('Error: the choice of run should be an int between 0, 1,2 (usually 0 is used)')
             return
 
+        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt['text_output'] = 'True'
+        fig_opt['shape_output'] = 'True'
+        fig_opt['paraview'] = 'True'
+
         if len(all_arg) == 6:
             name_base = all_arg[5]
         else:
@@ -970,34 +975,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
         # run calculation
         # we calculate hab on all the stage in xml preference files
-        [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all_t, spu_all_t_sp] = \
-            calcul_hab.calc_hab(merge_name, path_merge, bio_names, stages, path_bio, run_choice)
-        if vh_all_t_sp == [-99]:
-            return
-        print("Calculation done...")
-
-        # save txt
-        calcul_hab.save_hab_txt(merge_name, path_merge, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_prj,
-                                name_base)
-        calcul_hab.save_spu_txt(area_all_t, spu_all_t_sp, name_fish, path_prj, name_base)
-        print("Text output created...")
-
-        # save shp
-        calcul_hab.save_hab_shape(merge_name, path_merge, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish,
-                                  path_prj, name_base)
-
-        print("Shapefile created...")
-
-        # figure
-        calcul_hab.save_hab_fig_spu(area_all_t, spu_all_t_sp, name_fish, path_prj, name_base)
-        calcul_hab.save_vh_fig_2d(merge_name, path_merge, vh_all_t_sp, path_prj, name_fish, name_base, [], [-1])
-        print("Figure saved ...")
-
-        # paraview
-        new_create_vtk.habitat_to_vtu(name_base, path_prj, path_merge, merge_name, vh_all_t_sp, height_c_all_t,
-                                           vel_c_all_t, name_fish)
-        print("Paraview output created...")
-        print("All done.")
+        calcul_hab.calc_hab_and_output(merge_name, path_merge, bio_names, stages, name_fish, name_fish, run_choice,
+                                     path_bio,path_prj, path_prj, path_prj, [], True, fig_opt)
 
     # --------------------------------------------------------------------------------------
     elif all_arg[1] == 'CREATE_RAND_SUB':

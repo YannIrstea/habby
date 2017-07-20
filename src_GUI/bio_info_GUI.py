@@ -518,6 +518,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # give the possibility of sending a new simulation
             self.runhab.setDisabled(False)
 
+            if len(name_fish) > 0:
+                if isinstance(name_fish[0], int):
+                    return
+
             # show one image (quick to create)
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)

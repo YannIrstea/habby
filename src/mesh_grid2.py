@@ -602,7 +602,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_s
                 #             if indi not in sub_point_in_el:
                 #                 sub_point_in_el_here.append(indi)
 
-            #add all the info for this crossing element
+            # add all the info for this crossing element
             sub_point_in_cross.append(sub_point_in_cross_here)
             sub_point_in_el.append(sub_point_in_el_here)
             point_cross.append(point_cross_here)
@@ -610,7 +610,8 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_s
             point_cross_el.append(point_cross_el_here)
             hydro_el.append(sub_num)
 
-    data_crossing = [el_cross, point_cross_el, point_cross, side_point_cross, sub_point_in_cross, sub_point_in_el, hydro_el]
+    data_crossing = [el_cross, point_cross_el, point_cross, side_point_cross, sub_point_in_cross, sub_point_in_el,
+                     hydro_el]
     return ikle_sub, coord_p_sub, data_sub_pg,  data_sub_dom, data_crossing, sub_cell
 
 
@@ -632,10 +633,13 @@ def inside_trigon(pt, p0, p1, p2):
     p2y = p2[1]
 
     area = 0.5 * (-p1y*p2x + p0y*(-p1x + p2x) + p0x*(p1y - p2y) + p1x*p2y)
-    s = 1 / (2 * area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * pt[0] + (p0x - p2x) * pt[1])
-    t = 1 / (2 * area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * pt[0] + (p1x - p0x) * pt[1])
+    if area < 1e-15:
+        s = 1 / (2 * area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * pt[0] + (p0x - p2x) * pt[1])
+        t = 1 / (2 * area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * pt[0] + (p1x - p0x) * pt[1])
+    else:
+        return False
 
-    if s>=0 and t>=0 and 1-s-t >=0:
+    if s >= 0 and t >= 0 and 1-s-t >= 0:
         return True
     else:
         return False

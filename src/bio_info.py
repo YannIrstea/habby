@@ -802,7 +802,7 @@ def read_pref(xmlfile):
             sub_all.append(sub)
         else:
             # case without substrate
-            sub = [[0 , 0], [0, 0]]
+            sub = [[0 , 1], [1, 1]]
             sub_all.append(sub)
 
     return h_all, vel_all, sub_all, code_fish, name_fish, stages
@@ -818,7 +818,7 @@ def change_unit(data,unit):
     """
 
     if unit == 'Centimeter' or unit == "CentimeterPerSecond" :
-        data[0] =  [x / 100 for x in data[0]]
+        data[0] = [x / 100 for x in data[0]]
     elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Code EVHA 2.0 (GINOT 1998)":
         pass
     elif unit == "Millimeter":
