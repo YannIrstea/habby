@@ -1678,8 +1678,11 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
     from cells information to nodal information. The interpolation is linear and the cell centroid is used as the
     point where the cell information is carried. It can be used for one time step only.
 
+    This function is also used by hydraulic_chronic to pass from one discharge to another because each discharge
+    has it own grid. hence, we need to interpolate
+
     :param point_all: the coordinates of grid points (new grid here)
-    :param coord_c: the coordintesof the centroid of the cells (old grid here)
+    :param coord_c: the coordintes of the centroid of the cells (old grid here)
     :param vel_in: the velocity data by cell
     :param height_in: the height data by cell
     :param warn1: if True , show the warning (usually warn1 is True for t=0, False afterwards)

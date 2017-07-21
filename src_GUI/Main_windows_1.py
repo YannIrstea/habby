@@ -620,16 +620,21 @@ class MainWindows(QMainWindow):
             path_h5 = os.path.join(self.path_prj, pathhdf5_text)
             path_text = os.path.join(self.path_prj, pathtxt_text)
             path_output = os.path.join(self.path_prj, pathout_text)
-            if not os.path.exists(path_im):
-                os.makedirs(path_im)
-            if not os.path.exists(path_h5):
-                os.makedirs(path_h5)
-            if not os.path.exists(path_text):
-                os.makedirs(path_text)
-            if not os.path.exists(pathin_text):
-                os.makedirs(pathin_text)
-            if not os.path.exists(path_output):
-                os.makedirs(path_output)
+            pathin_text = os.path.join(self.path_prj, pathin_text)
+            try:
+                if not os.path.exists(path_im):
+                    os.makedirs(path_im)
+                if not os.path.exists(path_h5):
+                    os.makedirs(path_h5)
+                if not os.path.exists(path_text):
+                    os.makedirs(path_text)
+                if not os.path.exists(pathin_text):
+                    os.makedirs(pathin_text)
+                if not os.path.exists(path_output):
+                    os.makedirs(path_output)
+            except PermissionError:
+                self.central_widget.write_log('Error: Could not create directory, Permission Error \n')
+                return
 
         # update central widget
         self.central_widget.name_prj_c = self.name_prj
@@ -867,7 +872,16 @@ class MainWindows(QMainWindow):
         # add a new folder
         path_new_fold = os.path.join(self.createnew.e2.text(), name_prj_here)
         if not os.path.isdir(path_new_fold):
-            os.makedirs(path_new_fold)
+            try:
+                os.makedirs(path_new_fold)
+            except PermissionError:
+                self.msg2.setIcon(QMessageBox.Warning)
+                self.msg2.setWindowTitle(self.tr("Permission Error"))
+                self.msg2.setText(
+                    self.tr("You do not have the permission to write in this folder. Choose another folder. \n"))
+                self.msg2.setStandardButtons(QMessageBox.Ok)
+                self.msg2.show()
+                return
 
         # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by save_project)
         self.central_widget.welcome_tab.e1.setText(name_prj_here)
@@ -1792,7 +1806,9 @@ class WelcomeW(QWidget):
         # self.imname = os.path.join('translation', 'beaver.png')  # image should in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
+        self.msg2 = QMessageBox()
         self.init_iu()
+
 
     def init_iu(self):
         """

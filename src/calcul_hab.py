@@ -638,12 +638,12 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
             if t > 0:
                 # attribute
                 for n in name_fish_sh:
-                    w.field('hsi'+n, 'F', 10, 8)
-                w.field('velocity', 'F', 10, 8)
-                w.field('water heig', 'F', 10, 8)
-                w.field('conveyance', 'F', 10, 8)
-                w.field('sub_coarser', 'F', 10, 8)
-                w.field('sub_dom', 'F', 10, 8)
+                    w.field('hsi'+n, 'F')
+                w.field('velocity', 'F')
+                w.field('water heig', 'F')
+                w.field('conveyance', 'F')
+                w.field('sub_coarser', 'F')
+                w.field('sub_dom', 'F')
 
                 # fill attribute
                 for r in range(0, nb_reach):

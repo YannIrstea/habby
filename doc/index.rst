@@ -522,6 +522,7 @@ Practically:
 * ignore the executable created in the "built" folder Use the one is in the "dist" folder.
 * copy all files in the mklall folder to the folder dist/habby.
 * copy all the files in the original src_GUI folder which are NOT python file to the src_GUI folder just created (or you know, improve the bat file...).
+* copy the doc folder in the dist/habby folder
 * run habby by writing habby on the cmd
 * test and correct problems. It can be long!
 
