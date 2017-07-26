@@ -1475,6 +1475,7 @@ class CentralW(QWidget):
         self.l2.setAlignment(Qt.AlignTop)
         self.l2.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.l2.setTextFormat(Qt.RichText)
+        self.l2.setTextInteractionFlags(Qt.TextSelectableByMouse)
         # see the end of the log first
         self.vbar.rangeChanged.connect(self.scrolldown)
         self.scroll.setWidget(self.l2)
