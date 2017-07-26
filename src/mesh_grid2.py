@@ -633,7 +633,7 @@ def inside_trigon(pt, p0, p1, p2):
     p2y = p2[1]
 
     area = 0.5 * (-p1y*p2x + p0y*(-p1x + p2x) + p0x*(p1y - p2y) + p1x*p2y)
-    if area < 1e-15:
+    if area > 1e-15:
         s = 1 / (2 * area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * pt[0] + (p0x - p2x) * pt[1])
         t = 1 / (2 * area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * pt[0] + (p1x - p0x) * pt[1])
     else:

@@ -61,11 +61,15 @@ class MainWindows(QMainWindow):
     """
 
     def __init__(self):
+
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
 
+        # the version number of habby
+        self.version = 1.1
+
         # load user setting
-        self.settings = QSettings('HABBY', 'irstea')
+        self.settings = QSettings('HABBY'+str(self.version), 'irstea')
         name_prj_set = self.settings.value('name_prj')
         print(name_prj_set)
         name_path_set = self.settings.value('path_prj')
@@ -244,7 +248,7 @@ class MainWindows(QMainWindow):
             self.central_widget.bioinfo_tab.lang = 'English'
 
         # update user option to remember the language
-        self.settings = QSettings('HABBY', 'irstea')
+        self.settings = QSettings('HABBY'+str(self.version), 'irstea')
         self.settings.setValue('language_code', self.lang)
         del self.settings
 
@@ -485,7 +489,7 @@ class MainWindows(QMainWindow):
         fname = os.path.join(self.path_prj, self.name_prj+'.xml')
 
         # update user option and re-do (the whole) menu
-        self.settings = QSettings('HABBY', 'irstea')
+        self.settings = QSettings('HABBY'+str(self.version), 'irstea')
         self.settings.setValue('name_prj', self.name_prj)
         self.settings.setValue('path_prj', self.path_prj)
 
@@ -528,12 +532,19 @@ class MainWindows(QMainWindow):
             if self.name_prj != '':
                 shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj + '.log'))
                 shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'), os.path.join(self.path_prj,
-                                                                                  'restart_' + self.name_prj + '.log'))
+                                                                                      'restart_' + self.name_prj +
+                                                                                      '.log'))
             # more precise info
             user_child = ET.SubElement(general_element, "User_Name")
             user_child.text = self.username_prj
             des_child = ET.SubElement(general_element, "Description")
             des_child.text = self.descri_prj
+            # we save here only the bversin number of when the project was saved the first time.
+            # if a project is used in two version, it has the first version number to insure back-comptability.
+            # let say on version 1.5, we assure comptability in version 1.4, but that we do assure comptability
+            # for version 1.4 in version 1.6. In this case, we should not have the verison number 1.5 in the xml.
+            ver_child = ET.SubElement(general_element, 'Version_HABBY')
+            ver_child.text = str(self.version)
 
             # path
             path_element = ET.SubElement(general_element, "Paths")

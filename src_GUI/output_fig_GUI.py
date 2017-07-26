@@ -369,7 +369,7 @@ class outputW(QWidget):
 
         self.send_log.emit('The new options for the figures are saved. \n')
         self.send_log.emit('# Modifications of figure options. \n')
-        self.send_log.emit('restart     SAVE_OPTION_FIG')
+        # self.send_log.emit('restart     SAVE_OPTION_FIG')
 
 
 def set_lang_fig(nb_lang, path_prj, name_prj):

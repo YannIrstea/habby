@@ -830,7 +830,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         # create a random substrate in a shp form
         h5name = os.path.basename(hdf5_name_hyd)
         path_h5 = os.path.dirname(hdf5_name_hyd)
-        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Const_cemagref', 0, 10, path_prj)
+        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Const_cemagref', 0, 100, path_prj)
 
         # save it in hdf5 form
         filename_shp = 'random_sub.shp'
@@ -995,7 +995,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
         substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 300, path_prj)
 
-    # ----------------------------------------------------------------------
+    # ------------------------------------------------------------------------
     else:
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
 
