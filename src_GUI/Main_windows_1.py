@@ -69,7 +69,7 @@ class MainWindows(QMainWindow):
         self.version = 1.1
 
         # load user setting
-        self.settings = QSettings('HABBY'+str(self.version), 'irstea')
+        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
         name_prj_set = self.settings.value('name_prj')
         print(name_prj_set)
         name_path_set = self.settings.value('path_prj')
@@ -155,7 +155,7 @@ class MainWindows(QMainWindow):
 
         # connect the signals of the welcome tab with the different functions (careful if changes this copy 3 times
         # in set_langue and save_project
-        self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
@@ -170,6 +170,7 @@ class MainWindows(QMainWindow):
         # set geometry
         self.setGeometry(200, 200, 900, 600)
         self.setCentralWidget(self.central_widget)
+
         self.show()
 
     def closeEvent(self, event):
@@ -226,7 +227,7 @@ class MainWindows(QMainWindow):
         # create the new menu
         self.my_menu_bar()
 
-        self.central_widget.welcome_tab.save_signal.connect(self.save_project)
+        self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
@@ -248,7 +249,7 @@ class MainWindows(QMainWindow):
             self.central_widget.bioinfo_tab.lang = 'English'
 
         # update user option to remember the language
-        self.settings = QSettings('HABBY'+str(self.version), 'irstea')
+        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
         self.settings.setValue('language_code', self.lang)
         del self.settings
 
@@ -462,6 +463,8 @@ class MainWindows(QMainWindow):
         Finally the log is written (see “log and HABBY in the command line).
         """
 
+        print('sdfsd')
+
         # saved path
         e2here = self.central_widget.welcome_tab.e2
         if not os.path.isdir(e2here.text()):  # if the directoy do not exist
@@ -489,7 +492,7 @@ class MainWindows(QMainWindow):
         fname = os.path.join(self.path_prj, self.name_prj+'.xml')
 
         # update user option and re-do (the whole) menu
-        self.settings = QSettings('HABBY'+str(self.version), 'irstea')
+        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
         self.settings.setValue('name_prj', self.name_prj)
         self.settings.setValue('path_prj', self.path_prj)
 
@@ -904,20 +907,11 @@ class MainWindows(QMainWindow):
         fname = os.path.join(self.createnew.e2.text(), name_prj_here+'.xml')
         if os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Erase old project?"))
-            self.msg2.setText(
-                self.tr("A project with an identical name exists. Should this project be erased definitively? "))
-            self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            self.msg2.setDefaultButton(QMessageBox.No)
-            ret = self.msg2.exec_()
-            if ret == QMessageBox.Yes:
-                os.remove(fname)
-                os.remove(os.path.join(self.createnew.e2.text(), name_prj_here+'.log'))
-                os.remove(os.path.join(self.createnew.e2.text(), 'restart_'+name_prj_here+'.log'))
-                self.save_project()
-                self.createnew.close()
-            else:
-                return
+            self.msg2.setWindowTitle(self.tr("Identical name"))
+            self.msg2.setText(self.tr("A project with an identical name exists. Choose another name."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            return
 
         # save project if unique name in the selected folder
         else:
@@ -947,7 +941,8 @@ class MainWindows(QMainWindow):
         This function is used to change the name of the current project. To do this, it copies the xml
         project with a new name and copy the file for the log with a new name
         """
-        fname_old = os.path.join(self.path_prj, self.name_prj +'.xml')
+        fname_old = os.path.join(self.path_prj, self.name_prj + '.xml')
+        old_path_prj = self.path_prj
 
         # get new name from the user
         text, ok = QInputDialog.getText(self, self.tr('Change Project name'),
@@ -956,48 +951,59 @@ class MainWindows(QMainWindow):
             name_prj_here = str(text)
             # check if file already exist
             fname = os.path.join(self.path_prj, name_prj_here + '.xml')
-            if os.path.isfile(fname):
+            new_path_prj = os.path.join(os.path.dirname(self.path_prj), name_prj_here)
+            if os.path.isfile(fname) or os.path.isdir(new_path_prj):
                 self.msg2.setIcon(QMessageBox.Warning)
                 self.msg2.setWindowTitle(self.tr("Erase old project?"))
                 self.msg2.setText(
-                    self.tr("A project with an identical name exists. Should this project be erased definitively? "))
-                self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                self.msg2.setDefaultButton(QMessageBox.No)
-                ret = self.msg2.exec_()
-                if ret == QMessageBox.Yes:
-                    os.remove(fname)
-                    os.remove(os.path.join(self.createnew.e2.text(), name_prj_here + '.log'))
-                    os.remove(os.path.join(self.createnew.e2.text(), 'restart_' + name_prj_here + '.log'))
-                else:
-                    return
+                    self.tr("A project with an identical name exists. Choose another name."))
+                self.msg2.setDefaultButton(QMessageBox.Ok)
+                self.msg2.show()
+                return
             # change label name
             self.central_widget.welcome_tab.e1.setText(name_prj_here)
             # copy the xml
             try:
                 shutil.copyfile(fname_old, fname)
             except FileNotFoundError:
-                self.central_widget.write_log("Error: the old project file does not exist\n.")
+                self.central_widget.write_log("Error: the old project file does not exist (1)\n.")
                 return
             # write the new name in the copied xml
             doc = ET.parse(fname)
             root = doc.getroot()
-            path_child = root.find(".//Project_Name")
-            path_child.text = name_prj_here
+            name_child = root.find(".//Project_Name")
+            # change project path
+            path_child = root.find(".//Path_Projet")
+            path_prj_old = path_child.text
+            path_child.text = os.path.join(os.path.dirname(path_child.text), name_prj_here)
+            new_path_prj = os.path.join(os.path.dirname(path_child.text), name_prj_here)
             # update log name in the new xml
             child_logfile1 = root.find(".//File_Log")
             log1_old = child_logfile1.text
-            child_logfile1.text = os.path.join(self.path_prj, name_prj_here + '.log')
+            child_logfile1.text = os.path.join(new_path_prj, name_prj_here + '.log')
             child_logfile2 = root.find(".//File_Restart")
             log2_old = child_logfile2.text
-            child_logfile2.text = os.path.join(self.path_prj, 'restart_'+ name_prj_here + '.log')
+            child_logfile2.text = os.path.join(new_path_prj, 'restart_'+ name_prj_here + '.log')
+
             # copy the xml
             try:
-                shutil.copyfile(log1_old, child_logfile1.text)
-                shutil.copyfile(log2_old, child_logfile2.text)
+                os.rename(os.path.join(old_path_prj, log1_old), os.path.join(old_path_prj, name_prj_here + '.log'))
+                os.rename(os.path.join(old_path_prj, log2_old), os.path.join(old_path_prj,
+                                                                             'restart_'+ name_prj_here + '.log'))
             except FileNotFoundError:
-                self.central_widget.write_log("Error: the old project file does not exist\n.")
+                self.central_widget.write_log("Error: the old log files do not exist (2)\n.")
                 return
             doc.write(fname)
+            # # erase old xml
+            os.remove(fname_old)
+            # rename directory
+            try:
+                os.rename(path_prj_old, new_path_prj)
+            except FileExistsError:
+                self.central_widget.write_log("A project with the same name exist. Conflict arised. \n")
+            # change path_prj
+            self.path_prj = new_path_prj
+            self.central_widget.welcome_tab.e2.setText(new_path_prj)
             # save project, just in case
             self.save_project()
 
@@ -1395,6 +1401,7 @@ class CentralW(QWidget):
     The write_log() and write_log_file() method are explained in the section about the log.
     """
 
+
     def __init__(self, rech, path_prj, name_prj, lang_bio):
 
         super().__init__()
@@ -1421,6 +1428,7 @@ class CentralW(QWidget):
         self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
         self.max_lengthshow = 90
         pyqtRemoveInputHook()
+        self.old_ind_tab = 0
 
         self.init_iu()
 
@@ -1442,10 +1450,6 @@ class CentralW(QWidget):
         # fill the QComboBox on the substrate and hydro tab
         self.update_hydro_hdf5_name()
 
-        # fill the general tab
-        #self.welcome_tab.e1.setText(self.name_prj_c)
-        #self.welcome_tab.e2.setText(self.path_prj_c)
-
         # get the log option (should we take log or not)
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if not os.path.isdir(self.path_prj_c) \
@@ -1461,7 +1465,6 @@ class CentralW(QWidget):
             logon_child = root.find(".//Save_Log")
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
-
 
         # add the widgets to the list of tab if a project exist
         self.add_all_tab()
@@ -1480,6 +1483,10 @@ class CentralW(QWidget):
         # colors
         self.scroll.setStyleSheet('background-color: white')
         self.vbar.setStyleSheet('background-color: lightGrey')
+
+        self.welcome_tab.save_info_signal.connect(self.save_info_projet)
+        # save the desription and the figure option if tab changed
+        self.tab_widget.currentChanged.connect(self.save_on_change_tab)
 
         # layout
         layoutc = QGridLayout()
@@ -1782,6 +1789,51 @@ class CentralW(QWidget):
                         self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
                         self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
+    def save_info_projet(self):
+        """
+        This function is used to save the description of the project and the username in the xml project file
+        """
+
+        # username and description
+        e4here = self.welcome_tab.e4
+        self.username_prj = e4here.text()
+        e3here = self.welcome_tab.e3
+        self.descri_prj = e3here.toPlainText()
+
+        fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
+
+        if not os.path.isfile(fname):
+            self.write_log('Error: The project file is not found. \n')
+        else:
+            doc = ET.parse(fname)
+            root = doc.getroot()
+            user_child = root.find(".//User_Name")
+            des_child = root.find(".//Description")
+            if user_child is not None:
+                user_child.text = self.username_prj
+            else:
+                self.write_log("xml file miss one attribute (1) \n")
+            if des_child is not None:
+                des_child.text = self.descri_prj
+            else:
+                self.write_log("xml file miss one attribute (2) \n")
+            doc.write(fname)
+
+    def save_on_change_tab(self):
+        """
+        This function is used to save the data when the tab are changed. In most tab this is not needed as data
+        is alredy saved by another functions. However, it is useful for the Welcome Tab and the Option Tab.
+        This function can be modified if needed for new tabs.
+
+        Careful, the order of the tab is important here.
+        """
+
+        if self.old_ind_tab == 0:
+            self.save_info_projet()
+        elif self.old_ind_tab == 3:
+            self.output_tab.save_option_fig()
+        self.old_ind_tab = self.tab_widget.currentIndex()
+
 
 class WelcomeW(QWidget):
     """
@@ -1808,6 +1860,10 @@ class WelcomeW(QWidget):
     change_name = pyqtSignal()
     """
     A signal to change the name of the project for MainWindows
+    """
+    save_info_signal = pyqtSignal()
+    """
+    A signal to change the user name and the description of the project
     """
 
     def __init__(self, path_prj, name_prj):
@@ -1851,7 +1907,7 @@ class WelcomeW(QWidget):
         l2 = QLabel(self.tr('Main Folder: '))
         self.e2 = QLabel(self.path_prj)
         button2 = QPushButton(self.tr('Set Folder'), self)
-        button2.clicked.connect(self.setfolder)
+        button2.clicked.connect(self.setfolder2)
         button3 = QPushButton(self.tr('Change Project Name'), self)
         button3.clicked.connect(self.change_name.emit)
         l3 = QLabel(self.tr('Description: '))
@@ -1859,7 +1915,7 @@ class WelcomeW(QWidget):
         l4 = QLabel(self.tr('User Name: '))
         self.e4 = QLineEdit()
         self.buttonm = QPushButton(self.tr('Save Project Info'))
-        self.buttonm.clicked.connect(self.save_signal.emit)
+        self.buttonm.clicked.connect(self.save_info_signal.emit)
         self.lowpart = QWidget()
 
         # background image
@@ -1877,13 +1933,8 @@ class WelcomeW(QWidget):
 
         # if the directoy to the project do not exist, leave the general tab empty
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if not os.path.isdir(self.path_prj) \
-                or not os.path.isfile(fname):
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Project file not found"))
-            self.msg2.setText(self.tr("The xml project file does not exists. \n Create or open a new project."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
+        if not os.path.isdir(self.path_prj) or not os.path.isfile(fname):
+            pass
         # otherwise, fill it
         else:
             doc = ET.parse(fname)
@@ -1932,7 +1983,7 @@ class WelcomeW(QWidget):
         """
         self.send_log.emit('Warning: No example prepared yet')
 
-    def setfolder(self):
+    def setfolder2(self):
         """
         This function is used by the user to select the folder where the xml project file will be located.
         This is used in the case where the project exist already. A similar function is in the class CreateNewProject()
@@ -1959,14 +2010,14 @@ class WelcomeW(QWidget):
                 doc = ET.parse(fname_old)
                 root = doc.getroot()
                 path_child = root.find(".//Path_Projet")
-                path_child.text = self.path_prj # new name
+                path_child.text = self.path_prj  # new name
                 fname = os.path.join(self.path_prj, self.name_prj + '.xml')
                 try:
                     shutil.copytree(path_old, self.path_prj)
                 except shutil.Error:
                     self.send_log.emit('Could not copy the project. Permission Error? \n')
                     return
-                self.send_log.emit(' The file in the project folder have been copied to the new location')
+                self.send_log.emit(' The files in the project folder have been copied to the new location \n')
                 try:
                     shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.xml'))
                 except shutil.Error:
