@@ -415,7 +415,7 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
             file_trans_here = data_trans[idx+3].strip()
             # in case we have moved the transect file
             if new_dir != '':
-                basename = os.path.basename(file_trans_here)
+                basename = os.path.basename(os.path.normpath(file_trans_here))
                 file_trans_here = os.path.join(new_dir, basename)
             if not os.path.isfile(file_trans_here):
                 print('Error: A transect file is missing \n')
