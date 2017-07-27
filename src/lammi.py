@@ -467,10 +467,10 @@ def load_transect_data(fac_filename_all):
     q_step = []
     try:
         with open(tfile, 'rt') as f:
-            data_trans = f.read()
+            data_trans = f.readlines()[1:-1]
     except IOError:
         return failload
-    data_trans = data_trans.split('\n')
+    #data_trans = data_trans.split('\n')
     if len(data_trans) < 1:
         print('Error: No data was found in the transect file' + tfile + '\n')
         return failload
