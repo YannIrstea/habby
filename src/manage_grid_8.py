@@ -2203,26 +2203,26 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
     # plot the interpolated velocity
     bounds = []
-    plt.figure()
-    if time_step == -1:
-        if fig_opt['language'] == 0:
-            plt.title('Hydraulic Data - Last Time Step')
-        elif fig_opt['language'] == 1:
-            plt.title('Données Hydrauliques - Dernier Pas de Temps')
-    else:
-        if fig_opt['language'] == 0:
-            plt.title('Hydraulic Data - Time Step ' + str(time_step))
-        elif fig_opt['language'] == 1:
-            plt.title('Données Hydrauliques - Pas de Temps: ' + str(time_step))
+    # if time_step == -1:
+    #     if fig_opt['language'] == 0:
+    #         plt.title('Hydraulic Data - Last Time Step')
+    #     elif fig_opt['language'] == 1:
+    #         plt.title('Données Hydrauliques - Dernier Pas de Temps')
+    # else:
+    #     if fig_opt['language'] == 0:
+    #         plt.title('Hydraulic Data - Time Step ' + str(time_step))
+    #     elif fig_opt['language'] == 1:
+    #         plt.title('Données Hydrauliques - Pas de Temps: ' + str(time_step))
     if len(inter_vel_all) > 0:  # 0
-        plt.subplot(2, 1, 1)
+        plt.figure()
+        # plt.subplot(2, 1, 1)
         # get colormap limit
         cm = plt.cm.get_cmap(fig_opt['color_map1'])
         mvc = 0.001
         for r in range(0, len(inter_vel_all)):
             inter_vel = inter_vel_all[r]
             if len(inter_vel) > 0:
-                mv = np.mean(inter_vel) * 3
+                mv = np.mean(inter_vel) * 6
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2245,20 +2245,44 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
-            plt.title('Velocity')
+            if time_step == -1:
+                plt.title('Velocity - Last Time Step')
+            else:
+                plt.title('Velocity - Time Step: ' + str(time_step))
         elif fig_opt['language'] == 1:
-            plt.title('Vitesse')
+            if time_step == -1:
+                plt.title('Vitesse - Dernier Pas de Temps')
+            else:
+                plt.title('Vitesse - Pas de Temps: ' + str(time_step))
+
+        plt.tight_layout()
+
+            # save figure
+        if merge_case:
+            suffix = 'Merge_Velocity_t' + str(time_step) + '_'
+        else:
+            suffix = 'Velocity_t' + str(time_step) + '_'
+        if format1 == 0 or format1 == 1:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                        dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 0 or format1 == 3:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                        dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 2:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                        dpi=fig_opt['resolution'], transparent=True)
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
-        plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        plt.figure()
         # color map (the same for al reach)
         mvc = 0.001
         cm = plt.cm.get_cmap(fig_opt['color_map2'])
         for r in range(0, len(inter_h_all)):
             inter_h = inter_h_all[r]
             if len(inter_h) > 0:
-                mv = np.mean(inter_h[inter_h >= 0]) * 3
+                mv = np.mean(inter_h[inter_h >= 0]) * 6
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2280,25 +2304,31 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
-            plt.title('Water height')
+            if time_step == -1:
+                plt.title('Water height - Last Time Step')
+            else:
+                plt.title('Water height - Time Step: ' + str(time_step) )
         elif fig_opt['language'] == 1:
-            plt.title("Hauteur d'eau")
-    plt.tight_layout()
+            if time_step == -1:
+                plt.title("Hauteur d'eau - Dernier Pas de Temps")
+            else:
+                plt.title("Hauteur d'eau - Pas de Temps: " + str(time_step))
+        plt.tight_layout()
 
-    # save figures
-    if merge_case:
-        suffix = 'Merge_data_t'+str(time_step) + '_'
-    else:
-        suffix = 'Hydro_data_t'+str(time_step) + '_'
-    if format1 == 0 or format1 == 1:
-        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                    dpi=fig_opt['resolution'], transparent=True)
-    if format1 == 0 or format1 == 3:
-        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                    dpi=fig_opt['resolution'], transparent=True)
-    if format1 == 2:
-        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                    dpi=fig_opt['resolution'], transparent=True)
+        # save figure
+        if merge_case:
+            suffix = 'Merge_Waterheight_t'+str(time_step) + '_'
+        else:
+            suffix = 'Water_height_t'+str(time_step) + '_'
+        if format1 == 0 or format1 == 1:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                        dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 0 or format1 == 3:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                        dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 2:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                        dpi=fig_opt['resolution'], transparent=True)
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[],

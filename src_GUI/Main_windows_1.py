@@ -463,8 +463,6 @@ class MainWindows(QMainWindow):
         Finally the log is written (see “log and HABBY in the command line).
         """
 
-        print('sdfsd')
-
         # saved path
         e2here = self.central_widget.welcome_tab.e2
         if not os.path.isdir(e2here.text()):  # if the directoy do not exist

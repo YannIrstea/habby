@@ -152,7 +152,10 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.fishall = QCheckBox(self.tr('Select all fishes'), self)
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Save and run Stathab"))
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.butfig = QPushButton(self.tr("Create Figure Again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if len(self.mystathab.q_all) == 0:
+            self.butfig.setDisabled(True)
 
         # add a switch for tropical rivers
         self.rivtype = QComboBox()
@@ -221,7 +224,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.list_s, 5, 1, 2, 1)
         self.layout.addWidget(self.runb, 6, 2)
         self.layout.addWidget(self.fishall, 7, 1)
-        self.layout.addWidget(self.cb, 7, 2)
+        self.layout.addWidget(self.butfig, 7, 2)
         self.setLayout(self.layout)
 
     def select_dir(self):
@@ -485,7 +488,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.list_needed.addItem('All files found')
         self.send_log.emit('# Found all STATHAB files. Load Now.')
         sys.stdout = self.mystdout = StringIO()
-        self.mystathab.load_stathab_from_txt(self.listrivname, end_file_reach_here, file_name_all_reach_here, self.dir_name)
+        self.mystathab.load_stathab_from_txt(self.listrivname, end_file_reach_here, file_name_all_reach_here,
+                                             self.dir_name)
         self.mystathab.create_hdf5()
         self.mystathab.save_xml_stathab()
         sys.stdout = sys.__stdout__
@@ -828,9 +832,9 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.path_im = self.path_im
         if self.riverint == 0:
             self.mystathab.savetxt_stathab()
-        if self.cb.isChecked():
-            self.mystathab.savefig_stahab(False)
-            self.show_fig.emit()
+        self.mystathab.savefig_stahab(False)
+        self.show_fig.emit()
+        self.butfig.setDisabled(False)
 
         # log information
         sys.stdout = sys.__stdout__
@@ -854,6 +858,18 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.send_log.emit("restart RUN_STATHAB")
         self.send_log.emit("restart    folder: " + self.dir_name)
         self.send_log.emit("restart    river type: " + str(self.riverint))
+
+    def recreate_image(self):
+        """
+        This function redo the figures from Stahtab
+        """
+
+        if len(self.mystathab.q_all) > 0:
+            self.mystathab.savefig_stahab(False)
+            self.show_fig.emit()
+        else:
+
+            self.send_log.emit('Error: No data found for figures. \n')
 
 
 if __name__ == '__main__':

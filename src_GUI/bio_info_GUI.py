@@ -32,6 +32,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.imfish = ''
+        self.keep_data = None
         self.path_im_bio = 'biology/figure_pref/'
         # self.path_bio is defined in StatModUseful.
         self.data_fish = []  # all data concerning the fish
@@ -76,6 +77,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
         self.runhab.setStyleSheet("background-color: #31D656")
         self.runhab.clicked.connect(self.run_habitat_value)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.show_image_hab)
+        if not self.keep_data:
+            self.butfig.setDisabled(True)
         # spacer1 = QSpacerItem(1, 1)
         # spacer2 = QSpacerItem(1, 1)
 
@@ -153,7 +158,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.list_s.itemClicked.connect(self.show_info_fish_sel)
 
         # erase fish selection
-        self.butdel = QPushButton(self.tr("Erase Selection"))
+        self.butdel = QPushButton(self.tr("Erase All Selection"))
         self.butdel.clicked.connect(self.remove_all_fish)
 
         # fish selected fish
@@ -183,6 +188,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.l9, 3, 3)
         self.layout4.addWidget(self.choice_run, 4, 3)
         self.layout4.addWidget(self.runhab, 5, 3)
+        self.layout4.addWidget(self.butfig, 6, 3)
         self.layout4.addWidget(self.pref_curve, 9, 3)
         self.layout4.addWidget(self.hs, 10, 3)
         self.layout4.addWidget(self.butdel, 2, 3)
@@ -503,17 +509,25 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
 
         # when the loading is finished
-        if not self.q4.empty():
+        if not self.q4.empty() or self.keep_data is not None:
             # manage error
-            self.timer.stop()
-            data_second = self.q4.get()
-            self.mystdout = data_second[0]
-            area_all = data_second[1]
-            spu_all = data_second[2]
-            name_fish = data_second[3]
-            name_base = data_second[4]
-            vh_all_t_sp = data_second[5]
-            self.send_err_log()
+            if self.keep_data is None:
+                self.timer.stop()
+                data_second = self.q4.get()
+                self.mystdout = data_second[0]
+                area_all = data_second[1]
+                spu_all = data_second[2]
+                name_fish = data_second[3]
+                name_base = data_second[4]
+                vh_all_t_sp = data_second[5]
+                self.send_err_log()
+                self.keep_data = data_second
+            else:
+                area_all = self.keep_data[1]
+                spu_all = self.keep_data[2]
+                name_fish = self.keep_data[3]
+                name_base = self.keep_data[4]
+                vh_all_t_sp = self.keep_data[5]
 
             # give the possibility of sending a new simulation
             self.runhab.setDisabled(False)
@@ -525,13 +539,23 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # show one image (quick to create)
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-            calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]], path_im, name_fish, name_base,
-                                      fig_dict, [-1], save_fig=False)
+            for t in fig_dict['time_step']:
+                # if print last and first time step and one time step only, only print it once
+                if t == -1 and len(vh_all_t_sp[0]) == 2 and 1 in fig_dict['time_step']:
+                    pass
+                else:
+                    calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]],
+                                              path_im, name_fish, name_base, fig_dict, [-1], save_fig=False)
             sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
             calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict, sim_name)
 
             # show figure
             self.show_fig.emit()
+
+            # enable the button to call this functin directly again
+            self.butfig.setEnabled(True)
+
+
 
 if __name__ == '__main__':
     pass

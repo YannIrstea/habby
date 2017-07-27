@@ -185,7 +185,7 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
                                                            new_dir)
     if len(length_all) == 1:
         if length_all[0] == -99:
-            return
+            return failload
 
     # load the transect data
     [dist_all, vel_all, height_all, sub_all, q_step] = load_transect_data(fac_filename_all)
@@ -381,7 +381,7 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
             id_fac = range(int(first_fac), int(nb_fac+first_fac))
             facies_id.append(id_fac)
     if len(lfac) == 0:
-        print('Error: the facies faile was not in the right format \n')
+        print('Error: the facies file was not in the right format \n')
         return
 
     # load transect file name

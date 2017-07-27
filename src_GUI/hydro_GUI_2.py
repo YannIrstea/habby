@@ -230,6 +230,7 @@ class SubHydroW(QWidget):
 
     def __init__(self, path_prj, name_prj):
 
+        # do not change the string 'unknown file'
         self.namefile = ['unknown file', 'unknown file']  # for children, careful with list index out of range
         self.interpo = ["Interpolation by block", "Linear interpolation", "Nearest Neighbors"]  # order matters here
         self.interpo_choice = 0 # gives which type of interpolation is chosen (it is the index of self.interpo )
@@ -705,54 +706,10 @@ class SubHydroW(QWidget):
             self.load_b.setDisabled(False)
 
             # create the figure and show them
-            if self.cb.isChecked():
-
-                path_im = self.find_path_im()
-                path_hdf5 = self.find_path_hdf5()
-                sys.stdout = self.mystdout = StringIO()
-                # find hsf5 name (files where is hte data)
-                if self.model_type == 'SUBSTRATE':
-                    name_hdf5 = load_hdf5.get_hdf5_name('MERGE', self.name_prj, self.path_prj)
-                else:
-                    name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
-                if name_hdf5 and not error:
-                    # load data
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
-                                                                                                        path_hdf5)
-                    if ikle_all_t == [[-99]]:
-                        self.send_log.emit('Error: No data found in hdf5 (from send_data)')
-                        return
-                    # figure option
-                    self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-                    # plot the figure for all time step
-                    if self.fig_opt['time_step'][0] == -99:  # all time steps
-                        for t in range(1, len(ikle_all_t)):  # do not plot full profile
-                            if t < len(ikle_all_t):
-                                if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
-                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
-                                else:
-                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
-                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
-                    # plot the figure for some time steps
-                    else:
-                        for t in self.fig_opt['time_step']:  # range(0, len(vel_cell)):
-                            if t < len(ikle_all_t):
-                                if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
-                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
-                                else:
-                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t],self.fig_opt,
-                                                                   inter_vel_all_t[t],inter_h_all_t[t], path_im, False, t)
-                            # to debug
-                            # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                            # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
-
-                    self.show_fig.emit()
-                else:
-                    self.send_log.emit(self.tr("The hydrological model was not found. Figures could not be shown"))
+            if not error:
+                self.create_image()
+            else:
+                self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                 self.send_log.emit(self.tr("Merging of substrate and hydrological data finished."))
@@ -777,6 +734,83 @@ class SubHydroW(QWidget):
             #     self.send_log.emit(
             #         "Error: Grid creation failed. Try with the interpolation method 'Linear Interpolation'")
             #     return
+
+    def recreate_image(self):
+        """
+        This function is used to recreate the images related to the grid and the hydrology. We do not call create_image
+        directly as we might add other command here.
+        """
+
+        self.create_image(False)
+
+    def create_image(self, save_fig=True):
+        """
+        This function is used to create the images related to the grid and the hydrology. it is called by send_data
+        and recreate_image. This function exists because the two functions above have similar needs and that we do not
+        copy too much codes.
+
+        :param save_fig: a boolean to save the figure or not
+        """
+
+        path_im = self.find_path_im()
+        path_hdf5 = self.find_path_hdf5()
+        sys.stdout = self.mystdout = StringIO()
+        # find hsf5 name (files where is hte data)
+        if self.model_type == 'SUBSTRATE':
+            name_hdf5 = load_hdf5.get_hdf5_name('MERGE', self.name_prj, self.path_prj)
+            if self.model_type == 'SUBSTRATE':
+                self.lm2.setText(name_hdf5)
+        else:
+            name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
+        if name_hdf5:
+            # load data
+            [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
+                                                                                                path_hdf5)
+            if ikle_all_t == [[-99]]:
+                self.send_log.emit('Error: No data found in hdf5 (from send_data)')
+                return
+            # figure option
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            if not save_fig:
+                self.fig_opt['format'] = 123456  # random number  but should be bigger than number of format
+            # plot the figure for all time step
+            if self.fig_opt['time_step'][0] == -99:  # all time steps
+                for t in range(1, len(ikle_all_t)):  # do not plot full profile
+                    if t < len(ikle_all_t):
+                        if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
+                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                                           inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
+                        else:
+                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                                           inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
+            # plot the figure for some time steps
+            else:
+                for t in self.fig_opt['time_step']:  # range(0, len(vel_cell)):
+                    # if print last and first time step and one time step only, only print it once
+                    if t == -1 and len(ikle_all_t) == 2 and 1 in self.fig_opt['time_step']:
+                        pass
+                    else:
+                        if t < len(ikle_all_t):
+                            if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
+                            else:
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
+                                # to debug
+                                # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                                # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+
+            if self.model_type == 'SUBSTRATE':
+                self.butfig2.setDisabled(False)
+            else:
+                self.butfig.setEnabled(True)
+            self.show_fig.emit()
+        else:
+            self.send_log.emit('Error: The hydrological model is not found. \n')
+
 
 
 class HEC_RAS1D(SubHydroW):
@@ -868,9 +902,12 @@ class HEC_RAS1D(SubHydroW):
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_hec_ras_gui)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
         self.spacer1 = QSpacerItem(1, 30)
         self.spacer2 = QSpacerItem(1, 80)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
 
         # layout
         self.layout_hec = QGridLayout()
@@ -892,7 +929,7 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(lh,8,0)
         self.layout_hec.addWidget(self.hname, 8, 1)
         self.layout_hec.addWidget(self.load_b, 8, 3)
-        self.layout_hec.addWidget(self.cb, 9, 3)
+        self.layout_hec.addWidget(self.butfig, 9, 3)
         self.layout_hec.addItem(self.spacer2, 10, 1)
         self.setLayout(self.layout_hec)
 
@@ -905,8 +942,7 @@ class HEC_RAS1D(SubHydroW):
         This function is called when the user press on the button self.load_b. It is the function which really
         calls the load function for hec_ras. First, it updates the xml project file. It adds the name of the new file
         to xml project file under the attribute indicated by self.attributexml. It also gets the path_im by reading the
-        path_im in the xml project file. Then it check if the user want to create the figure or not
-        If self.cb.isChecked(), 2D figures should be created. If we want to create the 1D figure, the option show_all_fig
+        path_im in the xml project file. If we want to create the 1D figure, the option show_all_fig
         should be selected in the figure option. It also manages the log as explained in the section about the log.
         It loads the hec-ras data as explained in the section on hec_ras06.py and creates the grid as explained
         in the manage_grid.py based on the interpolation type wished by the user (linear, nearest neighbor or by block).
@@ -932,7 +968,7 @@ class HEC_RAS1D(SubHydroW):
             show_all_fig = True
         else:
             show_all_fig = False
-        if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
+        if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
 
@@ -962,7 +998,7 @@ class HEC_RAS1D(SubHydroW):
 
         # log info
 
-        self.send_log.emit(self.tr('# Load: Hec-Ras 1D data.'))
+        self.send_log.emit(self.tr('# Loading: Hec-Ras 1D data...'))
         self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
@@ -1078,7 +1114,10 @@ class Rubar2D(SubHydroW):
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_rubar)
         self.spacer = QSpacerItem(1, 200)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
 
         # layout
         self.layout_hec = QGridLayout()
@@ -1093,7 +1132,7 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addWidget(lh, 3, 0)
         self.layout_hec.addWidget(self.hname, 3, 1)
         self.layout_hec.addWidget(self.load_b, 3, 2)
-        self.layout_hec.addWidget(self.cb, 4, 2)
+        self.layout_hec.addWidget(self.butfig, 4, 2)
         self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
@@ -1135,7 +1174,7 @@ class Rubar2D(SubHydroW):
         self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: Rubar 2D data.'))
+        self.send_log.emit(self.tr('# Loading: Rubar 2D data...'))
         #self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
@@ -1259,7 +1298,10 @@ class Mascaret(SubHydroW):
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
 
         # layout
         self.layout = QGridLayout()
@@ -1288,7 +1330,7 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(lh, 8, 0)
         self.layout.addWidget(self.hname, 8, 1)
         self.layout.addWidget(self.load_b, 9, 2)
-        self.layout.addWidget(self.cb, 9, 1)
+        self.layout.addWidget(self.butfig, 9, 4)
         self.layout.addItem(spacer, 10, 1)
         self.setLayout(self.layout)
 
@@ -1315,7 +1357,7 @@ class Mascaret(SubHydroW):
             show_all_fig = True
         else:
             show_all_fig = False
-        if self.cb.isChecked() and path_im != 'no_path' and show_all_fig:
+        if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
         path_im = self.find_path_im()
@@ -1355,8 +1397,8 @@ class Mascaret(SubHydroW):
         self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
-        #log info
-        self.send_log.emit(self.tr('# Loading: Mascaret data.'))
+        # log info
+        self.send_log.emit(self.tr('# Loading: Mascaret data...'))
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
         self.send_log.emit("py    file3=r'" + self.namefile[2] + "'")
@@ -1473,7 +1515,10 @@ class River2D(SubHydroW):
         self.list_f = QListWidget()
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.add_file_to_list()
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if not self.namefile:
+            self.butfig.setDisabled(True)
 
         # button
         self.choodirb = QPushButton(self.tr("Add all .cdg files (choose dir)"))
@@ -1511,7 +1556,7 @@ class River2D(SubHydroW):
         self.layout.addWidget(lh, 5, 0)
         self.layout.addWidget(self.hname, 5, 1)
         self.layout.addWidget(self.load_b, 5, 2)
-        self.layout.addWidget(self.cb, 6, 2)
+        self.layout.addWidget(self.butfig, 6, 2)
         self.layout.addItem(spacer, 7, 0)
         self.setLayout(self.layout)
 
@@ -1669,7 +1714,7 @@ class River2D(SubHydroW):
         self.p2.start()
 
         # log
-        self.send_log.emit(self.tr('# Loading : River2D data.'))
+        self.send_log.emit(self.tr('# Loading : River2D data...'))
         namefile_arr = np.array(self.namefile)
         blob = np.array2string(namefile_arr, separator=',', )
         blob = blob.replace('\n', '')
@@ -1771,7 +1816,10 @@ class Rubar1D(SubHydroW):
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
 
         # layout
         self.layout_hec = QGridLayout()
@@ -1797,7 +1845,7 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(lh, 7, 0)
         self.layout_hec.addWidget(self.hname, 7, 1)
         self.layout_hec.addWidget(self.load_b, 8, 2)
-        self.layout_hec.addWidget(self.cb, 8, 1)
+        self.layout_hec.addWidget(self.butfig, 8, 4)
         self.layout_hec.addItem(self.spacer1, 9, 1)
         self.setLayout(self.layout_hec)
 
@@ -1822,7 +1870,7 @@ class Rubar1D(SubHydroW):
             show_all_fig = True
         else:
             show_all_fig = False
-        if self.cb.isChecked() and path_im != 'no_path':
+        if path_im != 'no_path':
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
 
@@ -1861,7 +1909,7 @@ class Rubar1D(SubHydroW):
         self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: Rubar 1D data.'))
+        self.send_log.emit(self.tr('# Loading: Rubar 1D data...'))
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
@@ -1966,8 +2014,11 @@ class HEC_RAS2D(SubHydroW):
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_hec_2d_gui)
-        self.spacer = QSpacerItem(1, 250)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.spacer = QSpacerItem(1, 200)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -1982,8 +2033,8 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(lh, 3, 0)
         self.layout_hec2.addWidget(self.hname, 3, 1)
         self.layout_hec2.addWidget(self.load_b, 4, 2)
-        self.layout_hec2.addWidget(self.cb, 4, 1)
-        self.layout_hec2.addItem(self.spacer, 5, 1)
+        self.layout_hec2.addWidget(self.butfig, 5, 2)
+        self.layout_hec2.addItem(self.spacer, 6, 1)
         self.setLayout(self.layout_hec2)
 
     def load_hec_2d_gui(self):
@@ -2018,7 +2069,7 @@ class HEC_RAS2D(SubHydroW):
         self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: HEC-RAS 2D.'))
+        self.send_log.emit(self.tr('# Loading: HEC-RAS 2D...'))
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
         self.send_log.emit("py    interpo=" + str(self.interpo_choice) )
@@ -2081,8 +2132,11 @@ class TELEMAC(SubHydroW):
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_telemac_gui)
-        self.spacer = QSpacerItem(1, 250)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.spacer = QSpacerItem(1, 180)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -2096,8 +2150,8 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(lh, 3, 0)
         self.layout_hec2.addWidget(self.hname, 3, 1)
         self.layout_hec2.addWidget(self.load_b, 4, 2)
-        self.layout_hec2.addWidget(self.cb, 4, 1)
-        self.layout_hec2.addItem(self.spacer, 5, 1)
+        self.layout_hec2.addWidget(self.butfig, 5, 2)
+        self.layout_hec2.addItem(self.spacer, 6, 1)
         self.setLayout(self.layout_hec2)
 
     def load_telemac_gui(self):
@@ -2125,7 +2179,7 @@ class TELEMAC(SubHydroW):
         self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: TELEMAC data.'))
+        self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
         self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
@@ -2202,7 +2256,10 @@ class LAMMI(SubHydroW):
         self.load_b = QPushButton('Load data and create hdf5', self)
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
 
         # layout
         self.layout_hec2 = QGridLayout()
@@ -2217,7 +2274,7 @@ class LAMMI(SubHydroW):
         self.layout_hec2.addWidget(lh, 4, 0)
         self.layout_hec2.addWidget(self.hname, 4, 1)
         self.layout_hec2.addWidget(self.load_b, 5, 2)
-        self.layout_hec2.addWidget(self.cb, 6, 2)
+        self.layout_hec2.addWidget(self.butfig, 6, 2)
         self.layout_hec2.addItem(self.spacer, 7, 1)
         self.setLayout(self.layout_hec2)
 
@@ -2311,7 +2368,7 @@ class LAMMI(SubHydroW):
         self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: LAMMI data.'))
+        self.send_log.emit(self.tr('# Loading: LAMMI data...'))
         self.send_err_log()
         self.send_log.emit("py    dir1=r'" + self.pathfile[0] + "'")
         self.send_log.emit("py    dir2=r'" + self.pathfile[1] + "'")
@@ -2364,7 +2421,7 @@ class HabbyHdf5(SubHydroW):
         created by HABBY in the method save_hdf5 of the class SubHydroW.
         """
 
-        self.send_log.emit('# Load hdf5 file of hydrological data')
+        self.send_log.emit('# Loading: HABBY hdf5 file (hydrological data only)...')
         # prep
         ikle_all_t = []
         point_all = []
@@ -2482,20 +2539,22 @@ class SubstrateW(SubHydroW):
         # choose file button
         self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        #self.h2d_b.clicked.connect(self.get_attribute_from_shp)
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
-
-        # the load button from file
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
-        self.load_b.clicked.connect(self.load_sub_gui)
-        self.cb2 = QCheckBox(self.tr('Show figures'), self)
 
         # if there was substrate info before, update the label and attibutes
         self.was_model_loaded_before()
         self.get_att_name()
         self.h2d_t2 = QLabel(self.namefile[0], self)
         self.h2d_t2.setToolTip(self.pathfile[0])
+
+        # the load button from file
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b.clicked.connect(self.load_sub_gui)
+        self.butfig1 = QPushButton(self.tr("Create figure again"))
+        self.butfig1.clicked.connect(self.recreate_image_sub)
+        if self.namefile[0] == 'unknown file':
+            self.butfig1.setDisabled(True)
 
         # to load constant substrate
         self.l4 = QLabel(self.tr('<b> Load constant substrate </b>'))
@@ -2519,10 +2578,16 @@ class SubstrateW(SubHydroW):
         self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)
-        self.cb = QCheckBox(self.tr('Show figures'), self)
-
+        self.butfig2 = QPushButton(self.tr("Create figure again"))
+        self.butfig2.clicked.connect(self.recreate_image)
         # get possible substrate from the project file
         self.update_sub_hdf5_name()
+        # get the last file created
+        lm1 = QLabel(self.tr('Last file created'))
+        self.lm2 = QLabel(self.tr('No file'))
+        self.name_last_merge()  # find the name of the last merge file and add it to self.lm2
+        if self.lm2.text() == self.tr('No file'):
+            self.butfig2.setDisabled(True)
 
         # layout
         self.layout_sub = QGridLayout()
@@ -2537,7 +2602,7 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(lh, 4, 0)
         self.layout_sub.addWidget(self.hname, 4, 1)
         self.layout_sub.addWidget(self.load_b, 5, 2)
-        self.layout_sub.addWidget(self.cb2, 5, 3)
+        self.layout_sub.addWidget(self.butfig1, 5, 3)
 
         self.layout_sub.addWidget(self.l4, 6, 0, 1, 2)
         self.layout_sub.addWidget(l12, 7, 0)
@@ -2552,13 +2617,32 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(self.drop_hyd, 11, 1)
         self.layout_sub.addWidget(l10, 12, 0)
         self.layout_sub.addWidget(self.drop_sub, 12, 1)
-        self.layout_sub.addWidget(l11, 13, 0)
-        self.layout_sub.addWidget(self.e3, 13, 1)
         self.layout_sub.addWidget(self.load_b2, 14, 2)
-        self.layout_sub.addWidget(self.cb, 14, 3)
+        self.layout_sub.addWidget(self.butfig2, 14, 3)
+        self.layout_sub.addWidget(lm1, 13, 0)
+        self.layout_sub.addWidget(self.lm2, 13, 1)
         self.layout_sub.addItem(self.spacer2, 11, 1)
 
         self.setLayout(self.layout_sub)
+
+    def name_last_merge(self):
+        """
+        This function opens the xml project file to find the name of the last hdf5 merge file and to add it
+        to the GUI on the QLabel self.lm2. If there is no file found, this functiion do nothing.
+        """
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        # save the name and the path in the xml .prj file
+        if not os.path.isfile(filename_path_pro):
+            self.end_log.emit('Error: The project is not saved. '
+                              'Save the project in the General tab before saving hydrological data. \n')
+        else:
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            # geo data
+            child1 = root.findall(".//SUBSTRATE/hdf5_mergedata")
+            if child1 is not None:
+                mergename = child1[-1].text
+                self.lm2.setText(mergename)
 
     def load_sub_gui(self, const_sub=False):
         """
@@ -2574,7 +2658,7 @@ class SubstrateW(SubHydroW):
         :param const_sub: If True, a constant substrate is being loaded. Usually it is set to False.
 
         """
-
+        self.send_log.emit(self.tr('# Loading: Substrate data...'))
         self.load_b.setDisabled(True)
         if const_sub:
             if self.namefile[0] != 'unknown file':
@@ -2597,7 +2681,7 @@ class SubstrateW(SubHydroW):
             path_im = self.find_path_im()  #needed
 
             # log info
-            self.send_log.emit(self.tr('# Load: Substrate data - constant value'))
+            self.send_log.emit(self.tr('# Substrate data type: constant value'))
             self.send_log.emit("py    val_c=" + str(data_sub))
             self.send_log.emit(
                 "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], 're_run_const_sub'"
@@ -2668,7 +2752,7 @@ class SubstrateW(SubHydroW):
                 self.p2.start()
 
                 # log info
-                self.send_log.emit(self.tr('# Load: Substrate data - Shapefile'))
+                self.send_log.emit(self.tr('# Substrate data type: Shapefile'))
                 self.send_log.emit("py    file1='" + self.namefile[0] + "'")
                 self.send_log.emit("py    path1='" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
@@ -2677,9 +2761,6 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("restart LOAD_SUB_SHP")
                 self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
                 self.send_log.emit("restart    code_type: " + code_type)
-                # figure
-                if self.cb2.isChecked():
-                    substrate.fig_substrate(self.coord_p,self.ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
 
             # if the substrate data is a text form
             elif ext == '.txt' or ext == ".asc":
@@ -2702,7 +2783,7 @@ class SubstrateW(SubHydroW):
                 self.p2.start()
 
                 # log info
-                self.send_log.emit(self.tr('# Load: Substrate data - text file'))
+                self.send_log.emit(self.tr('# Substrate data type: text file'))
                 self.send_log.emit("py    file1='" + self.namefile[0] + "'")
                 self.send_log.emit("py    path1=r'" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
@@ -2713,8 +2794,6 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
                 self.send_log.emit("restart    code_type: " + code_type)
 
-                if self.cb2.isChecked():
-                    substrate.fig_substrate(self.coord_p, self.ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
             # case unknown
             else:
                 self.send_log.emit("Error: Unknown extension for substrate data. The data was not loaded. Only file "
@@ -2725,16 +2804,51 @@ class SubstrateW(SubHydroW):
             # save shp and txt in the substrate hdf5
             path_hdf5 = self.find_path_hdf5()
             load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom, self.ikle_sub,
-                                    self.coord_p,self.name_hdf5, False, self.model_type)
+                                    self.coord_p, self.name_hdf5, False, self.model_type)
+
+            # show image
+            self.recreate_image_sub(True)
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
         self.update_sub_hdf5_name()
 
-        # show figure
-        if self.cb2.isChecked() and path_im != 'no_path' and not const_sub:
-            self.show_fig.emit()
-
+        self.butfig1.setEnabled(True)
         self.load_b.setDisabled(False)
+
+        self.send_log.emit('Loading of substrate data finished \n')
+
+    def recreate_image_sub(self, save_fig = False):
+        """
+        This function is used to recreate the image linked with the subtrate. So this is not the figure for the "merge"
+        part, but only to show the substrat alone.
+
+        :param: save_fig: A boolean to save or not the figure
+        """
+        path_im = self.find_path_im()
+
+        # getting the subtrate data
+        path_hdf5 = self.find_path_hdf5()
+        sub_name = self.read_attribute_xml('hdf5_substrate')
+        sub_name = sub_name.split(',')
+        i = 0
+        const = True
+        while const and i < len(sub_name):
+            s = sub_name[-1-i]
+            [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(s, path_hdf5, True)
+            i +=1
+
+        if not ikle_sub:
+            self.send_log.emit('Error: No connectivity table found. \n')
+            return
+
+        # plot it
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        if not save_fig:
+            self.fig_opt['format'] = 40000  # should be a higher int than the numner of format
+        substrate.fig_substrate(point_all_sub, ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
+        # show figure
+        if path_im != 'no_path':
+            self.show_fig.emit()
 
     def update_sub_hdf5_name(self):
         """
@@ -2816,7 +2930,7 @@ class SubstrateW(SubHydroW):
 
         This function can be slow so it call on a second thread.
         """
-        self.send_log.emit('# Merging substrate and hydrological grid.')
+        self.send_log.emit('# Merging: substrate and hydrological grid...')
 
         # get usfule data
         if len(self.drop_hyd) >1:

@@ -367,7 +367,7 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5 = ''):
     return sub_per_all_t
 
 
-def load_hdf5_sub(hdf5_name_sub, path_hdf5):
+def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
     """
     A function to load the substrate data contained in the hdf5 file. It also manage
     the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
@@ -376,12 +376,17 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
     :param path_prj: the path to the hdf5 file
+    :param ind_const: If True this function reurn a boolean which indicates if the substrant is constant or not
     """
 
     # correct all change to the hdf5 form in the doc!
     ikle_sub = []
     point_all_sub = []
-    failload = [[-99]], [[-99]], [[-99]],[[-99]]
+    if not ind_const:
+        failload = [[-99]], [[-99]], [[-99]],[[-99]]
+    else:
+        failload = [[-99]], [[-99]], [[-99]], [[-99]], False
+    const_case =False
 
     # open the file
     if os.path.isabs(hdf5_name_sub):
@@ -399,6 +404,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
     # manage the constant case
     constname = 'constant_sub_pg'
     if constname in file_sub:
+        constcase= True
         try:
             sub_pg = file_sub[constname]
             sub_dom = file_sub['constant_sub_dom']
@@ -448,8 +454,10 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
         sub_dom = list(sub_dom.values())
         sub_dom = np.squeeze(np.array(sub_dom))
 
-    return ikle_sub, point_all_sub, sub_pg, sub_dom
-
+    if not ind_const:
+        return ikle_sub, point_all_sub, sub_pg, sub_dom
+    else:
+        return ikle_sub, point_all_sub, sub_pg, sub_dom, ind_const
 
 def get_all_filename(dirname, ext):
     """
