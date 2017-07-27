@@ -98,8 +98,8 @@ class Hydro2W(QWidget):
         # available model
         self.mod.addItems(self.name_model)
         self.mod.currentIndexChanged.connect(self.selectionchange)
-        self.button1 = QPushButton(self.tr('?'), self)
-        self.button1.clicked.connect(self.give_info_model)
+        #self.button1 = QPushButton(self.tr('?'), self)
+        #self.button1.clicked.connect(self.give_info_model)
         spacer2 = QSpacerItem(50, 1)
 
         # add the widgets representing the available models to a stack of widget
@@ -134,7 +134,7 @@ class Hydro2W(QWidget):
         self.layout4.addWidget(l3, 0, 0)
         self.layout4.addWidget(self.mod, 1, 0)
         self.layout4.addItem(spacer2, 1, 1)
-        self.layout4.addWidget(self.button1, 1, 2)
+        #self.layout4.addWidget(self.button1, 1, 2)
         self.layout4.addWidget(self.stack, 2, 0)
         self.layout4.addWidget(l4, 3, 0)
         self.layout4.addWidget(self.drop_hyd, 4, 0)
@@ -158,6 +158,9 @@ class Hydro2W(QWidget):
         General info goes as the start of the text file. If the text is too long, add the keyword "MORE INFO"
         and add the longer text afterwards. The message box will show the supplementary information only if the user
         asks for detailed information.
+
+        This functins is not used anymore as it was long to maintain it and not very useful to the user. But I let it
+        here is case, it becomes necessary again
         """
 
         self.msgi.setIcon(QMessageBox.Information)
@@ -2641,8 +2644,9 @@ class SubstrateW(SubHydroW):
             # geo data
             child1 = root.findall(".//SUBSTRATE/hdf5_mergedata")
             if child1 is not None:
-                mergename = child1[-1].text
-                self.lm2.setText(mergename)
+                if len(child1) > 0:
+                    mergename = child1[-1].text
+                    self.lm2.setText(mergename)
 
     def load_sub_gui(self, const_sub=False):
         """
