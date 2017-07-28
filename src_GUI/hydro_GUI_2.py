@@ -268,6 +268,7 @@ class SubHydroW(QWidget):
         self.p = None  # second process
         self.q = None
         self.fig_opt = []
+        self.running_time = 0
         super().__init__()
 
         # update error or show figure every second
@@ -698,6 +699,25 @@ class SubHydroW(QWidget):
         messages.
         """
 
+        # say in the Stauts bar that the processus is alove
+        if self.p.is_alive():
+            self.running_time += 1  # this is useful for GUI to update the running, should be logical with self.Timer()
+            # get the langugage
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            # send the message
+            if self.fig_opt['language'] == str(1):
+                if self.model_type == 'SUBSTRATE':
+                    self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis "  + str(self.running_time) + " sec")
+                else:
+                    # it is necssary to start this string with Process to see it in the Statusbar
+                    self.send_log.emit("Processus 'Hydraulique' fonctionne depuis "  + str(self.running_time) + " sec")
+            else:
+                if self.model_type == 'SUBSTRATE':
+                    self.send_log.emit("Process 'Merge Grid' is alive and run since " + str(self.running_time) + " sec")
+                else:
+                    # it is necssary to start this string with Process to see it in the Statusbar
+                    self.send_log.emit("Process 'Hydraulic' is alive and run since " + str(self.running_time) + " sec")
+
         # when the loading is finished
         if not self.q.empty():
             # manage error
@@ -721,10 +741,14 @@ class SubHydroW(QWidget):
                 self.send_log.emit(self.tr("Loading of hydrological data finished."))
                 # send a signal to the substrate tab so it can account for the new info
                 self.drop_hydro.emit()
+            self.send_log.emit("clear status bar")
+            self.running_time = 0
 
         if not self.p.is_alive() and self.q.empty():
             self.timer.stop()
+            self.send_log.emit("clear status bar")
             self.load_b.setDisabled(False)
+            self.running_time = 0
             # if grid creation fails
             # if self.interpo_choice >= 1:
             #     self.send_log.emit(

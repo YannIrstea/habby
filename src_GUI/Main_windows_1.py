@@ -10,8 +10,8 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, pyqtRemoveInputHook
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
-    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog, QMenu, QToolBar
+    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QStatusBar, QMessageBox, QComboBox, QScrollArea, \
+    QSizePolicy, QInputDialog, QMenu, QToolBar
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 from webbrowser import open as wbopen
 import h5py
@@ -155,9 +155,9 @@ class MainWindows(QMainWindow):
         # create the menu bar
         self.my_menu_bar()
 
-        # create a toolbar
+        # create a vertical toolbar
         self.toolbar = QToolBar()
-        self.addToolBar(Qt.LeftToolBarArea, self.toolbar)  # Qt.RightToolBarArea
+        self.addToolBar(Qt.LeftToolBarArea, self.toolbar)
         self.my_toolbar()
 
         # connect the signals of the welcome tab with the different functions (careful if changes this copy 3 times
@@ -486,7 +486,6 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(seeAction)
         self.toolbar.addAction(closeAction)
 
-
     def save_project(self):
         """
         A function to save the xml file with the information on the project
@@ -744,7 +743,7 @@ class MainWindows(QMainWindow):
             # no need to write #log of habby started two times
             # to breack line habby use <br> there, should not be added again
             self.central_widget.write_log(t[26:-4])
-        self.central_widget.write_log('# Project saved successfully.')
+        self.central_widget.write_log('# Project saved or opened successfully.')
         self.central_widget.write_log("py    name_prj= r'" + self.name_prj + "'")
         self.central_widget.write_log("py    path_prj= r'" + self.path_prj + "'")
         self.central_widget.write_log("py    path_bio= r'" + os.path.join(os.getcwd(), self.path_bio_default) + "'")
@@ -804,7 +803,7 @@ class MainWindows(QMainWindow):
                                           'New project name: ' + os.path.basename(filename_path))
             self.name_prj = os.path.basename(filename_path)
             root2.find(".//Project_Name").text = self.name_prj
-        if self.path_prj != os.path.dirname(filename_path):
+        if not os.path.samefile(self.path_prj, os.path.dirname(filename_path)):
             self.central_widget.write_log('Warning: xml file path is not coherent with project path. '
                                           'New project path: ' + os.path.dirname(filename_path))
             self.path_prj = os.path.dirname(filename_path)
@@ -817,7 +816,6 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
         self.central_widget.welcome_tab.e3.setText(self.descri_prj)
-        self.central_widget.write_log('# Project opened sucessfully. \n')
         docxml2.write(filename_path)
 
         # save the project
@@ -851,6 +849,9 @@ class MainWindows(QMainWindow):
         self.central_widget.add_all_tab()
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
+
+        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         return
 
@@ -890,7 +891,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
         self.central_widget.welcome_tab.e3.setText(self.descri_prj)
-        self.central_widget.write_log('# Project opened sucessfully. \n')
+        #self.central_widget.write_log('# Project opened sucessfully. \n')
 
         # save the project
         self.save_project()
@@ -903,6 +904,9 @@ class MainWindows(QMainWindow):
         if stathab_info is not None:
             self.central_widget.stathab_tab.load_from_hdf5_gui()
         self.central_widget.statmod_tab.open_estimhab_hdf5()
+
+        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
     def new_project(self):
         """
@@ -1707,6 +1711,8 @@ class CentralW(QWidget):
         *   if text_log start with WARNING -> added it to self.l2 (QLabel) and the .log file
         *   if text_log start with ERROR -> added it to self.l2 (QLabel) and the .log file
         *   if text_log start with py -> added to the .log file (python command)
+        *   if text_log starts with Process -> Text added to the StatusBar only
+        * if text_log == "clear status bar" -> the status bar is cleared
         *   if text_log start with nothing -> just print to the Qlabel
         *   if text_log out from stdout -> added it to self.l2 (QLabel) and the .log file (comments)
 
@@ -1766,10 +1772,15 @@ class CentralW(QWidget):
             t = self.l2.text()
             self.l2.setText(t + "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
             self.write_log_file('# ' + text_log, pathname_logfile)
+        # update to check that processus is alive
+        elif text_log[:7] == 'Process':
+            self.parent().statusBar().showMessage(text_log)
+        elif text_log == 'clear status bar':
+            self.parent().statusBar().clearMessage()
         # other case not accounted for
         else:
             t = self.l2.text()
-            self.l2.setText(t + "<FONT COLOR='#000000'>" + text_log + '</br><br>')
+            self.l2.setText(t + "<FONT COLOR='#000000'>" + text_log + '</br><br>')\
 
     def write_log_file(self, text_log, pathname_logfile):
         """

@@ -626,7 +626,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.l4.setText(self.tr("Data still needed"))
 
         # load data
-        self.send_log.emit('# load stathab from hdf5.')
+        self.send_log.emit('# Loading stathab from hdf5...')
         sys.stdout = self.mystdout = StringIO()
         self.mystathab.load_stathab_from_hdf5()
 
