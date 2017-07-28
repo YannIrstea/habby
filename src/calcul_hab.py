@@ -124,7 +124,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
-    print('Habitat calculation is finished. \n')
+    print('# Habitat calculation is finished. \n')
     if not print_cmd:
         print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
     else:

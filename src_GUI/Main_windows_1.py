@@ -1712,7 +1712,7 @@ class CentralW(QWidget):
         *   if text_log start with ERROR -> added it to self.l2 (QLabel) and the .log file
         *   if text_log start with py -> added to the .log file (python command)
         *   if text_log starts with Process -> Text added to the StatusBar only
-        * if text_log == "clear status bar" -> the status bar is cleared
+        *   if text_log == "clear status bar" -> the status bar is cleared
         *   if text_log start with nothing -> just print to the Qlabel
         *   if text_log out from stdout -> added it to self.l2 (QLabel) and the .log file (comments)
 

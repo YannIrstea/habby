@@ -49,6 +49,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         #self.name_database = 'pref_bio.db'
         self.timer = QTimer()
         self.timer.setInterval(1000)
+        self.running_time = 0
         self.timer.timeout.connect(self.show_image_hab)
 
         self.init_iu()
@@ -484,7 +485,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.p4.start()
 
         # log
-        self.send_log.emit('#  Habitat calculation')
         self.send_log.emit("py    file1='" + hdf5_file + "'")
         self.send_log.emit("py    path1= os.path.join(path_prj, 'fichier_hdf5')")
         self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
@@ -507,6 +507,19 @@ class BioInfo(estimhab_GUI.StatModUseful):
         check if the function on the second thread have finised created the figures. If yes,
         this function create the 1d figure for the HABBY GUI.
         """
+
+        # say in the Stauts bar that the processus is alive
+        if self.p4.is_alive():
+            self.running_time += 1  # this is useful for GUI to update the running, should be logical with self.Timer()
+            # get the langugage
+            fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            # send the message
+            if fig_dict['language'] == str(1):
+                # it is necssary to start this string with Process to see it in the Statusbar
+                self.send_log.emit("Processus 'Habitat' fonctionne depuis " + str(self.running_time) + " sec")
+            else:
+                # it is necssary to start this string with Process to see it in the Statusbar
+                self.send_log.emit("Process 'Habitat' is alive and run since " + str(self.running_time) + " sec")
 
         # when the loading is finished
         if not self.q4.empty() or self.keep_data is not None:
@@ -552,8 +565,22 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # show figure
             self.show_fig.emit()
 
+            # enable the button to call this function directly again to redo the figure
+            self.butfig.setEnabled(True)
+
+            # put the timer back to zero and clear status bar
+            self.running_time = 0
+            self.send_log.emit("clear status bar")
+
+        if not self.p4.is_alive():
+
             # enable the button to call this functin directly again
             self.butfig.setEnabled(True)
+            self.timer.stop()
+
+            # put the timer back to zero
+            self.running_time = 0
+            self.send_log.emit("clear status bar")
 
 
 
