@@ -710,7 +710,7 @@ class SubHydroW(QWidget):
 
             # create the figure and show them
             if not error:
-                self.create_image()
+                self.create_image(show_info=True)
             else:
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
@@ -744,15 +744,17 @@ class SubHydroW(QWidget):
         directly as we might add other command here.
         """
 
-        self.create_image(False)
+        self.create_image(False, True)
 
-    def create_image(self, save_fig=True):
+    def create_image(self, save_fig=True, show_info=False):
         """
-        This function is used to create the images related to the grid and the hydrology. it is called by send_data
+        This function is used to create the images related to the grid and the hydrology. It is called by send_data
         and recreate_image. This function exists because the two functions above have similar needs and that we do not
-        copy too much codes.
+        copy too much codes. It can also show basic information about the data in the log windows and in the log file
+        if the variable show_info is True.
 
         :param save_fig: a boolean to save the figure or not
+        :param show_info: If True, basic information about the data will be displayed into the log window.
         """
 
         path_im = self.find_path_im()
@@ -772,7 +774,7 @@ class SubHydroW(QWidget):
             [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
                                                                                                 path_hdf5)
             if ikle_all_t == [[-99]]:
-                self.send_log.emit('Error: No data found in hdf5 (from send_data)')
+                self.send_log.emit('Error: No data found in hdf5 (from create_image)')
                 return
             # figure option
             self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
@@ -805,6 +807,39 @@ class SubHydroW(QWidget):
                                 # to debug
                                 # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
                                 # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+
+            # show basic information
+            if show_info and len(ikle_all_t) > 0:
+                self.send_log.emit("# ------------------------------------------------")
+                self.send_log.emit("# Information about the hydrological data")
+                self.send_log.emit("# - Number of time step: " + str(len(ikle_all_t) - 1))
+                extx = 0
+                exty = 0
+                nb_node = 0
+                hmean = 0
+                vmean = 0
+                for r in range(0, len(point_all_t[0])):
+                    extxr = max(point_all_t[0][r][:, 0]) - min(point_all_t[0][r][:, 0])
+                    extyr = max(point_all_t[0][r][:, 1]) - min(point_all_t[0][r][:, 1])
+                    nb_node += len(point_all_t[0][r])
+                    if extxr > extx:
+                        extx = extxr
+                    if extyr > exty:
+                        exty = extyr
+                    hmean += np.sum(inter_h_all_t[-1][r])
+                    vmean += np.sum(inter_vel_all_t[-1][r])
+                hmean /= nb_node
+                vmean /= nb_node
+                self.send_log.emit("# - Maximal number of nodes: " + str(nb_node))
+                self.send_log.emit("# - Maximal geographical extend: " + str(round(extx, 3)) + 'm X ' +
+                                   str(round(exty, 3)) + "m")
+                self.send_log.emit(
+                    "# - Mean water height at the last time step, not weighted by cell area: " +
+                    str(round(hmean, 3)) + 'm')
+                self.send_log.emit(
+                    "# - Mean velocity at the last time step, not weighted by cell area: " +
+                    str(round(vmean, 3)) + 'm/sec')
+                self.send_log.emit("# ------------------------------------------------")
 
             if self.model_type == 'SUBSTRATE':
                 self.butfig2.setDisabled(False)

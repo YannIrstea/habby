@@ -2222,7 +2222,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         for r in range(0, len(inter_vel_all)):
             inter_vel = inter_vel_all[r]
             if len(inter_vel) > 0:
-                mv = np.mean(inter_vel) * 6
+                mv = max(inter_vel)
+                #mv = np.mean(inter_vel) * 2
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2282,7 +2283,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         for r in range(0, len(inter_h_all)):
             inter_h = inter_h_all[r]
             if len(inter_h) > 0:
-                mv = np.mean(inter_h[inter_h >= 0]) * 6
+                mv = max(inter_h)
+                #mv = np.mean(inter_h[inter_h >= 0]) * 2
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)

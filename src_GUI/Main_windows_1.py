@@ -8,11 +8,12 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, pyqtRemoveInputHook, qInstallMessageHandler
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, pyqtRemoveInputHook
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,\
-    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog, QMenu
-from PyQt5.QtGui import QPixmap, QFont
+    QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QScrollArea, QSizePolicy, QInputDialog, QMenu, QToolBar
+from PyQt5.QtGui import QPixmap, QFont, QIcon
+from webbrowser import open as wbopen
 import h5py
 import matplotlib
 matplotlib.use("Qt5Agg")
@@ -144,6 +145,7 @@ class MainWindows(QMainWindow):
         # call the normal constructor of QWidget
         super().__init__()
         pyqtRemoveInputHook()
+
         # call an additional function during initialisation
         self.init_ui()
 
@@ -152,6 +154,11 @@ class MainWindows(QMainWindow):
 
         # create the menu bar
         self.my_menu_bar()
+
+        # create a toolbar
+        self.toolbar = QToolBar()
+        self.addToolBar(Qt.LeftToolBarArea, self.toolbar)  # Qt.RightToolBarArea
+        self.my_toolbar()
 
         # connect the signals of the welcome tab with the different functions (careful if changes this copy 3 times
         # in set_langue and save_project
@@ -168,7 +175,7 @@ class MainWindows(QMainWindow):
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
-        self.setGeometry(200, 200, 900, 600)
+        self.setGeometry(200, 200, 900, 750)
         self.setCentralWidget(self.central_widget)
 
         self.show()
@@ -227,6 +234,9 @@ class MainWindows(QMainWindow):
         # create the new menu
         self.my_menu_bar()
 
+        # create the new toolbar
+        self.my_toolbar()
+
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
@@ -238,6 +248,8 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_log()
 
         self.central_widget.update_hydro_hdf5_name()
+
+        self.central_widget.l1.setText(self.tr('Habby says:'))
 
         # pass the info to the bio info tab
         # to be modified if a new langugage is added !
@@ -326,7 +338,7 @@ class MainWindows(QMainWindow):
         logy = QAction(self.tr("Save Log"), self)
         logy.setStatusTip(self.tr('Events will be written to the .log file.'))
         logy.triggered.connect(lambda: self.do_log(1))
-        savi = QAction(self.tr("Clear Images and h5 Files"), self)
+        savi = QAction(self.tr("Delete All Images"), self)
         savi.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
         savi.triggered.connect(self.erase_pict)
         #showim = QAction(self.tr("Show Images"), self)
@@ -335,6 +347,7 @@ class MainWindows(QMainWindow):
         closeim = QAction(self.tr("Close All Images"), self)
         closeim.setStatusTip(self.tr('Close the figures which are currently created.'))
         closeim.triggered.connect(self.central_widget.closefig)
+        closeim.setShortcut('Ctrl+B')
         optim = QAction(self.tr("More Options"), self)
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
         optim.triggered.connect(self.central_widget.optfig)
@@ -425,6 +438,54 @@ class MainWindows(QMainWindow):
         :param point: Not understood, linke with the position of the menu.
         """
         self.menu_right.exec_(self.central_widget.mapToGlobal(point))
+
+    def my_toolbar(self):
+
+        self.toolbar.clear()
+
+        # create the icon
+        icon_closefig = QIcon()
+        name1 = os.path.join(os.getcwd(), "translation\\icon\\close.png")
+        icon_closefig.addPixmap(QPixmap(name1), QIcon.Normal)
+
+        icon_open = QIcon()
+        name1 = os.path.join(os.getcwd(), "translation\\icon\\openproject.png")
+        icon_open.addPixmap(QPixmap(name1), QIcon.Normal)
+
+        icon_see = QIcon()
+        name1 = os.path.join(os.getcwd(), "translation\\icon\\see_project.png")
+        icon_see.addPixmap(QPixmap(name1), QIcon.Normal)
+
+        icon_new = QIcon()
+        name1 = os.path.join(os.getcwd(), "translation\\icon\\newfile.png")
+        icon_new.addPixmap(QPixmap(name1), QIcon.Normal)
+
+        # create the actions of the toolbar
+        openAction = QAction(icon_open, self.tr('Open Project'), self)
+        openAction.setStatusTip(self.tr('Open an existing project'))
+        openAction.triggered.connect(self.open_project)
+
+        newAction = QAction(icon_new, self.tr('New Project'), self)
+        newAction.setStatusTip(self.tr('Create a new project'))
+        newAction.triggered.connect(self.new_project)
+
+        seeAction = QAction(icon_see, self.tr('See Files of the Current Project'), self)
+        seeAction.setStatusTip(self.tr('See the existing file of a project'))
+        seeAction.triggered.connect(self.see_file)
+
+        closeAction = QAction(icon_closefig, self.tr('Close Figures'), self)
+        closeAction.setStatusTip(self.tr('Close all figures'))
+        closeAction.triggered.connect(self.central_widget.closefig)
+
+        # position of the toolbar
+        self.toolbar.setOrientation(Qt.Vertical)
+
+        # create the toolbar
+        self.toolbar.addAction(openAction)
+        self.toolbar.addAction(newAction)
+        self.toolbar.addAction(seeAction)
+        self.toolbar.addAction(closeAction)
+
 
     def save_project(self):
         """
@@ -1036,6 +1097,16 @@ class MainWindows(QMainWindow):
         # save the project
         # self.save_project()
 
+    def see_file(self):
+        """
+        This function allows the user to see the files in the project folder and to open them.
+        """
+
+        file_name = QFileDialog.getOpenFileName(self, self.tr('Open File'), self.path_prj)[0]
+
+        if file_name:
+            wbopen(file_name)
+
     def save_project_estimhab(self):
         """
         A function to save the information linked with Estimhab in an hdf5 file.
@@ -1287,7 +1358,7 @@ class MainWindows(QMainWindow):
         for the user.
         """
         filename_help = os.getcwd() + os.path.normpath(r'\doc\_build\html\index.html')
-        os.startfile(filename_help)
+        wbopen(filename_help)
 
 
 class CreateNewProject(QWidget):
@@ -1469,7 +1540,7 @@ class CentralW(QWidget):
 
         # Area to show the log
         # add two Qlabel l1 ad l2 , with one scroll for the log in l2
-        l1 = QLabel(self.tr('HABBY says:'))
+        self.l1 = QLabel(self.tr('HABBY says:'))
         self.l2.setAlignment(Qt.AlignTop)
         self.l2.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.l2.setTextFormat(Qt.RichText)
@@ -1487,10 +1558,12 @@ class CentralW(QWidget):
         # save the desription and the figure option if tab changed
         self.tab_widget.currentChanged.connect(self.save_on_change_tab)
 
+        # add a
+
         # layout
         layoutc = QGridLayout()
         layoutc.addWidget(self.tab_widget, 1, 0)
-        layoutc.addWidget(l1, 2, 0)
+        layoutc.addWidget(self.l1, 2, 0)
         layoutc.addWidget(self.scroll, 3, 0)
         self.setLayout(layoutc)
 
