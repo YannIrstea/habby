@@ -432,7 +432,6 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
 
     i = 0
@@ -466,7 +465,7 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
         i += 1
 
 
-def fstress_test(qmod_all, vh_all, name_inv, name_river,  path_rre):
+def fstress_test(qmod_all, vh_all, name_inv, name_river,  path_rre, fig_opt={}):
     """
     This functions compares the output of the C programm of FStress and the output of this script. it is not used
     by HABBY, but it is practical to debug.
@@ -477,7 +476,14 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river,  path_rre):
     :param name_river: the name of the river
     :param path_rre: the path to the C output
     """
-    mpl.rcParams['ps.fonttype'] = 42
+
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
     i = 0

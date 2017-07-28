@@ -1404,7 +1404,6 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
     if fig_opt['font_size'] > 7:
         rcParams['legend.fontsize'] = fig_opt['font_size'] - 2

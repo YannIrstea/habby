@@ -695,7 +695,6 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
 
     if len(spu_all) != len(name_fish):
@@ -929,8 +928,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42  # to make them editable in Adobe Illustrator
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42 # to make them editable in Adobe Illustrator
 
     b= 0
     # get grid data from hdf5
@@ -1094,8 +1092,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42  # to make them editable in Adobe Illustrator
-    mpl.rcParams['pdf.fonttype'] = 42
+    mpl.rcParams['pdf.fonttype'] = 42 # to make fifgure ediable in adobe illustrator
 
     if max(timestep)-1 > len(sim_name):
         sim_name = []

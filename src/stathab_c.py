@@ -995,7 +995,6 @@ class Stathab:
         plt.rcParams['lines.linewidth'] = self.fig_opt['line_width']
         format = int(self.fig_opt['format'])
         plt.rcParams['axes.grid'] = self.fig_opt['grid']
-        mpl.rcParams['ps.fonttype'] = 42  # So it is editable in Abobe Illustrator
         mpl.rcParams['pdf.fonttype'] = 42
         if self.fig_opt['font_size'] > 7:
             plt.rcParams['legend.fontsize'] = self.fig_opt['font_size'] - 2

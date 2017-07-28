@@ -667,8 +667,6 @@ def plot_hydrosignature(xmlfile):
         return
 
     data = data.reshape((len(vclass)-1, len(hclass)-1))
-
-    mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
 
     plt.figure()

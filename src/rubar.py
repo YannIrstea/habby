@@ -617,7 +617,6 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42  # to make it editable in for Adobe Illustrator
     mpl.rcParams['pdf.fonttype'] = 42
     if fig_opt['font_size'] > 7:
         plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2

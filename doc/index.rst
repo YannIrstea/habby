@@ -444,7 +444,7 @@ the axes in the option of the figure (the menu in the axes on the top of the fig
 **How to make figures editable in Adobe Illustrator**
 
 It is useful to have figures which we can edit in Adobe Illustrator. To achieve this, the following matplotlib option should be added:
-mpl.rcParams['ps.fonttype'] = 42. Moreover, matplolib should be imported (import matplotlib as mpl). It is also useful to add the tranparent option to the function to save the figure (transparent=True). This renders modification easier in many cases.
+mpl.rcParams['pdf.fonttype'] = 42. Moreover, matplolib should be imported (import matplotlib as mpl). It is also useful to add the tranparent option to the function to save the figure (transparent=True). This renders modification easier in many cases. However, it is not good to use mpl.rcParams['ps.fonttype'] = 42 as the figure created in the eps format would be corrupted because of a bug in matplotlib.
 
 
 Translation of HABBY

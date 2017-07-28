@@ -843,7 +843,6 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
 
     sub_dom = np.array(sub_dom)

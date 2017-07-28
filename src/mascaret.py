@@ -1104,7 +1104,6 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
 
     if not coord_pro:

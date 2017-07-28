@@ -86,7 +86,6 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
              'c', '#9932CC', '#800000', 'k', 'g', 'y', '#810D0D', '#810D0D', '#9F81F7']
         plt.figure()
         plt.suptitle("ESTIMHAB - HABBY")
-        mpl.rcParams['ps.fonttype'] = 42
         mpl.rcParams['pdf.fonttype'] = 42
 
     # get fish data

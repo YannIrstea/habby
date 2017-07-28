@@ -2135,8 +2135,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    mpl.rcParams['ps.fonttype'] = 42
+    #mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
+
 
     plt.figure()
 
@@ -2275,7 +2276,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        #plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
         plt.figure()
         # color map (the same for al reach)
         mvc = 0.001
