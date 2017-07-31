@@ -323,7 +323,7 @@ class SubHydroW(QWidget):
                             self.msg2.setText(self.tr("One of the file given in the project file does not exist." ))
                             self.msg2.setStandardButtons(QMessageBox.Ok)
                             self.msg2.show()
-                else:
+                elif os.path.basename(geo_name_path) != 'unknown file':
                     self.msg2.setIcon(QMessageBox.Warning)
                     self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
                     self.msg2.setText(
@@ -735,10 +735,10 @@ class SubHydroW(QWidget):
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                self.send_log.emit(self.tr("Merging of substrate and hydrological data finished."))
+                self.send_log.emit(self.tr("Merging of substrate and hydraulic data finished."))
                 self.drop_merge.emit()
             else:
-                self.send_log.emit(self.tr("Loading of hydrological data finished."))
+                self.send_log.emit(self.tr("Loading of hydraulic data finished."))
                 # send a signal to the substrate tab so it can account for the new info
                 self.drop_hydro.emit()
             self.send_log.emit("clear status bar")
@@ -791,8 +791,6 @@ class SubHydroW(QWidget):
                 self.lm2.setText(name_hdf5)
         else:
             name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
         if name_hdf5:
             # load data
             [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
@@ -873,6 +871,8 @@ class SubHydroW(QWidget):
         else:
             self.send_log.emit('Error: The hydrological model is not found. \n')
 
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
 
 
 class HEC_RAS1D(SubHydroW):
@@ -1090,8 +1090,8 @@ class HEC_RAS1D(SubHydroW):
         if self.out_t2.text() == 'unknown file':
             blob = self.namefile[0]
 
-            for ev in range(0,3):
-                if ev == 0: # version 1 from hec-ras
+            for ev in range(0, 3):
+                if ev == 0:  # version 1 from hec-ras
                     for i in range(0, 10):  # max O09.xml is ok
                         new_name = blob[:-len(self.extension[0][0])] + '.O0' + str(i) + self.extension[1][0]
                         pathfilename = os.path.join(self.pathfile[0], new_name)
@@ -1101,7 +1101,7 @@ class HEC_RAS1D(SubHydroW):
                             self.pathfile[1] = self.pathfile[0]
                             self.namefile[1] = new_name
                             break
-                else: # version 4 from hec-ras
+                else:  # version 4 from hec-ras
                     if ev == 2:
                         new_name = blob[:-len(self.extension[0][0])] + '.RASexport' + self.extension[1][ev]
                     if ev == 1:

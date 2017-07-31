@@ -2242,8 +2242,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         cbar.ax.set_ylabel('Velocity [m/sec]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel('Vitesse [m/sec]')
-            else:
-                print('Warning: One reach could not be drawn. \n')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
@@ -2303,7 +2301,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel("Hauteur d'eau [m]")
             else:
-                print('Warning: One reach could not be drawn. \n')
+                print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
@@ -2332,6 +2330,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         if format1 == 2:
             plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                         dpi=fig_opt['resolution'], transparent=True)
+
+
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[],

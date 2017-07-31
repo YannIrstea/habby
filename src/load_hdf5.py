@@ -624,6 +624,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
         nb_pro_reach2 = list(map(float, nb_pro_reach))
         nbproreachg.create_dataset(h5name, [len(nb_pro_reach2), 1], data=nb_pro_reach2)
     if nb_dim <= 2:
+        warn_dry = True
         Data_2D = file.create_group('Data_2D')
         for t in range(0, len(ikle_all_t)):
             if t == 0:
@@ -638,7 +639,9 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
                     ikleg.create_dataset(h5name, [len(ikle_all_t[t][r]), len(ikle_all_t[t][r][0])],
                                          data=ikle_all_t[t][r])
                 else:
-                    print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
+                    if warn_dry:
+                        print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
+                        warn_dry = False
                     ikleg.create_dataset(h5name, [len(ikle_all_t[t][r])], data=ikle_all_t[t][r])
 
                 # coordinates
