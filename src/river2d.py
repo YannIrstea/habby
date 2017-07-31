@@ -1,6 +1,7 @@
 import os
 import re
 import numpy as np
+import sys
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from src import hec_ras2D
@@ -8,11 +9,11 @@ import time
 from src import manage_grid_8
 from src import load_hdf5
 from io import StringIO
-import sys
+from src_GUI import output_fig_GUI
 
 
 def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
-                              print_cmd=False):
+                              print_cmd=False, fig_opt={}):
     """
     This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
     River2D() in hydro_GUI_2. This function was added as it was practical to have a second thread to avoid freezing
@@ -28,7 +29,13 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used to send the error back from the second thread (can be used to send other variable too)
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     """
+
+    # minimum water height
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    minwh = fig_opt['min_height_hyd']
 
     # creation of array
     xyzhv = []
@@ -55,9 +62,8 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
                     return
 
         # cut grid to wet area
-        [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2],
-                                                                                xyzhv_i[:, 3], xyzhv_i[:, 4])
-
+        [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2],xyzhv_i[:, 3],
+                                                                                xyzhv_i[:, 4], minwh)
 
         # mimic empty grid for t = 0 for 1 D model
         if i == 0:

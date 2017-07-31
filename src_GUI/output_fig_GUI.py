@@ -39,7 +39,7 @@ class outputW(QWidget):
 
         # on half of the widget, give options to create the figure
         # figrst write the QLabel
-        self.fig0l = QLabel(self.tr('<b> Figures Options </b> (Can be modified further in the figure)'), self)
+        self.fig0l = QLabel(self.tr('<b> Figures Options </b> '), self)
         self.fig1l = QLabel(self.tr('Figure Size [cm]'), self)
         self.fig2l = QLabel(self.tr('Color Map 1'), self)
         self.fig3l = QLabel(self.tr('Color Map 2'), self)
@@ -110,7 +110,7 @@ class outputW(QWidget):
                              self.tr('Code ONEMA')])  # order matters here, add stuff at the end!
         self.fig12.setCurrentIndex(int(fig_dict['fish_name_type']))
 
-        # on the lower half, choose the output options
+        # output options on the lower half,
         self.out0 = QLabel(self.tr(' <b> Output Options </b>'))
         self.out1 = QLabel(self.tr('Text file'))
         self.out1a = QCheckBox(self.tr('Yes'))
@@ -146,12 +146,17 @@ class outputW(QWidget):
             self.out3a.setChecked(False)
             self.out3b.setChecked(True)
 
+        # other options
+        self.outgen = QLabel(self.tr(' <b> General Options </b>'))
+        self.l1 = QLabel(self.tr('2D minimum water height [m]'))
+        self.hopt = QLineEdit(str(fig_dict['min_height_hyd']))
+
         # save
         self.saveb =QPushButton(self.tr('Save options'))
         self.saveb.clicked.connect(self.save_option_fig)
 
-        spacer = QSpacerItem(200, 10)
-        spacer2 = QSpacerItem(10, 70)
+        spacer = QSpacerItem(300, 10)
+
 
         self.layout = QGridLayout()
         self.layout.addWidget(self.fig0l, 0, 0)
@@ -193,7 +198,11 @@ class outputW(QWidget):
         self.layout.addWidget(self.out3a, 15, 1, 1, 1)
         self.layout.addWidget(self.out3b, 15, 2, 1, 1)
 
-        self.layout.addWidget(self.saveb, 16, 1, 1, 2)
+        self.layout.addWidget(self.outgen, 16, 0)
+        self.layout.addWidget(self.l1, 17, 0)
+        self.layout.addWidget(self.hopt, 17, 1)
+
+        self.layout.addWidget(self.saveb, 18, 1, 1, 2)
         self.layout.addItem(spacer, 5, 3)
         #self.layout.addItem(spacer2, 8, 2)
 
@@ -214,6 +223,9 @@ class outputW(QWidget):
         A function which save the options for the figures in the xlm project file. The options for the figures are
         contained in a dictionnary. The idea is to give this dictinnory in argument to all the fonction which create
         figures. In the xml project file, the options for the figures are saved under the attribute "Figure_Option".
+
+        If you change things here, it is necessary to start a new project as the old projects will not be compatible.
+        For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
         """
 
         # get default option
@@ -293,6 +305,8 @@ class outputW(QWidget):
             fig_dict['paraview'] = True
         elif self.out3b.isChecked():
             fig_dict['paraview'] = False
+        # other option
+        fig_dict['min_height_hyd'] = float(self.hopt.text())
 
         # save the data in the xml file
         # open the xml project file
@@ -326,6 +340,7 @@ class outputW(QWidget):
                 shape1 = root.find(".//ShapeOutput")
                 para1 = root.find(".//ParaviewOutput")
                 langfig1 = root.find(".//LangFig")
+                hopt1 = root.find(".//MinHeight")
             else:  # save in case no fig option exist
                 child1 = ET.SubElement(root, 'Figure_Option')
                 width1 = ET.SubElement(child1, 'Width')
@@ -344,6 +359,7 @@ class outputW(QWidget):
                 shape1 = ET.SubElement(child1, "ShapeOutput")
                 para1 = ET.SubElement(child1, "ParaviewOutput")
                 langfig1 = ET.SubElement(child1, "LangFig")
+                hopt1 = ET.SubElement(child1, "MinHeight")
             width1.text = str(fig_dict['width'])
             height1.text = str(fig_dict['height'])
             colormap1.text = fig_dict['color_map1']
@@ -365,6 +381,7 @@ class outputW(QWidget):
             text1.text = str(fig_dict['text_output'])
             shape1.text = str(fig_dict['shape_output'])
             para1.text = str(fig_dict['paraview'])
+            hopt1.text = str(fig_dict['min_height_hyd'])
             doc.write(fname)
 
         self.send_log.emit('The new options for the figures are saved. \n')
@@ -441,6 +458,7 @@ def load_fig_option(path_prj, name_prj):
             shape1 = root.find(".//ShapeOutput")
             para1 = root.find(".//ParaviewOutput")
             langfig1 = root.find(".//LangFig")
+            hopt1 = root.find(".//MinHeight")
             try:
                 if width1 is not None:
                     fig_dict['width'] = float(width1.text)
@@ -474,12 +492,16 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['paraview'] = para1.text
                 if langfig1 is not None:
                     fig_dict['language'] = int(langfig1.text)
+                if hopt1 is not None:
+                    fig_dict['min_height_hyd'] = float(hopt1.text)
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
 
     fig_dict['time_step'] = fig_dict['time_step'].split(',')
-    fig_dict['time_step'] = list(map(int, fig_dict['time_step']))
-
+    try:
+        fig_dict['time_step'] = list(map(int, fig_dict['time_step']))
+    except ValueError:
+        print('Error: Time step could not be read in the options')
 
     return fig_dict
 
@@ -506,6 +528,7 @@ def create_default_figoption():
     fig_dict['paraview'] = True
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
+    fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
 
     return fig_dict
 

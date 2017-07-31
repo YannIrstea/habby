@@ -1004,7 +1004,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all):
     return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
-def cut_2d_grid(ikle, point_all, water_height,velocity):
+def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
     with h>0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
@@ -1014,6 +1014,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     :param point_all: the coordinate of the points
     :param water_height: the water height data given on the nodes
     :param velocity: the velcoity given on the nodes
+    :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
     :return: the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
     """
     # prep
@@ -1021,7 +1022,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     water_height = np.array(water_height)
     ikle = np.array(ikle)
     # get all cells with at least one node with h < 0
-    ind_neg = set(np.where(water_height <= 0.0)[0])  # set because it is quicker to search in a set
+    ind_neg = set(np.where(water_height <= min_height)[0])  # set because it is quicker to search in a set
     for c in range(0, len(ikle)):
         iklec = ikle[c, :]
         if iklec[0] in ind_neg or iklec[1] in ind_neg or iklec[2] in ind_neg:
@@ -1042,15 +1043,15 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
         ha = water_height[a]
         hb = water_height[b]
         hc = water_height[c]
-        pc = linear_h_cross(p1a, p1b, ha, hb)
+        pc = linear_h_cross(p1a, p1b, ha, hb, min_height)
         if len(pc) > 0:
             pc_c.append(pc)
             which_side_c.append([0])
-        pc = linear_h_cross(p1b, p1c, hb, hc)
+        pc = linear_h_cross(p1b, p1c, hb, hc, min_height)
         if len(pc) > 0:
             pc_c.append(pc)
             which_side_c.append([1])
-        pc = linear_h_cross(p1c, p1a, hc, ha)
+        pc = linear_h_cross(p1c, p1a, hc, ha, min_height)
         if len(pc) > 0:
             pc_c.append(pc)
             which_side_c.append([2])
@@ -1073,8 +1074,8 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
             point_all.append(pc2)  # order matters
             point_all.append(pc1)
             lenp = len(point_all)
-            water_height.extend([0,0])
-            velocity.extend([0,0])
+            water_height.extend([min_height, min_height])
+            velocity.extend([min_height, min_height])
             iklec = ikle[c]
             # seg1 = [0,1] and seg2 = [1,2] in ikle order
             if np.sum(which_side[i]) == 1:
@@ -1103,6 +1104,8 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
                 else:
                     ikle.append([lenp - 1, lenp - 2, iklec[0]])
                     ikle.append([lenp - 2, iklec[1], iklec[0]])
+        elif len(pc_all[i]) !=0:
+            print('Warning" cut grid output are not cohereren')
         i += 1
     ikle = np.array(ikle)
     point_all = np.array(point_all)
@@ -1119,7 +1122,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity):
     return ikle, point_all, water_height, velocity
 
 
-def linear_h_cross(p1,p2,h1,h2):
+def linear_h_cross(p1,p2,h1,h2, minwh=0.0):
     """
     This function is called by cut_2D_grid. It find the intersection point along a side of the triangle if part of a
     cells is dry.
@@ -1132,17 +1135,23 @@ def linear_h_cross(p1,p2,h1,h2):
     """
     pc = []
 
-    if h1 <= 0 and h2 > 0 or h1 >0 and h2 <= 0:
+    if (h1 <= minwh and h2 > minwh) or (h1 >minwh and h2 <= minwh):
         # h is linear, i.e., h = a*x +b pc == x(h==0) and y = a2*x + b2
         if p1[0] != p2[0]:
             a1 = (h1-h2)/(p1[0]-p2[0])
             a2 = (p1[1] - p2[1]) / (p1[0] - p2[0])
+            b1 = h1 - a1 * p1[0]
+            pcx = (h1 - b1) / a1
+            b2 = p1[1] - a2 * p1[0]
+            pcy = a2 * pcx + b2
         else:
-            a1 = 10**10
-            a2 = 10**10
-        pcx = p1[0] - h1/a1
-        b2 = p1[1] - a2 * p1[0]
-        pcy = a2 * pcx + b2
+            pcx = p1[0]
+            if h1 > h2:
+                mix = (h1 - minwh) / (h1-h2)
+            else:
+                mix = (h2 - minwh) / (h2-h1)
+            pcy = mix * p1[1] + (1-mix) * p2[1]
+
         pc = [pcx, pcy]
 
     return pc

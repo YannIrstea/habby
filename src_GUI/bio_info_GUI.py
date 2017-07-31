@@ -51,6 +51,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.timer.setInterval(1000)
         self.running_time = 0
         self.timer.timeout.connect(self.show_image_hab)
+        self.plot_new = False
 
         self.init_iu()
 
@@ -79,7 +80,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab.setStyleSheet("background-color: #31D656")
         self.runhab.clicked.connect(self.run_habitat_value)
         self.butfig = QPushButton(self.tr("Create figure again"))
-        self.butfig.clicked.connect(self.show_image_hab)
+        self.butfig.clicked.connect(self.recreate_fig)
         if not self.keep_data:
             self.butfig.setDisabled(True)
         # spacer1 = QSpacerItem(1, 1)
@@ -501,6 +502,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         #self.send_log.emit("restart    stages chosen: [" + " ', ' ".join(stages_chosen) + ']')
         self.send_log.emit("restart    type of calculation: " + str(run_choice))
 
+    def recreate_fig(self):
+        """
+        This function use show_image_hab() to recreate the habitat figures shown before
+        """
+        self.plot_new = True
+        self.show_image_hab()
+
     def show_image_hab(self):
         """
         This function is linked with the timer started in run_habitat_value. It is run regulary and
@@ -522,7 +530,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 self.send_log.emit("Process 'Habitat' is alive and run since " + str(self.running_time) + " sec")
 
         # when the loading is finished
-        if not self.q4.empty() or self.keep_data is not None:
+        if not self.q4.empty() or (self.keep_data is not None and self.plot_new):
             # manage error
             if self.keep_data is None:
                 self.timer.stop()
@@ -536,6 +544,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 self.send_err_log()
                 self.keep_data = data_second
             else:
+                self.timer.stop()
                 area_all = self.keep_data[1]
                 spu_all = self.keep_data[2]
                 name_fish = self.keep_data[3]
@@ -571,6 +580,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # put the timer back to zero and clear status bar
             self.running_time = 0
             self.send_log.emit("clear status bar")
+            self.plot_new= False
 
         if not self.p4.is_alive():
 

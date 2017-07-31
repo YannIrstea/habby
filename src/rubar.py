@@ -714,7 +714,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
 
 
 def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,
-                                 nb_dim, path_hdf5, q=[], print_cmd =False):
+                                 nb_dim, path_hdf5, q=[], print_cmd =False, fig_opt={}):
     """
     This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
     interpolation and to save the whole in an hdf5 format
@@ -732,7 +732,13 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     """
+
+    # minimum water height
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    minwh = fig_opt['min_height_hyd']
 
     # create the empy output
     inter_vel_all_t = []
@@ -776,7 +782,8 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
             [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p], [coord_c],
                                                                  vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
         # cut the grid to the water limit
-        [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p, height_node[0], vel_node[0])
+        [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p, height_node[0],
+                                                                              vel_node[0], minwh)
 
         inter_h_all_t.append([water_height])
         inter_vel_all_t.append([velocity])

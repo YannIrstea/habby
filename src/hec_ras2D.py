@@ -7,10 +7,11 @@ import sys
 from io import StringIO
 from src import manage_grid_8
 from src import load_hdf5
+from src_GUI import output_fig_GUI
 
 
 def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
-                                 print_cmd=False):
+                                 print_cmd=False, fig_opt={}):
     """
     This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
     pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
@@ -27,6 +28,7 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
+    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
 
     ** Technical comments**
 
@@ -35,6 +37,10 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     If it is called by the cmd, we want the print function to be sent to the command line.
 
     """
+    # minimum water height
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    minwh = fig_opt['min_height_hyd']
 
     # create the empy output
     inter_vel_all_t = []
@@ -80,7 +86,7 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
             # cut grid to wet area
             [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_all_t[0][f],
                                                                                    point_all_t[0][f], h_node[f],
-                                                                                   v_node[f])
+                                                                                   v_node[f], minwh)
             ikle_f.append(ikle2)
             point_f.append(point_all)
             h_f.append(water_height)

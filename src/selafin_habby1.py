@@ -9,10 +9,11 @@ import time
 from io import StringIO
 from src import manage_grid_8
 from src import load_hdf5
+from src_GUI import output_fig_GUI
 
 
 def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
-                              print_cmd=False):
+                              print_cmd=False, fig_opt={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
     was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
@@ -28,9 +29,15 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     """
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+
+    # minimum water height
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    minwh = fig_opt['min_height_hyd']
 
     # load data
     [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
@@ -51,7 +58,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     inter_h_all_t = [[]]
     inter_vel_all_t = [[]]
     for t in range(0, len(v)):
-        [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t])
+        [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], minwh)
         point_all_t.append([point_all])  # only one reach
         ikle_all_t.append([ikle2])
         point_c_all_t.append([[]])

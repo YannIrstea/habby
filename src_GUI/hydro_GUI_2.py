@@ -1223,11 +1223,14 @@ class Rubar2D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
 
+        # get minimum water height as we might neglect very low water height
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
-        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.name_hdf5,self.namefile[0], self.namefile[1],
-                                self.pathfile[0], self.pathfile[1], path_im, self.name_prj,
-                                self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.name_hdf5,self.namefile[0],
+                         self.namefile[1], self.pathfile[0], self.pathfile[1], path_im, self.name_prj, self.path_prj,
+                         self.model_type, self.nb_dim, path_hdf5, self.q, False, self.fig_opt))
         self.p.start()
 
         # copy input file
@@ -1754,6 +1757,9 @@ class River2D(SubHydroW):
 
         path_hdf5 = self.find_path_hdf5()
 
+        # get minimum water height as we might neglect very low water height
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
         if len(self.namefile) == 0:
             self.send_log.emit("Warning: No file chosen.")
             return
@@ -1767,7 +1773,8 @@ class River2D(SubHydroW):
 
         self.q = Queue()
         self.p = Process(target=river2d.load_river2d_and_cut_grid, args=(self.name_hdf5,self.namefile, self.pathfile,
-                                self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+                         self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q, False,
+                         self.fig_opt))
         self.p.start()
 
         # copy input file
@@ -2119,10 +2126,14 @@ class HEC_RAS2D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
 
+        # get minimum water height as we might neglect very low water height
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
         # load the hec_ras data and cut the grid to the needed side
         self.q = Queue()
-        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.name_hdf5,self.namefile[0], self.pathfile[0],
-                                     self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.name_hdf5,self.namefile[0],
+                         self.pathfile[0], self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5,
+                         self.q, False, self.fig_opt))
         self.p.start()
 
         # path input
@@ -2229,10 +2240,14 @@ class TELEMAC(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
 
+        # get minimum water height as we might neglect very low water height
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
         # load the telemac data
         self.q = Queue()
-        self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],self.pathfile[0],
-                                          self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q))
+        self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
+                        self.pathfile[0], self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q,
+                        False, self.fig_opt))
         self.p.start()
 
         # path input
