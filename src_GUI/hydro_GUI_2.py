@@ -1730,7 +1730,6 @@ class River2D(SubHydroW):
             return
         # get all file with .cdg
         dirlist = np.array(os.listdir(dir_name))
-        dirlsit0 = dirlist[0]
         listcdf = [e for e in dirlist if e[-4:] == self.extension[0][0]]
         # add them to name file, path file and extension
         self.namefile = self.namefile + listcdf
@@ -1738,14 +1737,17 @@ class River2D(SubHydroW):
         # update list
         self.add_file_to_list()
         # add proposed hdf5 name to the QLineEdit
-        filename2, ext = os.path.splitext(self.namefile[0])
-        if len(self.namefile[0]) > 9:
-            self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2[:9]
-        else:
-            self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
+        if len(self.namefile) > 0:
+            filename2, ext = os.path.splitext(self.namefile[0])
+            if len(self.namefile[0]) > 9:
+                self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2[:9]
+            else:
+                self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
 
-        # self.hname.setAlignment(Qt.AlignRight)
-        self.hname.setText(self.name_hdf5)
+            # self.hname.setAlignment(Qt.AlignRight)
+            self.hname.setText(self.name_hdf5)
+        else:
+            self.send_log.emit('Warning: No .cdg file found in the selected directory \n')
 
     def load_river2d_gui(self):
         """

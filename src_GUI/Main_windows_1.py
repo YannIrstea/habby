@@ -178,6 +178,7 @@ class MainWindows(QMainWindow):
         self.setGeometry(200, 200, 900, 750)
         self.setCentralWidget(self.central_widget)
 
+        self.check_concurrency()
         self.show()
 
     def closeEvent(self, event):
@@ -187,7 +188,67 @@ class MainWindows(QMainWindow):
 
         :param event: managed by the operating system.
         """
+
+        self.end_concurrency()
         os._exit(1)  # why 1?
+
+    def check_concurrency(self):
+        """
+        This function tests if the project which is opening by HABBY is not used by another instance of HABBY. It is
+        dangerous  to open two time the same project as we have problem with the writing of the xml files.
+
+        To check if a project is open, we have a text file in the project folder named "check_concurrency.txt".
+        In this text file, there is either the word "open" or "close". When HABBY open a new project, it checks
+        this file is set to close and change it to open. Hence, if a project is oen twice a warning is writtem/
+        """
+        if self.name_prj is not None:
+
+            # open the text file
+            filename = os.path.join(os.path.join(self.path_prj,'fichier_hdf5'), 'check_concurrency.txt')
+            if not os.path.isfile(filename):
+                self.central_widget.write_log('Warning: Could not check if the project was open by '
+                                              'another instance of HABBY (1) \n')
+                if os.path.isdir(os.path.join(self.path_prj,'fichier_hdf5')):
+                    with open(filename, 'wt') as f:
+                        f.write('open')
+                return
+
+            # check if open
+            try:
+                with open(filename, 'rt') as f:
+                    data = f.read()
+            except IOError:
+                self.central_widget.write_log('Warning: Could not check if the project was open by another '
+                                               'instance of HABBY (2) \n')
+                return
+            if data == 'open':
+                self.central_widget.write_log('Warning: The same project is open in another instance of HABBY.'
+                                              ' This could results in fatal and unexpected error. '
+                                              'It is strongly adivsed to close the other instance of HABBY \n')
+
+            else:
+                with open(filename, 'wt') as f:
+                    f.write('open')
+
+    def end_concurrency(self):
+        """
+        This functiion indicates to the project folder than this project is not used anymore. Hence, this project
+        can be used freely by an other instance of HABBY.
+        """
+        if self.name_prj is not None:
+
+            # open the text file
+            filename = os.path.join(os.path.join(self.path_prj,'fichier_hdf5'), 'check_concurrency.txt')
+            if not os.path.isfile(filename):
+                self.central_widget.write_log('Warning: Could not check if the project was open by '
+                                              'another instance of HABBY (3) \n')
+                return
+
+            try:
+                with open(filename, 'wt') as f:
+                    f.write('close')
+            except IOError:
+                return
 
     def setlangue(self, nb_lang):
         """
@@ -644,6 +705,12 @@ class MainWindows(QMainWindow):
             if not os.path.exists(path_other):
                 os.makedirs(path_other)
 
+            # create the concurency file
+            filenamec = os.path.join(os.path.join(self.path_prj, 'fichier_hdf5'), 'check_concurrency.txt')
+            if os.path.isdir(os.path.join(self.path_prj, 'fichier_hdf5')):
+                with open(filenamec, 'wt') as f:
+                    f.write('open')
+
         # project exist
         else:
             doc = ET.parse(fname)
@@ -763,6 +830,9 @@ class MainWindows(QMainWindow):
         my_menu_bar()
         """
 
+        #  indicate to HABBY that this project will close
+        self.end_concurrency()
+
         # open an xml file
         path_here = os.path.dirname(self.path_prj)
         filename_path = QFileDialog.getOpenFileName(self, 'Open File', path_here, self.tr("XML (*.xml)"))[0]
@@ -853,6 +923,9 @@ class MainWindows(QMainWindow):
         # write the new langugage in the figure option to be able to get the title, axis in the right langugage
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
+        # check if project open somewhere else
+        self.check_concurrency()
+
         return
 
     def open_recent_project(self, j):
@@ -863,6 +936,9 @@ class MainWindows(QMainWindow):
 
         :param j: This indicates which project should be open, based on the order given in the menu
         """
+
+        #  indicate to HABBY that this project will close
+        self.end_concurrency()
 
         # get the project file
         filename_path = os.path.join(self.recent_project_path[j], self.recent_project[j] +'.xml')
@@ -908,6 +984,9 @@ class MainWindows(QMainWindow):
         # write the new langugage in the figure option to be able to get the title, axis in the right langugage
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
+        # check if project open somewhere else
+        self.check_concurrency()
+
     def new_project(self):
         """
         This function open an empty project and guide the user to create a new project, using a new Windows
@@ -915,8 +994,7 @@ class MainWindows(QMainWindow):
         """
         pathprj_old = self.path_prj
 
-        # create an empty project to remplace the old one
-        # self.empty_project()
+        self.end_concurrency()
 
         # open a new Windows to ask for the info for the project
         self.createnew = CreateNewProject(self.lang, self.path_trans, self.file_langue, pathprj_old)
@@ -938,6 +1016,8 @@ class MainWindows(QMainWindow):
         # add the welcome Widget
         self.central_widget.tab_widget.addTab(self.central_widget.welcome_tab, self.tr("Start"))
         self.central_widget.welcome_tab.lowpart.setEnabled(False)
+
+        self.end_concurrency()
 
     def save_project_if_new_project(self):
         """
