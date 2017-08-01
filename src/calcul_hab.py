@@ -962,7 +962,11 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                 norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
                 for r in range(0, len(vh_t)):
-                    ikle = ikle_t[r]
+                    try:
+                        ikle = ikle_t[r]
+                    except IndexError:
+                        print('Number of reach is not coherent. Could not plot figure. \n')
+                        return
                     if len(ikle) < 3:
                         pass
                     else:

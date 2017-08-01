@@ -361,6 +361,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get filename
         files = root.findall('.//hdf5_mergedata')
+        files = reversed(files)  # get the newest first
 
         # add it to the list
         if files is not None:
@@ -405,6 +406,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get the figure options and the type of output to be created
         fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
+        # erase the memory of the data for the figure
+        self.keep_data = None
 
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
@@ -558,7 +562,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if isinstance(name_fish[0], int):
                     return
 
-            # show one image (quick to create)
+            # show one image (relatively quick to create)
+            sys.stdout = self.mystdout = StringIO()
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
             for t in fig_dict['time_step']:
@@ -570,6 +575,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                               path_im, name_fish, name_base, fig_dict, [-1], save_fig=False)
             sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
             calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict, sim_name)
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
 
             # show figure
             self.show_fig.emit()

@@ -2956,7 +2956,7 @@ class SubstrateW(SubHydroW):
         """
         path_hdf5 = self.find_path_hdf5()
         self.sub_name = self.read_attribute_xml('hdf5_substrate')
-        self.sub_name = self.sub_name.split(',')
+        self.sub_name = list(reversed(self.sub_name.split(',')))
         sub_name2 = []  # we might have unexisting hdf5 file in the xml project file
         for i in range(0, len(self.sub_name)):
             if os.path.isfile(self.sub_name[i]):

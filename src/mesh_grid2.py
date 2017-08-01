@@ -83,7 +83,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     sub_pg_all_t = []
     ikle_both = []
     point_all_both = []
-    point_c_all_both = []
     vel_all_both = []
     height_all_both = []
 
@@ -100,8 +99,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     # load hdf5 sub
     [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
 
-    print('Load done')
-
     # simple test case to debug( two triangle separated by an horizontal line)
     # point_all = [[np.array([[0.5, 0.55], [0.3, 0.55], [0.5, 0.3], [0.3, 0.3]])]]
     # ikle_all = [[np.array([[0, 1, 3], [0, 2, 3]])]]
@@ -112,7 +109,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     if len(ikle_all) == 1 and ikle_all[0] == [-99]:
         print('Error: hydrological data could not be loaded.')
         return failload
-    elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
+    elif len(ikle_sub) < 3 and ikle_sub[0][0] == -99:
         print('Error: Substrate data could not be loaded.')
         return failload
     elif len(point_all_sub) == 0 and ikle_sub == []:
@@ -190,8 +187,13 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
 
                 # find intersection betweeen hydrology and substrate
                 # a = time.time()
-                [ikle_sub, coord_p_sub, data_sub_pg,  data_sub_dom, data_crossing, sub_cell] = \
-                    find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg, data_sub_dom)
+                if t== 0:  # should we adapt the subtrate grid? Only necessary once
+                    first_time = True
+                else:
+                    first_time=False
+                [ikle_sub, point_all_sub, data_sub_pg,  data_sub_dom, data_crossing, sub_cell] = \
+                    find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg, data_sub_dom,
+                                       first_time)
 
                 # b = time.time()
                 # print('time crossing')
@@ -249,12 +251,12 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both
 
 
-def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_sub_dom):
+def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_sub_dom, first_time= False):
     """
     A function which find where the crossing points are. Crossing points are the points on the triangular side of the
     hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
     are in the same polygon using a ray casting method. We assume that the polygon forming the subtrate grid are convex.
-    Otherwise it would not work in all cases. We could do a small function to test or correct this.
+    Otherwise it would not work in all cases.
     We also neglect the case where a substrate cell at the border of the subtrate grid is fully in a hydrological cell.
 
     IMPORTANT: polygon should be convex.
@@ -265,6 +267,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_s
     :param coord_p: the coordinate of the hydrology
     :param data_sub_dom: the subtrate data by subtrate cell (dominant)
     :param data_sub_pg: the substrate data by substrate cell (coarser)
+    :param first_time: If True, we preapre the subtrate data
     :return: the new substrate grid (ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom, sub_cell), the data for
              the crossing point (hydrological element with a crossing, crossing point, substrate element linked with
              the crossing point, point of substrate inside, substrate element linked with the substrate point,
@@ -284,33 +287,59 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_s
     side_point_cross = []
     point_cross_el = []
 
-    # check that the subtrate grid is convex and transform if necesary
-    # check all angle < 180 degree
-    # not done yet
+    if first_time:
 
-    # erase substrate cell which are outside of the hydrological grid (to optimize)
-    data_sub_pg2 = []
-    data_sub_dom2 = []
-    ikle_sub2 = []
-    xhydmax = max(coord_p[:, 0])
-    yhydmax = max(coord_p[:, 1])
-    xhydmin = min(coord_p[:, 0])
-    yhydmin = min(coord_p[:, 1])
-    i = 0
-    for k in ikle_sub:
-        coord_x_sub = np.array([coord_p_sub[int(k[0]), 0], coord_p_sub[int(k[1]), 0], coord_p_sub[int(k[2]), 0]])
-        coord_y_sub = np.array([coord_p_sub[int(k[0]), 1], coord_p_sub[int(k[1]), 1], coord_p_sub[int(k[2]), 1]])
-        if xhydmax >= min(coord_x_sub) and xhydmin <= max(coord_x_sub) and \
-                        yhydmax >= min(coord_y_sub) and yhydmin <= max(coord_y_sub):
-            ikle_sub2.append(k)
-            data_sub_pg2.append(data_sub_pg[i])
-            data_sub_dom2.append(data_sub_dom[i])
-        i += 1
-    ikle_sub = np.array(ikle_sub2)
-    if len(ikle_sub) < 1:
-        return ikle_sub, coord_p_sub, data_sub_pg,  data_sub_dom, [[]], sub_cell
-    data_sub_pg = np.copy(data_sub_pg2)
-    data_sub_dom = np.copy(data_sub_dom2)
+        # get triangle substrate grid substrate grid (finally it is easier, even if part of merge grid function with
+        # a polygon convex substrate)
+        xy_new = list(coord_p_sub)
+        ikle_new = []
+        data_sub_pg_new = []
+        data_sub_dom_new = []
+        for idc, c in enumerate(ikle_sub):
+            if len(c) > 3:
+                c_center = (1 / len(c)) * sum(coord_p_sub[c])
+                xy_new.append(c_center)
+                for ind in range(0, len(c) - 1):
+                    ikle_new.append([len(xy_new) - 1, c[ind], c[ind + 1]])
+                    data_sub_pg_new.append(data_sub_pg[idc])
+                    data_sub_dom_new.append(data_sub_dom[idc])
+                ikle_new.append([len(xy_new) - 1, c[ind + 1], c[0]])
+                data_sub_pg_new.append(data_sub_pg[idc])
+                data_sub_dom_new.append(data_sub_dom[idc])
+            else:
+                ikle_new.append(c)
+                data_sub_pg_new.append(data_sub_pg[idc])
+                data_sub_dom_new.append(data_sub_dom[idc])
+
+        coord_p_sub = np.array(xy_new)
+        ikle_sub = ikle_new
+        data_sub_pg = data_sub_pg_new
+        data_sub_dom = data_sub_dom_new
+
+        # erase substrate cell which are outside of the hydrological grid (to optimize)
+        # the full time is the bigger grid
+        data_sub_pg2 = []
+        data_sub_dom2 = []
+        ikle_sub2 = []
+        xhydmax = max(coord_p[:, 0])
+        yhydmax = max(coord_p[:, 1])
+        xhydmin = min(coord_p[:, 0])
+        yhydmin = min(coord_p[:, 1])
+        i = 0
+        for k in ikle_sub:
+            coord_x_sub = np.array([coord_p_sub[int(k[0]), 0], coord_p_sub[int(k[1]), 0], coord_p_sub[int(k[2]), 0]])
+            coord_y_sub = np.array([coord_p_sub[int(k[0]), 1], coord_p_sub[int(k[1]), 1], coord_p_sub[int(k[2]), 1]])
+            if xhydmax >= min(coord_x_sub) and xhydmin <= max(coord_x_sub) and \
+                            yhydmax >= min(coord_y_sub) and yhydmin <= max(coord_y_sub):
+                ikle_sub2.append(k)
+                data_sub_pg2.append(data_sub_pg[i])
+                data_sub_dom2.append(data_sub_dom[i])
+            i += 1
+        ikle_sub = np.array(ikle_sub2)
+        if len(ikle_sub) < 1:
+            return ikle_sub, coord_p_sub, data_sub_pg,  data_sub_dom, [[]], sub_cell
+        data_sub_pg = np.copy(data_sub_pg2)
+        data_sub_dom = np.copy(data_sub_dom2)
 
     # preparation 2
     nb_poly = len(ikle_sub)

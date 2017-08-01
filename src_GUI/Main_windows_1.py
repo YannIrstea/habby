@@ -1930,7 +1930,7 @@ class CentralW(QWidget):
 
             # read name
             self.hyd_name = self.substrate_tab.read_attribute_xml('hdf5_hydrodata')
-            self.hyd_name = self.hyd_name.split(',')
+            self.hyd_name = list(reversed(self.hyd_name.split(',')))
             if not os.path.isabs(self.hyd_name[0]):
                 for i in range(0, len(self.hyd_name)):
                     self.hyd_name[i] = os.path.join(path_hdf5, self.hyd_name[i])
