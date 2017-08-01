@@ -156,6 +156,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     # print(m1 - m)
 
     # merge the grid for each time step (the time step 0 is the full profile)
+    warn_inter = True
     for t in range(0, len(ikle_all)): # len(ikle_all)
 
         ikle_all2 = []
@@ -200,7 +201,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
 
                 # if no intersection found
                 if len(data_crossing[0]) < 1:
-                    print('Warning: No intersection between the grid and the substrate for one reach.\n')
+                    if warn_inter:
+                        print('Warning: No intersection between the grid and the substrate for one reach for'
+                              ' one or more time steps.\n')
+                        warn_inter = False
                     try:
                         sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
                     except ValueError:
@@ -732,6 +736,8 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
     sub_point_in_el = data_crossing[5]
     hydro_el = data_crossing[6]
     to_delete = []
+    empty_one = True
+    empty_two = True
 
     for idx, e in enumerate(el_cross):
 
@@ -880,7 +886,9 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
                                     height.append(h_new1)
                         except KeyError:
                             # in case triangulation was not ok
-                            print('Warning: an empty triangle was found by merge grid (1) \n')
+                            if empty_one:
+                                print('Warning: one or more empty triangle was found by merge grid (1) \n')
+                                empty_one = False
                             # print(point_new)
                             # print(hydroe)
                             # print(hyd_all)
@@ -888,7 +896,9 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height,ikle
                             # print(pc_here)
 
                     else:
-                        print('Warning: an empty triangle was found by merge grid (2) \n')
+                        if empty_two:
+                            print('Warning: one or more empty triangle was found by merge grid (2) \n')
+                            empty_two = False
 
     # create the new substrate data
     print('create the new substrate data')

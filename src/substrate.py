@@ -3,8 +3,6 @@ import os
 import numpy as np
 from scipy.spatial import Voronoi, voronoi_plot_2d
 from random import uniform
-#import matplotlib.tri as tri
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
@@ -457,18 +455,25 @@ def percentage_to_domcoarse(sub_data, dominant_case):
     return sub_dom, sub_pg
 
 
-def load_sub_txt(filename, path, code_type):
+def load_sub_txt(filename, path, code_type, path_shp='.'):
     """
     A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
     coarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
     transformation.
 
+    The voronoi transformation might look strange as it is often bigger than theorginal point. However, this is
+    just the mathematical result.
+
+    At the end of this fnuction, the resulting grid is exported in a shapefile form.
+
     :param filename: the name of the shapefile
     :param path: the path where the shapefile is
     :param code_type: the type of code used to define the substrate (string)
+    :param path_shp: the path where to save the shapefile (usually the input folder)
     :return: grid in form of list of coordinate and connectivity table (two list)
              and an array with substrate type and (x,y,sub) of the orginal data
     """
+
     failload = [-99], [-99], [-99], [-99], [-99], [-99],[-99],[-99]
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
@@ -497,8 +502,6 @@ def load_sub_txt(filename, path, code_type):
     vor = Voronoi(point_in)
     xy = vor.vertices
     xy = np.reshape(xy, (len(xy), len(xy[0])))
-    xgrid = xy[:, 0]
-    ygrid = xy[:, 1]
     ikle = vor.regions
     ikle = [var for var in ikle if var]  # erase empy element
 
@@ -508,11 +511,11 @@ def load_sub_txt(filename, path, code_type):
     ikle = [var for var in ikle if len(var) == len([i for i in var if i>0])]
     # in addition it creates cells which are areally far away for the center
     ind_bad = []
-    maxxy = [max(x) *2, max(y)*2]
-    minxy = [min(x) /2, min(y) /2]
+    maxxy = [max(x)*2, max(y)*2]
+    minxy = [min(x)/2, min(y)/2]
     i = 0
     for xyi in xy:
-        if xyi[0] > maxxy[0] or xyi[1] >maxxy[1]:
+        if xyi[0] > maxxy[0] or xyi[1] > maxxy[1]:
             ind_bad.append(i)
         if xyi[0] < minxy[0] or xyi[1] < minxy[1]:
             ind_bad.append(i)
@@ -520,21 +523,22 @@ def load_sub_txt(filename, path, code_type):
     ikle = [var for var in ikle if len(var) == len([i for i in var if i not in ind_bad])]
 
     # we only want triangle but voronoi might do polygon
-    xy_new = list(xy)
-    ikle_new = []
-    for c in ikle:
-        if len(c) > 3:
-            c_center = (1 / len(c)) * sum(xy[c])
-            xy_new.append(c_center)
-            for ind in range(0, len(c) - 1):
-                ikle_new.append([len(xy_new) - 1, c[ind], c[ind + 1]])
-            ikle_new.append([len(xy_new) - 1, c[ind + 1], c[0]])
-        else:
-            ikle_new.append(c)
-    xy = np.array(xy_new)
+    # not necessary anymore
+    # xy_new = list(xy)
+    # ikle_new = []
+    # for c in ikle:
+    #     if len(c) > 3:
+    #         c_center = (1 / len(c)) * sum(xy[c])
+    #         xy_new.append(c_center)
+    #         for ind in range(0, len(c) - 1):
+    #             ikle_new.append([len(xy_new) - 1, c[ind], c[ind + 1]])
+    #         ikle_new.append([len(xy_new) - 1, c[ind + 1], c[0]])
+    #     else:
+    #         ikle_new.append(c)
+    # xy = np.array(xy_new)
     xgrid = xy[:, 0]
     ygrid = xy[:, 1]
-    ikle = ikle_new
+    # ikle = ikle_new
 
     # voronoi_plot_2d(vor) # figure to debug
     # plt.show()
@@ -586,6 +590,30 @@ def load_sub_txt(filename, path, code_type):
     else:
         print('Error: The substrate code is not recognized.\n')
         return failload
+
+    print('Warning: The area covered by the voronoi calculation might be larger and more irregular'
+          ' than the one given by the orginal points. This does not affect the results usually. \n')
+
+    # export the substrate result in a shapefile
+    w = shapefile.Writer(shapefile.POLYGON)
+    w.autoBalance = 1
+    for i in range(0, len(ikle)):
+        p = []
+        for j in range(0, len(ikle[i])):
+            pi = list(xy[ikle[i][j]])
+            p.append(pi)
+        p.append(list(xy[ikle[i][0]]))
+        w.poly(parts=[p])  # the double [[]] is important or it bugs, but why?
+    w.field('sub_dom', 'F')
+    w.field('sub_pg', 'F')
+    try:
+        for i in range(0, len(ikle)):
+            data_here = [sub_dom2[i], sub_pg2[i]]
+            w.record(*data_here)
+    except IndexError:
+        print('Error: Number of substrate entries and grid cells is not coherent \n')
+        return failload
+    w.save(os.path.join(path_shp, 'substrate_text' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'))
 
     return xy, ikle, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg
 

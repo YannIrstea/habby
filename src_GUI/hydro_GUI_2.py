@@ -370,7 +370,7 @@ class SubHydroW(QWidget):
         """
 
         # prepare the filter to show only useful files
-        if len(self.extension[i]) <=4:
+        if len(self.extension[i]) <= 4:
             filter2 = "Model File ("
             for e in self.extension[i]:
                 filter2 += '*'+e+' '
@@ -378,7 +378,6 @@ class SubHydroW(QWidget):
             filter2 += ')'
         else:
             filter2 = ''
-
 
         # find the filename based on user choice
         if len(self.pathfile) == 0:  # case where no file was open before
@@ -422,10 +421,10 @@ class SubHydroW(QWidget):
             if ext == filename2:
                 ext = ''
             if self.model_type == 'SUBSTRATE':
-                if len(filename) > 9:
-                    self.name_hdf5 = 'Substrate_' + filename2[:9] + '_' + ext[1:]
+                if len(filename) > 6:
+                    self.name_hdf5 = 'Substrate_' + filename2[:9] + '_' + ext
                 else:
-                    self.name_hdf5 = 'Substrate_' + filename2 + '_' + ext[1:]
+                    self.name_hdf5 = 'Substrate_' + filename2 + '_' + ext
             else:
                 if len(filename) > 9:
                     self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2[:9]
@@ -2755,6 +2754,7 @@ class SubstrateW(SubHydroW):
         :param const_sub: If True, a constant substrate is being loaded. Usually it is set to False.
 
         """
+
         self.send_log.emit(self.tr('# Loading: Substrate data...'))
         self.load_b.setDisabled(True)
         if const_sub:
@@ -2861,12 +2861,13 @@ class SubstrateW(SubHydroW):
 
             # if the substrate data is a text form
             elif ext == '.txt' or ext == ".asc":
+                path_shp = self.find_path_input()
 
                 # load
-                #sys.stdout = self.mystdout = StringIO()
+                sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, x, y, sub1, sub2] = \
-                    substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type)
-                #sys.stdout = sys.__stdout__
+                    substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type, path_shp)
+                sys.stdout = sys.__stdout__
                 self.send_err_log()
 
                 if self.ikle_sub == [-99]:
@@ -2908,6 +2909,7 @@ class SubstrateW(SubHydroW):
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
         self.update_sub_hdf5_name()
+        self.drop_sub.setCurrentIndex(self.drop_sub.count()-1)
 
         self.butfig1.setEnabled(True)
         self.load_b.setDisabled(False)
@@ -2930,7 +2932,7 @@ class SubstrateW(SubHydroW):
         i = 0
         const = True
         while const and i < len(sub_name):
-            s = sub_name[-1-i]
+            s = sub_name[i]
             [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(s, path_hdf5, True)
             i +=1
 
