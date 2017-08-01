@@ -53,7 +53,8 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
         name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)
     load_hdf5.save_hdf5(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
                         point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
-                        sub_pg_all_t, sub_dom_all_t, sim_name=sim_name)
+                        sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
+                        hydro_ini_name=hdf5_name_hyd)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -109,7 +110,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     if len(ikle_all) == 1 and ikle_all[0] == [-99]:
         print('Error: hydrological data could not be loaded.')
         return failload
-    elif len(ikle_sub) < 3 and ikle_sub[0][0] == -99:
+    elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
         print('Error: Substrate data could not be loaded.')
         return failload
     elif len(point_all_sub) == 0 and ikle_sub == []:

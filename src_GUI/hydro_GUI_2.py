@@ -2723,7 +2723,8 @@ class SubstrateW(SubHydroW):
     def name_last_merge(self):
         """
         This function opens the xml project file to find the name of the last hdf5 merge file and to add it
-        to the GUI on the QLabel self.lm2. If there is no file found, this functiion do nothing.
+        to the GUI on the QLabel self.lm2. It also add a QToolTip with the name of substrate and hydraulic files used
+        to create this merge file. If there is no file found, this function do nothing.
         """
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         # save the name and the path in the xml .prj file
@@ -2731,6 +2732,7 @@ class SubstrateW(SubHydroW):
             self.end_log.emit('Error: The project is not saved. '
                               'Save the project in the General tab before saving hydraulic data. \n')
         else:
+            path_hdf5 = self.find_path_hdf5()
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
             # geo data
@@ -2739,6 +2741,11 @@ class SubstrateW(SubHydroW):
                 if len(child1) > 0:
                     mergename = child1[-1].text
                     self.lm2.setText(mergename)
+                    # QToolTip
+                    [sub_ini, hydro_ini] = load_hdf5.get_initial_files(path_hdf5, mergename)
+                    hydro_ini = os.path.basename(hydro_ini)
+                    textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate :' + sub_ini
+                    self.lm2.setToolTip(textini)
 
     def load_sub_gui(self, const_sub=False):
         """
@@ -2909,7 +2916,7 @@ class SubstrateW(SubHydroW):
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
         self.update_sub_hdf5_name()
-        self.drop_sub.setCurrentIndex(self.drop_sub.count()-1)
+        self.drop_sub.setCurrentIndex(1)
 
         self.butfig1.setEnabled(True)
         self.load_b.setDisabled(False)

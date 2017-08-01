@@ -341,6 +341,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         This function goes in the projet xml file and gets all available merged data. Usually, it is called
         by Substrate() (when finished to merge some data) or at the start of HABBY.
+
+        We add a "tooltip" which indicates the orginal hydraulic and substrate files.
         """
 
         xmlfile = os.path.join(self.path_prj, self.name_prj +'.xml')
@@ -363,14 +365,19 @@ class BioInfo(estimhab_GUI.StatModUseful):
         files = root.findall('.//hdf5_mergedata')
         files = reversed(files)  # get the newest first
 
+        path_hdf5 = self.find_path_hdf5_est()
         # add it to the list
         if files is not None:
-            for f in files:
+            for idx,f in enumerate(files):
+                [sub_ini, hydro_ini] = load_hdf5.get_initial_files(path_hdf5, f.text)
+                hydro_ini = os.path.basename(hydro_ini)
+                textini = 'Hydraulic: '+hydro_ini + '\nSubstrate :' + sub_ini
                 if len(f.text) < 55:
                     self.m_all.addItem(f.text)
                 else:
                     blob = f.text[:55] + '...'
                     self.m_all.addItem(blob)
+                self.m_all.setItemData(idx,textini, Qt.ToolTipRole)
                 name = f.text
                 self.hdf5_merge.append(name)
 

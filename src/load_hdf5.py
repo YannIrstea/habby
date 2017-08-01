@@ -518,9 +518,43 @@ def get_hdf5_name(model_name, name_prj, path_prj):
         return ''
 
 
+def get_initial_files(path_hdf5, hdf5_name):
+    """
+    This function looks into a merge file to find the hydraulic and subtrate file which
+    were used to create this file.
+    :param path_hdf5: the path to the hdf5 file
+    :param hdf5_name: the name fo this hdf5 file
+    :return: the name of the substrate and hydraulic file used to create the merge file
+    """
+
+    # open the file with checking for the path
+    if os.path.isabs(hdf5_name):
+        file = open_hdf5(hdf5_name)
+    else:
+        if path_hdf5:
+            file = open_hdf5(os.path.join(path_hdf5, hdf5_name))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return '',''
+    if file is None:
+        print('Error: hdf5 file could not be open. \n')
+        return '',''
+
+    # get the name
+    try:
+        sub_ini = file.attrs['sub_ini_name']
+    except KeyError:
+        sub_ini = ''
+    try:
+        hydro_ini = file.attrs['hydro_ini_name']
+    except KeyError:
+        hydro_ini = ''
+
+    return sub_ini, hydro_ini
+
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
               inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[],
-              sub_dom_all_t=[], sub_per_all_t=[], sim_name=[]):
+              sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name=''):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -544,6 +578,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param sub_dom_all_t: the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
     :param sub_per_all_t: the data of the substreate by percentage. Only used with lammi (mostly)
     :param sim_name: the name of the simulation or the names of the time steps if the names are not [0,1,2,3, etc.]
+    :param sub_ini_name: The name of the substrate hdf5 file from which the data originates
+    :param hydro_ini_name: the name of the hydraulic hdf5 file from which the data originates
 
 
     **Technical comments**
@@ -591,6 +627,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     file.attrs['name_projet'] = name_prj
     file.attrs['HDF5_version'] = h5py.version.hdf5_version
     file.attrs['h5py_version'] = h5py.version.version
+    file.attrs['sub_ini_name'] = sub_ini_name
+    file.attrs['hydro_ini_name'] =  hydro_ini_name
 
     # create all datasets and group
     data_all = file.create_group('Data_gen')
