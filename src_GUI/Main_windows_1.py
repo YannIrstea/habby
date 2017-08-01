@@ -1667,11 +1667,11 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
             self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
             self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-            self.tab_widget.addTab(self.output_tab, self.tr("Options"))
             self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
+            self.tab_widget.addTab(self.output_tab, self.tr("Options"))
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
@@ -1718,7 +1718,7 @@ class CentralW(QWidget):
         A small function which open the output tab. It contains the different options for the figures.
         Output should be the 5th tab, otherwise it will not work.
         """
-        self.tab_widget.setCurrentIndex(3)
+        self.tab_widget.setCurrentIndex(7)
 
     def connect_signal_log(self):
         """
