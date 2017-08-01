@@ -2040,7 +2040,6 @@ class WelcomeW(QWidget):
         self.msg2 = QMessageBox()
         self.init_iu()
 
-
     def init_iu(self):
         """
         Used in the initialization of a new instance of the class WelcomeW()
@@ -2061,7 +2060,6 @@ class WelcomeW(QWidget):
         spacerleft = QSpacerItem(200, 1)
         spacerright = QSpacerItem(120, 1)
         spacer2 = QSpacerItem(1, 50)
-        # color
         highpart = QWidget()  # used to regroup all QWidgt in the first part of the Windows
 
         # general into to put in the xml .prj file
@@ -2089,7 +2087,7 @@ class WelcomeW(QWidget):
         pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
         # pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
 
-        # insist on white background color (for linux)
+        # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)

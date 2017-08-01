@@ -3,7 +3,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
     QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QCheckBox
 import h5py
@@ -58,6 +58,12 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.loadtxt.clicked.connect(self.load_txt)
         self.loadh5 = QPushButton(self.tr('Hdf5 File (.h5)'))
         self.loadh5.clicked.connect(self.load_hdf5_fstress)
+
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
 
         # select river
         l002 = QLabel('<b> Rivers or Reaches Names </b>')

@@ -102,6 +102,12 @@ class Hydro2W(QWidget):
         #self.button1.clicked.connect(self.give_info_model)
         spacer2 = QSpacerItem(50, 1)
 
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
+
         # add the widgets representing the available models to a stack of widget
         self.free = FreeSpace()
         self.hecras1D = HEC_RAS1D(self.path_prj, self.name_prj)
@@ -2683,6 +2689,12 @@ class SubstrateW(SubHydroW):
         self.name_last_merge()  # find the name of the last merge file and add it to self.lm2
         if self.lm2.text() == self.tr('No file'):
             self.butfig2.setDisabled(True)
+
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
 
         # layout
         self.layout_sub = QGridLayout()

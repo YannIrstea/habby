@@ -1,5 +1,5 @@
 
-from PyQt5.QtCore import QTranslator, pyqtSignal
+from PyQt5.QtCore import QTranslator, pyqtSignal, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox
@@ -51,6 +51,12 @@ class outputW(QWidget):
         self.fig10l = QLabel(self.tr('Figure Format'))
         self.fig11l = QLabel(self.tr('Resolution [dpi]'))
         self.fig12l = QLabel(self.tr('Type of fish name'))
+
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
 
         # then fill the size
         self.fig1 = QLineEdit(str(fig_dict['width']) + ',' + str(fig_dict['height']))

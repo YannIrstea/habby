@@ -157,6 +157,12 @@ class StathabW(estimhab_GUI.StatModUseful):
         if len(self.mystathab.q_all) == 0:
             self.butfig.setDisabled(True)
 
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
+
         # add a switch for tropical rivers
         self.rivtype = QComboBox()
         self.rivtype.addItems(self.rivtype_str)

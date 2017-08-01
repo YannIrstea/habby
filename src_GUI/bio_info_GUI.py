@@ -128,6 +128,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.scroll.setStyleSheet('background-color: white')
         self.vbar.setStyleSheet('background-color: lightGrey')
 
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
+
         # image fish
         self.pic = QLabel()
 

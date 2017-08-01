@@ -6,7 +6,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
     QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox
 import h5py
@@ -353,6 +353,12 @@ class EstimhabW(StatModUseful):
         self.list_s.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
         self.list_s.itemActivated.connect(self.remove_fish)
+
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
 
         # add  all test file in a directory
         all_file = glob.glob(os.path.join(self.path_bio_estimhab,r'*.xml'))
