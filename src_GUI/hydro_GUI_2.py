@@ -369,14 +369,28 @@ class SubHydroW(QWidget):
         :param i: a int for the case where there is more than one file to load
         """
 
+        # prepare the filter to show only useful files
+        if len(self.extension[i]) <=4:
+            filter2 = "Model File ("
+            for e in self.extension[i]:
+                filter2 += '*'+e+' '
+            filter2 = filter2[:-1]
+            filter2 += ')'
+        else:
+            filter2 = ''
+
+
         # find the filename based on user choice
-        if len(self.pathfile) == 0: # case where no file was open before
-            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_prj)[0]
+        if len(self.pathfile) == 0:  # case where no file was open before
+            filename_path = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', self.path_prj, filter2,
+                                                        filter2)[0]
         elif i >= len(self.pathfile):
-            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[0])[0]
+            filename_path = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', self.pathfile[0], filter2
+                                                        ,filter2)[0]
         else:
             # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
-            filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.pathfile[i])[0]
+            filename_path = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', self.pathfile[i], filter2
+                                                        ,filter2)[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
             return
@@ -1314,7 +1328,7 @@ class Mascaret(SubHydroW):
 
         # general, geometry and output data
         l0 = QLabel(self.tr('<b> General data </b>'))
-        self.gen_b = QPushButton('Choose file (.xcas, .cas)', self)
+        self.gen_b = QPushButton('Choose file (.xcas)', self)
         self.gen_b.clicked.connect(lambda: self.show_dialog(0))
         self.gen_b.clicked.connect(lambda: self.gen_t2.setText(self.namefile[0]))
         self.gen_b.clicked.connect(self.propose_next_file)
@@ -2566,9 +2580,6 @@ class HabbyHdf5(SubHydroW):
         self.send_log.emit('restart LOAD_HYDRO_HDF5')
         self.send_log.emit('restart    file hdf5: ' + pathnewname2)
         self.drop_hydro.emit()
-
-
-
 
 
 class SubstrateW(SubHydroW):

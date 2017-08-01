@@ -178,10 +178,10 @@ def load_hec_ras2d(filename, path):
             file2D = h5py.File(filename_path, 'r')
         except OSError:
             print("Error: unable to open the hdf file.")
-            return [-99], [-99], [-99], [-99], [-99], [-99]
+            return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
     else:
         print('Error: The hdf5 file does not exist.')
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
     # geometry and grid data
     try:
@@ -189,7 +189,7 @@ def load_hec_ras2d(filename, path):
         name_area = np.array(geometry_base["Names"])
     except KeyError:
         print('Error: Name of flow area could not be extracted. Check format of the hdf file.')
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
         # print(list(geometry.items()))
     try:
         for i in range(0, len(name_area)):
@@ -208,7 +208,7 @@ def load_hec_ras2d(filename, path):
             ikle_all.append(ikle)
     except KeyError:
         print('Error: Geometry data could not be extracted. Check format of the hdf file.')
-        return [-99],[-99], [-99], [-99], [-99], [-99]
+        return [-99],[-99], [-99], [-99], [-99], [-99], [-99]
 
     # water depth
     for i in range(0, len(name_area)):
