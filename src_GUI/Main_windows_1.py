@@ -1760,6 +1760,7 @@ class CentralW(QWidget):
             self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
             self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
             self.hydro_tab.lammi.show_fig.connect(self.showfig)
+            self.hydro_tab.habbyhdf5.show_fig.connect(self.showfig)
             self.substrate_tab.show_fig.connect(self.showfig)
             self.statmod_tab.show_fig.connect(self.showfig)
             self.stathab_tab.show_fig.connect(self.showfig)

@@ -93,7 +93,7 @@ class Hydro2W(QWidget):
         """
         # generic label
         l2 = QLabel(self.tr('<b> LOAD NEW DATA </b>'))
-        l3 = QLabel(self.tr('<b>Available hydrological models </b>'))
+        l3 = QLabel(self.tr('<b>Available hydraulic models </b>'))
 
         # available model
         self.mod.addItems(self.name_model)
@@ -833,7 +833,7 @@ class SubHydroW(QWidget):
             # show basic information
             if show_info and len(ikle_all_t) > 0:
                 self.send_log.emit("# ------------------------------------------------")
-                self.send_log.emit("# Information about the hydrological data")
+                self.send_log.emit("# Information about the hydrological data from the model " + self.model_type)
                 self.send_log.emit("# - Number of time step: " + str(len(ikle_all_t) - 1))
                 extx = 0
                 exty = 0
@@ -2482,12 +2482,15 @@ class HabbyHdf5(SubHydroW):
         l0 = QLabel(self.tr('Select the hdf5 created by HABBY to be loaded:'))
         self.button2 = QPushButton(self.tr('Load data from hdf5'))
         self.button2.clicked.connect(self.get_new_hydro_hdf5)
-        spacer1 = QSpacerItem(200, 1)
+        self.butfig = QPushButton(self.tr("Create figure"))
+        self.butfig.clicked.connect(self.recreate_image)
+        spacer1 = QSpacerItem(250, 1)
         spacer2 = QSpacerItem(1, 300)
 
         self.layout2 = QGridLayout()
         self.layout2.addWidget(l0, 0, 0)
         self.layout2.addWidget(self.button2, 0, 1)
+        self.layout2.addWidget(self.butfig, 1, 1)
         self.layout2.addItem(spacer1, 0, 2)
         self.layout2.addItem(spacer2, 2, 0)
         self.setLayout(self.layout2)
@@ -2500,7 +2503,7 @@ class HabbyHdf5(SubHydroW):
         created by HABBY in the method save_hdf5 of the class SubHydroW.
         """
 
-        self.send_log.emit('# Loading: HABBY hdf5 file (hydrological data only)...')
+        self.send_log.emit('# Loading: HABBY hdf5 file (hydraulic data only)...')
         # prep
         ikle_all_t = []
         point_all = []
@@ -2563,6 +2566,9 @@ class HabbyHdf5(SubHydroW):
         self.send_log.emit('restart LOAD_HYDRO_HDF5')
         self.send_log.emit('restart    file hdf5: ' + pathnewname2)
         self.drop_hydro.emit()
+
+
+
 
 
 class SubstrateW(SubHydroW):
@@ -2649,8 +2655,8 @@ class SubstrateW(SubHydroW):
         self.load_const.clicked.connect(lambda: self.load_sub_gui(True))
 
         # label and button for the part to merge the grid
-        l8 = QLabel(self.tr("<b> Merge the hydrological and substrate grid </b>"))
-        l9 = QLabel(self.tr("Hydrological data (hdf5)"))
+        l8 = QLabel(self.tr("<b> Merge the hydraulic and substrate grid </b>"))
+        l9 = QLabel(self.tr("Hydraulic data (hdf5)"))
         l10 = QLabel(self.tr("Substrate data (hdf5)"))
         self.drop_hyd = QComboBox()
         self.drop_sub = QComboBox()
@@ -2713,7 +2719,7 @@ class SubstrateW(SubHydroW):
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
             self.end_log.emit('Error: The project is not saved. '
-                              'Save the project in the General tab before saving hydrological data. \n')
+                              'Save the project in the General tab before saving hydraulic data. \n')
         else:
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -3010,7 +3016,7 @@ class SubstrateW(SubHydroW):
 
         This function can be slow so it call on a second thread.
         """
-        self.send_log.emit('# Merging: substrate and hydrological grid...')
+        self.send_log.emit('# Merging: substrate and hydraulic grid...')
 
         # get usfule data
         if len(self.drop_hyd) >1:

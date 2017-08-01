@@ -58,6 +58,18 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             input_file = True
             print('Input folder found for the restart function.')
 
+    # check if the path given are ok
+    if not os.path.isdir(path_prj):
+        print('Error: the path to the project does not exists \n')
+        return
+    file_prof = os.path.join(path_prj, name_prj + '.xml')
+    if not os.path.isfile(file_prof):
+        print('Error: the xml project is not found \n')
+        return
+    if not os.path.isdir(path_bio):
+        print('Error: the path to the biological folder is not found \n')
+        return
+
     # ----------------------------------------------------------------------------------
 
     if all_arg[1] == 'LIST_COMMAND':
@@ -1125,6 +1137,8 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio):
         # else:
         #     pattern = basename
         all_files.append(files)
+        if not files:
+            print('Warning: No files found for the current ALL command.')
 
     # check that each input type has the same length
     if not all(len(i) == len(all_files[0]) for i in all_files):
