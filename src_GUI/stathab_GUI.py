@@ -2,7 +2,7 @@ from io import StringIO
 import os
 from PyQt5.QtCore import QTranslator, pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QFileDialog, QSpacerItem,\
-    QListWidget, QListWidgetItem, QMessageBox, QCheckBox, QComboBox
+    QListWidget, QListWidgetItem, QMessageBox, QCheckBox, QComboBox, QAbstractItemView
 from PyQt5.QtGui import QPixmap
 import time
 import sys
@@ -176,6 +176,10 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.list_re.itemClicked.connect(self.reach_selected)
         self.list_f.itemClicked.connect(self.add_fish)
         self.list_s.itemClicked.connect(self.remove_fish)
+        self.list_f.itemActivated.connect(self.add_fish)
+        self.list_s.itemActivated.connect(self.remove_fish)
+        self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.fishall.stateChanged.connect(self.add_all_fish)
         self.rivtype.currentIndexChanged.connect(self.change_riv_type)
 

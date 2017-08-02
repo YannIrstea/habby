@@ -70,7 +70,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l2 = QLabel(self.tr('<b> Selected Fish and Guild </b>'))
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        # add/remove fish done in the functions self.show_fish_sel and self.show_fish_avai
+        # show information about the fish
+        self.list_f.itemClicked.connect(self.show_info_fish_avai)
+        self.list_s.itemClicked.connect(self.show_info_fish_sel)
+        self.list_f.itemActivated.connect(self.show_info_fish_avai)
+        self.list_s.itemActivated.connect(self.show_info_fish_sel)
 
         # run habitat value
         self.l9 = QLabel(' <b> Options for the computation </b>')
@@ -161,10 +165,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         ind = self.data_fish[:, 0].argsort()
         self.data_fish = self.data_fish[ind, :]
         self.list_f.addItems(self.data_fish[:,0])
-
-        # show information about the fish
-        self.list_f.itemClicked.connect(self.show_info_fish_avai)
-        self.list_s.itemClicked.connect(self.show_info_fish_sel)
 
         # erase fish selection
         self.butdel = QPushButton(self.tr("Erase All Selection"))
