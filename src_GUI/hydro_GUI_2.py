@@ -2624,8 +2624,18 @@ class SubstrateW(SubHydroW):
         Used in the initialization by __init__().
         """
 
+        # choose between loading substrate by file or constant
+        l1 = QLabel(self.tr('<b> Type of Substrate Data </b>'))
+        self.rb1 = QRadioButton(self.tr('From Files (.txt, .shp)'))
+        self.rb2 = QRadioButton(self.tr('Constant Value'))
+        self.rb1.setChecked(True)
+        self.rb1.clicked.connect(lambda: self.btnstate(self.rb1, self.rb2))
+        self.rb1.clicked.connect(self.add_file_widgets)
+        self.rb2.clicked.connect(lambda: self.btnstate(self.rb2, self.rb1))
+        self.rb2.clicked.connect(self.add_const_widgets)
+
         # to load substrate data from file
-        l1 = QLabel(self.tr('<b> Load substrate data </b>'))
+        l00 = QLabel(self.tr('<b>Substrate from File </b>'))
         l2 = QLabel(self.tr('File'))
         lh = QLabel(self.tr('hdf5 file name'))
         l11 = QLabel(self.tr('Default substrate value:'))
@@ -2689,6 +2699,7 @@ class SubstrateW(SubHydroW):
         self.name_last_merge()  # find the name of the last merge file and add it to self.lm2
         if self.lm2.text() == self.tr('No file'):
             self.butfig2.setDisabled(True)
+        spacer = QSpacerItem(1, 50)
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -2696,29 +2707,46 @@ class SubstrateW(SubHydroW):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # layout
+        # layout for substrate from file
+        self.layout_file = QGridLayout()
+        self.layout_file.addWidget(l00, 0, 0)
+        self.layout_file.addWidget(l2, 1, 0)
+        self.layout_file.addWidget(self.h2d_t2, 1, 1)
+        self.layout_file.addWidget(self.h2d_b, 1, 2)
+        self.layout_file.addWidget(l3, 2, 0)
+        self.layout_file.addWidget(self.e2, 2, 1)
+        self.layout_file.addWidget(l11, 3, 0)
+        self.layout_file.addWidget(self.e3, 3, 1)
+        self.layout_file.addWidget(lh, 4, 0)
+        self.layout_file.addWidget(self.hname, 4, 1)
+        self.layout_file.addWidget(self.load_b, 5, 2)
+        self.layout_file.addWidget(self.butfig1, 5, 3)
+        self.file_part = QWidget()
+        self.file_part.setLayout(self.layout_file)
+
+        # layout const
+        self.layout_const = QGridLayout()
+        self.layout_const.addWidget(self.l4, 0, 0)
+        self.layout_const.addWidget(l12, 1, 0)
+        self.layout_const.addWidget(self.e1, 1, 1)
+        self.layout_const.addWidget(l13, 1, 2)
+        self.layout_const.addWidget(lh2, 2, 0)
+        self.layout_const.addWidget(self.hname2, 2, 1)
+        self.layout_const.addWidget(self.load_const, 3, 2)
+        self.const_part = QWidget()
+        self.const_part.setLayout(self.layout_const)
+
+        # layout general
         self.layout_sub = QGridLayout()
         self.layout_sub.addWidget(l1, 0, 0)
-        self.layout_sub.addWidget(l2, 1, 0)
-        self.layout_sub.addWidget(self.h2d_t2, 1, 1)
-        self.layout_sub.addWidget(self.h2d_b, 1, 2)
-        self.layout_sub.addWidget(l3, 2, 0)
-        self.layout_sub.addWidget(self.e2, 2, 1)
-        self.layout_sub.addWidget(l11, 3, 0)
-        self.layout_sub.addWidget(self.e3, 3, 1)
-        self.layout_sub.addWidget(lh, 4, 0)
-        self.layout_sub.addWidget(self.hname, 4, 1)
-        self.layout_sub.addWidget(self.load_b, 5, 2)
-        self.layout_sub.addWidget(self.butfig1, 5, 3)
+        self.layout_sub.addWidget(self.rb1, 1, 0)
+        self.layout_sub.addWidget(self.rb2, 1, 1)
 
-        self.layout_sub.addWidget(self.l4, 6, 0, 1, 2)
-        self.layout_sub.addWidget(l12, 7, 0)
-        self.layout_sub.addWidget(self.e1, 7, 1)
-        self.layout_sub.addWidget(l13, 7, 2)
-        self.layout_sub.addWidget(lh2, 8, 0)
-        self.layout_sub.addWidget(self.hname2, 8, 1)
-        self.layout_sub.addWidget(self.load_const, 9, 2)
+        self.layout_sub.addWidget(self.file_part, 2, 0, 3, 3)
+        self.layout_sub.addWidget(self.const_part, 2, 0, 3, 3)
+        self.const_part.hide()  # by default we show the load from file
 
+        self.layout_sub.addItem(spacer,6,1)
         self.layout_sub.addWidget(l8, 10, 0, 1, 2)
         self.layout_sub.addWidget(l9, 11, 0)
         self.layout_sub.addWidget(self.drop_hyd, 11, 1)
@@ -2731,6 +2759,31 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addItem(self.spacer2, 11, 1)
 
         self.setLayout(self.layout_sub)
+
+    def btnstate(self, rb_sel, rb_del):
+        """
+        This function is used to select and deslect radiobutton
+        :param rb_sel: the radio button which was just selected
+        :param rb_del: the radio button which should be deselected
+        """
+        rb_sel.setChecked(True)
+        rb_del.setChecked(False)
+
+    def add_const_widgets(self):
+        """
+        This function shows the widgets realted to the loading of constatns subtrate
+        """
+        self.file_part.hide()
+        self.const_part.show()
+
+    def add_file_widgets(self):
+        """
+         This functions shows the widgets
+        """
+        self.const_part.hide()
+        self.file_part.show()
+
+
 
     def name_last_merge(self):
         """
@@ -2777,9 +2830,6 @@ class SubstrateW(SubHydroW):
         self.send_log.emit(self.tr('# Loading: Substrate data...'))
         self.load_b.setDisabled(True)
         if const_sub:
-            if self.namefile[0] != 'unknown file':
-                self.send_log.emit('Warning: Constant substrate data. Data from '+self.namefile[0] +
-                                   ' not taken into account.')
             try:
                 data_sub = int(self.e1.text())
             except ValueError:

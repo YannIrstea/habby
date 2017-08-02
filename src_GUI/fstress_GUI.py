@@ -5,7 +5,7 @@ except ImportError:
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
-    QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QCheckBox
+    QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QCheckBox
 import h5py
 import sys
 import os
