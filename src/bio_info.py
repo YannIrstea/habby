@@ -220,36 +220,41 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False):
         for s in range(0, len(stade)):
             axarr[s, 0].plot(height[s][0], height[s][1], '-xb')
             axarr[s, 0].set_xlabel('Water height [m]')
-            axarr[s, 0].set_ylabel('Coeff. Pref. ' + stade[s])
+            axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 0].set_ylim([0,1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-xr')
             axarr[s, 1].set_xlabel('Velocity [m/sec]')
-            axarr[s, 1].set_ylabel('Coeff. Pref. ' + stade[s])
+            axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 1].set_ylim([0, 1.1])
 
-            axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',align='center')
+            if len(sub[0][0]) > 2:  # if substrate is accounted, it is accounted for all stages
+                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',align='center')
             axarr[s, 2].set_xlabel('Substrate []')
-            axarr[s, 2].set_ylabel('Coeff. Pref. ' + stade[s])
+            axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 2].set_ylim([0, 1.1])
+            axarr[s, 2].set_xlim([0.4, 8.6])
+
     else:
         f, axarr = plt.subplots(3, 1, sharey='row')
         plt.suptitle('Preference curve of ' + name_fish + ' (' + code_fish + ') ')
         axarr[0].plot(height[0][0], height[0][1], '-xb')
         axarr[0].set_xlabel('Water height [m]')
-        axarr[0].set_ylabel('Coeff. Pref. ' + stade[0])
+        axarr[0].set_ylabel('Coeff. pref. ' + stade[0])
         axarr[0].set_ylim([0, 1.1])
 
         axarr[1].plot(vel[0][0], vel[0][1], '-xr')
         axarr[1].set_xlabel('Velocity [m/sec]')
-        axarr[1].set_ylabel('Coeff. Pref. ' + stade[0])
+        axarr[1].set_ylabel('Coeff. pref. ' + stade[0])
         axarr[1].set_ylim([0, 1.1])
 
-        axarr[2].bar(sub[0][0], sub[0][1], facecolor='c',align='center')
+        if len(sub[0][0]) > 2:
+            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c',align='center')
         axarr[2].set_xlabel('Substrate [class]')
-        axarr[2].set_ylabel('Coeff. Pref. ' + stade[0])
+        axarr[2].set_ylabel('Coeff. pref. ' + stade[0])
         axarr[2].set_ylim([0, 1.1])
-    plt.tight_layout()
+        axarr[2].set_xlim([0.4, 8.6])
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
 
     if get_fig:
         return f, axarr
