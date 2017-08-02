@@ -2699,7 +2699,7 @@ class SubstrateW(SubHydroW):
         self.name_last_merge()  # find the name of the last merge file and add it to self.lm2
         if self.lm2.text() == self.tr('No file'):
             self.butfig2.setDisabled(True)
-        spacer = QSpacerItem(1, 50)
+        spacer = QSpacerItem(1, 20)
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -2742,8 +2742,8 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(self.rb1, 1, 0)
         self.layout_sub.addWidget(self.rb2, 1, 1)
 
-        self.layout_sub.addWidget(self.file_part, 2, 0, 3, 3)
-        self.layout_sub.addWidget(self.const_part, 2, 0, 3, 3)
+        self.layout_sub.addWidget(self.file_part, 2, 0, 3, 4)
+        self.layout_sub.addWidget(self.const_part, 2, 0, 3, 4)
         self.const_part.hide()  # by default we show the load from file
 
         self.layout_sub.addItem(spacer,6,1)

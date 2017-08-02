@@ -224,8 +224,8 @@ class MainWindows(QMainWindow):
             if data == 'open':
                 self.central_widget.write_log('Warning: The same project is open in another instance of HABBY.'
                                               ' This could results in fatal and unexpected error. '
-                                              'It is strongly adivsed to close the other instance of HABBY.'
-                                              ' This message could also appear if HABBY was not close properly. '
+                                              'It is strongly adivsed to close the other instance of HABBY.')
+                self.central_widget.write_log(' This message could also appear if HABBY was not close properly. '
                                               'In this case, please close and re-open HABBY.\n')
 
             else:

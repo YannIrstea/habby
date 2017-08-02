@@ -75,6 +75,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.list_s.itemClicked.connect(self.show_info_fish_sel)
         self.list_f.itemActivated.connect(self.show_info_fish_avai)
         self.list_s.itemActivated.connect(self.show_info_fish_sel)
+        self.list_f.setMinimumWidth(280)
 
         # run habitat value
         self.l9 = QLabel(' <b> Options for the computation </b>')
@@ -88,8 +89,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.butfig.clicked.connect(self.recreate_fig)
         if not self.keep_data:
             self.butfig.setDisabled(True)
-        # spacer1 = QSpacerItem(1, 1)
-        # spacer2 = QSpacerItem(1, 1)
 
         # find the path bio
         try:
@@ -149,10 +148,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # search possibility
         l3 = QLabel(self.tr('<b> Search biological models </b>'))
         self.keys = QComboBox()
-        self.keys.addItems(self.attribute_acc)
+        self.keys.addItems(self.attribute_acc[:-1])
         l02 = QLabel('is equal to')
         l02.setAlignment(Qt.AlignCenter)
         self.cond1 = QLineEdit()
+        self.cond1.returnPressed.connect(self.select_fish)
         self.bs = QPushButton(self.tr('Select suitability curve'))
         self.bs.clicked.connect(self.select_fish)
 
@@ -186,7 +186,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.list_f, 3, 0, 3, 2)
         self.layout4.addWidget(self.list_s, 3, 2, 3, 1)
 
-        self.layout4.addWidget(l4, 6, 0,1, 2)
+        self.layout4.addWidget(l4, 6, 0,1, 3)
         self.layout4.addWidget(l5, 7, 0)
         self.layout4.addWidget(self.com_name, 7, 1)
         self.layout4.addWidget(l7, 8, 0)
