@@ -496,11 +496,19 @@ class MainWindows(QMainWindow):
 
     def on_context_menu(self, point):
         """
-        This function is used to show the menu on right click
+        This function is used to show the menu on right click. If we are ont he Habitat Tab and that the focus is on
+        the QListWidget, it shows the informatin concerning the fish
 
         :param point: Not understood, linke with the position of the menu.
         """
-        self.menu_right.exec_(self.central_widget.mapToGlobal(point))
+        if self.central_widget.bioinfo_tab.list_s.underMouse():
+            self.central_widget.bioinfo_tab.show_info_fish(True)
+        elif self.central_widget.bioinfo_tab.list_f.underMouse():
+            self.central_widget.bioinfo_tab.show_info_fish(False)
+        else:
+            self.menu_right.exec_(self.central_widget.mapToGlobal(point))
+
+
 
     def my_toolbar(self):
 

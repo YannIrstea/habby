@@ -65,6 +65,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.m_all = QComboBox()
 
         # create lists with the possible fishes
+        # right button for both QListWidget managed in the MainWindows class
         l1 = QLabel(self.tr('<b> Available Fish and Guild </b>'))
         l2 = QLabel(self.tr('<b> Selected Fish and Guild </b>'))
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -103,7 +104,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 self.path_bio = pathbio_child.text
 
         # info on preference curve
-        l4 = QLabel(self.tr('<b> Information on the suitability curve</b>'))
+        l4 = QLabel(self.tr('<b> Information on the suitability curve</b> (Right click on fish name)'))
         l5 = QLabel(self.tr('Latin Name: '))
         self.com_name = QLabel()
         l7 = QLabel(self.tr('ONEMA fish code: '))
@@ -181,11 +182,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
 
         self.layout4.addWidget(l1, 2, 0)
-        self.layout4.addWidget(l2, 2, 1)
-        self.layout4.addWidget(self.list_f, 3, 0, 3, 1)
-        self.layout4.addWidget(self.list_s, 3, 1, 3, 2)
+        self.layout4.addWidget(l2, 2, 2)
+        self.layout4.addWidget(self.list_f, 3, 0, 3, 2)
+        self.layout4.addWidget(self.list_s, 3, 2, 3, 1)
 
-        self.layout4.addWidget(l4, 6, 0)
+        self.layout4.addWidget(l4, 6, 0,1, 2)
         self.layout4.addWidget(l5, 7, 0)
         self.layout4.addWidget(self.com_name, 7, 1)
         self.layout4.addWidget(l7, 8, 0)
