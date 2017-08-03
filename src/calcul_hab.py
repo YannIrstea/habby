@@ -134,6 +134,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
+    # saving hdf5 data of the habitat value
+    load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
+                                   name_fish)
+
     print('# Habitat calculation is finished. \n')
     if not print_cmd:
         print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
@@ -779,7 +783,6 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         sum_data_spu = np.zeros((len(spu_all), len(area_all)))
         sum_data_spu_div = np.zeros((len(spu_all), len(area_all)))
 
-        data_plot = []
         t_all = []
         for r in range(0, nb_reach):
             # SPU
@@ -859,18 +862,19 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
 
         # all reach
         if nb_reach > 1:
+            plt.close('all')  # only show the last reach
             fig = plt.figure()
             fig.add_subplot(211)
             for s in range(0, len(spu_all)):
                 plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
-                plt.xlabel('Copmutational step [ ]')
+                plt.xlabel('Computational step or discharge')
                 plt.ylabel('WUA [m^2]')
                 plt.title('Weighted Usable Area for All Reaches')
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps/débit [ ]')
+                plt.xlabel('Pas de temps/débit')
                 plt.ylabel('SPU [m^2]')
-                plt.title('Surface Ponderée Pour Tous Les Troncons' + str(r))
+                plt.title('Surface Ponderée pour tous les Troncons')
             plt.legend(fancybox=True, framealpha=0.5)
             if sim_name:
                 if len(sim_name[0]) > 5:
@@ -888,11 +892,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             for s in range(0, len(spu_all)):
                  plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
-                plt.xlabel('Computational step [ ]')
+                plt.xlabel('Computational step or discharge ')
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value For All Reaches')
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps/débit [ ]')
+                plt.xlabel('Pas de temps/débit')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
             plt.ylim(ymin=-0.02)
@@ -1160,34 +1164,34 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.title('Velocity by Cells')
                 plt.xlabel('velocity [m/sec]')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 0:
+            elif fig_opt['language'] == 1:
                 if t == -1:
                     plt.suptitle('Histogramme de Données Hydrauliques - Dernier Pas de Temps/Débit')
                 else:
                     plt.suptitle('Histogramme de Données Hydrauliques - Pas de Temps/Débit: ' + str(t))
-                plt.title('Vitesse par Cellule')
+                plt.title('Vitesse par cellule')
                 plt.xlabel('vitesse [m/sec]')
                 plt.ylabel('fréquence')
             # height
             fig.add_subplot(222)
             plt.hist(height_app, 20, weights=area_app, facecolor='aquamarine')
             if fig_opt['language'] == 0:
-                plt.title('Height by Cells')
+                plt.title('Height by cells')
                 plt.xlabel('velocity [m/sec]')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 0:
-                plt.title("Hauteur d'eau par Cellule")
+            elif fig_opt['language'] == 1:
+                plt.title("Hauteur d'eau par cellule")
                 plt.xlabel('hauteur [m]')
                 plt.ylabel('fréquence')
             # substrate
             fig.add_subplot(224)
             plt.hist(sub_pg_app, weights=area_app, facecolor='lightblue', bins=np.arange(0.5, 8.5))
             if fig_opt['language'] == 0:
-                plt.title('Coarser Substrate Data')
-                plt.xlabel('substrat - code cemagref')
+                plt.title('Coarser substrate data')
+                plt.xlabel('substrate - code cemagref')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 0:
-                plt.title('Données du Substrat - Plus Gros')
+            elif fig_opt['language'] == 1:
+                plt.title('Données de substrat - Plus gros')
                 plt.xlabel('substrat - code cemagref')
                 plt.ylabel('fréquence')
             # debit unitaire
@@ -1195,15 +1199,15 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             q_unit = np.array(vel_app) * np.array(height_app)
             plt.hist(q_unit, 20, weights=area_app, facecolor='deepskyblue')
             if fig_opt['language'] == 0:
-                plt.title('Elementary Flow')
+                plt.title('Elementary flow')
                 plt.xlabel('v * h * 1m [m$^{3}$/sec]')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 0:
-                plt.title('Début Unitaire')
+            elif fig_opt['language'] == 1:
+                plt.title('Début unitaire')
                 plt.xlabel('v * h * 1m [m$^{3}$/sec]')
                 plt.ylabel('fréquence')
 
-            plt.tight_layout()
+            plt.tight_layout(rect=[0., 0., 1, 0.95])
             if not sim_name:
                 name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
                        time.strftime("%d_%m_%Y_at_%H_%M_%S")

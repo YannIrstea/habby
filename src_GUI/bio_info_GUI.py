@@ -161,6 +161,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # fish selected fish
         self.add_sel_fish()
+        if self.list_s.count() == 0:
+            self.runhab.setDisabled(True)
 
         # search possibility
         l3 = QLabel(self.tr('<b> Search biological models </b>'))
@@ -319,6 +321,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         self.show_info_fish(True)
         self.remove_fish()
+        # Enable the button
+        if self.list_s.count() > 0:
+            self.runhab.setEnabled(True)
+        else:
+            self.runhab.setEnabled(False)
 
     def show_info_fish_avai(self):
         """
@@ -329,6 +336,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         self.show_info_fish(False)
         self.add_fish()
+        if self.list_s.count() > 0:
+            self.runhab.setEnabled(True)
+        else:
+            self.runhab.setEnabled(False)
 
     def show_hydrosignature(self):
         """
@@ -616,15 +627,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
             sys.stdout = self.mystdout = StringIO()
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
+            calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict, sim_name)
             for t in fig_dict['time_step']:
                 # if print last and first time step and one time step only, only print it once
                 if t == -1 and len(vh_all_t_sp[0]) == 2 and 1 in fig_dict['time_step']:
                     pass
                 else:
                     calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]],
-                                              path_im, name_fish, name_base, fig_dict, [-1], save_fig=False)
-            sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
-            calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict, sim_name)
+                                              path_im, name_fish, name_base, fig_dict, [t], save_fig=False)
+
             sys.stdout = sys.__stdout__
             self.send_err_log()
 

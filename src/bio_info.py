@@ -924,8 +924,6 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt
     if stage_here:
         stage_chosen2.append(stage_here)
     xmlfiles = xmlfiles2
-    print(xmlfiles)
-    print(stage_chosen2)
 
     # create the pdf
     for idx,f in enumerate(xmlfiles):

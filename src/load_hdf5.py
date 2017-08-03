@@ -552,6 +552,98 @@ def get_initial_files(path_hdf5, hdf5_name):
 
     return sub_ini, hydro_ini
 
+
+def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_name):
+    """
+    This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
+    velocity and the water height by cell (and not by node)
+
+    :param hdf5_name: the name of the merge file
+    :param path_hdf5: the path to this file
+    :param vh_cell: the habitat value by cell
+    :param h_cell: the height data by cell
+    :param v_cell: the velcoity data by cell
+    :param fish_name: the name of the fish (with the stage in it)
+    """
+
+    # open the file with checking for the path
+    if os.path.isabs(hdf5_name):
+        file_hydro = open_hdf5(hdf5_name)
+    else:
+        if path_hdf5:
+            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return
+    if file_hydro is None:
+        print('Error: hdf5 file could not be open. \n')
+        return
+
+    # load the number of time steps
+    basename1 = 'Data_gen'
+    try:
+        gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
+    except KeyError:
+        print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name
+              + ' an hydrological input? \n')
+        return
+    try:
+        nb_t = list(gen_dataset.values())[0]
+    except IndexError:
+        print('Error: Time step are not found')
+        return
+    nb_t = np.array(nb_t)
+    nb_t = int(nb_t)
+
+    # load the number of reach
+    try:
+        gen_dataset = file_hydro[basename1 + "/Nb_reach"]
+    except KeyError:
+        print(
+            'Error: the number of time step is missing from the hdf5 file. \n')
+        return
+    nb_r = list(gen_dataset.values())[0]
+    nb_r = np.array(nb_r)
+    nb_r = int(nb_r)
+
+    # add name and stage of fish
+    if len(vh_cell) != len(fish_name):
+        print('Error: length of the list of fish name is not coherent')
+        file_hydro.close()
+        return
+    ascii_str = [n.strip().encode("ascii", "ignore") for n in fish_name]  # unicode is not ok with hdf5
+    # not too pratical but rewirting hdf5 is really annoying
+    # to load use list(for.keys()) and use all the one starting with data_habitat
+    data_all = file_hydro.create_group('Data_habitat' + time.strftime("%d_%m_%Y_at_%H_%M_%S"))
+    name_fishg = data_all.create_group('Fish_name')
+    name_fishg.create_dataset(hdf5_name, (len(fish_name), 1), data=ascii_str, maxshape=None)
+
+    # habitat value and cell data
+    for t in range(1, nb_t):
+        there = data_all.create_group('Timestep_' + str(t - 1))
+
+        for r in range(0, nb_r):
+            rhere = there.create_group('Reach_' + str(r))
+            for s in range(0, len(fish_name)):
+                habitatg = rhere.create_group('habitat_' + fish_name[s])
+                if len(vh_cell[s]) > 0:
+                    if len(vh_cell[s][t]) > 2:
+                        habitatg.create_dataset(hdf5_name, [len(vh_cell[s][t][r]), 1],
+                                             data=vh_cell[s][t][r], maxshape=None)
+            velg = rhere.create_group('velocity_by_cell')
+            if len(v_cell[t][r]) > 0:
+                velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
+                                    maxshape=None)
+            velg = rhere.create_group('height_by_cell')
+            if len(h_cell[t][r]) > 0:
+                velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
+                                    maxshape=None)
+
+
+    file_hydro.close()
+
+
+
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
               inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[],
               sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name=''):

@@ -64,8 +64,9 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     sub_per_all_t = []
 
     # open the data ( and save the 1d figure if needed)
-    [coord_pro, vh_pro, nb_pro_reach, sub_pro, div] = load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt,
-                                                                 savefig1d, transect_name, facies_name)
+    [coord_pro, vh_pro, nb_pro_reach, sub_pro, div, q_step] = load_lammi(facies_path, transect_path, path_im,
+                                                                         new_dir, fig_opt, savefig1d, transect_name,
+                                                                         facies_name)
 
     # manage failed cases
     if coord_pro == [-99] or len(vh_pro) < 1:
@@ -119,7 +120,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     # save the data in an hdf5 (merge) file with hydro and subtrate data
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 2, path_hdf5, ikle_all_t,
                         point_all_t, [], inter_vel_all_t, inter_h_all_t, [], [], [], [], True,
-                        sub_pg_all_t, sub_dom_all_t, sub_per_all_t)
+                        sub_pg_all_t, sub_dom_all_t, sub_per_all_t, sim_name=q_step)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -213,7 +214,7 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
         # plt.show()
         plt.close()  # avoid problem with matplotlib
 
-    return coord_pro, vh_pro, nb_pro_reach, sub_pro, div
+    return coord_pro, vh_pro, nb_pro_reach, sub_pro, div, q_step
 
 
 def check_code_change(facies_path):
@@ -478,7 +479,7 @@ def load_transect_data(fac_filename_all):
         d = d.strip().split()
         if len(d) == 2:
             try:
-                data_q = np.float(d[0])
+                data_q = str(np.float(d[0]))
             except ValueError:
                 print('Error: Discharge data not understood')
                 return failload
