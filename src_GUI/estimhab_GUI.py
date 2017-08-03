@@ -9,6 +9,7 @@ except ImportError:
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
     QSpacerItem, QListWidget,  QListWidgetItem, QAbstractItemView, QMessageBox
+from PyQt5.QtGui import QFont
 import h5py
 import sys
 from io import StringIO
@@ -52,6 +53,7 @@ class StatModUseful(QWidget):
         The function is used to select a new fish species (or inverterbrate)
         """
         items = self.list_f.selectedItems()
+        ind = []
         if items:
             for i in range(0, len(items)):
                 # avoid to have the same fish multiple times
@@ -68,6 +70,13 @@ class StatModUseful(QWidget):
             self.fish_selected.sort()
             self.list_s.clear()
             self.list_s.addItems(self.fish_selected)
+            # bold for selected fish
+            font = QFont()
+            font.setItalic(True)
+            for i in range(0, self.list_f.count()):
+                for f in self.fish_selected:
+                    if f == self.list_f.item(i).text():
+                        self.list_f.item(i).setFont(font)
 
 
     def remove_fish(self):
@@ -78,6 +87,12 @@ class StatModUseful(QWidget):
         self.fish_selected.remove(item.text())
         #self.list_f.addItem(item)
         #self.list_f.sortItems()
+        # bold for selected fish
+        font = QFont()
+        font.setItalic(False)
+        for i in range(0, self.list_f.count()):
+            if item.text() == self.list_f.item(i).text():
+                self.list_f.item(i).setFont(font)
         item = None
 
     def remove_all_fish(self):
