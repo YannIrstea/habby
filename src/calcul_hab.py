@@ -16,7 +16,7 @@ from src_GUI import output_fig_GUI
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fish, name_fish_sh, run_choice, path_bio,
-                        path_txt, path_out, path_im, q=[], print_cmd=False, fig_opt={}):
+                        path_txt, path_out, path_im, q=[], print_cmd=False, fig_opt={}, path_im_bio='', xmlfiles=[]):
 
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
@@ -35,9 +35,11 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     :param path_txt: the path where to save the text file
     :param path_out: the path where to save shapefile and paraview output
     :param path_im: the path where to save the image
+    :param path_im_bio: the path where are the image of the fish
     :param q: used in the second thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     :param fig_opt: the options to crete the figure if save_fig1d is True
+    :param xmlfiles: the list of the xml file (only useful to get the preference curve report, so not used by habby_cmd)
 
     ** Technical comments**
 
@@ -78,6 +80,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         create_para = True
     else:
         create_para = False
+    if fig_opt['fish_info'] == 'True':  # from the xml, string only
+        create_info = True
+    else:
+        create_info = False
 
     # prepare name for the output (there is more or less one form by output)
     for id, n in enumerate(name_fish):
@@ -107,6 +113,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     if create_para:
         new_create_vtk.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
                                       vel_c_all_t, name_fish)
+
+    # pdf with information on the fish
+    if create_info and len(xmlfiles) > 0:
+        bio_info.create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_txt, fig_opt)
 
     # figure done always
     # 2d figure and histogram of hydraulic data for certain timesteps
@@ -167,7 +177,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
         return failload
 
     if len(bio_names) == 0:
-        print('No fish species chosen. \n')
+        print('Error: No fish species chosen. \n')
         return failload
 
     # load merge
@@ -696,6 +706,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['pdf.fonttype'] = 42
+    if fig_opt['marker'] == 'True':
+        mar = 'o'
+    else:
+        mar = None
 
     if len(spu_all) != len(name_fish):
         print('Error: Number of fish name and number of WUA data is not coherent \n')
@@ -780,7 +794,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         sum_data_spu[s][t] += spu_all[s][t][r]
                         t_all.append(t)
                 t_all_s = t_all
-                plt.plot(t_all, data_plot, label=name_fish[s])
+                plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m^2]')
@@ -813,7 +827,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         data_plot.append(data_here)
                         sum_data_spu_div[s][t] += data_here
                         t_all.append(t)
-                plt.plot(t_all, data_plot, label=name_fish[s])
+                plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
@@ -848,7 +862,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             fig = plt.figure()
             fig.add_subplot(211)
             for s in range(0, len(spu_all)):
-                plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s])
+                plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
                 plt.xlabel('Copmutational step [ ]')
                 plt.ylabel('WUA [m^2]')
@@ -872,7 +886,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             # VH
             fig.add_subplot(212)
             for s in range(0, len(spu_all)):
-                 plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s])
+                 plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')

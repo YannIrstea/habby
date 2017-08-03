@@ -116,6 +116,19 @@ class outputW(QWidget):
                              self.tr('Code ONEMA')])  # order matters here, add stuff at the end!
         self.fig12.setCurrentIndex(int(fig_dict['fish_name_type']))
 
+        # marker for habitat and preference file
+        self.out9 = QLabel(self.tr('Markers for habitat figures'))
+        self.out9a = QCheckBox(self.tr('Yes'))
+        self.out9a.clicked.connect(lambda: self.check_uncheck(self.out9a, self.out9b))
+        self.out9b = QCheckBox(self.tr('No'))
+        self.out9b.clicked.connect(lambda: self.check_uncheck(self.out9b, self.out9a))
+        if fig_dict['marker'] == 'True':  # is a string not a boolean
+            self.out9a.setChecked(True)
+            self.out9b.setChecked(False)
+        else:
+            self.out9a.setChecked(False)
+            self.out9b.setChecked(True)
+
         # output options on the lower half,
         self.out0 = QLabel(self.tr(' <b> Output Options </b>'))
         self.out1 = QLabel(self.tr('Text file'))
@@ -151,6 +164,17 @@ class outputW(QWidget):
         else:
             self.out3a.setChecked(False)
             self.out3b.setChecked(True)
+        self.out4 = QLabel(self.tr('Fish Information'))
+        self.out4a = QCheckBox(self.tr('Yes'))
+        self.out4a.clicked.connect(lambda: self.check_uncheck(self.out4a, self.out4b))
+        self.out4b = QCheckBox(self.tr('No'))
+        self.out4b.clicked.connect(lambda: self.check_uncheck(self.out4b, self.out4a))
+        if fig_dict['fish_info'] == 'True':  # is a string not a boolean
+            self.out4a.setChecked(True)
+            self.out4b.setChecked(False)
+        else:
+            self.out4a.setChecked(False)
+            self.out4b.setChecked(True)
 
         # other options
         self.outgen = QLabel(self.tr(' <b> General Options </b>'))
@@ -162,7 +186,6 @@ class outputW(QWidget):
         self.saveb.clicked.connect(self.save_option_fig)
 
         spacer = QSpacerItem(300, 10)
-
 
         self.layout = QGridLayout()
         self.layout.addWidget(self.fig0l, 0, 0)
@@ -177,7 +200,7 @@ class outputW(QWidget):
         self.layout.addWidget(self.fig10l, 9, 0)
         self.layout.addWidget(self.fig11l, 10, 0)
         self.layout.addWidget(self.fig12l, 11, 0)
-
+        self.layout.addWidget(self.out9, 12, 0)
 
         self.layout.addWidget(self.fig1, 1, 1,1,2)
         self.layout.addWidget(self.fig2, 2, 1, 1, 2)
@@ -192,23 +215,28 @@ class outputW(QWidget):
         self.layout.addWidget(self.fig10, 9, 1, 1, 2)
         self.layout.addWidget(self.fig11, 10, 1, 1, 2)
         self.layout.addWidget(self.fig12, 11, 1, 1, 2)
+        self.layout.addWidget(self.out9a, 12, 1, 1, 1)
+        self.layout.addWidget(self.out9b, 12, 2, 1, 1)
 
-        self.layout.addWidget(self.out0, 12, 0)
-        self.layout.addWidget(self.out1, 13, 0)
-        self.layout.addWidget(self.out1a, 13, 1, 1, 1)
-        self.layout.addWidget(self.out1b, 13, 2, 1, 1)
-        self.layout.addWidget(self.out2, 14, 0)
-        self.layout.addWidget(self.out2a, 14, 1, 1, 1)
-        self.layout.addWidget(self.out2b, 14, 2, 1, 1)
-        self.layout.addWidget(self.out3, 15, 0)
-        self.layout.addWidget(self.out3a, 15, 1, 1, 1)
-        self.layout.addWidget(self.out3b, 15, 2, 1, 1)
+        self.layout.addWidget(self.out0, 13, 0)
+        self.layout.addWidget(self.out1, 14, 0)
+        self.layout.addWidget(self.out1a, 14, 1, 1, 1)
+        self.layout.addWidget(self.out1b, 14, 2, 1, 1)
+        self.layout.addWidget(self.out2, 15, 0)
+        self.layout.addWidget(self.out2a, 15, 1, 1, 1)
+        self.layout.addWidget(self.out2b, 15, 2, 1, 1)
+        self.layout.addWidget(self.out3, 16, 0)
+        self.layout.addWidget(self.out3a, 16, 1, 1, 1)
+        self.layout.addWidget(self.out3b, 16, 2, 1, 1)
+        self.layout.addWidget(self.out4, 17, 0)
+        self.layout.addWidget(self.out4a, 17, 1, 1, 1)
+        self.layout.addWidget(self.out4b, 17, 2, 1, 1)
 
-        self.layout.addWidget(self.outgen, 16, 0)
-        self.layout.addWidget(self.l1, 17, 0)
-        self.layout.addWidget(self.hopt, 17, 1)
+        self.layout.addWidget(self.outgen, 18, 0)
+        self.layout.addWidget(self.l1, 19, 0)
+        self.layout.addWidget(self.hopt, 19, 1)
 
-        self.layout.addWidget(self.saveb, 18, 1, 1, 2)
+        self.layout.addWidget(self.saveb, 19, 1, 1, 2)
         self.layout.addItem(spacer, 5, 3)
         #self.layout.addItem(spacer2, 8, 2)
 
@@ -292,6 +320,11 @@ class outputW(QWidget):
         fig_dict['resolution'] = int(self.fig11.text())
         # fish name type
         fig_dict['fish_name_type'] = int(self.fig12.currentIndex())
+        # marker
+        if self.out9a.isChecked():
+            fig_dict['marker'] = True
+        elif self.out9b.isChecked():
+            fig_dict['marker'] = False
         # outputs
         if self.out1a.isChecked() and self.out1b.isChecked():
             self.send_log.emit('Error: Text Output cannot be on and off at the same time. \n')
@@ -311,6 +344,10 @@ class outputW(QWidget):
             fig_dict['paraview'] = True
         elif self.out3b.isChecked():
             fig_dict['paraview'] = False
+        if self.out4a.isChecked():
+            fig_dict['fish_info'] = True
+        elif self.out4b.isChecked():
+            fig_dict['fish_info'] = False
         # other option
         fig_dict['min_height_hyd'] = float(self.hopt.text())
 
@@ -342,11 +379,13 @@ class outputW(QWidget):
                 format1 = root.find(".//Format")
                 reso1 = root.find(".//Resolution")
                 fish1 = root.find(".//FishNameType")
+                marker1 = root.find(".//Marker")
                 text1 = root.find(".//TextOutput")
                 shape1 = root.find(".//ShapeOutput")
                 para1 = root.find(".//ParaviewOutput")
                 langfig1 = root.find(".//LangFig")
                 hopt1 = root.find(".//MinHeight")
+                fishinfo1 = root.find(".//FishInfo")
             else:  # save in case no fig option exist
                 child1 = ET.SubElement(root, 'Figure_Option')
                 width1 = ET.SubElement(child1, 'Width')
@@ -361,11 +400,13 @@ class outputW(QWidget):
                 format1 = ET.SubElement(child1, "Format")
                 reso1 = ET.SubElement(child1, "Resolution")
                 fish1 = ET.SubElement(child1, "FishNameType")
+                marker1 = ET.SubElement(child1,"Marker")
                 text1 = ET.SubElement(child1, "TextOutput")
                 shape1 = ET.SubElement(child1, "ShapeOutput")
                 para1 = ET.SubElement(child1, "ParaviewOutput")
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
+                fishinfo1 = ET.SubElement(child1, "FishInfo")
             width1.text = str(fig_dict['width'])
             height1.text = str(fig_dict['height'])
             colormap1.text = fig_dict['color_map1']
@@ -381,6 +422,7 @@ class outputW(QWidget):
             if fish1 is None:
                 fish1 = ET.SubElement(child1, "FishNameType")
             fish1.text = str(fig_dict['fish_name_type'])
+            marker1.text = str(fig_dict['marker'])
             if langfig1 is None:
                 langfig1 = ET.SubElement(child1, "LangFig")
             langfig1.text = str(fig_dict['language'])
@@ -388,6 +430,7 @@ class outputW(QWidget):
             shape1.text = str(fig_dict['shape_output'])
             para1.text = str(fig_dict['paraview'])
             hopt1.text = str(fig_dict['min_height_hyd'])
+            fishinfo1.text = str(fig_dict['fish_info'])
             doc.write(fname)
 
         self.send_log.emit('The new options for the figures are saved. \n')
@@ -458,6 +501,7 @@ def load_fig_option(path_prj, name_prj):
             time1 = root.find(".//TimeStep")
             raw1 = root.find(".//PlotRawData")
             format1 = root.find(".//Format")
+            marker1 = root.find(".//Marker")
             reso1 = root.find(".//Resolution")
             fish1 = root.find(".//FishNameType")
             text1 = root.find(".//TextOutput")
@@ -465,6 +509,7 @@ def load_fig_option(path_prj, name_prj):
             para1 = root.find(".//ParaviewOutput")
             langfig1 = root.find(".//LangFig")
             hopt1 = root.find(".//MinHeight")
+            fishinfo1 = root.find(".//FishInfo")
             try:
                 if width1 is not None:
                     fig_dict['width'] = float(width1.text)
@@ -486,10 +531,12 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['raw_data'] = raw1.text
                 if format1 is not None:
                     fig_dict['format'] = format1.text
+                if marker1 is not None:
+                    fig_dict['marker'] = marker1.text
                 if reso1 is not None:
                     fig_dict['resolution'] = int(reso1.text)
                 if fish1 is not None:
-                    fig_dict['fish_name_type'] = int(fish1.text)
+                    fig_dict['fish_name_type'] = fish1.text
                 if text1 is not None:
                     fig_dict['text_output'] = text1.text
                 if shape1 is not None:
@@ -500,6 +547,8 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['language'] = int(langfig1.text)
                 if hopt1 is not None:
                     fig_dict['min_height_hyd'] = float(hopt1.text)
+                if fish1 is not None:
+                    fig_dict['fish_info'] = fishinfo1.text
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
 
@@ -529,12 +578,14 @@ def create_default_figoption():
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800
     fig_dict['fish_name_type'] = 0
-    fig_dict['text_output'] = True
-    fig_dict['shape_output'] = True
-    fig_dict['paraview'] = True
+    fig_dict['text_output'] = False
+    fig_dict['shape_output'] = False
+    fig_dict['paraview'] = False
+    fig_dict['fish_info'] = False
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
+    fig_dict['marker'] = False
 
     return fig_dict
 

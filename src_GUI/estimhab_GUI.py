@@ -103,17 +103,18 @@ class StatModUseful(QWidget):
             child = root.find(".//Habitat/Fish_Selected")
             if child is not None:
                 fish_selected_b = child.text
-                if ',' in fish_selected_b:
-                    fish_selected_b = fish_selected_b.split(',')
-                # show it
-                for i in range(0, self.list_f.count()):
-                    self.list_f.clearSelection()
-                    self.list_f.setCurrentRow(i)
-                    items = self.list_f.selectedItems()
-                    if items:
-                        fish_l = items[0].text()
-                        if fish_l in fish_selected_b:  # do not work with space here
-                            self.add_fish()
+                if fish_selected_b is not None:
+                    if ',' in fish_selected_b:
+                        fish_selected_b = fish_selected_b.split(',')
+                    # show it
+                    for i in range(0, self.list_f.count()):
+                        self.list_f.clearSelection()
+                        self.list_f.setCurrentRow(i)
+                        items = self.list_f.selectedItems()
+                        if items:
+                            fish_l = items[0].text()
+                            if fish_l in fish_selected_b:  # do not work with space here
+                                self.add_fish()
 
     def find_path_im_est(self):
         """

@@ -175,8 +175,10 @@ class MainWindows(QMainWindow):
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
-        self.setGeometry(200, 200, 900, 750)
+        self.setGeometry(200, 200, 900, 800)
         self.setCentralWidget(self.central_widget)
+
+        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         self.check_concurrency()
         self.show()
@@ -2004,7 +2006,7 @@ class CentralW(QWidget):
 
         if self.old_ind_tab == 0:
             self.save_info_projet()
-        elif self.old_ind_tab == 3:
+        elif self.old_ind_tab == 7:
             self.output_tab.save_option_fig()
         self.old_ind_tab = self.tab_widget.currentIndex()
 

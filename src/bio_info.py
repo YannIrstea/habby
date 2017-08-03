@@ -4,7 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import sqlite3
+import time
 from src import load_hdf5
+from src_GUI import output_fig_GUI
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -201,7 +203,7 @@ def test_evah_xml_pref(path_xml,path_evha):
     plt.show()
 
 
-def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False):
+def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fig_opt={}):
     """
     This function is used to plot the preference curves.
 
@@ -213,45 +215,87 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False):
     :param stade: the name of the stade analyzed (ADU, JUV, ...)
     :param get_fig: usually False, If True return the figure (to modfied it more)
     """
+    mpl.rcParams['pdf.fonttype'] = 42
+    if not get_fig:
+        if not fig_opt:
+            fig_opt = output_fig_GUI.create_default_figoption()
+        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+        plt.rcParams['font.size'] = fig_opt['font_size']
+        if fig_opt['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if fig_opt['marker'] == 'True':
+        mar = 'o'
+    else:
+        mar = None
 
     if len(stade)> 1:  # if you take this out, the commande axarr[x,x] does not work as axarr is only 1D
         f, axarr = plt.subplots(len(stade),3, sharey='row')
-        plt.suptitle('Preference curve of ' + name_fish + ' (' + code_fish + ') ')
+        if fig_opt['language'] == 0:
+            plt.suptitle('Suitability curve of ' + name_fish + ' (' + code_fish + ') ')
+        else:
+            plt.suptitle('Courbe de préférence pour ' + name_fish + ' (' + code_fish + ') ')
         for s in range(0, len(stade)):
-            axarr[s, 0].plot(height[s][0], height[s][1], '-xb')
-            axarr[s, 0].set_xlabel('Water height [m]')
-            axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
+            axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
+            if fig_opt['language'] == 0:
+                axarr[s, 0].set_xlabel('Water height [m]')
+                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
+            else:
+                axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
+                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 0].set_ylim([0,1.1])
 
-            axarr[s, 1].plot(vel[s][0], vel[s][1], '-xr')
-            axarr[s, 1].set_xlabel('Velocity [m/sec]')
+            axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
+            if fig_opt['language'] == 0:
+                axarr[s, 1].set_xlabel('Velocity [m/sec]')
+            else:
+                axarr[s, 1].set_xlabel('Vitesse [m/sec]')
             axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 1].set_ylim([0, 1.1])
 
             if len(sub[0][0]) > 2:  # if substrate is accounted, it is accounted for all stages
-                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',align='center')
-            axarr[s, 2].set_xlabel('Substrate []')
+                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c', align='center')
+            if fig_opt['language'] == 0:
+                axarr[s, 2].set_xlabel('Substrate []')
+            else:
+                axarr[s, 2].set_xlabel('Substrat []')
             axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 2].set_ylim([0, 1.1])
             axarr[s, 2].set_xlim([0.4, 8.6])
 
     else:
         f, axarr = plt.subplots(3, 1, sharey='row')
-        plt.suptitle('Preference curve of ' + name_fish + ' (' + code_fish + ') ')
-        axarr[0].plot(height[0][0], height[0][1], '-xb')
-        axarr[0].set_xlabel('Water height [m]')
-        axarr[0].set_ylabel('Coeff. pref. ' + stade[0])
+        if fig_opt['language'] == 0:
+            plt.suptitle('Suitability curve of ' + name_fish + ' (' + code_fish + ') ')
+        else:
+            plt.suptitle('Courbe de préférence pour ' + name_fish + ' (' + code_fish + ') ')
+
+        axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
+        if fig_opt['language'] == 0:
+            axarr[0].set_xlabel('Water height [m]')
+            axarr[0].set_ylabel('Coeff. pref. ')
+        else:
+            axarr[0].set_xlabel("Hauteur d'eau [m]")
+            axarr[0].set_ylabel('Coeff. pref. ')
         axarr[0].set_ylim([0, 1.1])
 
-        axarr[1].plot(vel[0][0], vel[0][1], '-xr')
-        axarr[1].set_xlabel('Velocity [m/sec]')
-        axarr[1].set_ylabel('Coeff. pref. ' + stade[0])
+        axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
+        if fig_opt['language'] == 0:
+            axarr[1].set_xlabel('Velocity [m/sec]')
+        else:
+            axarr[1].set_xlabel('Vitesse [m/sec]')
+        axarr[1].set_ylabel('Coeff. pref. ')
         axarr[1].set_ylim([0, 1.1])
 
         if len(sub[0][0]) > 2:
             axarr[2].bar(sub[0][0], sub[0][1], facecolor='c',align='center')
-        axarr[2].set_xlabel('Substrate [class]')
-        axarr[2].set_ylabel('Coeff. pref. ' + stade[0])
+        if fig_opt['language'] == 0:
+            axarr[2].set_xlabel('Substrate []')
+        else:
+            axarr[2].set_xlabel('Substrat []')
+        axarr[2].set_ylabel('Coeff. pref. ')
         axarr[2].set_ylim([0, 1.1])
         axarr[2].set_xlim([0.4, 8.6])
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -452,23 +496,32 @@ def execute_request(path_bio, name_database, request):
     return res
 
 
-def load_xml_name(path_bio, attributes):
+def load_xml_name(path_bio, attributes, preffiles=[]):
     """
     This function looks for all preference curves found in the path_bio folder. It extract the fish name and the stage.
     to be corrected if more than one language. The name of attribute_acc should be coherent with the one from the xml
-    file apart from the common name which shoulf be in the form language_common_name (so we can wirte something in the
-    GUI to get all langugage if we get something else than English or French)
+    file apart from the common name which should be in the form language_common_name (so we can wirte something in the
+    GUI to get all langugage if we get something else than English or French).
+
+    If one use the argument preffiles, only part of the xml file are loaded. Otherwise all xml file are loaded.
+
+    Careful, the first attribute is relgated at the last place of the list return. This is confusing but it is really
+    useful for the GUI.
 
     :param path_bio: the path to the biological function
     :param attributes: the list of attribute which should be possible to search from the GUI or, more generally
            which should be in data-fish which is returned.
+    :param preffiles: If there is a list of string there, it only read this files
     :return: the list of stage/fish species with the info from [name for GUi, s, xmlfilename, attribute_acc without s]
     """
-    # get all xml name
-    preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
-    if len(preffiles) < 1:
-        print('Error: no xml preference file found. Please check the biology folder. \n')
-        return
+    stages = []
+
+    if not preffiles:
+        # get all xml name
+        preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
+        if len(preffiles) < 1:
+            print('Error: no xml preference file found. Please check the biology folder. \n')
+            return
 
     # for all xml file
     found_one = False
@@ -538,11 +591,14 @@ def load_xml_name(path_bio, attributes):
             break
 
         # put data in the new list
-        for s in stages:
-                # careful the char : is necessary for the function  show_info_fish() from bio_info_GUI
-                data_s = [data[4] + ': ' + s + ' - ' + data[5], s, preffile]  # order mattter HERE! (ind: +3)
-                data_s.extend(data)
-                data_fish.append(data_s)
+        if stages:
+            for s in stages:
+                    # careful the char : is necessary for the function  show_info_fish() from bio_info_GUI
+                    data_s = [data[4] + ': ' + s + ' - ' + data[5], s, preffile]  # order mattter HERE! (ind: +3)
+                    data_s.extend(data)
+                    data_fish.append(data_s)
+        else:
+            data_fish.append(data)
         found_one = True
 
     if not found_one:
@@ -550,6 +606,7 @@ def load_xml_name(path_bio, attributes):
 
     data_fish = np.array(data_fish)
 
+    preffiles = []  # mutable arg.
     return data_fish
 
 
@@ -675,15 +732,18 @@ def plot_hydrosignature(xmlfile):
     mpl.rcParams['pdf.fonttype'] = 42
 
     plt.figure()
-    plt.imshow(data, extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()], cmap='Blues',
-               interpolation='nearest',origin='lower')
+    plt.imshow(data, cmap='Blues', interpolation='nearest',origin='lower')
+    #  extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()]
+    ax1 = plt.gca()
+    # add percetage number
+    for (j, i), label in np.ndenumerate(data):
+        ax1.text(i, j, np.round(label, 2), ha='center', va='center')
     plt.title('Hydrosignature')
     plt.xlabel('V [m/s]')
     plt.ylabel('H [m]')
     plt.locator_params(nticks=3)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel('Relative area [%]')
-    plt.grid()
 
 
 def read_pref(xmlfile):
@@ -832,6 +892,111 @@ def change_unit(data,unit):
     return data
 
 
+def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt):
+    """
+    This functionc create a pdf with information about the fish. It tries to follow the chosen language, but
+    the stage name are not translated and the decription are usually only given in French.
+
+    :param xmlfiles: the name of the xmlfile (without the path!)
+    :param stages_chosen: the stage chosen (might not be all stages)
+    :param path_bio: the path with the biological xml file
+    :param path_im_bio: the path with the images of the fish
+    :param path_out: the path where to save the .pdf file (usually other_outputs)
+    :param fig_opt: the figure options (contain the chosen language)
+    """
+    plt.close()
+    plt.rcParams['figure.figsize'] = 21, 29.7  # a4
+    plt.rcParams['font.size'] = 24
+
+    # get the stage chosen for each species and get rid of repetition
+    stage_chosen2 = []
+    stage_here = []
+    xmlold = 'sdfsdfs'
+    xmlfiles2 = []
+    for idx, f in enumerate(xmlfiles):
+        if xmlold != f:
+            xmlfiles2.append(f)
+            if stage_here:
+                stage_chosen2.append(stage_here)
+            stage_here = []
+        stage_here.append(stages_chosen[idx])
+        xmlold = f
+    if stage_here:
+        stage_chosen2.append(stage_here)
+    xmlfiles = xmlfiles2
+    print(xmlfiles)
+    print(stage_chosen2)
+
+    # create the pdf
+    for idx,f in enumerate(xmlfiles):
+
+        # read pref
+        xmlfile = os.path.join(path_bio, f)
+        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = read_pref(xmlfile)
+
+        # read additionnal info
+        attributes = ['Description', 'Image', 'French_common_name','English_common_name',]
+        # careful: description is last data returned
+        data = load_xml_name(path_bio, attributes, [f])
+
+        # create figure
+        [f, axarr] = figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages, True, fig_opt)
+
+        # modification of the orginal preference fig
+        # (0,0) is bottom left - 1 is the end of the page in x and y direction
+        plt.tight_layout(rect=[0.05, 0.05, 0.95, 0.53])  # position fo the image
+
+        # add a fish image
+        if path_im_bio:
+            fish_im_name = os.path.join(path_im_bio, data[0][0])
+            if os.path.isfile(fish_im_name):
+                im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
+                newax = f.add_axes([0.1, 0.4, 0.25, 0.25], anchor='NE', zorder=-1)
+                newax.imshow(im)
+                newax.axis('off')
+
+        # move suptitle
+        if fig_opt['language'] == 0:
+            f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32, weight='bold')
+        else:
+            f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32, weight='bold')
+        # general info
+        if fig_opt['language'] == 0:
+            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
+                        weight='bold', fontsize=32)
+            text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + code_fish + '\n\n'
+        else:
+            plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA :\n\nStage choisi :\n\nDescription :",
+                        weight='bold', fontsize=32)
+            text_all = name_fish + '\n\n' + data[0][1] + '\n\n' + code_fish + '\n\n'
+        for idx, s in enumerate(stage_chosen2[idx]):
+            text_all += s + ', '
+        text_all = text_all[:-2] + '\n\n'
+        plt.figtext(0.4, 0.7, text_all, fontsize=32)
+        # bbox={'facecolor':'grey', 'alpha':0.07, 'pad':50}
+
+        # descirption
+        if len(data[0][-1]) > 250:
+            plt.figtext(0.4, 0.61, data[0][-1][:250] + '...', wrap=True, fontsize=32)
+        else:
+            plt.figtext(0.4, 0.61, data[0][-1], wrap=True, fontsize=32)
+
+        # title of the page
+        plt.figtext(0.1, 0.9, "REPORT - " + name_fish, fontsize=55, weight='bold',
+                    bbox={'facecolor':'grey', 'alpha':0.15, 'pad':50})
+
+        # day
+        plt.figtext(0.8, 0.95, 'HABBY - ' + time.strftime("%d %b %Y"))
+
+        # save
+        filename = os.path.join(path_out, 'report_' + code_fish + '.pdf')
+        try:
+            plt.savefig(filename)
+        except PermissionError:
+            print('Warning: Close .pdf to update fish information')
+
+
+
 def main():
     """
     Used to test the module on the biological preference
@@ -856,9 +1021,19 @@ def main():
     # plt.show()
 
     # test comparison
-    path_xml = r'C:\Users\diane.von-gunten\HABBY\biology'
-    path_evha = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF_ALL'
-    test_evah_xml_pref(path_xml, path_evha)
+    # path_xml = r'C:\Users\diane.von-gunten\HABBY\biology'
+    # path_evha = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF_ALL'
+    # test_evah_xml_pref(path_xml, path_evha)
+
+    # test for pdf report
+    path_bio= r'C:\Users\diane.von-gunten\HABBY\biology'
+    path_bio_im = r"C:\Users\diane.von-gunten\HABBY\biology\figure_pref"
+    path_out = r'C:\Users\diane.von-gunten\HABBY\biology'
+    xmlfiles = ['ABL01.xml', 'ABL01.xml', 'BAM01.xml']
+    stages = ['adult', 'juvenile', 'fry']
+    fig_opt = output_fig_GUI.create_default_figoption()
+    fig_opt['language'] = 1
+    create_pdf(xmlfiles, stages, path_bio, '', path_out, fig_opt)
 
 if __name__ == '__main__':
     main()

@@ -401,7 +401,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # open the pref
         [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info.read_pref(xmlfile)
         # plot the pref
-        bio_info.figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages)
+        fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        bio_info.figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages, fig_opt=fig_dict)
 
         # show the image
         self.show_fig.emit()
@@ -430,6 +431,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         name_fish = []
         name_fish_sh = [] # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
+        xmlfiles = []
         for i in range(0, self.list_s.count()):
             fish_item = self.list_s.item(i)
             for j in range(0, self.list_f.count()):
@@ -448,6 +450,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                         name_fish.append(self.data_fish[j][5])
                     name_fish_sh.append(self.data_fish[j][5][:3]+self.data_fish[j][1][:3])
                     name_fish_sel += fish_item.text() + ','
+                    xmlfiles.append(self.data_fish[j][2])
 
         # save the selected fish in the xml project file
         try:
@@ -493,6 +496,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # only useful if we want to also show the 2d figure in the GUI
         self.hdf5_file = hdf5_file
         self.path_hdf5 = path_hdf5
+        path_im_bioa = os.path.join(os.getcwd(), self.path_im_bio)
 
         # send the calculation of habitat and the creation of output
         self.timer.start(1000)  # to know when to show image
@@ -500,7 +504,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.p4 = Process(target=calcul_hab.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
                                                                        name_fish, name_fish_sh, run_choice,
                                                                        self.path_bio, path_txt, path_out, path_im,
-                                                                       self.q4, False, fig_dict))
+                                                                       self.q4, False, fig_dict, path_im_bioa,
+                                                                       xmlfiles))
         self.p4.start()
 
         # log
@@ -549,7 +554,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # when the loading is finished
         if not self.q4.empty() or (self.keep_data is not None and self.plot_new):
-            # manage error
             if self.keep_data is None:
                 self.timer.stop()
                 data_second = self.q4.get()
@@ -574,6 +578,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             if len(name_fish) > 0:
                 if isinstance(name_fish[0], int):
+                    self.running_time = 0
+                    self.send_log.emit("clear status bar")
                     return
 
             # show one image (relatively quick to create)
