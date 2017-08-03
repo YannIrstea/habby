@@ -1,7 +1,7 @@
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer
+from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer, QStringListModel
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout,  QLineEdit, QComboBox, QAbstractItemView, \
-    QSizePolicy, QScrollArea, QFrame
+    QSizePolicy, QScrollArea, QFrame, QCompleter
 from PyQt5.QtGui import QPixmap, QFont
 from multiprocessing import Process, Queue
 import os
@@ -145,17 +145,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hs = QPushButton(self.tr('Show Measurement Conditions (Hydrosignature)'))
         self.hs.clicked.connect(self.show_hydrosignature)
 
-        # search possibility
-        l3 = QLabel(self.tr('<b> Search biological models </b>'))
-        self.keys = QComboBox()
-        self.keys.addItems(self.attribute_acc[:-1])
-        l02 = QLabel('is equal to')
-        l02.setAlignment(Qt.AlignCenter)
-        self.cond1 = QLineEdit()
-        self.cond1.returnPressed.connect(self.select_fish)
-        self.bs = QPushButton(self.tr('Select suitability curve'))
-        self.bs.clicked.connect(self.select_fish)
-
         # fill in list of fish
         sys.stdout = self.mystdout = StringIO()
         self.data_fish = bio_info.load_xml_name(self.path_bio, self.attribute_acc)
@@ -172,6 +161,24 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # fish selected fish
         self.add_sel_fish()
+
+        # search possibility
+        l3 = QLabel(self.tr('<b> Search biological models </b>'))
+        self.keys = QComboBox()
+        self.keys.addItems(self.attribute_acc[:-1])
+        self.keys.currentIndexChanged.connect(self.get_autocompletion)
+        l02 = QLabel('is equal to')
+        l02.setAlignment(Qt.AlignCenter)
+        self.cond1 = QLineEdit()
+        self.cond1.returnPressed.connect(self.select_fish)
+        self.bs = QPushButton(self.tr('Select suitability curve'))
+        self.bs.clicked.connect(self.select_fish)
+        # add auto-completion
+        completer = QCompleter()
+        self.cond1.setCompleter(completer)
+        self.model = QStringListModel()
+        completer.setModel(self.model)
+        self.get_autocompletion()
 
         # fill hdf5 list
         self.update_merge_list()
@@ -211,6 +218,29 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # self.layout4.addItem(spacer1, 0, 2)
         # self.layout4.addItem(spacer2, 3, 3)
         self.setLayout(self.layout4)
+
+    def get_autocompletion(self):
+        """
+        This function update the auto-complextin model as a function of the QComboxBox next to it
+        """
+        ind = self.keys.currentIndex()
+
+        if ind == 0:
+            string_all = list(set(self.data_fish[:, 1]))
+        elif ind == 1:
+            string_all = list(set(self.data_fish[:, 3]))
+        elif ind ==2:
+            string_all = list(set(self.data_fish[:, 4]))
+        elif ind == 3:
+            string_all = list(set(self.data_fish[:, 5]))
+        elif ind == 4:
+            string_all = list(set(self.data_fish[:, 6]))
+        elif ind == 5:
+            string_all = list(set(self.data_fish[:, 7]))
+        else:
+            string_all = ''
+
+        self.model.setStringList(string_all)
 
     def show_info_fish(self, select=False):
         """
