@@ -101,8 +101,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     if create_text:
         save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base,
                      sim_name)
-
-        save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name)
+    save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'])
 
     # shape output
     if create_shape:
@@ -455,7 +454,10 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
     gives the connectivity table (starting at 0), one file with the point coordinates in the
     coordinate systems of the hydraulic models (x,y), one file wiche gives the results.
     In all three files, the first column is the reach number. In the results files, the next columns are velocity,
-    height, substrate, habitat value for each species.
+    height, substrate, habitat value for each species. Use tab instead of space to help with excel import.
+
+    The name and the form of the files do not change with the chosen language. The idea is that these files are quite big
+    and that they will mostly be used by computer program. So it is easier for the user if the name and form is coherent.
 
     :param name_merge_hdf5: the name of the hdf5 merged file
     :param path_hdf5: the path to the hydrological hdf5 data
@@ -508,17 +510,17 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                 for r in range(0,  nb_reach):
                     ikle_here = ikle[t][r]
                     f.write('REACH ' + str(r)+'\n')
-                    f.write('reach cell1 cell2 cell2'+'\n')
+                    f.write('reach\tcell1\tcell2\tcell3'+'\n')
                     for c in ikle_here:
-                        f.write(str(r) + ' ' + str(c[0]) + ' ' + str(c[1]) + ' ' + str(c[2]) + '\n')
+                        f.write(str(r) + '\t' + str(c[0]) + '\t' + str(c[1]) + '\t' + str(c[2]) + '\n')
             # point
             with open(name1, 'wt', encoding='utf-8') as f:
                 for r in range(0,  nb_reach):
                     p_here = point[t][r]
                     f.write('REACH ' + str(r)+'\n')
-                    f.write('reach x y'+'\n')
+                    f.write('reach\tx\ty'+'\n')
                     for p in p_here:
-                        f.write(str(r) + ' ' + str(p[0]) + ' ' + str(p[1])+'\n')
+                        f.write(str(r) + '\t' + str(p[0]) + '\t' + str(p[1])+'\n')
 
             # result
             with open(name3, 'wt', encoding='utf-8') as f:
@@ -527,18 +529,18 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                     h_here = height_data[t][r]
                     sub_pg = sub_pg_data[t][r]
                     sub_dom = sub_dom_data[t][r]
-                    f.write('REACH ' + str(r) +'\n')
+                    f.write('REACH ' + str(r) + '\n')
                     # header 1
-                    header = 'reach cells velocity height coarser_substrate dominant_substrate'
+                    header = 'reach\tcells\tvelocity\theight\tcoarser_substrate\tdominant_substrate'
                     for i in range(0, len(name_fish)):
-                        header += ' VH'+str(i)
+                        header += '\tVH'+str(i)
                     header += '\n'
                     f.write(header)
                     # header 2
-                    header = '[] [] [m/s] [m] [Code_Cemagref] [Code_Cemagref]'
+                    header = '[]\t[]\t[m/s]\t[m]\t[Code_Cemagref]\t[Code_Cemagref]'
                     for i in name_fish:
-                        i = i.replace(' ', '_')  # so space is always a separator
-                        header += ' ' + i
+                        i = i.replace(' ', '_')  # so space/tab is only a separator
+                        header += '\t' + i
                     header += '\n'
                     f.write(header)
                     # data
@@ -546,18 +548,18 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                         vh_str = ''
                         for j in range(0, len(name_fish)):
                             try:
-                                vh_str += str(vh_data[j][t][r][i]) + ' '
+                                vh_str += str(vh_data[j][t][r][i]) + '\t'
                             except IndexError:
                                 print('Error: Results could not be written to text file. \n')
                                 return
-                        f.write(str(r) + ' ' + str(i) + ' ' + str(v_here[i]) + ' ' + str(h_here[i]) + ' ' +
-                                str(sub_pg[i]) + ' ' +str(sub_dom[i]) + ' ' +vh_str + '\n')
+                        f.write(str(r) + '\t' + str(i) + '\t' + str(v_here[i]) + '\t' + str(h_here[i]) + '\t' +
+                                str(sub_pg[i]) + '\t' + str(sub_dom[i]) + '\t' + vh_str + '\n')
 
 
-def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[]):
+def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[], lang=0):
     """
     This function create a text files with the folowing columns: the tiem step, the reach number, the area of the
-    reach and the spu for each fish species.
+    reach and the spu for each fish species. Use tab instead of space to help with excel import.
 
     :param area_all: the area for all reach
     :param spu_all: the "surface pondere utile" (SPU) for each reach
@@ -565,9 +567,13 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[])
     :param path_txt: the path where to save the text file
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time step
+    :param lang: an int which indicates the chosen language (0 is english)
     """
 
-    name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+    if lang == 0:
+        name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+    else:
+        name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
     if os.path.exists(path_txt):
         name = os.path.join(path_txt, name)
 
@@ -578,28 +584,40 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[])
     with open(name, 'wt', encoding='utf-8') as f:
 
         # header
-        header = 'time_step reach reach_area'
+        if lang == 0:
+            header = 'time_step\treach\treach_area'
+        else:
+            header = 'pas_de_temps\ttroncon\taire_troncon'
         for i in range(0, len(name_fish)):
-            header += ' WUA' + str(i) + ' HV' + str(i)
+            if lang == 0:
+                header += '\tWUA' + str(i) + '\tHV' + str(i)
+            else:
+                header += '\tSPU' + str(i) + '\tVH' + str(i)
         header += '\n'
         f.write(header)
         # header 2
-        header = '[] [] [m2] [m2] []'
+        header = '[?]\t[]\t[m2]'
+        for i in name_fish:
+            header += '\t[m2]\t[]'
+        header +='\n'
+        f.write(header)
+        # header 3
+        header = 'all\tall\tall '
         for i in name_fish:
             i = i.replace(' ', '_')  # so space is always a separator
-            header += ' ' + i + ' ' + i
+            header += '\t' + i + '\t' + i
         header += '\n'
         f.write(header)
 
         for t in range(0, len(area_all)):
             for r in range(0, len(area_all[t])):  # at t=0, whole profile len(area_all[t]) = 0
                 if not sim_name:
-                    data_here = str(t) + ' ' + str(r) + ' ' + str(area_all[t][r])
+                    data_here = str(t) + '\t' + str(r) + '\t' + str(area_all[t][r])
                 else:
-                    data_here = sim_name[t-1] + ' ' + str(r) + ' ' + str(area_all[t][r])
+                    data_here = sim_name[t-1] + '\t' + str(r) + '\t' + str(area_all[t][r])
                 for i in range(0, len(name_fish)):
-                    data_here += ' ' + str(spu_all[i][t][r])
-                    data_here += ' ' + str(spu_all[i][t][r]/area_all[t][r])
+                    data_here += '\t' + str(spu_all[i][t][r])
+                    data_here += '\t' + str(spu_all[i][t][r]/area_all[t][r])
                 data_here += '\n'
                 f.write(data_here)
 
