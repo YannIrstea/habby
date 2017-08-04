@@ -599,15 +599,15 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
     and perpendicular to the river. We assume that each facies (or reach for HABBY) is separated by a constant value
 
     We loop through all the profiles for all reach all time steps. For each profile, the x coordinate is identical
-    for all point of the profile and is calculated using length_all. When a new reach starts, a xconstant distance
-    is added to the x coordinate. To find the y coordainte, we first pass from cell data (in lammi) to point data.
+    for all point of the profile and is calculated using length_all. When a new reach starts, a x constant distance
+    is added to the x coordinate. To find the y coordinate, we first pass from cell data (in lammi) to point data.
     The point are the center of each cell and the border of this cells.  Then, we find the higher water height and
     we assume that the river passes there. Hence, this is the origin of y-coordinate axes.
 
-    We double the last and the first profile of each reach/facies. Indded, in HABBY,the informtion of a profile are
+    We double the last and the first profile of each reach/facies. Indded, in HABBY,the information of a profile are
     given to the cells of the grid before and after the profile. If no cell would be done before or after the last/first
     profile, these profiles would have less wight than the other which is a problem to reproduce lammi results. This
-    also avoid the case of a facies with only one profile, which is cmoplicated to maange for the grid creation.
+    also avoid the case of a facies with only one profile, which is complicated to maange for the grid creation.
 
     To keep as much as possible the same data than in Lammi, we create four points for each orginal lammi cells. The
     three first points have the cell value of lammi and the last one is the average of the value of these cells and
@@ -702,6 +702,11 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
                 # x-coordinates
                 # if the first profile, let's doublt it
                 if pi == 0:
+                    # we will not use the first line of triangle (see maange_grid8, virtualstart)
+                    if fi == 0:
+                        x -= length_all[fi][pi] *0.5
+                    else:
+                        x -= 0.5 * (length_all[fi-1][-1] + length_all[fi][pi])
                     xpro = [x] * len(dist_allp_new)
                     x += length_all[fi][pi]
                     coord_pro_p = np.array([xpro, ypro, height_here, dist_allp_new])
@@ -737,7 +742,7 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
 
             if ti == 0:
                 nb_pro_reach.append(nb_pro_reach[-1] + len(dist_allf) +2)
-            x += 5  # reach is separated by 5m along the river
+            x += 25  # reach is separated by additional 5m along the river
 
         coord_pro.append(coord_prot)
         vh_pro.append(vh_prot)
@@ -948,7 +953,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
             plt.title('Comparaison lammi-habby for the facies '+str(r+1))
 
     # plot the surface of each facies
-    plot_sur = False
+    plot_sur = True
     if plot_sur:
         for r in range(0, int(max(reach_habby))):  # int(max(reach_habby))
             plt.figure()
@@ -975,10 +980,10 @@ def main():
     # open_lammi_and_create_grid(path, path, path_im, 'test_hdf5', '', '.', '.', new_dir, [], False,
     #                            'Transect.txt', 'Facies.txt', True)
 
-    filename_habby = r'D:\Diane_work\dummy_folder\projre\text_output\spu_Merge_LAMMI_30_06_2017_at_11_03_31.txt'
+    filename_habby = r'D:\Diane_work\dummy_folder\prt5\text_output\spu_Merge_LAMMI_04_08_2017_at_10_10_55.txt'
     filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
     #filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\FacTRF.txt'
-    filename_sur = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\SurfMouilFac.txt'
+    filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
     compare_lammi(filename_habby, filename_lammi, filename_sur)
 
 

@@ -371,6 +371,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             i = -1 # i +2=1 for the key called 'stage' which is on the second colum of self.data_type
         if cond in self.data_fish[:, i+2]:
             inds = np.where(self.data_fish[:, i+2] == cond)[0]
+            self.runhab.setEnabled(True)
         else:
             self.send_log.emit(self.tr('Warning: No suitability curve found for the last selection. \n'))
             return
