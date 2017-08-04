@@ -560,6 +560,29 @@ class EstimhabW(StatModUseful):
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             return
+        if (q[0] > q[1] and h[0] < h[1]) or (q[0] > q[1] and w[0] < w[1]) or (q[1] > q[0] and h[1] < h[0])\
+                or (q[1] > q[0] and w[1] < w[0]):
+            self.msge.setIcon(QMessageBox.Warning)
+            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
+            self.msge.setText(self.tr("Discharge, width, and height data are not coherent \n"))
+            self.msge.setStandardButtons(QMessageBox.Ok)
+            self.msge.show()
+            return
+        if q[0] < 0 or q[1] < 0 or w[0]< 0 or w[1]< 0 or h[0]< 0 or h[1]< 0 or qrange[0]< 0 or qrange[1]< 0 \
+                or substrate < 0 or q50<0:
+            self.msge.setIcon(QMessageBox.Warning)
+            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
+            self.msge.setText(self.tr("Negative data found. Could not run estimhab. \n"))
+            self.msge.setStandardButtons(QMessageBox.Ok)
+            self.msge.show()
+            return
+        if substrate > 3:
+            self.msge.setIcon(QMessageBox.Warning)
+            self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
+            self.msge.setText(self.tr("Substrate is too large. Could not run estimhab. \n"))
+            self.msge.setStandardButtons(QMessageBox.Ok)
+            self.msge.show()
+            return
         fish_list = list(set(fish_list))  # it will remove duplicate, but change the list order!
         # run
         path_im = self.find_path_im_est()
