@@ -106,8 +106,12 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     # shape output
     if create_shape:
+        if run_choice == 2:
+            perc = True
+        else:
+            perc =False
         save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
-                       name_fish_sh, path_out, name_base, sim_name)
+                       name_fish_sh, path_out, name_base, sim_name, save_perc=perc)
 
     # paraview outputs
     if create_para:
@@ -601,7 +605,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[])
 
 
 def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish_sh, path_shp, name_base,
-                   sim_name=[]):
+                   sim_name=[], save_perc=False):
     """
     This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
     all the reaches together. If there is overlap between reaches, it does not care. It create an attribute table
@@ -620,6 +624,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     :param path_shp: the path where to save the shpaefile
     :param name_base: a string on which to base the name of the files
     :param sim_name: the time step's name if not 0,1,2,3
+    :param save_perc: It true the substrate in percentage will be added to the shapefile
     """
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
@@ -628,6 +633,9 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
 
     if len(sim_name) > 0 and len(sim_name) != len(ikle) - 1:
         sim_name = []
+
+    if save_perc:
+        sub_per_data = load_hdf5.load_sub_percent(name_merge_hdf5, path_hdf5)
 
     # we do not print the first time step with the whole profile
     nb_reach = len(ikle[0])
@@ -658,6 +666,9 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                 w.field('conveyance', 'F')
                 w.field('sub_coarser', 'F')
                 w.field('sub_dom', 'F')
+                if save_perc:
+                    for i in range(0, 8):  # cemagref code
+                        w.field('sub_cl_'+str(i+1), 'F')
 
                 # fill attribute
                 for r in range(0, nb_reach):
@@ -665,6 +676,8 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                     height = height_data[t][r]
                     sub_pg = sub_pg_data[t][r]
                     sub_dom = sub_dom_data[t][r]
+                    if save_perc:
+                        sub_per = sub_per_data[t][r]
                     ikle_r = ikle[t][r]
                     for i in range(0, len(ikle_r)):
                         data_here = ()
@@ -675,6 +688,14 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                                 print('Error: Results could not be written to shape file \n')
                                 return
                         data_here += vel[i], height[i], vel[i]*height[i], sub_pg[i], sub_dom[i]
+                        if save_perc:
+                            for j in range(0, 8):
+                                try:
+                                    data_here += (sub_per[i][j],)
+                                except IndexError:
+                                    print(' Warnign: Substrate data by percentage could not be found. '
+                                          'Shapefile not created.\n')
+                                    return
                         # the * pass tuple to function argument
                         w.record(*data_here)
 
