@@ -1,5 +1,14 @@
 <?xml version="1.0"?>
 <root>
+-<Fish>
+<CdAppelTaxon SchemeAgencyID="SANDRE">2096</CdAppelTaxon>
+<LatinName>Barbus barbus</LatinName>
+-<ComNames>
+<ComName Language="French">Barbeau fluviatile</ComName>
+<ComName Language="English">Barbel</ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="ONEMA">BAF</CdAlternative>
+</Fish>
 <Pref_courbe>
 </Pref_courbe>
 

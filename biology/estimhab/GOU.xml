@@ -1,8 +1,15 @@
 <?xml version="1.0"?>
 <root>
-<Pref_courbe>
-</Pref_courbe>
 
+-<Fish>
+<CdAppelTaxon SchemeAgencyID="SANDRE">2113</CdAppelTaxon>
+<LatinName>Gobio gobio</LatinName>
+-<ComNames>
+<ComName Language="French">Goujon</ComName>
+<ComName Language="English">Gudgeon</ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="ONEMA">GOU</CdAlternative>
+</Fish>
 <estimhab>
 <coeff_q> 0.01 -13.17 </coeff_q>
 <func_q> 0 </func_q>

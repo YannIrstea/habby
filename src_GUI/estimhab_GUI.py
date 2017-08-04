@@ -314,7 +314,6 @@ class EstimhabW(StatModUseful):
         self.SPU = []
         self.init_iu()
 
-
     def init_iu(self):
         """
         This function is used to initialized an instance of the EstimhabW() class. It is called by __init__().
@@ -377,11 +376,10 @@ class EstimhabW(StatModUseful):
         self.setPalette(p)
 
         # add  all test file in a directory
-        all_file = glob.glob(os.path.join(self.path_bio_estimhab,r'*.xml'))
+        all_file = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
         # make them look nicer
         for i in range(0, len(all_file)):
-            all_file[i] = all_file[i].replace(self.path_bio_estimhab, "")
-            all_file[i] = all_file[i].replace("\\", "")
+            all_file[i] = os.path.basename(all_file[i])
             all_file[i] = all_file[i].replace(".xml", "")
             # add the list
             item = QListWidgetItem(all_file[i])
@@ -389,13 +387,11 @@ class EstimhabW(StatModUseful):
 
         # send model
         button1 = QPushButton(self.tr('Save and Run ESTIMHAB'), self)
-        button1.setStyleSheet("background-color: darkCyan")
+        #button1.setStyleSheet("background-color: darkCyan")
         button1.clicked.connect(self.save_signal_estimhab.emit)
         button1.clicked.connect(self.run_estmihab)
-        button2 = QPushButton(self.tr('Change folder (fish data)'), self)
-        button2.clicked.connect(self.change_folder)
-        button3 = QPushButton(self.tr('Save Selected Fish'), self)
-        button3.clicked.connect(self.save_signal_estimhab.emit)
+        # button2 = QPushButton(self.tr('Change folder (fish data)'), self)
+        # button2.clicked.connect(self.change_folder)
 
         #layout
         self.layout3 = QGridLayout()
@@ -422,8 +418,7 @@ class EstimhabW(StatModUseful):
         self.layout3.addWidget(self.list_f, 9, 0)
         self.layout3.addWidget(self.list_s, 9, 1)
         self.layout3.addWidget(button1, 10, 2)
-        self.layout3.addWidget(button3, 10, 1)
-        self.layout3.addWidget(button2, 10, 0)
+        #self.layout3.addWidget(button2, 10, 0)
         self.setLayout(self.layout3)
 
     def open_estimhab_hdf5(self):

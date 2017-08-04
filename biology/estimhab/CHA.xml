@@ -1,7 +1,23 @@
 <?xml version="1.0"?>
 <root>
-<Pref_courbe>
-</Pref_courbe>
+-<Fish>
+
+<CdAppelTaxon SchemeAgencyID="SANDRE">2080</CdAppelTaxon>
+
+<LatinName>Cottus gobio</LatinName>
+
+
+-<ComNames>
+
+<ComName Language="French">Chabot</ComName>
+
+<ComName Language="English">Bullhead</ComName>
+
+</ComNames>
+
+<CdAlternative OrgCdAlternative="ONEMA">CHA</CdAlternative>
+
+</Fish>
 
 <estimhab>
 <coeff_q> 0.31 -20.37 </coeff_q>

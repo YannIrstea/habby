@@ -1,7 +1,23 @@
 <?xml version="1.0"?>
 <root>
-<Pref_courbe>
-</Pref_courbe>
+<Fish>
+
+<CdAppelTaxon SchemeAgencyID="SANDRE">2221</CdAppelTaxon>
+
+<LatinName>Salmo trutta fario</LatinName>
+
+
+-<ComNames>
+
+<ComName Language="French">Truite de riviere</ComName>
+
+<ComName Language="English">Brown trout </ComName>
+
+</ComNames>
+
+<CdAlternative OrgCdAlternative="ONEMA">TRF</CdAlternative>
+
+</Fish>
 
 <estimhab>
 <coeff_q> 0.16 -16.71 </coeff_q>

@@ -1,7 +1,23 @@
 <?xml version="1.0"?>
 <root>
-<Pref_courbe>
-</Pref_courbe>
+<Fish>
+
+<CdAppelTaxon SchemeAgencyID="SANDRE">2220</CdAppelTaxon>
+
+<LatinName>Salmo salar</LatinName>
+
+
+-<ComNames>
+
+<ComName Language="French">Saumon atlantique</ComName>
+
+<ComName Language="English">Atlantic salmon</ComName>
+
+</ComNames>
+
+<CdAlternative OrgCdAlternative="ONEMA">SAT</CdAlternative>
+
+</Fish>
 
 <estimhab>
 <coeff_q> 1.12 -56.74 </coeff_q>

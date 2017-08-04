@@ -269,6 +269,8 @@ class MainWindows(QMainWindow):
 
         # set the langugae
         self.lang = int(nb_lang)
+        # get the old tab
+        ind_tab = self.central_widget.tab_widget.currentIndex()
         # get a new tranlator
         app = QApplication.instance()
         app.removeTranslator(self.languageTranslator)
@@ -338,6 +340,9 @@ class MainWindows(QMainWindow):
         # write the new langugage in the figure option to be able to get the title, axis in the right langugage
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
+        # open at the old tab
+        self.central_widget.tab_widget.setCurrentIndex(ind_tab)
+
     def my_menu_bar(self, right_menu=False):
         """
         This function creates the menu bar of HABBY when call without argument or with the argument right_menu is False.
@@ -383,10 +388,6 @@ class MainWindows(QMainWindow):
         newprj.setShortcut('Ctrl+N')
         newprj.setStatusTip(self.tr('Create a new project'))
         newprj.triggered.connect(self.new_project)
-        saveprj = QAction(self.tr('Save Project'), self)
-        saveprj.setShortcut('Ctrl+S')
-        saveprj.setStatusTip(self.tr('Save the project'))
-        saveprj.triggered.connect(self.save_project)
         closeprj = QAction(self.tr('Close Project'), self)
         closeprj.setShortcut('Ctrl+W')
         closeprj.setStatusTip(self.tr('Close the current project without opening a new one'))
@@ -454,7 +455,6 @@ class MainWindows(QMainWindow):
             fileMenu3 = self.menubar.addMenu(self.tr('Help'))
 
         # add al the rest
-        fileMenu.addAction(saveprj)
         fileMenu.addAction(openprj)
         recentpMenu = fileMenu.addMenu(self.tr('Open Recent Project'))
         for j in range(0, len(recent_proj_menu)):
