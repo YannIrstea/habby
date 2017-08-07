@@ -54,7 +54,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # load data
         l001 = QLabel(self.tr(' <b> Load Data From Files</br>'))
-        self.loadtxt = QPushButton(self.tr('Text Files (qwh.txt or listriv.txt)'))
+        self.loadtxt = QPushButton(self.tr('Text Files (qhw.txt or listriv.txt)'))
         self.loadtxt.clicked.connect(self.load_txt)
         self.loadh5 = QPushButton(self.tr('Hdf5 File (.h5)'))
         self.loadh5.clicked.connect(self.load_hdf5_fstress)
@@ -80,8 +80,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         l2 = QLabel(self.tr('Q [m3/sec]'))
         l3 = QLabel(self.tr('Width [m]'))
         l4 = QLabel(self.tr('Height [m]'))
-        l7 = QLabel(self.tr('Discharge range'))
-        l8 = QLabel(self.tr('Qmin and Qmax [m3/sec]'))
+        l7 = QLabel(self.tr('<b> Discharge range [m3/sec]</b> (Qmin and Qmax)'))
 
         # data invertabrate type
         l10 = QLabel(self.tr('<b>Available invertebrate species</b>'))
@@ -99,8 +98,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.button1 = QPushButton(self.tr('Save and Run FStress'), self)
         self.button1.setStyleSheet("background-color: darkCyan")
         self.button1.clicked.connect(self.runsave_fstress)
-        self.button2 = QPushButton(self.tr('Save river data'), self)
-        self.button2.clicked.connect(self.save_river_data)
+        # self.button2 = QPushButton(self.tr('Save river data'), self)
+        # self.button2.clicked.connect(self.save_river_data)
         spacer = QSpacerItem(1, 20)
 
         # find the preference file, show the fish name, and enable self.button2 is found
@@ -140,14 +139,13 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.layout3.addWidget(l7, 9, 0)
         self.layout3.addWidget(self.eqmin, 10, 0)
         self.layout3.addWidget(self.eqmax, 10, 1)
-        self.layout3.addWidget(l8, 10, 2)
         self.layout3.addWidget(l10, 11, 0)
         self.layout3.addWidget(l11, 11, 1)
         self.layout3.addWidget(self.list_f, 12, 0)
         self.layout3.addWidget(self.list_s, 12, 1)
         self.layout3.addWidget(self.fishall, 13, 0)
         self.layout3.addWidget(self.button1, 13, 2)
-        self.layout3.addWidget(self.button2, 13, 1)
+        # self.layout3.addWidget(self.button2, 13, 1)
         self.setLayout(self.layout3)
 
     def was_loaded_before(self):
@@ -408,7 +406,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         """
 
         # open file
-        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_fstress,os.getenv('HOME'))[0]
+        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_fstress, os.getenv('HOME'))[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
             return

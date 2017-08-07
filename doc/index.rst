@@ -418,8 +418,7 @@ Function for the command lines
 -------------------------------
 in src/func_for_cmd.py
 
-This module contains functions which are only used by habby_cmd.py. Theoretically, it is not needed but it is sometimes practical.
-It is not great idea to add to many functions here however because it is more complicated to maintain.
+This module contains functions which are used by habby.py when called on the command line (witjout using the GUI).
 
 .. automodule:: src.func_for_cmd
    :members:
@@ -543,7 +542,7 @@ modified to create a new script to use HABBY in a different ways. For this, pyth
 The second log, called restart/_’name_project’.log, has limited functionalities but allows to 
 re-start the HABBY simulation from the command line, without the need for python. 
 Format of this file is described below. It is aimed to be readable and easily modifiable. 
-To use the restart file, type in the command line: python habby_cmd.py restart/_’name_project’.log.
+To use the restart file, type in the command line: python habby.py restart/_’name_project’.log.
 
 This part genreally needs more revisions and tests.
 
@@ -602,18 +601,8 @@ To create a new line of log for new_func, one should follow these steps:
 
 **restart file**
 
-The format of the restart file is based on the format asked by habby_cmd.py. More information on this format in habby_cmd.py 
+The format of the restart file is based on the format asked by the functions in func_for_cmd.py. More information on this format in func_for_cmd.py 
 (notably in the part list_command).
-
-Command line
-----------------------------------
-The module habby_cmd is used to call habby from the command line or to use the restart file to run habby. This
-module can also be used to run HABBY on a bunch of files contained in a folder.
-
-
-.. automodule:: habby_cmd
-   :members:
-   :undoc-members:
 
 
 Git - code management

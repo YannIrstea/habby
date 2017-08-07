@@ -78,7 +78,6 @@ class StatModUseful(QWidget):
                     if f == self.list_f.item(i).text():
                         self.list_f.item(i).setFont(font)
 
-
     def remove_fish(self):
         """
         The function is used to remove fish species (or inverterbates species)
@@ -178,7 +177,7 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
-                path_hdf5 = self.path_prj
+                path_hdf5 = os.path.join(self.path_prj, r'fichier_hdf5')
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
@@ -205,7 +204,7 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Text")
             if child is None:
-                path_text = self.path_prj
+                path_text = os.path.join(self.path_prj, r'/text_output')
             else:
                 path_text = os.path.join(self.path_prj, child.text)
         else:
@@ -232,7 +231,7 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Output")
             if child is None:
-                path_text = self.path_prj
+                path_text = os.path.join(self.path_prj, r'/other_output')
             else:
                 path_text = os.path.join(self.path_prj, child.text)
         else:
@@ -259,7 +258,7 @@ class StatModUseful(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Input")
             if child is None:
-                path_input = self.path_prj
+                path_input = os.path.join(self.path_prj, r'/input')
             else:
                 path_input = os.path.join(self.path_prj, child.text)
         else:
@@ -355,8 +354,7 @@ class EstimhabW(StatModUseful):
         l4 = QLabel(self.tr('Height [m]'))
         l5 = QLabel(self.tr('<b>Median discharge Q50 [m3/sec]</b>'))
         l6 = QLabel(self.tr('<b> Mean substrate size [m] </b>'))
-        l7 = QLabel(self.tr('<b> Discharge range </b>'))
-        l8 = QLabel(self.tr('Qmin and Qmax [m3/sec]'))
+        l7 = QLabel(self.tr('<b> Discharge range [m3/sec] </b> (Qmin and Qmax)'))
         # data fish type
         l10 = QLabel(self.tr('<b>Available Fish and Guild </b>'))
         l11 = QLabel(self.tr('Selected Fish'))
@@ -412,7 +410,6 @@ class EstimhabW(StatModUseful):
         self.layout3.addWidget(l7, 6, 0)
         self.layout3.addWidget(self.eqmin, 7, 0)
         self.layout3.addWidget(self.eqmax, 7, 1)
-        self.layout3.addWidget(l8, 7, 2)
         self.layout3.addWidget(l10, 8, 0)
         self.layout3.addWidget(l11, 8, 1)
         self.layout3.addWidget(self.list_f, 9, 0)
