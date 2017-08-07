@@ -804,6 +804,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             fish_item = self.list_s.item(i)
             fish_item_str = fish_item.text()
             self.mystathab.fish_chosen.append(fish_item_str)
+        self.mystathab.path_txt = self.find_path_text_est()
 
         # run stathab for temperate rivers
         if self.riverint == 0:

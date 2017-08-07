@@ -586,10 +586,11 @@ class EstimhabW(StatModUseful):
         fish_list = list(set(fish_list))  # it will remove duplicate, but change the list order!
         # run
         path_im = self.find_path_im_est()
+        path_txt = self.find_path_text_est()
         fig_opt = output_fig_GUI.  load_fig_option(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
         [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio_estimhab, fish_list,
-                                                path_im, True, fig_opt)
+                                                path_im, True, fig_opt, path_txt)
 
         #log info
         self.send_log.emit(self.tr('# Run: Estimhab'))
@@ -598,9 +599,9 @@ class EstimhabW(StatModUseful):
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-        self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' +str(h) + ',' + str(q50) +
+        self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
-        self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']' )
+        self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')
         self.send_log.emit("py    path1= os.path.join(os.path.dirname(path_bio),'" + self.path_bio_estimhab + "')")
         fish_list_str = "py    fish_list = ["
         for i in range(0,len(fish_list)):
@@ -608,7 +609,7 @@ class EstimhabW(StatModUseful):
         fish_list_str = fish_list_str[:-1] + ']'
         self.send_log.emit(fish_list_str)
         self.send_log.emit("py    [VH, SPU] = estimhab.estimhab(data[0], data[1], data[2], data[3] ,"
-                           " qrange, data[4], path1, fish_list, '.', True)\n")
+                           " qrange, data[4], path1, fish_list, '.', True, {}, '.')\n")
         self.send_log.emit("restart RUN_ESTIMHAB")
         self.send_log.emit("restart    q0: " + str(q[0]))
         self.send_log.emit("restart    q1: " + str(q[1]))

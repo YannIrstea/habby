@@ -44,13 +44,14 @@ class Stathab:
         self.fish_chosen = np.array([])   # the name of the fish
         self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
         self.name_reach = []  # the name of the reaches of the river
-        self.path_im = '.'   # path where to save the image
+        self.path_im = path_prj   # path where to save the image
         self.load_ok = False # a boolean to manage the errors
         #  during the load of the files and the hdf5 creation and calculation
         self.path_prj = path_prj
         self.name_prj = name_prj
         # get the option for the figure in a dict
         self.fig_opt = []
+        self.path_txt = path_prj # path where to save the text
 
     def load_stathab_from_txt(self, reachname_file, end_file_reach, name_file_allreach, path):
         """
@@ -999,6 +1000,7 @@ class Stathab:
         if self.fig_opt['font_size'] > 7:
             plt.rcParams['legend.fontsize'] = self.fig_opt['font_size'] - 2
         plt.rcParams['legend.loc'] = 'best'
+        mpl.interactive(True)
 
         for r in range(0, len(self.name_reach)):
 
@@ -1070,20 +1072,20 @@ class Stathab:
                             dpi=self.fig_opt['resolution'])
 
             # suitability index
-            if len(self.fish_chosen)>1:
+            if len(self.fish_chosen) > 1:
                 j = np.squeeze(self.j_all[0, :, :])
             fig = plt.figure()
             if len(self.fish_chosen) > 1:
                 for e in range(0, len(self.fish_chosen)):
                     plt.plot(qmod, j[e, :], '-', label=self.fish_chosen[e])
             else:
-                plt.plot(qmod, self.j_all[0,0, :], '-', label=self.fish_chosen[0])
+                plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
             if self.fig_opt['language'] == 0:
-                plt.title('Suitability index J')
+                plt.title('Suitability index J - ' + self.name_reach[r])
             elif self.fig_opt['language'] == 1:
-                plt.title('Index de suitabilité J')
+                plt.title('Index de suitabilité J - ' + self.name_reach[r])
 
             lgd = plt.legend(fancybox=True, framealpha=0.5)
             if format == 0 or format == 1:
@@ -1092,7 +1094,7 @@ class Stathab:
             if format == 0 or format == 3:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                         "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-            if format == 2 or format > 2:
+            if format == 2:
                 name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                         "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
             fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
@@ -1117,14 +1119,34 @@ class Stathab:
             # rrd file
             # depth and dist Q should be added
             data = np.hstack((np.log(qmod), dummy, hmod, wmod, vclass.T, hclass.T, rclass.T))
-            namefile = os.path.join(self.path_im, self.name_reach[r] +
+            namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
                                     time.strftime("%d_%m_%Y_at_%H_%M_%S")+'rrd.txt')
-            np.savetxt(namefile, data)
+            # header
+            txt_header = 'log(Q)\tempty\thmod\twmod'
+            for i in range(0, len(vclass)):
+                txt_header += '\tvclass'
+            for i in range(0, len(hclass)):
+                txt_header += '\thclass'
+            for i in range(0, len(rclass)):
+                txt_header += '\trclass'
+            txt_header += '\n'
+            # unity
+            txt_header += '[log(m3/sec)]\t[]\t[m]\t[m]'
+            for i in range(0, len(vclass)):
+                txt_header += '\t[m3]'
+            for i in range(0, len(hclass)):
+                txt_header += '\t[m2]'
+            for i in range(0, len(rclass)):
+                txt_header += '\t[m2]'
+            np.savetxt(namefile, data, delimiter='\t', header=txt_header)
 
             # rre.txt
-            namefile = os.path.join(self.path_im, self.name_reach[r] +
+            namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + 'rre.txt')
-            np.savetxt(namefile, j.T)
+            header_txt = 'Suitability Index \n '
+            for f in self.fish_chosen:
+                header_txt += f + '\t'
+            np.savetxt(namefile, j.T, delimiter='\t', header=header_txt)
 
     def find_path_hdf5_stat(self):
         """

@@ -643,7 +643,6 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
     file_hydro.close()
 
 
-
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
               inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[],
               sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name=''):
@@ -998,6 +997,12 @@ def copy_files(names,paths, path_input):
     for i in range(0, len(names)):
         if names[i] != 'unknown file':
             src = os.path.join(paths[i], names[i])
-            if os.path.isfile(src):
-                dst = os.path.join(path_input, names[i])
-                shutil.copy(src, dst)
+            # if the file is too big, the GUI is freezed
+            if os.path.getsize(src) > 200 * 1e6:
+                print('Warning: One input file was larger than 200Mb and therefore was not copied to the project'
+                      ' folder. It is necessary to copy this file manually to the input folder if one wants to use the '
+                      'restart file or the log file to load this data auomatically again. \n')
+            else:
+                if os.path.isfile(src):
+                    dst = os.path.join(path_input, names[i])
+                    shutil.copy(src, dst )

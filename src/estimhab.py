@@ -7,7 +7,8 @@ from src_GUI import output_fig_GUI
 import matplotlib as mpl
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False, fig_opt={}):
+def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False, fig_opt={},
+             path_txt=[]):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -23,6 +24,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     :param fish_name: the name of the fish which have to be analyzed
     :param pict: if true the figure is shown. If false, the figure is not shown
     :param fig_opt: a dictionnary with the figure option
+    :param path_txt: the path where to send the text data
     :return: habitat value and useful surface (VH and SPU) as a function of discharge
 
     **Technical comments and walk-through**
@@ -45,13 +47,22 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
     a text file.
     """
+    if pict:
+        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+        plt.rcParams['font.size'] = fig_opt['font_size']
+        plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+        format1 = int(fig_opt['format'])
+        plt.rcParams['axes.grid'] = fig_opt['grid']
+        if fig_opt['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+        plt.rcParams['legend.loc'] = 'best'
 
     # Q
     nb_q = 20  # number of calculated q
     if qrange[1] > qrange[0]:
         diff = (qrange[1] - qrange[0]) / nb_q
         if qrange[0] == 0:
-            qrange[0] = 10**-6   # if exactly zero, you cannot divide anymore
+            qrange[0] = 10**-10   # if exactly zero, you cannot divide anymore
         q_all = np.arange(qrange[0], qrange[1]+diff, diff)
     else:
         print('Error: The mininum discharge is higher or equal than the maximum')
@@ -136,7 +147,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
             elif fig_opt['language'] == 1:
                 plt.xlabel('Débit [m$^{3}$/sec]')
                 plt.ylabel('Valeur habitat []')
-
+            plt.legend(fish_name, fancybox=True, framealpha=0.5)
             plt.ylim(0, 1)
 
             plt.subplot(2, 1, 2)
@@ -153,35 +164,48 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         SPU.append(SPU_f)
 
     if pict:
-        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-        plt.rcParams['font.size'] = fig_opt['font_size']
-        plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-        format = int(fig_opt['format'])
-        plt.rcParams['axes.grid'] = fig_opt['grid']
-        if fig_opt['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
-        plt.rcParams['legend.loc'] = 'best'
 
-        plt.legend(fish_name, fancybox=True, framealpha=0.5)
-        # saving with date and time
+        # name with date and time
         name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        name_input = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
-        txt_header = 'Q [m3/sec] '
+        # save image
+        if format1 == 0 or format1 == 1:
+            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 0 or format1 == 3:
+            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 2:
+            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+            # plt.show()
+
+        # text files output
+        txt_header = 'Q '
         data = q_all
         for f in range(0, len(fish_name)):
-            txt_header += ' VH_' + fish_name[f] + ' SPU_' + fish_name[f]
+            txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
             data = np.vstack((data, VH[f]))
             data = np.vstack((data, SPU[f]))
+        txt_header += '\n[m3/sec]'
+        for f in range(0, len(fish_name)):
+            txt_header += '\t[-]\t[m2/100m]'
+        np.savetxt(os.path.join(path_txt, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header,
+                   delimiter='\t')
 
-        # save
-        np.savetxt(os.path.join(path_im, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header)
-        if format == 0 or format == 1:
-            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'], transparent=True)
-        if format == 0 or format == 3:
-            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-        if format == 2:
-            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
-        # plt.show()
+        # text file input
+        txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
+        txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
+        txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
+        txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
+        txtin += 'Mean substrate size [m]:\t' + str(substrat)+ '\n'
+        txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
+        txtin += 'Fish chosen:\t'
+        for n in fish_name:
+            txtin += n + '\t'
+        txtin = txtin[:-1]
+        txtin += '\n'
+        txtin += 'Output file:\t' + name_pict+'.txt\n'
+        with open(os.path.join(path_txt,name_input + '.txt'), 'wt') as f:
+            f.write(txtin)
 
     return VH, SPU
 

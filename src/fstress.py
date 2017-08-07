@@ -400,15 +400,21 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river):
         qmod = qmod_all[i]
         vh = vh_all[i]
         fname = os.path.join(path_txt, 'Fstress_'+ r+ time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
-        np.savetxt(fname, vh)
+        header_txt = 'habitat value\n'
+        for n in name_inv:
+            header_txt += n + '\t'
+        header_txt += '\n'
+        for n in name_inv:
+            header_txt += '[]\t'
+        np.savetxt(fname, vh, delimiter='\t', header=header_txt)
         fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
-        np.savetxt(fname, qmod)
-    fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_code_inv.txt')
-    name_inv_str = ''
-    for i in range(0, len(name_inv)):
-        name_inv_str += name_inv[i] + "\n"
-    with open(fname,'w') as f:
-        f.write(name_inv_str)
+        np.savetxt(fname, qmod, delimiter='\t', header='discharge [m3/sec]')
+    # fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_code_inv.txt')
+    # name_inv_str = ''
+    # for i in range(0, len(name_inv)):
+    #     name_inv_str += name_inv[i] + "\n"
+    # with open(fname,'w') as f:
+    #     f.write(name_inv_str)
 
 
 def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}):

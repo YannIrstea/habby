@@ -492,8 +492,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             w = [float(all_arg[4]), float(all_arg[5])]
             h = [float(all_arg[6]), float(all_arg[7])]
             q50 = float(all_arg[8])
-            qrange  =[float(all_arg[10]), float(all_arg[11])]
-            sub = float(all_arg[9])
+            qrange  =[float(all_arg[9]), float(all_arg[10])]
+            sub = float(all_arg[11])
         except ValueError:
             print('Error; Estimhab needs float as input')
             return
@@ -501,8 +501,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         # fish
         all_file = glob.glob(os.path.join(path_bio2, r'*.xml'))
         for i in range(0, len(all_file)):
-            all_file[i] = all_file[i].replace(path_bio2, "")
-            all_file[i] = all_file[i].replace("\\", "")
+            all_file[i] = os.path.basename(all_file[i])
             all_file[i] = all_file[i].replace(".xml", "")
         fish_list = all_file
 
@@ -517,8 +516,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         if not fish_list:
             print('Error: no fish found for estimhab')
             return
-
-        estimhab.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True)
+        estimhab.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True, {}, path_prj)
         plt.show()
     # --------------------------------------------------------------------------------------
     elif all_arg[1] == 'RUN_STATHAB':
