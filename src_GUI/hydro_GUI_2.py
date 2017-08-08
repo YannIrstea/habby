@@ -2783,8 +2783,6 @@ class SubstrateW(SubHydroW):
         self.const_part.hide()
         self.file_part.show()
 
-
-
     def name_last_merge(self):
         """
         This function opens the xml project file to find the name of the last hdf5 merge file and to add it

@@ -131,6 +131,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     except ValueError:
         print('Error: Time step was not recognized. \n')
         return
+    if -1 in timestep and len(vh_all_t_sp[0]) == 2 and 1 in timestep:
+        del timestep[1]
+    # figure
     save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep, sim_name)
     plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
                     name_base, sim_name)

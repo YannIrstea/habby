@@ -109,10 +109,13 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
               '- all data in float')
         print('RUN_HABITAT: Estimate the habitat value from an hdf5 merged files. It used the coarser substrate '
               'as the substrate layer if the parameter run_choice is zero. We can also choose to make the calculation'
-              'on the dominant substrate (run_choice:1) or the substrate by percentage (run_choice:2).'
-              'Input: pathname of merge file, name of xml prefence file with no path,  run_choice (output name). '
-              'To get the calculation on more than one fish species, separate the names of the xml biological files'
-              ' by a comma without a space between the command and the filenames. ')
+              'on the dominant substrate (run_choice:1) or the substrate by percentage (run_choice:2). The chosen stage'
+              'mshould be separated by a comma.If the keyword all is given as the chosen stage, all available stage '
+              'will be used. To get the calculation on more than one fish species, separate the names of '
+              'the xml biological files by a comma without a space between the command and the filenames. '
+              'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
+              ' run_choice.'
+            )
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
@@ -918,8 +921,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
     # --------------------------------------------------------------------------------
     elif all_arg[1] == 'RUN_HABITAT':
-        if not 3 < len(all_arg) < 7:
-            print('RUN_HAB_COARSE needs between three and four inputs. See LIST_COMMAND for more information.')
+        if not 4 < len(all_arg) < 8:
+            print('RUN_HAB_COARSE needs between four and five inputs. See LIST_COMMAND for more information.')
             return
 
         # merge hdf5 (with hydro and subtrate data)
@@ -954,20 +957,39 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
         # create name_fish (the name of fish and stage to be calculated)
         # addapt bionames and stage
+        stage_chosen = all_arg[4]
         name_fish = []
         stage2 = []
         bio_name2 = []
-        [latin_name, stages] = bio_info.get_stage(bio_names, path_bio)
-        for l in range(0,len(latin_name)):
-            for s in stages[l]:
-                name_fish.extend([latin_name[l][:3] + '_' + s[:3]])
-                stage2.extend([s])
-                bio_name2.extend([bio_names[l]])
+        [latin_name, stages_all] = bio_info.get_stage(bio_names, path_bio)
+        if stage_chosen == 'all':
+            for l in range(0, len(latin_name)):
+                for s in stages_all[l]:
+                    if len(latin_name[l]) > 5:
+                        name_fish.extend([latin_name[l][:5]])
+                    else:
+                        name_fish.extend([latin_name[l]])
+                    stage2.extend([s])
+                    bio_name2.extend([bio_names[l]])
+        else:
+            stage_chosen = stage_chosen.split(',')
+            for l in range(0, len(latin_name)):
+                for s in stages_all[l]:
+                    for sc in stage_chosen:
+                        if s in sc:
+                            if len(latin_name[l]) > 5:
+                                name_fish.extend([latin_name[l][:5]])
+                            else:
+                                name_fish.extend([latin_name[l]])
+                            stage2.extend([s])
+                            bio_name2.extend([bio_names[l]])
+
         stages = stage2
         bio_names = bio_name2
 
+
         try:
-            run_choice = int(all_arg[4])
+            run_choice = int(all_arg[5])
         except ValueError:
             print('Error: the choice of run should be an int between 0, 1,2 (usually 0 is used)')
             return
@@ -977,15 +999,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         fig_opt['shape_output'] = 'True'
         fig_opt['paraview'] = 'True'
 
-        if len(all_arg) == 6:
-            name_base = all_arg[5]
-        else:
-            name_base = 'OUTPUT_HAB'
-
         # run calculation
         # we calculate hab on all the stage in xml preference files
         calcul_hab.calc_hab_and_output(merge_name, path_merge, bio_names, stages, name_fish, name_fish, run_choice,
-                                     path_bio,path_prj, path_prj, path_prj, [], True, fig_opt)
+                                     path_bio, path_prj, path_prj, path_prj, [], True, fig_opt)
 
     # --------------------------------------------------------------------------------------
     elif all_arg[1] == 'CREATE_RAND_SUB':

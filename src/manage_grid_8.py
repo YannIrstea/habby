@@ -2251,6 +2251,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         cbar.ax.set_ylabel('Velocity [m/sec]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel('Vitesse [m/sec]')
+                plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
+                plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
@@ -2307,6 +2309,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         cbar.ax.set_ylabel('Water height [m]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel("Hauteur d'eau [m]")
+                plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
+                plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
             else:
                 print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
         plt.xlabel('x coord []')
@@ -2321,7 +2325,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 plt.title("Hauteur d'eau - Dernier Pas de Temps")
             else:
                 plt.title("Hauteur d'eau - Pas de Temps: " + str(time_step))
-        plt.tight_layout()
 
         # save figure
         if merge_case:

@@ -314,6 +314,7 @@ class EstimhabW(StatModUseful):
         self.init_iu()
 
     def init_iu(self):
+
         """
         This function is used to initialized an instance of the EstimhabW() class. It is called by __init__().
 

@@ -564,7 +564,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit("restart RUN_HABITAT")
         self.send_log.emit("restart    file1: " + hdf5_file)
         self.send_log.emit("restart    list of preference file: " + ",".join(pref_list))
-        self.send_log.emit("restart    stages chosen: [" + " ', ' ".join(stages_chosen) + ']')
+        self.send_log.emit("restart    stages chosen: " + ",".join(stages_chosen))
         self.send_log.emit("restart    type of calculation: " + str(run_choice))
 
     def recreate_fig(self):

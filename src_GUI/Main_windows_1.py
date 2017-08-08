@@ -510,8 +510,6 @@ class MainWindows(QMainWindow):
         else:
             self.menu_right.exec_(self.central_widget.mapToGlobal(point))
 
-
-
     def my_toolbar(self):
 
         self.toolbar.clear()
