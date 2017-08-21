@@ -983,10 +983,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
                                 name_fish.extend([latin_name[l]])
                             stage2.extend([s])
                             bio_name2.extend([bio_names[l]])
-
         stages = stage2
         bio_names = bio_name2
-
 
         try:
             run_choice = int(all_arg[5])

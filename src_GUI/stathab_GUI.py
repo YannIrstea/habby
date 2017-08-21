@@ -737,7 +737,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.list_needed.addItem('All hdf5 data found')
             self.send_log.emit('# Found all STATHAB files.')
         else:
-            self.send_log.emit('# Found part of the STATHAB files. Need to re-load.')
+            self.send_log.emit('# warning: Could not read all the hdf5 data from Stathab.\n')
             return
 
     def reach_selected(self):

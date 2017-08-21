@@ -582,13 +582,14 @@ class EstimhabW(StatModUseful):
             self.msge.show()
             return
         fish_list = list(set(fish_list))  # it will remove duplicate, but change the list order!
-        # run
+        # run and save
         path_im = self.find_path_im_est()
         path_txt = self.find_path_text_est()
         fig_opt = output_fig_GUI.  load_fig_option(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
         [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio_estimhab, fish_list,
                                                 path_im, True, fig_opt, path_txt)
+        self.save_signal_estimhab.emit()
 
         #log info
         self.send_log.emit(self.tr('# Run: Estimhab'))

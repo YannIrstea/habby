@@ -181,12 +181,24 @@ class outputW(QWidget):
         self.outgen = QLabel(self.tr(' <b> General Options </b>'))
         self.l1 = QLabel(self.tr('2D minimum water height [m]'))
         self.hopt = QLineEdit(str(fig_dict['min_height_hyd']))
+        # erase data or not
+        self.out5 = QLabel(self.tr('Erase data if identical model'))
+        self.out5a = QCheckBox(self.tr('Yes'))
+        self.out5a.clicked.connect(lambda: self.check_uncheck(self.out5a, self.out5b))
+        self.out5b = QCheckBox(self.tr('No'))
+        self.out5b.clicked.connect(lambda: self.check_uncheck(self.out5b, self.out5a))
+        if fig_dict['erase_id'] == 'True':  # is a string not a boolean
+            self.out5a.setChecked(True)
+            self.out5b.setChecked(False)
+        else:
+            self.out5a.setChecked(False)
+            self.out5b.setChecked(True)
 
         # save
         self.saveb =QPushButton(self.tr('Save options'))
         self.saveb.clicked.connect(self.save_option_fig)
 
-        spacer = QSpacerItem(300, 10)
+        spacer = QSpacerItem(10, 130)
 
         self.layout = QGridLayout()
         self.layout.addWidget(self.fig0l, 0, 0)
@@ -203,7 +215,7 @@ class outputW(QWidget):
         self.layout.addWidget(self.fig12l, 11, 0)
         self.layout.addWidget(self.out9, 12, 0)
 
-        self.layout.addWidget(self.fig1, 1, 1,1,2)
+        self.layout.addWidget(self.fig1, 1, 1 ,1, 2)
         self.layout.addWidget(self.fig2, 2, 1, 1, 2)
         self.layout.addWidget(self.fig3, 3, 1, 1, 2)
         self.layout.addWidget(self.fig5, 4, 1, 1, 2)
@@ -219,27 +231,29 @@ class outputW(QWidget):
         self.layout.addWidget(self.out9a, 12, 1, 1, 1)
         self.layout.addWidget(self.out9b, 12, 2, 1, 1)
 
-        self.layout.addWidget(self.out0, 13, 0)
-        self.layout.addWidget(self.out1, 14, 0)
-        self.layout.addWidget(self.out1a, 14, 1, 1, 1)
-        self.layout.addWidget(self.out1b, 14, 2, 1, 1)
-        self.layout.addWidget(self.out2, 15, 0)
-        self.layout.addWidget(self.out2a, 15, 1, 1, 1)
-        self.layout.addWidget(self.out2b, 15, 2, 1, 1)
-        self.layout.addWidget(self.out3, 16, 0)
-        self.layout.addWidget(self.out3a, 16, 1, 1, 1)
-        self.layout.addWidget(self.out3b, 16, 2, 1, 1)
-        self.layout.addWidget(self.out4, 17, 0)
-        self.layout.addWidget(self.out4a, 17, 1, 1, 1)
-        self.layout.addWidget(self.out4b, 17, 2, 1, 1)
+        self.layout.addWidget(self.outgen, 0, 3)
+        self.layout.addWidget(self.l1, 1, 3)
+        self.layout.addWidget(self.hopt, 1, 4,1, 2)
+        self.layout.addWidget(self.out5, 2, 3)
+        self.layout.addWidget(self.out5a, 2, 4)
+        self.layout.addWidget(self.out5b, 2, 5)
 
-        self.layout.addWidget(self.outgen, 18, 0)
-        self.layout.addWidget(self.l1, 19, 0)
-        self.layout.addWidget(self.hopt, 19, 1)
+        self.layout.addWidget(self.out0, 3, 3,2,1)
+        self.layout.addWidget(self.out1, 5, 3)
+        self.layout.addWidget(self.out1a, 5, 4)
+        self.layout.addWidget(self.out1b, 5, 5)
+        self.layout.addWidget(self.out2, 6, 3)
+        self.layout.addWidget(self.out2a, 6, 4)
+        self.layout.addWidget(self.out2b, 6, 5)
+        self.layout.addWidget(self.out3, 7, 3)
+        self.layout.addWidget(self.out3a, 7, 4)
+        self.layout.addWidget(self.out3b, 7, 5)
+        self.layout.addWidget(self.out4, 8, 3)
+        self.layout.addWidget(self.out4a, 8, 4)
+        self.layout.addWidget(self.out4b, 8, 5)
 
-        self.layout.addWidget(self.saveb, 19, 1, 1, 2)
-        self.layout.addItem(spacer, 5, 3)
-        #self.layout.addItem(spacer2, 8, 2)
+        self.layout.addItem(spacer,22,0)
+        self.layout.addWidget(self.saveb, 21, 4, 1, 2)
 
         self.setLayout(self.layout)
 
@@ -351,6 +365,10 @@ class outputW(QWidget):
             fig_dict['fish_info'] = False
         # other option
         fig_dict['min_height_hyd'] = float(self.hopt.text())
+        if self.out5a.isChecked():
+            fig_dict['erase_id'] = True
+        elif self.out5b.isChecked():
+            fig_dict['erase_id'] = False
 
         # save the data in the xml file
         # open the xml project file
@@ -387,6 +405,7 @@ class outputW(QWidget):
                 langfig1 = root.find(".//LangFig")
                 hopt1 = root.find(".//MinHeight")
                 fishinfo1 = root.find(".//FishInfo")
+                erase1 = root.find(".//EraseId")
             else:  # save in case no fig option exist
                 child1 = ET.SubElement(root, 'Figure_Option')
                 width1 = ET.SubElement(child1, 'Width')
@@ -408,6 +427,7 @@ class outputW(QWidget):
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
                 fishinfo1 = ET.SubElement(child1, "FishInfo")
+                erase1 = ET.SubElement(child1,"EraseId")
             width1.text = str(fig_dict['width'])
             height1.text = str(fig_dict['height'])
             colormap1.text = fig_dict['color_map1']
@@ -432,6 +452,7 @@ class outputW(QWidget):
             para1.text = str(fig_dict['paraview'])
             hopt1.text = str(fig_dict['min_height_hyd'])
             fishinfo1.text = str(fig_dict['fish_info'])
+            erase1.text = str(fig_dict['erase_id'])
             doc.write(fname)
 
         self.send_log.emit('The new options for the figures are saved. \n')
@@ -512,6 +533,7 @@ def load_fig_option(path_prj, name_prj):
             langfig1 = root.find(".//LangFig")
             hopt1 = root.find(".//MinHeight")
             fishinfo1 = root.find(".//FishInfo")
+            erase1 = root.find(".//EraseId")
             try:
                 if width1 is not None:
                     fig_dict['width'] = float(width1.text)
@@ -551,6 +573,8 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['min_height_hyd'] = float(hopt1.text)
                 if fish1 is not None:
                     fig_dict['fish_info'] = fishinfo1.text
+                if erase1 is not None:
+                    fig_dict['erase_id'] = erase1.text
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
 
@@ -588,6 +612,7 @@ def create_default_figoption():
     fig_dict['language'] = 0  # 0 english, 1 french
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
     fig_dict['marker'] = False
+    fig_dict['erase_id'] = True
 
     return fig_dict
 

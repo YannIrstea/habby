@@ -7,7 +7,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-
+from src_GUI import output_fig_GUI
 
 def open_hdf5(hdf5_name):
     """
@@ -612,7 +612,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
         file_hydro.close()
         return
     ascii_str = [n.strip().encode("ascii", "ignore") for n in fish_name]  # unicode is not ok with hdf5
-    # not too pratical but rewirting hdf5 is really annoying
+    # not too pratical but rewriting hdf5 is really annoying
     # to load use list(for.keys()) and use all the one starting with data_habitat
     data_all = file_hydro.create_group('Data_habitat' + time.strftime("%d_%m_%Y_at_%H_%M_%S"))
     name_fishg = data_all.create_group('Fish_name')
@@ -686,7 +686,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     HABBY. The 1D and 1.5D data is only present if the model is 1D or 1.5D. Here is some general info about the
     created hdf5:
 
-    *   Name of the file: name_hdf5  + date/time.h5.  For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
+    *   Name of the file: name_hdf5. If we save all file even if the model is re-run we add a time stamp.
+        For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
     *   Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)
     *   Format of the hdf5 file:
 
@@ -702,12 +703,28 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     This can be useful if an hdf5 is lost and is not linked with any project. We also add the name of the created
     hdf5 to the xml project file. Now we can load the hydrological data using this hdf5 file and the xml project file.
 
+    When saving habitat data, we add a time stamp so that if re-run an habitat simulation, we do not loos all the data.
+    When loading, the last data should be used.
+
     Hdf5 file do not support unicode. It is necessary to encode string to write them.
 
     """
+    # to know if we have to save a new hdf5
+    save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+    if save_opt['erase_id'] == 'True':  # xml is all in string
+        erase_idem = True
+    else:
+        erase_idem = False
 
-    # create hdf5 name
-    h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+    # create hdf5 name if we keep all files (nned a time stamp)
+    save_xml = True
+    if not erase_idem:
+        h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+    else:
+        h5name = name_hdf5 + '.h5'
+        if os.path.isfile(os.path.join(path_hdf5, name_hdf5)):
+            os.remove(os.path.join(path_hdf5, name_hdf5))
+            save_xml = False
 
     # create a new hdf5
     fname = os.path.join(path_hdf5, h5name)
@@ -828,24 +845,25 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
         print('Error: No project saved. Please create a project first in the General tab.\n')
         return
     else:
-        doc = ET.parse(filename_prj)
-        root = doc.getroot()
-        child = root.find(".//" + model_type)
-        if child is None:
-            here_element = ET.SubElement(root, model_type)
-            if not merge:
-                hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
+        if save_xml:
+            doc = ET.parse(filename_prj)
+            root = doc.getroot()
+            child = root.find(".//" + model_type)
+            if child is None:
+                here_element = ET.SubElement(root, model_type)
+                if not merge:
+                    hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
+                else:
+                    hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
             else:
-                hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
-        else:
-            if not merge:
-                hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-            else:
-                hdf5file = ET.SubElement(child, "hdf5_mergedata")
+                if not merge:
+                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+                else:
+                    hdf5file = ET.SubElement(child, "hdf5_mergedata")
 
-        hdf5file.text = h5name
+            hdf5file.text = h5name
 
-        doc.write(filename_prj)
+            doc.write(filename_prj)
 
     return
 
@@ -870,13 +888,31 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
     :param return_name: If True this function return the name of the substrate hdf5 name
     """
 
+    # to know if we have to save a new hdf5
+    save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+    if save_opt['erase_id'] == 'True':  # xml is all in string
+        erase_idem = True
+    else:
+        erase_idem = False
+    save_xml = True
+
     if constsub:  # constant value of substrate
 
-        # create hdf5 name
-        if name_hdf5:
-            h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        # create hdf5 name if we keep all the files (need a time stamp)
+        if not erase_idem:
+            if name_hdf5:
+                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            else:
+                h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        # create hdf5 name if we erase identical files
         else:
-            h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            if name_hdf5:
+                h5name = name_hdf5 + '.h5'
+            else:
+                h5name = 'Substrate_CONST.h5'
+            if os.path.isfile(os.path.join(path_hdf5, h5name)):
+                os.remove(os.path.join(path_hdf5, h5name))
+                save_xml = False
 
         # create a new hdf5
         fname = os.path.join(path_hdf5, h5name)
@@ -905,10 +941,20 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
     else:  # grid
 
         # create hdf5 name
-        if name_hdf5:
-            h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        if not erase_idem:
+            if name_hdf5:
+                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            else:
+                h5name = 'Substrate_VAR_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        # create hdf5 name if we erase identical files
         else:
-            h5name = 'Substrate_VAR_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+            if name_hdf5:
+                h5name = name_hdf5 + '.h5'
+            else:
+                h5name = 'Substrate_VAR.h5'
+            if os.path.isfile(os.path.join(path_hdf5, h5name)):
+                os.remove(os.path.join(path_hdf5, h5name))
+                save_xml = False
 
         # create a new hdf5
         fname = os.path.join(path_hdf5, h5name)
@@ -951,21 +997,18 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
         print('Error: No project saved. Please create a project first in the General tab.\n')
         return
     else:
-        doc = ET.parse(filename_prj)
-        root = doc.getroot()
-        child = root.find(".//" + model_type)
-        if child is None:
-            stathab_element = ET.SubElement(root, model_type)
-            hdf5file = ET.SubElement(stathab_element, "hdf5_substrate")
-            hdf5file.text = h5name
-        else:
-            hdf5file = root.find(".//" + "hdf5_substrate")
-            hdf5file = ET.SubElement(child, "hdf5_substrate")
-            hdf5file.text = h5name
-            #else:
-                #hdf5file.text = hdf5file.text + ', ' + h5name  # keep the name of the old and new file
-                #hdf5file.text = h5name  # keep only the new file
-        doc.write(filename_prj)
+        if save_xml:
+            doc = ET.parse(filename_prj)
+            root = doc.getroot()
+            child = root.find(".//" + model_type)
+            if child is None:
+                stathab_element = ET.SubElement(root, model_type)
+                hdf5file = ET.SubElement(stathab_element, "hdf5_substrate")
+                hdf5file.text = h5name
+            else:
+                hdf5file = ET.SubElement(child, "hdf5_substrate")
+                hdf5file.text = h5name
+            doc.write(filename_prj)
 
     if return_name:
         return h5name

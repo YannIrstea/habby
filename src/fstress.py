@@ -298,6 +298,10 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
         # CAREFUL, we exchange here between h and w
         [w_coeff, h_coeff] = blob_stathab.power_law(data_hydro[i])
 
+        if qrange[i][0] == 0:
+            qrange[i][0] = 1e-2
+        if qrange[i][1] == 0:
+            qrange[i][0] = 1e-2
         # for each discharge
         for qind in range(0, nbclaq):
             # discharge

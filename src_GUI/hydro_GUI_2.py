@@ -2976,7 +2976,6 @@ class SubstrateW(SubHydroW):
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
         self.update_sub_hdf5_name()
-        self.drop_sub.setCurrentIndex(1)
 
         self.butfig1.setEnabled(True)
         self.load_b.setDisabled(False)
@@ -3021,6 +3020,7 @@ class SubstrateW(SubHydroW):
         This function update the QComBox on substrate data which is on the substrate tab. The similiar function
         for hydrology is in Main_Windows_1.py as it is more practical to have it there to collect all the signals.
         """
+
         path_hdf5 = self.find_path_hdf5()
         self.sub_name = self.read_attribute_xml('hdf5_substrate')
         self.sub_name = list(reversed(self.sub_name.split(',')))
@@ -3033,12 +3033,13 @@ class SubstrateW(SubHydroW):
         self.sub_name = sub_name2
         self.drop_sub.clear()
         for i in range(0, len(self.sub_name)):
-            if i == 0 and len(self.sub_name) > 1:
-                self.drop_sub.addItem(' ')
-            if len(self.sub_name[i])> self.max_lengthshow:
+            # if i == 0 and len(self.sub_name) > 1:
+            #     self.drop_sub.addItem(' ')
+            if len(self.sub_name[i]) > self.max_lengthshow:
                 self.drop_sub.addItem(os.path.basename(self.sub_name[i][:self.max_lengthshow]))
             else:
                 self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
+        self.drop_sub.setCurrentIndex(0)
 
     def get_attribute_from_shp(self):
         """
@@ -3103,10 +3104,7 @@ class SubstrateW(SubHydroW):
             hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()-1]
         else:
             hdf5_name_hyd = self.hyd_name[0]
-        if len(self.drop_sub )>1:
-            hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()-1]
-        else:
-            hdf5_name_sub = self.sub_name[0]
+        hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()]
         default_data = self.e3.text()
         path_hdf5 = self.find_path_hdf5()
         path_im = self.find_path_im()
@@ -3124,7 +3122,7 @@ class SubstrateW(SubHydroW):
         # log
         # functions if ind is zero also
         self.send_log.emit("py    file_hyd=r'" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
-        self.send_log.emit("py    name_sub=r'" + self.sub_name[self.drop_sub.currentIndex()-1] + "'")
+        self.send_log.emit("py    name_sub=r'" + self.sub_name[self.drop_sub.currentIndex()] + "'")
         self.send_log.emit("py    path_sub=r'" + path_hdf5 + "'")
         if len(self.e3.text()) > 0:
             self.send_log.emit("py    defval=" + self.e3.text())
@@ -3135,7 +3133,7 @@ class SubstrateW(SubHydroW):
         self.send_log.emit("restart MERGE_GRID_SUB")
         self.send_log.emit("restart    file_hyd: " + self.hyd_name[self.drop_hyd.currentIndex()-1])
         self.send_log.emit("restart    file_sub: " + os.path.join(self.path_prj,
-                                                                  self.sub_name[self.drop_sub.currentIndex()-1]))
+                                                                  self.sub_name[self.drop_sub.currentIndex()]))
         if  len(self.e3.text()) > 0:
             self.send_log.emit("restart    defval: " + self.e3.text())
         else:

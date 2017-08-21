@@ -595,7 +595,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         try:
             grid_dict = triangle.triangulate(dict_point, 'p')  # 'p' allows for constraint
         except:
-            print('blob')
+            print('Error: Triangulation failed')
         try:
             ikle_r = grid_dict['triangles']
             point_all_r = grid_dict['vertices']
@@ -710,8 +710,6 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
         for p in range(nb_pro_reach[r]+1, nb_pro_reach[r+1]):
             coord_pro_p0 = coord_pro[p-1]
             coord_pro_p1 = coord_pro[p]
-            if p==1:
-                print(coord_pro_p0[0])
 
             # find the middle profile
             if len(coord_pro_p0[0]) > 0 and len(coord_pro_p1[0]) > 0:
