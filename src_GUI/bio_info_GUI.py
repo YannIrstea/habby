@@ -629,7 +629,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
             sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
-            calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict, sim_name)
+            if fig_dict['erase_id'] == 'True':
+                erase_id = True
+            else:
+                erase_id = False
+            calcul_hab.save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_dict, sim_name, erase_id)
             for t in fig_dict['time_step']:
                 # if print last and first time step and one time step only, only print it once
                 if t == -1 and len(vh_all_t_sp[0]) == 2 and 1 in fig_dict['time_step']:

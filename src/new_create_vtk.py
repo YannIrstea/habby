@@ -7,7 +7,8 @@ import time
 import xml.dom.minidom
 
 
-def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, height_c_data, vel_c_data, name_fish):
+def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, height_c_data, vel_c_data, name_fish,
+                   erase_id):
     """
     This function creates paraview input in the new, non-legacy xml format. This function called the evtk class
     written by Paulo Herrera, which is available at https://bitbucket.org/pauloh/pyevtk/downloads/
@@ -30,11 +31,12 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
     :param vel_c_data: the velocity by cell by reach by time step
     :param name_fish: the name of fish and stage
     :param path_out: the path where to save the data
+    :param erase_id: if True, previous paraview file from identical merge file are erased
 
     """
 
     file_names_all = []
-    if len(file_name_base)>25:
+    if len(file_name_base)>60:
         file_name_base = os.path.join(path_out, file_name_base)[:-25]
     else:
         file_name_base = os.path.join(path_out, file_name_base)
@@ -50,7 +52,10 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
     nb_time = len(ikle_all_t)
 
     for r in range(0, len(ikle_all_t[-1])):
-        fileName = file_name_base + '_' + 'Reach' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        if not erase_id:
+            fileName = file_name_base + '_' + 'Reach' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        else:
+            fileName = file_name_base + '_' + 'Reach' + str(r)
 
         # create one vtu file by time step
         # for the moment we do not show the time step zero with the full profile without data
@@ -86,11 +91,20 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
                 cellData['dominant sub'] = sub_dom_data[t][r]
 
                 # create the grid and the vtu files
+                name_here = fileName + '_t' + str(t) + '.vtu'
+                if erase_id:
+                    if os.path.isfile(name_here):
+                        os.remove(name_here)
+                file_names_all.append(name_here)
                 hl.unstructuredGridToVTK(fileName + '_t' + str(t), x, y, z, connectivity, offsets, cell_types, cellData)
-                file_names_all.append(fileName + '_t' + str(t) + '.vtu')
+
 
         # create the "grouping" file to read all time step together
-        writePVD(fileName + '.pvd', file_names_all)
+        name_here = fileName + '.pvd'
+        if erase_id:
+            if os.path.isfile(name_here):
+                os.remove(name_here)
+        writePVD(name_here, file_names_all)
         file_names_all = []
 
 

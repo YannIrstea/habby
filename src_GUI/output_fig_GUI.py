@@ -598,21 +598,21 @@ def create_default_figoption():
     fig_dict['color_map2'] = 'jet'
     fig_dict['font_size'] = 12
     fig_dict['line_width'] = 1
-    fig_dict['grid'] = False
+    fig_dict['grid'] = 'False'
     fig_dict['time_step'] = '1,-1'
-    fig_dict['raw_data'] = False
+    fig_dict['raw_data'] = 'False'
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800
     fig_dict['fish_name_type'] = 0
-    fig_dict['text_output'] = False
-    fig_dict['shape_output'] = False
-    fig_dict['paraview'] = False
-    fig_dict['fish_info'] = False
+    fig_dict['text_output'] = 'False'
+    fig_dict['shape_output'] = 'False'
+    fig_dict['paraview'] = 'False'
+    fig_dict['fish_info'] = 'True'
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
-    fig_dict['marker'] = False
-    fig_dict['erase_id'] = True
+    fig_dict['marker'] = 'False'
+    fig_dict['erase_id'] = 'True'
 
     return fig_dict
 

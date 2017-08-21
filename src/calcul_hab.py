@@ -53,7 +53,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
-    a = time.time()
     # calcuation habitat
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
         calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
@@ -84,14 +83,20 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         create_info = True
     else:
         create_info = False
+    if fig_opt['erase_id'] == 'True':
+        erase_id = True
+    else:
+        erase_id = False
 
     # prepare name for the output (there is more or less one form by output)
+    all_name = ''
     for id, n in enumerate(name_fish):
         name_fish[id] = n + '_' + stages_chosen[id]
+        all_name += name_fish_sh[id]
     if len(hdf5_file) > 25:
-        name_base = hdf5_file[: -25]
+        name_base = hdf5_file[:25] + '_' + all_name
     else:
-        name_base = hdf5_file
+        name_base = hdf5_file[:-3] + '_' + all_name
 
     # get the time step name
     # get time step name if they exists
@@ -100,22 +105,22 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # text output
     if create_text:
         save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base,
-                     sim_name)
-    save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'])
+                     sim_name, erase_id)
+    save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'], erase_id)
 
     # shape output
     if create_shape:
         if run_choice == 2:
             perc = True
         else:
-            perc =False
+            perc = False
         save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
-                       name_fish_sh, path_out, name_base, sim_name, save_perc=perc)
+                       name_fish_sh, path_out, name_base, sim_name, save_perc=perc, erase_id=erase_id)
 
     # paraview outputs
     if create_para:
         new_create_vtk.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
-                                      vel_c_all_t, name_fish)
+                                      vel_c_all_t, name_fish, erase_id)
 
     # pdf with information on the fish
     if create_info and len(xmlfiles) > 0:
@@ -134,9 +139,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     if -1 in timestep and len(vh_all_t_sp[0]) == 2 and 1 in timestep:
         del timestep[1]
     # figure
-    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep, sim_name)
+    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep, sim_name,
+                   erase_id=erase_id)
     plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
-                    name_base, sim_name)
+                    name_base, sim_name, erase_id)
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
@@ -450,7 +456,7 @@ def find_pref_value(data, pref):
 
 
 def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_txt, name_base,
-                 sim_name=[]):
+                 sim_name=[], erase_id=False):
     """
     This function print the text output. We create one set of text file by time step. Each Reach is separated by the
     key work REACH follwoed by the reach number (strating from 0). There are three files by time steps: one file which
@@ -470,12 +476,17 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
     :param name_fish: the list of fish latin name + stage
     :param path_txt: the path where to save the text file
     :param name_base: a string on which to base the name of the files
-    :param sim_name: the name of the simulation
+    :param sim_name: the name of the simulation/time step (list of strings)
+    :param erase_id: If True, we erase old text file from identical hydraulic model
     """
 
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
     if ikle == [-99]:
+        return
+
+    if not os.path.exists(path_txt):
+        print('Error: the path to save the text file do not exists. \n')
         return
 
     if len(sim_name) > 0 and len(sim_name) != len(ikle) - 1:
@@ -488,25 +499,40 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
         if len(ikle_here) < 2:
             print('Warning: One time step failed. \n')
         else:
-
-            if not sim_name:
-                name1 = 'xy_' + 't_' + str(t) + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                name2 = 'gridcell_' + 't_' + str(t)+ '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
-                        + '.txt'
-                name3 = 'result_' + 't_' + str(t) + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
-                        + '.txt'
+            # choose the name of the text file
+            if not erase_id:
+                if not sim_name:
+                    name1 = 'xy_' + 't_' + str(t) + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
+                            + '.txt'
+                    name2 = 'gridcell_' + 't_' + str(t)+ '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
+                            + '.txt'
+                    name3 = 'result_' + 't_' + str(t) + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
+                            + '.txt'
+                else:
+                    name1 = 'xy_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + \
+                            time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    name2 = 'gridcell_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + \
+                            time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    name3 = 'result_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + \
+                            time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
             else:
-                name1 = 'xy_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +\
-                        '.txt'
-                name2 = 'gridcell_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + \
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S")  + '.txt'
-                name3 = 'result_' + 't_' + sim_name[t-1] + '_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") \
-                        + '.txt'
-
-            if os.path.exists(path_txt):
-                name1 = os.path.join(path_txt, name1)
-                name2 = os.path.join(path_txt, name2)
-                name3 = os.path.join(path_txt, name3)
+                if not sim_name:
+                    name1 = 'xy_' + 't_' + str(t) + '_' + name_base + '.txt'
+                    name2 = 'gridcell_' + 't_' + str(t) + '_' + name_base + '.txt'
+                    name3 = 'result_' + 't_' + str(t) + '_' + name_base + '.txt'
+                else:
+                    name1 = 'xy_' + 't_' + sim_name[t - 1] + '_' + name_base + '.txt'
+                    name2 = 'gridcell_' + 't_' + sim_name[t - 1] + '_' + name_base + '.txt'
+                    name3 = 'result_' + 't_' + sim_name[t - 1] + '_' + name_base + '.txt'
+                if os.path.isfile(os.path.join(path_txt, name1)):
+                    os.remove(os.path.join(path_txt, name1))
+                if os.path.isfile(os.path.join(path_txt, name2)):
+                    os.remove(os.path.join(path_txt, name2))
+                if os.path.isfile(os.path.join(path_txt, name3)):
+                    os.remove(os.path.join(path_txt, name3))
+            name1 = os.path.join(path_txt, name1)
+            name2 = os.path.join(path_txt, name2)
+            name3 = os.path.join(path_txt, name3)
 
             # grid
             with open(name2,'wt', encoding='utf-8') as f:
@@ -559,7 +585,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                                 str(sub_pg[i]) + '\t' + str(sub_dom[i]) + '\t' + vh_str + '\n')
 
 
-def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[], lang=0):
+def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[], lang=0, erase_id=False):
     """
     This function create a text files with the folowing columns: the tiem step, the reach number, the area of the
     reach and the spu for each fish species. Use tab instead of space to help with excel import.
@@ -571,15 +597,26 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time step
     :param lang: an int which indicates the chosen language (0 is english)
+    :param erase_id: If True, we erase old text file from identical hydraulic model
     """
 
-    if lang == 0:
-        name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-    else:
-        name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-    if os.path.exists(path_txt):
-        name = os.path.join(path_txt, name)
+    if not os.path.exists(path_txt):
+        print('Error: the path to the text file is not found. Text files not created \n')
 
+    if not erase_id:
+        if lang == 0:
+            name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+        else:
+            name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+    else:
+        if lang == 0:
+            name = 'wua_' + name_base + '.txt'
+        else:
+            name = 'spu_' + name_base + '.txt'
+        if os.path.isfile(os.path.join(path_txt, name)):
+            os.remove(os.path.join(path_txt, name))
+
+    name = os.path.join(path_txt, name)
     if len(sim_name) > 0 and len(sim_name) != len(area_all)-1:
         sim_name = []
 
@@ -626,7 +663,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
 
 
 def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish_sh, path_shp, name_base,
-                   sim_name=[], save_perc=False):
+                   sim_name=[], save_perc=False, erase_id=False):
     """
     This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
     all the reaches together. If there is overlap between reaches, it does not care. It create an attribute table
@@ -646,6 +683,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     :param name_base: a string on which to base the name of the files
     :param sim_name: the time step's name if not 0,1,2,3
     :param save_perc: It true the substrate in percentage will be added to the shapefile
+    :param erase_id: If True, we erase old text file from identical hydraulic model
     """
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
@@ -721,14 +759,23 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                         w.record(*data_here)
 
             w.autoBalance = 1
-            if not sim_name:
-                name1 = name_base + '_t_' + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+            if not erase_id:
+                if not sim_name:
+                    name1 = name_base + '_t_' + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+                else:
+                    name1 = name_base + '_t_' + sim_name[t-1] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
             else:
-                name1 = name_base + '_t_' + sim_name[t-1] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+                if not sim_name:
+                    name1 = name_base + '_t_' + str(t) + '.shp'
+                else:
+                    name1 = name_base + '_t_' + sim_name[t - 1] + '.shp'
+                if os.path.isfile(os.path.join(path_shp,name1)):
+                    os.remove(os.path.join(path_shp, name1))
+
             w.save(os.path.join(path_shp, name1))
 
 
-def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}, sim_name=[]):
+def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}, sim_name=[], erase_id=False):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -740,7 +787,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     :param fig_opt: the dictionnary with the figure options
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time steps if not 0,1,2,3
+    :param erase_id: If True, figure from identical simuation are erased
     """
+
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
@@ -811,7 +860,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.title('Habitat value for the Reach ' + str(r))
             if fig_opt['language'] == 1:
                 plt.title("Valeur d'Habitat:  " + str(r))
-            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if not erase_id:
+                name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            else:
+                name = 'WUA_' + name_base + '_Reach_' + str(r)
+                remove_image(name, path_im, format1)
             plt.tight_layout()
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -894,7 +947,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
             plt.tight_layout()
-            name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if not erase_id:
+                name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            else:
+                name = 'WUA_' + name_base + '_Reach_' + str(r)
+                remove_image(name, path_im, format1)
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
@@ -954,7 +1011,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                     plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
-            name = 'WUA_' + name_base + '_All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if not erase_id:
+                name = 'WUA_' + name_base + '_All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            else:
+                name = 'WUA_' + name_base + '_All_Reach_'
+                remove_image(name, path_im, format1)
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
@@ -964,7 +1025,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
 
 
 def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1],
-                   sim_name=[], save_fig=True):
+                   sim_name=[], save_fig=True, erase_id=False):
     """
     This function creates 2D map of the habitat value for each species at
     the time step asked. All reaches are ploted on the same figure.
@@ -981,6 +1042,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     :param save_fig: If True the figure is saved
 
     """
+
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
@@ -1107,19 +1169,29 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
 
                 # save figure
                 if save_fig:
-
-                    if not sim_name :
-                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + '_' +\
-                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                    elif t-1 >= 0 and sim_name[t - 1]:
-                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[t - 1] + '_' +\
-                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                    elif t == -1:
-                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[-1] + '_' + \
-                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    if not erase_id:
+                        if not sim_name :
+                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + str(t) + '_' +\
+                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                        elif t-1 >= 0 and sim_name[t - 1]:
+                            name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[t - 1] + '_' +\
+                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                        elif t == -1:
+                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + sim_name[-1] + '_' + \
+                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                        else:
+                            name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + '_' + \
+                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
                     else:
-                        name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + '_' + \
-                                   time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                        if not sim_name:
+                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + str(t)
+                        elif t - 1 >= 0 and sim_name[t - 1]:
+                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + sim_name[t - 1]
+                        elif t == -1:
+                            name_fig = 'HSI_' + '_' + name_base + '_t_' + sim_name[-1]
+                        else:
+                            name_fig = 'HSI_' + '_' + name_base + '_t_' + str(t)
+                        remove_image(name_fig, path_im, format1)
 
                     if format1 == 0 or format1 == 1:
                         plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'],
@@ -1133,7 +1205,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
 
 
 def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all_t, fig_opt, path_im, timestep,
-                    name_base, sim_name=[]):
+                    name_base, sim_name=[], erase_id=False):
     """
     This function plots an historgram of the hydraulic and substrate data for the selected timestep. This historgramm
     is weighted by the area of the cell. The data is based on the height and velocity data by cell and not on the node.
@@ -1250,18 +1322,29 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.ylabel('fréquence')
 
             plt.tight_layout(rect=[0., 0., 1, 0.95])
-            if not sim_name:
-                name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
-                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            elif t-1 >=0:
-                name = 'Histogramm_' + name_base + '_t_' + sim_name[t-1] + '_All_Reach_' + \
-                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            elif t ==-1:
-                name = 'Histogramm_' + name_base + '_t_' + sim_name[-1] + '_All_Reach_' + \
-                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            if not erase_id:
+                if not sim_name:
+                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
+                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                elif t-1 >=0:
+                    name = 'Histogramm_' + name_base + '_t_' + sim_name[t-1] + '_All_Reach_' + \
+                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                elif t ==-1:
+                    name = 'Histogramm_' + name_base + '_t_' + sim_name[-1] + '_All_Reach_' + \
+                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                else:
+                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
+                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
-                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                if not sim_name:
+                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_'
+                elif t - 1 >= 0:
+                    name = 'Histogramm_' + name_base + '_t_' + sim_name[t - 1] + '_All_Reach_'
+                elif t == -1:
+                    name = 'Histogramm_' + name_base + '_t_' + sim_name[-1] + '_All_Reach_'
+                else:
+                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_'
+                remove_image(name, path_im, format1)
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
@@ -1269,4 +1352,28 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
+
+def remove_image(name, path, format1):
+    """
+    This is a small function used to erase images if erase_id is True. We have a function because different format
+    czan be used and because it is done often in the functions above.
+
+    :param name: the name of the file t be erase (without the extension)
+    :param path: the path to the file
+    :param format1: the type of format
+    :return:
+    """
+    if format1 == 0:
+        ext = ['.png', '.pdf']
+    elif format1 ==1:
+        ext = ['.png']
+    elif format1 ==2:
+        ext = ['jpg']
+    elif format1 ==3:
+        ext = ['.pdf']
+    else:
+        return
+    for e in ext:
+        if os.path.isfile(os.path.join(path, name+e)):
+            os.remove(os.path.join(path, name+e))
 
