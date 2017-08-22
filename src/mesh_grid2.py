@@ -47,7 +47,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
     sim_name = load_hdf5.load_timestep_name(hdf5_name_hyd, path_hdf5)
 
     # save hdf5
-    if len(os.path.basename(hdf5_name_hyd)) > 25:
+    if len(os.path.basename(hdf5_name_hyd)) > 80:
         name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-25]  # take out the date in most case
     else:
         name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-3]

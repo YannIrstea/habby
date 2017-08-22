@@ -530,7 +530,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the path where to save the different outputs (function in estimhab_GUI.py)
         path_txt = self.find_path_text_est()
         path_im = self.find_path_im_est()
-        path_out = self.find_path_output_est()
+        path_shp = self.find_path_output_est("Path_Shape")
+        path_para = self.find_path_output_est("Path_Paraview")
 
         # get the type of option choosen for the habitat calculation
         run_choice = self.choice_run.currentIndex()
@@ -545,8 +546,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.q4 = Queue()
         self.p4 = Process(target=calcul_hab.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
                                                                        name_fish, name_fish_sh, run_choice,
-                                                                       self.path_bio, path_txt, path_out, path_im,
-                                                                       self.q4, False, fig_dict, path_im_bioa,
+                                                                       self.path_bio, path_txt, path_shp, path_para,
+                                                                       path_im, self.q4, False, fig_dict, path_im_bioa,
                                                                        xmlfiles))
         self.p4.start()
 

@@ -16,7 +16,7 @@ from src_GUI import output_fig_GUI
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fish, name_fish_sh, run_choice, path_bio,
-                        path_txt, path_out, path_im, q=[], print_cmd=False, fig_opt={}, path_im_bio='', xmlfiles=[]):
+                        path_txt, path_shp, path_para, path_im, q=[], print_cmd=False, fig_opt={}, path_im_bio='', xmlfiles=[]):
 
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
@@ -33,7 +33,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     :param run_choice: an int fron 0 to n. Gives which calculation method should be used
     :param path_bio: The path to the biological folder (with all files given in bio_names)
     :param path_txt: the path where to save the text file
-    :param path_out: the path where to save shapefile and paraview output
+    :param path_shp: the path where to save shapefile
+    :param path_para: the path where to save paraview output
     :param path_im: the path where to save the image
     :param path_im_bio: the path where are the image of the fish
     :param q: used in the second thread
@@ -115,11 +116,11 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         else:
             perc = False
         save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
-                       name_fish_sh, path_out, name_base, sim_name, save_perc=perc, erase_id=erase_id)
+                       name_fish_sh, path_shp, name_base, sim_name, save_perc=perc, erase_id=erase_id)
 
     # paraview outputs
     if create_para:
-        new_create_vtk.habitat_to_vtu(name_base, path_out, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
+        new_create_vtk.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
                                       vel_c_all_t, name_fish, erase_id)
 
     # pdf with information on the fish

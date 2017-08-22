@@ -1000,7 +1000,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         # run calculation
         # we calculate hab on all the stage in xml preference files
         calcul_hab.calc_hab_and_output(merge_name, path_merge, bio_names, stages, name_fish, name_fish, run_choice,
-                                     path_bio, path_prj, path_prj, path_prj, [], True, fig_opt)
+                                       path_bio, path_prj, path_prj, path_prj, path_prj, [], True, fig_opt)
 
     # --------------------------------------------------------------------------------------
     elif all_arg[1] == 'CREATE_RAND_SUB':

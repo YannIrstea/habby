@@ -217,23 +217,28 @@ class StatModUseful(QWidget):
 
         return path_text
 
-    def find_path_output_est(self):
+    def find_path_output_est(self, att):
         """
-        A function to find the path where to save the shapefile, paraview files and other future format. By default,
-        path_out is in the project folder in the folder 'other_output.
+        A function to find the path where to save the shapefile, paraview files and other future format. Here, we gave
+        the xml attribute as argument so this functin can be used to find all path needed. However, it is less practical
+        to use as the function above as one should remember the xml tribute to call this function. However, it can be
+        practical to use to add new folder.
+
+        :param att: the xml attribute (from the xml project file) linked to the path needed, without the .//
+
         """
 
-        path_text = 'no_path'
+        path_out = 'no_path'
 
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         if os.path.isfile(filename_path_pro):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
-            child = root.find(".//Path_Output")
+            child = root.find(".//" + att)
             if child is None:
-                path_text = os.path.join(self.path_prj, r'/other_output')
+                return self.path_prj
             else:
-                path_text = os.path.join(self.path_prj, child.text)
+                path_out = os.path.join(self.path_prj, child.text)
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
@@ -242,7 +247,7 @@ class StatModUseful(QWidget):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
-        return path_text
+        return path_out
 
     def find_path_input_est(self):
         """

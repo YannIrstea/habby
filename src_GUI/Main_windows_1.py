@@ -694,9 +694,12 @@ class MainWindows(QMainWindow):
             path_text = os.path.join(self.path_prj, 'text_output')
             pathtext_child = ET.SubElement(path_element, "Path_Text")
             pathtext_child.text = 'text_output'
-            path_other = os.path.join(self.path_prj, 'other_output')
-            pathother_child = ET.SubElement(path_element, "Path_Output")
-            pathother_child.text = 'other_output'
+            path_other = os.path.join(self.path_prj, 'shapefiles_output')
+            pathother_child = ET.SubElement(path_element, "Path_Shape")
+            pathother_child.text = 'shapefiles_output'
+            path_para = os.path.join(self.path_prj, 'paraview_output')
+            pathpara_child = ET.SubElement(path_element, "Path_Paraview")
+            pathpara_child.text = 'paraview_output'
 
             # save new xml file
             if self.name_prj != '':
@@ -714,6 +717,8 @@ class MainWindows(QMainWindow):
                 os.makedirs(path_text)
             if not os.path.exists(path_other):
                 os.makedirs(path_other)
+            if not os.path.exists(path_para):
+                os.makedirs(path_para)
 
             # create the concurency file
             filenamec = os.path.join(os.path.join(self.path_prj, 'fichier_hdf5'), 'check_concurrency.txt')
