@@ -418,8 +418,7 @@ Function for the command lines
 -------------------------------
 in src/func_for_cmd.py
 
-This module contains functions which are only used by habby_cmd.py. Theoretically, it is not needed but it is sometimes practical.
-It is not great idea to add to many functions here however because it is more complicated to maintain.
+This module contains functions which are used by habby.py when called on the command line (witjout using the GUI).
 
 .. automodule:: src.func_for_cmd
    :members:
@@ -444,7 +443,7 @@ the axes in the option of the figure (the menu in the axes on the top of the fig
 **How to make figures editable in Adobe Illustrator**
 
 It is useful to have figures which we can edit in Adobe Illustrator. To achieve this, the following matplotlib option should be added:
-mpl.rcParams['ps.fonttype'] = 42. Moreover, matplolib should be imported (import matplotlib as mpl). It is also useful to add the tranparent option to the function to save the figure (transparent=True). This renders modification easier in many cases.
+mpl.rcParams['pdf.fonttype'] = 42. Moreover, matplolib should be imported (import matplotlib as mpl). It is also useful to add the tranparent option to the function to save the figure (transparent=True). This renders modification easier in many cases. However, it is not good to use mpl.rcParams['ps.fonttype'] = 42 as the figure created in the eps format would be corrupted because of a bug in matplotlib.
 
 
 Translation of HABBY
@@ -520,7 +519,9 @@ Practically:
 * copy createexe.bat in the habby folder.
 * run createexe.bat (only on Windows)
 * ignore the executable created in the "built" folder Use the one is in the "dist" folder.
-* copy all files in the mklall folder to the folder dist/habby and the file which NOT python file from the original src_GUI folder to the one just created (or you know, improve the bat file...)
+* copy all files in the mklall folder to the folder dist/habby.
+* copy all the files in the original src_GUI folder which are NOT python file to the src_GUI folder just created (or you know, improve the bat file...).
+* copy the doc folder in the dist/habby folder
 * run habby by writing habby on the cmd
 * test and correct problems. It can be long!
 
@@ -541,7 +542,7 @@ modified to create a new script to use HABBY in a different ways. For this, pyth
 The second log, called restart/_’name_project’.log, has limited functionalities but allows to 
 re-start the HABBY simulation from the command line, without the need for python. 
 Format of this file is described below. It is aimed to be readable and easily modifiable. 
-To use the restart file, type in the command line: python habby_cmd.py restart/_’name_project’.log.
+To use the restart file, type in the command line: python habby.py restart/_’name_project’.log.
 
 This part genreally needs more revisions and tests.
 
@@ -600,18 +601,8 @@ To create a new line of log for new_func, one should follow these steps:
 
 **restart file**
 
-The format of the restart file is based on the format asked by habby_cmd.py. More information on this format in habby_cmd.py 
+The format of the restart file is based on the format asked by the functions in func_for_cmd.py. More information on this format in func_for_cmd.py 
 (notably in the part list_command).
-
-Command line
-----------------------------------
-The module habby_cmd is used to call habby from the command line or to use the restart file to run habby. This
-module can also be used to run HABBY on a bunch of files contained in a folder.
-
-
-.. automodule:: habby_cmd
-   :members:
-   :undoc-members:
 
 
 Git - code management
