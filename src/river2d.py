@@ -65,7 +65,7 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
         [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2],xyzhv_i[:, 3],
                                                                                 xyzhv_i[:, 4], minwh)
 
-        # mimic empty grid for t = 0 for 1 D model
+        #mimic empty grid for t = 0 for 1 D model
         if i == 0:
             point_all_t.append([point_all])
             ikle_all_t.append([ikle_i])

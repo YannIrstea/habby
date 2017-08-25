@@ -357,11 +357,11 @@ class SubHydroW(QWidget):
         self.name_hdf5 = os.path.basename(pathname_hdf5)
 
         if self.model_type == 'SUBSTRATE' and 'CONST' in self.name_hdf5:
-            if len(self.name_hdf5) > 25:  # careful this number should be changed if the form of the hdf5 name change
+            if len(self.name_hdf5) > 50:  # careful this number should be changed if the form of the hdf5 name change
                 self.name_hdf5 = self.name_hdf5[:-25]
             self.hname2.setText(self.name_hdf5)
         else:
-            if len(self.name_hdf5) > 25: # careful this number should be changed if the form of the hdf5 name change
+            if len(self.name_hdf5) > 50:  # careful this number should be changed if the form of the hdf5 name change
                 self.name_hdf5 = self.name_hdf5[:-25]
             self.hname.setText(self.name_hdf5)
 
@@ -1751,8 +1751,8 @@ class River2D(SubHydroW):
         dirlist = np.array(os.listdir(dir_name))
         listcdf = [e for e in dirlist if e[-4:] == self.extension[0][0]]
         # add them to name file, path file and extension
-        self.namefile = self.namefile + listcdf
-        self.pathfile = self.pathfile + [dir_name] * len(listcdf)
+        self.namefile = listcdf
+        self.pathfile = [dir_name] * len(listcdf)
         # update list
         self.add_file_to_list()
         # add proposed hdf5 name to the QLineEdit

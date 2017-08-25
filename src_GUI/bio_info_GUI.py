@@ -177,9 +177,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.bs.clicked.connect(self.select_fish)
         # add auto-completion
         completer = QCompleter()
-        self.cond1.setCompleter(completer)
         self.model = QStringListModel()
         completer.setModel(self.model)
+        self.cond1.setCompleter(completer)
         self.get_autocompletion()
 
         # fill hdf5 list
@@ -401,10 +401,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 docxml = ET.parse(xmlfile)
                 root = docxml.getroot()
             except IOError:
-                print("Warning: the xml project file does not exist \n")
+                self.send_log.emit("Warning: the xml project file does not exist \n")
                 return
         except ET.ParseError:
-            print("Warning: the xml project file is not well-formed.\n")
+            self.send_log.emit("Warning: the xml project file is not well-formed.\n")
             return
 
         self.m_all.clear()
@@ -418,17 +418,20 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # add it to the list
         if files is not None:
             for idx,f in enumerate(files):
-                [sub_ini, hydro_ini] = load_hdf5.get_initial_files(path_hdf5, f.text)
-                hydro_ini = os.path.basename(hydro_ini)
-                textini = 'Hydraulic: '+hydro_ini + '\nSubstrate :' + sub_ini
-                if len(f.text) < 55:
-                    self.m_all.addItem(f.text)
+                if os.path.isfile(os.path.join(path_hdf5,f.text)):
+                    [sub_ini, hydro_ini] = load_hdf5.get_initial_files(path_hdf5, f.text)
+                    hydro_ini = os.path.basename(hydro_ini)
+                    textini = 'Hydraulic: '+hydro_ini + '\nSubstrate :' + sub_ini
+                    if len(f.text) < 55:
+                        self.m_all.addItem(f.text)
+                    else:
+                        blob = f.text[:55] + '...'
+                        self.m_all.addItem(blob)
+                    self.m_all.setItemData(idx,textini, Qt.ToolTipRole)
+                    name = f.text
+                    self.hdf5_merge.append(name)
                 else:
-                    blob = f.text[:55] + '...'
-                    self.m_all.addItem(blob)
-                self.m_all.setItemData(idx,textini, Qt.ToolTipRole)
-                name = f.text
-                self.hdf5_merge.append(name)
+                    self.send_log.emit("Warning: One merge hdf5 file was not found by calc_hab \n")
 
     def show_pref(self):
         """

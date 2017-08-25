@@ -10,6 +10,7 @@ import copy
 import os
 import bisect
 import sys
+from src_GUI import output_fig_GUI
 #np.set_printoptions(threshold=np.inf)
 
 
@@ -975,7 +976,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     return point_all, ikle,  point_c, p_not_found
 
 
-def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all):
+def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all, min_height=0.001, get_ind_new =False):
     """
     This function si just use to call cut_2d-grid for all reach. So that if we have a river with more than reach, we
     do not need to add a for loops to call for all reach. Sometime it can save place. This can be only use for one
@@ -985,6 +986,9 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all):
     :param point_all: the coordinate of the points for all reach
     :param inter_height_all: the water height data given on the nodes for all reach
     :param inter_vel_all: the velcoity given on the nodes for all reach
+    :param min_height: the minimum water height which is kept inthe grid
+    :param get_ind_new: If True, a list is returned which give the indices of the old cell in the order of the new cells
+           One list by reach (so a list of np.array is returned)
     :return: the update connectivity table, the coodinate of the point, the height of the water and the
              velocity on the updated grid fro all reaches
     """
@@ -993,18 +997,29 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all):
     point_all_new = []
     inter_height_all_new = []
     inter_vel_all_new = []
+    ind_new_all = []
+
     for r in range(0, len(ikle_all)):
-        [ikle, point_reach, inter_height, inter_vel] = cut_2d_grid(ikle_all[r], point_all[r],
-                                                                                inter_height_all[r], inter_vel_all[r])
+        if not get_ind_new:
+            [ikle, point_reach, inter_height, inter_vel] = cut_2d_grid(ikle_all[r], point_all[r], inter_height_all[r],
+                                                                       inter_vel_all[r],min_height=min_height)
+        else:
+            [ikle, point_reach, inter_height, inter_vel, ind_new] = cut_2d_grid(ikle_all[r], point_all[r],
+                                                                                inter_height_all[r], inter_vel_all[r],
+                                                                                min_height=min_height, get_ind_new=True)
+            ind_new_all.append(ind_new)
         ikle_all_new.append(ikle)
         point_all_new.append(point_reach)
         inter_height_all_new.append(inter_height)
         inter_vel_all_new.append(inter_vel)
 
-    return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
+    if get_ind_new:
+        return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new, ind_new_all
+    else:
+        return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
-def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
+def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001, get_ind_new=False):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
     with h>0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
@@ -1015,14 +1030,19 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
     :param water_height: the water height data given on the nodes
     :param velocity: the velcoity given on the nodes
     :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
-    :return: the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
+    :param get_ind_new: If True, a np.array is returned which give the indices of the old cell in the order of the new cells
+    :return: the update connectivity table, the coodinate of the point, the height of the water and the
+             velocity on the updated grid and (if get_ind_new is True) the indices of the old connectivity table in
+             the new cell orders.
     """
     # prep
+    warn_cut = True
     c_dry = []
+    ind_new = []
     water_height = np.array(water_height)
     ikle = np.array(ikle)
     # get all cells with at least one node with h < 0
-    ind_neg = set(np.where(water_height <= min_height)[0])  # set because it is quicker to search in a set
+    ind_neg = set(np.where(water_height < min_height)[0])  # set because it is quicker to search in a set
     for c in range(0, len(ikle)):
         iklec = ikle[c, :]
         if iklec[0] in ind_neg or iklec[1] in ind_neg or iklec[2] in ind_neg:
@@ -1031,6 +1051,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
     # find the intersection point for cells particlally dry
     pc_all = []
     which_side = []
+    double_neg = []
     for c in c_dry:
         pc_c = []
         which_side_c = []
@@ -1057,6 +1078,12 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
             which_side_c.append([2])
         pc_all.append(pc_c)
         which_side.append(which_side_c)
+        # let check if we have on or two value under min_height
+        if (hc < min_height and ha < min_height) or (hb < min_height and ha < min_height) or (
+                        hb < min_height and hc < min_height):
+            double_neg.append(True)
+        else:
+            double_neg.append(False)
 
     # create new cells
     which_side = np.array(which_side)
@@ -1066,8 +1093,10 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
     point_all = list(point_all)
     water_height = list(water_height)
     velocity = list(velocity)
+    if get_ind_new:
+        ind_new = list(range(0, len(ikle)))
     for c in c_dry:
-        if len(pc_all[i]) == 2:  # just a check?
+        if len(pc_all[i]) == 2:  # if intersection
             # add new point
             pc1 = pc_all[i][0]
             pc2 = pc_all[i][1]
@@ -1075,37 +1104,61 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
             point_all.append(pc1)
             lenp = len(point_all)
             water_height.extend([min_height, min_height])
-            velocity.extend([min_height, min_height])
+            velocity.extend([0, 0])
             iklec = ikle[c]
             # seg1 = [0,1] and seg2 = [1,2] in ikle order
             if np.sum(which_side[i]) == 1:
-                ikle.append([lenp - 1, lenp - 2, iklec[1]])
-                if which_side[i][1] == 1:  # seg = [1, 2]
-                    ikle.append([lenp - 1, lenp - 2, iklec[0]])
-                    ikle.append([lenp - 2, iklec[2], iklec[0]])
+                if double_neg[i]:
+                    ikle.append([lenp - 1, lenp - 2, iklec[1]])
+                    if get_ind_new:
+                        ind_new.append(c)
                 else:
-                    ikle.append([lenp - 1, lenp - 2,iklec[2]])
-                    ikle.append([lenp - 2, iklec[2], iklec[0]])
+                    if which_side[i][1] == 1:  # seg = [1, 2]
+                        ikle.append([lenp - 1, lenp - 2, iklec[0]])
+                        ikle.append([lenp - 2, iklec[2], iklec[0]])
+                    else:
+                        ikle.append([lenp - 1, lenp - 2,iklec[2]])
+                        ikle.append([lenp - 1, iklec[2], iklec[0]])  # not understood why not lenp-2
+                    if get_ind_new:
+                        ind_new.append(c)
+                        ind_new.append(c)
             # seg1 = [0,1] and seg2 = [0,2]
             if np.sum(which_side[i]) == 2:
-                ikle.append([lenp - 1, lenp - 2,iklec[0]])
-                if which_side[i][1] == 0:  # seg = [1, 0]
-                    ikle.append([lenp - 1, lenp - 2, iklec[2]])
-                    ikle.append([lenp - 2, iklec[1], iklec[2]])
+                if double_neg[i]:
+                    ikle.append([lenp - 1, lenp - 2, iklec[0]])
+                    if get_ind_new:
+                        ind_new.append(c)
                 else:
-                    ikle.append([lenp - 1, lenp - 2, iklec[1]])
-                    ikle.append([lenp - 2, iklec[1], iklec[2]])
+                    if which_side[i][1] == 0:  # seg = [1, 0]
+                        ikle.append([lenp - 1, lenp - 2, iklec[2]])
+                        ikle.append([lenp - 2, iklec[1], iklec[2]])
+                    else:
+                        ikle.append([lenp - 1, lenp - 2, iklec[1]])
+                        ikle.append([lenp - 2, iklec[1], iklec[2]])
+                    if get_ind_new:
+                        ind_new.append(c)
+                        ind_new.append(c)
             # seg1 = [2,1] and seg2 = [0,2]
             if np.sum(which_side[i]) == 3:
-                ikle.append([lenp - 1, lenp - 2, iklec[2]])
-                if which_side[i][1] == 2:  # seg = [2, 0]
-                    ikle.append([lenp - 1, lenp - 2, iklec[1]])
-                    ikle.append([lenp - 2, iklec[1], iklec[0]])
+                if double_neg[i]:
+                    ikle.append([lenp - 1, lenp - 2, iklec[2]])
+                    if get_ind_new:
+                        ind_new.append(c)
                 else:
-                    ikle.append([lenp - 1, lenp - 2, iklec[0]])
-                    ikle.append([lenp - 2, iklec[1], iklec[0]])
+                    if which_side[i][1] == 2:  # seg = [2, 0]
+                        ikle.append([lenp - 1, lenp - 2, iklec[1]])
+                        ikle.append([lenp - 2, iklec[1], iklec[0]])
+                    else:
+                        ikle.append([lenp - 1, lenp - 2, iklec[0]])
+                        ikle.append([lenp - 1, iklec[1], iklec[0]])  #?
+                    if get_ind_new:
+                        ind_new.append(c)
+                        ind_new.append(c)
         elif len(pc_all[i]) !=0:
-            print('Warning" cut grid output are not cohereren')
+            if warn_cut:
+                print('Warning: One triangle found which touches only one point. The grid was not cut on '
+                      'this triangle \n')
+                warn_cut = False
         i += 1
     ikle = np.array(ikle)
     point_all = np.array(point_all)
@@ -1119,7 +1172,14 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001):
     # erease the old cells
     ikle = np.delete(ikle, c_dry, axis=0)
 
-    return ikle, point_all, water_height, velocity
+    if get_ind_new:
+        ind_new = np.array(ind_new)
+        ind_new = np.delete(ind_new, c_dry, axis=0)
+
+    if get_ind_new:
+        return ikle, point_all, water_height, velocity, ind_new
+    else:
+        return ikle, point_all, water_height, velocity
 
 
 def linear_h_cross(p1,p2,h1,h2, minwh=0.0):
@@ -1134,25 +1194,14 @@ def linear_h_cross(p1,p2,h1,h2, minwh=0.0):
     :return: the intersection point
     """
     pc = []
-
     if (h1 <= minwh and h2 > minwh) or (h1 >minwh and h2 <= minwh):
         # h is linear, i.e., h = a*x +b pc == x(h==0) and y = a2*x + b2
-        if p1[0] != p2[0]:
-            a1 = (h1-h2)/(p1[0]-p2[0])
-            a2 = (p1[1] - p2[1]) / (p1[0] - p2[0])
-            b1 = h1 - a1 * p1[0]
-            pcx = (h1 - b1) / a1
-            b2 = p1[1] - a2 * p1[0]
-            pcy = a2 * pcx + b2
+        if h1 > h2:
+            mix = (h1 - minwh) / (h1 - h2)
+            pc = p1 + mix * (p2-p1)
         else:
-            pcx = p1[0]
-            if h1 > h2:
-                mix = (h1 - minwh) / (h1-h2)
-            else:
-                mix = (h2 - minwh) / (h2-h1)
-            pcy = mix * p1[1] + (1-mix) * p2[1]
-
-        pc = [pcx, pcy]
+            mix = (h2 - minwh) / (h2 - h1)
+            pc = p2 + mix * (p1-p2)
 
     return pc
 
@@ -1734,7 +1783,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
         # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_vel[np.isnan(inter_vel)] = 0
         inter_vel[inter_vel < 0] = 0
-        inter_vel[inter_vel > max_vel] = 0
+        inter_vel[inter_vel > max_vel] = max_vel
         vel_node.append(inter_vel)
 
         # height
@@ -1743,7 +1792,7 @@ def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True
         # sometime value like -1e17 is added because of the machine precision, we do no want this
         inter_height[np.isnan(inter_height)] = 0
         inter_height[inter_height < 0] = 0
-        inter_height[inter_height > max_height] = 0
+        inter_height[inter_height > max_height] = max_height
         height_node.append(inter_height)
 
     if warn1:
@@ -1779,7 +1828,11 @@ def interpolate_opti(values, vtx, wts):
     :param values:
     :param vtx:
     :param wts:
+    :param fill_value: A new value for point where
     """
+    # ret = np.einsum('nj,nj->n', np.take(values, vtx), wts)
+    # ret[np.any(wts < 0, axis=1)] = fill_value
+    # return ret
     return np.einsum('nj,nj->n', np.take(values, vtx), wts)  # summation based on einstein notation
 
 
@@ -2130,13 +2183,15 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
     :param point_all_reach: the coordinate of the point. This is given by reaches.
     :param ikle_all:  the connectivity table. This is given by reaches.
-    :param: fig_opt: the dictionary with the different options to create the figures
+    :param fig_opt: the dictionary with the different options to create the figures
     :param inter_vel_all: the velcoity data. This is given by reaches.
     :param inter_h_all: the height data. This is given by reaches.
     :param path_im: the path where the figure should be saved
     :param merge_case: If True, we plot data from grid with merged substrate and hydrological data
     :param time_step: time step to be added to the title
     """
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
 
     # plot the grid, the velcoity and the water height
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
@@ -2182,6 +2237,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                     ylist.append(None)
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
+            # to add water value on grid point (usualy to debug)
+            # for idx, c in enumerate(coord_p):
+            #     plt.annotate(str(inter_h_all[r][idx]),c)
     if time_step == -1:
         if fig_opt['language'] == 0:
             plt.title('Computational Grid  - Last Time Step')
@@ -2231,7 +2289,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
             inter_vel = inter_vel_all[r]
             if len(inter_vel) > 0:
                 mv = max(inter_vel)
-                #mv = np.mean(inter_vel) * 2
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2338,8 +2395,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
         if format1 == 2:
             plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                         dpi=fig_opt['resolution'], transparent=True)
-
-
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[],

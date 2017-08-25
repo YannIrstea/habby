@@ -506,7 +506,11 @@ def get_hdf5_name(model_name, name_prj, path_prj):
             else:
                 child = root.findall(".//" + model_name + '/hdf5_hydrodata')
             if len(child) > 0:
-                return child[-1].text
+                name_hdf5 = child[-1].text
+                if len(name_hdf5) > 3:
+                    if name_hdf5[:-3] == '.h5':
+                        name_hdf5 = name_hdf5[:-3]
+                return name_hdf5
             else:
                 print('Warning: the hdf5 name for the model ' + model_name + ' was not found (1)')
                 return 'default_name'
@@ -639,13 +643,12 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
                 velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
                                     maxshape=None)
 
-
     file_hydro.close()
 
 
-def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t,
-              inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False, sub_pg_all_t=[],
-              sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name=''):
+def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+              inter_vel_all_t, inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False,
+              sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name=''):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -721,9 +724,12 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     if not erase_idem:
         h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
     else:
-        h5name = name_hdf5 + '.h5'
-        if os.path.isfile(os.path.join(path_hdf5, name_hdf5)):
-            os.remove(os.path.join(path_hdf5, name_hdf5))
+        if name_hdf5[-3:] != '.h5':
+            h5name = name_hdf5 + '.h5'
+        else:
+            h5name = name_hdf5
+        if os.path.isfile(os.path.join(path_hdf5, h5name)):
+            os.remove(os.path.join(path_hdf5, h5name))
             save_xml = False
 
     # create a new hdf5
@@ -896,6 +902,9 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
         erase_idem = False
     save_xml = True
 
+    if name_hdf5[-3:] == '.h5':
+        name_hdf5 = name_hdf5[:-3]
+
     if constsub:  # constant value of substrate
 
         # create hdf5 name if we keep all the files (need a time stamp)
@@ -913,6 +922,8 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
                 os.remove(os.path.join(path_hdf5, h5name))
                 save_xml = False
+
+
 
         # create a new hdf5
         fname = os.path.join(path_hdf5, h5name)
