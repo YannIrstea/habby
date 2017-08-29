@@ -27,6 +27,7 @@ from src_GUI import stathab_GUI
 from src_GUI import output_fig_GUI
 from src_GUI import bio_info_GUI
 from src_GUI import fstress_GUI
+from src_GUI import chronicle_GUI
 
 
 class MainWindows(QMainWindow):
@@ -811,8 +812,12 @@ class MainWindows(QMainWindow):
         self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
         self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
         self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+        self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
 
         self.central_widget.add_all_tab()
+
+        # save figure option
+        self.central_widget.output_tab.save_option_fig()
 
         # re-connect signals for the tab
         self.central_widget.connect_signal_fig_and_drop()
@@ -925,6 +930,7 @@ class MainWindows(QMainWindow):
         self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
         self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
         self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+        self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
@@ -1587,6 +1593,8 @@ class CentralW(QWidget):
             self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
             self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
+            self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
+            self.update_merge_for_chronicle()
 
         self.scroll = QScrollArea()
         self.rech = rech
@@ -1687,6 +1695,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
             self.tab_widget.addTab(self.output_tab, self.tr("Options"))
+            self.tab_widget.addTab(self.chronicle_tab, self.tr("Chronicles"))
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
@@ -1760,6 +1769,7 @@ class CentralW(QWidget):
             self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
             self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
+            self.chronicle_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
@@ -1795,6 +1805,9 @@ class CentralW(QWidget):
             self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+
+            # connect signal to update the merge file
+            self.bioinfo_tab.get_list_merge.connect(self.update_merge_for_chronicle)
 
     def write_log(self, text_log):
         """
@@ -2012,6 +2025,19 @@ class CentralW(QWidget):
         elif self.old_ind_tab == 7:
             self.output_tab.save_option_fig()
         self.old_ind_tab = self.tab_widget.currentIndex()
+
+    def update_merge_for_chronicle(self):
+        """
+        This function looks up the list of merge file in the QComBox in the bio_info tab and copy this
+        list to the QCombobox in chronicle_GUI. So the two lists of merge file are the same
+        """
+        self.chronicle_tab.hdf5_merge = self.bioinfo_tab.hdf5_merge
+        self.chronicle_tab.merge_all.clear()
+        for i in range(0, self.bioinfo_tab.m_all.count()):
+            self.chronicle_tab.merge_all.addItem(self.bioinfo_tab.m_all.itemText(i))
+            self.chronicle_tab.merge_all.setItemData(i, self.bioinfo_tab.tooltip[i], Qt.ToolTipRole)
+
+
 
 
 class WelcomeW(QWidget):

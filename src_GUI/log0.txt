@@ -22,6 +22,7 @@ from src import new_create_vtk
 from src import fstress
 from src import mesh_grid2
 from src import substrate
+from src import hydraulic_chronic
 
 
 # start the main program

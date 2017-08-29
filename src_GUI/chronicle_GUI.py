@@ -1,0 +1,366 @@
+from PyQt5.QtCore import QTranslator, pyqtSignal, Qt, QTimer, QStringListModel
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout,  QLineEdit, QComboBox, QListWidget,\
+    QAbstractItemView, QSpacerItem, QFileDialog
+from PyQt5.QtGui import QPixmap, QFont
+import numpy as np
+from src import hydraulic_chronic
+from src import load_hdf5
+from src_GUI import estimhab_GUI
+from src_GUI import output_fig_GUI
+import os
+import sys
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+from io import StringIO
+from multiprocessing import Process, Queue
+
+class ChroniqueGui(estimhab_GUI.StatModUseful):
+    """
+    This class contains the tab with the hydrological chronique. It takes a list of merge files as input and
+    the user gives the output discharge. With these data, it create height and velcoity for the outpus dicharge
+    based on interpoliation.
+
+    It inherites from StatModUseful. StatModuseful is a QWidget, with some practical signal (send_log and show_fig)
+    and some functions to find path_im and path_bio (the path wher to save image) and to manage lists.
+    """
+
+    def __init__(self, path_prj, name_prj):
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.init_iu()
+
+    def init_iu(self):
+
+        # merge file
+        l0 = QLabel(self.tr('<b> Substrate and hydraulic data </b>'))
+        self.merge_all = QComboBox()  # fill in Main_Windows_1.py
+        self.add_merge = QPushButton(self.tr("Select file"))
+        self.add_merge.clicked.connect(self.add_file)
+
+        # selected merge file
+        l1 = QLabel(self.tr("<b> Chosen data </b>"))
+        self.chosen_all = QListWidget()
+        self.chosen_all.setDragDropMode(QAbstractItemView.InternalMove)
+        self.show_file_selected()
+        self.remove_all = QPushButton(self.tr("Remove all file"))
+        self.remove_all.clicked.connect(self.remove_all_file)
+        self.remove_one = QPushButton(self.tr("Remove one file"))
+        self.remove_one.clicked.connect(self.remove_one_file)
+
+        # discharge input
+        l2 = QLabel(self.tr("<b> Discharge input </b>[m3/sec]"))
+        self.input = QLineEdit("q1,q2,...")
+        self.filein = QPushButton(self.tr("From file (.txt)"))
+        self.filein.clicked.connect(lambda: self.load_file(self.input))
+        self.mergein = QPushButton(self.tr("From chosen data"))
+        self.mergein.clicked.connect(self.discharge_from_chosen_data)
+        # discharge output
+        l3 = QLabel(self.tr("<b> Discharge output </b>[m3/sec]"))
+        self.output = QLineEdit("q1,q2,...")
+        self.fileout = QPushButton(self.tr("From file (.txt)"))
+        self.fileout.clicked.connect(lambda: self.load_file(self.output))
+        # update Qlabel for discharge
+        root, docxml, xmlfile = self.open_xml()
+        disin = root.find('.//Chronicle/DischargeInput')
+        disout = root.find('.//Chronicle/DischargeOutput')
+        if disin is not None:
+            if disin.text is not None:
+                self.input.setText(disin.text)
+        if disout is not None:
+            if disout.text is not None:
+                self.output.setText(disout.text)
+
+        # run
+        self.run_chronicle = QPushButton(self.tr("Run Chronicles"))
+        self.run_chronicle.clicked.connect(self.run_chronicle_func)
+        spacer = QSpacerItem(1,100)
+
+        # layout
+        self.layout4 = QGridLayout()
+        self.layout4.addWidget(l0, 0, 0)
+        self.layout4.addWidget(self.merge_all, 0, 1)
+        self.layout4.addWidget(self.add_merge, 0, 2)
+        self.layout4.addWidget(l1, 1, 0)
+        self.layout4.addWidget(self.chosen_all, 1, 1, 2, 1)
+        self.layout4.addWidget(self.remove_all, 1, 2)
+        self.layout4.addWidget(self.remove_one, 2, 2)
+
+        self.layout4.addWidget(l2, 3, 0)
+        self.layout4.addWidget(self.input, 3, 1)
+        self.layout4.addWidget(self.filein, 3, 2)
+        self.layout4.addWidget(self.mergein, 3, 3)
+
+        self.layout4.addWidget(l3, 5, 0)
+        self.layout4.addWidget(self.output, 5, 1)
+        self.layout4.addWidget(self.fileout, 5, 2)
+
+        self.layout4.addWidget(self.run_chronicle, 7, 1)
+        self.layout4.addItem(spacer,8, 1)
+        self.setLayout(self.layout4)
+
+    def open_xml(self):
+        """
+        This function open the xml project file, hwich is useful for the function below
+        """
+        xmlfile = os.path.join(self.path_prj, self.name_prj + '.xml')
+        # open the file
+        try:
+            try:
+                docxml = ET.parse(xmlfile)
+                root = docxml.getroot()
+            except IOError:
+                self.send_log.emit("Warning: the xml project file does not exist \n")
+                return -99,-99,-99
+        except ET.ParseError:
+            self.send_log.emit("Warning: the xml project file is not well-formed.\n")
+            return -99,-99,-99
+
+        return root, docxml, xmlfile
+
+    def show_file_selected(self):
+        """
+        This function open the xml project files and see if there were some selected merge file before. If yes,
+        it update the QLabel on chosen data.
+        """
+        self.chosen_all.clear()
+
+        # get data
+        root, docxml, xmlfile = self.open_xml()
+        if isinstance(root, int):
+            return
+        files = root.find('.//Chronicle/SelectedMerge')
+
+        # add data to QListWidget
+        if files is not None:
+            if files.text is not None:
+                files = files.text.split(',')
+                for f in files:
+                    self.chosen_all.addItem(f)
+            else:
+                self.chosen_all.addItem(self.tr("No file chosen"))
+        else:
+            self.chosen_all.addItem(self.tr("No file chosen"))
+
+    def add_file(self):
+        """
+        This function adds one file to the selected merge file
+        """
+
+        root, docxml, xmlfile = self.open_xml()
+        if isinstance(root, int):
+            return
+
+        mergeatt = root.find('.//Chronicle/SelectedMerge')
+        if mergeatt is None:
+            chronicleatt = root.find('.//Chronicle')
+            if chronicleatt is None:
+                chronicleatt = ET.SubElement(root, "Chronicle")
+            mergeatt = ET.SubElement(chronicleatt, "SelectedMerge")
+            mergeatt.text = self.merge_all.currentText()
+        elif mergeatt.text is None:
+            mergeatt.text = self.merge_all.currentText()
+        else:
+            mergeatt.text += ',' + self.merge_all.currentText()
+        docxml.write(xmlfile)
+
+        self.show_file_selected()
+
+    def remove_all_file(self):
+        """
+        This function remove all selected merge file
+        """
+        self.chosen_all.clear()
+        self.chosen_all.addItem(self.tr("No file chosen"))
+
+        root, docxml, xmlfile = self.open_xml()
+        if isinstance(root, int):
+            return
+        files = root.find('.//Chronicle/SelectedMerge')
+        if files is not None:
+            files.text = ''
+            docxml.write(xmlfile)
+
+    def remove_one_file(self):
+        """
+        This function remove one selected merge file
+        """
+        if self.chosen_all.count() > 0 and self.chosen_all.currentItem() is not None:
+            ind = self.chosen_all.currentRow()
+            self.chosen_all.takeItem(ind)
+
+            root, docxml, xmlfile = self.open_xml()
+            if isinstance(root, int):
+                return
+            files = root.find('.//Chronicle/SelectedMerge')
+            one_taken = True
+            if files is not None:
+                if files.text is not None:
+                    filetext = files.text.split(',')
+                    new_text = ''
+                    for idx,f in enumerate(filetext):
+                        if idx != ind:
+                            new_text += "," + f
+                            take_one = True
+                    new_text = new_text[1:]  # get rid of the first comma
+                    files.text = new_text
+                    docxml.write(xmlfile)
+
+    def load_file(self, linetext):
+        """
+        This functions lets the user choose a text file and use it to get the discharge intput.
+        The format of the text file is one discharge value by line. It is possible to add an header
+        by starting the line with the sign #. The discharges given are in m3/sec.
+
+        :param linetext: This is the QLineEdit where the discharge have to be shown.
+        """
+
+        filename_path = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', self.path_prj)[0]
+
+        try:
+            with open(filename_path, 'rt') as f:
+                data_dis = f.read()
+        except IOError or UnicodeDecodeError:
+            self.send_log.emit("Error: the discharge file could not be loaded.\n")
+            return
+        data_dis = data_dis.strip()
+
+        if data_dis[0] == '#':
+            data_dis = data_dis.split('\n', 1)
+            if len(data_dis) > 0:
+                data_dis = data_dis[1]
+            else:
+                self.send_log.emit('Warning: No data found')
+        data_dis = data_dis.replace('\n', ',')
+
+        # save into the xml project file
+        self.save_discharge()
+        # add text to QLineEdit
+        linetext.setText(data_dis)
+
+    def discharge_from_chosen_data(self):
+        """
+        This function open the chosen merge files and find the simulation name. It assume that the
+        name of the simulation are the discharge data (simulation name can be time step or discharge). It then
+        add these discharge to the QLineEdit so the user can check it.
+        """
+
+        path_hdf5 = self.find_path_hdf5_est()
+
+        discharge = ''
+        for i in range(0, self.chosen_all.count()):
+            self.chosen_all.setCurrentRow(i)
+            namefile = self.chosen_all.currentItem().text()
+            pathnamefile = os.path.join(path_hdf5, namefile)
+            if not os.path.isfile(pathnamefile):
+                self.send_log.emit('Warning: A merge file was not found in the hdf5 folder. \n')
+            else:
+                timestep = load_hdf5.load_timestep_name(namefile, path_hdf5)
+                for t in timestep:
+                    discharge += t + ','
+        discharge = discharge[:-1]
+        self.save_discharge()
+        self.input.setText(discharge)
+
+    def get_discharge(self, linetext):
+        """
+        This function takes the data in the QlineEdit and transform it to a list of float
+        """
+        dstr = linetext.text()
+        dstr = dstr.split(',')
+        if len(dstr) < 2:
+            self.send_log.emit('Error: Discharge should be separated by a comma. \n')
+            return [-99]
+        try:
+            discharge = list(map(float, dstr))
+        except ValueError:
+            self.send_log.emit('Error: Discharge should be a list of number separeated by a comma. \n')
+            return [-99]
+
+        return discharge
+
+    def save_discharge(self):
+        """
+        This functions save the discharge data into the xml project file. It saves the input and output discharge.
+        """
+        root, docxml, xmlfile = self.open_xml()
+        if isinstance(root, int):
+            return
+        chro = root.find('.//Chronicle')
+        if chro is None:
+            self.send_log('Error: Could not saved the discharge data into the xml project file. '
+                          'Are merge files selected? \n')
+            return
+        disin = root.find('.//Chronicle/DischargeInput')
+        disout = root.find('.//Chronicle/DischargeOutput')
+        if disin is None:
+            disin = ET.SubElement(chro, "DischargeInput")
+        if disout is None:
+            disout = ET.SubElement(chro, "DischargeOutput")
+        if self.input.text() != "q1,q2,...":
+            disin.text = self.input.text()
+        if self.output.text() != "q1,q2,...":
+            disout.text = self.output.text()
+        docxml.write(xmlfile)
+
+    def run_chronicle_func(self):
+        """
+        This function make the link between the GUI and the functions in hydraulic_chronic.py. It calls the
+        chronic_hydro functions.
+        """
+
+        self.send_log.emit("Calculating hydrological chronicle....")
+
+        # add discharge input to a list
+        discharge_input = self.get_discharge(self.input)
+        # add discharge output to a list
+        discharge_output = self.get_discharge(self.output)
+        # check discharge
+        if len(discharge_input) == 0 or len(discharge_output) == 0:
+            self.send_log.emit('Error: No discharge found')
+            return
+        if discharge_input[0] == -99 or discharge_output[0] == -99:
+            return
+
+        # get the merges file
+        merge_files = []
+        for i in range(0, self.chosen_all.count()):
+            self.chosen_all.setCurrentRow(i)
+            namefile = self.chosen_all.currentItem().text()
+            merge_files.append(namefile)
+
+        # get the path to the merge file (in the hdf5 file)
+        path_hdf5 = self.find_path_hdf5_est()
+        path_merges = []
+        for m in merge_files:
+            path_merges.append(path_hdf5)
+
+        # save the discharges in the xml project file
+        self.save_discharge()
+
+        # send simulation
+        figopt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        minh = figopt['min_height_hyd']
+        sys.stdout = self.mystdout = StringIO()
+        hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, self.name_prj,
+                                        self.path_prj, min_height=minh)
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
+
+        # send log (with message on getting the data in habitat calc)
+        self.send_log.emit("py    merge_files= ['" + "', '".join(merge_files) + "']")
+        self.send_log.emit("py    path_merges= ['" + "', '".join(path_merges) + "']")
+        self.send_log.emit("py    discharge_input= [" + self.input.text() + ']')
+        self.send_log.emit("py    discharge_output= [" + self.output.text() + ']')
+        self.send_log.emit("py    minh =" + str(minh))
+        self.send_log.emit("py    hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_input, "
+                           "discharge_output, name_prj, path_prj, minh")
+
+        self.send_log.emit("HYDRO_CHRONIC")
+        self.send_log.emit("restart    list of merge file: " + ",".join(merge_files))
+        self.send_log.emit("restart    list of merge path: " + ",".join(path_merges))
+        self.send_log.emit("restart    discharge_input: " + self.input.text())
+        self.send_log.emit("restart    discharge_output: " + self.output.text())
+        self.send_log.emit("restart    minimum_height: " + str(minh))

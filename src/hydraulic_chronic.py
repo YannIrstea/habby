@@ -41,6 +41,11 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
     if len(merge_files) != len(path_merges):
         print("Error: the name of the hydraulic files and their paths is not coherent. \n")
         return failload
+
+    if len(discharge_input)<2:
+        print('Error: at least two discharge needed as input\n')
+        return failload
+
     ikle_all_m = []
     point_all_m = []
     inter_vel_all_m = []
@@ -87,6 +92,9 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
     if len(discharge_input) != len(ikle_all_m):
         print('Error: The number of discharge inputs is not equal to the number of timesteps in the merge files \n')
         return failload
+    if len(list(set(discharge_input))) != len(discharge_input):
+        print('Error: Two identical discharges in the input data \n')
+        return failload
 
     # order discharge and data so it goes from the lower dicharge to the highest
     ind = np.argsort(discharge_input)
@@ -132,103 +140,120 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
             dis_min = discharge_input[indh]
             dis_max = discharge_input[indh + 1]
 
-            # we use the grid of the higher discharge (often the bigger one even if not true everywhere)
-            ikle_here_all_r = ikle_all_m[indh+1]
-            point_here_all_r = point_all_m[indh+1]
-            vel_base_here_high = inter_vel_all_m[indh + 1]
-            height_base_here_high = inter_height_all_m[indh + 1]
-            substrate_pg_base_here_high = substrate_pg_all_m[indh+1]
-            substrate_dom_base_here_high = substrate_dom_all_m[indh + 1]
-
-            # check if an interpolation between these two discharges exists
-            if len(vel_base_inter[indh]) > 0:
-                vel_base_here = vel_base_inter[indh]
-                height_base_here = height_base_inter[indh]
-
+            # cases where the discharge is already known
+            if d == dis_max:
+                ikle_all_new.append(ikle_all_m[indh+1])
+                point_all_new.append(point_all_m[indh+1])
+                inter_vel_all_new.append(inter_vel_all_m[indh + 1])
+                inter_height_all_new.append(inter_height_all_m[indh + 1])
+                substrate_pg_all_new.append(substrate_pg_all_m[indh+1])
+                substrate_dom_all_new.append(substrate_dom_all_m[indh + 1])
+            elif d == dis_min:
+                ikle_all_new.append(ikle_all_m[indh])
+                point_all_new.append(point_all_m[indh])
+                inter_vel_all_new.append(inter_vel_all_m[indh])
+                inter_height_all_new.append(inter_height_all_m[indh])
+                substrate_pg_all_new.append(substrate_pg_all_m[indh])  # updated based on the cut_2d_grid
+                substrate_dom_all_new.append(substrate_dom_all_m[indh])
+            # normal case
             else:
-                # if not found, interpolate the lower discharge to the grid of the higher dicharge
-                point_old_all_r = point_all_m[indh]
-                vel_old_all_r = inter_vel_all_m[indh]
-                height_old_all_r = inter_height_all_m[indh]
+                # we use the grid of the higher discharge (often the bigger one even if not true everywhere)
+                ikle_here_all_r = ikle_all_m[indh+1]
+                point_here_all_r = point_all_m[indh+1]
+                vel_base_here_high = inter_vel_all_m[indh + 1]
+                height_base_here_high = inter_height_all_m[indh + 1]
+                substrate_pg_base_here_high = substrate_pg_all_m[indh+1]
+                substrate_dom_base_here_high = substrate_dom_all_m[indh + 1]
 
-                # The mean of vel_base_here will be lower than the mean of vel_old_all_r as we add area with 0
-                # [vel_base_here, height_base_here, blob, blob] = manage_grid_8.pass_grid_cell_to_node_lin(
-                #     point_here_all_r, point_old_all_r, vel_old_all_r, height_old_all_r, False)
-                vel_base_here = []
-                height_base_here = []
-                for r in range(0, len(vel_base_here_high)):
-                    # linear interpolation is not a good choice here
-                    inter_vel = scipy.interpolate.griddata(point_old_all_r[r], vel_old_all_r[r], point_here_all_r[r],
-                                                           method='nearest')
-                    inter_vel[np.isnan(inter_vel)] = 0
-                    inter_h = scipy.interpolate.griddata(point_old_all_r[r], height_old_all_r[r], point_here_all_r[r],
-                                                         method='nearest')
-                    inter_h[np.isnan(inter_h)] = 0
-                    vel_base_here.append(inter_vel)
-                    height_base_here.append(inter_h)
+                # check if an interpolation between these two discharges exists
+                if len(vel_base_inter[indh]) > 0:
+                    vel_base_here = vel_base_inter[indh]
+                    height_base_here = height_base_inter[indh]
 
-                # figures to debug the interpolation
+                else:
+                    # if not found, interpolate the lower discharge to the grid of the higher dicharge
+                    point_old_all_r = point_all_m[indh]
+                    vel_old_all_r = inter_vel_all_m[indh]
+                    height_old_all_r = inter_height_all_m[indh]
+
+                    # The mean of vel_base_here will be lower than the mean of vel_old_all_r as we add area with 0
+                    # [vel_base_here, height_base_here, blob, blob] = manage_grid_8.pass_grid_cell_to_node_lin(
+                    #     point_here_all_r, point_old_all_r, vel_old_all_r, height_old_all_r, False)
+                    vel_base_here = []
+                    height_base_here = []
+                    for r in range(0, len(vel_base_here_high)):
+                        # linear interpolation is not a good choice here
+                        inter_vel = scipy.interpolate.griddata(point_old_all_r[r], vel_old_all_r[r], point_here_all_r[r],
+                                                               method='nearest')
+                        inter_vel[np.isnan(inter_vel)] = 0
+                        inter_h = scipy.interpolate.griddata(point_old_all_r[r], height_old_all_r[r], point_here_all_r[r],
+                                                             method='nearest')
+                        inter_h[np.isnan(inter_h)] = 0
+                        vel_base_here.append(inter_vel)
+                        height_base_here.append(inter_h)
+
+                    # figures to debug the interpolation
+                    # ikle_old_all_r = ikle_all_m[indh]
+                    # manage_grid_8.plot_grid_simple(point_old_all_r, ikle_old_all_r, {},vel_old_all_r, height_old_all_r,
+                    #                                path_prj)
+                    # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_base_here, height_base_here,
+                    #                                path_prj)
+                    # import matplotlib.pyplot as plt
+                    # plt.show()
+
+                # for each point of the grid of the higher discharge, get the velocity and the heigth data
+                # data = (1_x)* data_low + x * data_low where x depends on the dicharge d
+                x = (d-dis_min)/(dis_max - dis_min)
+                if x > 1 or x < 0:
+                    x = 0.0
+                vel_here = []
+                height_here = []
+                for r in range(0, len(vel_base_here)):
+                    vel_here_r = (1-x) * vel_base_here[r] + x * vel_base_here_high[r]
+                    height_here_r = (1-x) * height_base_here[r] + x*height_base_here_high[r]
+                    vel_here.append(vel_here_r)
+                    height_here.append(height_here_r)
+
+                # figures to debug cutting
+                # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_here, height_here,path_prj)
+
+                # figure of the old input (high - low )
                 # ikle_old_all_r = ikle_all_m[indh]
-                # manage_grid_8.plot_grid_simple(point_old_all_r, ikle_old_all_r, {},vel_old_all_r, height_old_all_r,
-                #                                path_prj)
-                # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_base_here, height_base_here,
-                #                                path_prj)
+                # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_base_here_high,
+                #                                height_base_here_high, path_prj)
+                # manage_grid_8.plot_grid_simple(point_old_all_r, ikle_old_all_r, {}, vel_old_all_r, height_old_all_r,
+                # path_prj)
+
+                # # cut the new grid to the water height is zeros
+                [ikle_here_all_r, point_here_all_r, height_here, vel_here, ind_new_all] = \
+                    manage_grid_8.cut_2d_grid_all_reach(ikle_here_all_r, point_here_all_r, height_here, vel_here,
+                                                        min_height, True)
+
+                # figures to debug cutting
+                # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_here, height_here, path_prj)
                 # import matplotlib.pyplot as plt
                 # plt.show()
 
-            # for each point of the grid of the higher discharge, get the velocity and the heigth data
-            # data = (1_x)* data_low + x * data_low where x depends on the dicharge d
-            x = (d-dis_min)/(dis_max - dis_min)
-            if x > 1 or x < 0:
-                x = 0.0
-            vel_here = []
-            height_here = []
-            for r in range(0, len(vel_base_here)):
-                vel_here_r = (1-x) * vel_base_here[r] + x * vel_base_here_high[r]
-                height_here_r = (1-x) * height_base_here[r] + x*height_base_here_high[r]
-                vel_here.append(vel_here_r)
-                height_here.append(height_here_r)
+                # figure to debug the result
+                # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_here, height_here, path_prj)
+                # import matplotlib.pyplot as plt
+                # plt.show()
 
-            # figures to debug cutting
-            # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_here, height_here,path_prj)
-
-            # figure of the old input (high - low )
-            # ikle_old_all_r = ikle_all_m[indh]
-            # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_base_here_high,
-            #                                height_base_here_high, path_prj)
-            # manage_grid_8.plot_grid_simple(point_old_all_r, ikle_old_all_r, {}, vel_old_all_r, height_old_all_r,
-            # path_prj)
-
-            # # cut the new grid to the water height is zeros
-            [ikle_here_all_r, point_here_all_r, height_here, vel_here, ind_new_all] = \
-                manage_grid_8.cut_2d_grid_all_reach(ikle_here_all_r, point_here_all_r, height_here, vel_here,
-                                                    min_height, True)
-
-            # figures to debug cutting
-            # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_here, height_here, path_prj)
-            # import matplotlib.pyplot as plt
-            # plt.show()
-
-            # figure to debug the result
-            # manage_grid_8.plot_grid_simple(point_here_all_r, ikle_here_all_r, {}, vel_here, height_here, path_prj)
-            # import matplotlib.pyplot as plt
-            # plt.show()
-
-            # save data for this discharge
-            ikle_all_new.append(ikle_here_all_r)
-            point_all_new.append(point_here_all_r)
-            inter_vel_all_new.append(vel_here)
-            inter_height_all_new.append(height_here)
-            # substrate data
-            sub_pg_all_r = []
-            sub_dom_all_r = []
-            for r in range(0, len(ikle_here_all_r)):
-                sub_pg_here = [substrate_pg_base_here_high[r][i] for i in ind_new_all[r]]
-                sub_dom_here = [substrate_dom_base_here_high[r][i] for i in ind_new_all[r]]
-                sub_pg_all_r.append(sub_pg_here)
-                sub_dom_all_r.append(sub_dom_here)
-            substrate_pg_all_new.append(sub_pg_all_r)  # updated based on the cut_2d_grid
-            substrate_dom_all_new.append(sub_dom_all_r)
+                # save data for this discharge
+                ikle_all_new.append(ikle_here_all_r)
+                point_all_new.append(point_here_all_r)
+                inter_vel_all_new.append(vel_here)
+                inter_height_all_new.append(height_here)
+                # substrate data
+                sub_pg_all_r = []
+                sub_dom_all_r = []
+                for r in range(0, len(ikle_here_all_r)):
+                    sub_pg_here = [substrate_pg_base_here_high[r][i] for i in ind_new_all[r]]
+                    sub_dom_here = [substrate_dom_base_here_high[r][i] for i in ind_new_all[r]]
+                    sub_pg_all_r.append(sub_pg_here)
+                    sub_dom_all_r.append(sub_dom_here)
+                substrate_pg_all_new.append(sub_pg_all_r)  # updated based on the cut_2d_grid
+                substrate_dom_all_new.append(sub_dom_all_r)
 
     # save in a new merge file
     discharge_output_str = list(map(str,discharge_output))
@@ -236,6 +261,8 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 2, path_merges[0], ikle_all_new, point_all_new, [],
                         inter_vel_all_new, inter_height_all_new,  merge=True, sub_pg_all_t=substrate_pg_all_new,
                         sub_dom_all_t=substrate_dom_all_new, sim_name=discharge_output_str)
+
+    print('The new created file is ready for habitat calculation and has been added to the  Habitat Calc. tab. \n')
 
 
 def main():

@@ -480,7 +480,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     """
     This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
     model_name. If there is more than one hdf5 file, it choose the last one. Tha path is the path from the
-    project folder. Hencem, it is not the absolute path.
+    project folder. Hence, it is not the absolute path.
 
     :param model_name: the name of the hydrological model as written in the attribute of the xml project file
     :param name_prj: the name of the project

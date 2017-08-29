@@ -481,12 +481,10 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
         child1 = root.find(".//Figure_Option")
         if child1 is not None:  # modify existing option
             langfig1 = root.find(".//LangFig")
-        else:
-            langfig1 = ET.SubElement(child1, "LangFig")
-        if langfig1 is None:
-            langfig1 = ET.SubElement(child1, "LangFig")
-        langfig1.text = str(nb_lang)
-        doc.write(fname)
+            if langfig1 is None:
+                langfig1 = ET.SubElement(child1, "LangFig")
+            langfig1.text = str(nb_lang)
+            doc.write(fname)
 
 
 def load_fig_option(path_prj, name_prj):

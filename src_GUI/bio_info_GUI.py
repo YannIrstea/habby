@@ -25,6 +25,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
     StatModUseful. StatModuseful is a QWidget, with some practical signal (send_log and show_fig) and some functions
     to find path_im and path_bio (the path wher to save image) and to manage lists.
     """
+    get_list_merge = pyqtSignal()
+    """
+     A Pyqtsignal which indicates to chronice_GUI.py that the merge list should be changed. In Main_Windows.py,
+     the new list of merge file is found and send to the ChonicleGui class.
+    """
 
     def __init__(self, path_prj, name_prj, lang='French'):
         super().__init__()
@@ -46,12 +51,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate'), self.tr('By Percentage'),
                                self.tr('Neglect Substrate')]
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
+        self.text_ini = []  # the text with the tooltip
         #self.name_database = 'pref_bio.db'
         self.timer = QTimer()
         self.timer.setInterval(1000)
         self.running_time = 0
         self.timer.timeout.connect(self.show_image_hab)
         self.plot_new = False
+        self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
 
         self.init_iu()
 
@@ -408,6 +415,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             return
 
         self.m_all.clear()
+        self.tooltip = []
         self.hdf5_merge = []
 
         # get filename
@@ -428,10 +436,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
                         blob = f.text[:55] + '...'
                         self.m_all.addItem(blob)
                     self.m_all.setItemData(idx,textini, Qt.ToolTipRole)
+                    self.tooltip.append(textini)
                     name = f.text
                     self.hdf5_merge.append(name)
                 else:
                     self.send_log.emit("Warning: One merge hdf5 file was not found by calc_hab \n")
+        # a signal to indicates to Chronicle_GUI.py to update the merge file
+        self.get_list_merge.emit()
 
     def show_pref(self):
         """

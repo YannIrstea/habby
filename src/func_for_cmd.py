@@ -21,6 +21,7 @@ from src import calcul_hab
 from src import bio_info
 from src import mesh_grid2
 from src import lammi
+from src import hydraulic_chronic
 from src_GUI import output_fig_GUI
 
 
@@ -114,8 +115,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
               'will be used. To get the calculation on more than one fish species, separate the names of '
               'the xml biological files by a comma without a space between the command and the filenames. '
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
-              ' run_choice.'
-            )
+              ' run_choice.' )
+        print('HYDRO_CHRONIC: hydrological chronicle. Create a new merge file for the chosen output discharge. The output'
+              'discharges should be in the range of the input discharge. Input: list of the names of the merge file,'
+              'list of the path to these merge files, list of input discharge, list of output discharge, minimum water'
+              'height')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
@@ -1006,7 +1010,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     elif all_arg[1] == 'CREATE_RAND_SUB':
 
         if not 2 < len(all_arg) < 5:
-            print('CREATE_RAND_SUB needs between one and two inputs. See LIST_COMMAND for more information.')
+            print('CREATE_RAND_SUB needs five inputs. See LIST_COMMAND for more information.')
             return
         pathname_h5 = all_arg[2]
         h5name = os.path.basename(pathname_h5)
@@ -1020,6 +1024,37 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 300, path_prj)
 
     # ------------------------------------------------------------------------
+    elif all_arg[1] == 'HYDRO_CHRONIC':
+        if not len(all_arg) == 7:
+            print('HYDRO_CHRONIC needs between five and six inputs. See LIST_COMMAND for more information.')
+            return
+
+        merge_files = all_arg[2]
+        merge_files = merge_files.split(',')
+        path_merges = all_arg[3]
+        path_merges = path_merges.split(',')
+        discharge_in_str = all_arg[4].split(',')
+        try:
+            discharge_in = list(map(float, discharge_in_str))
+        except ValueError:
+            print('Error: Discharge input should be a list of float separated by a comma.')
+            return
+        discharge_out_str = all_arg[5].split(',')
+        try:
+            discharge_out = list(map(float, discharge_out_str))
+        except ValueError:
+            print('Error: Discharge output should be a list of float separated by a comma.')
+            return
+
+        try:
+            minh = float(all_arg[6])
+        except ValueError:
+            print('Error: Minimum water height should be a float')
+            return
+
+        hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_in, discharge_out, name_prj, path_prj, minh)
+
+    # ----------------------------------------------------------------------------
     else:
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
 
