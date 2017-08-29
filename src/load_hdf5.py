@@ -623,13 +623,19 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
     name_fishg.create_dataset(hdf5_name, (len(fish_name), 1), data=ascii_str, maxshape=None)
 
     # habitat value and cell data
+    m = 0
     for t in range(1, nb_t):
         there = data_all.create_group('Timestep_' + str(t - 1))
 
         for r in range(0, nb_r):
             rhere = there.create_group('Reach_' + str(r))
             for s in range(0, len(fish_name)):
-                habitatg = rhere.create_group('habitat_' + fish_name[s])
+                try:
+                    habitatg = rhere.create_group('habitat_' + fish_name[s])
+                except ValueError:
+                    print('Warning: Two identical fish name are found \n')
+                    habitatg = rhere.create_group('habitat_' + fish_name[s]+str(m))
+                    m += 1
                 if len(vh_cell[s]) > 0:
                     if len(vh_cell[s][t]) > 2:
                         habitatg.create_dataset(hdf5_name, [len(vh_cell[s][t][r]), 1],
@@ -644,6 +650,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
                                     maxshape=None)
 
     file_hydro.close()
+    time.sleep(1)  # as we need to insure different group of name
 
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,

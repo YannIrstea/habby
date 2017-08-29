@@ -26,6 +26,11 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
     and some functions to find path_im and path_bio (the path wher to save image) and to manage lists.
     """
 
+    drop_merge = pyqtSignal()
+    """
+    PyQtsignal to update the merge file in the Habitat Calc Tab
+    """
+
     def __init__(self, path_prj, name_prj):
         super().__init__()
         self.path_prj = path_prj
@@ -39,6 +44,8 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.merge_all = QComboBox()  # fill in Main_Windows_1.py
         self.add_merge = QPushButton(self.tr("Select file"))
         self.add_merge.clicked.connect(self.add_file)
+        self.add_allmerge = QPushButton(self.tr("Select all file"))
+        self.add_allmerge.clicked.connect(self.add_all_file)
 
         # selected merge file
         l1 = QLabel(self.tr("<b> Chosen data </b>"))
@@ -83,6 +90,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.merge_all, 0, 1)
         self.layout4.addWidget(self.add_merge, 0, 2)
+        self.layout4.addWidget(self.add_allmerge, 0, 3)
         self.layout4.addWidget(l1, 1, 0)
         self.layout4.addWidget(self.chosen_all, 1, 1, 2, 1)
         self.layout4.addWidget(self.remove_all, 1, 2)
@@ -164,6 +172,30 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
             mergeatt.text = self.merge_all.currentText()
         else:
             mergeatt.text += ',' + self.merge_all.currentText()
+        docxml.write(xmlfile)
+
+        self.show_file_selected()
+
+    def add_all_file(self):
+        """
+        This function is used to all all available merge hdf5 file to the chosen file
+        """
+
+        root, docxml, xmlfile = self.open_xml()
+        if isinstance(root, int):
+            return
+
+        mergeatt = root.find('.//Chronicle/SelectedMerge')
+        if mergeatt is None:
+            chronicleatt = root.find('.//Chronicle')
+            if chronicleatt is None:
+                chronicleatt = ET.SubElement(root, "Chronicle")
+            mergeatt = ET.SubElement(chronicleatt, "SelectedMerge")
+        mergeatt.text = ''
+        for i in range(0, self.merge_all.count()):
+            self.merge_all.setCurrentIndex(i)
+            mergeatt.text += self.merge_all.currentText() + ','
+        mergeatt.text = mergeatt.text[:-1]
         docxml.write(xmlfile)
 
         self.show_file_selected()
@@ -349,18 +381,22 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         sys.stdout = sys.__stdout__
         self.send_err_log()
 
+        # add to the merge files in habitat calc
+        self.drop_merge.emit()
+        self.send_log.emit(self.tr('The created file is ready for habitat calculation and has been added to the '
+                           "'Habitat Calc.' tab. \n"))
+
         # send log (with message on getting the data in habitat calc)
         self.send_log.emit("py    merge_files= ['" + "', '".join(merge_files) + "']")
-        self.send_log.emit("py    path_merges= ['" + "', '".join(path_merges) + "']")
+        self.send_log.emit("py    path_merges= [r'" + "', r'".join(path_merges) + "']")
         self.send_log.emit("py    discharge_input= [" + self.input.text() + ']')
         self.send_log.emit("py    discharge_output= [" + self.output.text() + ']')
         self.send_log.emit("py    minh =" + str(minh))
         self.send_log.emit("py    hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_input, "
-                           "discharge_output, name_prj, path_prj, minh")
+                           "discharge_output, name_prj, path_prj, minh)")
 
-        self.send_log.emit("HYDRO_CHRONIC")
+        self.send_log.emit("restart HYDRO_CHRONIC")
         self.send_log.emit("restart    list of merge file: " + ",".join(merge_files))
-        self.send_log.emit("restart    list of merge path: " + ",".join(path_merges))
         self.send_log.emit("restart    discharge_input: " + self.input.text())
         self.send_log.emit("restart    discharge_output: " + self.output.text())
         self.send_log.emit("restart    minimum_height: " + str(minh))

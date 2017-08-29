@@ -117,9 +117,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
               ' run_choice.' )
         print('HYDRO_CHRONIC: hydrological chronicle. Create a new merge file for the chosen output discharge. The output'
-              'discharges should be in the range of the input discharge. Input: list of the names of the merge file,'
-              'list of the path to these merge files, list of input discharge, list of output discharge, minimum water'
-              'height')
+              'discharges should be in the range of the input discharge. Input: list of the names of the merge file '
+              'without path , list of input discharge, list of output discharge, minimum water height')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
@@ -156,7 +155,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            name_hdf5 = 'Hydro_TELEMAC_' + namefilet.replace('.','')
+            name_hdf5 = 'Hydro_TELEMAC_' + os.path.splitext(namefilet)[0]
             path_hdf5 = path_prj
 
         selafin_habby1.load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, 'TELEMAC',2,
@@ -182,7 +181,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         # hdf5 and pro_add
         pro_add_is_here = False
         if len(all_arg) == 5:  # .py com f1 f2 int_type
-            name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0].replace('.', '')
+            name_hdf5 = 'Hydro_HECRAS1D_' + os.path.splitext(namefile[0])[0]
             path_hdf5 = path_prj
         if len(all_arg) == 6:  # .py com f1 f2 int_type pro_add or .py com f1 f2 int_type output
             try:
@@ -195,7 +194,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
                 name_hdf5 = os.path.basename(namepath_hdf5)
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
-                name_hdf5 = 'Hydro_HECRAS1D_' + namefile[0].replace('.', '')
+                name_hdf5 = 'Hydro_HECRAS1D_' + os.path.splitext(namefile[0])[0]
                 path_hdf5 = path_prj
         if len(all_arg) == 7:   # .py com f1 f2 int_type pro_add output
             pro_add_is_here = True
@@ -236,7 +235,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            name_hdf5 = 'Hydro_HECRAS2D_' + namefile.replace('.', '')
+            name_hdf5 = 'Hydro_HECRAS2D_' + os.path.splitext(namefile)[0]
             path_hdf5 = path_prj
         hec_ras2D.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
                                                path_hdf5, [], True)
@@ -260,7 +259,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         tpsfile = os.path.basename(filename_data)
 
         if len(all_arg) == 4:
-            name_hdf5 = 'Hydro_RUBAR2D_' + geofile[0].replace('.', '')
+            name_hdf5 = 'Hydro_RUBAR2D_' + os.path.splitext(geofile[0])[0]
             path_hdf5 = path_prj
         if len(all_arg) == 5:
             namepath_hdf5 = all_arg[4]
@@ -323,7 +322,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
         # get the  hdf5 name
         if len(all_arg) == 7:  # .py com f1 f2 f3 int_type
-            name_hdf5 = 'Hydro_MASCARET_' + namefile[0].replace('.', '')
+            name_hdf5 = 'Hydro_MASCARET_' + os.path.splitext(namefile[0])[0]
             path_hdf5 = path_prj
         if len(all_arg) == 8:  # .py com f1 f2 f3 int_type pro_add or .py com f1 f2 f3 int_type output
             try:
@@ -336,7 +335,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
                 name_hdf5 = os.path.basename(namepath_hdf5)
                 path_hdf5 = os.path.dirname(namepath_hdf5)
             else:
-                name_hdf5 = 'Hydro_MASCARET_' + namefile[0].replace('.', '')
+                name_hdf5 = 'Hydro_MASCARET_' + os.path.splitext(namefile[0])[0]
                 path_hdf5 = path_prj
         if len(all_arg) == 9:
             pro_add_is_here = True
@@ -374,7 +373,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             paths.append(all_arg[2])
 
         if len(all_arg) == 3:
-            name_hdf5 = 'Hydro_RIVER2D_' + filenames[0].replace('.', '')
+            name_hdf5 = 'Hydro_RIVER2D_' + os.path.splitext(filenames[0])[0]
             path_hdf5 = path_prj
         if len(all_arg) == 4:
             namepath_hdf5 = all_arg[3]
@@ -428,7 +427,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
         # get the interpolatin type and hdf5 name
         if len(all_arg) == 5:  # .py com f1 f2 int_type
-            name_hdf5 = 'Hydro_RUBAR1D_' + namefile[0].replace('.', '')
+            name_hdf5 = 'Hydro_RUBAR1D_' + os.path.splitext(namefile[0])[0]
             path_hdf5 = path_prj
         if len(all_arg) == 6:  # .py com f1 f2 int_type pro_add or .py com f1 f2 int_type output
             try:
@@ -757,32 +756,27 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             path_hdf5_in = path_prj
             path_hdf5_in2 = path_prj
             # get all file in projet folder
-            if os.path.isdir(path_input):
+            if os.path.isdir(path_prj):
                 filenames = load_hdf5.get_all_filename(path_prj, '.h5')
             else:
                 print('the input directory does not exist.')
                 return
             # check if there is similar files
             hdf5_name_hyd = hdf5_name_hyd_orr
-            if len(hdf5_name_hyd_orr) > 25:
-                for f in filenames:
-                    if hdf5_name_hyd_orr[:-25] in f and 'MERGE' not in f:
-                        hdf5_name_hyd = f  # no break so it choose the newest files
-            else:
-                print('Error: Name of the hydrological hdf5 not understood. Too short. \n')
-                return
+
+            for f in filenames:
+                if hdf5_name_hyd_orr[:-3] in f and 'MERGE' not in f:
+                    hdf5_name_hyd = f
+
             hdf5_name_sub = hdf5_name_sub_orr
             found = False
-            if len(hdf5_name_sub_orr) > 25:
-                for f in filenames:
-                    if hdf5_name_sub_orr[:-25] in f:
-                        hdf5_name_sub = f
-                        found = True
-                    if not found and 'Substrate_VAR' in f:
-                        hdf5_name_sub = f
-            else:
-                print('Error: Name of the substrate hdf5 not understood. Too short. \n')
-                return
+
+            for f in filenames:
+                if hdf5_name_sub_orr[:-25] in f:
+                    hdf5_name_sub = f
+                    found = True
+                if not found and 'Substrate_VAR' in f:
+                    hdf5_name_sub = f
 
         if path_hdf5_in != path_hdf5_in2:
             print('Error: hydro and sub hdf5 should be in the same folder.')
@@ -803,10 +797,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            if len(hdf5_name_hyd) > 33:
-                name_hdf5 = 'MERGE_Hydro_' + hdf5_name_hyd[6:-26]
-            else:
-                name_hdf5 = 'MERGE_Hydro_' + hdf5_name_hyd
+            name_hdf5 = 'MERGE_' + hdf5_name_hyd
             path_hdf5 = path_prj
 
         # in two function to be able to control the name
@@ -871,10 +862,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
         else:
-            if len(hdf5_name_hyd) > 33:
-                name_hdf5 = 'MERGE_Hydro_' + h5name[6:-26]
-            else:
-                name_hdf5 = 'MERGE_Hydro_' + h5name
+            name_hdf5 = 'MERGE_' + h5name
             path_hdf5 = path_prj
 
         # merge data
@@ -945,13 +933,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
                 return
             # check if there is similar files
             merge_name = hdf5_name_merge_orr
-            if len(hdf5_name_merge_orr) > 25:
-                for f in filenames:
-                    if hdf5_name_merge_orr[:-25] in f:
-                        merge_name = f
-            else:
-                print('Error: Name of the hydrological hdf5 not understood. Too short. \n')
-                return
+            for f in filenames:
+                if hdf5_name_merge_orr[:-3] in f:
+                    merge_name = f
 
         # the xml preference files
         bio_names = all_arg[3]
@@ -969,8 +953,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         if stage_chosen == 'all':
             for l in range(0, len(latin_name)):
                 for s in stages_all[l]:
-                    if len(latin_name[l]) > 5:
-                        name_fish.extend([latin_name[l][:5]])
+                    if len(latin_name[l]) > 10:
+                        name_fish.extend([latin_name[l][:10]])
                     else:
                         name_fish.extend([latin_name[l]])
                     stage2.extend([s])
@@ -1025,21 +1009,24 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
     # ------------------------------------------------------------------------
     elif all_arg[1] == 'HYDRO_CHRONIC':
-        if not len(all_arg) == 7:
-            print('HYDRO_CHRONIC needs between five and six inputs. See LIST_COMMAND for more information.')
+        if not len(all_arg) == 6:
+            print('HYDRO_CHRONIC needs four inputs. See LIST_COMMAND for more information.')
             return
 
         merge_files = all_arg[2]
         merge_files = merge_files.split(',')
-        path_merges = all_arg[3]
-        path_merges = path_merges.split(',')
-        discharge_in_str = all_arg[4].split(',')
+
+        path_merges = []
+        for m in merge_files:
+            path_merges.append(path_prj)
+
+        discharge_in_str = all_arg[3].split(',')
         try:
             discharge_in = list(map(float, discharge_in_str))
         except ValueError:
             print('Error: Discharge input should be a list of float separated by a comma.')
             return
-        discharge_out_str = all_arg[5].split(',')
+        discharge_out_str = all_arg[4].split(',')
         try:
             discharge_out = list(map(float, discharge_out_str))
         except ValueError:
@@ -1047,7 +1034,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             return
 
         try:
-            minh = float(all_arg[6])
+            minh = float(all_arg[5])
         except ValueError:
             print('Error: Minimum water height should be a float')
             return

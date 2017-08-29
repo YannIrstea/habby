@@ -2485,6 +2485,11 @@ class HabbyHdf5(SubHydroW):
     hydrological files.
     """
 
+    drop_merge = pyqtSignal()
+    """
+    A pyqtsignal which signal that new merge data is ready as it also possible to import merge data here.
+    """
+
     def __init__(self, path_prj, name_prj):
 
         super().__init__(path_prj, name_prj)
@@ -2499,8 +2504,10 @@ class HabbyHdf5(SubHydroW):
         """
 
         l0 = QLabel(self.tr('Select the hdf5 created by HABBY to be loaded:'))
-        self.button2 = QPushButton(self.tr('Load data from hdf5'))
+        self.button2 = QPushButton(self.tr('Load hydraulic data from hdf5'))
         self.button2.clicked.connect(self.get_new_hydro_hdf5)
+        self.button3 = QPushButton(self.tr('Load merge data from hdf5'))
+        self.button3.clicked.connect(self.get_new_merge_hdf5)
         self.butfig = QPushButton(self.tr("Create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         spacer1 = QSpacerItem(250, 1)
@@ -2509,9 +2516,10 @@ class HabbyHdf5(SubHydroW):
         self.layout2 = QGridLayout()
         self.layout2.addWidget(l0, 0, 0)
         self.layout2.addWidget(self.button2, 0, 1)
-        self.layout2.addWidget(self.butfig, 1, 1)
+        self.layout2.addWidget(self.button3, 1, 1)
+        self.layout2.addWidget(self.butfig, 2, 1)
         self.layout2.addItem(spacer1, 0, 2)
-        self.layout2.addItem(spacer2, 2, 0)
+        self.layout2.addItem(spacer2, 3, 0)
         self.setLayout(self.layout2)
 
     def get_new_hydro_hdf5(self):
@@ -2555,6 +2563,7 @@ class HabbyHdf5(SubHydroW):
             file_hydro2 = h5py.File(pathnewname, 'r+')
         except OSError:
             self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
+            return
         file_hydro2.attrs['path_projet'] = self.path_prj
         file_hydro2.attrs['name_projet'] = self.name_prj
         # save the new file name in the xml file of the project
@@ -2585,6 +2594,76 @@ class HabbyHdf5(SubHydroW):
         self.send_log.emit('restart LOAD_HYDRO_HDF5')
         self.send_log.emit('restart    file hdf5: ' + pathnewname2)
         self.drop_hydro.emit()
+
+    def get_new_merge_hdf5(self):
+        """
+        This is a function which allows the user to select an hdf5 file containing the hydrological and the substrate
+        data from a previous project and add it to the current project. It modifies the xml project file and test
+        that the data is in correct form by loading it. The hdf5 should have the same form than the merge data
+        created by HABBY in the method save_hdf5 of the class SubHydroW.
+        """
+
+        self.send_log.emit('# Loading: HABBY hdf5 file (hydraulic and substrate data)...')
+        # prep
+        # select a file
+        fname_h5 = QFileDialog.getOpenFileName()[0]
+        if fname_h5 != '':  # cancel
+            blob, ext = os.path.splitext(fname_h5)
+        else:
+            self.send_log.emit('Warning: No file selected.\n')
+            return
+        # load the data to check integrity
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
+            = load_hdf5.load_hdf5_hyd(fname_h5, merge=True)
+
+        # copy the file and update the attribute
+        path_hdf5 = self.find_path_hdf5()
+        path_input = self.find_path_input()
+        if os.path.isdir(path_hdf5):
+            new_name = 'COPY_' + os.path.basename(fname_h5)
+            pathnewname = os.path.join(path_hdf5, new_name)
+            shutil.copyfile(fname_h5, pathnewname)
+            # necessary for the restart function
+            pathnewname2 = os.path.join(path_input, new_name)
+            shutil.copyfile(fname_h5, pathnewname2)
+        else:
+            self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
+            return
+        try:
+            file_hydro2 = h5py.File(pathnewname, 'r+')
+        except OSError:
+            self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
+            return
+        file_hydro2.attrs['path_projet'] = self.path_prj
+        file_hydro2.attrs['name_projet'] = self.name_prj
+        # save the new file name in the xml file of the project
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if not os.path.isfile(filename_prj):
+            self.send_log.emit('Error: No project saved. Please create a project first in the General tab.\n')
+            return
+        else:
+            doc = ET.parse(filename_prj)
+            root = doc.getroot()
+            # new xml category in case the hydrological model is not supported by HABBY
+            # as long s loded in the right format, it would not be a problem
+            child = root.find(".//Imported_hydro")
+            if child is None:
+                here_element = ET.SubElement(root, "Imported_hydro")
+                hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
+                hdf5file.text = new_name
+            else:
+                hdf5file = ET.SubElement(child, "hdf5_mergedata")
+                hdf5file.text = new_name
+
+            doc.write(filename_prj)
+        self.send_log.emit('# hdf5 file loaded to the current project.')
+        self.send_log.emit("py    import shutil")
+        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
+        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
+        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
+        self.send_log.emit('restart LOAD_HYDRO_HDF5')
+        self.send_log.emit('restart    file hdf5: ' + pathnewname2)
+        self.drop_merge.emit()
 
 
 class SubstrateW(SubHydroW):

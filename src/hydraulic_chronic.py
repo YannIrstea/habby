@@ -262,7 +262,6 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
                         inter_vel_all_new, inter_height_all_new,  merge=True, sub_pg_all_t=substrate_pg_all_new,
                         sub_dom_all_t=substrate_dom_all_new, sim_name=discharge_output_str)
 
-    print('The new created file is ready for habitat calculation and has been added to the  Habitat Calc. tab. \n')
 
 
 def main():
@@ -273,6 +272,7 @@ def main():
     merge_files = ['MERGE_Hydro_RIVER2D_test23.00.h5']
     path_merges = [r'D:\Diane_work\dummy_folder\inter_test\fichier_hdf5']
     discharge_input = range(23, 85)
+    np.savetxt('discharge_river2d.txt', discharge_input, delimiter='\n')
     discharge_output = np.arange(28, 32) + 0.5
     name_prj = 'inter_test'
     path_prj = r'D:\Diane_work\dummy_folder\inter_test'

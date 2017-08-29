@@ -1803,11 +1803,13 @@ class CentralW(QWidget):
             self.hydro_tab.riverhere2d.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.mascar.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
-            self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
-            self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
             # connect signal to update the merge file
             self.bioinfo_tab.get_list_merge.connect(self.update_merge_for_chronicle)
+            self.chronicle_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.hydro_tab.habbyhdf5.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
         """
@@ -2034,10 +2036,9 @@ class CentralW(QWidget):
         self.chronicle_tab.hdf5_merge = self.bioinfo_tab.hdf5_merge
         self.chronicle_tab.merge_all.clear()
         for i in range(0, self.bioinfo_tab.m_all.count()):
-            self.chronicle_tab.merge_all.addItem(self.bioinfo_tab.m_all.itemText(i))
-            self.chronicle_tab.merge_all.setItemData(i, self.bioinfo_tab.tooltip[i], Qt.ToolTipRole)
-
-
+            if self.bioinfo_tab.m_all.itemText(i)[:7] != 'Chronic':
+                self.chronicle_tab.merge_all.addItem(self.bioinfo_tab.m_all.itemText(i))
+                self.chronicle_tab.merge_all.setItemData(i, self.bioinfo_tab.tooltip[i], Qt.ToolTipRole)
 
 
 class WelcomeW(QWidget):
