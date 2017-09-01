@@ -1,5 +1,5 @@
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer, QStringListModel
+from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer, QStringListModel, QEvent
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout,  QLineEdit, QComboBox, QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QCompleter
 from PyQt5.QtGui import QPixmap, QFont
@@ -179,14 +179,15 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l02 = QLabel('is equal to')
         l02.setAlignment(Qt.AlignCenter)
         self.cond1 = QLineEdit()
-        self.cond1.returnPressed.connect(self.select_fish)
+        self.cond1.returnPressed.connect(self.next_completion)
+        #self.cond1.returnPressed.connect(self.select_fish)
         self.bs = QPushButton(self.tr('Select suitability curve'))
         self.bs.clicked.connect(self.select_fish)
         # add auto-completion
-        completer = QCompleter()
+        self.completer = QCompleter()
         self.model = QStringListModel()
-        completer.setModel(self.model)
-        self.cond1.setCompleter(completer)
+        self.completer.setModel(self.model)
+        self.cond1.setCompleter(self.completer)
         self.get_autocompletion()
 
         # fill hdf5 list
@@ -228,24 +229,38 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # self.layout4.addItem(spacer2, 3, 3)
         self.setLayout(self.layout4)
 
+    def next_completion(self):
+        """
+        A small function to use the enter key to select the fish with auto-completion.
+        Adapted from https://stackoverflow.com/questions/9044001/qcompleter-and-tab-key
+        It would be nice to mek it work with tab also but it si quite complcated because it is quite complicated.
+        """
+        index = self.completer.currentIndex()
+        self.completer.popup().setCurrentIndex(index)
+        start = self.completer.currentRow()
+        if not self.completer.setCurrentRow(start + 1):
+            self.completer.setCurrentRow(0)
+
+        self.select_fish()
+
     def get_autocompletion(self):
         """
-        This function update the auto-complextin model as a function of the QComboxBox next to it
+        This function update the auto-complexton model as a function of the QComboxBox next to it
         """
         ind = self.keys.currentIndex()
 
         if ind == 0:
-            string_all = list(set(self.data_fish[:, 1]))
+            string_all = list(set(list(self.data_fish[:, 1]) + list([item.lower() for item in self.data_fish[:, 1]])))
         elif ind == 1:
-            string_all = list(set(self.data_fish[:, 3]))
+            string_all = list(set(list(self.data_fish[:, 3]) + [item.lower() for item in self.data_fish[:, 3]]))
         elif ind ==2:
-            string_all = list(set(self.data_fish[:, 4]))
+            string_all = list(set(list(self.data_fish[:, 4]) + [item.lower() for item in self.data_fish[:, 4]]))
         elif ind == 3:
-            string_all = list(set(self.data_fish[:, 5]))
+            string_all = list(set(list(self.data_fish[:, 5]) + [item.lower() for item in self.data_fish[:, 5]]))
         elif ind == 4:
-            string_all = list(set(self.data_fish[:, 6]))
+            string_all = list(set(list(self.data_fish[:, 6]) + [item.lower() for item in self.data_fish[:, 6]]))
         elif ind == 5:
-            string_all = list(set(self.data_fish[:, 7]))
+            string_all = list(set(list(self.data_fish[:, 7]) + [item.lower() for item in self.data_fish[:, 7]]))
         else:
             string_all = ''
 
@@ -376,13 +391,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
         cond = self.cond1.text()
         if i == 0:
             i = -1 # i +2=1 for the key called 'stage' which is on the second colum of self.data_type
-        if cond in self.data_fish[:, i+2]:
-            inds = np.where(self.data_fish[:, i+2] == cond)[0]
+        data_fish_here = []
+        for f in self.data_fish[:, i+2]:
+            data_fish_here.append(f.lower())
+        data_fish_here = np.array(data_fish_here)
+        if cond.lower() in data_fish_here:
+            inds = np.where(data_fish_here == cond.lower())[0]
             self.runhab.setEnabled(True)
         else:
             self.send_log.emit(self.tr('Warning: No suitability curve found for the last selection. \n'))
             return
-
         # get the new selection
         for ind in inds:
             for i in range(0, self.list_f.count()):

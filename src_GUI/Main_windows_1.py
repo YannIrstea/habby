@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 #from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from contextlib import suppress
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
@@ -186,14 +187,17 @@ class MainWindows(QMainWindow):
 
     def closeEvent(self, event):
         """
-        Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.
-        Also done because we might have more than one thread
+        This is the function which handle the closing of the program. It use the function end_concurrency() to indicate
+        to other habby instances that we do not use a particular project anymore.
+
+        We use os_exit instead of sys.exit so it also close the other thread if more than one is open.
 
         :param event: managed by the operating system.
         """
 
         self.end_concurrency()
-        os._exit(1)  # why 1?
+        os._exit(1)
+
 
     def check_concurrency(self):
         """
@@ -363,9 +367,9 @@ class MainWindows(QMainWindow):
 
         # Menu to open and close file
         exitAction = QAction(self.tr('Exit'), self)
-        exitAction.setShortcut('Ctrl+Q')
+        exitAction.setShortcut('Ctrl+C')
         exitAction.setStatusTip(self.tr('Exit application'))
-        exitAction.triggered.connect(qApp.quit)
+        exitAction.triggered.connect(self.closeEvent)
         openprj = QAction(self.tr('Open Project'), self)
         openprj.setShortcut('Ctrl+O')
         openprj.setStatusTip(self.tr('Open an exisiting project'))
@@ -1574,7 +1578,6 @@ class CentralW(QWidget):
 
     The write_log() and write_log_file() method are explained in the section about the log.
     """
-
 
     def __init__(self, rech, path_prj, name_prj, lang_bio):
 

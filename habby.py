@@ -21,6 +21,7 @@ def main():
         app = QApplication(sys.argv)
         # create windows
         ex = Main_windows_1.MainWindows()
+        app.setActiveWindow(ex)
 
         # close
         sys.exit(app.exec_())

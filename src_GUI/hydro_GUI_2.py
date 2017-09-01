@@ -2695,6 +2695,7 @@ class SubstrateW(SubHydroW):
         # change with caution!
         # roughness height if ok with George
         self.all_code_type = ['Cemagref', 'Sandre']
+        self.lasf_hdf5 = ''
 
         self.init_iu()
 
@@ -2742,6 +2743,7 @@ class SubstrateW(SubHydroW):
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.clicked.connect(self.load_sub_gui)
         self.butfig1 = QPushButton(self.tr("Create figure again"))
+        self.butfig1.setDisabled(True)
         self.butfig1.clicked.connect(self.recreate_image_sub)
         if self.namefile[0] == 'unknown file':
             self.butfig1.setDisabled(True)
@@ -3047,11 +3049,12 @@ class SubstrateW(SubHydroW):
 
             # save shp and txt in the substrate hdf5
             path_hdf5 = self.find_path_hdf5()
-            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom, self.ikle_sub,
-                                    self.coord_p, self.name_hdf5, False, self.model_type)
+            self.last_hdf5 = load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom, self.ikle_sub,
+                                    self.coord_p, self.name_hdf5, False, self.model_type, True)
 
             # show image
             self.recreate_image_sub(True)
+            self.butfig1.setEnabled(True)
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
         self.update_sub_hdf5_name()
@@ -3061,7 +3064,7 @@ class SubstrateW(SubHydroW):
 
         self.send_log.emit('Loading of substrate data finished \n')
 
-    def recreate_image_sub(self, save_fig = False):
+    def recreate_image_sub(self, save_fig=False):
         """
         This function is used to recreate the image linked with the subtrate. So this is not the figure for the "merge"
         part, but only to show the substrat alone.
@@ -3069,26 +3072,26 @@ class SubstrateW(SubHydroW):
         :param: save_fig: A boolean to save or not the figure
         """
         path_im = self.find_path_im()
+        if not self.last_hdf5:
+            self.send_log.emit('Warning: No figure created \n')
+            return
 
         # getting the subtrate data
         path_hdf5 = self.find_path_hdf5()
-        sub_name = self.read_attribute_xml('hdf5_substrate')
-        sub_name = sub_name.split(',')
-        i = 0
-        const = True
-        while const and i < len(sub_name):
-            s = sub_name[i]
-            [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(s, path_hdf5, True)
-            i +=1
+
+        [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(self.last_hdf5, path_hdf5, True)
 
         if not ikle_sub:
             self.send_log.emit('Error: No connectivity table found. \n')
+            return
+        if len(point_all_sub) < 3:
+            self.send_log.emit('Error: Not enough point found to form a grid \n')
             return
 
         # plot it
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
         if not save_fig:
-            self.fig_opt['format'] = 40000  # should be a higher int than the numner of format
+            self.fig_opt['format'] = 40000  # should be a higher int than the number of format
         substrate.fig_substrate(point_all_sub, ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
         # show figure
         if path_im != 'no_path':

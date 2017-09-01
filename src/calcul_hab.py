@@ -1076,8 +1076,8 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
             try:
                 ikle_t = ikle_all_t[t]
             except IndexError:
-                print('Error: Figure not created. Number of time step was not coherent with hydrological info. \n')
-                return
+                print('Warning: Figure not created for one time step as the time step was not found \n')
+                continue
             point_t = point_all_t[t]
             if abs(t) < len(vh_all_t):
                 vh_t = vh_all_t[t]

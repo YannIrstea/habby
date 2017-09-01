@@ -125,7 +125,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge=False):
             try:
                 gen_dataset = file_hydro[name_ik]
             except KeyError:
-                print('Error: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
+                print('Warning: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
                 return failload
             try:
                 ikle_whole = list(gen_dataset.values())[0]
@@ -376,7 +376,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
     :param path_prj: the path to the hdf5 file
-    :param ind_const: If True this function reurn a boolean which indicates if the substrant is constant or not
+    :param ind_const: If True this function return a boolean which indicates if the substrant is constant or not
     """
 
     # correct all change to the hdf5 form in the doc!
@@ -386,7 +386,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
         failload = [[-99]], [[-99]], [[-99]],[[-99]]
     else:
         failload = [[-99]], [[-99]], [[-99]], [[-99]], False
-    const_case =False
+    constcase =False
 
     # open the file
     if os.path.isabs(hdf5_name_sub):
@@ -457,7 +457,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
     if not ind_const:
         return ikle_sub, point_all_sub, sub_pg, sub_dom
     else:
-        return ikle_sub, point_all_sub, sub_pg, sub_dom, ind_const
+        return ikle_sub, point_all_sub, sub_pg, sub_dom, constcase
 
 
 def get_all_filename(dirname, ext):
@@ -497,6 +497,21 @@ def get_hdf5_name(model_name, name_prj, path_prj):
     if os.path.isfile(filename_path_pro):
         doc = ET.parse(filename_path_pro)
         root = doc.getroot()
+
+        # get the path to hdf5
+        pathhdf5 = root.find(".//Path_Hdf5")
+        if pathhdf5 is None:
+            print('Error: the path to the hdf5 file is not found (1) \n')
+            return
+        if pathhdf5.text is None:
+            print('Error: the path to the hdf5 file is not found (2) \n')
+            return
+        pathhdf5 = os.path.join(path_prj, pathhdf5.text)
+        if not os.path.isdir(pathhdf5):
+            print('Error: the path to the hdf5 file is not correct \n')
+            return
+
+        # get the hdf5 name
         child = root.find(".//" + model_name2)
         if child is not None:
             if model_name == 'MERGE' or model_name == 'LAMMI':
@@ -506,7 +521,14 @@ def get_hdf5_name(model_name, name_prj, path_prj):
             else:
                 child = root.findall(".//" + model_name + '/hdf5_hydrodata')
             if len(child) > 0:
-                name_hdf5 = child[-1].text
+                # get the newest files
+                files = []
+                for c in child:
+                    if c.text is not None and os.path.isfile(os.path.join(pathhdf5, c.text)):
+                        files.append(os.path.join(pathhdf5, c.text))
+                if len(files) == 0:
+                    return
+                name_hdf5 = max(files, key=os.path.getmtime)
                 if len(name_hdf5) > 3:
                     if name_hdf5[:-3] == '.h5':
                         name_hdf5 = name_hdf5[:-3]
@@ -637,17 +659,20 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
                     habitatg = rhere.create_group('habitat_' + fish_name[s]+str(m))
                     m += 1
                 if len(vh_cell[s]) > 0:
-                    if len(vh_cell[s][t]) > 2:
-                        habitatg.create_dataset(hdf5_name, [len(vh_cell[s][t][r]), 1],
-                                             data=vh_cell[s][t][r], maxshape=None)
-            velg = rhere.create_group('velocity_by_cell')
-            if len(v_cell[t][r]) > 0:
-                velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
-                                    maxshape=None)
-            velg = rhere.create_group('height_by_cell')
-            if len(h_cell[t][r]) > 0:
-                velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
-                                    maxshape=None)
+                    try:
+                        if len(vh_cell[s][t]) > 2:
+                            habitatg.create_dataset(hdf5_name, [len(vh_cell[s][t][r]), 1],
+                                                 data=vh_cell[s][t][r], maxshape=None)
+                    except IndexError:
+                        continue  # necessary because in chronicle, we might miss time step
+                velg = rhere.create_group('velocity_by_cell')
+                if len(v_cell[t][r]) > 0:
+                    velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
+                                        maxshape=None)
+                velg = rhere.create_group('height_by_cell')
+                if len(h_cell[t][r]) > 0:
+                    velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
+                                        maxshape=None)
 
     file_hydro.close()
     time.sleep(1)  # as we need to insure different group of name
@@ -929,7 +954,6 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
                 os.remove(os.path.join(path_hdf5, h5name))
                 save_xml = False
-
 
 
         # create a new hdf5

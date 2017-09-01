@@ -77,6 +77,8 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
         else:
             [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
                                         point_c_all_t[0], vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
+            # to study the difference in average, do no forget to comment sys.stdout = mystdout = StringIO()
+            # other wise you get zero for all.
         warn1 = False
         ikle_f = []
         point_f = []
