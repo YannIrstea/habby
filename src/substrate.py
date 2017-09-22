@@ -10,6 +10,7 @@ import time
 import triangle
 from random import randrange
 from src import load_hdf5
+from src import calcul_hab
 from src_GUI import output_fig_GUI
 import matplotlib as mpl
 
@@ -872,6 +873,11 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = fig_opt['erase_id']
+    if erase1 == 'True':  # xml in text
+        erase1 = True
+    else:
+        erase1 = False
 
     sub_dom = np.array(sub_dom)
     sub_pg = np.array(sub_pg)
@@ -941,15 +947,26 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
                                     norm=norm,
                                     orientation='vertical')
     cb1.set_label('Code Cemagref')
-    if format == 0 or format == 1:
-        plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=fig_opt['resolution'], transparent=True)
-    if format == 0 or format == 3:
-        plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-    if format == 2:
-        plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+    if not erase1:
+        if format == 0 or format == 1:
+            plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                     '.png'), dpi=fig_opt['resolution'], transparent=True)
+        if format == 0 or format == 3:
+            plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                     '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+        if format == 2:
+            plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                     '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+    else:
+        test = calcul_hab.remove_image("substrate_pg", path_im, format)
+        if not test:
+            return
+        if format == 0 or format == 1:
+            plt.savefig(os.path.join(path_im, "substrate_pg.png"), dpi=fig_opt['resolution'], transparent=True)
+        if format == 0 or format == 3:
+            plt.savefig(os.path.join(path_im, "substrate_pg.pdf"), dpi=fig_opt['resolution'], transparent=True)
+        if format == 2:
+            plt.savefig(os.path.join(path_im, "substrate_pg.jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # substrate dominant
     fig, ax = plt.subplots(1)
@@ -988,23 +1005,33 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     # standalone colorbar.  There are many more kwargs, but the
     # following gives a basic continuous colorbar with ticks
     # and labels.
-    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap,
-                                    norm=norm,
-                                    orientation='vertical')
+    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
     cb1.set_label('Code Cemagref')
 
     # save the figure
-    if format == 0 or format == 1:
-        plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=fig_opt['resolution'], transparent=True)
-    if format == 0 or format == 3:
-        plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-    if format == 2:
-        plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+    if not erase1:
+        if format == 0 or format == 1:
+            plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                     '.png'), dpi=fig_opt['resolution'], transparent=True)
+        if format == 0 or format == 3:
+            plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                     '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+        if format == 2:
+            plt.savefig(os.path.join(path_im, "substrate_dom" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                     '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+    else:
+        test = calcul_hab.remove_image("substrate_dom", path_im, format)
+        if not test:
+            return
+        if format == 0 or format == 1:
+            plt.savefig(os.path.join(path_im, "substrate_dom.png"), dpi=fig_opt['resolution'], transparent=True)
+        if format == 0 or format == 3:
+            plt.savefig(os.path.join(path_im, "substrate_dom.pdf"), dpi=fig_opt['resolution'], transparent=True)
+        if format == 2:
+            plt.savefig(os.path.join(path_im, "substrate_dom.jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # if we start with txt data, plot the original data
+    # not done usually, but we let it here to debug
     if xtxt != [-99]:
         plt.figure()
         subtxt = list(map(float, subtxt))
@@ -1017,17 +1044,25 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         s1 = 3.1 * (d1* transf)**2 / 2  # markersize is given as an area
 
         cm = plt.cm.get_cmap('gist_rainbow')
-        sc = plt.scatter(xtxt, ytxt, c=subtxt, vmin=np.nanmin(subtxt), vmax=np.nanmax(subtxt), s=34, cmap=cm, edgecolors='none')
+        sc = plt.scatter(xtxt, ytxt, c=subtxt, vmin=np.nanmin(subtxt), vmax=np.nanmax(subtxt), s=34, cmap=cm,
+                         edgecolors='none')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] ==0:
             plt.title('Original Substrate Data (x,y)')
         elif fig_opt['language'] == 1:
             plt.title('Données Substrat Original (x,y)')
-        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
-                    fig_opt['resolution'], transparent=True)
-        plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
-                    fig_opt['resolution'], transparent=True)
+        if not erase1:
+            plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
+                        fig_opt['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
+                        fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image("substrate_txtdata", path_im, format)
+            if not test:
+                return
+            plt.savefig(os.path.join(path_im, "substrate_txtdata.png"), fig_opt['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, "substrate_txtdata.pdf"), fig_opt['resolution'], transparent=True)
 
     #plt.show()
 

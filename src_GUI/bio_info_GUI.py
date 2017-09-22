@@ -59,6 +59,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.timer.timeout.connect(self.show_image_hab)
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
+        self.ind_current = None
 
         self.init_iu()
 
@@ -277,10 +278,23 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the file
         if not select:
             i1 = self.list_f.currentItem()  # show the info concerning the one selected fish
+            self.ind_current = self.list_f.currentRow()
         else:
+            found_it = False
             i1 = self.list_s.currentItem()
+            for m in range(0, self.list_f.count()):
+                self.list_f.setCurrentRow(m)
+                if i1.text() == self.list_f.currentItem().text():
+                    self.ind_current = m
+                    found_it = True
+                    break
+            if not found_it:
+                self.ind_current = None
+
+
         if i1 is None:
             return
+
         name_fish = i1.text()
         name_fish = name_fish.split(':')[0]
         i = np.where(self.data_fish[:, 7] == name_fish)[0]
@@ -468,8 +482,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         read_pref and figure_pref of bio_info.py. Hence, this function justs makes the link between the GUI and
         the functions effectively doing the image.
         """
+
+        if self.ind_current is None:
+            self.send_log.emit("Warning: No fish selected to create suitability curves \n")
+            return
+
         # get the file
-        i = self.list_f.currentRow()  # show the info concerning the one selected fish
+        i =  self.ind_current # show the info concerning the one selected fish
         xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
 
         # open the pref
@@ -698,7 +717,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # put the timer back to zero
             self.running_time = 0
             self.send_log.emit("clear status bar")
-
 
 
 if __name__ == '__main__':

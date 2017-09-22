@@ -155,6 +155,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
 
     # merge the grid for each time step (the time step 0 is the full profile)
     warn_inter = True
+    no_inter = False
     for t in range(0, len(ikle_all)): # len(ikle_all)
 
         ikle_all2 = []
@@ -186,24 +187,19 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                     point_all2.append([[[-99, -99]]])
                     break
 
-                # find intersection betweeen hydrology and substrate
-                # a = time.time()
-                if t== 0:  # should we adapt the subtrate grid? Only necessary once
-                    first_time = True
-                else:
-                    first_time=False
-                [ikle_sub, point_all_sub, data_sub_pg,  data_sub_dom, data_crossing, sub_cell] = \
-                    find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg, data_sub_dom,
-                                       first_time)
+                if not no_inter: # in case that is possible to have intersection
+                    # find intersection betweeen hydrology and substrate
+                    # a = time.time()
+                    if t== 0:  # should we adapt the subtrate grid? Only necessary once
+                        first_time = True
+                    else:
+                        first_time=False
+                    [ikle_sub, point_all_sub, data_sub_pg,  data_sub_dom, data_crossing, sub_cell] = \
+                        find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg, data_sub_dom,
+                                           first_time)
 
-                # b = time.time()
-                # print('time crossing')
-                # print(b - a)
-
-                # print('found all crossing')
-
-                # if no intersection found
-                if len(data_crossing[0]) < 1:
+                # if no intersection found at t==0
+                if len(data_crossing[0]) < 1 or no_inter:
                     if warn_inter:
                         print('Warning: No intersection between the grid and the substrate for one reach for'
                               ' one or more time steps.\n')
@@ -219,6 +215,12 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                     height2.append(height_before)
                     ikle_all2.append(ikle_before)
                     point_all2.append(point_before)
+
+                    # if it is t==0, we have no interestction possible as the grid can only be smaller than the full
+                    # dry profile
+                    if t == 0:
+                        no_inter = True
+
                 else:
 
                     # create the new grid based on intersection found

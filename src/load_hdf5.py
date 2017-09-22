@@ -646,6 +646,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
 
     # habitat value and cell data
     m = 0
+    all_ok = True
     for t in range(1, nb_t):
         there = data_all.create_group('Timestep_' + str(t - 1))
 
@@ -663,16 +664,17 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
                         if len(vh_cell[s][t]) > 2:
                             habitatg.create_dataset(hdf5_name, [len(vh_cell[s][t][r]), 1],
                                                  data=vh_cell[s][t][r], maxshape=None)
-                    except IndexError:
-                        continue  # necessary because in chronicle, we might miss time step
-                velg = rhere.create_group('velocity_by_cell')
-                if len(v_cell[t][r]) > 0:
-                    velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
-                                        maxshape=None)
-                velg = rhere.create_group('height_by_cell')
-                if len(h_cell[t][r]) > 0:
-                    velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
-                                        maxshape=None)
+                    except IndexError or ValueError:
+                       print('Warning: One fish information could not be saved\n')
+
+            velg = rhere.create_group('velocity_by_cell_reach_'+str(r))
+            if len(v_cell[t][r]) > 0:
+                velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
+                                    maxshape=None)
+            velg = rhere.create_group('height_by_cell_reach_'+str(r))
+            if len(h_cell[t][r]) > 0:
+                velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
+                                    maxshape=None)
 
     file_hydro.close()
     time.sleep(1)  # as we need to insure different group of name
@@ -761,7 +763,11 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
         else:
             h5name = name_hdf5
         if os.path.isfile(os.path.join(path_hdf5, h5name)):
-            os.remove(os.path.join(path_hdf5, h5name))
+            try:
+                os.remove(os.path.join(path_hdf5, h5name))
+            except PermissionError:
+                    print("Could not save hdf5 file. It might be used by another program \n")
+                    return
             save_xml = False
 
     # create a new hdf5
@@ -952,7 +958,11 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
             else:
                 h5name = 'Substrate_CONST.h5'
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
-                os.remove(os.path.join(path_hdf5, h5name))
+                try:
+                    os.remove(os.path.join(path_hdf5, h5name))
+                except PermissionError:
+                    print("Could not save hdf5 substrate data. It might be used by another program \n")
+                    return
                 save_xml = False
 
 
@@ -995,7 +1005,11 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], co
             else:
                 h5name = 'Substrate_VAR.h5'
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
-                os.remove(os.path.join(path_hdf5, h5name))
+                try:
+                    os.remove(os.path.join(path_hdf5, h5name))
+                except PermissionError:
+                    print('Could not save hdf5 substrate file. It might be used by another program \n')
+                    return
                 save_xml = False
 
         # create a new hdf5

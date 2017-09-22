@@ -96,8 +96,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         all_name += name_fish_sh[id]
     if len(hdf5_file) > 25:
         name_base = hdf5_file[:25] + '_' + all_name
+        name_base2 = hdf5_file[:25]
     else:
         name_base = hdf5_file[:-3] + '_' + all_name
+        name_base2 = hdf5_file[:-3]
 
     # get the time step name
     # get time step name if they exists
@@ -139,11 +141,13 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
         return
     if -1 in timestep and len(vh_all_t_sp[0]) == 2 and 1 in timestep:
         del timestep[1]
+
     # figure
-    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt, timestep, sim_name,
+    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base2, fig_opt, timestep, sim_name,
                    erase_id=erase_id)
     plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
-                    name_base, sim_name, erase_id)
+                    name_base2, sim_name, erase_id)
+    plot_hist_biology(vh_all_t_sp, area_c_all, name_fish, fig_opt, path_im, timestep, name_base2, sim_name, erase_id)
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
@@ -420,7 +424,7 @@ def find_pref_value(data, pref):
     pref_data = []
 
     for d in data:
-        indh = bisect.bisect(pref_d, d) - 1  # about 3 time quicker than max(np.where(x_ini <= x_p[i]))
+        indh = bisect.bisect(pref_d, d) - 1  # about 3 time quicker than max(np.where(x_ini <= x_p[i])), ordered
         if indh < 0:
             indh = 0
         dmin = pref_d[indh]
@@ -446,7 +450,10 @@ def find_pref_value(data, pref):
                     elif 1 < pref_data_here < 1+1e10:
                         pref_data_here = 1
                     else:
-                        print('Warning: preference data is not between 0 and 1. \n')
+                        if d < 0:
+                            print('Warning: Water or heigth data is smaller than zero. \n')
+                        else:
+                            print('Warning: preference data is not between 0 and 1. \n')
             pref_data.append(pref_data_here)
         else:
             pref_data.append(pref_f[indh])
@@ -525,12 +532,16 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                     name1 = 'xy_' + 't_' + sim_name[t - 1] + '_' + name_base + '.txt'
                     name2 = 'gridcell_' + 't_' + sim_name[t - 1] + '_' + name_base + '.txt'
                     name3 = 'result_' + 't_' + sim_name[t - 1] + '_' + name_base + '.txt'
-                if os.path.isfile(os.path.join(path_txt, name1)):
-                    os.remove(os.path.join(path_txt, name1))
-                if os.path.isfile(os.path.join(path_txt, name2)):
-                    os.remove(os.path.join(path_txt, name2))
-                if os.path.isfile(os.path.join(path_txt, name3)):
-                    os.remove(os.path.join(path_txt, name3))
+                try:
+                    if os.path.isfile(os.path.join(path_txt, name1)):
+                        os.remove(os.path.join(path_txt, name1))
+                    if os.path.isfile(os.path.join(path_txt, name2)):
+                        os.remove(os.path.join(path_txt, name2))
+                    if os.path.isfile(os.path.join(path_txt, name3)):
+                        os.remove(os.path.join(path_txt, name3))
+                except PermissionError:
+                    print('Error: Could not modfiy the text file. Might be open in another prgram\n')
+                    return
             name1 = os.path.join(path_txt, name1)
             name2 = os.path.join(path_txt, name2)
             name3 = os.path.join(path_txt, name3)
@@ -615,7 +626,11 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
         else:
             name = 'spu_' + name_base + '.txt'
         if os.path.isfile(os.path.join(path_txt, name)):
-            os.remove(os.path.join(path_txt, name))
+            try:
+                os.remove(os.path.join(path_txt, name))
+            except PermissionError:
+                print('Error: Could not modify text file as it is open in another program. \n')
+                return
 
     name = os.path.join(path_txt, name)
     if len(sim_name) > 0 and len(sim_name) != len(area_all)-1:
@@ -771,7 +786,11 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
                 else:
                     name1 = name_base + '_t_' + sim_name[t - 1] + '.shp'
                 if os.path.isfile(os.path.join(path_shp,name1)):
-                    os.remove(os.path.join(path_shp, name1))
+                    try:
+                        os.remove(os.path.join(path_shp, name1))
+                    except PermissionError:
+                        print('Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                        return
 
             w.save(os.path.join(path_shp, name1))
 
@@ -865,7 +884,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_base + '_Reach_' + str(r)
-                remove_image(name, path_im, format1)
+                test = remove_image(name, path_im, format1)
+                if not test:
+                    return
             plt.tight_layout()
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -952,7 +973,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_base + '_Reach_' + str(r)
-                remove_image(name, path_im, format1)
+                test = remove_image(name, path_im, format1)
+                if not test:
+                    return
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
@@ -1016,7 +1039,9 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 name = 'WUA_' + name_base + '_All_Reach_'+ time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 name = 'WUA_' + name_base + '_All_Reach_'
-                remove_image(name, path_im, format1)
+                test = remove_image(name, path_im, format1)
+                if not test:
+                    return
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
@@ -1075,134 +1100,138 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
         for t in time_step:
             try:
                 ikle_t = ikle_all_t[t]
+                all_ok = True
             except IndexError:
                 print('Warning: Figure not created for one time step as the time step was not found \n')
-                continue
-            point_t = point_all_t[t]
-            if abs(t) < len(vh_all_t):
-                vh_t = vh_all_t[t]
-                fig, ax = plt.subplots(1)  # new figure
-                norm = mpl.colors.Normalize(vmin=0, vmax=1)
+                all_ok = False  # continue is not ok in try
+            if all_ok:
+                point_t = point_all_t[t]
+                if abs(t) < len(vh_all_t):
+                    vh_t = vh_all_t[t]
+                    fig, ax = plt.subplots(1)  # new figure
+                    norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
-                for r in range(0, len(vh_t)):
-                    try:
-                        ikle = ikle_t[r]
-                    except IndexError:
-                        print('Number of reach is not coherent. Could not plot figure. \n')
-                        return
-                    if len(ikle) < 3:
-                        pass
-                    else:
-                        coord_p = point_t[r]
-                        vh = vh_t[r]
-
-                        # plot the habitat value
-                        cmap = plt.get_cmap(fig_opt['color_map2'])
-                        colors = cmap(vh)
-                        if sp == 0: # for optimization (the grid is always the same for each species)
-                            n = len(vh)
-                            patches = []
-                            for i in range(0, n):
-                                verts = []
-                                for j in range(0, 3):
-                                    verts_j = coord_p[int(ikle[i][j]), :]
-                                    verts.append(verts_j)
-                                polygon = Polygon(verts, closed=True, edgecolor='w')
-                                patches.append(polygon)
-                            if len(vh_all_t_sp) > 1:
-                                all_patches.append(patches)
+                    for r in range(0, len(vh_t)):
+                        try:
+                            ikle = ikle_t[r]
+                        except IndexError:
+                            print('Number of reach is not coherent. Could not plot figure. \n')
+                            return
+                        if len(ikle) < 3:
+                            pass
                         else:
-                            patches = all_patches[rt]
+                            coord_p = point_t[r]
+                            vh = vh_t[r]
 
-                        collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-                        #collection.set_color(colors) too slow
-                        collection.set_array(np.array(vh))
-                        ax.add_collection(collection)
-                        ax.autoscale_view()
-                        # cbar = plt.colorbar()
-                        # cbar.ax.set_ylabel('Substrate')
-                        if r == 0:
-                            plt.xlabel('x coord []')
-                            plt.ylabel('y coord []')
-                            if t == -1:
-                                if not sim_name:
-                                    if fig_opt['language'] == 0:
-                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
-                                    elif fig_opt['language'] == 1:
-                                        plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernière Simulation')
-                                else:
-                                    if fig_opt['language'] == 0:
-                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
-                                                  sim_name[-1])
-                                    elif fig_opt['language'] == 1:
-                                        plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
-                                                  sim_name[-1])
+                            # plot the habitat value
+                            cmap = plt.get_cmap(fig_opt['color_map2'])
+                            colors = cmap(vh)
+                            if sp == 0: # for optimization (the grid is always the same for each species)
+                                n = len(vh)
+                                patches = []
+                                for i in range(0, n):
+                                    verts = []
+                                    for j in range(0, 3):
+                                        verts_j = coord_p[int(ikle[i][j]), :]
+                                        verts.append(verts_j)
+                                    polygon = Polygon(verts, closed=True, edgecolor='w')
+                                    patches.append(polygon)
+                                if len(vh_all_t_sp) > 1:
+                                    all_patches.append(patches)
                             else:
-                                if not sim_name:
-                                    if fig_opt['language'] == 0:
-                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' + str(t))
-                                    elif fig_opt['language'] == 1:
-                                        plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: '
-                                                  + str(t))
+                                patches = all_patches[rt]
+
+                            collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+                            #collection.set_color(colors) too slow
+                            collection.set_array(np.array(vh))
+                            ax.add_collection(collection)
+                            ax.autoscale_view()
+                            # cbar = plt.colorbar()
+                            # cbar.ax.set_ylabel('Substrate')
+                            if r == 0:
+                                plt.xlabel('x coord []')
+                                plt.ylabel('y coord []')
+                                if t == -1:
+                                    if not sim_name:
+                                        if fig_opt['language'] == 0:
+                                            plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
+                                        elif fig_opt['language'] == 1:
+                                            plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernière Simulation')
+                                    else:
+                                        if fig_opt['language'] == 0:
+                                            plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
+                                                      sim_name[-1])
+                                        elif fig_opt['language'] == 1:
+                                            plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
+                                                      sim_name[-1])
                                 else:
-                                    if fig_opt['language'] == 0:
-                                        plt.title('Habitat Value of ' + name_fish[sp] + '- Copmutational Step: '
-                                                  + sim_name[t-1])
-                                    elif fig_opt['language'] == 1:
-                                        plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
-                                                  sim_name[t-1])
-                        ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-                        rt +=1
+                                    if not sim_name:
+                                        if fig_opt['language'] == 0:
+                                            plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' + str(t))
+                                        elif fig_opt['language'] == 1:
+                                            plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: '
+                                                      + str(t))
+                                    else:
+                                        if fig_opt['language'] == 0:
+                                            plt.title('Habitat Value of ' + name_fish[sp] + '- Copmutational Step: '
+                                                      + sim_name[t-1])
+                                        elif fig_opt['language'] == 1:
+                                            plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
+                                                      sim_name[t-1])
+                            ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+                            rt +=1
 
-                        # colorbar
-                        # Set norm to correspond to the data for which
-                        # the colorbar will be used.
-                        # ColorbarBase derives from ScalarMappable and puts a colorbar
-                        # in a specified axes, so it has everything needed for a
-                        # standalone colorbar.  There are many more kwargs, but the
-                        # following gives a basic continuous colorbar with ticks
-                        # and labels.
-                        cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-                        if fig_opt['language'] == 0:
-                            cb1.set_label('HSI []')
-                        elif fig_opt['language'] == 1:
-                            cb1.set_label('VH []')
+                            # colorbar
+                            # Set norm to correspond to the data for which
+                            # the colorbar will be used.
+                            # ColorbarBase derives from ScalarMappable and puts a colorbar
+                            # in a specified axes, so it has everything needed for a
+                            # standalone colorbar.  There are many more kwargs, but the
+                            # following gives a basic continuous colorbar with ticks
+                            # and labels.
+                            cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+                            if fig_opt['language'] == 0:
+                                cb1.set_label('HSI []')
+                            elif fig_opt['language'] == 1:
+                                cb1.set_label('VH []')
 
-                # save figure
-                if save_fig:
-                    if not erase_id:
-                        if not sim_name :
-                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + str(t) + '_' +\
-                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                        elif t-1 >= 0 and sim_name[t - 1]:
-                            name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[t - 1] + '_' +\
-                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                        elif t == -1:
-                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + sim_name[-1] + '_' + \
-                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    # save figure
+                    if save_fig:
+                        if not erase_id:
+                            if not sim_name :
+                                name_fig = 'HSI_' + name_fish[sp] +  '_' + name_base + '_t_' + str(t) + '_' +\
+                                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                            elif t-1 >= 0 and sim_name[t - 1]:
+                                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[t - 1] + '_' +\
+                                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                            elif t == -1:
+                                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[-1] + '_' + \
+                                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                            else:
+                                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + '_' + \
+                                           time.strftime("%d_%m_%Y_at_%H_%M_%S")
                         else:
-                            name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t) + '_' + \
-                                       time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                    else:
-                        if not sim_name:
-                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + str(t)
-                        elif t - 1 >= 0 and sim_name[t - 1]:
-                            name_fig = 'HSI_' +  '_' + name_base + '_t_' + sim_name[t - 1]
-                        elif t == -1:
-                            name_fig = 'HSI_' + '_' + name_base + '_t_' + sim_name[-1]
-                        else:
-                            name_fig = 'HSI_' + '_' + name_base + '_t_' + str(t)
-                        remove_image(name_fig, path_im, format1)
+                            if not sim_name:
+                                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t)
+                            elif t - 1 >= 0 and sim_name[t - 1]:
+                                name_fig = 'HSI_'+ name_fish[sp] + '_' + name_base + '_t_' + sim_name[t - 1]
+                            elif t == -1:
+                                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + sim_name[-1]
+                            else:
+                                name_fig = 'HSI_' + name_fish[sp] + '_' + name_base + '_t_' + str(t)
+                            test = remove_image(name_fig, path_im, format1)
+                            if not test:
+                                return
 
-                    if format1 == 0 or format1 == 1:
-                        plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'],
-                                    transparent=True)
-                    if format1 == 0 or format1 == 3:
-                        plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'],
-                                    transparent=True)
-                    if format1 == 2:
-                        plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'],
-                                    transparent=True)
+                        if format1 == 0 or format1 == 1:
+                            plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'],
+                                        transparent=True)
+                        if format1 == 0 or format1 == 3:
+                            plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'],
+                                        transparent=True)
+                        if format1 == 2:
+                            plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'],
+                                        transparent=True)
 
 
 def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all_t, fig_opt, path_im, timestep,
@@ -1221,6 +1250,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
     :param timestep: a list with the time step to be plotted
     :param name_base: the base on which to form the figure name
     :param sim_name: the name of the time steps when not 0,1,2,3
+    :param erase_id: If True, we erase a figure with an identical name
     """
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
@@ -1325,33 +1355,139 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             plt.tight_layout(rect=[0., 0., 1, 0.95])
             if not erase_id:
                 if not sim_name:
-                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
+                    name = 'Hist_Hydro' + name_base + '_t_' + str(t) + '_All_Reach_' + \
                            time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 elif t-1 >=0:
-                    name = 'Histogramm_' + name_base + '_t_' + sim_name[t-1] + '_All_Reach_' + \
+                    name = 'Hist_Hydro' + name_base + '_t_' + sim_name[t-1] + '_All_Reach_' + \
                            time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 elif t ==-1:
-                    name = 'Histogramm_' + name_base + '_t_' + sim_name[-1] + '_All_Reach_' + \
+                    name = 'Hist_Hydro' + name_base + '_t_' + sim_name[-1] + '_All_Reach_' + \
                            time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
-                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_' + \
+                    name = 'Hist_Hydro' + name_base + '_t_' + str(t) + '_All_Reach_' + \
                            time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
                 if not sim_name:
-                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_'
+                    name = 'Hist_Hydro' + name_base + '_t_' + str(t) + '_All_Reach'
                 elif t - 1 >= 0:
-                    name = 'Histogramm_' + name_base + '_t_' + sim_name[t - 1] + '_All_Reach_'
+                    name = 'Hist_Hydro' + name_base + '_t_' + sim_name[t - 1] + '_All_Reach'
                 elif t == -1:
-                    name = 'Histogramm_' + name_base + '_t_' + sim_name[-1] + '_All_Reach_'
+                    name = 'Hist_Hydro' + name_base + '_t_' + sim_name[-1] + '_All_Reach'
                 else:
-                    name = 'Histogramm_' + name_base + '_t_' + str(t) + '_All_Reach_'
-                remove_image(name, path_im, format1)
+                    name = 'Hist_Hydro' + name_base + '_t_' + str(t) + '_All_Reach'
+                test = remove_image(name, path_im, format1)
+                if not test:
+                    return
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
                 plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+
+
+def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, timestep, name_base, sim_name=[],
+                      erase_id=False):
+    """
+    This function plot the historgram of the habitat value for the slected species and time step. This historgramm
+    is weighted by the area of the cell.
+
+    :param vh_all_t_sp: The habitat value by cell by reach by time step by species
+    :param area_c_all_t: the area of each cell
+    :param name_fish: the name of the fish chosen
+     :param fig_opt: the figure options
+    :param path_im: the path where to save the images
+    :param timestep: a list with the time step to be plotted
+    :param name_base: the base on which to form the figure name
+    :param sim_name: the name of the time steps when not 0,1,2,3
+    :param erase_id: If True, we erase a figure with an identical name
+    """
+    spu_all = []
+    area_all = []
+
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['pdf.fonttype'] = 42  # to make figure ediable in adobe illustrator
+
+    if max(timestep) - 1 > len(sim_name):
+        sim_name = []
+
+    for t in timestep:
+        for s in range(0, len(vh_all_t_sp)):
+            # add all reach together
+            try:
+                for r in range(0, len(area_c_all_t[t])):
+                    if r == 0:
+                        spu_all = list(vh_all_t_sp[s][t][0])
+                        area_all = list(area_c_all_t[t][0])
+                    else:
+                        spu_all.extend(list(vh_all_t_sp[s][t][r]))
+                        area_all.extend(list(area_c_all_t[t][r]))
+            except IndexError:
+                print('Error: The histrogram of the spu could not be created because the length of the '
+                      'data was not coherent \n')
+                return
+
+            # plot four sub-figure by figure
+            p = s % 4
+            if p == 0:
+                fig = plt.figure()
+                fig.add_subplot(221)  # why (22p) does not work?
+            if p == 1:
+                fig.add_subplot(222)
+            if p == 2:
+                fig.add_subplot(223)
+            if p == 3:
+                fig.add_subplot(224)
+            plt.hist(spu_all, weights=area_all, facecolor='lightblue', bins=np.arange(-0.05, 1.05, 0.1))
+            if fig_opt['language'] == 0:
+                plt.title('Habitat Value ' + name_fish[s])
+                plt.xlabel('habitat value [ ]')
+                plt.ylabel('number of occurence')
+            elif fig_opt['language'] == 1:
+                plt.title("Valeur d'Habitat " + name_fish[s])
+                plt.xlabel("valeur d'habitat [ ] ")
+                plt.ylabel('fréquence')
+            plt.xlim(-0.07, 1.07)
+
+            if p == 0 and s > 3 or s == len(vh_all_t_sp)-1:
+                plt.tight_layout(rect=[0., 0., 1, 0.95])
+                if not erase_id:
+                    if not sim_name:
+                        name = 'Hist_Spu_' + name_base + str(s+1) + '_t_' + str(t) + '_All_Reach_' + \
+                               time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    elif t - 1 >= 0:
+                        name = 'Hist_Spu_' + name_base + str(s+1)+ '_t_' + sim_name[t - 1] + '_All_Reach_' + \
+                               time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    elif t == -1:
+                        name = 'Hist_Spu_' + name_base + str(s+1)+ '_t_' + sim_name[-1] + '_All_Reach_' + \
+                               time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                    else:
+                        name = 'Hist_Spu_' + name_base + str(s+1)+ '_t_' + str(t) + '_All_Reach_' + \
+                               time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                else:
+                    if not sim_name:
+                        name = 'Hist_Spu_' + name_base + str(s+1) + '_t_' + str(t) + '_All_Reach'
+                    elif t - 1 >= 0:
+                        name = 'Hist_Spu_' + name_base+ str(s+1) + '_t_' + sim_name[t - 1] + '_All_Reach'
+                    elif t == -1:
+                        name = 'Hist_Spu_' + name_base+ str(s+1) + '_t_' + sim_name[-1] + '_All_Reach'
+                    else:
+                        name = 'Hist_Spu_' + name_base+ str(s+1) + '_t_' + str(t) + '_All_Reach'
+                    test = remove_image(name, path_im, format1)
+                    if not test:
+                        return
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
 
 def remove_image(name, path, format1):
@@ -1373,8 +1509,13 @@ def remove_image(name, path, format1):
     elif format1 ==3:
         ext = ['.pdf']
     else:
-        return
+        return False
     for e in ext:
         if os.path.isfile(os.path.join(path, name+e)):
-            os.remove(os.path.join(path, name+e))
+            try:
+                os.remove(os.path.join(path, name+e))
+            except PermissionError:
+                print('Warning: Figures used by an other program. could not be erased \n')
+                return False
+    return True
 

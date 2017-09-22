@@ -303,13 +303,17 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         dstr = linetext.text()
         dstr = dstr.split(',')
         if len(dstr) < 2:
-            self.send_log.emit('Error: Discharge should be separated by a comma. \n')
-            return [-99]
-        try:
-            discharge = list(map(float, dstr))
-        except ValueError:
-            self.send_log.emit('Error: Discharge should be a list of number separeated by a comma. \n')
-            return [-99]
+            try:
+                discharge = [float(dstr[0])]
+            except ValueError:
+                self.send_log.emit('Error: Discharge should be separated by a comma. \n')
+                return [-99]
+        else:
+            try:
+                discharge = list(map(float, dstr))
+            except ValueError:
+                self.send_log.emit('Error: Discharge should be a list of number separeated by a comma. \n')
+                return [-99]
 
         return discharge
 
@@ -347,6 +351,9 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
 
         # add discharge input to a list
         discharge_input = self.get_discharge(self.input)
+        if len(discharge_input) < 2:
+            self.send_log.emit('Error: Need at least two discharge input separated by a comma\n')
+            return
         # add discharge output to a list
         discharge_output = self.get_discharge(self.output)
         # check discharge

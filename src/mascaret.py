@@ -804,7 +804,7 @@ def open_res_file(file_res, path_res):
             return failload
         try:
             t_data[i] = float(t_data_i)
-            xhzv_data[i, :] = [float(x_data_i), float(h_data_i), float(z_data_i), float(v_data_i)]
+            xhzv_data[i, :] = [float(x_data_i), float(h_data_i), float(z_data_i), abs(float(v_data_i))]
         except ValueError:
             print('Error: Output data could not be converted to float (mascaret .opt file) \n')
             return failload

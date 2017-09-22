@@ -11,6 +11,7 @@ import os
 import bisect
 import sys
 from src_GUI import output_fig_GUI
+from src import calcul_hab
 #np.set_printoptions(threshold=np.inf)
 
 
@@ -838,9 +839,9 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     pc = []
     pc0 = []
     inter = False
-    far = 1e2 * abs(coord_pro_p[0][-1] - coord_pro_p[0][0])
+    far = 1e4 * abs(coord_pro_p[0][-1] - coord_pro_p[0][0])
     if far == 0:
-        far = 1e2
+        far = 1e4
     warn_cell = True
 
     # elongate midlle profile
@@ -2201,6 +2202,11 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     plt.rcParams['axes.grid'] = fig_opt['grid']
     #mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = fig_opt['erase_id']
+    if erase1 == 'True':  # xml in text
+        erase1 = True
+    else:
+        erase1 = False
 
     plt.figure()
     # the grid
@@ -2254,18 +2260,29 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
     # save figures
     if merge_case:
-        suffix = 'Merge_t_grid' + str(time_step) + '_'
+        suffix = 'Merge_grid_t' + str(time_step) + '_'
     else:
-        suffix = 'Hydro_t_grid' + str(time_step) + '_'
-    if format1 == 0 or format1 == 1:
-        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                    dpi=fig_opt['resolution'], transparent=True)
-    if format1 == 0 or format1 == 3:
-        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                    dpi=fig_opt['resolution'], transparent=True)
-    if format1 == 2:
-        plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                    dpi=fig_opt['resolution'], transparent=True)
+        suffix = 'Hydro_grid_t' + str(time_step) + '_'
+    if not erase1:
+        if format1 == 0 or format1 == 1:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                        dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 0 or format1 == 3:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                        dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 2:
+            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                        dpi=fig_opt['resolution'], transparent=True)
+    else:
+        test = calcul_hab.remove_image(suffix, path_im, format1)
+        if not test:
+            return
+        if format1 == 0 or format1 == 1:
+            plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 0 or format1 == 3:
+            plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+        if format1 == 2:
+            plt.savefig(os.path.join(path_im, suffix  + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # plot the interpolated velocity
     bounds = []
@@ -2306,8 +2323,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         cbar.ax.set_ylabel('Velocity [m/sec]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel('Vitesse [m/sec]')
-                plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
-                plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
+                # plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
+                # plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
@@ -2326,19 +2343,30 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
             suffix = 'Merge_Velocity_t' + str(time_step) + '_'
         else:
             suffix = 'Velocity_t' + str(time_step) + '_'
-        if format1 == 0 or format1 == 1:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                        dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 0 or format1 == 3:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                        dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 2:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                        dpi=fig_opt['resolution'], transparent=True)
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image(suffix, path_im, format1)
+            if not test:
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
-        #plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
         plt.figure()
         # color map (the same for al reach)
         mvc = 0.001
@@ -2347,7 +2375,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
             inter_h = inter_h_all[r]
             if len(inter_h) > 0:
                 mv = max(inter_h)
-                #mv = np.mean(inter_h[inter_h >= 0]) * 2
+                # mv = np.mean(inter_h[inter_h >= 0]) * 2
                 if mv > mvc:
                     mvc = mv
         bounds = np.linspace(0, mvc, 15)
@@ -2364,8 +2392,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         cbar.ax.set_ylabel('Water height [m]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel("Hauteur d'eau [m]")
-                plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
-                plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
             else:
                 print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
         plt.xlabel('x coord []')
@@ -2386,15 +2412,26 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
             suffix = 'Merge_Waterheight_t'+str(time_step) + '_'
         else:
             suffix = 'Water_height_t'+str(time_step) + '_'
-        if format1 == 0 or format1 == 1:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                        dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 0 or format1 == 3:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                        dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 2:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                        dpi=fig_opt['resolution'], transparent=True)
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image(suffix, path_im, format1)
+            if not test:
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[],
