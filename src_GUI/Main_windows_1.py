@@ -18,10 +18,6 @@ import h5py
 import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
-#from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-from contextlib import suppress
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
@@ -197,7 +193,6 @@ class MainWindows(QMainWindow):
 
         self.end_concurrency()
         os._exit(1)
-
 
     def check_concurrency(self):
         """
@@ -944,6 +939,9 @@ class MainWindows(QMainWindow):
         self.central_widget.add_all_tab()
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
+        # re-connect signals for the tab
+        self.central_widget.connect_signal_fig_and_drop()
+        self.central_widget.connect_signal_log()
 
         # write the new langugage in the figure option to be able to get the title, axis in the right langugage
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -1608,12 +1606,13 @@ class CentralW(QWidget):
         self.max_lengthshow = 90
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
+        self.opttab = 8 # the position of the option tab
 
         self.init_iu()
 
     def init_iu(self):
         """
-        A function to initilize an instance of CentralW. Called by __init___().
+        A function to initialize an instance of CentralW. Called by __init___().
         """
 
         # create all the widgets
@@ -1685,7 +1684,8 @@ class CentralW(QWidget):
 
     def add_all_tab(self):
         """
-        This function add the different tab to habby (used by init and by save_project)
+        This function add the different tab to habby (used by init and by save_project). Careful, if you change the
+        position of the Option tab, you should also modify the varaible self.opttab in init
         """
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(fname) and self.name_prj_c != '':
@@ -1697,8 +1697,9 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
-            self.tab_widget.addTab(self.output_tab, self.tr("Options"))
             self.tab_widget.addTab(self.chronicle_tab, self.tr("Chronicles"))
+            self.tab_widget.addTab(self.output_tab, self.tr("Options"))
+
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
@@ -1742,10 +1743,9 @@ class CentralW(QWidget):
 
     def optfig(self):
         """
-        A small function which open the output tab. It contains the different options for the figures.
-        Output should be the 5th tab, otherwise it will not work.
+        A small function which open the output tab.
         """
-        self.tab_widget.setCurrentIndex(7)
+        self.tab_widget.setCurrentIndex(self.opttab)
 
     def connect_signal_log(self):
         """
@@ -2027,7 +2027,7 @@ class CentralW(QWidget):
 
         if self.old_ind_tab == 0:
             self.save_info_projet()
-        elif self.old_ind_tab == 7:
+        elif self.old_ind_tab == self.opttab:
             self.output_tab.save_option_fig()
         self.old_ind_tab = self.tab_widget.currentIndex()
 

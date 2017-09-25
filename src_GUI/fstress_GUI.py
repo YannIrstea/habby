@@ -39,6 +39,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.name_bio = 'pref_fstress.txt'
         self.found_file = []
         self.riv_name = []
+        self.save_ok = True  # just to check if the data was saved without problem
         self.all_inv_name = []
         self.pref_inver = []
         self.qrange = []  # for each river [qmin, qmax]
@@ -223,11 +224,13 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.qhw[ind][0] = [float(self.eq1.text()), float(self.eh1.text()), float(self.ew1.text())]
             self.qhw[ind][1] = [float(self.eq2.text()), float(self.eh2.text()), float(self.ew2.text())]
         except ValueError:
-            self.send_log.emit("Error: The hydrological data cannot be concerted to float")
+            self.send_log.emit("Error: The hydrological data cannot be converted to float")
+            self.save_ok = False
             return
         path_hdf5 = self.find_path_hdf5_est()
         fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
                              self.qrange, self.fish_selected)
+        self.save_ok = True
 
     def erase_name(self):
         """
@@ -576,6 +579,13 @@ class FstressW(estimhab_GUI.StatModUseful):
         """
 
         self.save_river_data()
+        if not self.save_ok:
+            self.msge.setIcon(QMessageBox.Warning)
+            self.msge.setWindowTitle(self.tr("run FStress"))
+            self.msge.setText(self.tr("FStress data could not be transformed to float. Cannot run FStress."))
+            self.msge.setStandardButtons(QMessageBox.Ok)
+            self.msge.show()
+            return
 
         # get the name of the selected fish
         fish_list = []
@@ -611,7 +621,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             if self.qhw[i][1][0] == self.qhw[i][0][0]:
                 self.msge.setIcon(QMessageBox.Warning)
                 self.msge.setWindowTitle(self.tr("run FStress"))
-                self.msge.setText(self.tr("Estimhab needs two different measured discharge."))
+                self.msge.setText(self.tr("FStress needs two different measured discharge."))
                 self.msge.setStandardButtons(QMessageBox.Ok)
                 self.msge.show()
                 return

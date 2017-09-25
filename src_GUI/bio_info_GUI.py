@@ -347,6 +347,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if os.path.isfile(name_imhere):
                 # use full ABSOLUTE path to the image, not relative
                 self.pic.setPixmap(QPixmap(name_imhere).scaled(200, 90, Qt.KeepAspectRatio))  # 800 500
+            else:
+                self.pic.clear()
+        else:
+            self.pic.clear()
 
     def show_info_fish_sel(self):
         """
