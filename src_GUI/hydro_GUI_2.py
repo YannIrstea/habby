@@ -802,7 +802,7 @@ class SubHydroW(QWidget):
 
         path_im = self.find_path_im()
         path_hdf5 = self.find_path_hdf5()
-        sys.stdout = self.mystdout = StringIO()
+        #sys.stdout = self.mystdout = StringIO()
         # find hsf5 name (files where is hte data)
         if self.model_type == 'SUBSTRATE':
             name_hdf5 = load_hdf5.get_hdf5_name('MERGE', self.name_prj, self.path_prj)

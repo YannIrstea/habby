@@ -732,15 +732,22 @@ def plot_hydrosignature(xmlfile):
     mpl.rcParams['pdf.fonttype'] = 42
 
     plt.figure()
+    # cmap should be coherent with text color
     plt.imshow(data, cmap='Blues', interpolation='nearest',origin='lower')
     #  extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()]
     ax1 = plt.gca()
+
     # add percetage number
+    maxlab = np.max(data)
     for (j, i), label in np.ndenumerate(data):
-        ax1.text(i, j, np.round(label, 2), ha='center', va='center')
+        # text in black or white depending on the data
+        if label < maxlab/2:
+            ax1.text(i, j, np.round(label, 2), ha='center', va='center', color='black')
+        else:
+            ax1.text(i, j, np.round(label, 2), ha='center', va='center', color='white')
     plt.title('Hydrosignature')
-    plt.xlabel('V [m/s]')
-    plt.ylabel('H [m]')
+    plt.xlabel('Velocity [m/s]')
+    plt.ylabel('Height [m]')
     plt.locator_params(nticks=3)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel('Relative area [%]')

@@ -2243,6 +2243,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                     ylist.append(None)
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
+            plt.ticklabel_format(useOffset=False)
             # to add water value on grid point (usualy to debug)
             # for idx, c in enumerate(coord_p):
             #     plt.annotate(str(inter_h_all[r][idx]),c)
@@ -2275,7 +2276,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         dpi=fig_opt['resolution'], transparent=True)
     else:
         test = calcul_hab.remove_image(suffix, path_im, format1)
-        if not test:
+        if not test and format1 in [0,1,2,3,4,5]:  # [0,1,2,3,4,5] currently existing format
             return
         if format1 == 0 or format1 == 1:
             plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
@@ -2298,6 +2299,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     #         plt.title('Données Hydrauliques - Pas de Temps: ' + str(time_step))
     if len(inter_vel_all) > 0:  # 0
         plt.figure()
+        plt.ticklabel_format(useOffset=False)
         # plt.subplot(2, 1, 1)
         # get colormap limit
         cm = plt.cm.get_cmap(fig_opt['color_map1'])
@@ -2339,6 +2341,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 plt.title('Vitesse - Pas de Temps: ' + str(time_step))
 
         # save figure
+        plt.tight_layout()
         if merge_case:
             suffix = 'Merge_Velocity_t' + str(time_step) + '_'
         else:
@@ -2355,7 +2358,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                             dpi=fig_opt['resolution'], transparent=True)
         else:
             test = calcul_hab.remove_image(suffix, path_im, format1)
-            if not test:
+            if not test and format1 in [0,1,2,3,4,5]:
                 return
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
@@ -2368,6 +2371,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     if len(inter_h_all) > 0:  # 0
         # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
         plt.figure()
+        plt.ticklabel_format(useOffset=False)
         # color map (the same for al reach)
         mvc = 0.001
         cm = plt.cm.get_cmap(fig_opt['color_map2'])
@@ -2408,6 +2412,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 plt.title("Hauteur d'eau - Pas de Temps: " + str(time_step))
 
         # save figure
+        plt.tight_layout()
         if merge_case:
             suffix = 'Merge_Waterheight_t'+str(time_step) + '_'
         else:
@@ -2424,7 +2429,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                             dpi=fig_opt['resolution'], transparent=True)
         else:
             test = calcul_hab.remove_image(suffix, path_im, format1)
-            if not test:
+            if not test and format1 in [0,1,2,3,4,5]:
                 return
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
@@ -2432,6 +2437,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[],

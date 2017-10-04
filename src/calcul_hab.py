@@ -157,7 +157,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     print('# Habitat calculation is finished. \n')
     if not print_cmd:
-        print("Outputs and 2d figures created from the habitat calculation. 1d figure will be shown. \n")
+        print("Outputs and 2d figures created from the habitat calculation. 1d figure and the last 2d figure "
+              "will be shown. \n")
     else:
         print("Outputs and 2d figures created from the habitat calculation. \n")
     if not print_cmd:
@@ -1146,6 +1147,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             collection.set_array(np.array(vh))
                             ax.add_collection(collection)
                             ax.autoscale_view()
+                            ax.ticklabel_format(useOffset=False)
                             # cbar = plt.colorbar()
                             # cbar.ax.set_ylabel('Substrate')
                             if r == 0:
