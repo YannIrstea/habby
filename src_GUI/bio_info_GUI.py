@@ -496,7 +496,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
 
         # open the pref
+        sys.stdout = self.mystdout = StringIO()
         [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info.read_pref(xmlfile)
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
         # plot the pref
         fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
         bio_info.figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages, fig_opt=fig_dict)

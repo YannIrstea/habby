@@ -231,6 +231,9 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fi
     else:
         mar = None
 
+    if name_fish == '-99':  # failed before
+        return
+
     if len(stade)> 1:  # if you take this out, the commande axarr[x,x] does not work as axarr is only 1D
         f, axarr = plt.subplots(len(stade),3, sharey='row')
         if fig_opt['language'] == 0:
@@ -763,7 +766,7 @@ def read_pref(xmlfile):
     :return: height, vel, sub, code_fish, name_fish, stade
 
     """
-    failload = [-99], [-99], [-99], [-99], [-99], [-99]
+    failload = [-99], [-99], [-99], [-99], '-99', [-99]
     xml_name = os.path.basename(xmlfile)
 
     # load the file
@@ -821,9 +824,15 @@ def read_pref(xmlfile):
                 print('Error: Velocity data was not found \n')
                 return failload
 
+            # check increasing velocity
+            if vel[0] != sorted(vel[0]):
+                print('Error: Velocity data is not sorted for the xml file ' + xml_name+ '.\n')
+                return failload
+
             # manage units
             unit = root.find(".//PreferenceVelocity")
             vel = change_unit(vel, unit.attrib["Unit"])
+
             vel_all.append(vel)
 
     # height
@@ -846,6 +855,12 @@ def read_pref(xmlfile):
         else:
             print('Error: Height data was not found \n')
             return failload
+
+        # check increasing velocity
+        if height[0] != sorted(height[0]):
+            print('Error: Height data is not sorted for the xml file ' + xml_name + '.\n')
+            return failload
+        # manage units
         unit = root.find(".//PreferenceHeightOfWater")
         height = change_unit(height, unit.attrib["Unit"])
         h_all.append(height)
