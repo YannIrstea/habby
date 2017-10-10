@@ -3,6 +3,7 @@ import os
 import time
 import glob
 import matplotlib
+from copy import deepcopy
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from src import selafin_habby1
@@ -25,7 +26,7 @@ from src import hydraulic_chronic
 from src_GUI import output_fig_GUI
 
 
-def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
+def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, erase_id=True):
     """
     This function is used to call HABBY from the command line. The general form is to call:
     habby_cmd command_name input1 input2 .. input n. The list of the command_name is given in the documentation and by
@@ -42,6 +43,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     :param path_bio: the path to the project
     :param option_restart: If True the command are coming from a restart log (which have an impact on file name and
            location)
+    :param erase_id: If True, the files with the same name are erased in merge. If False, ther kept with a time stamp
     """
     # all_arg[0] is the script name (habby_cmd.py)
 
@@ -98,8 +100,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
               'code_type as Cemagref or Sandre, (dominant_case as 1 or -1)')
         print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the texte file,'
               'code_type as Cemagref or Sandre')
-        print('LOAD_SUB_CONST: Create and hdf5 with a constant substrate. Input: value of the substrate between 1 and'
-              ' 8. Code_type Cemagref, (output name with path)')
+        print('LOAD_SUB_CONST: Create and hdf5 with a constant substrate. Code_type Cemagref Input: value of the '
+              'substrate between 1 and 8.  (output name with path). The value 0 results in all possible substrate '
+              'value to be loaded')
         print('LOAD_SUB_HDF5: load the substrate data in an hdf5 form. Input: the name of the hdf5 file (with path)')
         print('CREATE_RAND_SUB: create random substrate in the same geographical location of the hydrological files. '
               'Will be created  in the cemagref code in the type coarser?dominant/... '
@@ -116,9 +119,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
               'the xml biological files by a comma without a space between the command and the filenames. '
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
               ' run_choice.' )
-        print('HYDRO_CHRONIC: hydrological chronicle. Create a new merge file for the chosen output discharge. The output'
-              'discharges should be in the range of the input discharge. Input: list of the names of the merge file '
-              'without path , list of input discharge, list of output discharge, minimum water height')
+        print('HYDRO_CHRONIC: hydrological chronicle. Create a new merge file for the chosen output discharge. The'
+              'output discharges should be in the range of the input discharge. Input: list of the names of the merge '
+              'file without path , list of input discharge, list of output discharge, minimum water height')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
@@ -722,19 +725,32 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
             print('The substrate value should be a number.')
             return
 
-        if sub_val > 8 or sub_val < 1:
+        if sub_val > 8 or sub_val < 0:
             print('The substrate value should be in the cemagref code.')
             return
 
-        if len(all_arg) == 4:
-            namepath_hdf5 = all_arg[3]
-            name_hdf5 = os.path.basename(namepath_hdf5)
-            path_hdf5 = os.path.dirname(namepath_hdf5)
-        else:
-            name_hdf5 = 'Sub_CONST_'
-            path_hdf5 = path_prj
+        if sub_val == 0:
+            for i in range(0, 8):
+                if len(all_arg) == 4:
+                    namepath_hdf5 = all_arg[3]
+                    name_hdf5 = os.path.basename(namepath_hdf5) + str(i+1)
+                    path_hdf5 = os.path.dirname(namepath_hdf5)
+                else:
+                    name_hdf5 = 'Sub_CONST_' + str(i+1)
+                    path_hdf5 = path_prj
 
-        load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], name_hdf5, True, 'SUBSTRATE')
+                load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, i+1, sub_val, [], [], name_hdf5, True,
+                                        'SUBSTRATE')
+        else:
+            if len(all_arg) == 4:
+                namepath_hdf5 = all_arg[3]
+                name_hdf5 = os.path.basename(namepath_hdf5)
+                path_hdf5 = os.path.dirname(namepath_hdf5)
+            else:
+                name_hdf5 = 'Sub_CONST_' + str(sub_val)
+                path_hdf5 = path_prj
+
+            load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], name_hdf5, True, 'SUBSTRATE')
 
     # ----------------------------------------------------------------
     elif all_arg[1] == 'MERGE_GRID_SUB':
@@ -778,6 +794,15 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
                 if not found and 'Substrate_VAR' in f:
                     hdf5_name_sub = f
 
+        if 'Hydro' in hdf5_name_sub[:5]:
+            print('Warning: Hydro cannot be used at the start of the name of a subtrate file.'
+                  ' The file was ignored.')
+            return
+        if 'Sub' == hdf5_name_hyd[:3]:
+            print('Warning: Sub cannot be used at the start of the name of an hydrological file. '
+                  'The file was ignored.')
+            return
+
         if path_hdf5_in != path_hdf5_in2:
             print('Error: hydro and sub hdf5 should be in the same folder.')
             return
@@ -810,7 +835,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
         load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
                              point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
-                            sub_dom_all_both)
+                            sub_dom_all_both, save_option=erase_id)
 
     # --------------------------------------------------------------------------------
     elif all_arg[1] == 'MERGE_GRID_RAND_SUB':
@@ -950,6 +975,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         stage2 = []
         bio_name2 = []
         [latin_name, stages_all] = bio_info.get_stage(bio_names, path_bio)
+        latin_name = list(set(latin_name))
         if stage_chosen == 'all':
             for l in range(0, len(latin_name)):
                 for s in stages_all[l]:
@@ -984,6 +1010,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         fig_opt['text_output'] = 'True'
         fig_opt['shape_output'] = 'True'
         fig_opt['paraview'] = 'True'
+        fig_opt['erase_id'] = 'False'
 
         # run calculation
         # we calculate hab on all the stage in xml preference files
@@ -1076,10 +1103,11 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
         return
 
     l = 0
+    a = time.time()
     for c in all_data_restart:
         if ":" not in c:
             print('-------------------------------------------------------------------')
-            print(c)  # print in color
+            print(c)
             c = c.strip()
             if len(c) < 1: # empty line
                 pass
@@ -1103,6 +1131,16 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
                     else:
                         print('Error: the project folder is not found.\n')
                     print(os.path.join(path_prj, name_prj))
+            elif c[:3] == 'ALL':  # all command together
+                all_arg_c = ['habby_cmd.py',c[3:].strip()]
+                lc = l + 1
+                while len(all_data_restart) > lc and ':' in all_data_restart[lc]:  # read argument
+                    arg1 = all_data_restart[lc].split(':', 1)
+                    arg1 = arg1
+                    if len(arg1) > 0:
+                        all_arg_c.append(arg1[1].strip())
+                    lc += 1
+                habby_on_all(all_arg_c, name_prj, path_prj, path_bio)
             else: # command
                 all_arg_c = ['habby_cmd.py',c.strip()]
                 lc = l+1
@@ -1113,12 +1151,15 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
                         all_arg_c.append(arg1[1].strip())
                     lc += 1
                 all_command(all_arg_c, name_prj, path_prj, path_bio, True)
+                plt.close()
             print('DONE')
             print('-------------------------------------------------------------------')
         l +=1
+    b = time.time()
+    print(str(l) + ' commands executed in ' + str(b-a)+'sec')
 
 
-def habby_on_all(all_arg, name_prj, path_prj, path_bio):
+def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     """
     This function is used to execute a command from habby_cmd on all files in a folder. The form of the command should
     be something like "habby_cmd ALL COMMAND path_to_file/\*.ext arg2 ag3" with the arguments adated to the specific
@@ -1132,18 +1173,25 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio):
     file, this function waits one second between each command. Only the input argument should containts the string '\*'.
     Otherwise, other commands would be treated as input files.
 
-    If there is more than one type of input, it is important that the name of the file are the name (or at least
-    that there are in the same alphabetical order).
+    If there is more than one type of input, it is important that the name of the file are the same (or at least
+    that there are in the same alphabetical order). If the variable # is used instead of \*, the function will be
+    applied to all second file one by one. So if we have two substrate file and two hydro file, name with \* will result
+    in two merged files while # will result in four merge file.
 
     If more than one extension is possible (example g01, g02, g03, etc. in hec-ras), remplace the changing part of the
     extension with the symbol \* (so path_to_folder/\*.g0\* arg1 argn). If the name of the file changed in the extension
     as in RUBAR (where the file have the name PROFIL.file), just change for PROFIL.\* or something similar. Generally
     the matching is done using the function glob, so the shell-type wildcard can be used.
 
+    As there are a lot of hdf5 intput, one should be careful to avoid mixing between the different type of hdf5 files.
+    For example, it is better to write 'MERGE\*.h5' as just '\*.h5' if the folder contains hydraulic and merge files.
+
     :param all_arg: the list of argument (sys.argv without the argument ALL so [sys.argv[0], sys.argv[2], sys.argv[n]])
     :param name_prj: the name of the project, created by default by the main()
     :param path_prj: the path to the project created by default bu the main()
     :param path_bio: the path to the project
+    :param option_restart: If True the command are coming from a restart log (which have an impact on file name and
+           location)
     """
 
     # if you just read the docstring here, do not forgot that \ is an espcae character for sphinx and * is a special
@@ -1152,7 +1200,11 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio):
     # get argv with *. (input name)
     input_folder = []
     place_ind = []
+    use_file_one_by_one = False
     for idx, a in enumerate(all_arg):
+        if '#' in a:
+            a = a.replace('#', '*')
+            use_file_one_by_one = True
         if '*' in a:
             input_folder.append(a)
             place_ind.append(idx)
@@ -1174,13 +1226,29 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio):
         if not files:
             print('Warning: No files found for the current ALL command.')
 
+    if len(all_files) == 0:
+        print('No file found in the selected folder')
+        return
+
+    # if we want to use all files with all file, we will have to correct the file order
+    if use_file_one_by_one:
+        nb_dim = sum(len(x) for x in all_files[1:])
+        all_files_old = deepcopy(all_files)
+        if nb_dim >0:
+            all_files = [all_files_old[0]*nb_dim]  # fist dim
+        else:
+            all_files = [all_files_old[0]]  # fist dim
+        for i in range(1, len(all_files_old)):
+            new_files = [val for val in all_files_old[i] for _ in range(0, len(all_files_old[i-1]))]
+            all_files.append(new_files)
+
     # check that each input type has the same length
     if not all(len(i) == len(all_files[0]) for i in all_files):
-        print(' the number of each type of input file is not equal. Please check the name of the file below')
+        print('The number of each type of input file is not equal. Please check the name of the file below')
         print(all_files)
         return
 
-    # now get trough each files
+    # now get through each files
     for i in range(0, len(all_files[0])):
         all_arg_here = all_arg
 
@@ -1196,7 +1264,7 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio):
 
         # execute the command
         a = time.time()
-        all_command(all_arg_here, name_prj, path_prj, path_bio)
+        all_command(all_arg_here, name_prj, path_prj, path_bio, option_restart, erase_id=False)
         t = time.time() - a
         print('Command executed in ' + str(t) + ' sec.')
         print('----------------------------------------------------------------------')

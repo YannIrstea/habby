@@ -682,7 +682,8 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
               inter_vel_all_t, inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False,
-              sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name=''):
+              sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name='',
+              save_option=None):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -708,6 +709,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param sim_name: the name of the simulation or the names of the time steps if the names are not [0,1,2,3, etc.]
     :param sub_ini_name: The name of the substrate hdf5 file from which the data originates
     :param hydro_ini_name: the name of the hydraulic hdf5 file from which the data originates
+    :param save_option: If save_option is not none, the variable erase_idem which is usually given in the figure option
+           is overwritten by save_option which is boolean. This is useful for habby cmd.
 
 
     **Technical comments**
@@ -747,11 +750,14 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
 
     """
     # to know if we have to save a new hdf5
-    save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
-    if save_opt['erase_id'] == 'True':  # xml is all in string
-        erase_idem = True
+    if save_option is None:
+        save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+        if save_opt['erase_id'] == 'True':  # xml is all in string
+            erase_idem = True
+        else:
+            erase_idem = False
     else:
-        erase_idem = False
+        erase_idem = save_option
 
     # create hdf5 name if we keep all files (nned a time stamp)
     save_xml = True

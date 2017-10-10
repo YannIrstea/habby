@@ -2916,7 +2916,10 @@ class SubstrateW(SubHydroW):
                 return
             if not 0 < data_sub <9:
                 self.send_log.emit('The substrate data should be between 1 and 8')
-            self.name_hdf5 = self.hname2.text()
+            if self.hname2.text()[-3:] == '.h5':
+                self.name_hdf5 = self.hname2.text()[:-3] + '_' + str(data_sub)
+            else:
+                self.name_hdf5 = self.hname2.text() + '_' + str(data_sub)
             path_hdf5 = self.find_path_hdf5()
             sys.stdout = self.mystdout = StringIO()
             load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, [], [],
@@ -2933,6 +2936,7 @@ class SubstrateW(SubHydroW):
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
+            #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
         else:
             # save path and name substrate
             self.save_xml(0)
@@ -3214,7 +3218,7 @@ class SubstrateW(SubHydroW):
                            "path_prj, 'SUBSTRATE', [], True) \n")
         self.send_log.emit("restart MERGE_GRID_SUB")
         self.send_log.emit("restart    file_hyd: " + self.hyd_name[self.drop_hyd.currentIndex()-1])
-        self.send_log.emit("restart    file_sub: " + os.path.join(self.path_prj,
+        self.send_log.emit("restart    file_sub: " + os.path.join(path_hdf5,
                                                                   self.sub_name[self.drop_sub.currentIndex()]))
         if  len(self.e3.text()) > 0:
             self.send_log.emit("restart    defval: " + self.e3.text())
