@@ -2191,6 +2191,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     :param merge_case: If True, we plot data from grid with merged substrate and hydrological data
     :param time_step: time step to be added to the title
     """
+
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 

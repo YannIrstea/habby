@@ -130,6 +130,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                         return failload
                     sub_data_all_pg.append(sub_data_dom)
                     sub_data_all_dom.append(sub_data_pg)
+
+                    # check that each triangle of the grid is clock-wise (useful for shapefile)
+                    ikle_all[t][r] = check_clockwise(ikle_all[t][r], point_all[t][r])
+
             elif t > 0:
                 for r in range(0, len(ikle_all[t])):
                     sub_data_all_pg.append([-99])
@@ -188,12 +192,13 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                     break
 
                 if not no_inter: # in case that is possible to have intersection
-                    # find intersection betweeen hydrology and substrate
-                    # a = time.time()
+
                     if t== 0:  # should we adapt the subtrate grid? Only necessary once
                         first_time = True
                     else:
-                        first_time=False
+                        first_time = False
+
+                    # find intersection betweeen hydrology and substrate
                     [ikle_sub, point_all_sub, data_sub_pg,  data_sub_dom, data_crossing, sub_cell] = \
                         find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg, data_sub_dom,
                                            first_time)
@@ -230,6 +235,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                                           ikle_sub, default_data, data_crossing, sub_cell)
                     c = time.time()
 
+                    # check that each triangle of the grid is clock-wise (useful for shapefile)
+                    ikle_here = check_clockwise(ikle_here, point_all_here)
+
+
                     # print('TIME NEW GRID')
                     # print(c - b)
                     ikle_all2.append(np.array(ikle_here))
@@ -250,6 +259,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
         sub_dom_all_t.append(data_sub2_dom)
         vel_all_both.append(vel2)
         height_all_both.append(height2)
+
 
     return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both
 
@@ -973,6 +983,37 @@ def get_new_vel_height_data(newp, point_old, data_old):
     sum_d_all = np.sum(d_all)
     data_new = data_new/sum_d_all
     return data_new
+
+
+def check_clockwise(ikle, point):
+    """
+    This function check that each grid cell is given in a clockwise order. This is useful because we might create
+    shapefile afterward. ArcMap beleives that we have hole if a grid cell is in counter-clockwise order.
+
+    To check the clockwise order, we sum (x2-x1)*(y2+y1) over the three edges.
+    Here is a more information on the algo: http://blog.element84.com/polygon-winding.html
+
+    :param ikle: the connectivity table
+    :param point: the grid point
+    :return: the connectivity table with the point in clockewise order
+    """
+
+    ikle = np.array(ikle)
+    point = np.array(point)
+
+    point1 = point[ikle[:, 0]]
+    point2 = point[ikle[:, 1]]
+    point3 = point[ikle[:, 2]]
+
+    sum_edge = (point2[:, 0] - point1[:, 0])*(point2[:, 1] + point1[:, 1])
+    sum_edge += (point3[:, 0] - point2[:, 0])*(point3[:, 1] + point2[:, 1])
+    sum_edge += (point1[:, 0] - point3[:, 0])*(point1[:, 1] + point3[:, 1])
+    ikle_old0 = deepcopy(ikle[:,0])
+
+    ikle[sum_edge < 0, 0] = ikle[sum_edge < 0, 2]
+    ikle[sum_edge < 0, 2] = ikle_old0[sum_edge < 0]
+
+    return ikle
 
 
 def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, name_add='', ikle_orr=[], point_all_orr=[]):
