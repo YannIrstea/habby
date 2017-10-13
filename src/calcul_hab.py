@@ -796,7 +796,8 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
             w.save(os.path.join(path_shp, name1))
 
 
-def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}, sim_name=[], erase_id=False):
+def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}, sim_name=[], erase_id=False,
+                     do_save=True):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -809,6 +810,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time steps if not 0,1,2,3
     :param erase_id: If True, figure from identical simuation are erased
+    :param do_save: If False, the figure is not saved, but the figure is returned to be used for something else
     """
 
     if not fig_opt:
@@ -826,6 +828,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         mar = 'o'
     else:
         mar = None
+    fig = plt.figure()
 
     if len(spu_all) != len(name_fish):
         print('Error: Number of fish name and number of WUA data is not coherent \n')
@@ -851,7 +854,8 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             for s in range(0, len(name_fish)):
                 data_bar.append(spu_all[s][1][r])
             y_pos = np.arange(len(spu_all))
-            fig = plt.figure()
+            if r>0:
+                fig = plt.figure()
             fig.add_subplot(211)
             if data_bar:
                 data_bar2 = np.array(data_bar)
@@ -870,7 +874,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             fig.add_subplot(212)
             if data_bar:
                 data_bar2 = np.array(data_bar)
-                plt.bar(y_pos, data_bar2/area_all[-1], 0.5)
+                plt.bar(y_pos, data_bar2/area_all[-1][r], 0.5)
                 plt.xticks(y_pos + 0.25, name_fish)
             if fig_opt['language'] == 0:
                 plt.ylabel('HV (WUA/A) []')
@@ -889,12 +893,13 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 if not test:
                     return
             plt.tight_layout()
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+            if do_save:
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # many time step - lines
     elif len(area_all) > 2:
@@ -977,12 +982,13 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 test = remove_image(name, path_im, format1)
                 if not test:
                     return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+            if do_save:
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
         # all reach
         if nb_reach > 1:
@@ -1043,12 +1049,16 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 test = remove_image(name, path_im, format1)
                 if not test:
                     return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+            if do_save:
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+
+    if not do_save:
+        return fig
 
 
 def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1],

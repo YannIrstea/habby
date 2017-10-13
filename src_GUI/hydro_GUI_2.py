@@ -412,7 +412,6 @@ class SubHydroW(QWidget):
                 self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
                 self.msg2.setStandardButtons(QMessageBox.Ok)
                 self.msg2.show()
-                self.msg2.show()
             # keep the name in an attribute until we save it
             if i >= len(self.pathfile) or len(self.pathfile) == 0:
                 self.pathfile.append(os.path.dirname(filename_path))
@@ -2496,6 +2495,8 @@ class HabbyHdf5(SubHydroW):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.model_type = 'Imported_hydro'
+        self.new_name = 'no name'  # the name of the new hdf5 file
+        self.ismerge = False
         self.init_iu()
 
     def init_iu(self):
@@ -2508,18 +2509,27 @@ class HabbyHdf5(SubHydroW):
         self.button2.clicked.connect(self.get_new_hydro_hdf5)
         self.button3 = QPushButton(self.tr('Load merge data from hdf5'))
         self.button3.clicked.connect(self.get_new_merge_hdf5)
+        self.button4 = QPushButton(self.tr('Merge two hdf5 hydraulic files together'))
+        self.button4.clicked.connect(lambda: self.add_two_hdf5(False))
+        self.button5 = QPushButton(self.tr('Merge two hdf5 merge files together'))
+        self.button5.clicked.connect(lambda: self.add_two_hdf5(True))
         self.butfig = QPushButton(self.tr("Create figure"))
         self.butfig.clicked.connect(self.recreate_image)
+
         spacer1 = QSpacerItem(250, 1)
-        spacer2 = QSpacerItem(1, 300)
+        spacer2 = QSpacerItem(1, 70)
 
         self.layout2 = QGridLayout()
         self.layout2.addWidget(l0, 0, 0)
         self.layout2.addWidget(self.button2, 0, 1)
         self.layout2.addWidget(self.button3, 1, 1)
-        self.layout2.addWidget(self.butfig, 2, 1)
+        self.layout2.addWidget(self.button4, 3, 1)
+        self.layout2.addWidget(self.button5, 4, 1)
+        self.layout2.addWidget(self.butfig, 6, 1)
         self.layout2.addItem(spacer1, 0, 2)
-        self.layout2.addItem(spacer2, 3, 0)
+        self.layout2.addItem(spacer2, 2, 0)
+        self.layout2.addItem(spacer2, 5, 0)
+        self.layout2.addItem(spacer2, 7, 0)
         self.setLayout(self.layout2)
 
     def get_new_hydro_hdf5(self):
@@ -2531,11 +2541,14 @@ class HabbyHdf5(SubHydroW):
         """
 
         self.send_log.emit('# Loading: HABBY hdf5 file (hydraulic data only)...')
+
         # prep
         ikle_all_t = []
         point_all = []
         inter_vel_all = []
         inter_height_all = []
+        self.ismerge = False
+
         # select a file
         fname_h5 = QFileDialog.getOpenFileName()[0]
         if fname_h5 != '':  # cancel
@@ -2550,11 +2563,11 @@ class HabbyHdf5(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         path_input = self.find_path_input()
         if os.path.isdir(path_hdf5):
-            new_name = 'COPY_' + os.path.basename(fname_h5)
-            pathnewname = os.path.join(path_hdf5, new_name)
+            self.new_name = 'COPY_' + os.path.basename(fname_h5)
+            pathnewname = os.path.join(path_hdf5, self.new_name)
             shutil.copyfile(fname_h5, pathnewname)
             # necessary for the restart function
-            pathnewname2 = os.path.join(path_input, new_name)
+            pathnewname2 = os.path.join(path_input, self.new_name)
             shutil.copyfile(fname_h5, pathnewname2)
         else:
             self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
@@ -2566,26 +2579,9 @@ class HabbyHdf5(SubHydroW):
             return
         file_hydro2.attrs['path_projet'] = self.path_prj
         file_hydro2.attrs['name_projet'] = self.name_prj
-        # save the new file name in the xml file of the project
-        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if not os.path.isfile(filename_prj):
-            self.send_log.emit('Error: No project saved. Please create a project first in the General tab.\n')
-            return
-        else:
-            doc = ET.parse(filename_prj)
-            root = doc.getroot()
-            # new xml category in case the hydrological model is not supported by HABBY
-            # as long s loded in the right format, it would not be a problem
-            child = root.find(".//Imported_hydro")
-            if child is None:
-                here_element = ET.SubElement(root, "Imported_hydro")
-                hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
-                hdf5file.text = new_name
-            else:
-                hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-                hdf5file.text = new_name
 
-            doc.write(filename_prj)
+        self.add_new_hdf5_to_xml()
+
         self.send_log.emit('# hdf5 file loaded to the current project.')
         self.send_log.emit("py    import shutil")
         self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
@@ -2604,7 +2600,10 @@ class HabbyHdf5(SubHydroW):
         """
 
         self.send_log.emit('# Loading: HABBY hdf5 file (hydraulic and substrate data)...')
+
         # prep
+        self.ismerge = True
+
         # select a file
         fname_h5 = QFileDialog.getOpenFileName()[0]
         if fname_h5 != '':  # cancel
@@ -2620,11 +2619,11 @@ class HabbyHdf5(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         path_input = self.find_path_input()
         if os.path.isdir(path_hdf5):
-            new_name = 'COPY_' + os.path.basename(fname_h5)
-            pathnewname = os.path.join(path_hdf5, new_name)
+            self.new_name = 'COPY_' + os.path.basename(fname_h5)
+            pathnewname = os.path.join(path_hdf5, self.new_name)
             shutil.copyfile(fname_h5, pathnewname)
             # necessary for the restart function
-            pathnewname2 = os.path.join(path_input, new_name)
+            pathnewname2 = os.path.join(path_input, self.new_name)
             shutil.copyfile(fname_h5, pathnewname2)
         else:
             self.send_log.emit('Error: the path to the project is not found. Is the project saved in the general tab?')
@@ -2636,6 +2635,25 @@ class HabbyHdf5(SubHydroW):
             return
         file_hydro2.attrs['path_projet'] = self.path_prj
         file_hydro2.attrs['name_projet'] = self.name_prj
+
+        self.add_new_hdf5_to_xml()
+
+        self.send_log.emit('# hdf5 file loaded to the current project.')
+        self.send_log.emit("py    import shutil")
+        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
+        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
+        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
+        self.send_log.emit('restart LOAD_HYDRO_HDF5')
+        self.send_log.emit('restart    file hdf5: ' + pathnewname2)
+        self.drop_merge.emit()
+
+    def add_new_hdf5_to_xml(self):
+        """
+        This function is used to add the new hdf5 to the xml project file
+        """
+        if self.new_name == 'no name':
+            return
+
         # save the new file name in the xml file of the project
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(filename_prj):
@@ -2649,21 +2667,74 @@ class HabbyHdf5(SubHydroW):
             child = root.find(".//Imported_hydro")
             if child is None:
                 here_element = ET.SubElement(root, "Imported_hydro")
-                hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
-                hdf5file.text = new_name
+                if self.ismerge:
+                    hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
+                else:
+                    hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
+                hdf5file.text = self.new_name
             else:
-                hdf5file = ET.SubElement(child, "hdf5_mergedata")
-                hdf5file.text = new_name
+                if self.ismerge:
+                    hdf5file = ET.SubElement(child, "hdf5_mergedata")
+                else:
+                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
+                hdf5file.text = self.new_name
 
             doc.write(filename_prj)
-        self.send_log.emit('# hdf5 file loaded to the current project.')
-        self.send_log.emit("py    import shutil")
-        self.send_log.emit("py    fname_h5 ='" + fname_h5 + "'")
-        self.send_log.emit("py    new_name = os.path.join(path_prj, 'COPY_' + os.path.basename(fname_h5))")
-        self.send_log.emit("py    shutil.copyfile(fname_h5, new_name)")
-        self.send_log.emit('restart LOAD_HYDRO_HDF5')
-        self.send_log.emit('restart    file hdf5: ' + pathnewname2)
-        self.drop_merge.emit()
+
+    def add_two_hdf5(self, merge):
+        """
+        This functions is used to merge together two hydro/merge hdf5. For tis, it call the function 'addition_hdf5'
+        from load_hdf5.py
+
+        :param merge: A boolean which say if we load an hydrological or a merge file
+        """
+
+        self.send_log.emit('# Loading: Join two HABBY hdf5 file together ...')
+        self.ismerge = merge
+
+        # select the first file
+        fname_h5 = QFileDialog.getOpenFileName()[0]
+        if fname_h5 != '':  # cancel
+            hdf51 = os.path.basename(fname_h5)
+            path1 = os.path.dirname(fname_h5)
+        else:
+            self.send_log.emit('Warning: No file selected.\n')
+            return
+
+        self.msg2.setIcon(QMessageBox.Information)
+        self.msg2.setWindowTitle(self.tr("Select second file"))
+        self.msg2.setText(self.tr("The first file was selected. Now select the second file."))
+        self.msg2.setStandardButtons(QMessageBox.Ok)
+        self.msg2.show()
+
+        if self.msg2.exec() == QMessageBox.Ok:
+            # select the second file
+            fname_h5 = QFileDialog.getOpenFileName()[0]
+            if fname_h5 != '':  # cancel
+                hdf52 = os.path.basename(fname_h5)
+                path2 = os.path.dirname(fname_h5)
+            else:
+                self.send_log.emit('Warning: No second file selected.\n')
+                return
+
+            # join the two files
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            if self.fig_opt['erase_id'] == 'True':
+                erase_id = True
+            else:
+                erase_id = False
+
+            path_hdf5 = self.find_path_hdf5()
+            load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, self.name_prj, self.path_prj, self.model_type,
+                                    path_hdf5, merge=False, erase_id=erase_id)
+            self.add_new_hdf5_to_xml()
+
+            self.send_log.emit('Two hdf5 file added together')
+
+            if self.ismerge:
+                self.drop_merge.emit()
+            else:
+                self.drop_hydro.emit()
 
 
 class SubstrateW(SubHydroW):

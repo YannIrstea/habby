@@ -538,7 +538,7 @@ class EstimhabW(StatModUseful):
         if qrange[0] >= qrange[1]:
             self.msge.setIcon(QMessageBox.Warning)
             self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
-            self.msge.setText(self.tr("Minimum dicharge bigger or equal to max discharge. Cannot run Estimhab."))
+            self.msge.setText(self.tr("Minimum discharge bigger or equal to max discharge. Cannot run Estimhab."))
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             return

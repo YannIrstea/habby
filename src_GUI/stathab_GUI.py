@@ -188,11 +188,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             if os.path.isdir(self.dir_name):
                 self.load_from_txt_gui()
                 if not self.mystathab.load_ok:
-                    self.msge.setIcon(QMessageBox.Warning)
-                    self.msge.setWindowTitle(self.tr("Stathab"))
-                    self.msge.setText(self.mystdout.getvalue())
-                    self.msge.setStandardButtons(QMessageBox.Ok)
-                    self.msge.show()
+                    self.send_log.emit('Error: Stathab file could not be loaded.\n')
             else:
                 self.msge.setIcon(QMessageBox.Warning)
                 self.msge.setWindowTitle(self.tr("Stathab"))
@@ -824,19 +820,22 @@ class StathabW(estimhab_GUI.StatModUseful):
             sys.stdout = sys.__stdout__
             self.send_err_log()
         else:
-            self.send_log.emit('The river type is not reconnized. Stathab could not be run.')
+            self.send_log.emit('The river type is not recognized. Stathab could not be run.')
             return
 
         # caught some errors, special cases.
         if self.riverint ==0:
-            if len(self.mystathab.disthmes) == 0:
-                self.send_log.emit('Stathab could not be run. Are all files available?')
+            if len(self.mystathab.disthmes) == 0:  # you cannot use seld.list_needed.count()
+                self.send_log.emit('Error: Stathab could not be run. Are all files available?')
                 return
             if len(self.mystathab.disthmes[0]) == 1:
                 if self.mystathab.disthmes[0] == -99:
                     return
+        else:
+            if len(self.mystathab.data_ii) == 0:
+                self.send_log.emit('Error: Stathab could not be run. Are all files available?')
         if not self.mystathab.load_ok:
-            self.send_log.emit('Stathab could not be run.')
+            self.send_log.emit('Error: Stathab could not be run. \n')
             return
 
         # save data and fig

@@ -684,7 +684,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     return
 
             # show one image (relatively quick to create)
-            sys.stdout = self.mystdout = StringIO()
+            #sys.stdout = self.mystdout = StringIO()
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
             sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
@@ -701,8 +701,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]],
                                               path_im, name_fish, name_base, fig_dict, [t], save_fig=False)
 
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
+           # sys.stdout = sys.__stdout__
+            #self.send_err_log()
 
             # show figure
             self.show_fig.emit()

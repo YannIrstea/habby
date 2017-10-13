@@ -121,9 +121,13 @@ class Stathab:
                     if np.array_equal(dis_r, [-99]):  # if failed
                         return
                     if len(dis_r) < 4:
-                        print('Error: The file called ' + filename + ' is not in the right format. At least four values needed. \n')
+                        print('Error: The file called ' + filename + ' is not in the right format. At least four '
+                                                                     'values needed. \n')
                         return
                     else:
+                        # 0 = the discharge, 1 = the mean depth
+                        if len(dis_r[2:]) != 20:
+                            print('Warning: the number of class found is not 20 \n')
                         self.disthmes.append(dis_r[2:])
                         self.qhmoy.append(dis_r[:2])
 
@@ -140,7 +144,7 @@ class Stathab:
                     else:
                         self.dist_gran.append(dist_granulo_r)
 
-                # open data_ii.txt (only ofr tropical rivers)
+                # open data_ii.txt (only for tropical rivers)
                 if ef[-6:-4] == 'ii':
                     filename = os.path.join(path, self.name_reach[r] + ef)
                     data_ii_r = load_float_stathab(filename, False)

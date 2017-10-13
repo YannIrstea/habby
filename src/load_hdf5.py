@@ -1083,7 +1083,7 @@ def copy_files(names,paths, path_input):
     This function copied the input files to the project file. The input files are usually contains in the input
     project file. It is ususally done on a second thread as it might be long.
 
-    For the moment this function cannot send warning and error to the GUI. As input shoudl have been cheked before
+    For the moment this function cannot send warning and error to the GUI. As input should have been cheked before
     by HABBY, this should not be a problem.
 
     :param names: the name of the files to be copied (list of string)
@@ -1111,3 +1111,77 @@ def copy_files(names,paths, path_input):
                 if os.path.isfile(src):
                     dst = os.path.join(path_input, names[i])
                     shutil.copy(src, dst )
+
+
+def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_hdf5, merge=False, erase_id=True):
+    """
+    This function merge two hdf5 together. The hdf5 files should be of hydrological or merge type and both grid should
+    in the same coordinate system. It is not possible to have one merge file and one hydrological hdf5 file. They both
+    should be of the same type. The two grid are added as two separeted river reach.
+
+    :param path1: the path to the first hydrological hdf5
+    :param hdf51: the name of the first hdf5 file
+    :param path2: the path to the second hdf5
+    :param hdf52: the name of the second hdf5
+    :param name_prj: the name of the project
+    :param path_prj: the path to the project
+    :param model_type: the type of model (used to save the new file name into the project xml file)
+    :param path_hdf5: the path where to save the hdf5 (ususally path_prj, but not always)
+    :param merge: If True, this is a merge hdf5 file and not only hydraulic data. Boolean.
+    :param erase_id: If true and if a similar hdf5 exist, il will be erased
+
+    """
+    substrate_all_dom1 = []
+    substrate_all_dom2 = []
+    substrate_all_pg1 = []
+    substrate_all_pg2 = []
+
+    # load first hdf5
+    if merge:
+        [ikle1, point1, inter_vel1, inter_height1, substrate_all_pg1, substrate_all_dom1] \
+            = load_hdf5_hyd(hdf51, path1, merge)
+    else:
+        [ikle1, point1, inter_vel1, inter_height1] = load_hdf5_hyd(hdf51, path1, merge)
+
+    # load second hdf5
+    if merge:
+        [ikle2, point2, inter_vel2, inter_height2, substrate_all_pg2, substrate_all_dom2] \
+            = load_hdf5_hyd(hdf52, path2, merge)
+    else:
+        [ikle2, point2, inter_vel2, inter_height2] = load_hdf5_hyd(hdf52, path2, merge)
+
+    if len(ikle1) == 0 or len(ikle2) == 0:
+        return
+    if ikle1 == [[-99]] or ikle2 == [[-99]]:
+        print('Error: Could not load the chosen hdf5. \n')
+        return
+
+    # check time step and load time step name
+    if len(ikle1) != len(ikle2):
+        print('Error: the number of time step between the two hdf5 is not coherent. \n')
+        return
+    sim_name = load_timestep_name(hdf51, path1)
+
+    # add the second grid as new reach
+    # reach grids can intersect in HABBY
+    for t in range(0, len(ikle1)):
+        ikle1[t].extend(ikle2[t])
+        point1[t].extend(point2[t])
+        inter_vel1[t].extend(inter_vel2[t])
+        inter_height1[t].extend(inter_height2[t])
+        if merge:
+            substrate_all_pg1[t].append(substrate_all_pg2)
+            substrate_all_dom1[t].append(substrate_all_dom2)
+
+    # save the new data
+    new_hdf5_name = 'ADD' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
+    if merge:
+        save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path1, ikle1, point1, [],
+                  inter_vel1, inter_height1, merge=merge, sub_pg_all_t=substrate_all_pg1,
+                  sub_dom_all_t=substrate_all_dom1, sim_name=[],save_option=erase_id)
+    else:
+        save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
+                  inter_vel1, inter_height1, merge=merge, sim_name=[], save_option=erase_id)
+
+
+
