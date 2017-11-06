@@ -617,6 +617,10 @@ Git - code management
 *	git init 
 *	lier le repertoire local avec le repertoire distant sur forge.irstea.fr
 
+** Pour cloner HABBY**
+*	cd « dossier souhaité»
+*	git clone https://git.irstea.fr/git/habby
+
 **Pour mettre une nouvelle version sur le site web**
 
 *	cd « dossier avec les codes source»
@@ -632,6 +636,16 @@ Git - code management
 *	Donc pour avoir une partie du travail sépare du reste
 *	git checkout –b [branchname] pour créer la branche et y travailler
 *	git checkout [branchname] pour y travailler
+
+Test HABBY
+-------------------------------
+
+For the moment, there are two automatic tests for HABBY which are in the HABBY folder. This is test_habby_quick which takes about 2 minutes to run and which only test one simple habitat calculation, and test_habby2 which tests the loading of the different hydraulic models, the creation of computational grid for 1D hydraulic models, the habitat calculation on diverse cases and the statistical models. It takes about two hours to run.
+
+The test are bash codes so they run under Windows only, but it is relatively easy to modify the script to run it under another exploitation system. To run it under a new Windows computer, it is also necessary to change the first lines of the bash codes to give the paths of the folders with the original data. These folders are not in the HABBY folder as they need about 7 Giga of space. 
+
+There is no test for the GUI at the moment as we did not find a practical tool to test it.
+
 
 Write the documentation
 -------------------------------

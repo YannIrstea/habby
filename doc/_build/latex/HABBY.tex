@@ -41,7 +41,7 @@
 
 
 \title{HABBY Documentation}
-\date{Aug 22, 2017}
+\date{Nov 06, 2017}
 \release{1}
 \author{Diane von Gunten, Yann Le Coarer and Fabrice Zaoui}
 \newcommand{\sphinxlogo}{}
@@ -59,7 +59,7 @@ HABBY is a program to estimate the habitat of fish using various hydrological mo
 
 
 \chapter{How to execute HABBY}
-\label{\detokenize{index:welcome-to-habby-s-documentation}}\label{\detokenize{index:how-to-execute-habby}}\begin{description}
+\label{\detokenize{index:how-to-execute-habby}}\label{\detokenize{index:welcome-to-habby-s-documentation}}\begin{description}
 \item[{To execute HABBY:}] \leavevmode\begin{itemize}
 \item {} 
 Go to folder which contains habby.py using the command line.
@@ -160,7 +160,8 @@ The write\_log() and write\_log\_file() method are explained in the section abou
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.add_all_tab}}\pysiglinewithargsret{\sphinxbfcode{add\_all\_tab}}{}{}
-This function add the different tab to habby (used by init and by save\_project)
+This function add the different tab to habby (used by init and by save\_project). Careful, if you change the
+position of the Option tab, you should also modify the varaible self.opttab in init
 
 \end{fulllineitems}
 
@@ -193,7 +194,7 @@ connect all the signal linked to the log. This is in a function only to improve 
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.init_iu}}\pysiglinewithargsret{\sphinxbfcode{init\_iu}}{}{}
-A function to initilize an instance of CentralW. Called by \_\_init\_\_\_().
+A function to initialize an instance of CentralW. Called by \_\_init\_\_\_().
 
 \end{fulllineitems}
 
@@ -201,8 +202,7 @@ A function to initilize an instance of CentralW. Called by \_\_init\_\_\_().
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.optfig}}\pysiglinewithargsret{\sphinxbfcode{optfig}}{}{}
-A small function which open the output tab. It contains the different options for the figures.
-Output should be the 5th tab, otherwise it will not work.
+A small function which open the output tab.
 
 \end{fulllineitems}
 
@@ -266,6 +266,15 @@ This tasks should be in a function because an update to this list can be trigger
 hydrological data. The class Hydro2W() and substrateW() noticed this through the signal drop\_hydro
 send by the hydrological class. The signal drop\_hydro is connected to this function is in the class
 CentralW in MainWindows.py.
+
+\end{fulllineitems}
+
+\index{update\_merge\_for\_chronicle() (src\_GUI.Main\_windows\_1.CentralW method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.CentralW.update_merge_for_chronicle}}\pysiglinewithargsret{\sphinxbfcode{update\_merge\_for\_chronicle}}{}{}
+This function looks up the list of merge file in the QComBox in the bio\_info tab and copy this
+list to the QCombobox in chronicle\_GUI. So the two lists of merge file are the same
 
 \end{fulllineitems}
 
@@ -464,8 +473,10 @@ Clear the log in the GUI.
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MainWindows.closeEvent}}\pysiglinewithargsret{\sphinxbfcode{closeEvent}}{\emph{event}}{}
-Close the program better than before (where it used to crash about 1 times in ten). It is not really clear why.
-Also done because we might have more than one thread
+This is the function which handle the closing of the program. It use the function end\_concurrency() to indicate
+to other habby instances that we do not use a particular project anymore.
+
+We use os\_exit instead of sys.exit so it also close the other thread if more than one is open.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode
 \sphinxstyleliteralstrong{event} -- managed by the operating system.
@@ -1065,6 +1076,36 @@ Bases: {\hyperref[\detokenize{index:src_GUI.hydro_GUI_2.SubHydroW}]{\sphinxcross
 This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
 it is there possible to just add a along hdf5 file to the current project without having to pass to the original
 hydrological files.
+\index{add\_new\_hdf5\_to\_xml() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.add_new_hdf5_to_xml}}\pysiglinewithargsret{\sphinxbfcode{add\_new\_hdf5\_to\_xml}}{}{}
+This function is used to add the new hdf5 to the xml project file
+
+\end{fulllineitems}
+
+\index{add\_two\_hdf5() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.add_two_hdf5}}\pysiglinewithargsret{\sphinxbfcode{add\_two\_hdf5}}{\emph{merge}}{}
+This functions is used to merge together two hydro/merge hdf5. For tis, it call the function `addition\_hdf5'
+from load\_hdf5.py
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode
+\sphinxstyleliteralstrong{merge} -- A boolean which say if we load an hydrological or a merge file
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{drop\_merge (src\_GUI.hydro\_GUI\_2.HabbyHdf5 attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.drop_merge}}\pysigline{\sphinxbfcode{drop\_merge}}
+A pyqtsignal which signal that new merge data is ready as it also possible to import merge data here.
+
+\end{fulllineitems}
+
 \index{get\_new\_hydro\_hdf5() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method)}
 
 \begin{fulllineitems}
@@ -1072,6 +1113,17 @@ hydrological files.
 This is a function which allows the user to select an hdf5 file containing the hydrological
 data from a previous project and add it to the current project. It modifies the xml project file and test
 that the data is in correct form by loading it. The hdf5 should have the same form than the hydrological data
+created by HABBY in the method save\_hdf5 of the class SubHydroW.
+
+\end{fulllineitems}
+
+\index{get\_new\_merge\_hdf5() (src\_GUI.hydro\_GUI\_2.HabbyHdf5 method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.hydro_GUI_2.HabbyHdf5.get_new_merge_hdf5}}\pysiglinewithargsret{\sphinxbfcode{get\_new\_merge\_hdf5}}{}{}
+This is a function which allows the user to select an hdf5 file containing the hydrological and the substrate
+data from a previous project and add it to the current project. It modifies the xml project file and test
+that the data is in correct form by loading it. The hdf5 should have the same form than the merge data
 created by HABBY in the method save\_hdf5 of the class SubHydroW.
 
 \end{fulllineitems}
@@ -2659,7 +2711,16 @@ to find path\_im and path\_bio (the path wher to save image) and to manage lists
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.get_autocompletion}}\pysiglinewithargsret{\sphinxbfcode{get\_autocompletion}}{}{}
-This function update the auto-complextin model as a function of the QComboxBox next to it
+This function update the auto-complexton model as a function of the QComboxBox next to it
+
+\end{fulllineitems}
+
+\index{get\_list\_merge (src\_GUI.bio\_info\_GUI.BioInfo attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.get_list_merge}}\pysigline{\sphinxbfcode{get\_list\_merge}}
+A Pyqtsignal which indicates to chronice\_GUI.py that the merge list should be changed. In Main\_Windows.py,
+the new list of merge file is found and send to the ChonicleGui class.
 
 \end{fulllineitems}
 
@@ -2668,6 +2729,16 @@ This function update the auto-complextin model as a function of the QComboxBox n
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.init_iu}}\pysiglinewithargsret{\sphinxbfcode{init\_iu}}{}{}
 Used in the initialization by \_\_init\_\_()
+
+\end{fulllineitems}
+
+\index{next\_completion() (src\_GUI.bio\_info\_GUI.BioInfo method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.bio_info_GUI.BioInfo.next_completion}}\pysiglinewithargsret{\sphinxbfcode{next\_completion}}{}{}
+A small function to use the enter key to select the fish with auto-completion.
+Adapted from \url{https://stackoverflow.com/questions/9044001/qcompleter-and-tab-key}
+It would be nice to mek it work with tab also but it si quite complcated because it is quite complicated.
 
 \end{fulllineitems}
 
@@ -5656,6 +5727,51 @@ velocity and the water height by cell (and not by node)
 
 \end{fulllineitems}
 
+\index{addition\_hdf5() (in module src.load\_hdf5)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.load_hdf5.addition_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{addition\_hdf5}}{\emph{path1}, \emph{hdf51}, \emph{path2}, \emph{hdf52}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{path\_hdf5}, \emph{merge=False}, \emph{erase\_id=True}}{}
+This function merge two hdf5 together. The hdf5 files should be of hydrological or merge type and both grid should
+in the same coordinate system. It is not possible to have one merge file and one hydrological hdf5 file. They both
+should be of the same type. The two grid are added as two separeted river reach.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{path1} -- the path to the first hydrological hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{hdf51} -- the name of the first hdf5 file
+
+\item {} 
+\sphinxstyleliteralstrong{path2} -- the path to the second hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{hdf52} -- the name of the second hdf5
+
+\item {} 
+\sphinxstyleliteralstrong{name\_prj} -- the name of the project
+
+\item {} 
+\sphinxstyleliteralstrong{path\_prj} -- the path to the project
+
+\item {} 
+\sphinxstyleliteralstrong{model\_type} -- the type of model (used to save the new file name into the project xml file)
+
+\item {} 
+\sphinxstyleliteralstrong{path\_hdf5} -- the path where to save the hdf5 (ususally path\_prj, but not always)
+
+\item {} 
+\sphinxstyleliteralstrong{merge} -- If True, this is a merge hdf5 file and not only hydraulic data. Boolean.
+
+\item {} 
+\sphinxstyleliteralstrong{erase\_id} -- If true and if a similar hdf5 exist, il will be erased
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{copy\_files() (in module src.load\_hdf5)}
 
 \begin{fulllineitems}
@@ -5663,7 +5779,7 @@ velocity and the water height by cell (and not by node)
 This function copied the input files to the project file. The input files are usually contains in the input
 project file. It is ususally done on a second thread as it might be long.
 
-For the moment this function cannot send warning and error to the GUI. As input shoudl have been cheked before
+For the moment this function cannot send warning and error to the GUI. As input should have been cheked before
 by HABBY, this should not be a problem.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -5711,7 +5827,7 @@ a list with the filename (filename+dir) for each extension
 \phantomsection\label{\detokenize{index:src.load_hdf5.get_hdf5_name}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{get\_hdf5\_name}}{\emph{model\_name}, \emph{name\_prj}, \emph{path\_prj}}{}
 This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
 model\_name. If there is more than one hdf5 file, it choose the last one. Tha path is the path from the
-project folder. Hencem, it is not the absolute path.
+project folder. Hence, it is not the absolute path.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -5788,7 +5904,7 @@ vairable (based on a grid) cases. The code should be of cemagref type and the da
 \sphinxstyleliteralstrong{path\_prj} -- the path to the hdf5 file
 
 \item {} 
-\sphinxstyleliteralstrong{ind\_const} -- If True this function reurn a boolean which indicates if the substrant is constant or not
+\sphinxstyleliteralstrong{ind\_const} -- If True this function return a boolean which indicates if the substrant is constant or not
 
 \end{itemize}
 
@@ -5855,7 +5971,7 @@ files.
 \index{save\_hdf5() (in module src.load\_hdf5)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.load_hdf5.save_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{save\_hdf5}}{\emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{point\_c\_all\_t}, \emph{inter\_vel\_all\_t}, \emph{inter\_h\_all\_t}, \emph{xhzv\_data={[}{]}}, \emph{coord\_pro={[}{]}}, \emph{vh\_pro={[}{]}}, \emph{nb\_pro\_reach={[}{]}}, \emph{merge=False}, \emph{sub\_pg\_all\_t={[}{]}}, \emph{sub\_dom\_all\_t={[}{]}}, \emph{sub\_per\_all\_t={[}{]}}, \emph{sim\_name={[}{]}}, \emph{sub\_ini\_name='`}, \emph{hydro\_ini\_name='`}}{}
+\phantomsection\label{\detokenize{index:src.load_hdf5.save_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{save\_hdf5}}{\emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{point\_c\_all\_t}, \emph{inter\_vel\_all\_t}, \emph{inter\_h\_all\_t}, \emph{xhzv\_data={[}{]}}, \emph{coord\_pro={[}{]}}, \emph{vh\_pro={[}{]}}, \emph{nb\_pro\_reach={[}{]}}, \emph{merge=False}, \emph{sub\_pg\_all\_t={[}{]}}, \emph{sub\_dom\_all\_t={[}{]}}, \emph{sub\_per\_all\_t={[}{]}}, \emph{sim\_name={[}{]}}, \emph{sub\_ini\_name='`}, \emph{hydro\_ini\_name='`}, \emph{save\_option=None}}{}
 This function save the hydrological data in the hdf5 format.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -5924,6 +6040,10 @@ This function save the hydrological data in the hdf5 format.
 
 \item {} 
 \sphinxstyleliteralstrong{hydro\_ini\_name} -- the name of the hydraulic hdf5 file from which the data originates
+
+\item {} 
+\sphinxstyleliteralstrong{save\_option} -- If save\_option is not none, the variable erase\_idem which is usually given in the figure option
+is overwritten by save\_option which is boolean. This is useful for habby cmd.
 
 \end{itemize}
 
@@ -6554,7 +6674,7 @@ For more info on this function, see the document ``More info on the grid''.
 \index{cut\_2d\_grid() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.manage_grid_8.cut_2d_grid}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{cut\_2d\_grid}}{\emph{ikle}, \emph{point\_all}, \emph{water\_height}, \emph{velocity}, \emph{min\_height=0.001}}{}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.cut_2d_grid}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{cut\_2d\_grid}}{\emph{ikle}, \emph{point\_all}, \emph{water\_height}, \emph{velocity}, \emph{min\_height=0.001}, \emph{get\_ind\_new=False}}{}
 This function cut the grid of the 2D model to have correct wet surface. If we have a node with h\textless{}0 and other node(s)
 with h\textgreater{}0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
 This function works for one time steps and for one reach
@@ -6575,10 +6695,15 @@ This function works for one time steps and for one reach
 \item {} 
 \sphinxstyleliteralstrong{min\_height} -- the minimum water height considered (as model sometime have cell with very low water height)
 
+\item {} 
+\sphinxstyleliteralstrong{get\_ind\_new} -- If True, a np.array is returned which give the indices of the old cell in the order of the new cells
+
 \end{itemize}
 
 \item[{Returns}] \leavevmode
-the update connectivity table, the coodinate of the point, the height of the water and the velocity on the updated grid
+the update connectivity table, the coodinate of the point, the height of the water and the
+velocity on the updated grid and (if get\_ind\_new is True) the indices of the old connectivity table in
+the new cell orders.
 
 \end{description}\end{quote}
 
@@ -6587,7 +6712,7 @@ the update connectivity table, the coodinate of the point, the height of the wat
 \index{cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.manage_grid_8.cut_2d_grid_all_reach}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{cut\_2d\_grid\_all\_reach}}{\emph{ikle\_all}, \emph{point\_all}, \emph{inter\_height\_all}, \emph{inter\_vel\_all}}{}
+\phantomsection\label{\detokenize{index:src.manage_grid_8.cut_2d_grid_all_reach}}\pysiglinewithargsret{\sphinxcode{src.manage\_grid\_8.}\sphinxbfcode{cut\_2d\_grid\_all\_reach}}{\emph{ikle\_all}, \emph{point\_all}, \emph{inter\_height\_all}, \emph{inter\_vel\_all}, \emph{min\_height=0.001}, \emph{get\_ind\_new=False}}{}
 This function si just use to call cut\_2d-grid for all reach. So that if we have a river with more than reach, we
 do not need to add a for loops to call for all reach. Sometime it can save place. This can be only use for one
 time step.
@@ -6604,6 +6729,13 @@ time step.
 
 \item {} 
 \sphinxstyleliteralstrong{inter\_vel\_all} -- the velcoity given on the nodes for all reach
+
+\item {} 
+\sphinxstyleliteralstrong{min\_height} -- the minimum water height which is kept inthe grid
+
+\item {} 
+\sphinxstyleliteralstrong{get\_ind\_new} -- If True, a list is returned which give the indices of the old cell in the order of the new cells
+One list by reach (so a list of np.array is returned)
 
 \end{itemize}
 
@@ -6909,6 +7041,9 @@ This idea of this optimization is to not re-do some calculation when many interp
 \item {} 
 \sphinxstyleliteralstrong{wts} -- 
 
+\item {} 
+\sphinxstyleliteralstrong{fill\_value} -- A new value for point where
+
 \end{itemize}
 
 \end{description}\end{quote}
@@ -7128,6 +7263,9 @@ The present function only plot the grid and output without more information.
 \sphinxstyleliteralstrong{ikle\_all} -- the connectivity table. This is given by reaches.
 
 \item {} 
+\sphinxstyleliteralstrong{fig\_opt} -- the dictionary with the different options to create the figures
+
+\item {} 
 \sphinxstyleliteralstrong{inter\_vel\_all} -- the velcoity data. This is given by reaches.
 
 \item {} 
@@ -7143,9 +7281,6 @@ The present function only plot the grid and output without more information.
 \sphinxstyleliteralstrong{time\_step} -- time step to be added to the title
 
 \end{itemize}
-
-\item[{Param}] \leavevmode
-fig\_opt: the dictionary with the different options to create the figures
 
 \end{description}\end{quote}
 
@@ -8453,7 +8588,33 @@ in src/mesh\_grid2.py
 This module contains the function to merge the substrate grid and the hydrological grid.
 It cut the hydrological grid to the form of each of the substrate. An important hypothesis
 is that each polygon forming the subtrate should convex.
-\phantomsection\label{\detokenize{index:module-src.mesh_grid2}}\index{src.mesh\_grid2 (module)}\index{create\_merge\_grid() (in module src.mesh\_grid2)}
+\phantomsection\label{\detokenize{index:module-src.mesh_grid2}}\index{src.mesh\_grid2 (module)}\index{check\_clockwise() (in module src.mesh\_grid2)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.mesh_grid2.check_clockwise}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{check\_clockwise}}{\emph{ikle}, \emph{point}}{}
+This function check that each grid cell is given in a clockwise order. This is useful because we might create
+shapefile afterward. ArcMap beleives that we have hole if a grid cell is in counter-clockwise order.
+
+To check the clockwise order, we sum (x2-x1)*(y2+y1) over the three edges.
+Here is a more information on the algo: \url{http://blog.element84.com/polygon-winding.html}
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{ikle} -- the connectivity table
+
+\item {} 
+\sphinxstyleliteralstrong{point} -- the grid point
+
+\end{itemize}
+
+\item[{Returns}] \leavevmode
+the connectivity table with the point in clockewise order
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
+\index{create\_merge\_grid() (in module src.mesh\_grid2)}
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.mesh_grid2.create_merge_grid}}\pysiglinewithargsret{\sphinxcode{src.mesh\_grid2.}\sphinxbfcode{create\_merge\_grid}}{\emph{ikle}, \emph{coord\_p}, \emph{data\_sub\_pg}, \emph{data\_sub\_dom}, \emph{vel}, \emph{height}, \emph{ikle\_sub}, \emph{default\_data}, \emph{data\_crossing}, \emph{sub\_cell}}{}
@@ -9256,6 +9417,45 @@ find the preference value. As preference value is sorted, it uses the module bis
 
 \end{fulllineitems}
 
+\index{plot\_hist\_biology() (in module src.calcul\_hab)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src.calcul_hab.plot_hist_biology}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{plot\_hist\_biology}}{\emph{vh\_all\_t\_sp}, \emph{area\_c\_all\_t}, \emph{name\_fish}, \emph{fig\_opt}, \emph{path\_im}, \emph{timestep}, \emph{name\_base}, \emph{sim\_name={[}{]}}, \emph{erase\_id=False}}{}
+This function plot the historgram of the habitat value for the slected species and time step. This historgramm
+is weighted by the area of the cell.
+\begin{quote}\begin{description}
+\item[{Parameters}] \leavevmode\begin{itemize}
+\item {} 
+\sphinxstyleliteralstrong{vh\_all\_t\_sp} -- The habitat value by cell by reach by time step by species
+
+\item {} 
+\sphinxstyleliteralstrong{area\_c\_all\_t} -- the area of each cell
+
+\item {} 
+\sphinxstyleliteralstrong{name\_fish} -- the name of the fish chosen
+:param fig\_opt: the figure options
+
+\item {} 
+\sphinxstyleliteralstrong{path\_im} -- the path where to save the images
+
+\item {} 
+\sphinxstyleliteralstrong{timestep} -- a list with the time step to be plotted
+
+\item {} 
+\sphinxstyleliteralstrong{name\_base} -- the base on which to form the figure name
+
+\item {} 
+\sphinxstyleliteralstrong{sim\_name} -- the name of the time steps when not 0,1,2,3
+
+\item {} 
+\sphinxstyleliteralstrong{erase\_id} -- If True, we erase a figure with an identical name
+
+\end{itemize}
+
+\end{description}\end{quote}
+
+\end{fulllineitems}
+
 \index{plot\_hist\_hydro() (in module src.calcul\_hab)}
 
 \begin{fulllineitems}
@@ -9294,6 +9494,9 @@ is weighted by the area of the cell. The data is based on the height and velocit
 \item {} 
 \sphinxstyleliteralstrong{sim\_name} -- the name of the time steps when not 0,1,2,3
 
+\item {} 
+\sphinxstyleliteralstrong{erase\_id} -- If True, we erase a figure with an identical name
+
 \end{itemize}
 
 \end{description}\end{quote}
@@ -9329,7 +9532,7 @@ czan be used and because it is done often in the functions above.
 \index{save\_hab\_fig\_spu() (in module src.calcul\_hab)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.calcul_hab.save_hab_fig_spu}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{save\_hab\_fig\_spu}}{\emph{area\_all}, \emph{spu\_all}, \emph{name\_fish}, \emph{path\_im}, \emph{name\_base}, \emph{fig\_opt=\{\}}, \emph{sim\_name={[}{]}}, \emph{erase\_id=False}}{}
+\phantomsection\label{\detokenize{index:src.calcul_hab.save_hab_fig_spu}}\pysiglinewithargsret{\sphinxcode{src.calcul\_hab.}\sphinxbfcode{save\_hab\_fig\_spu}}{\emph{area\_all}, \emph{spu\_all}, \emph{name\_fish}, \emph{path\_im}, \emph{name\_base}, \emph{fig\_opt=\{\}}, \emph{sim\_name={[}{]}}, \emph{erase\_id=False}, \emph{do\_save=True}}{}
 This function creates the figure of the spu as a function of time for each reach. if there is only one
 time step, it reverse to a bar plot. Otherwise it is a line plot.
 \begin{quote}\begin{description}
@@ -9357,6 +9560,9 @@ time step, it reverse to a bar plot. Otherwise it is a line plot.
 
 \item {} 
 \sphinxstyleliteralstrong{erase\_id} -- If True, figure from identical simuation are erased
+
+\item {} 
+\sphinxstyleliteralstrong{do\_save} -- If False, the figure is not saved, but the figure is returned to be used for something else
 
 \end{itemize}
 
@@ -9654,7 +9860,7 @@ This module contains functions which are used by habby.py when called on the com
 \phantomsection\label{\detokenize{index:module-src.func_for_cmd}}\index{src.func\_for\_cmd (module)}\index{all\_command() (in module src.func\_for\_cmd)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.func_for_cmd.all_command}}\pysiglinewithargsret{\sphinxcode{src.func\_for\_cmd.}\sphinxbfcode{all\_command}}{\emph{all\_arg}, \emph{name\_prj}, \emph{path\_prj}, \emph{path\_bio}, \emph{option\_restart=False}}{}
+\phantomsection\label{\detokenize{index:src.func_for_cmd.all_command}}\pysiglinewithargsret{\sphinxcode{src.func\_for\_cmd.}\sphinxbfcode{all\_command}}{\emph{all\_arg}, \emph{name\_prj}, \emph{path\_prj}, \emph{path\_bio}, \emph{option\_restart=False}, \emph{erase\_id=True}}{}
 This function is used to call HABBY from the command line. The general form is to call:
 habby\_cmd command\_name input1 input2 .. input n. The list of the command\_name is given in the documentation and by
 calling the command ``python habby\_cmd.py LIST\_COMMAND''. This functiion is usually called direclty by the main()
@@ -9681,6 +9887,9 @@ path. So the folder should not be moved randolmy inside the project folder or re
 \sphinxstyleliteralstrong{option\_restart} -- If True the command are coming from a restart log (which have an impact on file name and
 location)
 
+\item {} 
+\sphinxstyleliteralstrong{erase\_id} -- If True, the files with the same name are erased in merge. If False, ther kept with a time stamp
+
 \end{itemize}
 
 \end{description}\end{quote}
@@ -9690,7 +9899,7 @@ location)
 \index{habby\_on\_all() (in module src.func\_for\_cmd)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.func_for_cmd.habby_on_all}}\pysiglinewithargsret{\sphinxcode{src.func\_for\_cmd.}\sphinxbfcode{habby\_on\_all}}{\emph{all\_arg}, \emph{name\_prj}, \emph{path\_prj}, \emph{path\_bio}}{}
+\phantomsection\label{\detokenize{index:src.func_for_cmd.habby_on_all}}\pysiglinewithargsret{\sphinxcode{src.func\_for\_cmd.}\sphinxbfcode{habby\_on\_all}}{\emph{all\_arg}, \emph{name\_prj}, \emph{path\_prj}, \emph{path\_bio}, \emph{option\_restart=False}}{}
 This function is used to execute a command from habby\_cmd on all files in a folder. The form of the command should
 be something like ``habby\_cmd ALL COMMAND path\_to\_file/*.ext arg2 ag3'' with the arguments adated to the specific
 command.
@@ -9703,13 +9912,18 @@ is overided, the same name will be applied, only the time stamps will be differe
 file, this function waits one second between each command. Only the input argument should containts the string `*'.
 Otherwise, other commands would be treated as input files.
 
-If there is more than one type of input, it is important that the name of the file are the name (or at least
-that there are in the same alphabetical order).
+If there is more than one type of input, it is important that the name of the file are the same (or at least
+that there are in the same alphabetical order). If the variable \# is used instead of *, the function will be
+applied to all second file one by one. So if we have two substrate file and two hydro file, name with * will result
+in two merged files while \# will result in four merge file.
 
 If more than one extension is possible (example g01, g02, g03, etc. in hec-ras), remplace the changing part of the
 extension with the symbol * (so path\_to\_folder/*.g0* arg1 argn). If the name of the file changed in the extension
 as in RUBAR (where the file have the name PROFIL.file), just change for PROFIL.* or something similar. Generally
 the matching is done using the function glob, so the shell-type wildcard can be used.
+
+As there are a lot of hdf5 intput, one should be careful to avoid mixing between the different type of hdf5 files.
+For example, it is better to write `MERGE*.h5' as just `*.h5' if the folder contains hydraulic and merge files.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
 \item {} 
@@ -9723,6 +9937,10 @@ the matching is done using the function glob, so the shell-type wildcard can be 
 
 \item {} 
 \sphinxstyleliteralstrong{path\_bio} -- the path to the project
+
+\item {} 
+\sphinxstyleliteralstrong{option\_restart} -- If True the command are coming from a restart log (which have an impact on file name and
+location)
 
 \end{itemize}
 
@@ -10124,6 +10342,10 @@ lier le repertoire local avec le repertoire distant sur forge.irstea.fr
 
 \end{itemize}
 
+** Pour cloner HABBY**
+*       cd « dossier souhaité»
+*       git clone \url{https://git.irstea.fr/git/habby}
+
 \sphinxstylestrong{Pour mettre une nouvelle version sur le site web}
 \begin{itemize}
 \item {} 
@@ -10161,6 +10383,15 @@ git checkout \textendash{}b {[}branchname{]} pour créer la branche et y travail
 git checkout {[}branchname{]} pour y travailler
 
 \end{itemize}
+
+
+\section{Test HABBY}
+\label{\detokenize{index:test-habby}}
+For the moment, there are two automatic tests for HABBY which are in the HABBY folder. This is test\_habby\_quick which takes about 2 minutes to run and which only test one simple habitat calculation, and test\_habby2 which tests the loading of the different hydraulic models, the creation of computational grid for 1D hydraulic models, the habitat calculation on diverse cases and the statistical models. It takes about two hours to run.
+
+The test are bash codes so they run under Windows only, but it is relatively easy to modify the script to run it under another exploitation system. To run it under a new Windows computer, it is also necessary to change the first lines of the bash codes to give the paths of the folders with the original data. These folders are not in the HABBY folder as they need about 7 Giga of space.
+
+There is no test for the GUI at the moment as we did not find a practical tool to test it.
 
 
 \section{Write the documentation}
