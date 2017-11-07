@@ -522,6 +522,10 @@ class Stathab:
             [h_coeff, w_coeff] = self.power_law(qwh_r)
             sh0 = self.find_sh0_maxvrais(disthmes_r, h0)
 
+            # check if discharge are coherent
+            if min(qlist_r) < qwh_r[0, 0]/10 or max(qlist_r) > qwh_r[1, 0]*5:
+                print('Warning: Discharge range is far from measured discharge. Results might be unrealisitc. \n')
+
             # for all discharge
             for qind in range(0, nbclaq):
                 lnqs = np.log(min(qlist_r)) + (qind+0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq

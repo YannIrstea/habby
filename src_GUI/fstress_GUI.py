@@ -57,7 +57,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # load data
         l001 = QLabel(self.tr(' <b> Load Data From Files</br>'))
-        self.loadtxt = QPushButton(self.tr('Text Files (qhw.txt or listriv.txt)'))
+        self.loadtxt = QPushButton(self.tr('Text File: listriv.txt'))
         self.loadtxt.clicked.connect(self.load_txt)
         self.loadh5 = QPushButton(self.tr('Hdf5 File (.h5)'))
         self.loadh5.clicked.connect(self.load_hdf5_fstress)
@@ -282,21 +282,22 @@ class FstressW(estimhab_GUI.StatModUseful):
         """
         # update the QComboBox
         self.riv.clear()
-        already_in = [] # no set because needs order here
         for r in self.riv_name:
-                if r not in already_in:
-                    self.riv.addItem(r)
-                    already_in.append(r)
+            self.riv.addItem(r)
         self.riv.update()
 
     def load_txt(self):
         """
-        In this function, the user select a qhw.txt or a listriv.txt file. This files are loaded and written on the GUI.
-        If a listriv.txt is selected, the river in lisriv.txt are loaded. If a qhw.txt is loaded and if there are
-        more than one qhw.txt in the folder, we ask the user if all files must be loaded. The needed text files are
-        the following:
+        In this function, the user select  a listriv.txt file. This files are loaded and written on the GUI.
 
-        * listriv.txt is a text file with one river name by line (not necessary)
+        Before it was also possible to select just one qhw file. This is still part of the code, but it is not advised
+        to do this as the river name tends to mix each other, which is more trouble to maintain that it worths it.
+        If a qhw.txt is loaded and if there are more than one qhw.txt in the folder, we ask the user if all files must
+        be loaded.
+
+        The needed text files are the following:
+
+        * listriv.txt is a text file with one river name by line
         * rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
           2 measureement (necessary)
         * rivernamedeb.txt is a text file which has two lines. The first line is the minimum discharge and the second is
@@ -307,6 +308,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         """
         self.found_file = []
         self.riv_name = []
+        self.qhw = []
+        self.qrange = []
 
         # open file
         filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_fstress, os.getenv('HOME'))[0]
@@ -349,7 +352,8 @@ class FstressW(estimhab_GUI.StatModUseful):
                     return
                 self.found_file.append(f_found)
 
-        # for qhw.txt file
+        # for qhw.txt file ---NOT USED ANYMORE "officialy", but can still be useful to let it open
+        # careful there are some bugs if various qwh are loaded one after the others.
         elif filename[-7:].lower() == 'qhw.txt':
             files_all = os.listdir(self.path_fstress)
             nb_found = 0
@@ -378,13 +382,18 @@ class FstressW(estimhab_GUI.StatModUseful):
                         self.msge.show()
                         if retval == QMessageBox.No:
                             self.msge.close()
-                            break
+                            if f == filename:
+                                break
+                            else:
+                                self.riv_name = []
+                                self.qhw = []
+                                self.qrange = []
                         else:
                             self.msge.close()
                     nb_found +=1
 
         else:
-            self.send_log.emit(self.tr('Error: Only qhw and listriv file are accepted. Read Fstress documentation for '
+            self.send_log.emit(self.tr('Error: Only listriv file are accepted. Read Fstress documentation for '
                                        'more info.'))
             return
 
@@ -460,8 +469,9 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.eh1.setText(str(data_qhw[0][1]))
             self.ew1.setText(str(data_qhw[0][2]))
             self.eq2.setText(str(data_qhw[1][0]))
-            self.ew2.setText(str(data_qhw[1][1]))
-            self.eh2.setText(str(data_qhw[1][2]))
+            self.eh2.setText(str(data_qhw[1][1]))
+            self.ew2.setText(str(data_qhw[1][2]))
+
         else:
             self.eq1.clear()
             self.ew1.clear()
@@ -549,7 +559,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
             self.qhw.append([[data_qhw[0], data_qhw[1], data_qhw[2]],[data_qhw[3], data_qhw[4], data_qhw[5]]])
         else:
-            self.send_log.emit('Error: qwh.txt file not found.(2)')
+            self.send_log.emit('Error: qhw.txt file not found.(2)')
             self.qhw.append([])
 
     def load_all_fish(self):
@@ -610,6 +620,9 @@ class FstressW(estimhab_GUI.StatModUseful):
         This function save the data related to FStress and call the model Fstress. It is the method which makes the
         link between the GUI and fstress.py.
         """
+
+
+        self.send_log.emit(self.tr('# Running: FStress'))
 
         self.save_river_data()
         if not self.save_ok:
@@ -682,6 +695,29 @@ class FstressW(estimhab_GUI.StatModUseful):
                 self.msge.setStandardButtons(QMessageBox.Ok)
                 self.msge.show()
                 return
+            if any(i < 0 for i in self.qhw[i][0]) or any(i < 0 for i in self.qhw[i][1]) \
+                    or self.qrange[i][0] < 0 or self.qrange[i][1] < 0:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("run FStress"))
+                self.msge.setText(self.tr("FStress do not accept negative value"))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+                return
+            # check than one qhw is bigger than the other qhw
+            if (self.qhw[i][0][0] > self.qhw[i][1][0] and self.qhw[i][0][1] < self.qhw[i][1][1]) \
+                    or (self.qhw[i][0][0] > self.qhw[i][1][0] and self.qhw[i][0][2] < self.qhw[i][1][2]) \
+                    or (self.qhw[i][1][0] > self.qhw[i][0][0] and self.qhw[i][1][1] < self.qhw[i][0][1]) \
+                    or (self.qhw[i][1][0] > self.qhw[i][0][0] and self.qhw[i][1][2] < self.qhw[i][0][2]):
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("run FSTRESS"))
+                self.msge.setText(self.tr("Discharge, width, and height data are not coherent \n"))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+                return
+
+            # check if the discharge range is realistic with the result
+            self.qall = [self.qhw[i][0][0], self.qhw[i][1][0], self.qrange[i][0], self.qrange[i][1], -99]
+            self.check_all_q()
 
         # run
         sys.stdout = self.mystdout = StringIO()
@@ -716,7 +752,6 @@ class FstressW(estimhab_GUI.StatModUseful):
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-        self.send_log.emit(self.tr('# Run: FStress'))
         strhydro = np.array_repr(np.array(self.qhw))
         strhydro = strhydro[6:-1]
         self.send_log.emit("py    data = " + strhydro)

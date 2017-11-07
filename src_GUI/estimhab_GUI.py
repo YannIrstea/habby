@@ -45,6 +45,7 @@ class StatModUseful(QWidget):
         self.list_s = QListWidget()
         self.msge = QMessageBox()
         self.fish_selected = []
+        self.qall = []  # q1 q2 qmin qmax q50. Value cannot be added directly because of stathab.
 
         super().__init__()
 
@@ -293,6 +294,33 @@ class StatModUseful(QWidget):
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
                 self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+
+    def check_all_q(self):
+        """
+        This function checks the range of the different discharge and send a warning if we are out of the range
+        estimated reasonable (based on the manual from Estimhab and FStress). This is not used by Stathab.
+
+        It uses the variable self.qall which is a list of float composed of q1, q2, qsim1, qsim2, q50. This function
+        only send warning and it used to check the entry before the calculation.
+        """
+
+        if self.qall[0] < self.qall[1]:
+            q1 = self.qall[0]
+            q2 = self.qall[1]
+        else:
+            q2 = self.qall[0]
+            q1 = self.qall[1]
+
+        if q2 < 2*q1:
+            self.send_log.emit('Warning: Measured discharge are not very different. The results might '
+                               'not be realistic. \n')
+        if (self.qall[4] < q1 / 10 or self.qall[4] > 5 * q2) and self.qall[4] != -99:  # q50 not always necessary
+            self.send_log.emit('Warning: Q50 should be between q1/10 and 5*q2 for optimum results. \n')
+        if self.qall[2] < q1 / 10 or self.qall[2] > 5 * q2:
+            self.send_log.emit('Warning: Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n')
+        if self.qall[3] < q1 / 10 or self.qall[3] > 5 * q2:
+            self.send_log.emit('Warning: Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n')
+
 
 
 class EstimhabW(StatModUseful):
@@ -586,6 +614,13 @@ class EstimhabW(StatModUseful):
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             return
+
+        self.send_log.emit(self.tr('# Run: Estimhab'))
+
+        # check if the discharge range is realistic with the result
+        self.qall = [q[0], q[1], qrange[0], qrange[1], q50]
+        self.check_all_q()
+
         fish_list = list(set(fish_list))  # it will remove duplicate, but change the list order!
         # run and save
         path_im = self.find_path_im_est()
@@ -597,7 +632,6 @@ class EstimhabW(StatModUseful):
         self.save_signal_estimhab.emit()
 
         #log info
-        self.send_log.emit(self.tr('# Run: Estimhab'))
         str_found = mystdout.getvalue()
         str_found = str_found.split('\n')
         for i in range(0, len(str_found)):

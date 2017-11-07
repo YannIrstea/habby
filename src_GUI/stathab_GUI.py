@@ -789,6 +789,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         stathab and the one to create the figure if the figures were asked by the user. Finally, it writes the log.
         """
         self.send_log.emit('# Run Stathab from loaded data')
+
         # get the chosen fish
         self.mystathab.fish_chosen = []
         fish_list = []
@@ -801,6 +802,19 @@ class StathabW(estimhab_GUI.StatModUseful):
             fish_item_str = fish_item.text()
             self.mystathab.fish_chosen.append(fish_item_str)
         self.mystathab.path_txt = self.find_path_text_est()
+
+        # check
+        for r in range(0, len(self.mystathab.qwh)):
+            if self.mystathab.qwh[r][1, 0] < self.mystathab.qwh[r][0, 0] * 2:
+                self.send_log.emit('Warning: Measured discharge are too close to each other.'
+                                   'Results might be unrealisitc. \n')
+            if self.mystathab.qwh[r][1, 0] > 50 or self.mystathab.qwh[r][0, 0] > 50:
+                self.send_log.emit('Warning: Discharge is higher then 50m3/s. Results might be unrealisitc \n')
+            if self.riverint == 1 or self.riverint == 2:
+                if self.mystathab.data_ii[r][0] < 1:
+                    self.send_log.emit('Warning: Slope is lower than 1%. Results might be unrealisitc \n')
+                if self.mystathab.data_ii[r][0] > 24:
+                    self.send_log.emit('Warning: Slope is higher than 24%. Results might be unrealisitc \n')
 
         # run stathab for temperate rivers
         if self.riverint == 0:
