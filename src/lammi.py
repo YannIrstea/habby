@@ -446,7 +446,7 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
             except IndexError:
                 print('Error: The transect was not found. \n')
                 return failload
-        if not sum(fac_len) == lfac[f]:
+        if abs(sum(fac_len) - lfac[f]) > 1e-7:  # found a difference of 1e10 sometimes, machine precision
             print('Warning: the length of a facies is not coherent with the sum of the length of the transcect. \n')
         length_all.append(fac_len)
 
