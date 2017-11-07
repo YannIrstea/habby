@@ -277,6 +277,9 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
             find_one_inv = True
         # if not found
         else:
+            if len(vh) == 0:
+                print('Error: No fish species have been given or the fish species could not be found.\n')
+                return -99, -99, -99
             nb_inv -= 1
             vh = np.delete(vh, (f),axis=1)
             pref_select = np.delete(pref_select, (f), axis=0)
@@ -285,7 +288,7 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
                   'Preference file. Fish name: ' + inv_select[f] + '\n')
     if not find_one_inv:
         print('Error: No fish species have been given or the fish species could not be found.\n')
-        return -99
+        return -99, -99, -99
 
     # for each river
     for i in range(0, len(riv_name)):
@@ -443,6 +446,7 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
     format = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['pdf.fonttype'] = 42
+    name_fig = 'test_fig'
 
     i = 0
     for r in name_river:
@@ -459,8 +463,8 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
         elif fig_opt['language'] == 1:
             plt.title('Index de suitabilité J - Rivère: ' + r)
         box = ax.get_position()
-        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
+        ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
+        lgd = plt.legend(bbox_to_anchor=(1.60, 1), loc='upper right', ncol=1)
         if format == 0 or format == 1:
             name_fig = os.path.join(path_im, 'Fstress_' + r +
                                     "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')

@@ -37,6 +37,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.path_fstress = self.path_prj
         self.defriver = self.tr('Default River')
         self.name_bio = 'pref_fstress.txt'
+        self.latin_filename = 'AbbrevLatinNameInvertebrate.txt'
+        self.latin_names = []
         self.found_file = []
         self.riv_name = []
         self.save_ok = True  # just to check if the data was saved without problem
@@ -103,7 +105,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         # self.button2.clicked.connect(self.save_river_data)
         spacer = QSpacerItem(1, 20)
 
-        # find the preference file, show the fish name, and enable self.button2 is found
+        # find the preference file, show the fish name (eith with latin name or abbreviation),
+        # and enable self.button2 if found
         self.load_all_fish()
         self.button1.setEnabled(self.pref_found)  # disable as long as no pref is found
 
@@ -256,8 +259,8 @@ class FstressW(estimhab_GUI.StatModUseful):
 
     def add_all_fish(self):
         """
-        This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. This function
-        was copied from the one in SStathab_GUI.py
+        This function add the name of all known fish (the ones in Pref.txt) to the QListWidget which cintains selected
+        fish. This function was copied from the one in SStathab_GUI.py
         """
         if self.fishall.isChecked():
 
@@ -552,13 +555,18 @@ class FstressW(estimhab_GUI.StatModUseful):
     def load_all_fish(self):
         """
         This function find the preference file, load the preference coefficient for each invertebrate and show their name
-        on QListWidget. it is run at the start of the program. FStress cannot be run as long as a preference file is not
+        on QListWidget. It is run at the start of the program. FStress cannot be run as long as a preference file is not
         found.
         """
 
         sys.stdout = mystdout = StringIO()
         [self.pref_inver, self.all_inv_name] = fstress.read_pref(self.path_bio, self.name_bio)
         sys.stdout = sys.__stdout__
+        if self.pref_inver != [-99]:
+            self.pref_found = True
+        else:
+            return
+
         # log
         str_found = mystdout.getvalue()
         str_found = str_found.split('\n')
@@ -566,11 +574,36 @@ class FstressW(estimhab_GUI.StatModUseful):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
 
-        # show the fish name
-        self.list_f.addItems(self.all_inv_name)
-
-        if self.pref_inver != [-99]:
-            self.pref_found = True
+        # see if we can use latin name instead of acronym
+        filename_bio = os.path.join(self.path_bio, self.latin_filename)
+        if not os.path.isfile(filename_bio):
+            self.send_log.emit('Warning: Latin name of invertebrate could not be read (1) \n')
+            # show the fish name as acronym
+            self.list_f.addItems(self.all_inv_name)
+        else:
+            with open(filename_bio, 'rt') as f:
+                data_name = f.read()
+            data_name = data_name.split('\n')
+            data_name = [x for x in data_name if x.strip()]  # erase empty lines or lines with just tab
+            for d in range(0, len(data_name)):
+                    data_name[d] = data_name[d].split('\t')
+                    if len(data_name[d]) != 2:
+                        self.list_f.addItems(self.all_inv_name)
+                        self.send_log.emit('Warning: Latin name of invertebrate could not be read (2) \n')
+                        return
+            data_name = np.array(data_name)
+            names_latin = []
+            for abbrev in self.all_inv_name:
+                name_latin_here = data_name[data_name[:, 0] == abbrev]
+                if len(name_latin_here) > 1:
+                    # each name is repeated many time in the data but there are the same name,
+                    # so let's just take the first
+                    name_latin_here = abbrev + ' ' + name_latin_here[0, 1]
+                    names_latin.append(name_latin_here)
+                else:
+                    names_latin.append(abbrev)
+            self.list_f.addItems(names_latin)
+            self.latin_names = names_latin
 
     def runsave_fstress(self):
         """
@@ -591,8 +624,18 @@ class FstressW(estimhab_GUI.StatModUseful):
         fish_list = []
         for i in range(0, self.list_s.count()):
             fish_item = self.list_s.item(i)
-            fish_item_str = fish_item.text()
-            fish_list.append(fish_item_str)
+            # if latin name
+            fish_item_latin = fish_item.text()
+            foundlatin = False
+            for idx, d in enumerate(self.latin_names):
+                if d == fish_item_latin:
+                    fish_list.append(self.all_inv_name[idx])
+                    foundlatin = True
+                    break
+            # if abbrev
+            if not foundlatin:
+                fish_item_str = fish_item.text()
+                fish_list.append(fish_item_str)
 
         # check internal logic ( a bit like estihab)
         if not fish_list:
@@ -641,21 +684,34 @@ class FstressW(estimhab_GUI.StatModUseful):
                 return
 
         # run
-        sys.stdout = mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()
         [vh, qmod, inv_select] = fstress.run_fstress(self.qhw, self.qrange, self.riv_name, fish_list, self.pref_inver,
                                                      self.all_inv_name, self.name_prj, self.path_prj)
         sys.stdout = sys.__stdout__
+        self.send_err_log()
+        if isinstance(qmod, int):
+            if qmod == -99:
+                return
 
-        # figure
+        # find the latin name again (might be different as FStress might have failed on some species)
+        inv_select_latin = []
+        for n in inv_select:
+            for idx,n2 in enumerate(self.all_inv_name):
+                if n == n2:
+                    inv_select_latin.append(self.latin_names[idx])
+                    break
+
+        # figures
         self.path_im = self.find_path_im_est()
         fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        fstress.figure_fstress(qmod, vh, inv_select, self.path_im, self.riv_name, fig_opt)
+        fstress.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, fig_opt)
         self.show_fig.emit()
         path_txt = self.find_path_text_est()
+        # abbreviation  used here so no space oin invertebrate name
         fstress.write_txt(qmod, vh, inv_select, path_txt, self.riv_name)
 
         # log
-        str_found = mystdout.getvalue()
+        str_found = self.mystdout.getvalue()
         str_found = str_found.split('\n')
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:

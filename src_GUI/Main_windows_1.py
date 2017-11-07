@@ -17,6 +17,8 @@ from webbrowser import open as wbopen
 import h5py
 import matplotlib
 matplotlib.use("Qt5Agg")
+# from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+# from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 import matplotlib.pyplot as plt
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
@@ -1290,6 +1292,7 @@ class MainWindows(QMainWindow):
         subg = file.create_group('substrate')
         sub = subg.create_dataset(fname_no_path, [1, 1], data=[sub])
         ascii_str = [n.encode("ascii", "ignore") for n in fish_list]  # unicode is not ok with hdf5
+        # to see if this work dt = h5py.special_dtype(vlen=unicode)
         fish_typeg = file.create_group('fish_type')
         fish_type_all = fish_typeg.create_dataset(fname_no_path, (len(fish_list), 1), data=ascii_str)
         file.close()
@@ -1670,11 +1673,11 @@ class CentralW(QWidget):
         # add a
 
         # layout
-        layoutc = QGridLayout()
-        layoutc.addWidget(self.tab_widget, 1, 0)
-        layoutc.addWidget(self.l1, 2, 0)
-        layoutc.addWidget(self.scroll, 3, 0)
-        self.setLayout(layoutc)
+        self.layoutc = QGridLayout()
+        self.layoutc.addWidget(self.tab_widget, 1, 0)
+        self.layoutc.addWidget(self.l1, 2, 0)
+        self.layoutc.addWidget(self.scroll, 3, 0)
+        self.setLayout(self.layoutc)
 
     def scrolldown(self):
         """
@@ -1714,8 +1717,6 @@ class CentralW(QWidget):
         A small function to show the last figure
         """
 
-        matplotlib.interactive(True)
-
         # check if there is a path where to save the image
         filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(filename_path_pro):
@@ -1725,7 +1726,23 @@ class CentralW(QWidget):
             if child is not None:
                 self.path_im = os.path.join(self.path_prj_c,child.text)
 
+        # if os.name == 'nt':  # windows
+        matplotlib.interactive(True)
         plt.show()
+        # else:
+        #     num_fig = plt.get_fignums()
+        #     self.all_fig_widget = []
+        #     for id,n in enumerate(num_fig):
+        #         canvas = FigureCanvasQTAgg(plt.figure(n))  # plt.gcf()
+        #         myfigwig = QWidget()
+        #         self.all_fig_widget.append(myfigwig)
+        #         canvas.setParent(self.all_fig_widget[id])
+        #         menu = NavigationToolbar2QT(canvas, self.all_fig_widget[id])
+        #         self.all_fig_widget[id].layout = QGridLayout()
+        #         self.all_fig_widget[id].layout.addWidget(menu, 0, 0)
+        #         self.all_fig_widget[id].layout.addWidget(canvas, 1, 0)
+        #         self.all_fig_widget[id].setLayout(self.all_fig_widget[id].layout)
+        #         self.all_fig_widget[id].show()
 
     def showfig2(self):
         """

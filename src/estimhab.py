@@ -47,6 +47,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
     a text file.
     """
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
     if pict:
         plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
         plt.rcParams['font.size'] = fig_opt['font_size']

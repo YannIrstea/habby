@@ -2,7 +2,9 @@ import numpy as np
 import os
 import time
 import glob
+import difflib
 import matplotlib
+import filecmp
 from copy import deepcopy
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
@@ -49,7 +51,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
     # manage the folders for the restart case
     input_file = False
-    path_input = '.'
+    path_input = ''
     if option_restart:
         path_input = os.path.join(os.path.dirname(path_prj), 'input')
         if not os.path.isdir(path_input):
@@ -94,7 +96,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               "the name of the folder with the HydroSim result, (output name)")
 
         print('\n')
-        print('MERGE_GRID: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5'
+        print('MERGE_GRID_SUB: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5'
               ', the name of the substrate hdf5, the default data for the substrate (in cemagref code), (output name)')
         print('LOAD_SUB_SHP: load the substrate from a shapefile. Input: filename of the shapefile,'
               'code_type as Cemagref or Sandre, (dominant_case as 1 or -1)')
@@ -133,6 +135,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print("ALL: if the keywork ALL is followed by a command from HABBY, the command will be applied to all file"
               " in a folder. The name of the input file should be in the form: path_to_folder/*.ext with the "
               "right extension as ext. No output name should be given.")
+        print("COMPARE_TEST: Call the small function which compare the files in two folders. Useful to test habby "
+              "output. Input: The path to the folder with the reference file, the path to the folder with the "
+              "files to check")
 
         print('\n')
         print('list of options which can be added after the command: (1) path_prj= path to project, (2) '
@@ -525,7 +530,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('Error: no fish found for estimhab')
             return
         estimhab.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True, {}, path_prj)
-        plt.show()
+        # plt.show()  # should we let it? It stops the function butit shows the results
     # --------------------------------------------------------------------------------------
     elif all_arg[1] == 'RUN_STATHAB':
         if not 2 < len(all_arg) < 5:
@@ -661,7 +666,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # plot output in txt
         fstress.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
-        plt.show()
+        #plt.show()
 
     # --------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_SHP':
@@ -1010,7 +1015,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         fig_opt['text_output'] = 'True'
         fig_opt['shape_output'] = 'True'
         fig_opt['paraview'] = 'True'
-        fig_opt['erase_id'] = 'False'
+        fig_opt['erase_id'] = 'True'
 
         # run calculation
         # we calculate hab on all the stage in xml preference files
@@ -1069,6 +1074,50 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_in, discharge_out, name_prj, path_prj, minh)
 
     # ----------------------------------------------------------------------------
+    elif all_arg[1] == 'COMPARE_TEST':
+        if len(all_arg) != 4:
+            print('COMPARE_TEST needs two arguments, which are the two paths to the folders to be compared.')
+            return
+
+        # get folder name
+        folder1 = all_arg[2]
+        folder2 = all_arg[3]
+        if not os.path.isdir(folder1):
+            print('the first folder is not found')
+            return
+        if not os.path.isdir(folder2):
+            print('the second folder is not found')
+            return
+
+        # get the names of the files in the folder with the expected files
+        filenames_exp = load_hdf5.get_all_filename(folder1, '.txt')
+
+        # check that the expected files exists and have the same content in the folder with the results files
+        num_wrong = 0
+        for f in filenames_exp:
+            print(f)
+            # check that file exists
+            new_file = os.path.join(folder2, f)
+            if not os.path.isfile(new_file):
+                print('One file was not created by habby during testing. name of the file: ' + os.path.basename(f))
+                num_wrong +=1
+            else:
+                # check if identical
+                if filecmp.cmp(new_file, os.path.join(folder1, f), shallow=False):
+                    pass
+                else:
+                    num_wrong +=1
+                    print("One file created by habby during testing was not identical to reference file " +
+                          os.path.basename(f))
+
+        # result
+        if num_wrong == 0:
+            print('TEST ALL GOOD!')
+        else:
+            print('PROBLEMS WERE FOUND ON ' + str(num_wrong) + ' OUT OF ' + str(len(filenames_exp)) + ' FILES.')
+        print('-----------------END TEST -------------------------')
+
+    # ---------------------------------------------------------------------------
     else:
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
 
@@ -1264,7 +1313,7 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
 
         # execute the command
         a = time.time()
-        all_command(all_arg_here, name_prj, path_prj, path_bio, option_restart, erase_id=False)
+        all_command(all_arg_here, name_prj, path_prj, path_bio, option_restart, erase_id=True)
         t = time.time() - a
         print('Command executed in ' + str(t) + ' sec.')
         print('----------------------------------------------------------------------')
@@ -1437,3 +1486,5 @@ def load_fstress_text(path_fstress):
             return [-99], [-99], [-99]
 
     return riv_name, qhw, qrange
+
+

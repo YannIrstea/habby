@@ -9,6 +9,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from src_GUI import output_fig_GUI
 
+
 def open_hdf5(hdf5_name):
     """
     This is a function which open an hdf5 file and check that it exists. it does not load the data. It only opens the
@@ -99,7 +100,8 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5 = '', merge=False):
     # load ikle
     basename1 = 'Data_2D'
     ikle_whole_all = []
-    # ikle whole porfile
+
+    # ikle whole profile
     for r in range(0, nb_r):
         name_ik = basename1 + "/Whole_Profile/Reach_" + str(r) + "/ikle"
         try:
@@ -467,7 +469,7 @@ def get_all_filename(dirname, ext):
 
     :param dirname: the path to the directory (string)
     :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
-    :return: a list with the filename (filename+dir) for each extension
+    :return: a list with the filename (filename no dir) for each extension
     """
     filenames = []
     for file in os.listdir(dirname):
@@ -682,8 +684,8 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
               inter_vel_all_t, inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False,
-              sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name = '', hydro_ini_name='',
-              save_option=None):
+              sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name='', hydro_ini_name='',
+              save_option=None, version=0):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -711,6 +713,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     :param hydro_ini_name: the name of the hydraulic hdf5 file from which the data originates
     :param save_option: If save_option is not none, the variable erase_idem which is usually given in the figure option
            is overwritten by save_option which is boolean. This is useful for habby cmd.
+    :param version: The version number of HABBY
 
 
     **Technical comments**
@@ -781,12 +784,14 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     file = h5py.File(fname, 'w')
 
     # create attributes
+    file.attrs['Software'] = 'HABBY'
+    file.attrs['Software_version'] = str(version)
     file.attrs['path_projet'] = path_prj
     file.attrs['name_projet'] = name_prj
     file.attrs['HDF5_version'] = h5py.version.hdf5_version
     file.attrs['h5py_version'] = h5py.version.version
     file.attrs['sub_ini_name'] = sub_ini_name
-    file.attrs['hydro_ini_name'] =  hydro_ini_name
+    file.attrs['hydro_ini_name'] = hydro_ini_name
 
     # create all datasets and group
     data_all = file.create_group('Data_gen')
