@@ -621,7 +621,6 @@ class FstressW(estimhab_GUI.StatModUseful):
         link between the GUI and fstress.py.
         """
 
-
         self.send_log.emit(self.tr('# Running: FStress'))
 
         self.save_river_data()
@@ -743,7 +742,9 @@ class FstressW(estimhab_GUI.StatModUseful):
         fstress.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, fig_opt)
         self.show_fig.emit()
         path_txt = self.find_path_text_est()
-        # abbreviation  used here so no space oin invertebrate name
+
+        # text file
+        # abbreviation written in the textfile so no space in invertebrate name
         fstress.write_txt(qmod, vh, inv_select, path_txt, self.riv_name)
 
         # log

@@ -390,7 +390,7 @@ def denstress(k,m, nbst):
     return diststress
 
 
-def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river):
+def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
     """
     This function writes the txt outputs for FStress
 
@@ -399,6 +399,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river):
     :param name_inv: The four letter code of each selected invetebrate
     :param path_txt: the path where to save the text file
     :param name_river: the name of the river
+    :param timestamp: If True, the file is saved with time stamp. Otherwise, it is not.
 
     """
     i = 0
@@ -406,7 +407,12 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river):
     for r in name_river:
         qmod = qmod_all[i]
         vh = vh_all[i]
-        fname = os.path.join(path_txt, 'Fstress_'+ r+ time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
+        if timestamp:
+            fname = os.path.join(path_txt, 'Fstress_'+ r + time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
+        else:
+            fname = os.path.join(path_txt, 'Fstress_' + r + '_rre.txt')
+            if os.path.isfile(fname):
+                os.remove(fname)
         header_txt = 'habitat value\n'
         for n in name_inv:
             header_txt += n + '\t'
@@ -414,7 +420,12 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river):
         for n in name_inv:
             header_txt += '[]\t'
         np.savetxt(fname, vh, delimiter='\t', header=header_txt)
-        fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
+        if timestamp:
+            fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
+        else:
+            fname = os.path.join(path_txt, 'Fstress_' + r + '_discharge.txt')
+            if os.path.isfile(fname):
+                os.remove(fname)
         np.savetxt(fname, qmod, delimiter='\t', header='discharge [m3/sec]')
     # fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_code_inv.txt')
     # name_inv_str = ''

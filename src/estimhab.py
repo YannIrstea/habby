@@ -58,6 +58,11 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         if fig_opt['font_size'] > 7:
             plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
         plt.rcParams['legend.loc'] = 'best'
+    erase1 = fig_opt['erase_id']
+    if erase1 == 'True':  # xml in text
+        erase1 = True
+    else:
+        erase1 = False
 
     # Q
     nb_q = 20  # number of calculated q
@@ -168,8 +173,24 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     if pict:
 
         # name with date and time
-        name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-        name_input = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        if not erase1:
+            name_pict = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            name_input = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        # name without data and time, erase old files
+        else:
+            name_pict = "Estimhab"
+            name_input = "Estimhab_input"
+            if os.path.isfile(name_pict + '.png'):
+                os.remove(name_pict + '.png')
+            if os.path.isfile(name_pict + '.pdf'):
+                os.remove(name_pict + '.pdf')
+            if os.path.isfile(name_pict + '.jpg'):
+                os.remove(name_pict + '.jpg')
+            if os.path.isfile(name_pict + '.txt'):
+                os.remove(name_pict + '.txt')
+            if os.path.isfile(name_input + '.txt'):
+                os.remove(name_input + '.txt')
+
 
         # save image
         if format1 == 0 or format1 == 1:

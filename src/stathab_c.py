@@ -1009,6 +1009,11 @@ class Stathab:
             plt.rcParams['legend.fontsize'] = self.fig_opt['font_size'] - 2
         plt.rcParams['legend.loc'] = 'best'
         mpl.interactive(True)
+        erase1 = self.fig_opt['erase_id']
+        if erase1 == 'True':  # xml in text
+            erase1 = True
+        else:
+            erase1 = False
 
         for r in range(0, len(self.name_reach)):
 
@@ -1065,19 +1070,31 @@ class Stathab:
                 elif self.fig_opt['language'] == 1:
                     plt.ylabel('Volume par classe [m$^{3}$]')
                 lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
-                # save the figures
 
-                if format == 0 or format == 1:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-                if format == 0 or format == 3:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-                if format == 2 or format > 2:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
-                fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                            dpi=self.fig_opt['resolution'])
+                # save the figures
+                if not erase1:
+                    if format == 0 or format == 1:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
+                    if format == 0 or format == 3:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+                    if format == 2 or format > 2:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                                "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+                    fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+                                dpi=self.fig_opt['resolution'])
+                else:
+                    if format == 0 or format == 1:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.png")
+                    if format == 0 or format == 3:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.pdf")
+                    if format == 2 or format > 2:
+                        name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.jpg")
+                    if os.path.isfile(name_fig):
+                        os.remove(name_fig)
+                    fig.savefig( name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
+                                dpi=self.fig_opt['resolution'])
 
             # suitability index
             if len(self.fish_chosen) > 1:
@@ -1096,61 +1113,93 @@ class Stathab:
                 plt.title('Index de suitabilité J - ' + self.name_reach[r])
 
             lgd = plt.legend(fancybox=True, framealpha=0.5)
-            if format == 0 or format == 1:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png')
-            if format == 0 or format == 3:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-            if format == 2:
-                name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
-            fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                        dpi=self.fig_opt['resolution'], transparent=True)
+            if not erase1:
+                if format == 0 or format == 1:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png')
+                if format == 0 or format == 3:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+                if format == 2:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +
+                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+                fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
+                            dpi=self.fig_opt['resolution'], transparent=True)
+            else:
+                if format == 0 or format == 1:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +"_suitability_index.png")
+                if format == 0 or format == 3:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +"_suitability_index.pdf")
+                if format == 2:
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] +"_suitability_index.jpg")
+                if os.path.isfile(name_fig):
+                    os.remove(name_fig)
+                fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
+                            dpi=self.fig_opt['resolution'], transparent=True)
             plt.show()
 
     def savetxt_stathab(self):
         """
         A function to save the stathab result in .txt form
         """
+        # to know if we kept the old file or we erase them
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        erase1 = self.fig_opt['erase_id']
+        if erase1 == 'True':  # xml in text
+            erase1 = True
+        else:
+            erase1 = False
 
+        # save txt for each reach
         for r in range(0, len(self.name_reach)):
             j = np.squeeze(self.j_all[r, :, :])
             qmod = self.q_all[r]
-            vclass = self.vclass_all[r]
-            hclass = self.hclass_all[r]
-            rclass = self.rclass_all[r]
+            if self.riverint == 0:
+                vclass = self.vclass_all[r]
+                hclass = self.hclass_all[r]
+                rclass = self.rclass_all[r]
             hmod = self.h_all[r]
             wmod = self.w_all[r]
             dummy = np.zeros((len(hmod), 1)) - 99
 
-            # rrd file
-            # depth and dist Q should be added
-            data = np.hstack((np.log(qmod), dummy, hmod, wmod, vclass.T, hclass.T, rclass.T))
-            namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
-                                    time.strftime("%d_%m_%Y_at_%H_%M_%S")+'rrd.txt')
-            # header
-            txt_header = 'log(Q)\tempty\thmod\twmod'
-            for i in range(0, len(vclass)):
-                txt_header += '\tvclass'
-            for i in range(0, len(hclass)):
-                txt_header += '\thclass'
-            for i in range(0, len(rclass)):
-                txt_header += '\trclass'
-            txt_header += '\n'
-            # unity
-            txt_header += '[log(m3/sec)]\t[]\t[m]\t[m]'
-            for i in range(0, len(vclass)):
-                txt_header += '\t[m3]'
-            for i in range(0, len(hclass)):
-                txt_header += '\t[m2]'
-            for i in range(0, len(rclass)):
-                txt_header += '\t[m2]'
-            np.savetxt(namefile, data, delimiter='\t', header=txt_header)
+            # rrd file (only for temperate)
+            if self.riverint == 0:
+                # depth and dist Q should be added
+                data = np.hstack((np.log(qmod), dummy, hmod, wmod, vclass.T, hclass.T, rclass.T))
+                if not erase1:
+                    namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
+                                            time.strftime("%d_%m_%Y_at_%H_%M_%S")+'rrd.txt')
+                else:
+                    namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] + 'rrd.txt')
+                    if os.path.isfile(namefile):
+                        os.remove(namefile)
+                # header
+                txt_header = 'log(Q)\tempty\thmod\twmod'
+                for i in range(0, len(vclass)):
+                    txt_header += '\tvclass'
+                for i in range(0, len(hclass)):
+                    txt_header += '\thclass'
+                for i in range(0, len(rclass)):
+                    txt_header += '\trclass'
+                txt_header += '\n'
+                # unity
+                txt_header += '[log(m3/sec)]\t[]\t[m]\t[m]'
+                for i in range(0, len(vclass)):
+                    txt_header += '\t[m3]'
+                for i in range(0, len(hclass)):
+                    txt_header += '\t[m2]'
+                for i in range(0, len(rclass)):
+                    txt_header += '\t[m2]'
+                np.savetxt(namefile, data, delimiter='\t', header=txt_header)
 
             # rre.txt
-            namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
-                                    time.strftime("%d_%m_%Y_at_%H_%M_%S") + 'rre.txt')
+            if not erase1:
+                namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
+                                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + 'rre.txt')
+            else:
+                namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] + 'rre.txt')
+                if os.path.isfile(namefile):
+                    os.remove(namefile)
             header_txt = 'Suitability Index \n '
             for f in self.fish_chosen:
                 header_txt += f + '\t'

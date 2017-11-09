@@ -607,6 +607,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         if riv_int == 0:
             [mystathab.fish_chosen, coeff_all] = stathab_c.load_pref('Pref.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
+            fig_opt = output_fig_GUI.create_default_figoption()
+            fig_opt['erase_id'] = 'True'
+            mystathab.fig_opt = fig_opt
             mystathab.savetxt_stathab()
             mystathab.savefig_stahab()
         elif riv_int == 1:
@@ -616,7 +619,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                 if 'uni' in f and f[-7:-4] not in name_fish:
                     name_fish.append(f[-7:-4])
             mystathab.fish_chosen = name_fish
+            mystathab.riverint =1
             mystathab.stathab_trop_univ(path_bio2, True)
+            mystathab.savetxt_stathab()
             mystathab.savefig_stahab(False)
         elif riv_int == 2:
             name_fish = []
@@ -625,10 +630,12 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                 if 'biv' in f:
                     name_fish.append(f[-7:-4])
             mystathab.fish_chosen = name_fish
+            mystathab.riverint = 2
             mystathab.stathab_trop_biv(path_bio2)
+            mystathab.savetxt_stathab()
             mystathab.savefig_stahab(False)
 
-        #plt.show()
+        plt.show()
 
     # -----------------------------------------------------------------------------------
     elif all_arg[1] == 'RUN_FSTRESS':
@@ -662,7 +669,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                                                            name_prj, path_prj)
 
         # write output in txt
-        fstress.write_txt(qmod_all, vh_all, inv_name, path_prj, riv_name)
+        # no timestamp
+        fstress.write_txt(qmod_all, vh_all, inv_name, path_prj, riv_name, False)
 
         # plot output in txt
         fstress.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
@@ -1095,7 +1103,6 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # check that the expected files exists and have the same content in the folder with the results files
         num_wrong = 0
         for f in filenames_exp:
-            print(f)
             # check that file exists
             new_file = os.path.join(folder2, f)
             if not os.path.isfile(new_file):

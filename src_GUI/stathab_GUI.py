@@ -854,8 +854,7 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # save data and fig
         self.mystathab.path_im = self.path_im
-        if self.riverint == 0:
-            self.mystathab.savetxt_stathab()
+        self.mystathab.savetxt_stathab()
         self.mystathab.savefig_stahab(False)
         self.show_fig.emit()
         self.butfig.setDisabled(False)
