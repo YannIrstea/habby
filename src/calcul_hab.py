@@ -923,11 +923,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
-                plt.ylabel('WUA [m^2]')
+                plt.ylabel('WUA [m$^2$]')
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
                 plt.xlabel('Pas de temps/débit [ ]')
-                plt.ylabel('SPU [m^2]')
+                plt.ylabel('SPU [m$^2$]')
                 plt.title('Surface Ponderée pour le troncon ' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
             if sim_name:

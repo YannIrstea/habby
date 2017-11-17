@@ -8,7 +8,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, pyqtRemoveInputHook
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, pyqtRemoveInputHook, QObject, QEvent
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QStatusBar, QMessageBox, QComboBox, QScrollArea, \
     QSizePolicy, QInputDialog, QMenu, QToolBar
@@ -67,7 +67,7 @@ class MainWindows(QMainWindow):
         self.nb_recent = 5
 
         # the version number of habby
-        self.version = 1.1
+        self.version = 0.2
 
         # load user setting
         self.settings = QSettings('irstea', 'HABBY'+str(self.version))
@@ -76,10 +76,18 @@ class MainWindows(QMainWindow):
         name_path_set = self.settings.value('path_prj')
         print(name_path_set)
         language_set = self.settings.value('language_code')
+
+        # to erase setting of older version
+        # add here the number of older version whose setting must be erased because they are not compatible
+        # it should be managed by innosetup, but do not work always
+        self.oldversion = [1.1]
+        for v in self.oldversion:
+            self.oldsettings = QSettings('irstea', 'HABBY' + str(v))
+            self.oldsettings.clear()
+
         # recent project: list of string
         recent_projects_set = self.settings.value('recent_project_name')
         recent_projects_path_set = self.settings.value('recent_project_path')
-
         if recent_projects_set is not None:
             if len(recent_projects_set) > self.nb_recent:
                 self.settings.setValue('recent_project_name', recent_projects_set[ -self.nb_recent+1:])
@@ -306,14 +314,17 @@ class MainWindows(QMainWindow):
         # create the new toolbar
         self.my_toolbar()
 
+        # reconnect saignal for the weclcome tab
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
         self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
+        self.central_widget.welcome_tab.save_info_signal.connect(self.central_widget.save_info_projet)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
-        # re-connect signals for the tab
+        # re-connect signals for the other tabs
         self.central_widget.connect_signal_fig_and_drop()
+        # re-connect signals for the log
         self.central_widget.connect_signal_log()
 
         self.central_widget.update_hydro_hdf5_name()
@@ -486,7 +497,7 @@ class MainWindows(QMainWindow):
 
             # add the title of the windows
             # let it here as it should be changes if language changes
-            self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
+            self.setWindowTitle(self.tr('HABBY')+str(self.version) + ': ' + self.name_prj)
 
             # in case we need a tool bar
             # self.toolbar = self.addToolBar('')
@@ -2007,6 +2018,7 @@ class CentralW(QWidget):
         """
         This function is used to save the description of the project and the username in the xml project file
         """
+        print('was saved')
 
         # username and description
         e4here = self.welcome_tab.e4
@@ -2100,6 +2112,7 @@ class WelcomeW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
+        self.outfocus_filter = MyFilter()
         self.init_iu()
 
     def init_iu(self):
@@ -2132,14 +2145,15 @@ class WelcomeW(QWidget):
         self.e2 = QLabel(self.path_prj)
         button2 = QPushButton(self.tr('Set Folder'), self)
         button2.clicked.connect(self.setfolder2)
-        button3 = QPushButton(self.tr('Change Project Name'), self)
-        button3.clicked.connect(self.change_name.emit)
         l3 = QLabel(self.tr('Description: '))
         self.e3 = QTextEdit()
+        # this is used to save the data if the QLineEdit is going out of Focus
+        self.e3.installEventFilter(self.outfocus_filter)
+        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
         l4 = QLabel(self.tr('User Name: '))
         self.e4 = QLineEdit()
-        self.buttonm = QPushButton(self.tr('Save Project Info'))
-        self.buttonm.clicked.connect(self.save_info_signal.emit)
+        self.e4.installEventFilter(self.outfocus_filter)
+        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
         self.lowpart = QWidget()
 
         # background image
@@ -2187,13 +2201,11 @@ class WelcomeW(QWidget):
         layoutl.addWidget(self.e1, 1, 1)
         layoutl.addWidget(l2, 2, 0)
         layoutl.addWidget(self.e2, 2, 1)
-        layoutl.addWidget(button3, 1, 2)
         layoutl.addWidget(button2, 2, 2)
         layoutl.addWidget(l4, 3, 0)
         layoutl.addWidget(self.e4, 3, 1)
         layoutl.addWidget(l3, 4, 0)
         layoutl.addWidget(self.e3, 4, 1)
-        layoutl.addWidget(self.buttonm, 4, 2)
         self.lowpart.setLayout(layoutl)
 
         layout2.addWidget(pic, 0, 0)
@@ -2442,6 +2454,29 @@ class ShowImageW(QWidget):
             all_file_nice[i] = all_file_nice[i].replace("\\", "")
             all_file_nice[i] = all_file_nice[i].replace("/", "")
         self.image_list.addItems(all_file_nice)
+
+
+class MyFilter(QObject):
+    """
+    This is a filter which is used to know when a QWidget is going out of focus. Practically this is used
+    if the user goes away from a QLineEdit. If this events happends, the project is autmatically saved with the new
+    info of the user.
+    """
+    outfocus_signal = pyqtSignal()
+    """
+    A signal to change the user name and the description of the project
+    """
+    def eventFilter(self, widget, event):
+        # FocusOut event
+        if event.type() == QEvent.FocusOut:
+            self.outfocus_signal.emit()
+            print('blob')
+            # return False so that the widget will also handle the event
+            # otherwise it won't focus out
+            return False
+        else:
+            # we don't care about other events
+            return False
 
 
 if __name__ == '__main__':
