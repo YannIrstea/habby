@@ -1521,7 +1521,7 @@ def remove_image(name, path, format1):
     elif format1 ==3:
         ext = ['.pdf']
     else:
-        return False
+        return True
     for e in ext:
         if os.path.isfile(os.path.join(path, name+e)):
             try:

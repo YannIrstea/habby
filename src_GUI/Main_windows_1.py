@@ -910,8 +910,12 @@ class MainWindows(QMainWindow):
                                           'New project path: ' + os.path.dirname(filename_path))
             self.path_prj = os.path.dirname(filename_path)
             root2.find(".//Path_Projet").text = self.path_prj
-            root2.find(".//Path_Figure").text = self.path_prj
-        stathab_info = root2.find(".//hdf5Stathab")
+            # if we have change the project path, it is probable tha the project folder was copied from somewhere else
+            # so the check concurenncy file was probably copied and look like open even if the project is closed.
+            self.central_widget.write_log('Warning: Could not control for concurrency between projects due to path '
+                                          'change. If you have any other instance of HABBY open, please close it.')
+            self.end_concurrency()
+            stathab_info = root2.find(".//hdf5Stathab")
         self.username_prj = root2.find(".//User_Name").text
         self.descri_prj = root2.find(".//Description").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
@@ -1405,7 +1409,7 @@ class MainWindows(QMainWindow):
         if save_log == 1:
             t = self.central_widget.l2.text()
             self.central_widget.l2.setText(t + self.tr('This log will be saved in the .log file.<br> '
-                                                       'This log will be saved anymore in the restart file. <br>'))
+                                                       'This log will be saved in the restart file. <br>'))
             self.central_widget.logon = True
 
         # save the option in the xml file
@@ -2018,7 +2022,6 @@ class CentralW(QWidget):
         """
         This function is used to save the description of the project and the username in the xml project file
         """
-        print('was saved')
 
         # username and description
         e4here = self.welcome_tab.e4
@@ -2145,6 +2148,8 @@ class WelcomeW(QWidget):
         self.e2 = QLabel(self.path_prj)
         button2 = QPushButton(self.tr('Set Folder'), self)
         button2.clicked.connect(self.setfolder2)
+        button2.setToolTip( self.tr('Move the project to a new location. '
+                                    'The data might be long to copy if the project folder is large.'))
         l3 = QLabel(self.tr('Description: '))
         self.e3 = QTextEdit()
         # this is used to save the data if the QLineEdit is going out of Focus
@@ -2152,6 +2157,7 @@ class WelcomeW(QWidget):
         self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
         l4 = QLabel(self.tr('User Name: '))
         self.e4 = QLineEdit()
+        # this is used to save the data if the QLineEdit is going out of Focus
         self.e4.installEventFilter(self.outfocus_filter)
         self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
         self.lowpart = QWidget()
@@ -2470,7 +2476,6 @@ class MyFilter(QObject):
         # FocusOut event
         if event.type() == QEvent.FocusOut:
             self.outfocus_signal.emit()
-            print('blob')
             # return False so that the widget will also handle the event
             # otherwise it won't focus out
             return False

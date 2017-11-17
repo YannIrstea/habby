@@ -459,10 +459,10 @@ def percentage_to_domcoarse(sub_data, dominant_case):
 def load_sub_txt(filename, path, code_type, path_shp='.'):
     """
     A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
-    coarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
-    transformation.
+    coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
+    transformation. There is one line of header (free texte).
 
-    The voronoi transformation might look strange as it is often bigger than theorginal point. However, this is
+    The voronoi transformation might look strange as it is often bigger than the original point. However, this is
     just the mathematical result.
 
     At the end of this fnuction, the resulting grid is exported in a shapefile form.
@@ -483,6 +483,11 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     # read
     with open(file, 'rt') as f:
         data = f.read()
+    # neglect the first line as it is the header
+    ind1 = data.find('\n')
+    if ind1 == -1:
+        print('Error: Could not find more than one line in the substrate input file. Check format \n')
+    data=data[ind1:]
     data = data.split()
     if len(data) % 4 != 0:
         print('Error: the number of column in ' + filename+ ' is not four. Check format.\n')
@@ -969,7 +974,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             plt.savefig(os.path.join(path_im, "substrate_pg.jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # substrate dominant
-    fig, ax = plt.subplots(1)
+    fig2, ax2 = plt.subplots(1)
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map2'])
     colors_val = np.array(sub_dom)  # convert nfloors to colors that we can use later
@@ -985,9 +990,9 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
     collection = PatchCollection(patches,linewidth=0.0, cmap=cmap, norm=norm)
-    ax.add_collection(collection)
+    ax2.add_collection(collection)
     collection.set_array(colors_val)
-    ax.autoscale_view()
+    ax2.autoscale_view()
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')
     plt.plot(xlist, ylist, c='b', linewidth=0.2)

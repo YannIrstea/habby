@@ -17,6 +17,8 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
     thread to avoid freezin gthe GUI. This is why we have this extra-function just to call save_hdf5() and
     merge_grid_hydro_sub().
 
+
+
     :param hdf5_name_hyd: the name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the name of the hdf5 with the substrate data
     :param path_hdf5: the path to the hdf5 data
@@ -91,6 +93,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
         default_data = float(default_data)
     except ValueError:
         print('Error: Default data should be a float. (1)\n')
+        return failload
+    if default_data > 8 or default_data < 1:
+        print('The default data should be in the Cemagref code (between 1 and 8).')
         return failload
 
     m = time.time()

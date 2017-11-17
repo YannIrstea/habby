@@ -621,6 +621,25 @@ the boolean self.does_it_work is used to know if the functions run until the end
 </dd></dl>
 
 <dl class="class">
+<dt id="src_GUI.Main_windows_1.MyFilter">
+<em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">MyFilter</code><a class="headerlink" href="#src_GUI.Main_windows_1.MyFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a filter which is used to know when a QWidget is going out of focus. Practically this is used
+if the user goes away from a QLineEdit. If this events happends, the project is autmatically saved with the new
+info of the user.</p>
+<dl class="method">
+<dt id="src_GUI.Main_windows_1.MyFilter.eventFilter">
+<code class="descname">eventFilter</code><span class="sig-paren">(</span><em>widget</em>, <em>event</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.MyFilter.eventFilter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="src_GUI.Main_windows_1.MyFilter.outfocus_signal">
+<code class="descname">outfocus_signal</code><a class="headerlink" href="#src_GUI.Main_windows_1.MyFilter.outfocus_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>A signal to change the user name and the description of the project</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="src_GUI.Main_windows_1.ShowImageW">
 <em class="property">class </em><code class="descclassname">src_GUI.Main_windows_1.</code><code class="descname">ShowImageW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.Main_windows_1.ShowImageW" title="Permalink to this definition">¶</a></dt>
 <dd><p>The widget which shows the saved images. Used only to show all the saved figure together iwhtout zoom or other
@@ -1861,8 +1880,8 @@ for estimhab and fstress. Hence, we can re-use these function without re.writing
 <dl class="method">
 <dt id="src_GUI.fstress_GUI.FstressW.add_all_fish">
 <code class="descname">add_all_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.add_all_fish" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. This function
-was copied from the one in SStathab_GUI.py</p>
+<dd><p>This function add the name of all known fish (the ones in Pref.txt) to the QListWidget which cintains selected
+fish. This function was copied from the one in SStathab_GUI.py</p>
 </dd></dl>
 
 <dl class="method">
@@ -1883,7 +1902,7 @@ folder.</p>
 <dt id="src_GUI.fstress_GUI.FstressW.load_all_fish">
 <code class="descname">load_all_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.load_all_fish" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function find the preference file, load the preference coefficient for each invertebrate and show their name
-on QListWidget. it is run at the start of the program. FStress cannot be run as long as a preference file is not
+on QListWidget. It is run at the start of the program. FStress cannot be run as long as a preference file is not
 found.</p>
 </dd></dl>
 
@@ -1905,12 +1924,14 @@ the project previously.</p>
 <dl class="method">
 <dt id="src_GUI.fstress_GUI.FstressW.load_txt">
 <code class="descname">load_txt</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.fstress_GUI.FstressW.load_txt" title="Permalink to this definition">¶</a></dt>
-<dd><p>In this function, the user select a qhw.txt or a listriv.txt file. This files are loaded and written on the GUI.
-If a listriv.txt is selected, the river in lisriv.txt are loaded. If a qhw.txt is loaded and if there are
-more than one qhw.txt in the folder, we ask the user if all files must be loaded. The needed text files are
-the following:</p>
+<dd><p>In this function, the user select  a listriv.txt file. This files are loaded and written on the GUI.</p>
+<p>Before it was also possible to select just one qhw file. This is still part of the code, but it is not advised
+to do this as the river name tends to mix each other, which is more trouble to maintain that it worths it.
+If a qhw.txt is loaded and if there are more than one qhw.txt in the folder, we ask the user if all files must
+be loaded.</p>
+<p>The needed text files are the following:</p>
 <ul class="simple">
-<li>listriv.txt is a text file with one river name by line (not necessary)</li>
+<li>listriv.txt is a text file with one river name by line</li>
 <li>rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
 2 measureement (necessary)</li>
 <li>rivernamedeb.txt is a text file which has two lines. The first line is the minimum discharge and the second is
@@ -2054,6 +2075,15 @@ two classes, which saves a bit of coding.</p>
 <dt id="src_GUI.estimhab_GUI.StatModUseful.add_sel_fish">
 <code class="descname">add_sel_fish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.add_sel_fish" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function loads the xml file and check if some fish were selected before. If yes, we add them to the list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="src_GUI.estimhab_GUI.StatModUseful.check_all_q">
+<code class="descname">check_all_q</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.check_all_q" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function checks the range of the different discharge and send a warning if we are out of the range
+estimated reasonable (based on the manual from Estimhab and FStress). This is not used by Stathab.</p>
+<p>It uses the variable self.qall which is a list of float composed of q1, q2, qsim1, qsim2, q50. This function
+only send warning and it used to check the entry before the calculation.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4487,7 +4517,7 @@ from one hydraulic model.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list with the filename (filename+dir) for each extension</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a list with the filename (filename no dir) for each extension</p>
 </td>
 </tr>
 </tbody>
@@ -4628,7 +4658,7 @@ files.
 
 <dl class="function">
 <dt id="src.load_hdf5.save_hdf5">
-<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em>, <em>merge=False</em>, <em>sub_pg_all_t=[]</em>, <em>sub_dom_all_t=[]</em>, <em>sub_per_all_t=[]</em>, <em>sim_name=[]</em>, <em>sub_ini_name=''</em>, <em>hydro_ini_name=''</em>, <em>save_option=None</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.load_hdf5.</code><code class="descname">save_hdf5</code><span class="sig-paren">(</span><em>name_hdf5</em>, <em>name_prj</em>, <em>path_prj</em>, <em>model_type</em>, <em>nb_dim</em>, <em>path_hdf5</em>, <em>ikle_all_t</em>, <em>point_all_t</em>, <em>point_c_all_t</em>, <em>inter_vel_all_t</em>, <em>inter_h_all_t</em>, <em>xhzv_data=[]</em>, <em>coord_pro=[]</em>, <em>vh_pro=[]</em>, <em>nb_pro_reach=[]</em>, <em>merge=False</em>, <em>sub_pg_all_t=[]</em>, <em>sub_dom_all_t=[]</em>, <em>sub_per_all_t=[]</em>, <em>sim_name=[]</em>, <em>sub_ini_name=''</em>, <em>hydro_ini_name=''</em>, <em>save_option=None</em>, <em>version=0</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.save_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function save the hydrological data in the hdf5 format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -4659,6 +4689,7 @@ files.
 <li><strong>hydro_ini_name</strong> &#8211; the name of the hydraulic hdf5 file from which the data originates</li>
 <li><strong>save_option</strong> &#8211; If save_option is not none, the variable erase_idem which is usually given in the figure option
 is overwritten by save_option which is boolean. This is useful for habby cmd.</li>
+<li><strong>version</strong> &#8211; The version number of HABBY</li>
 </ul>
 </td>
 </tr>
@@ -6362,7 +6393,7 @@ in the xml project file.</p>
 
 <dl class="function">
 <dt id="src.fstress.write_txt">
-<code class="descclassname">src.fstress.</code><code class="descname">write_txt</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_txt</em>, <em>name_river</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.write_txt" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">src.fstress.</code><code class="descname">write_txt</code><span class="sig-paren">(</span><em>qmod_all</em>, <em>vh_all</em>, <em>name_inv</em>, <em>path_txt</em>, <em>name_river</em>, <em>timestamp=True</em><span class="sig-paren">)</span><a class="headerlink" href="#src.fstress.write_txt" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function writes the txt outputs for FStress</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -6374,6 +6405,7 @@ in the xml project file.</p>
 <li><strong>name_inv</strong> &#8211; The four letter code of each selected invetebrate</li>
 <li><strong>path_txt</strong> &#8211; the path where to save the text file</li>
 <li><strong>name_river</strong> &#8211; the name of the river</li>
+<li><strong>timestamp</strong> &#8211; If True, the file is saved with time stamp. Otherwise, it is not.</li>
 </ul>
 </td>
 </tr>
@@ -6540,9 +6572,9 @@ and an array with substrate type and a boolean which allows to get the case wher
 <dt id="src.substrate.load_sub_txt">
 <code class="descclassname">src.substrate.</code><code class="descname">load_sub_txt</code><span class="sig-paren">(</span><em>filename</em>, <em>path</em>, <em>code_type</em>, <em>path_shp='.'</em><span class="sig-paren">)</span><a class="headerlink" href="#src.substrate.load_sub_txt" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
-coarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
-transformation.</p>
-<p>The voronoi transformation might look strange as it is often bigger than theorginal point. However, this is
+coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
+transformation. There is one line of header (free texte).</p>
+<p>The voronoi transformation might look strange as it is often bigger than the original point. However, this is
 just the mathematical result.</p>
 <p>At the end of this fnuction, the resulting grid is exported in a shapefile form.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -6662,6 +6694,21 @@ not optimized yet. For the definition of the code, see the tabular at the 14 of 
 </table>
 </dd></dl>
 
+<div class="section" id="description-of-substrate-code">
+<h3>Description of substrate code<a class="headerlink" href="#description-of-substrate-code" title="Permalink to this headline">¶</a></h3>
+<p>Internally HABBY uses the Cemagref code to describe the substrate. It also accept the code Sandre in entry and modify it afterwards to Cemagref code. If data from the LAMMI model is used, the EDF code is transformed to the Cemagref code even if some uncertainties results from this conversion. This might have an impact on the results.</p>
+<p>The following table describes the different substrate codes:</p>
+<div class="figure">
+<a class="reference internal image-reference" href="_images/substrat.png"><img alt="The different substrate codes used in HABBY." src="_images/substrat.png" style="width: 603.0px; height: 474.0px;" /></a>
+</div>
+</div>
+<div class="section" id="description-of-the-format-of-the-substrate-input">
+<h3>Description of the format of the substrate input<a class="headerlink" href="#description-of-the-format-of-the-substrate-input" title="Permalink to this headline">¶</a></h3>
+<p>There are tow types of intputs: Text and shapefile inputs.</p>
+<p>The text inputs is composed of four columns: x,y, the coarser substrate type, and the dominant subtrate type. The substrate can be in Sandre or Cemagref code. The first line of the text file is ignored by HABBY and can be used as header or let empty.</p>
+<p>The substrate shapefile is a polygon shapefile created by ArcMap or another GIS-Software. Its attribute table has two or three columns. The third column is the &#8220;accessory&#8221; substrate and is not necessary. It is not used by HABBY currenlty.
+The first and second columns are the dominant and corser substrate data (order as wished by the user). The name of the column with the coarser subtrate can be chosed from the following options: &#8216;plus gros&#8217;, &#8216;coarser&#8217;, &#8216;PG&#8217;, &#8216;PLUS GROS&#8217;, &#8216;COARSER&#8217;. The name of the column with the dominant subtrate can be chosed from the following options: &#8216;dominant&#8217;, &#8216;DOMINANT&#8217;, &#8216;DM&#8217;. The name of the column with the accesory subtrate can be chosed from the following options: &#8216;acc&#8217;, &#8216;ACC&#8217;, &#8216;ACCESSORY&#8217;, &#8216;accessoire&#8217;, &#8216;ACCESSOIRE&#8217;.</p>
+</div>
 </div>
 <div class="section" id="merge-the-grid">
 <h2>Merge the grid<a class="headerlink" href="#merge-the-grid" title="Permalink to this headline">¶</a></h2>
@@ -8018,7 +8065,11 @@ fail.</p>
 <li><a class="reference internal" href="#estimhab-source">Estimhab -source</a></li>
 <li><a class="reference internal" href="#stathab-source">Stathab - source</a></li>
 <li><a class="reference internal" href="#fstress-source">FStress - source</a></li>
-<li><a class="reference internal" href="#substrate">Substrate</a></li>
+<li><a class="reference internal" href="#substrate">Substrate</a><ul>
+<li><a class="reference internal" href="#description-of-substrate-code">Description of substrate code</a></li>
+<li><a class="reference internal" href="#description-of-the-format-of-the-substrate-input">Description of the format of the substrate input</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#merge-the-grid">Merge the grid</a></li>
 <li><a class="reference internal" href="#biological-info">Biological Info</a></li>
 <li><a class="reference internal" href="#calculation-habitat">Calculation habitat</a></li>

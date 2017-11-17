@@ -365,6 +365,26 @@ This module contains the function to load and manage the substrate data.
    :members:
    :undoc-members:
 
+Description of substrate code
+""""""""""""""""""""""""""""""""""
+Internally HABBY uses the Cemagref code to describe the substrate. It also accept the code Sandre in entry and modify it afterwards to Cemagref code. If data from the LAMMI model is used, the EDF code is transformed to the Cemagref code even if some uncertainties results from this conversion. This might have an impact on the results.
+
+The following table describes the different substrate codes:
+
+.. figure:: substrat.png
+   :scale: 100 %
+   :alt: The different substrate codes used in HABBY.
+
+Description of the format of the substrate input
+"""""""""""""""""""""""""""""""""""""""""""""""""
+There are two types of intputs in HABBY for the subtrate: Text and shapefile inputs.
+
+The text input is a text file composed of four columns: x,y, the coarser substrate type, and the dominant subtrate type. The  substrate can be in Sandre or Cemagref code. The first line of the text file is ignored by HABBY and can be used as header or be empty.
+
+The substrate shapefile is a polygon shapefile created by ArcMap or another GIS-Software. Its attribute table has two or three columns. The third column is the "accessory" substrate and is not necessary. It is not used by HABBY currenlty. 
+The first and second columns are the dominant and corser substrate data (order as wished by the user). The name of the column with the coarser subtrate can be chosed from the following options: 'plus gros', 'coarser', 'PG', 'PLUS GROS', 'COARSER'. The name of the column with the dominant subtrate can be chosed from the following options: 'dominant', 'DOMINANT', 'DM'. The name of the column with the accesory subtrate can be chosed from the following options: 'acc', 'ACC', 'ACCESSORY', 'accessoire', 'ACCESSOIRE'.
+
+
 Merge the grid
 ------------------
 in src/mesh_grid2.py

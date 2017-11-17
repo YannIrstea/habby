@@ -41,7 +41,7 @@
 
 
 \title{HABBY Documentation}
-\date{Nov 06, 2017}
+\date{Nov 17, 2017}
 \release{1}
 \author{Diane von Gunten, Yann Le Coarer and Fabrice Zaoui}
 \newcommand{\sphinxlogo}{}
@@ -775,6 +775,30 @@ the boolean self.does\_it\_work is used to know if the functions run until the e
 the tested variable var\_in
 
 \end{description}\end{quote}
+
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+\index{MyFilter (class in src\_GUI.Main\_windows\_1)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MyFilter}}\pysigline{\sphinxstrong{class }\sphinxcode{src\_GUI.Main\_windows\_1.}\sphinxbfcode{MyFilter}}
+This is a filter which is used to know when a QWidget is going out of focus. Practically this is used
+if the user goes away from a QLineEdit. If this events happends, the project is autmatically saved with the new
+info of the user.
+\index{eventFilter() (src\_GUI.Main\_windows\_1.MyFilter method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MyFilter.eventFilter}}\pysiglinewithargsret{\sphinxbfcode{eventFilter}}{\emph{widget}, \emph{event}}{}
+\end{fulllineitems}
+
+\index{outfocus\_signal (src\_GUI.Main\_windows\_1.MyFilter attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.Main_windows_1.MyFilter.outfocus_signal}}\pysigline{\sphinxbfcode{outfocus\_signal}}
+A signal to change the user name and the description of the project
 
 \end{fulllineitems}
 
@@ -2335,8 +2359,8 @@ for estimhab and fstress. Hence, we can re-use these function without re.writing
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.fstress_GUI.FstressW.add_all_fish}}\pysiglinewithargsret{\sphinxbfcode{add\_all\_fish}}{}{}
-This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. This function
-was copied from the one in SStathab\_GUI.py
+This function add the name of all known fish (the ones in Pref.txt) to the QListWidget which cintains selected
+fish. This function was copied from the one in SStathab\_GUI.py
 
 \end{fulllineitems}
 
@@ -2363,7 +2387,7 @@ folder.
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.fstress_GUI.FstressW.load_all_fish}}\pysiglinewithargsret{\sphinxbfcode{load\_all\_fish}}{}{}
 This function find the preference file, load the preference coefficient for each invertebrate and show their name
-on QListWidget. it is run at the start of the program. FStress cannot be run as long as a preference file is not
+on QListWidget. It is run at the start of the program. FStress cannot be run as long as a preference file is not
 found.
 
 \end{fulllineitems}
@@ -2391,13 +2415,17 @@ the project previously.
 
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.fstress_GUI.FstressW.load_txt}}\pysiglinewithargsret{\sphinxbfcode{load\_txt}}{}{}
-In this function, the user select a qhw.txt or a listriv.txt file. This files are loaded and written on the GUI.
-If a listriv.txt is selected, the river in lisriv.txt are loaded. If a qhw.txt is loaded and if there are
-more than one qhw.txt in the folder, we ask the user if all files must be loaded. The needed text files are
-the following:
+In this function, the user select  a listriv.txt file. This files are loaded and written on the GUI.
+
+Before it was also possible to select just one qhw file. This is still part of the code, but it is not advised
+to do this as the river name tends to mix each other, which is more trouble to maintain that it worths it.
+If a qhw.txt is loaded and if there are more than one qhw.txt in the folder, we ask the user if all files must
+be loaded.
+
+The needed text files are the following:
 \begin{itemize}
 \item {} 
-listriv.txt is a text file with one river name by line (not necessary)
+listriv.txt is a text file with one river name by line
 
 \item {} 
 rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
@@ -2587,6 +2615,18 @@ The function is used to select a new fish species (or inverterbrate)
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src_GUI.estimhab_GUI.StatModUseful.add_sel_fish}}\pysiglinewithargsret{\sphinxbfcode{add\_sel\_fish}}{}{}
 This function loads the xml file and check if some fish were selected before. If yes, we add them to the list
+
+\end{fulllineitems}
+
+\index{check\_all\_q() (src\_GUI.estimhab\_GUI.StatModUseful method)}
+
+\begin{fulllineitems}
+\phantomsection\label{\detokenize{index:src_GUI.estimhab_GUI.StatModUseful.check_all_q}}\pysiglinewithargsret{\sphinxbfcode{check\_all\_q}}{}{}
+This function checks the range of the different discharge and send a warning if we are out of the range
+estimated reasonable (based on the manual from Estimhab and FStress). This is not used by Stathab.
+
+It uses the variable self.qall which is a list of float composed of q1, q2, qsim1, qsim2, q50. This function
+only send warning and it used to check the entry before the calculation.
 
 \end{fulllineitems}
 
@@ -5815,7 +5855,7 @@ from one hydraulic model.
 \end{itemize}
 
 \item[{Returns}] \leavevmode
-a list with the filename (filename+dir) for each extension
+a list with the filename (filename no dir) for each extension
 
 \end{description}\end{quote}
 
@@ -5971,7 +6011,7 @@ files.
 \index{save\_hdf5() (in module src.load\_hdf5)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.load_hdf5.save_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{save\_hdf5}}{\emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{point\_c\_all\_t}, \emph{inter\_vel\_all\_t}, \emph{inter\_h\_all\_t}, \emph{xhzv\_data={[}{]}}, \emph{coord\_pro={[}{]}}, \emph{vh\_pro={[}{]}}, \emph{nb\_pro\_reach={[}{]}}, \emph{merge=False}, \emph{sub\_pg\_all\_t={[}{]}}, \emph{sub\_dom\_all\_t={[}{]}}, \emph{sub\_per\_all\_t={[}{]}}, \emph{sim\_name={[}{]}}, \emph{sub\_ini\_name='`}, \emph{hydro\_ini\_name='`}, \emph{save\_option=None}}{}
+\phantomsection\label{\detokenize{index:src.load_hdf5.save_hdf5}}\pysiglinewithargsret{\sphinxcode{src.load\_hdf5.}\sphinxbfcode{save\_hdf5}}{\emph{name\_hdf5}, \emph{name\_prj}, \emph{path\_prj}, \emph{model\_type}, \emph{nb\_dim}, \emph{path\_hdf5}, \emph{ikle\_all\_t}, \emph{point\_all\_t}, \emph{point\_c\_all\_t}, \emph{inter\_vel\_all\_t}, \emph{inter\_h\_all\_t}, \emph{xhzv\_data={[}{]}}, \emph{coord\_pro={[}{]}}, \emph{vh\_pro={[}{]}}, \emph{nb\_pro\_reach={[}{]}}, \emph{merge=False}, \emph{sub\_pg\_all\_t={[}{]}}, \emph{sub\_dom\_all\_t={[}{]}}, \emph{sub\_per\_all\_t={[}{]}}, \emph{sim\_name={[}{]}}, \emph{sub\_ini\_name='`}, \emph{hydro\_ini\_name='`}, \emph{save\_option=None}, \emph{version=0}}{}
 This function save the hydrological data in the hdf5 format.
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -6044,6 +6084,9 @@ This function save the hydrological data in the hdf5 format.
 \item {} 
 \sphinxstyleliteralstrong{save\_option} -- If save\_option is not none, the variable erase\_idem which is usually given in the figure option
 is overwritten by save\_option which is boolean. This is useful for habby cmd.
+
+\item {} 
+\sphinxstyleliteralstrong{version} -- The version number of HABBY
 
 \end{itemize}
 
@@ -8219,7 +8262,7 @@ in the xml project file.
 \index{write\_txt() (in module src.fstress)}
 
 \begin{fulllineitems}
-\phantomsection\label{\detokenize{index:src.fstress.write_txt}}\pysiglinewithargsret{\sphinxcode{src.fstress.}\sphinxbfcode{write\_txt}}{\emph{qmod\_all}, \emph{vh\_all}, \emph{name\_inv}, \emph{path\_txt}, \emph{name\_river}}{}
+\phantomsection\label{\detokenize{index:src.fstress.write_txt}}\pysiglinewithargsret{\sphinxcode{src.fstress.}\sphinxbfcode{write\_txt}}{\emph{qmod\_all}, \emph{vh\_all}, \emph{name\_inv}, \emph{path\_txt}, \emph{name\_river}, \emph{timestamp=True}}{}
 This function writes the txt outputs for FStress
 \begin{quote}\begin{description}
 \item[{Parameters}] \leavevmode\begin{itemize}
@@ -8237,6 +8280,9 @@ This function writes the txt outputs for FStress
 
 \item {} 
 \sphinxstyleliteralstrong{name\_river} -- the name of the river
+
+\item {} 
+\sphinxstyleliteralstrong{timestamp} -- If True, the file is saved with time stamp. Otherwise, it is not.
 
 \end{itemize}
 
@@ -8441,10 +8487,10 @@ and an array with substrate type and a boolean which allows to get the case wher
 \begin{fulllineitems}
 \phantomsection\label{\detokenize{index:src.substrate.load_sub_txt}}\pysiglinewithargsret{\sphinxcode{src.substrate.}\sphinxbfcode{load\_sub\_txt}}{\emph{filename}, \emph{path}, \emph{code\_type}, \emph{path\_shp='.'}}{}
 A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
-coarser substrate type, dominant substrate type, no header or title. It is transform to a grid using a voronoi
-transformation.
+coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
+transformation. There is one line of header (free texte).
 
-The voronoi transformation might look strange as it is often bigger than theorginal point. However, this is
+The voronoi transformation might look strange as it is often bigger than the original point. However, this is
 just the mathematical result.
 
 At the end of this fnuction, the resulting grid is exported in a shapefile form.
@@ -8579,6 +8625,28 @@ the substrate data in code cemagref
 
 \end{fulllineitems}
 
+
+
+\subsection{Description of substrate code}
+\label{\detokenize{index:description-of-substrate-code}}
+Internally HABBY uses the Cemagref code to describe the substrate. It also accept the code Sandre in entry and modify it afterwards to Cemagref code. If data from the LAMMI model is used, the EDF code is transformed to the Cemagref code even if some uncertainties results from this conversion. This might have an impact on the results.
+
+The following table describes the different substrate codes:
+\begin{figure}[htbp]
+\centering
+
+\noindent\sphinxincludegraphics[scale=1.0]{{substrat}.png}
+\end{figure}
+
+
+\subsection{Description of the format of the substrate input}
+\label{\detokenize{index:description-of-the-format-of-the-substrate-input}}
+There are tow types of intputs: Text and shapefile inputs.
+
+The text inputs is composed of four columns: x,y, the coarser substrate type, and the dominant subtrate type. The substrate can be in Sandre or Cemagref code. The first line of the text file is ignored by HABBY and can be used as header or let empty.
+
+The substrate shapefile is a polygon shapefile created by ArcMap or another GIS-Software. Its attribute table has two or three columns. The third column is the ``accessory'' substrate and is not necessary. It is not used by HABBY currenlty.
+The first and second columns are the dominant and corser substrate data (order as wished by the user). The name of the column with the coarser subtrate can be chosed from the following options: `plus gros', `coarser', `PG', `PLUS GROS', `COARSER'. The name of the column with the dominant subtrate can be chosed from the following options: `dominant', `DOMINANT', `DM'. The name of the column with the accesory subtrate can be chosed from the following options: `acc', `ACC', `ACCESSORY', `accessoire', `ACCESSOIRE'.
 
 
 \section{Merge the grid}

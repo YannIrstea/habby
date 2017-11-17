@@ -243,7 +243,7 @@ class SubHydroW(QWidget):
         self.namefile = ['unknown file', 'unknown file']  # for children, careful with list index out of range
         self.interpo = ["Interpolation by block", "Linear interpolation", "Nearest Neighbors"]  # order matters here
         self.interpo_choice = 0 # gives which type of interpolation is chosen (it is the index of self.interpo )
-        self.pathfile = ['.', '.']
+        self.pathfile = [path_prj, path_prj]
         self.attributexml = [' ', ' ']
         self.model_type = ' '
         self.nb_dim = 2
@@ -2789,11 +2789,9 @@ class SubstrateW(SubHydroW):
         l00 = QLabel(self.tr('<b>Substrate from File </b>'))
         l2 = QLabel(self.tr('File'))
         lh = QLabel(self.tr('hdf5 file name'))
-        l11 = QLabel(self.tr('Default substrate value:'))
         l3 = QLabel(self.tr('Code Substrate'))
         self.e2 = QComboBox()
         self.e2.addItems(self.all_code_type)
-        self.e3 = QLineEdit('1')  # default substrate value
         self.hname = QLineEdit('')  # hdf5 name
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
@@ -2843,6 +2841,9 @@ class SubstrateW(SubHydroW):
         self.spacer2 = QSpacerItem(1, 10)
         self.butfig2 = QPushButton(self.tr("Create figure again"))
         self.butfig2.clicked.connect(self.recreate_image)
+        l11 = QLabel(self.tr('Default substrate value:'))
+        l112 = QLabel(self.tr('Cemagref Code'))
+        self.e3 = QLineEdit('1')  # default substrate value
         # get possible substrate from the project file
         self.update_sub_hdf5_name()
         # get the last file created
@@ -2867,8 +2868,6 @@ class SubstrateW(SubHydroW):
         self.layout_file.addWidget(self.h2d_b, 1, 2)
         self.layout_file.addWidget(l3, 2, 0)
         self.layout_file.addWidget(self.e2, 2, 1)
-        self.layout_file.addWidget(l11, 3, 0)
-        self.layout_file.addWidget(self.e3, 3, 1)
         self.layout_file.addWidget(lh, 4, 0)
         self.layout_file.addWidget(self.hname, 4, 1)
         self.layout_file.addWidget(self.load_b, 5, 2)
@@ -2901,13 +2900,16 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addItem(spacer,6,1)
         self.layout_sub.addWidget(l8, 10, 0, 1, 2)
         self.layout_sub.addWidget(l9, 11, 0)
-        self.layout_sub.addWidget(self.drop_hyd, 11, 1,1,2)
+        self.layout_sub.addWidget(self.drop_hyd, 11, 1)
         self.layout_sub.addWidget(l10, 12, 0)
-        self.layout_sub.addWidget(self.drop_sub, 12, 1,1,2)
-        self.layout_sub.addWidget(self.load_b2, 14, 2)
-        self.layout_sub.addWidget(self.butfig2, 14, 3)
-        self.layout_sub.addWidget(lm1, 13, 0)
-        self.layout_sub.addWidget(self.lm2, 13, 1)
+        self.layout_sub.addWidget(self.drop_sub, 12, 1)
+        self.layout_sub.addWidget(self.load_b2, 15, 2)
+        self.layout_sub.addWidget(self.butfig2, 15, 3)
+        self.layout_sub.addWidget(l11, 13, 0)
+        self.layout_sub.addWidget(self.e3, 13, 1)
+        self.layout_sub.addWidget(l112, 13, 2)
+        self.layout_sub.addWidget(lm1, 14, 0)
+        self.layout_sub.addWidget(self.lm2, 14, 1)
         self.layout_sub.addItem(self.spacer2, 11, 1)
 
         self.setLayout(self.layout_sub)
@@ -2964,10 +2966,10 @@ class SubstrateW(SubHydroW):
 
     def load_sub_gui(self, const_sub=False):
         """
-        This function is used to load the substrate data. The substrate data can be in two forms: a) in the form of a shp
-        file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line).
-        Generally this function has some similarities to the functions used to load the hydrological data and it re-uses
-        some of the methods developed for them.
+        This function is used to load the substrate data. The substrate data can be in three forms: a) in the form of a shp
+        file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line),
+        c) it can be a constant substrate. Generally this function has some similarities to the functions used to load
+        the hydrological data and it re-uses some of the methods developed for them.
 
         It is possible to have a constant substrate if const_sub= True. In this
         case, an hdf5 is created with only the default value marked. This form of hdf5 file is then managed by the merge
@@ -3024,6 +3026,7 @@ class SubstrateW(SubHydroW):
                 # check if we have all files
                 name1 = namebase + '.dbf'
                 name2 = namebase + '.shx'
+                name3 = namebase + '.prj'  # it is ok if it does not exists
                 pathname1 = os.path.join(self.pathfile[0], name1)
                 pathname2 = os.path.join(self.pathfile[0], name2)
                 if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
@@ -3066,10 +3069,13 @@ class SubstrateW(SubHydroW):
 
                 # copy shape file (compsed of .shp, .shx and .dbf)
                 path_input = self.find_path_input()
-                name_3 = [self.namefile[0], name1, name2]
-                path_3 = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
-                self.p2 = Process(target=load_hdf5.copy_files, args=(name_3, path_3, path_input))
+                name_all = [self.namefile[0], name1, name2]
+                path_all = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
+                self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
                 self.p2.start()
+                # we might have an addition projection file to copy (short)
+                if os.path.isfile(name3):
+                    load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
 
                 # log info
                 self.send_log.emit(self.tr('# Substrate data type: Shapefile'))
