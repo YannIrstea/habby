@@ -298,21 +298,53 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
 
     def get_discharge(self, linetext):
         """
-        This function takes the data in the QlineEdit and transform it to a list of float
+        This function takes the data in the QlineEdit and transform it to a list of float. There are two possibilities:
+        a) The discharge are given one by one separated by a comma b) We give the start, end and steps of discharge
+        separated by a colon and habby create a list of discharge. 1:5:1 -> 1,2,3,4
         """
-        dstr = linetext.text()
-        dstr = dstr.split(',')
+        dstr0 = linetext.text()
+        dstr = dstr0.split(',')
         if len(dstr) < 2:
-            try:
-                discharge = [float(dstr[0])]
-            except ValueError:
-                self.send_log.emit('Error: Discharge should be separated by a comma. \n')
-                return [-99]
-        else:
+            if ':' in dstr0:  # range of discharge
+                dstr = dstr0.split(':')
+                if len(dstr) == 2:  # start:end
+                    try:
+                        startd = int(dstr[0])
+                        endd = int(dstr[1])
+                    except ValueError:
+                        self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
+                                           'by a comma or in the format start:end:step (1). \n')
+                        return [-99]
+                    discharge = range(startd, endd)
+                elif len(dstr) == 3:  # start:end:step
+                    try:
+                        startd = int(dstr[0])
+                        endd = int(dstr[1])
+                        step = int(dstr[2])
+                    except ValueError:
+                        self.send_log.emit(
+                            'Error: Discharge format was not understood. Discharges should be separated '
+                            'by a comma or in the format start:end:step (5). \n')
+                        return [-99]
+                    discharge = range(startd, endd, step)
+                else:
+                    self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
+                                           'by a comma or in the format start:end:step (2). \n')
+                    return [-99]
+            else: # just one number alone or a not-recongnizable entry
+                try:
+                    discharge = [float(dstr[0])]
+                except ValueError:
+                    self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
+                                           'by a comma or in the format start:end:step (3). \n')
+                    return [-99]
+
+        else:  # list of discharge
             try:
                 discharge = list(map(float, dstr))
             except ValueError:
-                self.send_log.emit('Error: Discharge should be a list of number separeated by a comma. \n')
+                self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
+                                           'by a comma or in the format start:end:step (4). \n')
                 return [-99]
 
         return discharge
