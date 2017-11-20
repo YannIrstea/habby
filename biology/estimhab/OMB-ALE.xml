@@ -20,6 +20,7 @@
 </Fish>
 
 <estimhab>
+<stage> fry </stage>
 <coeff_q> 3.5 -75 </coeff_q>
 <func_q> 0 </func_q>
 <coeff_const> 225018 -94762 249139 </coeff_const> 

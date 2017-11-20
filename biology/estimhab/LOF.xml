@@ -12,6 +12,7 @@
 </Fish>
 
 <estimhab>
+<stage> all_stage </stage>
 <coeff_q> 0.16 -21.79 </coeff_q>
 <func_q> 0 </func_q>
 <coeff_const> 0.64 0.51 -0.33 </coeff_const> 

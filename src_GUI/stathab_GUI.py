@@ -3,7 +3,7 @@ import os
 from PyQt5.QtCore import QTranslator, pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QFileDialog, QSpacerItem,\
     QListWidget, QListWidgetItem, QMessageBox, QCheckBox, QComboBox, QAbstractItemView
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QFont
 import time
 import sys
 import copy
@@ -76,7 +76,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.listrivname = 'listriv'
         self.end_file_reach = ['deb', 'qhw', 'gra', 'dis']  # .txt or .csv
         self.end_file_reach_trop = ['deb', 'qhw', 'ii'] # .txt or .csv
-        self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref.txt']
+        self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref_latin.txt']
         self.name_file_allreach_trop = []
         self.hdf5_name = self.tr('No hdf5 selected')
         self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
@@ -339,16 +339,19 @@ class StathabW(estimhab_GUI.StatModUseful):
         Afterwards, it checks if the files needed by Stathab are here. The list of file is given in the
         self.end_file_reach list. The form of the file is always the name of the reach + one item of
         self.end_file_reach. If it does not find all files, it add the name of the files not found to self.list_needed,
-        so that the user can be aware of which file he needs. The exception is Pref.txt. If HABBY do not find it in the
-        directory, it uses the default “Pref.txt”. All files (apart from Pref.txt) should be in the same directory.
+        so that the user can be aware of which file he needs. The exception is Pref_latin.txt. If HABBY do not find
+        it in the directory, it uses the default “Pref_latin.txt” . All files (apart from Pref_latin.txt) should be in
+        the same directory. There is also a file called "Pref.txt" file. It is a very similar file as Pref_latin.txt
+        and can also be used as intput. The fish name are however in code and not in latin name.
+
         If the river is temperate, the files needed are not the same than if the river is in the tropic. This is
         accounted using the variable rivint. If rivint is zero, the river is temparate and this function looks for the
         file needed for temperate type (list of file contained in self.end_file_reach and self.name_file_allreach).
         If riverin is equal to 1 or 2, the river is tropical (list of file contained in self.end_file_reach_top and
         biological data in the stathab folder in the biology folder (many files). If the river is temperate,
-        all preference coeff are in one file called Pref.txt (also in the stathab folder of the biology folder).
+        all preference coeff are in one file called Pref_latin.txt (also in the stathab folder of the biology folder).
 
-        Then, it calls a method of the Stathab class (in src) which reads the “pref.txt” file and adds the name
+        Then, it calls a method of the Stathab class (in src) which reads the “pref_latin.txt” file and adds the name
         of the fish to the GUI. If the "tropical river" option is selected, it looks which preference file are present
         in self.path_bio_stathab. The name of the tropical preference file needs to be in this form: YuniYh_XXX.csv and
         YuniYh_XX.csv for the univariate case and YbivYXXX.csv for the bivarate where XX is the three letter fish code
@@ -780,6 +783,19 @@ class StathabW(estimhab_GUI.StatModUseful):
                 else:
                     self.list_s.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
+
+                # order the list (careful QLIstWidget do not order as sort from list)
+                if self.fish_selected:
+                    self.fish_selected.sort()
+                    self.list_s.clear()
+                    self.list_s.addItems(self.fish_selected)
+                    # bold for selected fish
+                    font = QFont()
+                    font.setItalic(True)
+                    for i in range(0, self.list_f.count()):
+                        for f in self.fish_selected:
+                            if f == self.list_f.item(i).text():
+                                self.list_f.item(i).setFont(font)
 
     def run_stathab_gui(self):
         """

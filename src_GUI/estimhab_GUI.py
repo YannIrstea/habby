@@ -61,10 +61,7 @@ class StatModUseful(QWidget):
                 if items[i].text() in self.fish_selected:
                     pass
                 else:
-                    #self.list_s.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
-                    #inds = self.list_f.selectedIndexes()
-                    #self.list_f.takeItem(inds[0].row())
 
         # order the list (careful QLIstWidget do not order as sort from list)
         if self.fish_selected:
@@ -344,6 +341,7 @@ class EstimhabW(StatModUseful):
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
         self.VH = []
         self.SPU = []
+        self.filenames = []  # a list which link the name of the fish name and the xml file
         self.init_iu()
 
     def init_iu(self):
@@ -407,15 +405,8 @@ class EstimhabW(StatModUseful):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # add  all test file in a directory
-        all_file = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
-        # make them look nicer
-        for i in range(0, len(all_file)):
-            all_file[i] = os.path.basename(all_file[i])
-            all_file[i] = all_file[i].replace(".xml", "")
-            # add the list
-            item = QListWidgetItem(all_file[i])
-            self.list_f.addItem(item)
+        # add all fish name from a directory to the QListWidget self.list_f
+        self.read_fish_name()
 
         # send model
         button1 = QPushButton(self.tr('Save and Run ESTIMHAB'), self)
@@ -451,6 +442,51 @@ class EstimhabW(StatModUseful):
         self.layout3.addWidget(button1, 10, 2)
         #self.layout3.addWidget(button2, 10, 0)
         self.setLayout(self.layout3)
+
+    def read_fish_name(self):
+        """
+        This function reads all latin fish name from the xml files which are contained in the biological directory
+        related to estimhab.
+        """
+
+        all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
+
+        fish_names = []
+        for f in all_xmlfile:
+            # open xml
+            try:
+                try:
+                    docxml = ET.parse(f)
+                    root = docxml.getroot()
+                except IOError:
+                    print("Warning: the xml file " +f + " could not be open \n")
+                    return
+            except ET.ParseError:
+                print("Warning: the xml file " + f + " is not well-formed.\n")
+                return
+
+            # find fish name
+            fish_name = root.find(".//LatinName")
+            # None is null for python 3
+            if fish_name is not None:
+                fish_name = fish_name.text.strip()
+
+            # find fish stage
+            stage = root.find(".//estimhab/stage")
+            # None is null for python 3
+            if stage is not None:
+                stage = stage.text.strip()
+            if stage != 'all_stage':
+                fish_name += ' ' + stage
+
+            # add to the list
+            item = QListWidgetItem(fish_name)
+            self.list_f.addItem(item)
+
+            fish_names.append(fish_name)
+
+        # remember fish name and xml filename
+        self.filenames = [fish_names, all_xmlfile]
 
     def open_estimhab_hdf5(self):
         """
@@ -549,11 +585,18 @@ class EstimhabW(StatModUseful):
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             return
+
+        # get the list of xml file
         fish_list = []
+        fish_name2 = []
         for i in range(0, self.list_s.count()):
             fish_item = self.list_s.item(i)
             fish_item_str = fish_item.text()
-            fish_list.append(fish_item_str)
+            for id, f in enumerate(self.filenames[0]):
+                if f == fish_item_str:
+                    fish_list.append(os.path.basename(self.filenames[1][id]))
+                    fish_name2.append(fish_item_str)
+
 
         # check internal logic
         if not fish_list:
@@ -621,14 +664,13 @@ class EstimhabW(StatModUseful):
         self.qall = [q[0], q[1], qrange[0], qrange[1], q50]
         self.check_all_q()
 
-        fish_list = list(set(fish_list))  # it will remove duplicate, but change the list order!
         # run and save
         path_im = self.find_path_im_est()
         path_txt = self.find_path_text_est()
         fig_opt = output_fig_GUI.  load_fig_option(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
         [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio_estimhab, fish_list,
-                                                path_im, True, fig_opt, path_txt)
+                                                path_im, True, fig_opt, path_txt, fish_name2)
         self.save_signal_estimhab.emit()
 
         #log info

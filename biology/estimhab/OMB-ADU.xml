@@ -20,6 +20,7 @@
 </Fish>
 
 <estimhab>
+<stage> adult </stage>
 <coeff_q> 4.5 -38.8 </coeff_q>
 <func_q> 0 </func_q>
 <coeff_const> 161711 </coeff_const> 

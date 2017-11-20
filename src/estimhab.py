@@ -7,8 +7,8 @@ from src_GUI import output_fig_GUI
 import matplotlib as mpl
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, path_im, pict=False, fig_opt={},
-             path_txt=[]):
+def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, path_im, pict=False, fig_opt={},
+             path_txt=[], fish_name=''):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -21,10 +21,11 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     :param substrat: mean height of substrat
     :param path_im: the path where the image should be saved
     :param path_bio: the path to the xml file with the information on the fishes
-    :param fish_name: the name of the fish which have to be analyzed
+    :param fish_name: the name of the xml file to be analyzed
     :param pict: if true the figure is shown. If false, the figure is not shown
     :param fig_opt: a dictionnary with the figure option
     :param path_txt: the path where to send the text data
+    :param fish_name: the name fo the fish to be analysed (if not there, use the xml name)
     :return: habitat value and useful surface (VH and SPU) as a function of discharge
 
     **Technical comments and walk-through**
@@ -63,6 +64,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         erase1 = True
     else:
         erase1 = False
+    if not fish_name:
+        fish_name = fish_xml
 
     # Q
     nb_q = 20  # number of calculated q
@@ -109,14 +112,14 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
     # get fish data
     VH = []
     SPU = []
-    for f in range(0, len(fish_name)):
+    for f in range(0, len(fish_xml)):
         # load xml file
-        filename = os.path.join(path_bio, fish_name[f] + '.xml')
+        filename = os.path.join(path_bio, fish_xml[f])
         if os.path.isfile(filename):
             doc = ET.parse(filename)
             root = doc.getroot()
         else:
-            print('Error: the xml file for the fish '+fish_name[f]+" does not exist")
+            print('Error: the xml file for the file '+fish_xml[f]+" does not exist")
             return [-99], [-99]
 
         # get data
@@ -229,6 +232,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_name, pa
         txtin += 'Output file:\t' + name_pict+'.txt\n'
         with open(os.path.join(path_txt,name_input + '.txt'), 'wt') as f:
             f.write(txtin)
+
+    del fish_name
 
     return VH, SPU
 

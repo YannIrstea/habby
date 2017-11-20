@@ -13,6 +13,7 @@
 </Pref_courbe>
 
 <estimhab>
+<stage> all_stage </stage>
 <coeff_q> -0.86 -26.84 </coeff_q>
 <func_q> 1 </func_q>
 <coeff_const> 0.56 -0.04 0.04 0.12  </coeff_const> 
