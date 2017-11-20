@@ -332,7 +332,16 @@ class outputW(QWidget):
         # format
         fig_dict['format'] = str(self.fig10.currentIndex())
         # resolution
-        fig_dict['resolution'] = int(self.fig11.text())
+        try:
+            fig_dict['resolution'] = int(self.fig11.text())
+        except ValueError:
+            self.send_log.emit('Error: the resolution should be an integer. \n')
+        if fig_dict['resolution'] < 0:
+            self.send_log.emit('Error: The resolution should be higher than zero \n')
+            return
+        if fig_dict['resolution'] > 2000:
+            self.send_log.emit('Warning: The resolution is higher than 2000 dpi. Figures might be very large.\n')
+
         # fish name type
         fig_dict['fish_name_type'] = int(self.fig12.currentIndex())
         # marker
@@ -364,7 +373,10 @@ class outputW(QWidget):
         elif self.out4b.isChecked():
             fig_dict['fish_info'] = False
         # other option
-        fig_dict['min_height_hyd'] = float(self.hopt.text())
+        try:
+            fig_dict['min_height_hyd'] = float(self.hopt.text())
+        except ValueError:
+            self.send_log.emit('Error: Minimum Height should be a number')
         if self.out5a.isChecked():
             fig_dict['erase_id'] = True
         elif self.out5b.isChecked():
@@ -580,7 +592,7 @@ def load_fig_option(path_prj, name_prj):
     try:
         fig_dict['time_step'] = list(map(int, fig_dict['time_step']))
     except ValueError:
-        print('Error: Time step could not be read in the options')
+        print('Error: Time step could not be read in the options')  # sendLog not read yet
 
     return fig_dict
 

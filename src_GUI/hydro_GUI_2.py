@@ -801,7 +801,8 @@ class SubHydroW(QWidget):
 
         path_im = self.find_path_im()
         path_hdf5 = self.find_path_hdf5()
-        #sys.stdout = self.mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()
+
         # find hsf5 name (files where is hte data)
         if self.model_type == 'SUBSTRATE':
             name_hdf5 = load_hdf5.get_hdf5_name('MERGE', self.name_prj, self.path_prj)
@@ -811,7 +812,13 @@ class SubHydroW(QWidget):
             name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
         if name_hdf5:
             # load data
-            [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
+            if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
+                [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg, substrate_all_dom] \
+                    = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, True)
+            else:
+                substrate_all_pg = []
+                substrate_all_dom = []
+                [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
                                                                                                 path_hdf5)
             if ikle_all_t == [[-99]]:
                 self.send_log.emit('Error: No data found in hdf5 (from create_image)')
@@ -826,7 +833,8 @@ class SubHydroW(QWidget):
                     if t < len(ikle_all_t):
                         if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                             manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
-                                                           inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
+                                                           inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
+                                                           substrate_all_pg[t], substrate_all_dom[t])
                         else:
                             manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
                                                            inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
@@ -840,7 +848,8 @@ class SubHydroW(QWidget):
                         if t < len(ikle_all_t):
                             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                                 manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
-                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t)
+                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
+                                                               substrate_all_pg[t], substrate_all_dom[t])
                             else:
                                 manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
                                                                inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)

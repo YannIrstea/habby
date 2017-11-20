@@ -12,6 +12,7 @@ import bisect
 import sys
 from src_GUI import output_fig_GUI
 from src import calcul_hab
+from src import substrate
 #np.set_printoptions(threshold=np.inf)
 
 
@@ -2176,20 +2177,22 @@ def create_dummy_substrate(coord_pro, sqrtnp):
 
 
 def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False,
-                     time_step=0):
+                     time_step=0, sub_pg=[], sub_dom=[]):
     """
     This is the function to plot grid output for one time step. The data is one the node. A more complicated function
     exists to plot the grid and additional information (manage-grid_8.plot_grid()) in case there are needed to debug.
     The present function only plot the grid and output without more information.
 
-    :param point_all_reach: the coordinate of the point. This is given by reaches.
-    :param ikle_all:  the connectivity table. This is given by reaches.
+    :param point_all_reach: the coordinate of the point for this time step. This is given by reaches.
+    :param ikle_all:  the connectivity table for this time step. This is given by reaches.
     :param fig_opt: the dictionary with the different options to create the figures
     :param inter_vel_all: the velcoity data. This is given by reaches.
     :param inter_h_all: the height data. This is given by reaches.
     :param path_im: the path where the figure should be saved
     :param merge_case: If True, we plot data from grid with merged substrate and hydrological data
     :param time_step: time step to be added to the title
+    :param sub_pg: coarser data from the subtrate
+    :param sub_dom: doominat data from the subtrate
     """
 
     if not fig_opt:
@@ -2438,6 +2441,16 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+
+    # plot substrate for the whole hydrological grid for each reach
+    if sub_pg and sub_dom:
+        for r in range(0, min(len(ikle_all), 2)):
+            if len(ikle_all)>1:
+                substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im, reach_num=r)
+            else:
+                substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im)
+            if r==1:
+                print('Warning: For the substrate data, only the two first reaches are plotted. \n')
 
 
 

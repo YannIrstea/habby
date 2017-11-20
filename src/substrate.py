@@ -855,7 +855,8 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
         np.savetxt(os.path.join(path_out, new_name+'.txt'), data)
 
 
-def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-99], ytxt= [-99], subtxt= [-99]):
+def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-99], ytxt= [-99], subtxt= [-99],
+                  reach_num=-99):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -868,7 +869,8 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     :param xtxt: if the data was given in txt form, the orignal x data
     :param ytxt: if the data was given in txt form, the orignal y data
     :param subtxt: if the data was given in txt form, the orignal sub data
-    :param path_im: the path where to save the figure\
+    :param path_im: the path where to save the figure
+    :param reach_num: If we plot more than one reach, this is the reach number
     """
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
@@ -913,7 +915,9 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         ylist.append(None)
 
     # substrate coarser
-    fig, ax = plt.subplots(1)
+    fig = plt.figure()
+
+    sub1 = fig.add_subplot(211)
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map1'])
     colors_val = np.array(sub_pg) # convert nfloors to colors that we can use later (cemagref)
@@ -929,54 +933,27 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         polygon = Polygon(verts, closed=True,edgecolor='w')
         patches.append(polygon)
     collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
-    ax.add_collection(collection)
+    sub1.add_collection(collection)
     #collection.set_color(colors)
     collection.set_array(colors_val)
-    ax.autoscale_view()
-    plt.plot(xlist, ylist, c='b', linewidth=0.2)
+    sub1.autoscale_view()
+    sub1.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
-    if fig_opt['language'] == 0:
-        plt.title('Substrate Grid - Coarser Data')
-    elif fig_opt['language'] == 1:
-        plt.title('Maillage Substrat - Plus Gros')
-    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
-    # colorbar
-
-    # ColorbarBase derives from ScalarMappable and puts a colorbar
-    # in a specified axes, so it has everything needed for a
-    # standalone colorbar.  There are many more kwargs, but the
-    # following gives a basic continuous colorbar with ticks
-    # and labels.
-    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap,
-                                    norm=norm,
-                                    orientation='vertical')
-    cb1.set_label('Code Cemagref')
-    if not erase1:
-        if format == 0 or format == 1:
-            plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                     '.png'), dpi=fig_opt['resolution'], transparent=True)
-        if format == 0 or format == 3:
-            plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                     '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-        if format == 2:
-            plt.savefig(os.path.join(path_im, "substrate_pg" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                     '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+    if reach_num ==-99:
+        if fig_opt['language'] == 0:
+            plt.title('Substrate Grid - Coarser Data')
+        elif fig_opt['language'] == 1:
+            plt.title('Maillage Substrat - Plus Gros')
     else:
-        test = calcul_hab.remove_image("substrate_pg", path_im, format)
-        if not test:
-            return
-        if format == 0 or format == 1:
-            plt.savefig(os.path.join(path_im, "substrate_pg.png"), dpi=fig_opt['resolution'], transparent=True)
-        if format == 0 or format == 3:
-            plt.savefig(os.path.join(path_im, "substrate_pg.pdf"), dpi=fig_opt['resolution'], transparent=True)
-        if format == 2:
-            plt.savefig(os.path.join(path_im, "substrate_pg.jpg"), dpi=fig_opt['resolution'], transparent=True)
+        if fig_opt['language'] == 0:
+            plt.title('Substrate Grid - Coarser Data - Reach ' + str(reach_num))
+        elif fig_opt['language'] == 1:
+            plt.title('Maillage Substrat - Plus Gros - Bief ' + str(reach_num))
 
     # substrate dominant
-    fig2, ax2 = plt.subplots(1)
+    sub2 = fig.add_subplot(212)
     patches = []
-    cmap = plt.get_cmap(fig_opt['color_map2'])
     colors_val = np.array(sub_dom)  # convert nfloors to colors that we can use later
     # Set norm to correspond to the data for which
     # the colorbar will be used.
@@ -990,18 +967,24 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
     collection = PatchCollection(patches,linewidth=0.0, cmap=cmap, norm=norm)
-    ax2.add_collection(collection)
+    sub2.add_collection(collection)
     collection.set_array(colors_val)
-    ax2.autoscale_view()
+    sub2.autoscale_view()
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')
-    plt.plot(xlist, ylist, c='b', linewidth=0.2)
+    sub2.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
-    if fig_opt['language'] == 0:
-        plt.title('Substrate Grid - Dominant')
-    elif fig_opt['language'] == 1:
-        plt.title('Maillage Substrat - Dominant')
+    if reach_num == -99:
+        if fig_opt['language'] == 0:
+            plt.title('Substrate Grid - Dominant')
+        elif fig_opt['language'] == 1:
+            plt.title('Maillage Substrat - Dominant')
+    else:
+        if fig_opt['language'] == 0:
+            plt.title('Substrate Grid - Dominant - Reach ' + str(reach_num))
+        elif fig_opt['language'] == 1:
+            plt.title('Maillage Substrat - Dominant - Reach ' + str(reach_num))
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7]) # posistion x2, sizex2, 1= top of the figure
@@ -1012,6 +995,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     # and labels.
     cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
     cb1.set_label('Code Cemagref')
+    #plt.tight_layout()
 
     # save the figure
     if not erase1:
