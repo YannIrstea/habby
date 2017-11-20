@@ -3,6 +3,7 @@ import os
 import numpy as np
 import time
 import shutil
+import shapefile
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -1189,4 +1190,124 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
                   inter_vel1, inter_height1, merge=merge, sim_name=[], save_option=erase_id)
 
 
-def 
+def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=True):
+    """
+    This function creates a shapefile with the hydraulic and shapefile data. This can be used to check how the data
+    was merged. The shapefile will have the same name than the hdf5 file. There are some similairites between this
+    function and the function in calcul_hab.py (save_hab_shape). It might be useful to change both function if
+    corrections must be done.
+
+    :param name_hdf5: the name of the hdf5 file (with .h5 extension)
+    :param path_hdf5: the path to the hdf5 file
+    :param path_shp: The path where the shapefile will be created
+    :param erase_id: Should we kept all shapefile or erase old files if they comes from the same model
+    :param merge: If ture, the hdf5 file is a merge file with substrate data (usually True)
+    """
+
+    [ikle_all_t, point_all_t, vel_nodes, height_node, sub_pg_data, sub_dom_data] = load_hdf5_hyd(name_hdf5,
+                                                                                                 path_hdf5, merge)
+    if ikle_all_t == [[-99]] or len(ikle_all_t) < 1:
+        return
+    sim_name = load_timestep_name(name_hdf5, path_hdf5)
+
+    # we needs the data by cells and not nodes
+    # optmization possibility: save the data in the hdf5 and re-use it for the habitat calculation
+    vel_data = [[]]
+    height_data = [[]]
+    for t in range(1, len(ikle_all_t)):  # ikle_all_t[0] has no velocity
+        ikle_all = ikle_all_t[t]
+        vel_all = vel_nodes[t]
+        he_all = height_node[t]
+        vel_data_here = []
+        height_data_here = []
+        for r in range(0, len(ikle_all)):
+            ikle = ikle_all[r]
+            try:
+                v = vel_all[r]
+                h = he_all[r]
+            except IndexError:
+                print('Velocity data was missing for one time step. Could not create a shapefile to check data. \n')
+                return
+            # get data by cells
+            v1 = v[ikle[:, 0]]
+            v2 = v[ikle[:, 1]]
+            v3 = v[ikle[:, 2]]
+            v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+            vel_data_here.append(v_cell)
+
+            h1 = h[ikle[:, 0]]
+            h2 = h[ikle[:, 1]]
+            h3 = h[ikle[:, 2]]
+            h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+            height_data_here.append(h_cell)
+        vel_data.append(vel_data_here)
+        height_data.append(height_data_here)
+
+    # we do not print the first time step with the whole profile
+
+    for t in range(1, len(ikle_all_t)):
+        ikle_here = ikle_all_t[t][0]
+        if len(ikle_here) < 2:
+            print('Warning: One time step failed. \n')
+        else:
+            w = shapefile.Writer(shapefile.POLYGON)
+            w.autoBalance = 1
+
+            # get the triangle
+            nb_reach = len(ikle_all_t[t])
+            for r in range(0, nb_reach):
+                ikle_r = ikle_all_t[t][r]
+                point_here = point_all_t[t][r]
+                for i in range(0, len(ikle_r)):
+                    p1 = list(point_here[ikle_r[i][0]])
+                    p2 = list(point_here[ikle_r[i][1]])
+                    p3 = list(point_here[ikle_r[i][2]])
+                    w.poly(parts=[[p1, p2, p3, p1]])  # the double [[]] is important or it bugs, but why?
+
+            if t > 0:
+                # attribute
+                w.field('velocity', 'F')
+                w.field('water heig', 'F')
+                w.field('conveyance', 'F')
+                if merge:
+                    w.field('sub_coarser', 'F')
+                    w.field('sub_dom', 'F')
+
+                # fill attribute
+                for r in range(0, nb_reach):
+                    vel = vel_data[t][r]
+                    height = height_data[t][r]
+                    sub_pg = sub_pg_data[t][r]
+                    sub_dom = sub_dom_data[t][r]
+                    ikle_r = ikle_all_t[t][r]
+                    for i in range(0, len(ikle_r)):
+                        data_here = ()
+                        if merge:
+                            data_here += vel[i], height[i], vel[i] * height[i], sub_pg[i], sub_dom[i]
+                        else:
+                            data_here += vel[i], height[i], vel[i] * height[i]
+                        # the * pass tuple to function argument
+                        w.record(*data_here)
+
+            w.autoBalance = 1
+
+            # save
+            name_base = name_hdf5[:-3]
+            if not erase_id:
+                if not sim_name:
+                    name1 = name_base + '_t_' + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+                else:
+                    name1 = name_base + '_t_' + sim_name[t - 1] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
+            else:
+                if not sim_name:
+                    name1 = name_base + '_t_' + str(t) + '.shp'
+                else:
+                    name1 = name_base + '_t_' + sim_name[t - 1] + '.shp'
+                if os.path.isfile(os.path.join(path_shp, name1)):
+                    try:
+                        os.remove(os.path.join(path_shp, name1))
+                    except PermissionError:
+                        print('Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                        return
+
+            w.save(os.path.join(path_shp, name1))

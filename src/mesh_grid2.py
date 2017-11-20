@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj, model_type,
-                        q=[], print_cmd=False):
+                        q=[], print_cmd=False, path_shp='', erase_id=False):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
@@ -28,6 +28,8 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
     :param model_type: the type of the "model". In this case, it is just 'SUBSTRATE'
     :param q: used to share info with the GUI when this thread have finsihed (print_cmd = False)
     :param print_cmd: If False, print to the GUI (usually False)
+    :param path_shp: the path where to save the shp file with hydro and subtrate. If empty, the shp file is not saved.
+    :param: erase_id should we erase old shapefile from the same model or not.
     """
 
     if not print_cmd:
@@ -57,6 +59,10 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
                         point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
                         sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
                         hydro_ini_name=hdf5_name_hyd)
+
+    # save in a shapefile form
+    if path_shp:
+        load_hdf5.create_shapfile_hydro(name_hdf5merge + '.h5', path_hdf5, path_shp, True, erase_id)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

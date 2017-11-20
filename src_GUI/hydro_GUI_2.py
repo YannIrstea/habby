@@ -581,6 +581,38 @@ class SubHydroW(QWidget):
 
         return path_input
 
+    def find_path_output(self, att):
+        """
+        A function to find the path where to save the shapefile, paraview files and other future format. Here, we gave
+        the xml attribute as argument so this functin can be used to find all path needed. However, it is less practical
+        to use as the function above as one should remember the xml tribute to call this function. However, it can be
+        practical to use to add new folder. Careful a similar function is in estimhab_GUI.py.
+
+        :param att: the xml attribute (from the xml project file) linked to the path needed, without the .//
+
+        """
+
+        path_out = 'no_path'
+
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            child = root.find(".//" + att)
+            if child is None:
+                return self.path_prj
+            else:
+                path_out = os.path.join(self.path_prj, child.text)
+        else:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Save the path to the fichier text"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the General tab."))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+
+        return path_out
+
     def read_attribute_xml(self, att_here):
         """
         A function to read the text of an attribute in the xml project file.
@@ -3279,7 +3311,15 @@ class SubstrateW(SubHydroW):
         hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()]
         default_data = self.e3.text()
         path_hdf5 = self.find_path_hdf5()
-        path_im = self.find_path_im()
+        path_shp = self.find_path_output("Path_Shape")
+
+        # get if we erase old data or not
+        # get the figure options and the type of output to be created
+        fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        if fig_opt['erase_id'] == 'True':
+            erase_id = True
+        else:
+            erase_id = False
 
         # for error management and figures
         self.timer.start(1000)
@@ -3288,7 +3328,7 @@ class SubstrateW(SubHydroW):
         self.q = Queue()
         self.p = Process(target=mesh_grid2.merge_grid_and_save, args=(hdf5_name_hyd, hdf5_name_sub, path_hdf5,
                                                                      default_data, self.name_prj, self.path_prj,
-                                                                     self.model_type, self.q))
+                                                                     self.model_type, self.q, False, path_shp, erase_id))
         self.p.start()
 
         # log

@@ -223,7 +223,7 @@ class StatModUseful(QWidget):
         A function to find the path where to save the shapefile, paraview files and other future format. Here, we gave
         the xml attribute as argument so this functin can be used to find all path needed. However, it is less practical
         to use as the function above as one should remember the xml tribute to call this function. However, it can be
-        practical to use to add new folder.
+        practical to use to add new folder. Careful a similar function is in Hydro_GUI_2.py.
 
         :param att: the xml attribute (from the xml project file) linked to the path needed, without the .//
 
@@ -252,7 +252,7 @@ class StatModUseful(QWidget):
 
     def find_path_input_est(self):
         """
-        A function to find the path where to save the input file. Careful a simialar one is in estimhab_GUI.py. By default,
+        A function to find the path where to save the input file. Careful a similar one is in hydro_GUI_2.py. By default,
         path_input indicates the folder 'input' in the project folder.
         """
 
