@@ -242,8 +242,11 @@ class FstressW(estimhab_GUI.StatModUseful):
         ind = self.riv.currentIndex()
         del self.riv_name[ind]
         del self.found_file[ind]
-        del self.qrange[ind]
-        del self.qhw[ind]
+        if len(self.qrange)>0:
+            del self.qrange[ind]
+        if len(self.qhw)>0:
+            del self.qhw[ind]
+
         if self.riv.count() == 1:
             self.riv.addItem(self.defriver)
             self.riv_name.append(self.defriver)

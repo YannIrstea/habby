@@ -436,7 +436,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         We add a "tooltip" which indicates the orginal hydraulic and substrate files.
         """
-        print('update merge called')
 
         xmlfile = os.path.join(self.path_prj, self.name_prj +'.xml')
         # open the file

@@ -1909,7 +1909,7 @@ class CentralW(QWidget):
         # add restart command to the restart file
         elif text_log[:7] == 'restart':
             self.write_log_file(text_log[7:], pathname_restartfile)
-        elif text_log[:5] == 'Error':
+        elif text_log[:5] == 'Error' or text_log[:6] == 'Erreur':
             t = self.l2.text()
             self.l2.setText(t + "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
             self.write_log_file('# ' +text_log, pathname_logfile)
