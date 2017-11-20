@@ -149,7 +149,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.l4 = QLabel(self.tr("File still needed"))
         l5 = QLabel(self.tr("Available Fish"))
         l6 = QLabel(self.tr("Selected Fish"))
-        self.fishall = QCheckBox(self.tr('Select all fishes'), self)
+        self.fishall = QPushButton(self.tr('Select all fishes'))
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Save and run Stathab"))
         self.butfig = QPushButton(self.tr("Create Figure Again"))
@@ -180,7 +180,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.list_s.itemActivated.connect(self.remove_fish)
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.fishall.stateChanged.connect(self.add_all_fish)
+        self.fishall.clicked.connect(self.add_all_fish)
         self.rivtype.currentIndexChanged.connect(self.change_riv_type)
 
         # update label and list
@@ -768,19 +768,18 @@ class StathabW(estimhab_GUI.StatModUseful):
         This function add the name of all known fish (the ones in Pref.txt) to the QListWidget. Careful,
         a similar function exists in Fstress_GUI. Modify both if needed.
         """
-        if self.fishall.isChecked():
 
-            items = []
-            for index in range(self.list_f.count()):
-                items.append(self.list_f.item(index))
-            if items:
-                for i in range(0, len(items)):
-                    # avoid to have the same fish multiple times
-                    if items[i].text() in self.fish_selected:
-                        pass
-                    else:
-                        self.list_s.addItem(items[i].text())
-                        self.fish_selected.append(items[i].text())
+        items = []
+        for index in range(self.list_f.count()):
+            items.append(self.list_f.item(index))
+        if items:
+            for i in range(0, len(items)):
+                # avoid to have the same fish multiple times
+                if items[i].text() in self.fish_selected:
+                    pass
+                else:
+                    self.list_s.addItem(items[i].text())
+                    self.fish_selected.append(items[i].text())
 
     def run_stathab_gui(self):
         """
