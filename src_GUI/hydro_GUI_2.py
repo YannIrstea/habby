@@ -2591,7 +2591,8 @@ class HabbyHdf5(SubHydroW):
         self.ismerge = False
 
         # select a file
-        fname_h5 = QFileDialog.getOpenFileName()[0]
+        path_hdf5 = self.find_path_hdf5()
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
         if fname_h5 != '':  # cancel
             blob, ext = os.path.splitext(fname_h5)
         else:
@@ -2601,7 +2602,6 @@ class HabbyHdf5(SubHydroW):
         [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(fname_h5)
 
         # copy the file and update the attribute
-        path_hdf5 = self.find_path_hdf5()
         path_input = self.find_path_input()
         if os.path.isdir(path_hdf5):
             self.new_name = 'COPY_' + os.path.basename(fname_h5)
@@ -2646,7 +2646,8 @@ class HabbyHdf5(SubHydroW):
         self.ismerge = True
 
         # select a file
-        fname_h5 = QFileDialog.getOpenFileName()[0]
+        path_hdf5 = self.find_path_hdf5()
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
         if fname_h5 != '':  # cancel
             blob, ext = os.path.splitext(fname_h5)
         else:
@@ -2724,7 +2725,7 @@ class HabbyHdf5(SubHydroW):
 
     def add_two_hdf5(self, merge):
         """
-        This functions is used to merge together two hydro/merge hdf5. For tis, it call the function 'addition_hdf5'
+        This functions is used to merge together two hydro/merge hdf5. For this, it call the function 'addition_hdf5'
         from load_hdf5.py
 
         :param merge: A boolean which say if we load an hydrological or a merge file
@@ -2732,9 +2733,10 @@ class HabbyHdf5(SubHydroW):
 
         self.send_log.emit('# Loading: Join two HABBY hdf5 file together ...')
         self.ismerge = merge
+        path_hdf5 = self.find_path_hdf5()
 
         # select the first file
-        fname_h5 = QFileDialog.getOpenFileName()[0]
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5,  '*.h5', '*.h5')[0]
         if fname_h5 != '':  # cancel
             hdf51 = os.path.basename(fname_h5)
             path1 = os.path.dirname(fname_h5)
@@ -2750,7 +2752,7 @@ class HabbyHdf5(SubHydroW):
 
         if self.msg2.exec() == QMessageBox.Ok:
             # select the second file
-            fname_h5 = QFileDialog.getOpenFileName()[0]
+            fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
             if fname_h5 != '':  # cancel
                 hdf52 = os.path.basename(fname_h5)
                 path2 = os.path.dirname(fname_h5)
@@ -2765,9 +2767,8 @@ class HabbyHdf5(SubHydroW):
             else:
                 erase_id = False
 
-            path_hdf5 = self.find_path_hdf5()
             load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, self.name_prj, self.path_prj, self.model_type,
-                                    path_hdf5, merge=False, erase_id=erase_id)
+                                    path_hdf5, merge=self.ismerge, erase_id=erase_id)
             self.add_new_hdf5_to_xml()
 
             self.send_log.emit('Two hdf5 file added together')

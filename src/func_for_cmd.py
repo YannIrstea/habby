@@ -128,6 +128,12 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
               "(the river type, 0 by default, 1, or 2 for tropical rivers).")
+        print("ADD_HYDRO_HDF5: Add two hdf5 with hydraulic data together in one hydraulic hdf5. The number of time step"
+              " should be the same in both file. No substrate data. Input: the name of the first hdf5 (with path), "
+              "the name of the second hdf5 file")
+        print("ADD_MERGE_HDF5: Add two hdf5 with merge data together in one merge hdf5. Substrate data available. The "
+              "number of time step should be the same in both file. Input: the name of the first hdf5 (with path),"
+              " the name of the second hdf5 file")
 
         print('\n')
         print("RESTART: Relauch HABBY based on a list of command in a text file (restart file) Input: the name of file"
@@ -1081,6 +1087,47 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_in, discharge_out, name_prj, path_prj, minh)
 
+    # ---------------------------------------------------------------------------
+    elif all_arg[1] == 'ADD_HYDRO_HDF5':
+        if len(all_arg) != 4:
+            print('ADD_HYDRO_HDF5 needs two arguments. See LIST_COMMAND for more information.')
+            return
+        filepath1 = all_arg[2]
+        filepath2 = all_arg[3]
+        if not os.path.isfile(filepath1):
+            print('Error: The first hdf5 file was not found')
+            return
+        if not os.path.isfile(filepath2):
+            print('Error: The second hdf5 file was not found')
+            return
+        path1 = os.path.dirname(filepath1)
+        path2 = os.path.dirname(filepath2)
+        hdf51 = os.path.basename(filepath1)
+        hdf52 = os.path.basename(filepath2)
+
+        model_type = 'Imported_hydro'
+        load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj, False, True)
+        # ---------------------------------------------------------------------------
+    elif all_arg[1] == 'ADD_MERGE_HDF5':
+        if len(all_arg) != 4:
+            print('ADD_MERGE_HDF5 needs two arguments. See LIST_COMMAND for more information.')
+            return
+        filepath1 = all_arg[2]
+        filepath2 = all_arg[3]
+        if not os.path.isfile(filepath1):
+            print('Error: The first hdf5 file was not found')
+            return
+        if not os.path.isfile(filepath2):
+            print('Error: The second hdf5 file was not found')
+            return
+        path1 = os.path.dirname(filepath1)
+        path2 = os.path.dirname(filepath2)
+        hdf51 = os.path.basename(filepath1)
+        hdf52 = os.path.basename(filepath2)
+
+        model_type = 'Imported_hydro'
+        load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj, True, True)
+
     # ----------------------------------------------------------------------------
     elif all_arg[1] == 'COMPARE_TEST':
         if len(all_arg) != 4:
@@ -1091,10 +1138,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         folder1 = all_arg[2]
         folder2 = all_arg[3]
         if not os.path.isdir(folder1):
-            print('the first folder is not found')
+            print('Error: the first folder is not found')
             return
         if not os.path.isdir(folder2):
-            print('the second folder is not found')
+            print('Error: the second folder is not found')
             return
 
         # get the names of the files in the folder with the expected files

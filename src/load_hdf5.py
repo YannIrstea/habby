@@ -1176,16 +1176,18 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
         inter_vel1[t].extend(inter_vel2[t])
         inter_height1[t].extend(inter_height2[t])
         if merge:
-            substrate_all_pg1[t].append(substrate_all_pg2)
-            substrate_all_dom1[t].append(substrate_all_dom2)
+            substrate_all_pg1[t].extend(substrate_all_pg2[t])
+            substrate_all_dom1[t].extend(substrate_all_dom2[t])
 
     # save the new data
-    new_hdf5_name = 'ADD' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
+
     if merge:
+        new_hdf5_name = 'ADDMERGE' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
         save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path1, ikle1, point1, [],
                   inter_vel1, inter_height1, merge=merge, sub_pg_all_t=substrate_all_pg1,
                   sub_dom_all_t=substrate_all_dom1, sim_name=[],save_option=erase_id)
     else:
+        new_hdf5_name = 'ADDHYDRO' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
         save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
                   inter_vel1, inter_height1, merge=merge, sim_name=[], save_option=erase_id)
 
