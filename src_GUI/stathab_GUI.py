@@ -11,6 +11,7 @@ from src import stathab_c
 from src import load_hdf5
 from src_GUI import estimhab_GUI
 import xml.etree.ElementTree as ET
+import shutil
 
 
 class StathabW(estimhab_GUI.StatModUseful):
@@ -360,7 +361,8 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         Next, if all files are present, it loads the data using the method written in Stathab
         (in the src folder). When the data is loaded, it creates an hdf5 file from this data and save the name of this
-        new hdf5 file in the xml project file (also using a method in the stathab class).
+        new hdf5 file in the xml project file (also using a method in the stathab class). It also copy the input files
+        in the "input" folder.
 
         Finally, it sends the log info as explained in the log section of the documentation
         """
@@ -503,6 +505,15 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.save_xml_stathab()
         sys.stdout = sys.__stdout__
         self.send_err_log()
+
+        # copy the input in the input folder
+        input_folder = self.find_path_input_est()
+        new_dir = os.path.join(input_folder, 'input_stathab')
+        all_files = os.listdir(self.dir_name)
+        paths = [self.dir_name] * len(all_files)
+        if not os.path.exists(new_dir):
+            os.makedirs(new_dir)
+        load_hdf5.copy_files(all_files, paths, new_dir)
 
         # log info
         if not self.mystathab.load_ok:

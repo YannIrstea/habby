@@ -736,7 +736,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
             if t > 0:
                 # attribute
                 for n in name_fish_sh:
-                    w.field('hsi'+n, 'F')
+                    w.field('hv'+n, 'F')
                 w.field('velocity', 'F')
                 w.field('water heig', 'F')
                 w.field('conveyance', 'F')
@@ -854,7 +854,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             for s in range(0, len(name_fish)):
                 data_bar.append(spu_all[s][1][r])
             y_pos = np.arange(len(spu_all))
-            if r>0:
+            if r > 0:
                 fig = plt.figure()
             fig.add_subplot(211)
             if data_bar:
@@ -909,7 +909,8 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         t_all = []
         for r in range(0, nb_reach):
             # SPU
-            fig = plt.figure()
+            if r>0:
+                fig = plt.figure()
             fig.add_subplot(211)
             for s in range(0, len(spu_all)):
                 data_plot = []
@@ -1315,17 +1316,18 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             plt.hist(vel_app, 20, weights=area_app, facecolor='blue')
             if fig_opt['language'] == 0:
                 if t == -1:
-                    plt.suptitle('Last Computational Step')
+                    plt.suptitle('Hydraulic Data - Last Computational Step - ' + name_base)
                 else:
-                    plt.suptitle('Computational Step: ' + str(t))
+                    plt.suptitle('Hydraulic Data - Computational Step: ' + str(t) + ' - ' +name_base)
                 plt.title('Velocity by Cells')
                 plt.xlabel('velocity [m/sec]')
                 plt.ylabel('number of occurence')
             elif fig_opt['language'] == 1:
                 if t == -1:
-                    plt.suptitle('Histogramme de Données Hydrauliques - Dernier Pas de Temps/Débit')
+                    plt.suptitle('Histogramme de Données Hydrauliques - Dernier Pas de Temps/Débit - ' + name_base)
                 else:
-                    plt.suptitle('Histogramme de Données Hydrauliques - Pas de Temps/Débit: ' + str(t))
+                    plt.suptitle('Histogramme de Données Hydrauliques - Pas de Temps/Débit: ' + str(t) + ' - ' +
+                                 name_base)
                 plt.title('Vitesse par cellule')
                 plt.xlabel('vitesse [m/sec]')
                 plt.ylabel('fréquence')
@@ -1450,6 +1452,17 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
             if p == 0:
                 fig = plt.figure()
                 fig.add_subplot(221)  # why (22p) does not work?
+                if fig_opt['language'] == 0:
+                    if t == -1:
+                        plt.suptitle('Habitat Data - Last Computational Step - ' + name_base)
+                    else:
+                        plt.suptitle('Habitat Data - Computational Step: ' + str(t) + ' - ' +name_base)
+                elif fig_opt['language'] == 1:
+                    if t == -1:
+                        plt.suptitle("Histogramme de Données d'Habitat - Dernier Pas de Temps/Débit - " + name_base)
+                    else:
+                        plt.suptitle("Histogramme de Données d'Habitat- Pas de Temps/Débit: " + str(t) + ' - ' +
+                                     name_base)
             if p == 1:
                 fig.add_subplot(222)
             if p == 2:

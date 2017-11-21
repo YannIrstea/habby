@@ -1102,7 +1102,7 @@ def copy_files(names,paths, path_input):
         return
 
     if len(names) != len(paths):
-        print('Error: the number of file to be copied is not equalt to the number of paths')
+        print('Error: the number of file to be copied is not equal to the number of paths')
         return
 
     for i in range(0, len(names)):
@@ -1116,7 +1116,7 @@ def copy_files(names,paths, path_input):
             else:
                 if os.path.isfile(src):
                     dst = os.path.join(path_input, names[i])
-                    shutil.copy(src, dst )
+                    shutil.copy(src, dst)
 
 
 def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_hdf5, merge=False, erase_id=True):

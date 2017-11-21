@@ -12,6 +12,7 @@ import os
 from io import StringIO
 from src_GUI import estimhab_GUI
 from src import fstress
+from src import load_hdf5
 from src_GUI import output_fig_GUI
 
 
@@ -307,7 +308,7 @@ class FstressW(estimhab_GUI.StatModUseful):
           the maximum discharge to be modelled. It is chosen by the user (necessary to run, but can be given by the user
           on the GUI)
 
-        All data should be in SI unit.
+        All data should be in SI unit. We save all the data in the input folder at the end.
         """
         self.found_file = []
         self.riv_name = []
@@ -413,6 +414,15 @@ class FstressW(estimhab_GUI.StatModUseful):
         path_hdf5 = self.find_path_hdf5_est()
         fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj,self.name_bio,self.path_bio, self.riv_name,self.qhw,
                              self.qrange,self.fish_selected)
+
+        # copy the input in the input folder
+        input_folder = self.find_path_input_est()
+        new_dir = os.path.join(input_folder, 'input_fstress')
+        all_files = os.listdir(self.path_fstress)
+        paths = [self.path_fstress] * len(all_files)
+        if not os.path.exists(new_dir):
+            os.makedirs(new_dir)
+        load_hdf5.copy_files(all_files, paths, new_dir)
 
         # show the data for the selected river
         self.show_data_one_river()
