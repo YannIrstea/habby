@@ -153,6 +153,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.fishall = QPushButton(self.tr('Select all fishes'))
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Save and run Stathab"))
+        self.runb.setStyleSheet("background-color: #31D656")
         self.butfig = QPushButton(self.tr("Create Figure Again"))
         self.butfig.clicked.connect(self.recreate_image)
         if len(self.mystathab.q_all) == 0:

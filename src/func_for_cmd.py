@@ -45,7 +45,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
     :param path_bio: the path to the project
     :param option_restart: If True the command are coming from a restart log (which have an impact on file name and
            location)
-    :param erase_id: If True, the files with the same name are erased in merge. If False, ther kept with a time stamp
+    :param erase_id: If True, the files with the same name are erased in merge. If False, they are kept with a
+           time stamp
     """
     # all_arg[0] is the script name (habby_cmd.py)
 
@@ -856,6 +857,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                              point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
                             sub_dom_all_both, save_option=erase_id)
 
+        # create shpafile to control intput
+        load_hdf5.create_shapfile_hydro(name_hdf5 + '.h5', path_hdf5, path_prj, True, erase_id)
+
     # --------------------------------------------------------------------------------
     elif all_arg[1] == 'MERGE_GRID_RAND_SUB':
         # this merge an hydro hdf5 with a random substrate
@@ -926,6 +930,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
                             point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
                             sub_dom_all_both)
+
+        # create shapefile to test input
+        load_hdf5.create_shapfile_hydro(name_hdf5 + '.h5', path_hdf5, path_prj, True, erase_id)
 
     # --------------------------------------------------------------------------------------------------------
 
