@@ -858,7 +858,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                             sub_dom_all_both, save_option=erase_id)
 
         # create shpafile to control intput
-        load_hdf5.create_shapfile_hydro(name_hdf5 + '.h5', path_hdf5, path_prj, True, erase_id)
+        load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
 
     # --------------------------------------------------------------------------------
     elif all_arg[1] == 'MERGE_GRID_RAND_SUB':
@@ -932,7 +932,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                             sub_dom_all_both)
 
         # create shapefile to test input
-        load_hdf5.create_shapfile_hydro(name_hdf5 + '.h5', path_hdf5, path_prj, True, erase_id)
+        load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
 
     # --------------------------------------------------------------------------------------------------------
 
