@@ -157,6 +157,9 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             elif fig_opt['language'] == 1:
                 plt.xlabel('Débit [m$^{3}$/sec]')
                 plt.ylabel('Valeur habitat []')
+            else:
+                plt.xlabel('Discharge [m$^{3}$/sec]')
+                plt.ylabel('Habitat Value[]')
             plt.legend(fish_name, fancybox=True, framealpha=0.5)
             plt.ylim(0, 1)
 
@@ -169,6 +172,9 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             elif fig_opt['language'] == 1:
                 plt.xlabel('Débit [m$^{3}$/sec]')
                 plt.ylabel('SPU par 100 m')
+            else:
+                plt.xlabel('Discharge [m$^{3}$/sec]')
+                plt.ylabel('WUA by 100 m')
 
         VH.append(VH_f)
         SPU.append(SPU_f)

@@ -473,6 +473,8 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
             plt.title('Suitability index J - River: ' + r)
         elif fig_opt['language'] == 1:
             plt.title('Index de suitabilité J - Rivère: ' + r)
+        else:
+            plt.title('Suitability index J - River: ' + r)
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
         lgd = plt.legend(bbox_to_anchor=(1.60, 1), loc='upper right', ncol=1)

@@ -945,11 +945,15 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             plt.title('Substrate Grid - Coarser Data')
         elif fig_opt['language'] == 1:
             plt.title('Maillage Substrat - Plus Gros')
+        else:
+            plt.title('Substrate Grid - Coarser Data')
     else:
         if fig_opt['language'] == 0:
             plt.title('Substrate Grid - Coarser Data - Reach ' + str(reach_num))
         elif fig_opt['language'] == 1:
             plt.title('Maillage Substrat - Plus Gros - Bief ' + str(reach_num))
+        else:
+            plt.title('Substrate Grid - Coarser Data - Reach ' + str(reach_num))
 
     # substrate dominant
     sub2 = fig.add_subplot(212)
@@ -980,11 +984,15 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             plt.title('Substrate Grid - Dominant')
         elif fig_opt['language'] == 1:
             plt.title('Maillage Substrat - Dominant')
+        else:
+            plt.title('Substrate Grid - Dominant')
     else:
         if fig_opt['language'] == 0:
             plt.title('Substrate Grid - Dominant - Reach ' + str(reach_num))
         elif fig_opt['language'] == 1:
             plt.title('Maillage Substrat - Dominant - Reach ' + str(reach_num))
+        else:
+            plt.title('Substrate Grid - Dominant - Reach ' + str(reach_num))
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7]) # posistion x2, sizex2, 1= top of the figure
@@ -1041,6 +1049,8 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
             plt.title('Original Substrate Data (x,y)')
         elif fig_opt['language'] == 1:
             plt.title('Données Substrat Original (x,y)')
+        else:
+            plt.title('Original Substrate Data (x,y)')
         if not erase1:
             plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
                         fig_opt['resolution'], transparent=True)

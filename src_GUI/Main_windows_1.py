@@ -98,10 +98,10 @@ class MainWindows(QMainWindow):
         # set up tranlsation
         self.languageTranslator = QTranslator()
         self.path_trans = r'.\translation'
-        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm']
+        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'ZEN_ES.qm']
         if language_set:
             try:
-                self.lang = int(language_set)  # need to be sure to have an integer there
+                self.lang = int(language_set)  # need integer there
             except ValueError:
                 self.lang = 0
         else:
@@ -273,6 +273,7 @@ class MainWindows(QMainWindow):
 
         *   0 is for English
         *   1 for French
+        *   2 for spanish
         *   n for any additionnal language
 
         """
@@ -337,6 +338,8 @@ class MainWindows(QMainWindow):
             self.central_widget.bioinfo_tab.lang = 'English'
         elif nb_lang == 1:
             self.central_widget.bioinfo_tab.lang = 'French'
+        # elif nb_lang == 2:  # to be addaed if the xml preference files are also in spanish
+        #     self.central_widget.bioinfo_tab.lang = 'Spanish'
         else:
             self.central_widget.bioinfo_tab.lang = 'English'
 
@@ -447,6 +450,9 @@ class MainWindows(QMainWindow):
         lAction2 = QAction(self.tr('&French'), self)
         lAction2.setStatusTip(self.tr('click here for French'))
         lAction2.triggered.connect(lambda: self.setlangue(1))
+        lAction3 = QAction(self.tr('&Spanish'), self)
+        lAction3.setStatusTip(self.tr('click here for Spanish'))
+        lAction3.triggered.connect(lambda: self.setlangue(2))
 
         # Menu to obtain help and programme version
         helpm = QAction(self.tr('Developper Help'), self)
@@ -489,6 +495,7 @@ class MainWindows(QMainWindow):
         re_all.addAction(rechc)
         fileMenu2.addAction(lAction1)
         fileMenu2.addAction(lAction2)
+        fileMenu2.addAction(lAction3)
         fileMenu3.addAction(helpm)
 
         if not right_menu:

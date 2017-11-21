@@ -7,3 +7,4 @@ SOURCES += output_fig_GUI.py
 SOURCES += fstress_GUI.py
 TRANSLATIONS += Zen_EN.ts
 TRANSLATIONS += Zen_FR.ts
+TRANSLATION += ZEN_ES.ts

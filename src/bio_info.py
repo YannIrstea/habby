@@ -978,17 +978,23 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt
         # move suptitle
         if fig_opt['language'] == 0:
             f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32, weight='bold')
-        else:
+        elif fig_opt['language'] == 1:
             f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32, weight='bold')
+        else:
+            f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32, weight='bold')
         # general info
         if fig_opt['language'] == 0:
             plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + code_fish + '\n\n'
-        else:
+        elif fig_opt['language'] == 1:
             plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA :\n\nStage choisi :\n\nDescription :",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][1] + '\n\n' + code_fish + '\n\n'
+        else:
+            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
+                        weight='bold', fontsize=32)
+            text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + code_fish + '\n\n'
         for idx, s in enumerate(stage_chosen2[idx]):
             text_all += s + ', '
         text_all = text_all[:-2] + '\n\n'

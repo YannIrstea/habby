@@ -2256,11 +2256,15 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
             plt.title('Computational Grid  - Last Time Step')
         elif fig_opt['language'] == 1:
             plt.title('Maillage - Dernier Pas de Temps')
+        else:
+            plt.title('Computational Grid  - Last Time Step')
     else:
         if fig_opt['language'] == 0:
             plt.title('Computational Grid - Time Step ' + str(time_step))
         elif fig_opt['language'] == 1:
             plt.title('Maillage - Pas de Temps: ' + str(time_step))
+        else:
+            plt.title('Computational Grid - Time Step ' + str(time_step))
     plt.tight_layout()
 
     # save figures
@@ -2329,6 +2333,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         cbar.ax.set_ylabel('Velocity [m/sec]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel('Vitesse [m/sec]')
+                    else:
+                        cbar.ax.set_ylabel('Velocity [m/sec]')
                 # plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
                 # plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
         plt.xlabel('x coord []')
@@ -2343,6 +2349,11 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 plt.title('Vitesse - Dernier Pas de Temps')
             else:
                 plt.title('Vitesse - Pas de Temps: ' + str(time_step))
+        else:
+            if time_step == -1:
+                plt.title('Velocity - Last Time Step')
+            else:
+                plt.title('Velocity - Time Step: ' + str(time_step))
 
         # save figure
         plt.tight_layout()
@@ -2400,6 +2411,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                         cbar.ax.set_ylabel('Water height [m]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel("Hauteur d'eau [m]")
+                    else:
+                        cbar.ax.set_ylabel('Water height [m]')
             else:
                 print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
         plt.xlabel('x coord []')
@@ -2410,6 +2423,11 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
             else:
                 plt.title('Water height - Time Step: ' + str(time_step) )
         elif fig_opt['language'] == 1:
+            if time_step == -1:
+                plt.title("Hauteur d'eau - Dernier Pas de Temps")
+            else:
+                plt.title("Hauteur d'eau - Pas de Temps: " + str(time_step))
+        else:
             if time_step == -1:
                 plt.title("Hauteur d'eau - Dernier Pas de Temps")
             else:
@@ -2443,14 +2461,15 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # plot substrate for the whole hydrological grid for each reach
-    if sub_pg and sub_dom:
-        for r in range(0, min(len(ikle_all), 2)):
-            if len(ikle_all)>1:
-                substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im, reach_num=r)
-            else:
-                substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im)
-            if r==1:
-                print('Warning: For the substrate data, only the two first reaches are plotted. \n')
+    # Not done anymore as it freezes the GUI for large models.
+    # if sub_pg and sub_dom:
+    #     for r in range(0, min(len(ikle_all), 2)):
+    #         if len(ikle_all)>1:
+    #             substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im, reach_num=r)
+    #         else:
+    #             substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im)
+    #         if r==1:
+    #             print('Warning: For the substrate data, only the two first reaches are plotted. \n')
 
 
 

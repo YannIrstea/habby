@@ -863,13 +863,17 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xticks(y_pos+0.25, name_fish)
             if fig_opt['language'] == 0:
                 plt.ylabel('WUA [m^2]')
-            if fig_opt['language'] == 1:
+            elif fig_opt['language'] == 1:
                 plt.ylabel('SPU [m^2]')
+            else:
+                plt.ylabel('WUA [m^2]')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
             if fig_opt['language'] == 0:
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
-            if fig_opt['language'] == 1:
+            elif fig_opt['language'] == 1:
                 plt.title('Surface Ponderée Utile pour le Troncon: ' + str(r))
+            else:
+                plt.title('Weighted Usable Area for the Reach ' + str(r))
             # VH
             fig.add_subplot(212)
             if data_bar:
@@ -878,13 +882,17 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xticks(y_pos + 0.25, name_fish)
             if fig_opt['language'] == 0:
                 plt.ylabel('HV (WUA/A) []')
-            if fig_opt['language'] == 1:
-                plt.ylabel('HV (SPU/A) []')
+            elif fig_opt['language'] == 1:
+                plt.ylabel('VH (SPU/A) []')
+            else:
+                plt.ylabel('HV (WUA/A) []')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
             if fig_opt['language'] == 0:
                 plt.title('Habitat value for the Reach ' + str(r))
-            if fig_opt['language'] == 1:
+            elif fig_opt['language'] == 1:
                 plt.title("Valeur d'Habitat:  " + str(r))
+            else:
+                plt.title('Habitat value for the Reach ' + str(r))
             if not erase_id:
                 name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
@@ -930,6 +938,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('SPU [m$^2$]')
                 plt.title('Surface Ponderée pour le troncon ' + str(r))
+            else:
+                plt.xlabel('Computational step [ ]')
+                plt.ylabel('WUA [m$^2$]')
+                plt.title('Weighted Usable Area for the Reach ' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
             if sim_name:
                 if len(sim_name[0]) > 5:
@@ -963,6 +975,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeur d'habitat pour le troncon " + str(r))
+            else:
+                plt.xlabel('Computational step [ ]')
+                plt.ylabel('HV (WUA/A) []')
+                plt.title('Habitat Value for the Reach ' + str(r))
             plt.ylim(ymin=-0.02)
             if sim_name:
                 if len(sim_name[0]) > 5:
@@ -1006,6 +1022,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Pas de temps/débit')
                 plt.ylabel('SPU [m^2]')
                 plt.title('Surface Ponderée pour tous les Troncons')
+            else:
+                plt.xlabel('Computational step or discharge')
+                plt.ylabel('WUA [m^2]')
+                plt.title('Weighted Usable Area for All Reaches')
             plt.legend(fancybox=True, framealpha=0.5)
             if sim_name:
                 if len(sim_name[0]) > 5:
@@ -1030,6 +1050,10 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Pas de temps/débit')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
+            else:
+                plt.xlabel('Computational step or discharge ')
+                plt.ylabel('HV (WUA/A) []')
+                plt.title('Habitat Value For All Reaches')
             plt.ylim(ymin=-0.02)
             plt.tight_layout()
             if sim_name:
@@ -1170,12 +1194,17 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                                             plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
                                         elif fig_opt['language'] == 1:
                                             plt.title("Valeur d'Habitat pour "+ name_fish[sp] + '- Dernière Simulation')
+                                        else:
+                                            plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
                                     else:
                                         if fig_opt['language'] == 0:
                                             plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
                                                       sim_name[-1])
                                         elif fig_opt['language'] == 1:
                                             plt.title("Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
+                                                      sim_name[-1])
+                                        else:
+                                            plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
                                                       sim_name[-1])
                                 else:
                                     if not sim_name:
@@ -1204,9 +1233,12 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             # and labels.
                             cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
                             if fig_opt['language'] == 0:
-                                cb1.set_label('HSI []')
+                                cb1.set_label('HV []')
                             elif fig_opt['language'] == 1:
                                 cb1.set_label('VH []')
+                            else:
+                                cb1.set_label('HV []')
+
 
                     # save figure
                     if save_fig:
@@ -1331,6 +1363,14 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.title('Vitesse par cellule')
                 plt.xlabel('vitesse [m/sec]')
                 plt.ylabel('fréquence')
+            else:
+                if t == -1:
+                    plt.suptitle('Hydraulic Data - Last Computational Step - ' + name_base)
+                else:
+                    plt.suptitle('Hydraulic Data - Computational Step: ' + str(t) + ' - ' + name_base)
+                plt.title('Velocity by Cells')
+                plt.xlabel('velocity [m/sec]')
+                plt.ylabel('number of occurence')
             # height
             fig.add_subplot(222)
             plt.hist(height_app, 20, weights=area_app, facecolor='aquamarine')
@@ -1342,6 +1382,10 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.title("Hauteur d'eau par cellule")
                 plt.xlabel('hauteur [m]')
                 plt.ylabel('fréquence')
+            else:
+                plt.title('Height by cells')
+                plt.xlabel('velocity [m/sec]')
+                plt.ylabel('number of occurence')
             # substrate
             fig.add_subplot(224)
             plt.hist(sub_pg_app, weights=area_app, facecolor='lightblue', bins=np.arange(0.5, 8.5))
@@ -1353,6 +1397,10 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.title('Données de substrat - Plus gros')
                 plt.xlabel('substrat - code cemagref')
                 plt.ylabel('fréquence')
+            else:
+                plt.title('Coarser substrate data')
+                plt.xlabel('substrate - code cemagref')
+                plt.ylabel('number of occurence')
             # debit unitaire
             fig.add_subplot(223)
             q_unit = np.array(vel_app) * np.array(height_app)
@@ -1365,6 +1413,10 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.title('Début unitaire')
                 plt.xlabel('v * h * 1m [m$^{3}$/sec]')
                 plt.ylabel('fréquence')
+            else:
+                plt.title('Elementary flow')
+                plt.xlabel('v * h * 1m [m$^{3}$/sec]')
+                plt.ylabel('number of occurence')
 
             plt.tight_layout(rect=[0., 0., 1, 0.95])
             if not erase_id:
@@ -1463,6 +1515,11 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
                     else:
                         plt.suptitle("Histogramme de Données d'Habitat- Pas de Temps/Débit: " + str(t) + ' - ' +
                                      name_base)
+                else:
+                    if t == -1:
+                        plt.suptitle('Habitat Data - Last Computational Step - ' + name_base)
+                    else:
+                        plt.suptitle('Habitat Data - Computational Step: ' + str(t) + ' - ' + name_base)
             if p == 1:
                 fig.add_subplot(222)
             if p == 2:
@@ -1478,6 +1535,10 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
                 plt.title("Valeur d'Habitat " + name_fish[s])
                 plt.xlabel("valeur d'habitat [ ] ")
                 plt.ylabel('fréquence')
+            else:
+                plt.title('Habitat Value ' + name_fish[s])
+                plt.xlabel('habitat value [ ]')
+                plt.ylabel('number of occurence')
             plt.xlim(-0.07, 1.07)
 
             if p == 0 and s > 3 or s == len(vh_all_t_sp)-1:
