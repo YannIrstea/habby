@@ -383,7 +383,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
                     v2[:, m] = v[:, r, c]
                     m += 1
 
-        # add data bt time step
+        # add data by time step
         for t in range(0, nbtime):
             v_all[t][r] = v2[t, :] # list of np.array
             h_all[t][r] = h2[t, :]

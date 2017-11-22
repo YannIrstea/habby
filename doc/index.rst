@@ -522,12 +522,12 @@ Here are step to create a .exe using PyInstaller:
 
 *	install Pyinstaller (pip install pyinstaller)
 *	cd "folder with source code"
-*	pyinstaller.exe [option] habby.py, with the option --onefile to get only one .exe and --windowed to not have the cmd which opens with the application.
+*	pyinstaller.exe [option] habby.py, with the option --onefile (two minus before the word onefile) to get only one .exe and --windowed (two minus before the word windowed) to not have the cmd which opens with the application.
 
 Here are some common problems:
 
 *	ImportError: (No module named 'PyQt5.QtGui'): Copy the folder platform with qwindows.dll and add to the set_up.py  "includes": ["PyQt5.QtCore", "PyQt5.QtGui"]
-*	This application fails to start because ... the Qt platform pugin windows: Copy the folder platform with qwindows.dll in it
+*	This application fails to start because ... the Qt platform plugin windows: Copy the folder platform with qwindows.dll in it
 *	ImportError: h5Py "includes": ["h5py","h5py.defs", "h5py.utils", "h5py.h5ac", 'h5py._proxy' ] etc if necessary
 *	Intel MKL fatal error copy the .dll missing (or just find an old dist and copy all mkl stuff) AND the libiomp5md.dll
 *	The translation does not work: Add the translation folder into the dist folder
