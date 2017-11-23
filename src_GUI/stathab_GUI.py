@@ -171,6 +171,15 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.rivtype.setCurrentIndex(self.riverint)
         self.mystathab.riverint = self.riverint
 
+        # avoid list which look too big
+        size_max = self.frameGeometry().height()/2.5
+        self.list_needed.setMaximumHeight(size_max)
+        self.list_re.setMaximumHeight(size_max)
+        self.list_file.setMaximumHeight(size_max)
+
+        self.list_f.setMinimumHeight(size_max)  # self.list_f defined in Estmhab_GUI.py
+        self.list_f.setMinimumHeight(size_max)
+
         # connect method with list
         loadb.clicked.connect(self.select_dir)
         loadhdf5b.clicked.connect(self.select_hdf5)
@@ -221,8 +230,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(l2, 1, 0)
         self.layout.addWidget(self.l3, 1, 1)
         self.layout.addWidget(self.l4, 1, 2)
-        self.layout.addWidget(self.list_re, 2, 0,2,1)
-        self.layout.addWidget(self.list_file, 2, 1,2,1)
+        self.layout.addWidget(self.list_re, 2, 0)
+        self.layout.addWidget(self.list_file, 2, 1)
         self.layout.addWidget(self.list_needed, 2, 2)
         self.layout.addWidget(self.rivtype, 3, 2)
         self.layout.addWidget(l5, 4, 0)
