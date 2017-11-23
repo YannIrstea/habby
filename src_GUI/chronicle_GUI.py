@@ -71,8 +71,12 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.fileout.clicked.connect(lambda: self.load_file(self.output))
         # update Qlabel for discharge
         root, docxml, xmlfile = self.open_xml()
-        disin = root.find('.//Chronicle/DischargeInput')
-        disout = root.find('.//Chronicle/DischargeOutput')
+        if isinstance(root, int):  # no project found
+            disin = None
+            disout = None
+        else:
+            disin = root.find('.//Chronicle/DischargeInput')
+            disout = root.find('.//Chronicle/DischargeOutput')
         if disin is not None:
             if disin.text is not None:
                 self.input.setText(disin.text)

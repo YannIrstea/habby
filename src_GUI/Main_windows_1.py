@@ -290,21 +290,39 @@ class MainWindows(QMainWindow):
         app.installTranslator(self.languageTranslator)
 
         # recreate new widget
-        self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
-        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
-        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
-        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
-        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+        if self.central_widget.tab_widget.count() == 1:
+            self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
+        else:
+            self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
+            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+            self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+            self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+            self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+            self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+            self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+            self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+
+            # pass the info to the bio info tab
+            # to be modified if a new langugage is added !
+            if nb_lang == 0:
+                self.central_widget.bioinfo_tab.lang = 'English'
+            elif nb_lang == 1:
+                self.central_widget.bioinfo_tab.lang = 'French'
+            # elif nb_lang == 2:  # to be addaed if the xml preference files are also in spanish
+            #     self.central_widget.bioinfo_tab.lang = 'Spanish'
+            else:
+                self.central_widget.bioinfo_tab.lang = 'English'
+
+            # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+            output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
             self.central_widget.tab_widget.removeTab(i)
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
-        self.central_widget.tab_widget.removeTab(0)  # WHY? I don't understand
+        self.central_widget.tab_widget.removeTab(0)
         self.central_widget.add_all_tab()
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
@@ -332,17 +350,6 @@ class MainWindows(QMainWindow):
 
         self.central_widget.l1.setText(self.tr('Habby says:'))
 
-        # pass the info to the bio info tab
-        # to be modified if a new langugage is added !
-        if nb_lang == 0:
-            self.central_widget.bioinfo_tab.lang = 'English'
-        elif nb_lang == 1:
-            self.central_widget.bioinfo_tab.lang = 'French'
-        # elif nb_lang == 2:  # to be addaed if the xml preference files are also in spanish
-        #     self.central_widget.bioinfo_tab.lang = 'Spanish'
-        else:
-            self.central_widget.bioinfo_tab.lang = 'English'
-
         # update user option to remember the language
         self.settings = QSettings('irstea', 'HABBY'+str(self.version))
         self.settings.setValue('language_code', self.lang)
@@ -352,9 +359,6 @@ class MainWindows(QMainWindow):
         self.create_menu_right()
         self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
-
-        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
-        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # open at the old tab
         self.central_widget.tab_widget.setCurrentIndex(ind_tab)
@@ -504,7 +508,7 @@ class MainWindows(QMainWindow):
 
             # add the title of the windows
             # let it here as it should be changes if language changes
-            self.setWindowTitle(self.tr('HABBY')+str(self.version) + ': ' + self.name_prj)
+            self.setWindowTitle(self.tr('HABBY ')+str(self.version) + ': ' + self.name_prj)
 
             # in case we need a tool bar
             # self.toolbar = self.addToolBar('')
@@ -822,21 +826,24 @@ class MainWindows(QMainWindow):
 
         for i in range(m, 0, -1):
             self.central_widget.tab_widget.removeTab(i)
+        self.central_widget.tab_widget.removeTab(0)
 
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
-        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
-        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
-        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
-        self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj +'.xml')):
+            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+            self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+            self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+            self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+            self.central_widget.output_tab.save_option_fig()
+            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+            self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+            self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+            self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+        else:
+            print('Error: Could not find the project saved just now. \n')
+            return
 
         self.central_widget.add_all_tab()
-
-        # save figure option
-        self.central_widget.output_tab.save_option_fig()
 
         # re-connect signals for the tab
         self.central_widget.connect_signal_fig_and_drop()
@@ -861,7 +868,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.lowpart.setEnabled(True)
 
         # update name project
-        self.setWindowTitle(self.tr('HABBY: ') + self.name_prj)
+        self.setWindowTitle(self.tr('HABBY ')+str(self.version) + ': ' + self.name_prj)
 
     def open_project(self):
         """
@@ -922,7 +929,7 @@ class MainWindows(QMainWindow):
             self.central_widget.write_log('Warning: Could not control for concurrency between projects due to path '
                                           'change. If you have any other instance of HABBY open, please close it.')
             self.end_concurrency()
-            stathab_info = root2.find(".//hdf5Stathab")
+        stathab_info = root2.find(".//hdf5Stathab")
         self.username_prj = root2.find(".//User_Name").text
         self.descri_prj = root2.find(".//Description").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
@@ -1045,9 +1052,9 @@ class MainWindows(QMainWindow):
 
         # open a new Windows to ask for the info for the project
         self.createnew = CreateNewProject(self.lang, self.path_trans, self.file_langue, pathprj_old)
-        self.createnew.show()
         self.createnew.save_project.connect(self.save_project_if_new_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
+        self.createnew.show()
 
     def close_project(self):
         """
@@ -1105,8 +1112,8 @@ class MainWindows(QMainWindow):
 
         # save project if unique name in the selected folder
         else:
-            self.save_project()
             self.createnew.close()
+            self.save_project()
 
         # change the path_im
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -1512,6 +1519,8 @@ class CreateNewProject(QWidget):
             self.default_fold = os.path.dirname(oldpath_prj)
         else:
             self.default_fold = os.getcwd()
+        if self.default_fold == '':
+            self.default_fold = os.getcwd()
         self.default_name = 'DefaultProj'
         super().__init__()
 
@@ -1691,8 +1700,6 @@ class CentralW(QWidget):
         self.welcome_tab.save_info_signal.connect(self.save_info_projet)
         # save the desription and the figure option if tab changed
         self.tab_widget.currentChanged.connect(self.save_on_change_tab)
-
-        # add a
 
         # layout
         self.layoutc = QGridLayout()

@@ -31,6 +31,7 @@ class outputW(QWidget):
         self.namecmap = ['coolwarm','jet','magma','viridis', 'inferno', 'plasma', 'Blues',
                          'Greens', 'Greys', 'Oranges', 'Purples',
                          'Reds', 'gist_earth', 'terrain', 'ocean', ]
+        self.msg2 = QMessageBox()
         self.init_iu()
 
     def init_iu(self):
@@ -388,7 +389,7 @@ class outputW(QWidget):
         # save the name and the path in the xml .prj file
         if not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Project Not Saved"))
+            self.msg2.setWindowTitle(self.tr("Image Options Not Saved"))
             self.msg2.setText(
                 self.tr("The project is not saved. Save the project in the General tab before saving data."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
@@ -486,7 +487,8 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
     fname = os.path.join(path_prj, name_prj + '.xml')
     # save the name and the path in the xml .prj file
     if not os.path.isfile(fname):
-        print('Error: project is not found \n')
+        #print('Error: project is not found \n')
+        return
     else:
         doc = ET.parse(fname)
         root = doc.getroot()

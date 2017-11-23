@@ -2518,6 +2518,152 @@ class LAMMI(SubHydroW):
         self.send_log.emit("restart    dir3: " + self.pathfile[2])
 
 
+# class SW2D(SubHydroW):
+#     """
+#     The class SW2D is there to manage the link between the graphical interface and the functions in src/read_sw2f.py
+#     which loads the SW2D data . It inherits from SubHydroW() so it have all the methods and the variables from
+#     the class SubHydroW().
+#     """
+#
+#     def __init__(self, path_prj, name_prj):
+#
+#         super().__init__(path_prj, name_prj)
+#         self.init_iu()
+#
+#     def init_iu(self):
+#         """
+#         used by ___init__() in the initialization.
+#         """
+#
+#         # update attibute for rubar 2d
+#         self.attributexml = ['sw2d_geodata', 'sw2d_result']
+#         self.model_type = 'SW2D'
+#         self.extension = [['.ext1a', '.ext1b'], ['.ext2']]  # list of list in case there is more than one possible ext.
+#         self.nb_dim = 2
+#
+#         # if there is the project file with sw2d geo info, update the label and attibutes
+#         self.was_model_loaded_before(0)
+#         self.was_model_loaded_before(1)
+#
+#         # create and update label with the result and geo filename
+#         self.geo_t2 = QLabel(self.namefile[0], self)
+#         self.out_t2 = QLabel(self.namefile[1], self)
+#         self.geo_t2.setToolTip(self.pathfile[0])
+#         self.out_t2.setToolTip(self.pathfile[1])
+#
+#         # geometry and output data
+#         l1 = QLabel(self.tr('<b> Geometry data </b>'))
+#         self.geo_b = QPushButton('Choose file (.ext1a, .ext1b)', self)
+#         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
+#         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
+#         self.geo_b.clicked.connect(self.propose_next_file)
+#         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
+#         l2 = QLabel(self.tr('<b> Output data </b>'))
+#         self.out_b = QPushButton('Choose file \n (.extb)', self)
+#         self.out_b.clicked.connect(lambda: self.show_dialog(1))
+#         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+#         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
+#
+#         # grid creation
+#         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+#         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+#
+#         # hdf5 name
+#         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+#         self.hname = QLineEdit(self.name_hdf5)
+#         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+#             self.gethdf5_name_gui()
+#
+#         # load button
+#         self.load_b = QPushButton('Load data and create hdf5', self)
+#         self.load_b.clicked.connect(self.load_sw2d)
+#         self.spacer = QSpacerItem(1, 200)
+#         self.butfig = QPushButton(self.tr("Create figure again"))
+#         self.butfig.clicked.connect(self.recreate_image)
+#         if self.namefile[0] == 'unknown file':
+#             self.butfig.setDisabled(True)
+#
+#         # layout
+#         self.layout_hec = QGridLayout()
+#         self.layout_hec.addWidget(l1, 0, 0)
+#         self.layout_hec.addWidget(self.geo_t2, 0, 1)
+#         self.layout_hec.addWidget(self.geo_b, 0, 2)
+#         self.layout_hec.addWidget(l2, 1, 0)
+#         self.layout_hec.addWidget(self.out_t2, 1, 1)
+#         self.layout_hec.addWidget(self.out_b, 1, 2)
+#         self.layout_hec.addWidget(l2D1, 2, 0)
+#         self.layout_hec.addWidget(l2D2, 2, 1, 1, 2)
+#         self.layout_hec.addWidget(lh, 3, 0)
+#         self.layout_hec.addWidget(self.hname, 3, 1)
+#         self.layout_hec.addWidget(self.load_b, 3, 2)
+#         self.layout_hec.addWidget(self.butfig, 4, 2)
+#         self.layout_hec.addItem(self.spacer, 5, 1)
+#         self.setLayout(self.layout_hec)
+#
+#     def load_sw2d(self):
+#         """
+#         A function to execture the loading and saving the sw2d files using read_sw2d.py.
+#
+#         A second thread is used to avoid "freezing" the GUI.
+#         """
+#         # for error management and figures
+#         self.timer.start(1000)
+#
+#         # update the xml file of the project
+#         self.save_xml(0)
+#         self.save_xml(1)
+#         self.load_b.setDisabled(True)
+#         # the path where to save the image
+#         path_im = self.find_path_im()
+#         # the path where to save the hdf5
+#         path_hdf5 = self.find_path_hdf5()
+#         self.name_hdf5 = self.hname.text()
+#
+#         # load sw2d, interpolate to node, create grid and save in hdf5 format
+#         self.q = Queue()
+#         # to be changed
+#         self.p = Process(target=myfunc, args=(myarg))
+#         self.p.start()
+#
+#         # copy input file
+#         path_input = self.find_path_input()
+#         self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+#         self.p2.start()
+#
+#         # log info
+#         self.send_log.emit(self.tr('# Loading: SW2D data...'))
+#         # self.send_err_log()
+#         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+#         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+#         self.send_log.emit("py    path1=r'" + path_input + "'")
+#         self.send_log.emit("py    path2=r'" + path_input + "'")
+#         # to be changed
+#         self.send_log.emit(
+#             "py    read_sw2d.myfunc('Hydro_rubar2d_log',file1, file2, path1, path2,"
+#             " path_prj, name_prj, path_prj, 'RUBAR2D', 2, path_prj, [])\n")
+#         self.send_log.emit("restart LOAD_RUBAR_2D")
+#         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+#         self.send_log.emit("restart    file2: " + os.path.join(path_input, self.namefile[1]))
+#
+#     def propose_next_file(self):
+#         """
+#         This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
+#         one file with the geometry data and one file with the simulation results. If the user selects a file, this
+#         function looks if a file with the same name but with the extension of the other file type exists in the
+#         selected folder.
+#         """
+#         if len(self.extension[1]) == 1:
+#             if self.out_t2.text() == 'unknown file':
+#                 blob = self.namefile[0]
+#                 new_name = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+#                 pathfilename = os.path.join(self.pathfile[0], new_name)
+#                 if os.path.isfile(pathfilename):
+#                     self.out_t2.setText(new_name)
+#                     # keep the name in an attribute until we save it
+#                     self.pathfile[1] = self.pathfile[0]
+#                     self.namefile[1] = new_name
+#
+
 class HabbyHdf5(SubHydroW):
     """
     This class is used to load hdf5 hydrological file done by HABBY on another project. If the project was lost,
@@ -2988,7 +3134,7 @@ class SubstrateW(SubHydroW):
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
-            self.end_log.emit('Error: The project is not saved. '
+            self.send_log.emit('Error: The project is not saved. '
                               'Save the project in the General tab before saving hydraulic data. \n')
         else:
             path_hdf5 = self.find_path_hdf5()

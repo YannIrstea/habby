@@ -6,7 +6,6 @@ import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
     QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QCheckBox
-import h5py
 import sys
 import os
 from io import StringIO
@@ -48,6 +47,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.qrange = []  # for each river [qmin, qmax]
         self.qhw = []  # for each river [[q1,h1,w1],[q2,h2,w2]]
         self.init_iu()
+
 
     def init_iu(self):
         """
@@ -153,6 +153,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # self.layout3.addWidget(self.button2, 13, 1)
         self.setLayout(self.layout3)
 
+
     def was_loaded_before(self):
         """
         This function looks in the xml project file is an hdf5 exists already. If yes, it loads this data
@@ -177,7 +178,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             hdf5_infoname = child.text
         # the name is an absolute path, take it. Otherwise, assume that the file in it the path_hdf5
         if os.path.isabs(hdf5_infoname):
-            hdf5_path = os.path.dir(hdf5_infoname)
+            hdf5_path = os.path.dirname(hdf5_infoname)
             hdf5_name = os.path.basename(hdf5_infoname)
         else:
             hdf5_path = self.find_path_hdf5_est()
