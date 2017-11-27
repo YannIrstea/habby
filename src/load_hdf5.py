@@ -293,6 +293,46 @@ def load_timestep_name(hdf5_name, path_hdf5=''):
     return sim_name
 
 
+def get_timestep_number(hdf5_name, path_hdf5):
+    """
+       This function looks for the number of the timesteps/discharge in hydrological or merge hdf5.
+
+       :param hdf5_name: the name of the merge or hydrological hdf5 file
+       :param path_hdf5: the path to the hdf5
+       :return: an int, the number of time step/discharge
+       """
+
+    failload = -99
+
+    # open the file with checking for the path
+    if os.path.isabs(hdf5_name):
+        file_hydro = open_hdf5(hdf5_name)
+    else:
+        if path_hdf5:
+            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return failload
+    if file_hydro is None:
+        print('Error: hdf5 file could not be open. \n')
+        return failload
+
+    # get timestep number
+    basename1 = 'Data_gen'
+    try:
+        gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
+    except KeyError:
+        print('The number of time step was not found (1)')
+        return failload
+    nb_timestep = list(gen_dataset.values())[0]
+    try:
+        timestep = np.array(nb_timestep)
+        timestep = int(timestep)
+    except ValueError:
+        print('The number of time step was not found (2)')
+        return failload
+    return timestep
+
 def load_sub_percent(hdf5_name_hyd, path_hdf5 = ''):
     """
     This function loads the substrate in percent form, if this info is present in the hdf5 file. It send a warning
@@ -754,6 +794,8 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
 
     """
     # to know if we have to save a new hdf5
+
+
     if save_option is None:
         save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
         if save_opt['erase_id'] == 'True':  # xml is all in string
@@ -896,6 +938,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     file.close()
 
     # save the file to the xml of the project
+
     filename_prj = os.path.join(path_prj, name_prj + '.xml')
     if not os.path.isfile(filename_prj):
         print('Error: No project saved. Please create a project first in the General tab.\n')

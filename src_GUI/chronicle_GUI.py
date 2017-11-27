@@ -56,6 +56,8 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.remove_all.clicked.connect(self.remove_all_file)
         self.remove_one = QPushButton(self.tr("Remove one file"))
         self.remove_one.clicked.connect(self.remove_one_file)
+        self.export_name = QPushButton(self.tr('Export file names'))
+        self.export_name.clicked.connect(self.export_all_name)
 
         # discharge input
         l2 = QLabel(self.tr("<b> Discharge input </b>[m3/sec]"))
@@ -99,6 +101,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.chosen_all, 1, 1, 2, 1)
         self.layout4.addWidget(self.remove_all, 1, 2)
         self.layout4.addWidget(self.remove_one, 2, 2)
+        self.layout4.addWidget(self.export_name, 2, 3)
 
         self.layout4.addWidget(l2, 3, 0)
         self.layout4.addWidget(self.input, 3, 1)
@@ -244,11 +247,57 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                     files.text = new_text
                     docxml.write(xmlfile)
 
+    def export_all_name(self):
+        """
+        This function creates a text file with the chosen hdf5 filename. This is useful to create a file to read the
+        discharge. If there is more than one discharger/time step in the hdf5, the filename is repeated as many times as
+        the number of discharge. Thie text file is written in text output
+        """
+
+        # get all file name for from file
+        namefile = []
+        for x in range(self.chosen_all.count()):
+            if x== 0 and self.chosen_all.item(x).text() == 'No file chosen':
+                pass
+            else:
+                namefile.append(self.chosen_all.item(x).text())
+
+        # get the number of time step
+        path_hdf5 = self.find_path_hdf5_est()
+        nb_t_all = []
+        for n in namefile:
+            nb_t = load_hdf5.get_timestep_number(n, path_hdf5)
+            if nb_t != -99:
+                nb_t_all.append(nb_t)
+            else:
+                nb_t.append(0)
+
+        # create the string which will be written to the file
+        text = '# Filename\tQ[m3/s]\n'
+        for id,n in enumerate(namefile):
+            for t in range(0, nb_t_all[id]):
+                text += n + '\t\n'
+
+        # save the file
+        path_txt = self.find_path_text_est()
+        filename_txt = os.path.join(path_txt,'filenames_chronicle.txt')
+        if os.path.isfile(filename_txt):
+            os.remove(filename_txt)
+        with open(filename_txt, 'wt') as f:
+            f.write(text)
+
+        self.send_log.emit('Text file with the filenames chosen in the Chronicle tab created. '
+                           'Save in the text_output folder. \n')
+
     def load_file(self, linetext):
         """
         This functions lets the user choose a text file and use it to get the discharge intput.
-        The format of the text file is one discharge value by line. It is possible to add an header
-        by starting the line with the sign #. The discharges given are in m3/sec.
+        The format of the text file is one discharge value by line. Each line is in the format "hdf5 file name" and
+        discharge value. It is possible to add an header by starting the line with the sign #. The discharges given
+        are in m3/sec.
+
+        It is important that the order of the discharge are the name than in the file. We check that here. It
+        cannot be checked afterwards as the number in the QLineEdit might change before execution.
 
         :param linetext: This is the QLineEdit where the discharge have to be shown.
         """
@@ -263,18 +312,46 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
             return
         data_dis = data_dis.strip()
 
-        if data_dis[0] == '#':
-            data_dis = data_dis.split('\n', 1)
-            if len(data_dis) > 0:
-                data_dis = data_dis[1]
+        # ignore header
+        data_dis = data_dis.split('\n')
+        if len(data_dis) == 0:
+            self.send_log.emit('Warning: No data found in file')
+            return
+
+        # get dicharge data in string
+        dis_all = '' # string for the xml file
+        name_all = []
+        for d in data_dis:
+            if not d[0] == '#':  # ignore header
+                d2 = d.split()
+                if len(d2) > 1:
+                    # check for float
+                    try:
+                        blob = float(d2[1])
+                    except:
+                        self.end_log.emit('Could not read discharge from file as it should be a float')
+                        return
+                    # get discharge and name
+                    dis_all += d2[1] + ','
+                    name_all.append(d2[0])
+        dis_all = dis_all[:-1]  # one comma too much
+
+        # Check order of file. Send warning if not ok
+        nameqlist = []
+        for x in range(self.chosen_all.count()):
+            if x == 0 and self.chosen_all.item(x).text() == 'No file chosen':
+                pass
             else:
-                self.send_log.emit('Warning: No data found')
-        data_dis = data_dis.replace('\n', ',')
+                nameqlist.append(self.chosen_all.item(x).text())
+        for idx, n in enumerate(nameqlist):
+            if n != name_all[idx]:
+                self.send_log.emit('Warning: The order of the file on the GUI is not coherent with the names '
+                                   'contained in the loaded files. Order is important here.')
 
         # save into the xml project file
         self.save_discharge()
         # add text to QLineEdit
-        linetext.setText(data_dis)
+        linetext.setText(dis_all)
 
     def discharge_from_chosen_data(self):
         """
@@ -420,7 +497,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         minh = figopt['min_height_hyd']
         sys.stdout = self.mystdout = StringIO()
         hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, self.name_prj,
-                                        self.path_prj, min_height=minh)
+                                        self.path_prj, model_type='chronic_hydro', min_height=minh)
         sys.stdout = sys.__stdout__
         self.send_err_log()
 
