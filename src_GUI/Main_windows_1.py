@@ -541,19 +541,19 @@ class MainWindows(QMainWindow):
 
         # create the icon
         icon_closefig = QIcon()
-        name1 = os.path.abspath("translation\\icon\\close.png")
+        name1 = os.path.join(os.getcwd(), "translation", "icon", "close.png")
         icon_closefig.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_open = QIcon()
-        name1 = os.path.abspath("translation\\icon\\openproject.png")
+        name1 = os.path.join(os.getcwd(), "translation","icon","openproject.png")
         icon_open.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_see = QIcon()
-        name1 = os.path.abspath("translation\\icon\\see_project.png")
+        name1 =os.path.join(os.getcwd(),"translation", "icon","see_project.png")
         icon_see.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_new = QIcon()
-        name1 = os.path.abspath("translation\\icon\\newfile.png")
+        name1 = os.path.join(os.getcwd(), "translation", "icon", "newfile.png")
         icon_new.addPixmap(QPixmap(name1), QIcon.Normal)
 
         # create the actions of the toolbar
@@ -1497,7 +1497,7 @@ class MainWindows(QMainWindow):
         with all the coding detail, but we should create a new html or a new pdf file which would be more pratical
         for the user.
         """
-        filename_help = os.path.abspath('.\doc\_build\html\index.html')
+        filename_help = os.path.join(os.getcwd(), "doc","_build", "html","index.html")
         print(filename_help)
         wbopen(filename_help)
 
