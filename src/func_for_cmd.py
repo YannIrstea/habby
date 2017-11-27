@@ -41,7 +41,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
     :param all_arg: the list of argument (sys.argv more or less)
     :param name_prj: the name of the project, created by default by the main()
-    :param path_prj: the path to the project created by default bu the main()
+    :param path_prj: the path to the project created by default by the main()
     :param path_bio: the path to the project
     :param option_restart: If True the command are coming from a restart log (which have an impact on file name and
            location)
@@ -107,9 +107,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               'substrate between 1 and 8.  (output name with path). The value 0 results in all possible substrate '
               'value to be loaded')
         print('LOAD_SUB_HDF5: load the substrate data in an hdf5 form. Input: the name of the hdf5 file (with path)')
-        print('CREATE_RAND_SUB: create random substrate in the same geographical location of the hydrological files. '
-              'Will be created  in the cemagref code in the type coarser?dominant/... '
-              'Input: the name of the hydrological hdf5 file (with path), (output name)')
+        print('CREATE_RAND_SUB: create a random substrate shapefile. Will be created  in the cemagref code in the '
+              'type coarser?dominant/... Input: the name of the hydrological hdf5 file (with path), (output name)')
 
         print('\n')
         print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub'
@@ -129,12 +128,12 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               ' (path where to save output)')
         print("RUN_STATHAB: Run the stathab model. Input: the path to the folder with the different input files, "
               "(the river type, 0 by default, 1, or 2 for tropical rivers).")
-        print("ADD_HYDRO_HDF5: Add two hdf5 with hydraulic data together in one hydraulic hdf5. The number of time step"
-              " should be the same in both file. No substrate data. Input: the name of the first hdf5 (with path), "
-              "the name of the second hdf5 file")
-        print("ADD_MERGE_HDF5: Add two hdf5 with merge data together in one merge hdf5. Substrate data available. The "
-              "number of time step should be the same in both file. Input: the name of the first hdf5 (with path),"
-              " the name of the second hdf5 file")
+        print("ADD_HYDRO_HDF5: Add hdf5 filas with hydraulic data together in one hydraulic hdf5. The number of time"
+              " step should be the same in all files. No substrate data. Input: the name of the first hdf5 (with path),"
+              " the name of the second hdf5 file, (name of other hdf5 files as needed)")
+        print("ADD_MERGE_HDF5: Add hdf5 failes with merge data together in one merge hdf5. Substrate data available. "
+              "The number of time step should be the same in both file. Input: the name of the first hdf5 (with path),"
+              " the name of the second hdf5 file, (name of other hdf5 files as needed)")
 
         print('\n')
         print("RESTART: Relauch HABBY based on a list of command in a text file (restart file) Input: the name of file"
@@ -1047,7 +1046,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
     elif all_arg[1] == 'CREATE_RAND_SUB':
 
         if not 2 < len(all_arg) < 5:
-            print('CREATE_RAND_SUB needs five inputs. See LIST_COMMAND for more information.')
+            print('CREATE_RAND_SUB needs one or two inputs. See LIST_COMMAND for more information.')
             return
         pathname_h5 = all_arg[2]
         h5name = os.path.basename(pathname_h5)
@@ -1096,44 +1095,73 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
     # ---------------------------------------------------------------------------
     elif all_arg[1] == 'ADD_HYDRO_HDF5':
-        if len(all_arg) != 4:
-            print('ADD_HYDRO_HDF5 needs two arguments. See LIST_COMMAND for more information.')
+        if len(all_arg) < 4:
+            print('ADD_HYDRO_HDF5 needs at least two arguments. See LIST_COMMAND for more information.')
             return
-        filepath1 = all_arg[2]
-        filepath2 = all_arg[3]
-        if not os.path.isfile(filepath1):
-            print('Error: The first hdf5 file was not found')
-            return
-        if not os.path.isfile(filepath2):
-            print('Error: The second hdf5 file was not found')
-            return
-        path1 = os.path.dirname(filepath1)
-        path2 = os.path.dirname(filepath2)
-        hdf51 = os.path.basename(filepath1)
-        hdf52 = os.path.basename(filepath2)
+        filepath1 = ''
+        new_name=''
+        for i in range(2, len(all_arg)-1):
+            if i == 2:
+                filepath1 = all_arg[2]
+            else:
+                old_name = new_name
+            filepath2 = all_arg[i+1]
+            if not os.path.isfile(filepath1):
+                print('Error: The first hdf5 file was not found')
+                return
+            if not os.path.isfile(filepath2):
+                print('Error: The second hdf5 file was not found')
+                return
+            path1 = os.path.dirname(filepath1)
+            path2 = os.path.dirname(filepath2)
+            hdf51 = os.path.basename(filepath1)
+            hdf52 = os.path.basename(filepath2)
 
-        model_type = 'Imported_hydro'
-        load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj, False, True)
+            model_type = 'Imported_hydro'
+            new_name = load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
+                                               False, True, True, 'ADD_HYDRO_CMD_LAST_' + hdf52[:-3])
+            filepath1 = os.path.join(path_prj,new_name + '.h5')
+            if 2< i < len(all_arg)-1:
+                try:
+                    os.remove(os.path.join(path_prj,old_name + '.h5'))
+                except FileNotFoundError:
+                    print('Error: File not found ' + os.path.join(path_prj,old_name + '.h5') )
+                    pass
         # ---------------------------------------------------------------------------
     elif all_arg[1] == 'ADD_MERGE_HDF5':
-        if len(all_arg) != 4:
-            print('ADD_MERGE_HDF5 needs two arguments. See LIST_COMMAND for more information.')
+        if len(all_arg) < 4:
+            print('ADD_MERGE_HDF5 needs at least two arguments. See LIST_COMMAND for more information.')
             return
-        filepath1 = all_arg[2]
-        filepath2 = all_arg[3]
-        if not os.path.isfile(filepath1):
-            print('Error: The first hdf5 file was not found')
-            return
-        if not os.path.isfile(filepath2):
-            print('Error: The second hdf5 file was not found')
-            return
-        path1 = os.path.dirname(filepath1)
-        path2 = os.path.dirname(filepath2)
-        hdf51 = os.path.basename(filepath1)
-        hdf52 = os.path.basename(filepath2)
+        filepath1 = ''
+        new_name = ''
+        for i in range(2, len(all_arg) - 1):
+            if i == 2:
+                filepath1 = all_arg[2]
+            else:
+                old_name = new_name
+            filepath2 = all_arg[i + 1]
+            if not os.path.isfile(filepath1):
+                print('Error: The first hdf5 file was not found')
+                return
+            if not os.path.isfile(filepath2):
+                print('Error: The second hdf5 file was not found')
+                return
+            path1 = os.path.dirname(filepath1)
+            path2 = os.path.dirname(filepath2)
+            hdf51 = os.path.basename(filepath1)
+            hdf52 = os.path.basename(filepath2)
 
-        model_type = 'Imported_hydro'
-        load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj, True, True)
+            model_type = 'Imported_hydro'
+            new_name = load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
+                                               True, True, True, 'ADD_MERGE_CMD_LAST_' + hdf52[:-3])
+            filepath1 = os.path.join(path_prj, new_name + '.h5')
+            if 2 < i < len(all_arg) - 1:
+                if old_name != new_name:
+                    try:
+                        os.remove(os.path.join(path_prj, old_name + '.h5'))
+                    except FileNotFoundError:
+                        print('Error: File not found ' + os.path.join(path_prj, old_name + '.h5'))
+                        pass
 
     # ----------------------------------------------------------------------------
     elif all_arg[1] == 'COMPARE_TEST':

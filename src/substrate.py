@@ -937,7 +937,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     #collection.set_color(colors)
     collection.set_array(colors_val)
     sub1.autoscale_view()
-    sub1.plot(xlist, ylist, c='b', linewidth=0.2)
+    #sub1.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     if reach_num ==-99:
@@ -976,7 +976,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     sub2.autoscale_view()
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')
-    sub2.plot(xlist, ylist, c='b', linewidth=0.2)
+    #sub2.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     if reach_num == -99:

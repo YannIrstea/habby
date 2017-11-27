@@ -2462,14 +2462,14 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
     # plot substrate for the whole hydrological grid for each reach
     # Not done anymore as it freezes the GUI for large models.
-    # if sub_pg and sub_dom:
-    #     for r in range(0, min(len(ikle_all), 2)):
-    #         if len(ikle_all)>1:
-    #             substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im, reach_num=r)
-    #         else:
-    #             substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im)
-    #         if r==1:
-    #             print('Warning: For the substrate data, only the two first reaches are plotted. \n')
+    if sub_pg and sub_dom:
+        for r in range(0, min(len(ikle_all), 2)):
+            if len(ikle_all)>1:
+                substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im, reach_num=r)
+            else:
+                substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im)
+            if r==1:
+                print('Warning: For the substrate data, only the two first reaches are plotted. \n')
 
 
 

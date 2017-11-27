@@ -1119,7 +1119,8 @@ def copy_files(names,paths, path_input):
                     shutil.copy(src, dst)
 
 
-def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_hdf5, merge=False, erase_id=True):
+def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_hdf5, merge=False, erase_id=True,
+                  return_name=False, name_out=''):
     """
     This function merge two hdf5 together. The hdf5 files should be of hydrological or merge type and both grid should
     in the same coordinate system. It is not possible to have one merge file and one hydrological hdf5 file. They both
@@ -1135,6 +1136,8 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
     :param path_hdf5: the path where to save the hdf5 (ususally path_prj, but not always)
     :param merge: If True, this is a merge hdf5 file and not only hydraulic data. Boolean.
     :param erase_id: If true and if a similar hdf5 exist, il will be erased
+    :param reteurn_name: If True, it return the name of the created hdf5
+    :param name_out: name of the new hdf5 (optional)
 
     """
     substrate_all_dom1 = []
@@ -1183,13 +1186,21 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
 
     if merge:
         new_hdf5_name = 'ADDMERGE' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
-        save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path1, ikle1, point1, [],
+        if name_out:
+            new_hdf5_name = name_out
+        save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
                   inter_vel1, inter_height1, merge=merge, sub_pg_all_t=substrate_all_pg1,
-                  sub_dom_all_t=substrate_all_dom1, sim_name=[],save_option=erase_id)
+                  sub_dom_all_t=substrate_all_dom1, sim_name=sim_name,save_option=erase_id)
     else:
         new_hdf5_name = 'ADDHYDRO' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
+        if name_out:
+            new_hdf5_name = name_out
         save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
-                  inter_vel1, inter_height1, merge=merge, sim_name=[], save_option=erase_id)
+                  inter_vel1, inter_height1, merge=merge, sim_name=sim_name, save_option=erase_id)
+
+    # return name if necessary (often used if more than two hdf5 are added at the same time)
+    if return_name:
+        return new_hdf5_name
 
 
 def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=True):

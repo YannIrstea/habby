@@ -864,6 +864,8 @@ class SubHydroW(QWidget):
                 for t in range(1, len(ikle_all_t)):  # do not plot full profile
                     if t < len(ikle_all_t):
                         if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
+                            self.send_log.emit('Warning: Substrate data created but not plotted. '
+                                               'See the created shapefile for subtrate outputs. \n')
                             manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
                                                            inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
                                                            substrate_all_pg[t], substrate_all_dom[t])
@@ -879,6 +881,8 @@ class SubHydroW(QWidget):
                     else:
                         if t < len(ikle_all_t):
                             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
+                                self.send_log.emit('Warning: Substrate data created but not plotted. '
+                                                   'See the created shapefile for subtrate outputs. \n')
                                 manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
                                                                inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
                                                                substrate_all_pg[t], substrate_all_dom[t])

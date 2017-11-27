@@ -1,6 +1,7 @@
 import sys
 from src_GUI import Main_windows_1
 from src import func_for_cmd
+from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QApplication
 import multiprocessing
 import os
@@ -29,25 +30,42 @@ def main():
     # otherwise we use the command line
     else:
         """
-
-            """
+        command line
+        """
 
         # get path and project name
-        name_prj = 'DefaultProj'
+
         namedir = 'result_cmd3'
         path_bio = './biology'
-        path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
+        version = 0.2
+        # find the best path_prj
+        settings = QSettings('irstea', 'HABBY' + str(version))
+        name_prj = settings.value('name_prj')
+        path_prj = settings.value('path_prj')
+        proj_def = False
+        if not path_prj:
+            path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
+            name_prj = 'DefaultProj'
+            proj_def = True
+        elif not os.path.isdir(path_prj):
+            path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
+            name_prj = 'DefaultProj'
+            proj_def = True
         for id, opt in enumerate(sys.argv):
             if len(opt) > 8:
                 if opt[:8] == 'path_prj':
                     path_prj = opt[9:]
                     del sys.argv[id]
+                    proj_def = False
                 if opt[:8] == 'name_prj':
                     name_prj = opt[9:]
                     del sys.argv[id]
                 if opt[:8] == 'path_bio':
                     path_bio = opt[9:]
                     del sys.argv[id]
+        if proj_def:
+            print('Warning: Could not find a project path. Saved data in ' + path_prj + '. Habby needs'
+                                                                                        ' write permission \n.')
 
         # create an empty project if not existing gbefore
         filename_empty = os.path.abspath('src_GUI/empty_proj.xml')

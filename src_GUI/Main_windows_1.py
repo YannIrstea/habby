@@ -67,6 +67,7 @@ class MainWindows(QMainWindow):
         self.nb_recent = 5
 
         # the version number of habby
+        # CAREFUL also change the version in habby.py for the command line version
         self.version = 0.2
 
         # load user setting
@@ -97,8 +98,8 @@ class MainWindows(QMainWindow):
 
         # set up tranlsation
         self.languageTranslator = QTranslator()
-        self.path_trans = r'.\translation'
-        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'ZEN_ES.qm']
+        self.path_trans = os.path.abspath('translation')
+        self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm']
         if language_set:
             try:
                 self.lang = int(language_set)  # need integer there
@@ -211,7 +212,7 @@ class MainWindows(QMainWindow):
 
         To check if a project is open, we have a text file in the project folder named "check_concurrency.txt".
         In this text file, there is either the word "open" or "close". When HABBY open a new project, it checks
-        this file is set to close and change it to open. Hence, if a project is oen twice a warning is writtem/
+        this file is set to close and change it to open. Hence, if a project is open twice a warning is written.
         """
         if self.name_prj is not None:
 
@@ -540,19 +541,19 @@ class MainWindows(QMainWindow):
 
         # create the icon
         icon_closefig = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation\\icon\\close.png")
+        name1 = os.path.abspath("translation\\icon\\close.png")
         icon_closefig.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_open = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation\\icon\\openproject.png")
+        name1 = os.path.abspath("translation\\icon\\openproject.png")
         icon_open.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_see = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation\\icon\\see_project.png")
+        name1 = os.path.abspath("translation\\icon\\see_project.png")
         icon_see.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_new = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation\\icon\\newfile.png")
+        name1 = os.path.abspath("translation\\icon\\newfile.png")
         icon_new.addPixmap(QPixmap(name1), QIcon.Normal)
 
         # create the actions of the toolbar
@@ -565,7 +566,7 @@ class MainWindows(QMainWindow):
         newAction.triggered.connect(self.new_project)
 
         seeAction = QAction(icon_see, self.tr('See Files of the Current Project'), self)
-        seeAction.setStatusTip(self.tr('See the existing file of a project'))
+        seeAction.setStatusTip(self.tr('See the existing file of a project and open them.'))
         seeAction.triggered.connect(self.see_file)
 
         closeAction = QAction(icon_closefig, self.tr('Close Figures'), self)
@@ -1496,7 +1497,8 @@ class MainWindows(QMainWindow):
         with all the coding detail, but we should create a new html or a new pdf file which would be more pratical
         for the user.
         """
-        filename_help = os.getcwd() + os.path.normpath(r'\doc\_build\html\index.html')
+        filename_help = os.path.abspath('.\doc\_build\html\index.html')
+        print(filename_help)
         wbopen(filename_help)
 
 
@@ -2147,11 +2149,9 @@ class WelcomeW(QWidget):
         buttono.clicked.connect(self.open_proj.emit)
         buttons = QPushButton(self.tr('New Project'), self)
         buttons.clicked.connect(self.new_proj_signal.emit)
-        buttone = QPushButton(self.tr('Open Example'), self)
-        buttone.clicked.connect(self.open_example)
         spacerleft = QSpacerItem(200, 1)
         spacerright = QSpacerItem(120, 1)
-        spacer2 = QSpacerItem(1, 50)
+        spacer2 = QSpacerItem(1, 70)
         highpart = QWidget()  # used to regroup all QWidgt in the first part of the Windows
 
         # general into to put in the xml .prj file
@@ -2212,7 +2212,6 @@ class WelcomeW(QWidget):
         layouth.addWidget(l0, 0, 1)
         layouth.addWidget(buttono, 2, 1)
         layouth.addWidget(buttons, 3, 1)
-        layouth.addWidget(buttone, 4, 1)
         layouth.addItem(spacer2, 5, 2)
         highpart.setLayout(layouth)
 
@@ -2235,7 +2234,8 @@ class WelcomeW(QWidget):
 
     def open_example(self):
         """
-        This function will be used to open a project example for HABBY, but the example is not prepared yet
+        This function will be used to open a project example for HABBY, but the example is not prepared yet. NOT DONE
+        AS IT IS COMPLICATED TO INSTALL A EXAMPLE PROJECT. WINDOWS SAVED PROGRAM IN FOLDER WITHOUT WRITE PERMISSIONS.
         """
         self.send_log.emit('Warning: No example prepared yet')
 

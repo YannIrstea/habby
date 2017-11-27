@@ -171,12 +171,11 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.rivtype.setCurrentIndex(self.riverint)
         self.mystathab.riverint = self.riverint
 
-        # avoid list which look too big
+        # avoid list which look too big or too small
         size_max = self.frameGeometry().height()/2.5
         self.list_needed.setMaximumHeight(size_max)
         self.list_re.setMaximumHeight(size_max)
         self.list_file.setMaximumHeight(size_max)
-
         self.list_f.setMinimumHeight(size_max)  # self.list_f defined in Estmhab_GUI.py
         self.list_f.setMinimumHeight(size_max)
 

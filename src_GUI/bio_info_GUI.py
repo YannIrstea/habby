@@ -1,5 +1,5 @@
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer, QStringListModel, QEvent
+from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer, QStringListModel, QEvent, QObject
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout,  QLineEdit, QComboBox, QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QCompleter
 from PyQt5.QtGui import QPixmap, QFont
@@ -73,7 +73,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.m_all = QComboBox()
 
         # create lists with the possible fishes
-        # right button for both QListWidget managed in the MainWindows class
+        # right buttons for both QListWidget managed in the MainWindows class
         l1 = QLabel(self.tr('<b> Available Fish and Guild </b>'))
         l2 = QLabel(self.tr('<b> Selected Fish and Guild </b>'))
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -83,6 +83,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.list_s.itemClicked.connect(self.show_info_fish_sel)
         self.list_f.itemActivated.connect(self.show_info_fish_avai)
         self.list_s.itemActivated.connect(self.show_info_fish_sel)
+        # shwo info if movement of the arrow key
+        self.list_f.itemSelectionChanged.connect(self.show_info_fish)
+        self.list_s.itemSelectionChanged.connect(lambda: self.show_info_fish(True))
         self.list_f.setMinimumWidth(280)
 
         # run habitat value
@@ -246,22 +249,29 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def get_autocompletion(self):
         """
-        This function update the auto-complexton model as a function of the QComboxBox next to it
+        This function update the auto-complexton model as a function of the QComboxBox next to it with support for upper
+        and lower case.
         """
         ind = self.keys.currentIndex()
 
         if ind == 0:
-            string_all = list(set(list(self.data_fish[:, 1]) + list([item.lower() for item in self.data_fish[:, 1]])))
+            string_all = list(set(list(self.data_fish[:, 1]) + list([item.lower() for item in self.data_fish[:, 1]]) +
+                                  list([item.upper() for item in self.data_fish[:, 1]])))
         elif ind == 1:
-            string_all = list(set(list(self.data_fish[:, 3]) + [item.lower() for item in self.data_fish[:, 3]]))
+            string_all = list(set(list(self.data_fish[:, 3]) + [item.lower() for item in self.data_fish[:, 3]] +
+                                  [item.upper() for item in self.data_fish[:, 3]]))
         elif ind ==2:
-            string_all = list(set(list(self.data_fish[:, 4]) + [item.lower() for item in self.data_fish[:, 4]]))
+            string_all = list(set(list(self.data_fish[:, 4]) + [item.lower() for item in self.data_fish[:, 4]] +
+                                  [item.upper() for item in self.data_fish[:, 4]]))
         elif ind == 3:
-            string_all = list(set(list(self.data_fish[:, 5]) + [item.lower() for item in self.data_fish[:, 5]]))
+            string_all = list(set(list(self.data_fish[:, 5]) + [item.lower() for item in self.data_fish[:, 5]] +
+                                  [item.upper() for item in self.data_fish[:, 5]]))
         elif ind == 4:
-            string_all = list(set(list(self.data_fish[:, 6]) + [item.lower() for item in self.data_fish[:, 6]]))
+            string_all = list(set(list(self.data_fish[:, 6]) + [item.lower() for item in self.data_fish[:, 6]] +
+                                  [item.upper() for item in self.data_fish[:, 6]]))
         elif ind == 5:
-            string_all = list(set(list(self.data_fish[:, 7]) + [item.lower() for item in self.data_fish[:, 7]]))
+            string_all = list(set(list(self.data_fish[:, 7]) + [item.lower() for item in self.data_fish[:, 7]] +
+                                  [item.upper() for item in self.data_fish[:, 7]]))
         else:
             string_all = ''
 
@@ -278,10 +288,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the file
         if not select:
             i1 = self.list_f.currentItem()  # show the info concerning the one selected fish
+            if not i1:
+                return
             self.ind_current = self.list_f.currentRow()
         else:
             found_it = False
             i1 = self.list_s.currentItem()
+            if not i1:
+                return
             for m in range(0, self.list_f.count()):
                 self.list_f.setCurrentRow(m)
                 if i1.text() == self.list_f.currentItem().text():
@@ -290,7 +304,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     break
             if not found_it:
                 self.ind_current = None
-
 
         if i1 is None:
             return
@@ -724,6 +737,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # put the timer back to zero
             self.running_time = 0
             self.send_log.emit("clear status bar")
+
+
 
 
 if __name__ == '__main__':

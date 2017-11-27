@@ -567,7 +567,7 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                     if b is not None:
                         for bi in b:
                             try:
-                                if bi.attrib['Language']== att_langue[0]:
+                                if bi.attrib['Language'] == att_langue[0]:
                                     data[i] = bi.text.strip()
                             except KeyError:
                                 all_ok = False

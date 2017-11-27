@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="2.0">
+<!DOCTYPE TS>
+<TS version="2.1" language="en_US">
 <context>
     <name>BioInfo</name>
     <message>
@@ -1760,7 +1761,7 @@
     <message>
         <location filename="Main_windows_1.py" line="2066"/>
         <source>&lt;b&gt;Start working with HABBY &lt;/b&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">&lt;b&gt; HABBY: Start here &lt;/b&gt;</translation>
     </message>
     <message>
         <location filename="Main_windows_1.py" line="2071"/>
