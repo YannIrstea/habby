@@ -81,9 +81,10 @@ class StatModUseful(QWidget):
         The function is used to remove fish species (or inverterbates species)
         """
         item = self.list_s.takeItem(self.list_s.currentRow())
-        self.fish_selected.remove(item.text())
-        #self.list_f.addItem(item)
-        #self.list_f.sortItems()
+        try:
+            self.fish_selected.remove(item.text())
+        except ValueError:
+            pass
         # bold for selected fish
         font = QFont()
         font.setItalic(False)

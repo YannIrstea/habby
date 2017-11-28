@@ -151,6 +151,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         l5 = QLabel(self.tr("Available Fish"))
         l6 = QLabel(self.tr("Selected Fish"))
         self.fishall = QPushButton(self.tr('Select all fishes'))
+        # not used anymore (not really helpful). I let it ehre anyway for completness.
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Save and run Stathab"))
         self.runb.setStyleSheet("background-color: #31D656")
@@ -235,7 +236,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.rivtype, 3, 2)
         self.layout.addWidget(l5, 4, 0)
         self.layout.addWidget(l6, 4, 1)
-        self.layout.addWidget(loadhdf5b, 5, 2)
+        #self.layout.addWidget(loadhdf5b, 5, 2)
         self.layout.addWidget(self.list_f, 5, 0, 2,1)
         self.layout.addWidget(self.list_s, 5, 1, 2, 1)
         self.layout.addWidget(self.runb, 6, 2)

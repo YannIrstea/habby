@@ -106,7 +106,7 @@ class outputW(QWidget):
             self.fig9b.setChecked(True)
         self.fig10 = QComboBox()
         # DO NOT change order here 0,1,2,3 aew used afterward
-        self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not saved figures')])
+        self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not save figures')])
         self.fig10.setCurrentIndex(int(fig_dict['format']))
 
         # choose the resolution of the figures

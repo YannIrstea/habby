@@ -83,7 +83,8 @@ class MainWindows(QMainWindow):
         # it should be managed by innosetup, but do not work always
         self.oldversion = [1.1]
         for v in self.oldversion:
-            self.oldsettings = QSettings('irstea', 'HABBY' + str(v))
+            if v != self.version:
+                self.oldsettings = QSettings('irstea', 'HABBY' + str(v))
             self.oldsettings.clear()
 
         # recent project: list of string
@@ -348,6 +349,7 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_log()
 
         self.central_widget.update_hydro_hdf5_name()
+        self.central_widget.update_merge_for_chronicle()
 
         self.central_widget.l1.setText(self.tr('Habby says:'))
 

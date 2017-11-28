@@ -3271,8 +3271,8 @@ class SubstrateW(SubHydroW):
 
                 # log info
                 self.send_log.emit(self.tr('# Substrate data type: Shapefile'))
-                self.send_log.emit("py    file1='" + self.namefile[0] + "'")
-                self.send_log.emit("py    path1='" + path_input + "'")
+                self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+                self.send_log.emit("py    path1=r'" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
                 self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
                                    "(file1, path1, type)\n")
@@ -3303,7 +3303,7 @@ class SubstrateW(SubHydroW):
 
                 # log info
                 self.send_log.emit(self.tr('# Substrate data type: text file'))
-                self.send_log.emit("py    file1='" + self.namefile[0] + "'")
+                self.send_log.emit("py    file1='r" + self.namefile[0] + "'")
                 self.send_log.emit("py    path1=r'" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
                 self.send_log.emit(
@@ -3494,8 +3494,8 @@ class SubstrateW(SubHydroW):
         self.send_log.emit("py    mesh_grid2.merge_grid_and_save(file_hyd,name_sub, path_sub, defval, name_prj, "
                            "path_prj, 'SUBSTRATE', [], True) \n")
         self.send_log.emit("restart MERGE_GRID_SUB")
-        self.send_log.emit("restart    file_hyd: " + self.hyd_name[self.drop_hyd.currentIndex()-1])
-        self.send_log.emit("restart    file_sub: " + os.path.join(path_hdf5,
+        self.send_log.emit("restart    file_hyd: r" + self.hyd_name[self.drop_hyd.currentIndex()-1])
+        self.send_log.emit("restart    file_sub: r" + os.path.join(path_hdf5,
                                                                   self.sub_name[self.drop_sub.currentIndex()]))
         if  len(self.e3.text()) > 0:
             self.send_log.emit("restart    defval: " + self.e3.text())

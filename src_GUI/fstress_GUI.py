@@ -6,6 +6,7 @@ import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
     QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QCheckBox
+from PyQt5.QtGui import QFont
 import sys
 import os
 from io import StringIO
@@ -95,8 +96,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.list_s.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
         self.list_s.itemActivated.connect(self.remove_fish)
-        self.fishall = QCheckBox(self.tr('Select all species'), self)
-        self.fishall.stateChanged.connect(self.add_all_fish)
+        self.fishall = QPushButton(self.tr('Select all species'), self)
+        self.fishall.clicked.connect(self.add_all_fish)
 
         # run model
         self.button1 = QPushButton(self.tr('Save and Run FStress'), self)
@@ -267,19 +268,30 @@ class FstressW(estimhab_GUI.StatModUseful):
         This function add the name of all known fish (the ones in Pref.txt) to the QListWidget which cintains selected
         fish. This function was copied from the one in SStathab_GUI.py
         """
-        if self.fishall.isChecked():
+        items = []
+        for index in range(self.list_f.count()):
+            items.append(self.list_f.item(index))
+        if items:
+            for i in range(0, len(items)):
+                # avoid to have the same fish multiple times
+                if items[i].text() in self.fish_selected:
+                    pass
+                else:
+                    self.list_s.addItem(items[i].text())
+                    self.fish_selected.append(items[i].text())
 
-            items = []
-            for index in range(self.list_f.count()):
-                items.append(self.list_f.item(index))
-            if items:
-                for i in range(0, len(items)):
-                    # avoid to have the same fish multiple times
-                    if items[i].text() in self.fish_selected:
-                        pass
-                    else:
-                        self.list_s.addItem(items[i].text())
-                        self.fish_selected.append(items[i].text())
+                    # order the list (careful QLIstWidget do not order as sort from list)
+                    if self.fish_selected:
+                        self.fish_selected.sort()
+                        self.list_s.clear()
+                        self.list_s.addItems(self.fish_selected)
+                        # bold for selected fish
+                        font = QFont()
+                        font.setItalic(True)
+                        for i in range(0, self.list_f.count()):
+                            for f in self.fish_selected:
+                                if f == self.list_f.item(i).text():
+                                    self.list_f.item(i).setFont(font)
 
     def update_list_riv(self):
         """
@@ -635,7 +647,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         link between the GUI and fstress.py.
         """
 
-        self.send_log.emit(self.tr('# Running: FStress'))
+        self.send_log.emit(self.tr('#  Running: FStress'))
 
         self.save_river_data()
         if not self.save_ok:
