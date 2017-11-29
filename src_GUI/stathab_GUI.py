@@ -531,7 +531,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             return
         var1 = 'py    var1 = ['
         if self.riverint == 0:
-            for i in range(0, len(self.end_file_reach)):
+            for i in range(0, len(self.end_file_reach)-1):  # Pref by default
                 if '.txt' in self.end_file_reach[i]:
                     var1 += "'" + self.end_file_reach[i] + "',"
                 else:
@@ -635,7 +635,7 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         **Technical comments**
 
-        This functino updates the Qlabel similarly to the function “load_from_txt_gui()”.
+        This function updates the Qlabel similarly to the function “load_from_txt_gui()”.
         It also loads the data calling the load_stathab_from_hdf5 function from the Stathab class in src. The info
         contains in the hdf5 file are now in the memory in various variables called self.mystathab.”something”.
         HABBY used them to update the GUI. First, it updates the list which contains the name of the reaches
@@ -753,11 +753,11 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.list_f.addItem(name_fish[r])
 
         # final check
-        if self.list_needed.count() == 0:
+        if self.list_needed.count() == 1 and self.list_needed.item(0).text() == 'All files found':
             self.list_needed.addItem('All hdf5 data found')
             self.send_log.emit('# Found all STATHAB files.')
         else:
-            self.send_log.emit('# warning: Could not read all the hdf5 data from Stathab.\n')
+            self.send_log.emit('# Warning: Could not read all the hdf5 data from Stathab.\n')
             return
 
     def reach_selected(self):
