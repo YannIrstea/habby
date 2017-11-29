@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<root>
+<Fish>
+
+<CdAppelTaxon SchemeAgencyID="SANDRE">2247</CdAppelTaxon>
+
+<LatinName>Thymallus thymallus</LatinName>
+
+
+-<ComNames>
+
+<ComName Language="French">Ombre commun</ComName>
+
+<ComName Language="English">Grayling</ComName>
+
+</ComNames>
+
+<CdAlternative OrgCdAlternative="ONEMA">OBR</CdAlternative>
+
+</Fish>
+
+<estimhab>
+<stage> adult </stage>
+<coeff_q> 4.5 -38.8 </coeff_q>
+<func_q> 0 </func_q>
+<coeff_const> 161711 </coeff_const> 
+<var_const> </var_const>
+</estimhab>
+
+</root>
+
