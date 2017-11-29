@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<root>
+<Fish>
+
+<CdAppelTaxon SchemeAgencyID="SANDRE">2071</CdAppelTaxon>
+<LatinName>Barbatula barbatula</LatinName>
+-<ComNames>
+<ComName Language="French">Loche franche</ComName>
+<ComName Language="English">Stone loach</ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="ONEMA">LOF</CdAlternative>
+</Fish>
+
+<estimhab>
+<stage> all_stage </stage>
+<coeff_q> 0.16 -21.79 </coeff_q>
+<func_q> 0 </func_q>
+<coeff_const> 0.64 0.51 -0.33 </coeff_const> 
+<var_const> 5 4 </var_const>
+</estimhab>
+
+</root>
+
