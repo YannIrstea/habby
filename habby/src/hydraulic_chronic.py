@@ -21,8 +21,8 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
     :param discharge_input: the discharge for each time steps in the merges files (careful, we might have a
             merge file with more than one time step, so len(marge_file) != len(dicharge_input) is possible
     :param discharge_output: a list with the time and discharge for the output
-    :param name_prj: the name of the projet
-    :param path_prj: the path to the projet
+    :param name_prj: the name of the project
+    :param path_prj: the path to the project
     :param model_type: in this case, it is ""chronic_hydro", this is not really an hydraulic model.
     :param min_height: the minimum water height acceptable to be accounted for
     :return: A new merge file where each time step has the discharge given in discharge output
