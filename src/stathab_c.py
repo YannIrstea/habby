@@ -297,9 +297,10 @@ class Stathab:
             gen_dataset = list(gen_dataset.values())[0]
             gen_dataset = np.array(gen_dataset)
             if len(gen_dataset) == 0:
-                print('Error: no fish names found in the hdf5 file.\n')
-                file_stathab.close()
-                return
+                pass
+                # print('Warning: no fish names found in the hdf5 file from stathab.\n')
+                # file_stathab.close()
+                # return
             # hdf5 cannot strore string directly, needs conversion
             #  array[3,-2] is needed after bytes to string conversion
             for f in range(0, len(gen_dataset)):
@@ -445,7 +446,7 @@ class Stathab:
                 hdf5file.set('riverint', str(self.riverint))  # attribute
             doc.write(filename_prj)
 
-    def stathab_calc(self, path_pref='.', name_pref='Pref.txt'):
+    def stathab_calc(self, path_pref='.', name_pref='Pref_latin.txt'):
         """
         The function to calculate stathab output.
 
@@ -483,6 +484,7 @@ class Stathab:
         if not find_one_fish:
             print('Error: No fish species have been given or the fish species could not be found.\n')
             return -99
+
         # the biological preference index for all reach, all species
         self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
 
