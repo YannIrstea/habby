@@ -8,21 +8,21 @@ import scipy.interpolate
 def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, name_prj, path_prj
                   , min_height=0.0, model_type='chronic_hydro'):
     """
-    This function used the hydraulic data (velcoity and height) modelled at particular dicharges to estimate hydraulic
+    This function used the hydraulic data (velocity and height) modelled at particular discharges to estimate hydraulic
     data at the discharge given in dicharge_output. This function would only work well if the discharge in the outputs
     are close to the discharge present in the merge_files. Indeed, this function is just a linear interpolation, so
     it only functions for small changes in discharges. It cannot be used in cases where the discharge in dicharge output
-    is outside the range modelled or there were not a sufficient number of dicharges modelled.
+    is outside the range modelled or there were not a sufficient number of discharges modelled.
 
     We assume that the subtrate is not changing as a function of the discharge.
 
     :param merge_files: A list with the name of the file merged
     :param path_merges: the paths to these files
     :param discharge_input: the discharge for each time steps in the merges files (careful, we might have a
-            merge file with more than one time step, so len(marge_file) != len(dicharge_input) is possible
+            merge file with more than one time step, so len(marge_file) != len(discharge_input) is possible
     :param discharge_output: a list with the time and discharge for the output
-    :param name_prj: the name of the projet
-    :param path_prj: the path to the projet
+    :param name_prj: the name of the project
+    :param path_prj: the path to the project
     :param model_type: in this case, it is ""chronic_hydro", this is not really an hydraulic model.
     :param min_height: the minimum water height acceptable to be accounted for
     :return: A new merge file where each time step has the discharge given in discharge output
