@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+<CdBiologicalModel>BOU01</CdBiologicalModel>
+<MadeBy>Irstea Former Cemagref</MadeBy>
+<Fish>
+<CdAppelTaxon SchemeAgencyID="SANDRE">2131</CdAppelTaxon>
+<LatinName>Rhodeus amarus</LatinName>
+<ComNames>
+  <ComName Language="French">Bouvière</ComName>
+  <ComName Language="English">Bitterling</ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="ONEMA">BOU</CdAlternative >
+</Fish>
+<General>
+<CreationYear>1999</CreationYear>
+<Description Language="French">
+<![CDATA[
+Origine: Traitement de la base de données des 1601 ambiances. Données récoltées sur le Rhône, l'Ain, l'Ardèche, la Drôme,  la Loire et la Garonne. 
+ Référence: CEMAGREF, LHQ. Lamouroux et al., 1999. 
+ Mise en forme : ECOGEA 2008. 
+ Pas de subdivision en taxons. 
+ La courbe vaut pour l'ensemble de l'espèce.
+]]>
+</Description>
+<Image>BOU01.png</Image>
+</General>
+<ModelType Type="univariate suitability index curves">
+<Stages>
+<Stage Type="all_stages">
+<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='5' p='0.6'/><Value hw='12.5' p='0.6'/><Value hw='30' p='0.6'/><Value hw='60' p='1'/><Value hw='80' p='0.27'/><Value hw='300' p='0.27'/></PreferenceHeightOfWater>
+<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='1'/><Value v='2.5' p='1'/><Value v='12.5' p='0.3'/><Value v='30' p='0.1'/><Value v='60' p='0.45'/><Value v='100' p='0'/><Value v='200' p='0'/></PreferenceVelocity>
+<PreferenceSubstrate ClassificationName="Code EVHA 2.0 (GINOT 1998)"><Value s='s1' p='1'/><Value s='s2' p='1'/><Value s='s3' p='1'/><Value s='s4' p='1'/><Value s='s5' p='0.24'/><Value s='s6' p='0.06'/><Value s='s7' p='0.39'/><Value s='s8' p='0.3'/></PreferenceSubstrate>
+</Stage>
+</Stages>
+</ModelType>
+</BiologicalModel>
