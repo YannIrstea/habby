@@ -23,7 +23,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
     """
     This class contains the tab with the biological information (the curves of preference). It inherites from
     StatModUseful. StatModuseful is a QWidget, with some practical signal (send_log and show_fig) and some functions
-    to find path_im and path_bio (the path wher to save image) and to manage lists.
+    to find path_im and path_bio (the path where to save image) and to manage lists.
     """
     get_list_merge = pyqtSignal()
     """
@@ -237,7 +237,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         A small function to use the enter key to select the fish with auto-completion.
         Adapted from https://stackoverflow.com/questions/9044001/qcompleter-and-tab-key
-        It would be nice to mek it work with tab also but it si quite complcated because it is quite complicated.
+        It would be nice to make it work with tab also but it is quite complcated because the tab key is already used by
+        PyQt to go from one windows to the next.
         """
         index = self.completer.currentIndex()
         self.completer.popup().setCurrentIndex(index)
@@ -249,8 +250,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def get_autocompletion(self):
         """
-        This function update the auto-complexton model as a function of the QComboxBox next to it with support for upper
-        and lower case.
+        This function updates the auto-complexton model as a function of the QComboxBox next to it with support for
+        upper and lower case.
         """
         ind = self.keys.currentIndex()
 
@@ -368,7 +369,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
     def show_info_fish_sel(self):
         """
         This function shows the useful information concerning the already selected fish on the GUI and
-        remove the selected fish from the list of selected fish. This is what happens when the user click on the
+        remove fish from the list of selected fish. This is what happens when the user click on the
         second QListWidget (the one called selected fish and guild).
         """
 
@@ -396,7 +397,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def show_hydrosignature(self):
         """
-        This function make the link with function in bio_info.py which allows to load and plot the data realted
+        This function make the link with function in bio_info.py which allows to load and plot the data related
         to the hydrosignature.
         """
 
@@ -413,9 +414,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def select_fish(self):
         """
-        This function select the fish which corresponds at the chosen criteria by the user. The type of criteria
+        This function selects the fish which corresponds at the chosen criteria by the user. The type of criteria
         is given in the list self.keys and the criteria is given in self.cond1. The condition should exactly
-        match the criteria. Sign such as * does not work.
+        match the criteria. Signs such as * do not work.
         """
         # get item s to be selected
         i = self.keys.currentIndex() # item type
