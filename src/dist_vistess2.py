@@ -7,7 +7,7 @@ import bisect
 
 def distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile=[]):
     """
-    This function make the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
+    This function makes the link between the GUI and the functions of dist_vitesse2. It is used by 1D model,
     notably rubar and masacret.
 
     Dist vitess needs a manning parameters. It can be given by the user in two forms: a constant (float) or an array
