@@ -34,8 +34,8 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     :param facies_name: the name of the facies file, ususally 'Facies.txt
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     :param q: used if this function is send using the second thread
-    :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
-           maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
+    :param dominant_case: an int to manage the case where the transformation form percentage to dominant is unclear (two
+           maximum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
            if 0, we do not know.
     :param model_type: which type of model (LAMMI in this case). It is as an argument just in case (lammi, Lammi, etc.)
     :return:
@@ -44,12 +44,12 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
 
     LAMMI has a special way of creating a grid from its data. Because spatial information is not very good in LAMMI,
     we can only used the create_grid_only_1_profile() function. The function which uses triangle to create the grid can
-    not be used here as the developper fomr LAMMI did not wish to introduce an interpolation method in their outputs.
-    In addition, LAMMI integrates substrate data which should be direclty added to the grid while other hydraulic model
+    not be used here as the developer from LAMMI did not wish to introduce an interpolation method in their outputs.
+    In addition, LAMMI integrates substrate data which should be directly added to the grid while other hydraulic model
     get their substrate data from another sources.
     """
 
-    # preapration
+    # preparation
     mystdout = None
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
