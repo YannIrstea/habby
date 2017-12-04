@@ -284,7 +284,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     "mixed" grid to a triangular grid. For this,
     it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
     center of the cell). A similar function exists in rubar.py, but, as there are only one reach in rubar
-    and because ikle is different in hec-ras, it was hard to marge both functions together.
+    and because ikle is different in hec-ras, it was hard to merge both functions together.
 
     :param ikle_all: the connectivity table by reach (list of np.array)
     :param coord_c_all: the coordinate of the centroid of the cell by reach
