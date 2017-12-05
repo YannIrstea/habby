@@ -286,6 +286,9 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     center of the cell). A similar function exists in rubar.py, but, as there are only one reach in rubar
     and because ikle is different in hec-ras, it was hard to merge both functions together.
 
+    This function can only be used if the original grid is the same for all time steps. The grid created is dfferent
+    for each time steps.
+
     :param ikle_all: the connectivity table by reach (list of np.array)
     :param coord_c_all: the coordinate of the centroid of the cell by reach
     :param point_all: the points of the grid

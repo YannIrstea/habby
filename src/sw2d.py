@@ -43,7 +43,9 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
         sys.stdout = mystdout = StringIO()
 
     # load swd data
-    [baryXY, times, heigth_cell, vel_cell] = read_result_sw2d(result_sw2d_file, path_res)
+    inter_vel_all_t = []
+    inter_h_all_t = []
+    [baryXY, timesteps, heigth_cell, vel_cell] = read_result_sw2d(result_sw2d_file, path_res)
     if isinstance(baryXY[0], int):
         if baryXY == [-99]:
             print("Error: the SW2D result file could not be loaded.")
@@ -65,12 +67,14 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
                 return
 
     # get triangular nodes from quadrilater
-    ikle_all = listNoNodElem
+    # TO DO: no zero on quadrilater
+    ikle_all = listNoNodElem  # by reach
     coord_c_all = baryXY
-    coord_p_all = nodesXYZ
+    coord_p_all = nodesXYZ[:,:2]  # xy
     vel_t_all = vel_cell
-    water_depth_t_all = heigth_cell
-    [ikle_all, coord_c_all, coord_p_all, vel_t_all2, water_depth_t_all2] = hec_ras2D.get_triangular_grid_hecras(
+    water_depth_t_all = heigth_cell  # by time step by reach
+    print(heigth_cell.shape)
+    [ikle_all_t, point_c_all_t, point_all_t, vel_cell, height_cell] = hec_ras2D.get_triangular_grid_hecras(
         ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
 
     # pass the data to node and cut the wet limit of the grid

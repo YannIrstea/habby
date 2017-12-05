@@ -2657,7 +2657,7 @@ class SW2D(SubHydroW):
 
     def propose_next_file(self):
         """
-        This function proposes the second RUBAR file when the first is selected.  Indeed, to load rubar, we need
+        This function proposes the second SW2D file when the first is selected.  Indeed, to load SW2D, we need
         one file with the geometry data and one file with the simulation results. If the user selects a file, this
         function looks if a file with the same name but with the extension of the other file type exists in the
         selected folder.
