@@ -257,8 +257,11 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         # get all file name for from file
         namefile = []
         for x in range(self.chosen_all.count()):
-            if x== 0 and self.chosen_all.item(x).text() == 'No file chosen':
-                pass
+            # this is bad coding ;-) correct this!
+            if x== 0 and (self.chosen_all.item(x).text() == 'No file chosen' or
+                                  self.chosen_all.item(x).text() == 'Pas de fichier choisi'):
+                self.send_log.emit('Warning: No file chosen.')
+                return
             else:
                 namefile.append(self.chosen_all.item(x).text())
 
@@ -270,7 +273,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
             if nb_t != -99:
                 nb_t_all.append(nb_t)
             else:
-                nb_t.append(0)
+                nb_t_all.append(0)
 
         # create the string which will be written to the file
         text = '# Filename\tQ[m3/s]\n'
@@ -286,8 +289,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         with open(filename_txt, 'wt') as f:
             f.write(text)
 
-        self.send_log.emit('Text file with the filenames chosen in the Chronicle tab created. '
-                           'Save in the text_output folder. \n')
+        self.send_log.emit('A text file with the filenames was created. It is saved in the text_output folder. \n')
 
     def load_file(self, linetext):
         """
