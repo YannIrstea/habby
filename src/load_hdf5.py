@@ -1152,8 +1152,8 @@ def copy_files(names,paths, path_input):
         if names[i] != 'unknown file':
             src = os.path.join(paths[i], names[i])
             # if the file is too big, the GUI is freezed
-            if os.path.getsize(src) > 200 * 1e6:
-                print('Warning: One input file was larger than 200Mb and therefore was not copied to the project'
+            if os.path.getsize(src) > 200 * 1024 * 1024:
+                print('Warning: One input file was larger than 200MB and therefore was not copied to the project'
                       ' folder. It is necessary to copy this file manually to the input folder if one wants to use the '
                       'restart file or the log file to load this data auomatically again. \n')
             else:

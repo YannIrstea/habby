@@ -75,6 +75,34 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
                                                                                      nodesXYZ[:,:2], height_cell, \
                                                                                      vel_cell)
 
+    # remove non connected nodes
+    triangles = np.asarray(ikle_base)
+    nodes = coord_p
+    nbnode = nodes.shape[0]
+    nbtriangle = triangles.shape[0]
+    connect = np.zeros(nbnode, dtype=np.int)
+    connect[np.ravel(triangles)] = 1
+    pointer = np.zeros(nbnode, dtype=np.int)
+    k = 0
+    for i in range(nbnode):
+        if connect[i]:
+            pointer[i] = k
+            k = k + 1
+    nds = [nodes[i,] for i in range(nbnode) if connect[i]]
+    coord_p = np.asarray(nds)
+
+    tria1 = np.ravel(triangles[:,0])
+    tria2 = np.ravel(triangles[:,1])
+    tria3 = np.ravel(triangles[:,2])
+    trs1 = [pointer[tria1[i]] for i in range(nbtriangle)]
+    trs2 = [pointer[tria2[i]] for i in range(nbtriangle)]
+    trs3 = [pointer[tria3[i]] for i in range(nbtriangle)]
+    trs = trs1 + trs2 + trs3
+    trs = np.asarray(trs)
+    trs = trs.reshape(3, nbtriangle)
+    ikle_base = np.transpose(trs)
+    ikle_base = ikle_base.tolist()
+
     # create grid
     # first, the grid for the whole profile (no velocity or height data)
     # because we have a "whole" grid for 1D model before the actual time step
@@ -186,7 +214,7 @@ def read_mesh_sw2d(geofile, pathfile):
                 nodesXYZ[i,] = np.fromfile(f, dtype=np.float, count=3)
                 data = np.fromfile(f, dtype=np.int32, count=1)
             data = np.fromfile(f, dtype=np.int32, count=1) #end label
-                
+
     except IOError:
         print('Error: The .geo file does not exist')
         return failload
