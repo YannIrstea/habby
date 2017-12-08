@@ -28,6 +28,7 @@ from src import selafin_habby1
 from src import mascaret
 from src import Hec_ras06
 from src import rubar
+from src import sw2d
 from src import river2d
 from src import load_hdf5
 from shutil import copyfile
@@ -107,6 +108,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               "file, manning coefficient, interpolation choice, (number of profile to add), (output name),"
               "(nb_point_vel=x)")
         print("LOAD_RUBAR_2D: load the Rubar data in 2D. Input: name of .dat or .mai file, name of input .tps file "
+              "(output name)")
+        print("LOAD_SW2D: load the SW2D dataD. Input: name of .geo file, name of input .res file "
               "(output name)")
         print("LOAD_TELEMAC: load the telemac data. Input: name of the .res file, (output name)")
         print("LOAD_LAMMI: load lammi data. Input: the name of the folder containing transect.txt and facies.txt and "
@@ -270,7 +273,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         hec_ras2D.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
                                                path_hdf5, [], True)
 
-    # ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_RUBAR_2D':
         if not 3 < len(all_arg) < 6:
             print('The function LOAD_RUBAR_2D needs two to three inputs. Call LIST_COMMAND for more '
@@ -298,6 +301,36 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         rubar.load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
                                            'RUBAR2D', 2, path_hdf5,[], False)
+
+# ------------------------------------------------------------------------------
+    elif all_arg[1] == 'LOAD_SW2D':
+        if not 3 < len(all_arg) < 6:
+            print('The function LOAD_SW2D needs two to three inputs. Call LIST_COMMAND for more '
+                  'information.')
+            return
+
+        filename_geo = all_arg[2]
+        filename_data = all_arg[3]
+        if not input_file:
+            pathgeo = os.path.dirname(filename_geo)
+            pathtps = os.path.dirname(filename_data)
+        else:
+            pathgeo = path_input
+            pathtps = path_input
+        geofile = os.path.basename(filename_geo)
+        tpsfile = os.path.basename(filename_data)
+
+        if len(all_arg) == 4:
+            name_hdf5 = 'Hydro_SW2D_' + os.path.splitext(geofile[0])[0]
+            path_hdf5 = path_prj
+        if len(all_arg) == 5:
+            namepath_hdf5 = all_arg[4]
+            name_hdf5 = os.path.basename(namepath_hdf5)
+            path_hdf5 = os.path.dirname(namepath_hdf5)
+
+        sw2d.load_sw2d_and_modify_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
+                                           'SW2D', 2, path_hdf5,[], False)
+
 
 # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_MASCARET':
