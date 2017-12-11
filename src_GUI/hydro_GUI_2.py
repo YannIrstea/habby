@@ -3460,11 +3460,17 @@ class SubstrateW(SubHydroW):
         """
         self.send_log.emit('# Merging: substrate and hydraulic grid...')
 
-        # get usfule data
+        # get useful data
         if len(self.drop_hyd) >1:
             hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()-1]
+        elif len(self.drop_hyd) == 0:
+            self.send_log.emit('Error: No hydrological file available \n')
+            return
         else:
             hdf5_name_hyd = self.hyd_name[0]
+        if len(self.sub_name) == 0:
+            self.send_log.emit('Error: No substrate file available \n')
+            return
         hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()]
         default_data = self.e3.text()
         path_hdf5 = self.find_path_hdf5()
