@@ -3461,7 +3461,7 @@ class SubstrateW(SubHydroW):
         self.send_log.emit('# Merging: substrate and hydraulic grid...')
 
         # get useful data
-        if len(self.drop_hyd) >1:
+        if len(self.drop_hyd) > 1:
             hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()-1]
         elif len(self.drop_hyd) == 0:
             self.send_log.emit('Error: No hydrological file available \n')

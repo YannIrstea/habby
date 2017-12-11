@@ -381,14 +381,53 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
 
     def get_discharge(self, linetext):
         """
-        This function takes the data in the QlineEdit and transform it to a list of float. There are two possibilities:
+        This function takes the data in the QlineEdit and transform it to a list of float. There are three possibilities:
         a) The discharge are given one by one separated by a comma b) We give the start, end and steps of discharge
-        separated by a colon and habby create a list of discharge. 1:5:1 -> 1,2,3,4
+        separated by a colon and habby create a list of discharge. 1:5:1 -> 1,2,3,4 c) We give the start, end and number
+        of points and habby creates a list of value spaced evenly on a LOGARTHMIC scale. LOG 1:5:10 ->
+        Careful, the last number is here the  number of point created, not the step as the steps increases
+        because of the logarythmic scale.
         """
         dstr0 = linetext.text()
         dstr = dstr0.split(',')
-        if len(dstr) < 2:
-            if ':' in dstr0:  # range of discharge
+        if len(dstr) < 2:  # we do not find many comma
+
+            # logarthmic format
+            if dstr0[:3].lower() == 'log':
+                dstr0 = dstr0[3:]
+                if ':' in dstr0:
+                    dstr = dstr0.split(':')
+                    if len(dstr) == 2:  # start:end
+                        try:
+                            startd = int(dstr[0])
+                            endd = int(dstr[1])
+                        except ValueError:
+                            self.send_log.emit(
+                                'Error: Discharge format was not understood. Discharges should be separated '
+                                'by a comma or in the format start:end:step or LOG start:end:number points '
+                                '(1). \n')
+                            return [-99]
+                        discharge = np.logspace(np.log10(startd), np.log10(endd))   # 50 points by default
+                    elif len(dstr) == 3:  # start:end:step
+                        try:
+                            startd = int(dstr[0])
+                            endd = int(dstr[1])
+                            nbpoint = int(dstr[2])
+                        except ValueError:
+                            self.send_log.emit(
+                                'Error: Discharge format was not understood. Discharges should be separated '
+                                'by a comma or in the format start:end:step or LOG start:end:number points (5). \n')
+                            return [-99]
+                        discharge = np.logspace(np.log10(startd), np.log10(endd), num=nbpoint)  # geomspace in new numpy version
+
+                else:
+                    self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
+                                       'by a comma or in the format start:end:step or '
+                                       'LOG start:end:number points (4). \n')
+                    return
+
+            # start:end: step format
+            elif ':' in dstr0:  # range of discharge
                 dstr = dstr0.split(':')
                 if len(dstr) == 2:  # start:end
                     try:
@@ -396,7 +435,8 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                         endd = int(dstr[1])
                     except ValueError:
                         self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
-                                           'by a comma or in the format start:end:step (1). \n')
+                                           'by a comma or in the format start:end:step or LOG start:end:number points '
+                                           '(1). \n')
                         return [-99]
                     discharge = range(startd, endd)
                 elif len(dstr) == 3:  # start:end:step
@@ -407,29 +447,35 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                     except ValueError:
                         self.send_log.emit(
                             'Error: Discharge format was not understood. Discharges should be separated '
-                            'by a comma or in the format start:end:step (5). \n')
+                            'by a comma or in the format start:end:step or LOG start:end:number points (5). \n')
                         return [-99]
                     discharge = range(startd, endd, step)
                 else:
                     self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
-                                           'by a comma or in the format start:end:step (2). \n')
+                                       'by a comma or in the format start:end:step or LOG start:end:number points (2). \n')
                     return [-99]
-            else: # just one number alone or a not-recongnizable entry
+
+
+            # just one discharge ? Or an error
+            else:
                 try:
                     discharge = [float(dstr[0])]
                 except ValueError:
                     self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
-                                           'by a comma or in the format start:end:step (3). \n')
+                                           'by a comma or in the format start:end:step or LOG start:end:number points '
+                                       ' (3). \n')
                     return [-99]
 
-        else:  # list of discharge
+        # list of discharge format
+        else:
             try:
                 discharge = list(map(float, dstr))
             except ValueError:
                 self.send_log.emit('Error: Discharge format was not understood. Discharges should be separated '
-                                           'by a comma or in the format start:end:step (4). \n')
+                                   'by a comma or in the format start:end:step or LOG start:end:number points (4). \n')
                 return [-99]
 
+        print(discharge)
         return discharge
 
     def save_discharge(self):
