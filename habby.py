@@ -1,3 +1,19 @@
+"""
+An open-source software to estimate habitat suitability:
+ _   _   ___  ______________   __
+| | | | / _ \ | ___ \ ___ \ \ / /
+| |_| |/ /_\ \| |_/ / |_/ /\ V / 
+|  _  ||  _  || ___ \ ___ \ \ /  
+| | | || | | || |_/ / |_/ / | |  
+\_| |_/\_| |_/\____/\____/  \_/  
+
+Copyright (c) IRSTEA-EDF-AFB 2017
+
+Licence CeCILL v2.1
+
+https://github.com/YannIrstea/habby
+
+"""
 import sys
 from src_GUI import Main_windows_1
 from src import func_for_cmd

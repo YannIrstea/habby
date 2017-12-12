@@ -1,3 +1,19 @@
+"""
+This file is part of the free software:
+ _   _   ___  ______________   __
+| | | | / _ \ | ___ \ ___ \ \ / /
+| |_| |/ /_\ \| |_/ / |_/ /\ V / 
+|  _  ||  _  || ___ \ ___ \ \ /  
+| | | || | | || |_/ / |_/ / | |  
+\_| |_/\_| |_/\____/\____/  \_/  
+
+Copyright (c) IRSTEA-EDF-AFB 2017
+
+Licence CeCILL v2.1
+
+https://github.com/YannIrstea/habby
+
+"""
 import numpy as np
 import sys
 import os
@@ -5,8 +21,7 @@ from io import StringIO
 from src import manage_grid_8
 from src_GUI import output_fig_GUI
 from src import load_hdf5
-from src import hec_ras2D
-
+from src import rubar
 
 def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_geo, path_res, path_im, name_prj,
                               path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, fig_opt={}):
@@ -42,10 +57,15 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    # load swd data
+    # create the empy output
     inter_vel_all_t = []
     inter_h_all_t = []
-    [baryXY, timesteps, heigth_cell, vel_cell] = read_result_sw2d(result_sw2d_file, path_res)
+    ikle_all_t = []
+    point_all_t = []
+    point_c_all_t = []
+
+    # load swd data
+    [baryXY, timesteps, height_cell, vel_cell] = read_result_sw2d(result_sw2d_file, path_res)
     if isinstance(baryXY[0], int):
         if baryXY == [-99]:
             print("Error: the SW2D result file could not be loaded.")
@@ -66,70 +86,84 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
             else:
                 return
 
-    # get triangular nodes from quadrilater
-    # TO DO: no zero on quadrilater
-    ikle_all = listNoNodElem  # by reach
-    coord_c_all = baryXY
-    coord_p_all = nodesXYZ[:,:2]  # xy
-    vel_t_all = vel_cell
-    water_depth_t_all = heigth_cell  # by time step by reach
-    print(heigth_cell.shape)
-    [ikle_all_t, point_c_all_t, point_all_t, vel_cell, height_cell] = hec_ras2D.get_triangular_grid_hecras(
-        ikle_all, coord_c_all, coord_p_all, vel_t_all, water_depth_t_all)
+    # get triangular nodes from quadrilateral
+    [ikle_base, coord_c, coord_p, height_cell, vel_cell] = rubar.get_triangular_grid(listNoNodElem, baryXY, \
+                                                                                     nodesXYZ[:,:2], height_cell, \
+                                                                                     vel_cell)
 
-    # pass the data to node and cut the wet limit of the grid
-    warn1 = True
+    # remove non connected nodes
+    triangles = np.asarray(ikle_base)
+    nodes = coord_p
+    nbnode = nodes.shape[0]
+    nbtriangle = triangles.shape[0]
+    connect = np.zeros(nbnode, dtype=np.int)
+    connect[np.ravel(triangles)] = 1
+    pointer = np.zeros(nbnode, dtype=np.int)
+    k = 0
+    for i in range(nbnode):
+        if connect[i]:
+            pointer[i] = k
+            k = k + 1
+    nds = [nodes[i,] for i in range(nbnode) if connect[i]]
+    coord_p = np.asarray(nds)
+
+    tria1 = np.ravel(triangles[:,0])
+    tria2 = np.ravel(triangles[:,1])
+    tria3 = np.ravel(triangles[:,2])
+    trs1 = [pointer[tria1[i]] for i in range(nbtriangle)]
+    trs2 = [pointer[tria2[i]] for i in range(nbtriangle)]
+    trs3 = [pointer[tria3[i]] for i in range(nbtriangle)]
+    trs = trs1 + trs2 + trs3
+    trs = np.asarray(trs)
+    trs = trs.reshape(3, nbtriangle)
+    ikle_base = np.transpose(trs)
+    ikle_base = ikle_base.tolist()
+
+    # create grid
+    # first, the grid for the whole profile (no velocity or height data)
+    # because we have a "whole" grid for 1D model before the actual time step
+    inter_h_all_t.append([[]])
+    inter_vel_all_t.append([[]])
+    point_all_t.append([coord_p])
+    point_c_all_t.append([coord_c])
+    ikle_all_t.append([ikle_base])
+
+    # the grid data for each time step
+    warn1 = False
     for t in range(0, len(vel_cell)):
-        # cell to node data
-        # using a different call for the first and the next time step allows to win time if you know that the grid
-        # is not changing in this hydraulic models
+        # get data no the node (and not on the cells) by linear interpolation
         if t == 0:
-            [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
-                                                                                          point_c_all_t[0], vel_cell[t],
-                                                                                          height_cell[t], warn1)
+            [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
+                                                                                                 [coord_c], vel_cell[t],
+                                                                                                 height_cell[t], warn1)
         else:
-            [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
-                                                                                          point_c_all_t[0], vel_cell[t],
-                                                                                          height_cell[t], warn1,
-                                                                                          vtx_all, wts_all)
-            # to study the difference in average, do no forget to comment sys.stdout = mystdout = StringIO()
-            # other wise you get zero for all.
-        warn1 = False
-        ikle_f = []
-        point_f = []
-        v_f = []
-        h_f = []
+            [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p], [coord_c],
+                                                                                                 vel_cell[t],
+                                                                                                 height_cell[t], warn1,
+                                                                                                 vtx_all, wts_all)
+        # cut the grid to the water limit
+        [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p, height_node[0],
+                                                                              vel_node[0], minwh)
 
-        # cut the grid the wet limit
-        for f in range(0, len(ikle_all_t[0])):  # by reach (or water area)
-            # cut grid to wet area
-            [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_all_t[0][f],
-                                                                                   point_all_t[0][f], h_node[f],
-                                                                                   v_node[f], minwh)
-            ikle_f.append(ikle2)
-            point_f.append(point_all)
-            h_f.append(water_height)
-            v_f.append(velocity)
-        inter_h_all_t.append(h_f)
-        inter_vel_all_t.append(v_f)
-        point_all_t.append(point_f)
-        # we did not need the centroid aftwerwards and saving it would required a correction in cut_2d_grid
-        # TO DO: correct this in cut_2d_grid
+        inter_h_all_t.append([water_height])
+        inter_vel_all_t.append([velocity])
+        point_all_t.append([point_all])
         point_c_all_t.append([[]])
-        ikle_all_t.append(ikle_f)
+        ikle_all_t.append([ikle])
+        warn1 = False
 
     # save data
+    timestep_str = list(map(str, timesteps))
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t,
-                        point_c_all_t, inter_vel_all_t, inter_h_all_t, sim_name=timesteps)
+                        point_c_all_t,
+                        inter_vel_all_t, inter_h_all_t, sim_name=timestep_str)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
-        return
     else:
         return
-
 
 def read_mesh_sw2d(geofile, pathfile):
     """
@@ -160,12 +194,19 @@ def read_mesh_sw2d(geofile, pathfile):
                 data = np.fromfile(f, dtype=np.float, count=4)
             data = np.fromfile(f, dtype=np.int32, count=1) #end label
             # reading connectivity
-            listNoNodElem = np.zeros([ncel, np.max(noNodElem)], dtype=np.int)
+            ### listNoNodElem = np.zeros([ncel, np.max(noNodElem)], dtype=np.int)
+            listNoNodElem = []
             for i in range(int(ncel)):
                 data = np.fromfile(f, dtype=np.int32, count=1) #label
+
+                ikle = np.zeros(noNodElem[i], dtype=np.int)
+
                 for j in range(int(noNodElem[i])):
-                    listNoNodElem[i,j] = np.fromfile(f, dtype=np.int32, count=1)
+                    ikle[j] = np.fromfile(f, dtype=np.int32, count=1) - 1
                     data = np.fromfile(f, dtype=np.float, count=2)
+
+                listNoNodElem.append(ikle)
+
                 data = np.fromfile(f, dtype=np.int32, count=1) #end label
                 data = np.fromfile(f, dtype=np.int32, count=1) #label
                 data = np.fromfile(f, dtype=np.int32, count=int(noNodElem[i])) # cint
@@ -189,7 +230,7 @@ def read_mesh_sw2d(geofile, pathfile):
                 nodesXYZ[i,] = np.fromfile(f, dtype=np.float, count=3)
                 data = np.fromfile(f, dtype=np.int32, count=1)
             data = np.fromfile(f, dtype=np.int32, count=1) #end label
-                
+
     except IOError:
         print('Error: The .geo file does not exist')
         return failload
@@ -218,10 +259,14 @@ def read_result_sw2d(resfile, pathfile):
             ncel = data[1]
             nint = data[2]
             # reading barycentric coordinates
-            baryXY = np.zeros((ncel, 2))
+            ###baryXY = np.zeros((ncel, 2))
+            baryXY = []
+            cxy = np.zeros(2)
             data = np.fromfile(f, dtype=np.int32, count=1) #label
             for i in range(ncel):
-                baryXY[i,] = np.fromfile(f, dtype=np.float, count=2)
+                #baryXY[i,] = np.fromfile(f, dtype=np.float, count=2)
+                cxy = np.fromfile(f, dtype=np.float, count=2)
+                baryXY.append(cxy)
             data = np.fromfile(f, dtype=np.int32, count=1) #end label
             # reading info on edges
             data = np.fromfile(f, dtype=np.int32, count=1) #label

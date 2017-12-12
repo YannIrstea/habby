@@ -1,4 +1,19 @@
+"""
+This file is part of the free software:
+ _   _   ___  ______________   __
+| | | | / _ \ | ___ \ ___ \ \ / /
+| |_| |/ /_\ \| |_/ / |_/ /\ V / 
+|  _  ||  _  || ___ \ ___ \ \ /  
+| | | || | | || |_/ / |_/ / | |  
+\_| |_/\_| |_/\____/\____/  \_/  
 
+Copyright (c) IRSTEA-EDF-AFB 2017
+
+Licence CeCILL v2.1
+
+https://github.com/YannIrstea/habby
+
+"""
 from PyQt5.QtCore import QTranslator, pyqtSignal, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
