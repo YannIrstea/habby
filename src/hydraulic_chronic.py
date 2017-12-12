@@ -157,7 +157,22 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
                 inter_height_all_new.append(inter_height_all_m[indh])
                 substrate_pg_all_new.append(substrate_pg_all_m[indh])  # updated based on the cut_2d_grid
                 substrate_dom_all_new.append(substrate_dom_all_m[indh])
-            # normal case
+
+            # cases where the difference is too big betwen input and asked outputs
+            # TO DO find a good rule for this.
+            elif 1 == 0:
+                ikle_all_new.append([])
+                point_all_new.append([])
+                inter_vel_all_new.append([])
+                inter_height_all_new.append([])
+                substrate_pg_all_new.append([substrate_pg_full])
+                substrate_dom_all_new.append([substrate_dom_full])
+                if warn1:
+                    print('Warning: One or more output are neglected as the difference between modelled discharge was '
+                          'too big. \n')
+                    warn1 = False
+
+            # normal case, calculation should be done
             else:
                 # we use the grid of the higher discharge (often the bigger one even if not true everywhere)
                 ikle_here_all_r = ikle_all_m[indh+1]
