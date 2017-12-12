@@ -116,8 +116,8 @@ class Hydro2W(QWidget):
         # available model
         self.mod.addItems(self.name_model)
         self.mod.currentIndexChanged.connect(self.selectionchange)
-        #self.button1 = QPushButton(self.tr('?'), self)
-        #self.button1.clicked.connect(self.give_info_model)
+        self.button1 = QPushButton(self.tr('?'), self)
+        self.button1.clicked.connect(self.give_info_model)
         spacer2 = QSpacerItem(50, 1)
 
         # insist on white background color (for linux, mac)
@@ -160,7 +160,7 @@ class Hydro2W(QWidget):
         self.layout4.addWidget(l3, 0, 0)
         self.layout4.addWidget(self.mod, 1, 0)
         self.layout4.addItem(spacer2, 1, 1)
-        #self.layout4.addWidget(self.button1, 1, 2)
+        self.layout4.addWidget(self.button1, 1, 2)
         self.layout4.addWidget(self.stack, 2, 0)
         self.layout4.addWidget(l4, 3, 0)
         self.layout4.addWidget(self.drop_hyd, 4, 0)
