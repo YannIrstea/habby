@@ -374,7 +374,10 @@ class SubHydroW(QWidget):
         sys.stdout = sys.__stdout__
         self.send_err_log()
 
-        self.name_hdf5 = os.path.basename(pathname_hdf5)
+        if pathname_hdf5 is not None:
+            self.name_hdf5 = os.path.basename(pathname_hdf5)
+        else:
+            return
 
         if self.model_type == 'SUBSTRATE' and 'CONST' in self.name_hdf5:
             if len(self.name_hdf5) > 50:  # careful this number should be changed if the form of the hdf5 name change

@@ -159,7 +159,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
                     sub_data_all_dom.append(sub_data_pg)
 
                     # check that each triangle of the grid is clock-wise (useful for shapefile)
-                    ikle_all[t][r] = check_clockwise(ikle_all[t][r], point_all[t][r])
+                    if len(ikle_all[t][r]) > 3:
+                        ikle_all[t][r] = check_clockwise(ikle_all[t][r], point_all[t][r])
 
             elif t > 0:
                 for r in range(0, len(ikle_all[t])):

@@ -690,7 +690,10 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
                     data_here = sim_name[t-1] + '\t' + str(r) + '\t' + str(area_all[t][r])
                 for i in range(0, len(name_fish)):
                     data_here += '\t' + str(spu_all[i][t][r])
-                    data_here += '\t' + str(spu_all[i][t][r]/area_all[t][r])
+                    try:
+                        data_here += '\t' + str(spu_all[i][t][r]/area_all[t][r])
+                    except TypeError:
+                        data_here += '\t' + 'NaN'
                 data_here += '\n'
                 f.write(data_here)
 

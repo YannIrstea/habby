@@ -1301,17 +1301,21 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
                 print('Velocity data was missing for one time step. Could not create a shapefile to check data. \n')
                 return
             # get data by cells
-            v1 = v[ikle[:, 0]]
-            v2 = v[ikle[:, 1]]
-            v3 = v[ikle[:, 2]]
-            v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
-            vel_data_here.append(v_cell)
+            try:
+                v1 = v[ikle[:, 0]]
+                v2 = v[ikle[:, 1]]
+                v3 = v[ikle[:, 2]]
+                v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+                vel_data_here.append(v_cell)
 
-            h1 = h[ikle[:, 0]]
-            h2 = h[ikle[:, 1]]
-            h3 = h[ikle[:, 2]]
-            h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
-            height_data_here.append(h_cell)
+                h1 = h[ikle[:, 0]]
+                h2 = h[ikle[:, 1]]
+                h3 = h[ikle[:, 2]]
+                h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+                height_data_here.append(h_cell)
+            except IndexError:
+                vel_data_here.append([])
+                vel_data_here.append([])
         vel_data.append(vel_data_here)
         height_data.append(height_data_here)
 
