@@ -37,7 +37,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     :param substrat: mean height of substrat
     :param path_im: the path where the image should be saved
     :param path_bio: the path to the xml file with the information on the fishes
-    :param fish_name: the name of the xml file to be analyzed
+    :param fish_xml: the name of the xml file to be analyzed
     :param pict: if true the figure is shown. If false, the figure is not shown
     :param fig_opt: a dictionnary with the figure option
     :param path_txt: the path where to send the text data

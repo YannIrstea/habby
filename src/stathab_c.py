@@ -1033,6 +1033,10 @@ class Stathab:
         else:
             erase1 = False
 
+        if len(self.q_all) < len(self.name_reach):
+            print('Error: Could not find discharge data. Figure not plotted. \n')
+            return
+
         for r in range(0, len(self.name_reach)):
 
             qmod = self.q_all[r]
@@ -1184,6 +1188,10 @@ class Stathab:
             erase1 = True
         else:
             erase1 = False
+
+        if not isinstance(self.j_all, np.ndarray):
+            print('Error: The suitability index was not in the right format')
+            return
 
         # save txt for each reach
         for r in range(0, len(self.name_reach)):

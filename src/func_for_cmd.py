@@ -570,7 +570,6 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         all_file = glob.glob(os.path.join(path_bio2, r'*.xml'))
         for i in range(0, len(all_file)):
             all_file[i] = os.path.basename(all_file[i])
-            all_file[i] = all_file[i].replace(".xml", "")
         fish_list = all_file
 
         # short check
@@ -660,7 +659,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # get fish name and run stathab
         if riv_int == 0:
-            [mystathab.fish_chosen, coeff_all] = stathab_c.load_pref('Pref.txt', path_bio2)
+            [mystathab.fish_chosen, coeff_all] = stathab_c.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
             fig_opt = output_fig_GUI.create_default_figoption()
             fig_opt['erase_id'] = 'True'

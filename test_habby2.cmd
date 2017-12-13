@@ -27,6 +27,7 @@ python habby.py ALL LOAD_RUBAR_2D %pin%\2Dmodel\rubar2D\*.dat %pin%\2Dmodel\ruba
 python habby.py ALL LOAD_RIVER_2D %pin%\2Dmodel\river2D_test1\* path_prj=%p%
 python habby.py ALL LOAD_TELEMAC %pin%\big_file_yann\*.slf path_prj=%p%
 python habby.py ALL LOAD_TELEMAC %pin%\yann_durance\TELEMAC\*.slf path_prj=%p%
+python habby.py LOAD_SW2D %pin%\2Dmodel\SW2D\a.geo %pin%\2Dmodel\SW2D\alex23.res path_prj=%p%
 
 ECHO Load one substrate
 python habby.py LOAD_SUB_SHP %pin%\substrate\bogchitte_sub.shp Cemagref path_prj=%p%
@@ -39,8 +40,8 @@ python habby.py ALL RUN_HABITAT %p%\Merge*.h5 BAM01.xml juvenile,fry 0 path_prj=
 
 ECHO Test statisitcal model
 python habby.py RUN_ESTIMHAB 2 60 29 45 0.21 1.12 25 1 38 0.25 path_prj=%p%
-python habby.py RUN_FSTRESS D:\Diane_work\file_test\input_fstress path_prj=%p%
-python habby.py RUN_STATHAB D:\Diane_work\file_test\input_stathab path_prj=%p%
+python habby.py RUN_FSTRESS %pin%\input_fstress path_prj=%p%
+python habby.py RUN_STATHAB %pin%\input_stathab path_prj=%p%
 
 ECHO check with past results
 python habby.py COMPARE_TEST %pex% %p%

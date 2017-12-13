@@ -170,7 +170,6 @@ class FstressW(estimhab_GUI.StatModUseful):
         # self.layout3.addWidget(self.button2, 13, 1)
         self.setLayout(self.layout3)
 
-
     def was_loaded_before(self):
         """
         This function looks in the xml project file is an hdf5 exists already. If yes, it loads this data
@@ -339,16 +338,17 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         All data should be in SI unit. We save all the data in the input folder at the end.
         """
-        self.found_file = []
-        self.riv_name = []
-        self.qhw = []
-        self.qrange = []
 
         # open file
         filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_fstress, os.getenv('HOME'))[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
             return
+
+        self.found_file = []
+        self.riv_name = []
+        self.qhw = []
+        self.qrange = []
 
         # see which type of file we have and get the name of all the files
         filename = os.path.basename(filename_path)
