@@ -116,8 +116,8 @@ class Hydro2W(QWidget):
         # available model
         self.mod.addItems(self.name_model)
         self.mod.currentIndexChanged.connect(self.selectionchange)
-        #self.button1 = QPushButton(self.tr('?'), self)
-        #self.button1.clicked.connect(self.give_info_model)
+        self.button1 = QPushButton(self.tr('?'), self)
+        self.button1.clicked.connect(self.give_info_model)
         spacer2 = QSpacerItem(50, 1)
 
         # insist on white background color (for linux, mac)
@@ -160,7 +160,7 @@ class Hydro2W(QWidget):
         self.layout4.addWidget(l3, 0, 0)
         self.layout4.addWidget(self.mod, 1, 0)
         self.layout4.addItem(spacer2, 1, 1)
-        #self.layout4.addWidget(self.button1, 1, 2)
+        self.layout4.addWidget(self.button1, 1, 2)
         self.layout4.addWidget(self.stack, 2, 0)
         self.layout4.addWidget(l4, 3, 0)
         self.layout4.addWidget(self.drop_hyd, 4, 0)
@@ -184,22 +184,24 @@ class Hydro2W(QWidget):
         General info goes as the start of the text file. If the text is too long, add the keyword "MORE INFO"
         and add the longer text afterwards. The message box will show the supplementary information only if the user
         asks for detailed information.
-
-        This functins is not used anymore as it was long to maintain it and not very useful to the user. But I let it
-        here is case, it becomes necessary again
         """
-
         self.msgi.setIcon(QMessageBox.Information)
-        text_title = self.tr("Information on ")
+        text_title = self.tr("Information on:")
         mod_name = self.name_model[self.mod_act]
-        self.msgi.setWindowTitle(text_title + mod_name)
+        self.msgi.setWindowTitle(text_title)
         info_filename = os.path.join('./model_hydro', mod_name+'.txt')
+        if mod_name == "TELEMAC":
+            website = "<a href=\"http://www.opentelemac.org\">TELEMAC</a>"
+        elif mod_name == "HEC-RAS 1D":
+            website = "<a href=\"http://www.hec.usace.army.mil/software/hec-ras\">HEC-RAS 1D</a>"
+        else:
+            website = ""
         self.msgi.setStandardButtons(QMessageBox.Ok)
         if os.path.isfile(info_filename):
             with open(info_filename, 'rt') as f:
                 text = f.read()
             text2 = text.split('MORE INFO')
-            self.msgi.setText(text2[0])
+            self.msgi.setText(website + text2[0])
             self.msgi.setDetailedText(text2[1])
         else:
             self.msgi.setText(self.tr('No information yet!         '))

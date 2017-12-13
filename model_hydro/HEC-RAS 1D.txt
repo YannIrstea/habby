@@ -1,11 +1,14 @@
-HEC-RAS is an hydrological model developped by the US Army Corps.
+ is hydrological model developped by the US Army Corps.
 MORE INFO
-yadida zydida makdabala. The text need an update.
-We load here 1D data. Choose Hec-ras 2D for 2D data.
-Input: The .g0X file (geometry) and the xml file (results). To obtain the xml file: 
-•	Load the model in HEC-RAS (after it was run).
-•	Click on File, Export Geometry and Result (RAS Mapper)
-•	Export the needed variables and simulations.
+Input: The .g0X file (geometry) and the xml file (results).
+
+To obtain the xml file: 
+- Load the model in HEC-RAS (after it was run).
+- Click on File, Export Geometry and Result (RAS Mapper)
+- Export the needed variables and simulations.
+
 This function works with steady and unsteady data.
-Call:  [height, velocity] = open_hecras_xml(name_geo, name_xml, path_to_file)
+
+Call:
+ [height, velocity] = open_hecras_xml(name_geo, name_xml, path_to_file)
 
