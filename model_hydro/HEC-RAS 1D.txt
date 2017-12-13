@@ -1,4 +1,5 @@
- is hydrological model developped by the US Army Corps.
+ is the hydrological model developped by the US Army Corps.
+Licence: Freeware
 MORE INFO
 Input: The .g0X file (geometry) and the xml file (results).
 
@@ -8,7 +9,4 @@ To obtain the xml file:
 - Export the needed variables and simulations.
 
 This function works with steady and unsteady data.
-
-Call:
- [height, velocity] = open_hecras_xml(name_geo, name_xml, path_to_file)
 

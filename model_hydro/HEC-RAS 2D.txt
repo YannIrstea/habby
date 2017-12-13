@@ -1,0 +1,5 @@
+ is the hydrological model developped by the US Army Corps.
+Licence: Freeware
+MORE INFO
+Input: HDF5 file format for 2D results since v5.0
+

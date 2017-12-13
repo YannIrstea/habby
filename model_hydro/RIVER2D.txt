@@ -1,0 +1,6 @@
+ is  hydrodynamic model customized for fish habitat evaluation studies
+ Author(s): University of ALBERTA
+Licence: Freeware
+MORE INFO
+Input: HDF5 file format for 2D results since v5.0
+

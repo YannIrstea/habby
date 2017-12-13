@@ -1,0 +1,10 @@
+ is a suite of 1D solvers for the shallow water problems
+Author(s): Consortium open TELEMAC-MASCARET
+Licence: GPL
+MORE INFO
+Input:
+- .xcas file: the steering file (xml format)
+- .geo file: ASCII file for bathymetry and topography
+- .opt file: ASCII file for hydraulic results (OPTHYCA format)
+- .rub file: binary file for hydraulic results (RUBENS format)
+

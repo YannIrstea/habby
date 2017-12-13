@@ -1,0 +1,8 @@
+ is is a modelling software chain for free surface flow simulations.
+Author(s): V. Guinot et al.
+Licence: Unknown
+MORE INFO
+Input:
+- .geo binary file for the mesh of the geometry
+- .res binary file for the hydraulic results
+

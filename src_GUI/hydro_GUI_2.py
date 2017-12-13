@@ -194,6 +194,18 @@ class Hydro2W(QWidget):
             website = "<a href=\"http://www.opentelemac.org\">TELEMAC</a>"
         elif mod_name == "HEC-RAS 1D":
             website = "<a href=\"http://www.hec.usace.army.mil/software/hec-ras\">HEC-RAS 1D</a>"
+        elif mod_name == "HEC-RAS 2D":
+            website = "<a href=\"http://www.hec.usace.army.mil/software/hec-ras\">HEC-RAS 2D</a>"
+        elif mod_name == "SW2D":
+            website = "<a href=\"https://sw2d.wordpress.com\">SW2D</a>"
+        elif mod_name == "MASCARET":
+            website = "<a href=\"http://www.openmascaret.org\">MASCARET</a>"
+        elif mod_name == "RIVER2D":
+            website = "<a href=\"http://www.river2d.ca\">RIVER2D</a>"
+        elif mod_name == "RUBAR 20":
+            website = "<a href=\"http://www.irstea.fr/rubar20\">RUBAR20</a>"
+        elif mod_name == "RUBAR BE":
+            website = "<a href=\"http://www.irstea.fr/rubar3\">RUBARBE</a>"
         else:
             website = ""
         self.msgi.setStandardButtons(QMessageBox.Ok)

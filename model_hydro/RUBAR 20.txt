@@ -1,0 +1,7 @@
+ is a 2D hydraulic model.
+Author(s): IRSTEA
+Licence: Unknown (Nonfree software)
+MORE INFO
+Input:
+- .mai or .dat for the mesh of the geometry
+- .tps ASCII file for the hydraulic results
