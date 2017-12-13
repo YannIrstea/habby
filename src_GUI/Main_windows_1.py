@@ -1561,16 +1561,17 @@ class CreateNewProject(QWidget):
 
         layoutl = QGridLayout()
         layoutl.addWidget(lg, 0, 0)
-        layoutl.addWidget(l1, 1, 0)
-        layoutl.addWidget(self.e1, 1, 1)
-        layoutl.addWidget(l2, 2, 0)
-        layoutl.addWidget(self.e2, 2, 1)
-        layoutl.addWidget(button2, 2, 2)
-        layoutl.addWidget(self.button3, 3, 1)
+        layoutl.addWidget(l2, 1, 0)
+        layoutl.addWidget(self.e2, 1, 1)
+        layoutl.addWidget(button2, 1, 2)
+        layoutl.addWidget(l1, 2, 0)
+        layoutl.addWidget(self.e1, 2, 1)
+        layoutl.addWidget(self.button3, 2, 2)
+        
         self.setLayout(layoutl)
 
-        self.setWindowTitle(self.tr('HABBY- NEW PROJECT'))
-        self.setGeometry(300, 300, 450, 100)
+        self.setWindowTitle(self.tr('HABBY- New Project'))
+        self.setGeometry(300, 300, 650, 100)
 
     def setfolder(self):
         """
