@@ -110,7 +110,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.choice_run = QComboBox()
         self.choice_run.addItems(self.all_run_choice)
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
-        self.runhab.setStyleSheet("background-color: #31D656")
+        self.runhab.setStyleSheet("background-color: #47B5E6; color: white; font: bold")
         self.runhab.clicked.connect(self.run_habitat_value)
         self.butfig = QPushButton(self.tr("Create figure again"))
         self.butfig.clicked.connect(self.recreate_fig)
@@ -190,6 +190,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.add_sel_fish()
         if self.list_s.count() == 0:
             self.runhab.setDisabled(True)
+            self.runhab.setStyleSheet("background-color: #47B5E6")
+        else:
+            self.runhab.setStyleSheet("background-color: #47B5E6; color: white; font: bold")
 
         # search possibility
         l3 = QLabel(self.tr('<b> Search biological models </b>'))
