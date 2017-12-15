@@ -66,7 +66,8 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         # selected merge file
         l1 = QLabel(self.tr("<b> Chosen data </b>"))
         self.chosen_all = QListWidget()
-        self.chosen_all.setDragDropMode(QAbstractItemView.InternalMove)
+        # to debug if you want to sort filename with mouse interactions
+        # self.chosen_all.setDragDropMode(QAbstractItemView.InternalMove)
         self.show_file_selected()
         self.remove_all = QPushButton(self.tr("Remove all file"))
         self.remove_all.clicked.connect(self.remove_all_file)
@@ -406,6 +407,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         """
         dstr0 = linetext.text()
         dstr = dstr0.split(',')
+        discharge = []
         if len(dstr) < 2:  # we do not find many comma
 
             # logarthmic format
@@ -491,7 +493,6 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                                    'by a comma or in the format start:end:step or LOG start:end:number points (4). \n')
                 return [-99]
 
-        print(discharge)
         return discharge
 
     def save_discharge(self):

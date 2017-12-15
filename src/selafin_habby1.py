@@ -22,9 +22,9 @@ import warnings
 import matplotlib.pyplot as plt
 import time
 from io import StringIO
-from src import manage_grid_8
 from src import load_hdf5
 from src_GUI import output_fig_GUI
+from src import manage_grid_8
 
 
 def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
@@ -57,7 +57,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     # load data
     [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
 
-    if len(v) == 1 and v == [-99]:
+    if isinstance(v,int) and v == [-99]:
         print('Error: Telemac data not loaded.')
         if q:
             sys.stdout = sys.__stdout__
@@ -589,6 +589,9 @@ class Selafin(object):
         """
         if self.file['name'] != '':
             self.file.update({'hook': self.file['hook'].close()})
+
+
+
 
 
 if __name__ == "__main__":

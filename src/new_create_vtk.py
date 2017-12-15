@@ -159,6 +159,37 @@ def writePVD(fileName, fileNames):
     pvd.writexml(outFile, newl='\n')
     outFile.close()
 
+def save_slf(name_hdf5, path_hdf5, path_slf, merge, output_name='', habitat = []):
+    """
+    This is a function to export slf.
+
+    :param name_hdf5:
+    :param path_hdf5:
+    :param merge: a boolean to know if you have substrate or not
+    :return:
+    """
+    print('export here')
+
+    # load hdf5
+    if not merge:
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(name_hdf5,
+                                                                                           path_hdf5, merge)
+    else:
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
+            = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, merge)
+    if isinstance(ikle_all_t[0][0], int) and  ikle_all_t[0][0]== -99:
+        print('Error: Hdf5 file not loaded \n')
+        return
+
+    #print(ikle_all_t[1][0])
+    if not output_name:
+        filename=os.path.join(path_slf,name_hdf5[:-3] + '.slf')
+    else:
+        filename = os.path.join(path_slf, output_name + '.slf')
+    f = open(filename, "w")
+    f.write("ecriture du slf provisoire")
+    f.close()
+
 
 def main():
     """

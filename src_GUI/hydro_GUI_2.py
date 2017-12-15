@@ -40,6 +40,7 @@ from src import load_hdf5
 from src_GUI import output_fig_GUI
 from src import mesh_grid2
 from src import lammi
+from src import new_create_vtk
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -151,6 +152,10 @@ class Hydro2W(QWidget):
         self.stack.addWidget(self.habbyhdf5)
         self.stack.setCurrentIndex(self.mod_act)
 
+        #export slf
+        self.slfbut = QPushButton(self.tr('export .slf'))
+        self.slfbut.clicked.connect(self.export_slf_gui)
+
         # list with available hdf5
         l4 = QLabel(self.tr('<b> Available hdf5 files </b>'))
         self.drop_hyd = QComboBox()
@@ -164,6 +169,7 @@ class Hydro2W(QWidget):
         self.layout4.addWidget(self.stack, 2, 0)
         self.layout4.addWidget(l4, 3, 0)
         self.layout4.addWidget(self.drop_hyd, 4, 0)
+        self.layout4.addWidget(self.slfbut, 4, 1)
 
         self.setLayout(self.layout4)
 
@@ -220,6 +226,26 @@ class Hydro2W(QWidget):
             self.msgi.setDetailedText('No detailed info yet.')
         self.msgi.setEscapeButton(QMessageBox.Ok)  # detailed text erase the red x
         self.msgi.show()
+
+    def export_slf_gui(self):
+        """
+        This is the function which is used by the GUI to export slf data. NOT FINISHED!!!!!
+        """
+        self.send_log.emit('export slf is not finished yet')
+        name_hdf5= self.drop_hyd.currentText()
+        path_hdf5 = self.rubar1d.find_path_hdf5()
+        path_slf = self.rubar1d.find_path_output('Path_Paraview')
+        print(path_slf)
+
+
+        if not name_hdf5:
+            self.send_log.emit(self.tr('Error: No hydraulic file found. \n'))
+            return
+
+        new_create_vtk.save_slf(name_hdf5, path_hdf5, path_slf, False)
+
+
+
 
 
 class FreeSpace(QWidget):

@@ -740,9 +740,9 @@ class MainWindows(QMainWindow):
             path_other = os.path.join(self.path_prj, 'shapefiles_output')
             pathother_child = ET.SubElement(path_element, "Path_Shape")
             pathother_child.text = 'shapefiles_output'
-            path_para = os.path.join(self.path_prj, 'paraview_output')
+            path_para = os.path.join(self.path_prj, 'visualisation_output')
             pathpara_child = ET.SubElement(path_element, "Path_Paraview")
-            pathpara_child.text = 'paraview_output'
+            pathpara_child.text = 'visualisation_output'
 
             # save new xml file
             if self.name_prj != '':

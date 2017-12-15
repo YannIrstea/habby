@@ -140,6 +140,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     if create_para:
         new_create_vtk.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
                                       vel_c_all_t, name_fish, erase_id)
+        new_create_vtk.save_slf(hdf5_file, path_hdf5, path_para, True, output_name=name_base, habitat=vh_all_t_sp)
 
     # pdf with information on the fish
     if create_info and len(xmlfiles) > 0:
