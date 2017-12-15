@@ -192,7 +192,7 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
 
 
     """
-    failload = [-99], [-99], [-99], [-99], [-99]
+    failload = [-99], [-99], [-99], [-99], [-99], [-99]
 
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()

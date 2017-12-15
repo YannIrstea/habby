@@ -117,7 +117,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, fig_opt=
             data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
             and v the velocity
     """
-    failload = [-99], [-99], [-99]
+    failload = [-99], [-99], [-99], [-99]
 
     # load the river coordinates 1d (not needed anymore, but can be useful)
     #[x, nb_mail] = load_mai_1d(mail, pathgeo)
@@ -840,7 +840,7 @@ def load_rubar2d(geofile, tpsfile, pathgeo, pathtps, path_im, save_fig):
     elif ext == '.dat':
         [ikle, xy, coord_c, nb_cell] = load_dat_2d(geofile, pathgeo)
     else:
-        return [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99]
     [timestep, h, v] = load_tps_2d(tpsfile, pathtps, nb_cell)
     [ikle, coord_c, xy, h, v] = get_triangular_grid(ikle, coord_c, xy, h, v)
     if save_fig:

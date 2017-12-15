@@ -349,7 +349,8 @@ def get_timestep_number(hdf5_name, path_hdf5):
         return failload
     return timestep
 
-def load_sub_percent(hdf5_name_hyd, path_hdf5 = ''):
+
+def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     """
     This function loads the substrate in percent form, if this info is present in the hdf5 file. It send a warning
     otherwise.
@@ -983,7 +984,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     return
 
 
-def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom,ikle_sub=[], coord_p=[], name_hdf5 ='', constsub=False,
+def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], coord_p=[], name_hdf5 ='', constsub=False,
                   model_type='SUBSTRATE', return_name=False):
     """
     This function creates an hdf5 with the substrate data. This hdf5 does not have the same form than the hdf5 file used

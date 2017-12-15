@@ -130,16 +130,18 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
             on the profile and the number of profile by reach.
     """
 
+    failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+
     # load the geofile (not georeferenced)
     blob, ext = os.path.splitext(file_geo)
     if ext == '.geo':
         [coord_pro1, name_pro, name_reach, nb_pro_reach, abscisse, bt] = open_geo_mascaret(file_geo, path_geo)
     else:
         print('Error: the geo file should be of .geo type.\n')
-        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+        return failload
     if name_reach == ['-99']:
         print('Error: .geo data not loaded. \n')
-        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+        return failload
 
     # general file
     blob, ext = os.path.splitext(file_gen)
@@ -149,10 +151,10 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
         [coord_r, nr] = river_coord_non_georef_from_cas(file_gen, path_gen, abscisse, nb_pro_reach)
     else:
         print('Error the general file should be of .xcas or .cas type.\n')
-        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+        return failload
     if nr == [-99]:
         print('Error: .xcas data not loaded. \n')
-        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+        return failload
 
     # profile info
     coord_xy = profil_coord_non_georef(coord_pro1, coord_r, nr, nb_pro_reach, bt)
@@ -172,11 +174,11 @@ def load_mascaret(file_gen, file_geo, file_res, path_gen, path_geo, path_res):
         [xhzv_data, timestep] = open_res_file(file_res, path_res)
     if len(timestep) == 1 and timestep[0] == -99:
         print('Error: Data could not be loaded. \n')
-        return -99, -99, -99, -99, -99, -99, -99
+        return failload
     on_profile = is_this_res_on_the_profile(abscisse, xhzv_data)
     if len(on_profile) == 1 and on_profile[0] == -99:
         print('Error: the profile number was not coherent.\n')
-        return -99, -99, -99, -99, -99, -99, -99
+        return failload
 
     return coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach, timestep
 

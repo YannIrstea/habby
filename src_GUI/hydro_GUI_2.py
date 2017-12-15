@@ -1863,7 +1863,9 @@ class River2D(SubHydroW):
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
 
         if len(self.namefile) == 0:
-            self.send_log.emit("Warning: No file chosen.")
+            self.send_log.emit("Error: No file chosen.")
+            self.timer.stop()
+            self.load_b.setDisabled(False)
             return
 
         for i in range(0, len(self.namefile)):

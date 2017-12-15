@@ -57,7 +57,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     # load data
     [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
 
-    if len(v[0]) == 1 and v == [-99]:
+    if len(v) == 1 and v == [-99]:
         print('Error: Telemac data not loaded.')
         if q:
             sys.stdout = sys.__stdout__
@@ -102,11 +102,13 @@ def load_telemac(namefilet, pathfilet):
     :param pathfilet: the path to this file (string)
     :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
     """
+    faiload = [-99], [-99], [-99], [-99], [-99], [-99]
+
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
     if not os.path.isfile(filename_path_res):
         print('Error: The telemac file does not exist. Cannot be loaded.')
-        return [-99], [-99], [-99], [-99], [-99]
+        return faiload
     blob, ext = os.path.splitext(namefilet)
     if ext != '.res' and ext != '.slf':
         print('Warning: The extension of the telemac file is not .res or .slf')
@@ -114,7 +116,7 @@ def load_telemac(namefilet, pathfilet):
         telemac_data = Selafin(filename_path_res)
     except ValueError or KeyError:
         print('Error: The telemac file cannot be loaded.')
-        return [-99], [-99], [-99], [-99], [-99]
+        return faiload
 
     # time step name
     nbtimes = telemac_data.tags['times'].size
@@ -150,10 +152,10 @@ def load_telemac(namefilet, pathfilet):
 
         if len(vt) == 0:
             print('Error: The variable name of the telemec file were not recognized. (1) \n')
-            return [-99], [-99], [-99], [-99], [-99]
+            return faiload
         if len(ht) == 0:
             print('Error: The variable name of the telemec file were not recognized. (2) \n')
-            return [-99], [-99], [-99], [-99], [-99]
+            return faiload
         v.append(vt)
         h.append(ht)
     coord_p = np.array([telemac_data.meshx, telemac_data.meshy])

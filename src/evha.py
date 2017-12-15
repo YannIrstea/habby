@@ -1,3 +1,20 @@
+"""
+This file is part of the free software:
+ _   _   ___  ______________   __
+| | | | / _ \ | ___ \ ___ \ \ / /
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
+
+Copyright (c) IRSTEA-EDF-AFB 2017
+
+Licence CeCILL v2.1
+
+https://github.com/YannIrstea/habby
+
+"""
+
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -8,6 +25,8 @@ def load_evha_and_create_grid(path, name_evha=''):
     """
     This function loads the evha data, disitrbute the velocity, create a 2d grid from this data and save it all in
     an hdf5 format.  This function is called in a second thread by the class Evha() in Hydro_grid_2().
+
+    THIS IS NOT FUNCTIONNING YET. IT SHOULD BE FINISHED BEFORE USE!!!!!!!
 
     :param path: the path to the folder with the evha data
     :param name_evha: the name of the project (if empty, this is assumed to be the name of the folder)

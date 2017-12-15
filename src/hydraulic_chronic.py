@@ -296,7 +296,6 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output, n
                         sub_dom_all_t=substrate_dom_all_new, sim_name=discharge_output_str)
 
 
-
 def main():
     """
     Used to test this module
