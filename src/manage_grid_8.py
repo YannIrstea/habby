@@ -38,7 +38,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
     the "loading" function of hec-ras 1D, Mascaret and Rubar BE. It used to be a method in hydro_GUI2, but we have
     to move it as a function to create a second thread. Hence, the high amount of parameter.
 
-    :param vh_pro: Velcoity and height data
+    :param vh_pro: Velocity and height data
     :param coord_pro: the position of the profile
     :param nb_pro_reach: the number of profile by reach
     :param interpo_choice: an int which gives the choice of interpolatin (see below)

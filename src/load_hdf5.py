@@ -29,7 +29,7 @@ from src_GUI import output_fig_GUI
 
 def open_hdf5(hdf5_name):
     """
-    This is a function which open an hdf5 file and check that it exists. it does not load the data. It only opens the
+    This is a function which opens an hdf5 file and check that it exists. It does not load the data. It only opens the
     files.
     :param hdf5_name: the path and name of the hdf5 file (string)
     """
@@ -52,14 +52,15 @@ def open_hdf5(hdf5_name):
 
 def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     """
-    A function to load the 2D hydrological data contains in the hdf5 file in the form required by HABBY. f hdf5_name_sub
-    is an absolute path, the path_prj is not used. If it is a relative path, the path is composed of the path to the
-    project (path_prj) composed with hdf5_name_sub.
+    A function to load the 2D hydrological data contained in the hdf5 file in the form required by HABBY. If
+    hdf5_name_sub is an absolute path, the path_prj is not used. If hdf5_name_sub is a relative path, the path is
+    composed of the path to the project (path_prj) composed with hdf5_name_sub.
 
     :param hdf5_name_hyd: filename of the hdf5 file (string)
     :param path_hdf5: the path to the hdf5 file
-    :param merge: If merge is True. this is a merged file with substrate data added
-    :return: the connectivity table, the coordinates of the point, the height data, the velocity data on the coordinates.
+    :param merge: If merge is True. this is a merge file with substrate data added
+    :return: the connectivity table, the coordinates of the point, the height data, the velocity data
+             on the coordinates.
 
     """
 
@@ -823,7 +824,6 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
         erase_idem = save_option
 
     # create hdf5 name if we keep all files (nned a time stamp)
-    save_xml = True
     if not erase_idem:
         h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
     else:
@@ -837,7 +837,6 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
             except PermissionError:
                     print("Could not save hdf5 file. It might be used by another program \n")
                     return
-            save_xml = False
 
     # create a new hdf5
     fname = os.path.join(path_hdf5, h5name)
@@ -955,31 +954,45 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     file.close()
 
     # save the file to the xml of the project
+    if merge:
+        type_hdf5 =  "hdf5_mergedata"
+    else:
+        type_hdf5 = "hdf5_hydrodata"
 
     filename_prj = os.path.join(path_prj, name_prj + '.xml')
     if not os.path.isfile(filename_prj):
         print('Error: No project saved. Please create a project first in the General tab.\n')
         return
     else:
-        if save_xml:
-            doc = ET.parse(filename_prj)
-            root = doc.getroot()
-            child = root.find(".//" + model_type)
-            if child is None:
-                here_element = ET.SubElement(root, model_type)
-                if not merge:
-                    hdf5file = ET.SubElement(here_element, "hdf5_hydrodata")
-                else:
-                    hdf5file = ET.SubElement(here_element, "hdf5_mergedata")
-            else:
-                if not merge:
-                    hdf5file = ET.SubElement(child, "hdf5_hydrodata")
-                else:
-                    hdf5file = ET.SubElement(child, "hdf5_mergedata")
-
+        doc = ET.parse(filename_prj)
+        root = doc.getroot()
+        child = root.find(".//" + model_type)
+        # if the xml attribute do not exist yet, xml name should be saved
+        if child is None:
+            here_element = ET.SubElement(root, model_type)
+            hdf5file = ET.SubElement(here_element, type_hdf5)
             hdf5file.text = h5name
+        else:
+            # if we save all files even identical file, we need to save xml
+            if not erase_idem:
+                hdf5file = ET.SubElement(child, type_hdf5)
+                hdf5file.text = h5name
+            # if the xml attribute exist and we do not save all file, we should only save attribute if new
+            else:
+                child2s = root.findall(".//" + model_type + "/" + type_hdf5)
+                if child2s is not None:
+                    found_att_text = False
+                    for c in child2s:
+                            if c.text == h5name:
+                                found_att_text = True
+                    if not found_att_text:
+                        hdf5file = ET.SubElement(child, type_hdf5)
+                        hdf5file.text = h5name
+                else:
+                    hdf5file = ET.SubElement(child, type_hdf5)
+                    hdf5file.text = h5name
 
-            doc.write(filename_prj)
+        doc.write(filename_prj)
 
     return
 
