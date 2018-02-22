@@ -1,5 +1,7 @@
+.gitignore
 *.pyc
 __pycache__
 .idea
 desktop.ini
+build
 

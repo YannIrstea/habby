@@ -23,6 +23,7 @@ from PyQt5.QtCore import QTranslator, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView
+from PyQt5.QtGui import QIcon
 import h5py
 np.set_printoptions(threshold=np.inf)
 from multiprocessing import Process, Queue
@@ -192,7 +193,7 @@ class Hydro2W(QWidget):
         asks for detailed information.
         """
         self.msgi.setIcon(QMessageBox.Information)
-        text_title = self.tr("Information on:")
+        text_title = self.tr("Information on the hydraulic model")
         mod_name = self.name_model[self.mod_act]
         self.msgi.setWindowTitle(text_title)
         info_filename = os.path.join('./model_hydro', mod_name+'.txt')
@@ -225,6 +226,8 @@ class Hydro2W(QWidget):
             self.msgi.setText(self.tr('No information yet!         '))
             self.msgi.setDetailedText('No detailed info yet.')
         self.msgi.setEscapeButton(QMessageBox.Ok)  # detailed text erase the red x
+        name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+        self.msgi.setWindowIcon(QIcon(name_icon))
         self.msgi.show()
 
     def export_slf_gui(self):

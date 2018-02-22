@@ -178,6 +178,10 @@ class MainWindows(QMainWindow):
     def init_ui(self):
         """ Used by __init__() to create an instance of the class MainWindows """
 
+        # set window icon
+        name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+        self.setWindowIcon(QIcon(name_icon))
+
         # create the menu bar
         self.my_menu_bar()
 
@@ -527,7 +531,10 @@ class MainWindows(QMainWindow):
 
             # add the title of the windows
             # let it here as it should be changes if language changes
-            self.setWindowTitle(self.tr('HABBY ')+str(self.version) + ': ' + self.name_prj)
+            if self.name_prj != '':
+                self.setWindowTitle(self.tr('HABBY ')+ str(self.version) + ' - ' + self.name_prj)
+            else:
+                self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
             # in case we need a tool bar
             # self.toolbar = self.addToolBar('')
@@ -889,7 +896,10 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.lowpart.setEnabled(True)
 
         # update name project
-        self.setWindowTitle(self.tr('HABBY ')+str(self.version) + ': ' + self.name_prj)
+        if self.name_prj != '':
+            self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
+        else:
+            self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
     def open_project(self):
         """
@@ -1572,6 +1582,8 @@ class CreateNewProject(QWidget):
         self.setLayout(layoutl)
 
         self.setWindowTitle(self.tr('HABBY- New Project'))
+        name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+        self.setWindowIcon(QIcon(name_icon))
         self.setGeometry(300, 300, 650, 100)
 
     def setfolder(self):
@@ -1694,6 +1706,8 @@ class CentralW(QWidget):
             self.msg2.setWindowTitle(self.tr("Project file not found"))
             self.msg2.setText(self.tr("The xml project file does not exists. \n Create or open a new project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
+            name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+            self.msg2.setWindowIcon(QIcon(name_icon))
             self.msg2.show()
         else:
             doc = ET.parse(fname)
@@ -2151,8 +2165,7 @@ class WelcomeW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        self.imname = os.path.join('translation','test3.jpg') # image shoulfd in the translation folder
-        # self.imname = os.path.join('translation', 'beaver.png')  # image should in the translation folder
+        self.imname = os.path.join('translation','banner.jpg') # image shoulfd in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()

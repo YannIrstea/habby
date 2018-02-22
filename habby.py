@@ -32,7 +32,7 @@ def main():
     from HABBY.
     """
 
-    # graphical user interafce is called if no argument
+    # graphical user interface is called if no argument
     if len(sys.argv) == 1:
         # create app
         app = QApplication(sys.argv)
