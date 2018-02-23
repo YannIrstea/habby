@@ -75,7 +75,7 @@ target = Executable(
 #
 setup(
     name="Habby",
-    version="0.2.1",
+    version="0.21",
     description="HABitat suitaBilitY",
     author="Fabrice Zaoui",
     options={"build_exe": options},
