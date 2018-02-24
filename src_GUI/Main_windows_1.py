@@ -354,8 +354,7 @@ class MainWindows(QMainWindow):
 
         # create the new toolbar
         self.my_toolbar()
-
-        # reconnect saignal for the weclcome tab
+        # reconnect signal for the welcome tab
         self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
         self.central_widget.welcome_tab.open_proj.connect(self.open_project)
         self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
@@ -369,7 +368,8 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_log()
 
         self.central_widget.update_hydro_hdf5_name()
-        self.central_widget.update_merge_for_chronicle()
+        if hasattr(self.central_widget, 'chronicle_tab') == True:
+            self.central_widget.update_merge_for_chronicle()
 
         self.central_widget.l1.setText(self.tr('Habby says:'))
 
