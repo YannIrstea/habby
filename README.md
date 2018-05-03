@@ -8,6 +8,13 @@ One of its main functionality is to predict fish microhabitat use at various dis
 
 River Discharge Time Series can be provided to Habby in order to build habitat chronicles within the ranges of simulated discharges and validated biological models.
 
+<p align="center">
+  <img src="./translation/hsi.png" width="800"/>
+</p>
+<p align="center">
+   <b>Habitat Suitability Index for adult barbel computed by HABBY</b> 
+</p>
+
 In addition three statistical models can be used. They provide fast results that are closed to the classical instream habitat models. They only requires the average hydraulic characteristics of stream reaches at different discharge rates, such as **Estimhab** (3) which needs the mean depth and the mean width. To be operational these models requires several results of classical studies to define the statistical equations for usable fish species/guild/stages.
 
 When using the **Habby** GUI, scripts are automatically generated which allows users to re-launch a set of instructions easily by the Text User Interface (TUI). **Habby** files and scripts of a given project can be stored in a database which ensures of the transparency of biological results which could be useful to the contracting authority to check the process integrity . Moreover, complex operations can be launched automatically using the scripting language, preventing users from ‘mouse tendonitis’. For instance **Habby** has been tested successfully on a 2D hydraulic simulation of 47 km of Durance River (southern France) representing a mesh of about 960,000 elements, on Windows, without needing the computing power of a server. A personal computer was sufficient to run it. 
@@ -17,6 +24,13 @@ When using the **Habby** GUI, scripts are automatically generated which allows u
 **Habby** can be directly used from the Python sources. It requires Python 3 with PyQt5 and some additional modules to be installed like h5py, triangle or pyshp.
 
 A 64 bit Windows executable is also provided that includes all the requirements to run the program in a GUI mode.
+
+<p align="center">
+  <img src="./translation/hydraulic.png" width="800"/>
+</p>
+<p align="center">
+   <b>Habby software (Windows version)</b> 
+</p>
 
 # References
 
