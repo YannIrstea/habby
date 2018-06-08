@@ -7,7 +7,7 @@ This file is part of the free software:
 | | | || | | || |_/ / |_/ / | |  
 \_| |_/\_| |_/\____/\____/  \_/  
 
-Copyright (c) IRSTEA-EDF-AFB 2017
+Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
 Licence CeCILL v2.1
 
@@ -84,7 +84,7 @@ class MainWindows(QMainWindow):
 
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = 0.21
+        self.version = 0.22
 
         # load user setting
         self.settings = QSettings('irstea', 'HABBY'+str(self.version))
@@ -113,7 +113,7 @@ class MainWindows(QMainWindow):
 
         del self.settings
 
-        # set up tranlsation
+        # set up translation
         self.languageTranslator = QTranslator()
         self.path_trans = os.path.abspath('translation')
         self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm']
@@ -172,7 +172,7 @@ class MainWindows(QMainWindow):
         super().__init__()
         pyqtRemoveInputHook()
 
-        # call an additional function during initialisation
+        # call an additional function during initialization
         self.init_ui()
 
     def init_ui(self):
@@ -268,7 +268,7 @@ class MainWindows(QMainWindow):
 
     def end_concurrency(self):
         """
-        This functiion indicates to the project folder than this project is not used anymore. Hence, this project
+        This function indicates to the project folder than this project is not used anymore. Hence, this project
         can be used freely by an other instance of HABBY.
         """
         if self.name_prj is not None:
@@ -288,23 +288,23 @@ class MainWindows(QMainWindow):
 
     def setlangue(self, nb_lang):
         """
-        A function which change the language of the programme. It change the menu and the central widget.
+        A function which change the language of the program. It changes the menu and the central widget.
         It uses the self.lang attribute which should be set to the new language before calling this function.
 
         :param nb_lang: the number representing the language (int)
 
         *   0 is for English
         *   1 for French
-        *   2 for spanish
-        *   n for any additionnal language
+        *   2 for Spanish
+        *   n for any additional language
 
         """
 
-        # set the langugae
+        # set the language
         self.lang = int(nb_lang)
         # get the old tab
         ind_tab = self.central_widget.tab_widget.currentIndex()
-        # get a new tranlator
+        # get a new translator
         app = QApplication.instance()
         app.removeTranslator(self.languageTranslator)
         self.languageTranslator = QTranslator()
@@ -326,17 +326,17 @@ class MainWindows(QMainWindow):
             self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
 
             # pass the info to the bio info tab
-            # to be modified if a new langugage is added !
+            # to be modified if a new language is added !
             if nb_lang == 0:
                 self.central_widget.bioinfo_tab.lang = 'English'
             elif nb_lang == 1:
                 self.central_widget.bioinfo_tab.lang = 'French'
-            # elif nb_lang == 2:  # to be addaed if the xml preference files are also in spanish
+            # elif nb_lang == 2:  # to be added if the xml preference files are also in spanish
             #     self.central_widget.bioinfo_tab.lang = 'Spanish'
             else:
                 self.central_widget.bioinfo_tab.lang = 'English'
 
-            # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+            # write the new language in the figure option to be able to get the title, axis in the right language
             output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # set the central widget
@@ -481,7 +481,7 @@ class MainWindows(QMainWindow):
         lAction3.setStatusTip(self.tr('click here for Spanish'))
         lAction3.triggered.connect(lambda: self.setlangue(2))
 
-        # Menu to obtain help and programme version
+        # Menu to obtain help and program version
         helpm = QAction(self.tr('Developper Help'), self)
         helpm.setStatusTip(self.tr('Get help to use the programme'))
         helpm.triggered.connect(self.open_help)
@@ -500,7 +500,7 @@ class MainWindows(QMainWindow):
             fileMenu2 = self.menubar.addMenu(self.tr('Language'))
             fileMenu3 = self.menubar.addMenu(self.tr('Help'))
 
-        # add al the rest
+        # add all the rest
         fileMenu.addAction(openprj)
         recentpMenu = fileMenu.addMenu(self.tr('Open Recent Project'))
         for j in range(0, len(recent_proj_menu)):
@@ -548,10 +548,10 @@ class MainWindows(QMainWindow):
 
     def on_context_menu(self, point):
         """
-        This function is used to show the menu on right click. If we are ont he Habitat Tab and that the focus is on
-        the QListWidget, it shows the informatin concerning the fish
+        This function is used to show the menu on right click. If we are on the Habitat Tab and that the focus is on
+        the QListWidget, it shows the information concerning the fish
 
-        :param point: Not understood, linke with the position of the menu.
+        :param point: Not understood, link with the position of the menu.
         """
         if self.central_widget.bioinfo_tab.list_s.underMouse():
             self.central_widget.bioinfo_tab.show_info_fish(True)
@@ -613,7 +613,7 @@ class MainWindows(QMainWindow):
 
         **Technical comments**
 
-        This function saves or creates the xml file related to the projet. In this xml file, there are the path and
+        This function saves or creates the xml file related to the project. In this xml file, there are the path and
         the name to all files related to the project, notably the hdf5 files containing the hydrological data.
 
         To find or create the xml file, we use the attribute self.path_prj and self.name_proj. If the path to
@@ -633,8 +633,8 @@ class MainWindows(QMainWindow):
         Interesting path are a) the biology path (named "biology" by default) which contains the biological information
         such as the preference curve and b) the path_im which is the path where all figures and most outputs of HABBY
         is saved. If path_im is not given, HABBY automatically create a folder called figures when the
-        user creates a new project. The user can however change this path if he wants. It also create other similar
-        folders to sotre different type of outputs. The next step is to communicate
+        user creates a new project. The user can however change this path if he wants. It also creates other similar
+        folders to store different type of outputs. The next step is to communicate
         to all the children widget than the name and path of the project have changed.
 
         This function also changes the title of the Windows to reflect the project name and it adds the saved
@@ -721,10 +721,10 @@ class MainWindows(QMainWindow):
             user_child.text = self.username_prj
             des_child = ET.SubElement(general_element, "Description")
             des_child.text = self.descri_prj
-            # we save here only the bversin number of when the project was saved the first time.
-            # if a project is used in two version, it has the first version number to insure back-comptability.
-            # let say on version 1.5, we assure comptability in version 1.4, but that we do assure comptability
-            # for version 1.4 in version 1.6. In this case, we should not have the verison number 1.5 in the xml.
+            # we save here only the version number of when the project was saved the first time.
+            # if a project is used in two version, it has the first version number to insure back-compatibility.
+            # let say on version 1.5, we assure compatibility in version 1.4, but that we do assure compatibility
+            # for version 1.4 in version 1.6. In this case, we should not have the version number 1.5 in the xml.
             ver_child = ET.SubElement(general_element, 'Version_HABBY')
             ver_child.text = str(self.version)
 
@@ -880,7 +880,7 @@ class MainWindows(QMainWindow):
         # write log
         if len(t) > 26:
             # no need to write #log of habby started two times
-            # to breack line habby use <br> there, should not be added again
+            # to break line habby use <br> there, should not be added again
             self.central_widget.write_log(t[26:-4])
         self.central_widget.write_log('# Project saved or opened successfully.')
         self.central_widget.write_log("py    name_prj= r'" + self.name_prj + "'")
@@ -955,8 +955,8 @@ class MainWindows(QMainWindow):
                                           'New project path: ' + os.path.dirname(filename_path))
             self.path_prj = os.path.dirname(filename_path)
             root2.find(".//Path_Projet").text = self.path_prj
-            # if we have change the project path, it is probable tha the project folder was copied from somewhere else
-            # so the check concurenncy file was probably copied and look like open even if the project is closed.
+            # if we have change the project path, it is probable that the project folder was copied from somewhere else
+            # so the check concurrency file was probably copied and look like open even if the project is closed.
             self.central_widget.write_log('Warning: Could not control for concurrency between projects due to path '
                                           'change. If you have any other instance of HABBY open, please close it.')
             self.end_concurrency()
@@ -1005,7 +1005,7 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_fig_and_drop()
         self.central_widget.connect_signal_log()
 
-        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+        # write the new language in the figure option to be able to get the title, axis in the right language
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # check if project open somewhere else
@@ -1052,7 +1052,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
         self.central_widget.welcome_tab.e3.setText(self.descri_prj)
-        #self.central_widget.write_log('# Project opened sucessfully. \n')
+        #self.central_widget.write_log('# Project opened successfully. \n')
 
         # save the project
         self.save_project()
@@ -1066,7 +1066,7 @@ class MainWindows(QMainWindow):
             self.central_widget.stathab_tab.load_from_hdf5_gui()
         self.central_widget.statmod_tab.open_estimhab_hdf5()
 
-        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+        # write the new langugage in the figure option to be able to get the title, axis in the right language
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # check if project open somewhere else
@@ -1089,7 +1089,7 @@ class MainWindows(QMainWindow):
 
     def close_project(self):
         """
-        This function close the current project wihout opening a new project
+        This function close the current project without opening a new project
         """
         # open an empty project (so it close the old one)
         self.empty_project()
@@ -1160,7 +1160,7 @@ class MainWindows(QMainWindow):
             child1.text = 'figures'
         doc.write(fname)
 
-        # write the new langugage in the figure option to be able to get the title, axis in the right langugage
+        # write the new language in the figure option to be able to get the title, axis in the right language
         self.central_widget.output_tab.save_option_fig()
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
@@ -1237,7 +1237,7 @@ class MainWindows(QMainWindow):
 
     def empty_project(self):
         """
-        This function open a new empty project
+        This function opens a new empty project
         """
 
         # load the xml file
@@ -1292,7 +1292,7 @@ class MainWindows(QMainWindow):
         Finally, we save the name and path of the estimhab file in the xml project file.
         """
 
-        # a boolenan to check to progress of the saving
+        # a boolean to check to progress of the saving
         self.does_it_work = True
 
         # get all the float
@@ -1501,7 +1501,7 @@ class MainWindows(QMainWindow):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
-        # ask for confimation
+        # ask for confirmation
         self.msg2.setIcon(QMessageBox.Warning)
         self.msg2.setWindowTitle(self.tr("Delete figure"))
         self.msg2.setText(
@@ -1524,7 +1524,7 @@ class MainWindows(QMainWindow):
     def open_help(self):
         """
         This function open the html which form the help from HABBY. For the moment, it is the full documentation
-        with all the coding detail, but we should create a new html or a new pdf file which would be more pratical
+        with all the coding detail, but we should create a new html or a new pdf file which would be more practical
         for the user.
         """
         filename_help = os.path.join(os.getcwd(), "doc","_build", "html","index.html")
@@ -1591,7 +1591,7 @@ class CreateNewProject(QWidget):
         This function is used by the user to select the folder where the xml project file will be located.
         """
         dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.default_fold,
-                                                    )  # check for invalid null parameter on Linuxgit
+                                                    )  # check for invalid null parameter on Linux git
         # os.getenv('HOME')
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
@@ -1600,15 +1600,15 @@ class CreateNewProject(QWidget):
 
 class CentralW(QWidget):
     """
-    This class create the different tabs of the programm, which are then used as the central widget by the class
+    This class create the different tabs of the program, which are then used as the central widget by the class
     MainWindows.
 
     :param rech: A bollean which is True if the tabs for the "research option" are shown. False otherwise.
     :param path_prj: A string with the path to the project xml file
     :param name_prj: A string with the name of the project
-    :param lang_bio: A string with the word 'English', 'French' (or an other language). It is used to find the langugage
+    :param lang_bio: A string with the word 'English', 'French' (or an other language). It is used to find the language
            in which the biological info should be shown. So lang_bio should have the same form than the attribute
-           "langugage" in xml preference file.
+           "language" in xml preference file.
 
     **Technical comments**
 
@@ -1716,7 +1716,7 @@ class CentralW(QWidget):
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
 
-        # add the widgets to the list of tab if a project exist
+        # add the widgets to the list of tab if a project exists
         self.add_all_tab()
 
         # Area to show the log
@@ -1736,7 +1736,7 @@ class CentralW(QWidget):
         self.vbar.setStyleSheet('background-color: lightGrey')
 
         self.welcome_tab.save_info_signal.connect(self.save_info_projet)
-        # save the desription and the figure option if tab changed
+        # save the description and the figure option if tab changed
         self.tab_widget.currentChanged.connect(self.save_on_change_tab)
 
         # layout
@@ -1748,14 +1748,14 @@ class CentralW(QWidget):
 
     def scrolldown(self):
         """
-        Move the scroll bar to the bottow if the ScollArea is getting bigger
+        Move the scroll bar to the bottom if the ScollArea is getting bigger
         """
         self.vbar.setValue(self.vbar.maximum())
 
     def add_all_tab(self):
         """
         This function add the different tab to habby (used by init and by save_project). Careful, if you change the
-        position of the Option tab, you should also modify the varaible self.opttab in init
+        position of the Option tab, you should also modify the variable self.opttab in init
         """
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(fname) and self.name_prj_c != '':
@@ -1833,7 +1833,7 @@ class CentralW(QWidget):
 
     def connect_signal_log(self):
         """
-        connect all the signal linked to the log. This is in a function only to improve lisibility.
+        connect all the signal linked to the log. This is in a function only to improve readability.
         """
 
         self.welcome_tab.send_log.connect(self.write_log)
@@ -1862,7 +1862,7 @@ class CentralW(QWidget):
     def connect_signal_fig_and_drop(self):
         """
         This function connect the PyQtsignal to show figure and to connect the log. It is a function to
-        improve lisibility.
+        improve readability.
         """
 
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
@@ -2054,7 +2054,7 @@ class CentralW(QWidget):
             if not os.path.isabs(self.hyd_name[0]):
                 for i in range(0, len(self.hyd_name)):
                     self.hyd_name[i] = os.path.join(path_hdf5, self.hyd_name[i])
-            hyd_name2 = []  # we might have unexisting hdf5 file in the xml project file
+            hyd_name2 = []  # we might have no hdf5 file in the xml project file
             for i in range(0, len(self.hyd_name)):
                 if os.path.isfile(self.hyd_name[i]):
                     hyd_name2.append(self.hyd_name[i])
@@ -2106,7 +2106,7 @@ class CentralW(QWidget):
     def save_on_change_tab(self):
         """
         This function is used to save the data when the tab are changed. In most tab this is not needed as data
-        is alredy saved by another functions. However, it is useful for the Welcome Tab and the Option Tab.
+        is already saved by another functions. However, it is useful for the Welcome Tab and the Option Tab.
         This function can be modified if needed for new tabs.
 
         Careful, the order of the tab is important here.
@@ -2144,7 +2144,7 @@ class WelcomeW(QWidget):
         A PyQt signal used to save the project
     """
     open_proj = pyqtSignal()
-    " A signal for MainWindows to open an exisiting project"
+    " A signal for MainWindows to open an existing project"
     new_proj_signal = pyqtSignal()
     """
         A PyQt signal used to open a new project
@@ -2165,7 +2165,7 @@ class WelcomeW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        self.imname = os.path.join('translation','banner.jpg') # image shoulfd in the translation folder
+        self.imname = os.path.join('translation','banner.jpg') # image should be in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
@@ -2227,7 +2227,7 @@ class WelcomeW(QWidget):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # if the directoy to the project do not exist, leave the general tab empty
+        # if the directory of the project does not exist, let the general tab empty
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isdir(self.path_prj) or not os.path.isfile(fname):
             pass
@@ -2517,7 +2517,7 @@ class ShowImageW(QWidget):
 class MyFilter(QObject):
     """
     This is a filter which is used to know when a QWidget is going out of focus. Practically this is used
-    if the user goes away from a QLineEdit. If this events happends, the project is autmatically saved with the new
+    if the user goes away from a QLineEdit. If this events happens, the project is automatically saved with the new
     info of the user.
     """
     outfocus_signal = pyqtSignal()

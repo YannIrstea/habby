@@ -7,7 +7,7 @@ This file is part of the free software:
 | | | || | | || |_/ / |_/ / | |  
 \_| |_/\_| |_/\____/\____/  \_/  
 
-Copyright (c) IRSTEA-EDF-AFB 2017
+Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
 Licence CeCILL v2.1
 

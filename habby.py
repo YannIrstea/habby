@@ -7,7 +7,7 @@ An open-source software to estimate habitat suitability:
 | | | || | | || |_/ / |_/ / | |  
 \_| |_/\_| |_/\____/\____/  \_/  
 
-Copyright (c) IRSTEA-EDF-AFB 2017
+Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
 Licence CeCILL v2.1
 
@@ -53,7 +53,7 @@ def main():
 
         namedir = 'result_cmd3'
         path_bio = './biology'
-        version = 0.21
+        version = 0.22
         # find the best path_prj
         settings = QSettings('irstea', 'HABBY' + str(version))
         name_prj = settings.value('name_prj')
@@ -83,7 +83,7 @@ def main():
             print('Warning: Could not find a project path. Saved data in ' + path_prj + '. Habby needs'
                                                                                         ' write permission \n.')
 
-        # create an empty project if not existing gbefore
+        # create an empty project if not existing before
         filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
         if not os.path.isdir(path_prj):
             os.makedirs(path_prj)
@@ -111,6 +111,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # necessarry to freeze the application with parrallel process
+    # necessary to freeze the application with parallel process
     multiprocessing.freeze_support()
     main()
