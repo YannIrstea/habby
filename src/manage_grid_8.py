@@ -2425,20 +2425,20 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
                     if fig_opt['language'] == 0:
-                        cbar.ax.set_ylabel('Water height [m]')
+                        cbar.ax.set_ylabel('Water depth [m]')
                     elif fig_opt['language'] == 1:
                         cbar.ax.set_ylabel("Hauteur d'eau [m]")
                     else:
-                        cbar.ax.set_ylabel('Water height [m]')
+                        cbar.ax.set_ylabel('Water depth [m]')
             else:
                 print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         if fig_opt['language'] == 0:
             if time_step == -1:
-                plt.title('Water height - Last Time Step')
+                plt.title('Water depth - Last Time Step')
             else:
-                plt.title('Water height - Time Step: ' + str(time_step) )
+                plt.title('Water depth - Time Step: ' + str(time_step) )
         elif fig_opt['language'] == 1:
             if time_step == -1:
                 plt.title("Hauteur d'eau - Dernier Pas de Temps")
