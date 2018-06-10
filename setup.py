@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # Python 3
 
-import sys, os
+import sys
+import os
 import os.path
 from cx_Freeze import setup, Executable
 
@@ -13,9 +14,9 @@ os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
 #
 # Options
 #
-path = sys.path 
+path = sys.path
 # python modules if cx_freeze does not find them
-includes = ['numpy.core._methods', 'numpy.lib.format', \
+includes = ['numpy.core._methods', 'numpy.lib.format',
             'matplotlib.backends.backend_qt5agg']
 # exclusion
 excludes = ['scipy.spatial.cKDTree']
@@ -53,14 +54,14 @@ options = {"path": path,
 # Windows dll
 if sys.platform == "win32":
     options["include_msvcr"] = True
- 
+
 #
 # Targets
 #
 base = None
 if sys.platform == "win32":
     base = "Win32GUI"  # graphical app
-    #base = "Console"  # text app
+    # base = "Console"  # text app
 # icon
 ico = None
 if sys.platform == "win32":
@@ -69,7 +70,7 @@ target = Executable(
     script="habby.py",
     base=base,
     icon=ico
-    ) 
+    )
 #
 # Setup
 #

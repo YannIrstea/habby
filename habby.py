@@ -2,10 +2,10 @@
 An open-source software to estimate habitat suitability:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -25,11 +25,13 @@ import os
 
 def main():
     """
-    This is the main for HABBY. If no argument is given, the PyQt interface is called. If argument are given, HABBY is
-    called from the command line. In this case, it can call restart (read a list of command from a
-    file) or read a command written on the cmd or apply a command to a type of file (key word ALL before the command and
-    name of the file with asterisk). For more complicated case, one can directly do a python script using the function
-    from HABBY.
+    This is the main for HABBY. If no argument is given, the PyQt interface
+    is called. If argument are given, HABBY is called from the command line.
+    In this case, it can call restart (read a list of command from a file) or
+    read a command written on the cmd or apply a command to a type of file
+    (key word ALL before the command and name of the file with asterisk).
+    For more complicated case, one can directly do a python script using
+    the function from HABBY.
     """
 
     # graphical user interface is called if no argument
@@ -42,7 +44,7 @@ def main():
 
         # close
         sys.exit(app.exec_())
-        #os._exit()
+        # os._exit()
     # otherwise we use the command line
     else:
         """
@@ -80,26 +82,31 @@ def main():
                     path_bio = opt[9:]
                     del sys.argv[id]
         if proj_def:
-            print('Warning: Could not find a project path. Saved data in ' + path_prj + '. Habby needs'
-                                                                                        ' write permission \n.')
+            print('Warning: Could not find a project path. Saved data in '
+                  + path_prj
+                  + '. Habby needs write permission \n.')
 
         # create an empty project if not existing before
         filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
         if not os.path.isdir(path_prj):
             os.makedirs(path_prj)
         if not os.path.isfile(os.path.join(path_prj, name_prj + '.xml')):
-            func_for_cmd.copyfile(filename_empty, os.path.join(path_prj, name_prj + '.xml'))
+            func_for_cmd.copyfile(filename_empty,
+                                  os.path.join(path_prj, name_prj + '.xml'))
 
         # check if enough argument
         if len(sys.argv) == 0 or len(sys.argv) == 1:
-            print(" Not enough argument was given. At least one argument should be given")
+            print(" Not enough argument was given. \
+                    At least one argument should be given")
             return
 
         if sys.argv[1] == 'RESTART':
             if len(sys.argv) != 3:
-                print('Error: the RESTART command needs the name of the restart file as input.')
+                print('Error: the RESTART command needs the name of \
+                      the restart file as input.')
                 return
-            func_for_cmd.habby_restart(sys.argv[2], name_prj, path_prj, path_bio)
+            func_for_cmd.habby_restart(sys.argv[2], name_prj, path_prj,
+                                       path_bio)
         elif sys.argv[1] == 'ALL':
             if len(sys.argv) < 2:
                 print('Error: the ALL command needs at least one argument.')

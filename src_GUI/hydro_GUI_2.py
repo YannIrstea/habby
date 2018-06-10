@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -20,12 +20,13 @@ import sys
 import shutil
 from io import StringIO
 from PyQt5.QtCore import QTranslator, pyqtSignal, QTimer, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
+    QLabel, QGridLayout, QAction, qApp, \
+    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget, \
+    QListWidgetItem, QComboBox, QMessageBox,\
     QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView
 from PyQt5.QtGui import QIcon
 import h5py
-np.set_printoptions(threshold=np.inf)
 from multiprocessing import Process, Queue
 # import time
 from src import Hec_ras06
@@ -42,6 +43,8 @@ from src_GUI import output_fig_GUI
 from src import mesh_grid2
 from src import lammi
 from src import new_create_vtk
+
+np.set_printoptions(threshold=np.inf)
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -3580,10 +3583,3 @@ class SubstrateW(SubHydroW):
 
 if __name__ == '__main__':
     pass
-
-
-
-
-
-
-

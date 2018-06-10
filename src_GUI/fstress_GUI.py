@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -19,9 +19,9 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QTabWidget, QLineEdit, QTextEdit, QFileDialog,\
-    QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QCheckBox
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog,\
+    QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog
 from PyQt5.QtGui import QFont
 import sys
 import os

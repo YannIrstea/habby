@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -14,19 +14,20 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-import sys
 import glob
 import os
 import shutil
 import numpy as np
-import time
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, pyqtRemoveInputHook, QObject, QEvent
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QStatusBar, QMessageBox, QComboBox, QScrollArea, \
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, \
+    pyqtRemoveInputHook, QObject, QEvent
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
+    QLabel, QGridLayout, QAction, \
+    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
+    QMessageBox, QComboBox, QScrollArea, \
     QSizePolicy, QInputDialog, QMenu, QToolBar
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 from webbrowser import open as wbopen
@@ -1578,7 +1579,7 @@ class CreateNewProject(QWidget):
         layoutl.addWidget(l1, 2, 0)
         layoutl.addWidget(self.e1, 2, 1)
         layoutl.addWidget(self.button3, 2, 2)
-        
+
         self.setLayout(layoutl)
 
         self.setWindowTitle(self.tr('HABBY- New Project'))
@@ -2538,6 +2539,3 @@ class MyFilter(QObject):
 
 if __name__ == '__main__':
     pass
-
-
-

@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -14,10 +14,9 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import QTranslator, pyqtSignal, Qt, QTimer, QStringListModel
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout,  QLineEdit, QComboBox, QListWidget,\
-    QAbstractItemView, QSpacerItem, QFileDialog
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout,  QLineEdit, \
+    QComboBox, QListWidget, QSpacerItem, QFileDialog
 import numpy as np
 from src import hydraulic_chronic
 from src import load_hdf5
@@ -30,7 +29,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from io import StringIO
-from multiprocessing import Process, Queue
+
 
 class ChroniqueGui(estimhab_GUI.StatModUseful):
     """

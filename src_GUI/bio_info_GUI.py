@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -15,14 +15,14 @@ https://github.com/YannIrstea/habby
 
 """
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QThread, Qt, QTimer, QStringListModel, QEvent, QObject
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout,  QLineEdit, QComboBox, QAbstractItemView, \
+from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QStringListModel
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QLineEdit, \
+    QComboBox, QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QCompleter
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap
 from multiprocessing import Process, Queue
 import os
 import sys
-import time
 import numpy as np
 try:
     import xml.etree.cElementTree as ET

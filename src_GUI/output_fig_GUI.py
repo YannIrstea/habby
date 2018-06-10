@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -14,10 +14,10 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import QTranslator, pyqtSignal, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget,  QListWidgetItem, QComboBox, QMessageBox,\
-    QStackedWidget, QRadioButton, QCheckBox
+from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
+    QLineEdit, QSpacerItem, QComboBox, QMessageBox,\
+    QCheckBox
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -646,12 +646,3 @@ def create_default_figoption():
 
 if __name__ == '__main__':
     pass
-
-
-
-
-
-
-
-
-
