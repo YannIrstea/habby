@@ -87,13 +87,13 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.setPalette(p)
 
         # select river
-        l002 = QLabel('<b> Rivers or Reaches Names </b>')
+        l002 = QLabel(self.tr('<b> Rivers or Reaches Names </b>'))
         self.riv = QComboBox()
         self.riv.setCurrentIndex(0)
         self.riv.currentIndexChanged.connect(self.show_data_one_river)
-        self.addriv = QPushButton('Modify river name')
+        self.addriv = QPushButton(self.tr('Modify river name'))
         self.addriv.clicked.connect(self.modify_name)
-        self.errriv = QPushButton('Erase river')
+        self.errriv = QPushButton(self.tr('Erase river'))
         self.errriv.clicked.connect(self.erase_name)
 
         # Data hydrological (QLineEdit in the init of StatModUseful)
