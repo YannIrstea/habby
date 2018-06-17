@@ -55,7 +55,7 @@ def main():
 
         namedir = 'result_cmd3'
         path_bio = './biology'
-        version = 0.22
+        version = 0.23
         # find the best path_prj
         settings = QSettings('irstea', 'HABBY' + str(version))
         name_prj = settings.value('name_prj')
