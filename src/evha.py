@@ -23,13 +23,16 @@ from copy import deepcopy
 
 def load_evha_and_create_grid(path, name_evha=''):
     """
-    This function loads the evha data, disitrbute the velocity, create a 2d grid from this data and save it all in
-    an hdf5 format.  This function is called in a second thread by the class Evha() in Hydro_grid_2().
+    This function loads the evha data, disitrbute the velocity,
+    create a 2d grid from this data and save it all in
+    an hdf5 format.  This function is called in a second thread by
+    the class Evha() in Hydro_grid_2().
 
     THIS IS NOT FUNCTIONNING YET. IT SHOULD BE FINISHED BEFORE USE!!!!!!!
 
     :param path: the path to the folder with the evha data
-    :param name_evha: the name of the project (if empty, this is assumed to be the name of the folder)
+    :param name_evha: the name of the project (if empty, this is assumed to be
+     the name of the folder)
     """
 
     # load evha data
@@ -74,7 +77,8 @@ def load_evha(path, name_evha):
 
 def load_rcl(path, name_evha, section=[]):
     """
-    This functions loads the rcl file created by evha. This functions contains the velocity and the adjusted water
+    This functions loads the rcl file created by evha. This functions contains
+     the velocity and the adjusted water
     height. So it is the function which loads the hydraulic outputs.
 
     :param path: the path to the evha project
@@ -127,7 +131,8 @@ def load_top(path, name_evha):
     try:
         angleall = float(first_line[0])
     except ValueError:
-        print('Error: Could not extract the angle from the topographical file. Is it an evha input file? \n')
+        print('Error: Could not extract the angle from the topographical file.\
+            Is it an evha input file? \n')
         return
 
     # check if evha was run to completion, send a warning otherwise
@@ -141,8 +146,8 @@ def load_top(path, name_evha):
     # we know the first one (0,0).
     # it is possible than we have no other
     pli = []  # lines of the file with a pivot point
-    pnum = [] # the number of this pivot point
-    pref = [] # the reference of the pivot point
+    pnum = []  # the number of this pivot point
+    pref = []  # the reference of the pivot point
     for ind, d in enumerate(data):
         d = d.strip()
         # end of file with comments afterwards
@@ -155,10 +160,12 @@ def load_top(path, name_evha):
                         pnum.append(float(d[2:4].strip()))
                         ref_here = float(d[0])
                         if ref_here > 11 or ref_here < 0:
-                            print('Warning: Pivot point should be between 1 and 10 \n')
+                            print('Warning: Pivot point\
+                             should be between 1 and 10 \n')
                         pref.append(ref_here)
                     except ValueError:
-                        print('Error: Could not read the pivot point on the topographical files (1) \n')
+                        print('Error: Could not read the pivot point on\
+                            the topographical files (1) \n')
                         return failload
 
     # check if we have a double of each point
@@ -173,17 +180,21 @@ def load_top(path, name_evha):
     pivot_known = []
     secure = 0
     coord_pivot = []
-    coord_ref = [[0, 0, 0]] # in ref known order, each point only once
+    coord_ref = [[0, 0, 0]]  # in ref known order, each point only once
     while len(all_ref) > len(ref_known) and secure < 500:
-        secure +=1
+        secure += 1
         # see if it is possible to calculate any pivot point
         for ind, p in enumerate(pnum):
             if p not in pivot_known and pref[ind] in ref_known:
                 # if yes, find coordinates
-                iref = [i for i,r in enumerate(ref_known) if r == pref[ind]][0]
-                coord_pp_here = get_point_from_angle(coord_ref[iref], data[pli[ind]], addan=angleall)
+                iref = [i for i, r in enumerate(ref_known)
+                        if r == pref[ind]][0]
+                coord_pp_here = get_point_from_angle(coord_ref[iref],
+                                                     data[pli[ind]],
+                                                     addan=angleall)
                 if not coord_pp_here:
-                    print('Error: The loading of the topographical file failed at line ' + str(pli[ind]) + '\n')
+                    print('Error: The loading of the topographical file\
+                            failed at line ' + str(pli[ind]) + '\n')
                     return failload
                 coord_pivot.append(coord_pp_here)
                 pivot_known.append(p)
@@ -192,15 +203,20 @@ def load_top(path, name_evha):
         for ind, p in enumerate(pref):
             if p not in ref_known and pnum[ind] in pivot_known:
                 # if yes, find coordinates
-                ipiv = [i for i, piv in enumerate(pivot_known) if piv == pnum[ind]][0]
-                coord_ref_here= get_point_from_angle(coord_pivot[ipiv], data[pli[ind]], True,addan=angleall)
+                ipiv = [i for i, piv in enumerate(pivot_known)
+                        if piv == pnum[ind]][0]
+                coord_ref_here = get_point_from_angle(coord_pivot[ipiv],
+                                                      data[pli[ind]], True,
+                                                      addan=angleall)
                 if not coord_ref_here:
-                    print('Error: The loading of the topographical file failed at line ' + str(pli[ind]) + '\n')
+                    print('Error: The loading of the topographical\
+                     file failed at line ' + str(pli[ind]) + '\n')
                     return failload
                 # check that we have a new reference point
                 already_known = False
                 for p2 in coord_ref:
-                    if abs(p2[0] - coord_ref_here[0])+abs(p2[1] + coord_ref_here[1]) < 1e-5:
+                    if abs(p2[0] - coord_ref_here[0])\
+                           + abs(p2[1] + coord_ref_here[1]) < 1e-5:
                         already_known = True
                 if not already_known:
                     coord_ref.append(coord_ref_here)
@@ -225,23 +241,27 @@ def load_top(path, name_evha):
                 try:
                     ref_here = float(d[0])
                 except ValueError:
-                    print('Error: The loading of the topographical file failed at line ' + str(ind+1) + '\n')
+                    print('Error: The loading of the topographical\
+                     file failed at line ' + str(ind+1) + '\n')
                     return failload
                 if ref_here > 11 or ref_here < 0:
                     print('Warning: Pivot point should be between 1 and 10 \n')
 
                 # calculate coordinate of the point on the left or right
-                iref = [i for i, r in enumerate(ref_known) if r==ref_here][0]
-                coord_bank = get_point_from_angle(coord_ref[iref], data[ind],addan=angleall)
+                iref = [i for i, r in enumerate(ref_known) if r == ref_here][0]
+                coord_bank = get_point_from_angle(coord_ref[iref],
+                                                  data[ind], addan=angleall)
                 if not coord_bank:
-                    print('Error: The loading of the topographical file failed at line ' + str(ind+1) + '\n')
+                    print('Error: The loading of the topographical file failed\
+                                at line ' + str(ind+1) + '\n')
                     return failload
 
                 # find the section num
                 try:
                     num_sec = float(d[4:6])
                 except ValueError:
-                    print('Error: The loading of the topographical file failed at line ' + str(ind) + '\n')
+                    print('Error: The loading of the topographical\
+                        file failed at line ' + str(ind) + '\n')
                     return failload
 
                 if d[1] == 'G':   # Left
@@ -250,7 +270,8 @@ def load_top(path, name_evha):
                     try:
                         deca = float(d[34:40])
                     except ValueError:
-                        print('Error: The loading of the topographical file failed at line ' + str(ind + 1) + '\n')
+                        print('Error: The loading of the topographical file\
+                         failed at line ' + str(ind + 1) + '\n')
                         return failload
                     deca_left.append(deca)
 
@@ -260,26 +281,30 @@ def load_top(path, name_evha):
                     try:
                         deca = float(d[34:40])
                     except ValueError:
-                        print('Error: The loading of the topographical file failed at line ' + str(ind + 1) + '\n')
+                        print('Error: The loading of the topographical file\
+                            failed at line ' + str(ind + 1) + '\n')
                         return failload
                     deca_right.append(deca)
 
     # for all the transect, get the direction of the transect
-    dir_t = []  # the direction of the transect in sec_left order, from left to right, norm of 1
+    dir_t = []  # the direction of the transect in sec_left order,
+    # from left to right, norm of 1
     if len(sec_right) != len(sec_left):
-        print('Error: the number of point on the left bank are not equalt to the number of point on the left bank \n')
+        print('Error: the number of point on the left bank are not equal\
+            to the number of point on the left bank \n')
     for indl, n in enumerate(sec_left):
             indr = [i2 for i2, n2 in enumerate(sec_right) if n == n2]
             if len(indr) == 0:
-                print('Error: One of the pint which descibed the right bank is not known \n')
+                print('Error: One of the pint which descibed the right bank\
+                    is not known \n')
                 return
-            elif len(indr) >1:
+            elif len(indr) > 1:
                 print('Warning: More than one right point is found')
             else:
                 indr = indr[0]
             distx = coord_right[indr][0] - coord_left[indl][0]
             disty = coord_right[indr][1] - coord_left[indl][1]
-            #norm = np.sqrt(distx**2 + disty**2)
+            # norm = np.sqrt(distx**2 + disty**2)
             dir_here = [distx, disty]
             dir_t.append(dir_here)
 
@@ -298,8 +323,10 @@ def load_top(path, name_evha):
                 try:
                     num_sec = float(d[4:6])
                 except ValueError:
-                    print('Error: Section number of transect could not be read \n')
-                    print('Error: The loading of the topographical file failed at line ' + str(ind) + '\n')
+                    print('Error: Section number of transect\
+                        could not be read \n')
+                    print('Error: The loading of the topographical file\
+                        failed at line ' + str(ind) + '\n')
                     return failload
                 # find the direction of the transect
                 indt = [i for i, n in enumerate(sec_right) if n == num_sec][0]
@@ -313,7 +340,8 @@ def load_top(path, name_evha):
                     type_transect = d[40:41]
                 except ValueError:
                     print('Error: One transect point could not be read. \n')
-                    print('Error: The loading of the topographical file failed at line ' + str(ind) + '\n')
+                    print('Error: The loading of the topographical file\
+                        failed at line ' + str(ind) + '\n')
                     return failload
 
                 # find the reference point
@@ -321,18 +349,22 @@ def load_top(path, name_evha):
                     ref_here = float(d[0])
                 except ValueError:
                     print('Error: Could not read the reference point \n')
-                    print('Error: The loading of the topographical file failed at line ' + str(ind + 1) + '\n')
+                    print('Error: The loading of the topographical file\
+                        failed at line ' + str(ind + 1) + '\n')
                     return failload
                 if ref_here > 11 or ref_here < 0:
-                    print('Warning: Reference point should be between 1 and 10 \n')
-                indref = [i for i,r in enumerate(ref_known) if r == ref_here][0]
+                    print('Warning: Reference point should be between\
+                        1 and 10 \n')
+                indref = \
+                    [i for i, r in enumerate(ref_known) if r == ref_here][0]
                 coord_ref_here = coord_ref[indref]
 
                 # get height difference
                 try:
                     cote_mid = float(d[17:23])
                 except ValueError:
-                    print('Error: The loading of the topographical file failed at line ' + str(ind + 1) + '\n')
+                    print('Error: The loading of the topographical file failed\
+                        at line ' + str(ind + 1) + '\n')
                     return failload
 
                 # calculate coord with angle
@@ -340,9 +372,12 @@ def load_top(path, name_evha):
                     try:
                         angle = float(d[29:35])
                     except ValueError:
-                        print('Error: The loading of the topographical file failed at line ' + str(ind + 1) + '\n')
+                        print('Error: The loading of the topographical file\
+                            failed at line ' + str(ind + 1) + '\n')
                         return failload
-                    coord_t = get_point_on_transect(angle, dir_here, coord_ref_here, coord_left_here, cote_mid)
+                    coord_t = get_point_on_transect(angle, dir_here,
+                                                    coord_ref_here,
+                                                    coord_left_here, cote_mid)
                     coord_trans.append(coord_t)
 
                 # calculate coord with decameter
@@ -350,7 +385,8 @@ def load_top(path, name_evha):
                     try:
                         deca = float(d[34:40])
                     except ValueError:
-                        print('Error: The loading of the topographical file failed at line ' + str(ind + 1) + '\n')
+                        print('Error: The loading of the topographical file\
+                         failed at line ' + str(ind + 1) + '\n')
                         return failload
                     if (deca_left_here-deca_right_here) > 0:
                         dist = deca/(deca_left_here-deca_right_here)
@@ -363,7 +399,7 @@ def load_top(path, name_evha):
 
     plt.figure()
     for p in coord_ref:
-        plt.plot(p[0],p[1], '*b')
+        plt.plot(p[0], p[1], '*b')
     for p in coord_pivot:
         plt.plot(p[0], p[1], '^k')
     coord_righta = np.array(coord_right)
@@ -381,11 +417,14 @@ def load_top(path, name_evha):
 
 def add_angle(xy, angle):
     """
-    This function add an angle to a list of point. The angle is always taken around the point (0,0). We use
-    radial coordinates (r, theta) for this calculation. NOT USED ANYMORE. MIGHT BE WRONG AS WE NEED TO BE MORE CAREFUL
+    This function add an angle to a list of point.
+    The angle is always taken around the point (0,0). We use
+    radial coordinates (r, theta) for this calculation.
+    NOT USED ANYMORE. MIGHT BE WRONG AS WE NEED TO BE MORE CAREFUL
     WHEN CALCULATING ARCCOS
 
-    :param xy: the coordinate without the added angle - list of two floats (x,y)
+    :param xy: the coordinate without the added angle -
+        list of two floats (x,y)
     :param angle: the angle to add (in grad)
     :return: the corrected list of point
     """
@@ -397,7 +436,7 @@ def add_angle(xy, angle):
         r = np.sqrt(p[0]**2 + p[1]**2)
         new_angle = np.arccos(p[0]/r)
 
-        new_angle += angle2 # radian
+        new_angle += angle2  # radian
         if new_angle > 2*np.pi:  # we might go over the circle
             new_angle -= 2*np.pi
         pnew = [r*np.cos(new_angle), r*np.sin(new_angle), p[2]]
@@ -408,15 +447,21 @@ def add_angle(xy, angle):
 
 def get_point_from_angle(coord0, d, inv=False, addan=0):
     """
-    This function find a point from a given reference. This is points is based on one angle from the reference and
-    three cotes (min, middle, max). The difference between the minimum and maximum cotes gives the distance between
-    the points and the middle one gives the height difference (in cm). It is possible to find (x,y,z) from the new points
-    from these information and the reference points. We gives a line of string as entry which is in the format of evha
-    topographical file
+    This function find a point from a given reference.
+    This is points is based on one angle from the reference and
+    three cotes (min, middle, max).
+    The difference between the minimum and maximum cotes gives
+     the distance between
+     the points and the middle one gives the height difference (in cm).
+    It is possible to find (x,y,z) from the new points
+    from these information and the reference points. We gives a line of
+     string as entry which is in the format of evha
+     topographical file
 
     :param coord0: the coordinate of the reference point
     :param d: one line of the topographical file (one line)
-    :param inv: If inv True, the point was not shoot from the reference point but "to" the reference point
+    :param inv: If inv True, the point was not shoot from the reference point
+     but "to" the reference point
     :param addan: an angle to add if the river to moved by an angle (in grad)
     :return xy (coordinates of all point), point_lr updated
     """
@@ -428,7 +473,8 @@ def get_point_from_angle(coord0, d, inv=False, addan=0):
         cote_mid = float(d[17:23])
         cote_max = float(d[23:29])
     except ValueError:
-        print('Error: Could not read one angle in the topographical file from evha (1) \n')
+        print('Error: Could not read one angle in the topographical file\
+         from evha (1) \n')
         return p
     if cote_max < cote_min or cote_mid < cote_min or cote_mid > cote_max:
         print('Error: One of the three "cotes" was not coherent')
@@ -436,12 +482,14 @@ def get_point_from_angle(coord0, d, inv=False, addan=0):
     try:
         angle = float(d[29:35])
     except ValueError:
-        print('Error: Could not read one angle in the topographical file from evha (2) \n')
+        print('Error: Could not read one angle in the topographical file\
+         from evha (2) \n')
         return p
     angle = angle * np.pi/200 + addan * np.pi/200
 
     # calculate point
-    dist = (cote_max - cote_min)  # diff en cm is distance in meter becaause fo measurement device
+    dist = (cote_max - cote_min)
+    # diff en cm is distance in meter becaause fo measurement device
     if not inv:
         x = coord0[0] + np.cos(angle) * dist
         y = coord0[1] + np.sin(angle) * dist
@@ -457,18 +505,21 @@ def get_point_from_angle(coord0, d, inv=False, addan=0):
 
 def get_point_on_transect(angle, dir, refc, lefc, cod_mid):
     """
-    This function calculates the coordinate of the point on transect if this point is given by one angle from the
-    reference and the direction of the transect.
+    This function calculates the coordinate of the point on transect if
+     this point is given by one angle from the
+     reference and the direction of the transect.
 
-    To get this we solve a system of equation: rx + r*cos(a) = lx + dist * dir[0] et ry + r*sin(a) = ly + dist*dir[1].
-    dir should have a unit length. When r is found, we can calculate the coordinate (x = rx + r*cos(a) and y=ry +
-    r*sin(a))
+    To get this we solve a system of equation:
+    rx + r*cos(a) = lx + dist * dir[0] et ry + r*sin(a) = ly + dist*dir[1].
+    dir should have a unit length. When r is found,
+     we can calculate the coordinate (x = rx + r*cos(a) and y=ry + r*sin(a))
 
     :param angle: the angle from the reference point
     :param dir: the direction of the transect
     :param refc: the coordinate of the reference
     :param lefc: the coordinate of the left bank point
-    :param cod_mid: the different in height compared to the reference station in cm
+    :param cod_mid: the different in height compared to
+        the reference station in cm
     :return: the new point coordinate
     """
 
@@ -488,7 +539,7 @@ def get_point_on_transect(angle, dir, refc, lefc, cod_mid):
     x = refc[0] + r * np.cos(a)
     y = refc[1] + r * np.sin(a)
     z = refc[1] + cod_mid/100
-    coord = [x,y,z]
+    coord = [x, y, z]
 
     return coord
 
