@@ -2,10 +2,10 @@
 This file is part of the free software:
  _   _   ___  ______________   __
 | | | | / _ \ | ___ \ ___ \ \ / /
-| |_| |/ /_\ \| |_/ / |_/ /\ V / 
-|  _  ||  _  || ___ \ ___ \ \ /  
-| | | || | | || |_/ / |_/ / | |  
-\_| |_/\_| |_/\____/\____/  \_/  
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
 
 Copyright (c) IRSTEA-EDF-AFB 2017-2018
 
@@ -31,13 +31,17 @@ except ImportError:
 
 def load_evha_curve(filename, path):
     """
-    This function is used to load the preference curve in the EVHA form . It will be useful to create xml preference
-    file, but it is not used direclty by HABBY. This function does not have much control on user input as it is planned
-    to be used only by people working on HABBY. The order of the data in the file must be height, velocity, substrate
+    This function is used to load the preference curve in the EVHA form .
+    It will be useful to create xml preference
+    file, but it is not used direclty by HABBY.
+    This function does not have much control on user input as it is planned
+    to be used only by people working on HABBY. The order of the data in the
+    file must be height, velocity, substrate
 
     :param filename: the name of file containing the preference curve for EVHA
     :param path: the path to this file
-    :return: preference for height, vel, sub in a list of list form, name of the fish, code, stade and description
+    :return: preference for height, vel, sub in a list of list form, name
+     of the fish, code, stade and description
     """
 
     # load text file
@@ -91,7 +95,7 @@ def load_evha_curve(filename, path):
                     return
                 # pass from centimeter to meter
                 if ind_hvs == 0 or ind_hvs == 1:
-                   new_data1 /= 100  # this is just a division
+                    new_data1 /= 100  # this is just a division
                 if new_data1old <= new_data1:
                     new_data1old = new_data1
                     if first_point:
@@ -100,13 +104,13 @@ def load_evha_curve(filename, path):
                     else:
                         pref_here[0].extend([new_data1])
                         pref_here[1].extend([new_data2])
-                else: # go from height to velocity
+                else:  # go from height to velocity
                     if ind_hvs == 0:
                         height.append(pref_here)
                     if ind_hvs == 1:
                         vel.append(pref_here)
                     ind_hvs += 1
-                    pref_here = [[],[]]
+                    pref_here = [[], []]
                     first_point = True
                     new_data1old = -1
         # go from velcoity to substrate
@@ -118,12 +122,14 @@ def load_evha_curve(filename, path):
     return height, vel, sub, code_fish, name_fish, stade, descri
 
 
-def test_evah_xml_pref(path_xml,path_evha):
+def test_evah_xml_pref(path_xml, path_evha):
     """
-    This function is used to visually compared the evha (.PRF) curve and the xml curve based on the evah curve.
-    Obviously the xml file should contain the same data than the evha curve (when the xml file are based on the evah
-    curve). An important assumption of this function is that the data in the xml file is in the order: fry, juvenile,
-    adult.
+    This function is used to visually compared the evha (.PRF) curve and
+     the xml curve based on the evah curve.
+    Obviously the xml file should contain the same data than the evha curve
+     (when the xml file are based on the evah curve). An important assumption
+     of this function is that the data in the xml file is in the order: fry,
+     juvenile, adult.
 
     :param path_xml: the path to the folder which contains the xml files
     :param path_evha: the path to the evha folder which contains the PRF files
@@ -142,7 +148,8 @@ def test_evah_xml_pref(path_xml,path_evha):
     name_fish_evha = []
     stage_evha = []
     for i in range(0, len(filenames)):
-        [height, vel, sub, code_fish, name_fish, stages, blob] = load_evha_curve(filenames[i], path_evha)
+        [height, vel, sub, code_fish, name_fish, stages, blob] = \
+                load_evha_curve(filenames[i], path_evha)
         h_evha.append(height)
         v_evha.append(vel)
         sub_evha.append(sub)
@@ -173,16 +180,18 @@ def test_evah_xml_pref(path_xml,path_evha):
             if n == code_fish:
                 break
             else:
-                j+=1
+                j += 1
         # last one
         if j > len(code_fish_evha)-1:
             j = len(code_fish_evha)-1
 
         # pass from stades in evha to stages in xml
         if len(stages) != len(stage_evha[j]):
-            print('Error: the number of stages is not coherent in evha and xml files \n')
+            print('Error: the number of stages is not coherent\
+             in evha and xml files \n')
             return
-        # important assumption here: the data in the xml file is in the order: fry, juvenile, adult
+        # important assumption here: the data in the xml file is in the order:
+        # fry, juvenile, adult
         # and the name are fry, juvenile, adult
         stage_corr_evha = []
         if len(stages) > 1:
@@ -201,12 +210,15 @@ def test_evah_xml_pref(path_xml,path_evha):
             stage_corr_evha = np.array(stage_corr_evha) - min(stage_corr_evha)
 
         # plot xml
-        [f, axarr] = figure_pref(height, vel, sub, code_fish, name_fish, stages, True)
+        [f, axarr] = figure_pref(height, vel, sub, code_fish, name_fish,
+                                 stages, True)
 
         # plt evha data
-        plt.suptitle('Comparision of preference curve of ' + code_fish + '\n (xml as straight line, .PRF as triangle)')
-        if len(stages) > 1:  # if you take this out, the commande axarr[x,x] does not work as axarr is only 1D
-            #f, axarr = plt.subplots(len(stage_evha[j]), 3, sharey='row')
+        plt.suptitle('Comparision of preference curve of ' + code_fish
+                     + '\n (xml as straight line, .PRF as triangle)')
+        if len(stages) > 1:  # if you take this out, the commande axarr[x,x]
+                            # does not work as axarr is only 1D
+            # f, axarr = plt.subplots(len(stage_evha[j]), 3, sharey='row')
             for s2 in range(0, len(stage_evha[j])):
                 s = stage_corr_evha[s2]
                 axarr[s, 0].plot(h_evha[j][s2][0], h_evha[j][s2][1], '^b')
@@ -219,17 +231,20 @@ def test_evah_xml_pref(path_xml,path_evha):
     plt.show()
 
 
-def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fig_opt={}):
+def figure_pref(height, vel, sub, code_fish, name_fish,
+                stade, get_fig=False, fig_opt={}):
     """
     This function is used to plot the preference curves.
 
     :param height: the height preference data (list of list)
     :param vel: the height preference data (list of list)
     :param sub: the height preference data (list of list)
-    :param code_fish: the three letter code which indiate which fish species is analyzed
+    :param code_fish: the three letter code which indiate which fish species
+        is analyzed
     :param name_fish: the name of the fish analyzed
     :param stade: the name of the stade analyzed (ADU, JUV, ...)
-    :param get_fig: usually False, If True return the figure (to modfied it more)
+    :param get_fig: usually False, If True return the figure
+        (to modfied it more)
     """
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
@@ -250,12 +265,15 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fi
     if name_fish == '-99':  # failed before
         return
 
-    if len(stade)> 1:  # if you take this out, the commande axarr[x,x] does not work as axarr is only 1D
-        f, axarr = plt.subplots(len(stade),3, sharey='row')
+    if len(stade) > 1:  # if you take this out, the command
+                        # axarr[x,x] does not work as axarr is only 1D
+        f, axarr = plt.subplots(len(stade), 3, sharey='row')
         if fig_opt['language'] == 0:
-            plt.suptitle('Suitability curve of ' + name_fish + ' (' + code_fish + ') ')
+            plt.suptitle('Suitability curve of ' + name_fish
+                         + ' (' + code_fish + ') ')
         else:
-            plt.suptitle('Courbe de préférence pour ' + name_fish + ' (' + code_fish + ') ')
+            plt.suptitle('Courbe de préférence pour ' + name_fish
+                         + ' (' + code_fish + ') ')
         for s in range(0, len(stade)):
             axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
             if fig_opt['language'] == 0:
@@ -264,7 +282,7 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fi
             else:
                 axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
                 axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 0].set_ylim([0,1.1])
+            axarr[s, 0].set_ylim([0, 1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
             if fig_opt['language'] == 0:
@@ -274,8 +292,10 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fi
             axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
             axarr[s, 1].set_ylim([0, 1.1])
 
-            if len(sub[0][0]) > 2:  # if substrate is accounted, it is accounted for all stages
-                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c', align='center')
+            if len(sub[0][0]) > 2:  # if substrate is accounted,
+                                    # it is accounted for all stages
+                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
+                                align='center')
             if fig_opt['language'] == 0:
                 axarr[s, 2].set_xlabel('Substrate []')
             else:
@@ -287,9 +307,11 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fi
     else:
         f, axarr = plt.subplots(3, 1, sharey='row')
         if fig_opt['language'] == 0:
-            plt.suptitle('Suitability curve of ' + name_fish + ' (' + code_fish + ') ')
+            plt.suptitle('Suitability curve of ' + name_fish
+                         + ' (' + code_fish + ') ')
         else:
-            plt.suptitle('Courbe de préférence pour ' + name_fish + ' (' + code_fish + ') ')
+            plt.suptitle('Courbe de préférence pour ' + name_fish
+                         + ' (' + code_fish + ') ')
 
         axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
         if fig_opt['language'] == 0:
@@ -309,7 +331,7 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fi
         axarr[1].set_ylim([0, 1.1])
 
         if len(sub[0][0]) > 2:
-            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c',align='center')
+            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
         if fig_opt['language'] == 0:
             axarr[2].set_xlabel('Substrate []')
         else:
@@ -325,17 +347,24 @@ def figure_pref(height, vel, sub, code_fish, name_fish, stade, get_fig=False, fi
 
 def create_and_fill_database(path_bio, name_database, attribute):
     """
-    This function create a new database when Habby starts. The goal of creating a database is to avoid freezing the GUI
-    when info on the preference curve are asked. So it is possible to select one curve and have information without
+    This function create a new database when Habby starts.
+    The goal of creating a database is to avoid freezing the GUI
+    when info on the preference curve are asked. So it is possible to select
+    one curve and have information without
     seeing too much of a delay.
 
     This is not used anymore by HABBY as the xml file is really small.
-    It could however be useful if the xml file becomes too big. In this case, this function could be
-    called if modification are found in the pref_file folder and would create a database.
+    It could however be useful if the xml file becomes too big.
+    In this case, this function could be
+    called if modification are found in the pref_file folder and would create
+    a database.
 
-    The attribute can be modified, but they should all be of text type. It is also important to keep stage at the first
-    attribute. The modified attribute should reflect the attribute of the xml file. If it not possible, lines should
-    be added in the "special case" attributes". The main table with the data is called pref_bio.
+    The attribute can be modified, but they should all be of text type.
+    It is also important to keep stage at the first
+    attribute. The modified attribute should reflect the attribute
+    of the xml file. If it not possible, lines should
+    be added in the "special case" attributes".
+    The main table with the data is called pref_bio.
 
     :param path_bio: the path to the biological information (usually ./biology)
     :param name_database: the name of the database (string) without the path
@@ -349,11 +378,13 @@ def create_and_fill_database(path_bio, name_database, attribute):
 
     lob, ext = os.path.splitext(name_database)
     if ext != ".db":
-        print('Warning: the name of the database should have a .db extension \n')
+        print('Warning: the name of the database should have\
+                a .db extension \n')
 
     pathname_database = os.path.join(path_bio, name_database)
 
-    # erase database (to be done at the beginning because rename database at the end is annoying)
+    # erase database (to be done at the beginning because rename database
+    # at the end is annoying)
     if os.path.isfile(pathname_database):
         os.remove(pathname_database)
 
@@ -374,13 +405,14 @@ def create_and_fill_database(path_bio, name_database, attribute):
     rea0 = "INSERT INTO pref_bio(fish_id, "
     for att in attribute:
         rea0 += att + ','
-    rea0 = rea0[:-1] # last comma
+    rea0 = rea0[:-1]  # last comma
     rea0 += ") values("
 
     # get all xml name
     preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
     if len(preffiles) < 1:
-        print('Error: no xml preference file found. Please check the biology folder. \n')
+        print('Error: no xml preference file found.\
+                Please check the biology folder. \n')
         return
 
     # for all xml file
@@ -392,7 +424,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
         # load the file
         try:
             try:
-                docxml = ET.parse(os.path.join(path_bio,preffile))
+                docxml = ET.parse(os.path.join(path_bio, preffile))
                 root = docxml.getroot()
             except IOError:
                 print("Warning: the xml file "+preffile + " does not exist \n")
@@ -405,10 +437,10 @@ def create_and_fill_database(path_bio, name_database, attribute):
         i = -1
         for att in attribute:
             # special attribute
-            if att == 'Stage':  # this should be the first attribute as i ==-1 !
+            if att == 'Stage':  # this should be the first attribute as i ==-1
                 stages = root.findall(".//stage")
                 if len(stages) == 0:
-                    print('no stage found in '+preffile+ "\n")
+                    print('no stage found in ' + preffile + "\n")
                 else:
                     stages = [s.attrib['type'] for s in stages]
             elif att == 'French_common_name':
@@ -429,9 +461,10 @@ def create_and_fill_database(path_bio, name_database, attribute):
                     if org.text == 'ONEMA':
                         data[i] = root.find('.//CdAlternative')
                         if data[i] is not None:
-                             data[i] = data[i].text
+                            data[i] = data[i].text
             elif att == 'Code_Sandre':
-                data[i] = root.find('.//CdAppelTaxon[@schemeAgencyID="SANDRE"]')
+                data[i] = \
+                        root.find('.//CdAppelTaxon[@schemeAgencyID="SANDRE"]')
                 if data[i] is not None:
                     data[i] = data[i].text
             elif att == 'XML_filename':
@@ -444,7 +477,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
             elif att == 'creation_year':
                 data[i] = root.find('.//creation-year')
                 if data[i] is not None:
-                   data[i] = data[i].text
+                    data[i] = data[i].text
 
             # normal attributes
             # the tag figure_hydrosignature is None (Null) by default
@@ -465,7 +498,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
                 rea += "'" + str(s) + "', "  # the stage
                 for d in data:
                     if d is not None:
-                        d = d.replace("'"," ")
+                        d = d.replace("'", " ")
                         rea += "'" + str(d) + "', "
                     else:
                         rea += "NULL,"
@@ -476,19 +509,23 @@ def create_and_fill_database(path_bio, name_database, attribute):
                 cursor.execute(rea)
                 conn.commit()
                 conn.close()
-                j +=1
+                j += 1
 
-        found_one= True
+        found_one = True
 
     if not found_one:
-        print('Error: No preference file could be read. Please check the biology folder.\n')
+        print('Error: No preference file could be read.\
+            Please check the biology folder.\n')
 
 
 def execute_request(path_bio, name_database, request):
     """
-    This function execute the SQL request given in the string called request. it saves the found data in a variable.
-    The idea is to use this function for SELELCT X FROM X WHERE ... , not really to handle all possible request.
-    It also opens and close the database name_database to do this. This is not used anymore by HABBY as we do not use
+    This function execute the SQL request given in the string called request.
+    it saves the found data in a variable.
+    The idea is to use this function for SELELCT X FROM X WHERE ... ,
+    not really to handle all possible request.
+    It also opens and close the database name_database to do this.
+    This is not used anymore by HABBY as we do not use
     a database. It could however be useful if the xml file becomes too big.
 
     :param path_bio: the path to the biological information (usually ./biology)
@@ -499,7 +536,8 @@ def execute_request(path_bio, name_database, request):
 
     blob, ext = os.path.splitext(name_database)
     if ext != ".db":
-        print('Warning: the name of the database should have a .db extension \n')
+        print('Warning:\
+            the name of the database should have a .db extension \n')
     pathname_database = os.path.join(path_bio, name_database)
 
     if os.path.isfile(pathname_database):
@@ -517,21 +555,29 @@ def execute_request(path_bio, name_database, request):
 
 def load_xml_name(path_bio, attributes, preffiles=[]):
     """
-    This function looks for all preference curves found in the path_bio folder. It extract the fish name and the stage.
-    to be corrected if more than one language. The name of attribute_acc should be coherent with the one from the xml
-    file apart from the common name which should be in the form language_common_name (so we can wirte something in the
+    This function looks for all preference curves found in the path_bio folder.
+    It extract the fish name and the stage.
+    to be corrected if more than one language. The name of attribute_acc
+    should be coherent with the one from the xml
+    file apart from the common name which should be in
+    the form language_common_name (so we can wirte something in the
     GUI to get all langugage if we get something else than English or French).
 
-    If one use the argument preffiles, only part of the xml file are loaded. Otherwise all xml file are loaded.
+    If one use the argument preffiles, only part of the xml file are loaded.
+    Otherwise all xml file are loaded.
 
-    Careful, the first attribute is relgated at the last place of the list return. This is confusing but it is really
+    Careful, the first attribute is relgated at the last place of
+    the list return. This is confusing but it is really
     useful for the GUI.
 
     :param path_bio: the path to the biological function
-    :param attributes: the list of attribute which should be possible to search from the GUI or, more generally
-           which should be in data-fish which is returned.
-    :param preffiles: If there is a list of string there, it only read this files
-    :return: the list of stage/fish species with the info from [name for GUi, s, xmlfilename, attribute_acc without s]
+    :param attributes: the list of attribute which should be possible to search
+        from the GUI or, more generally
+        which should be in data-fish which is returned.
+    :param preffiles: If there is a list of string there,
+        it only read this files
+    :return: the list of stage/fish species with the info from [name for GUi,
+        s, xmlfilename, attribute_acc without s]
     """
     stages = []
 
@@ -539,7 +585,8 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
         # get all xml name
         preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
         if len(preffiles) < 1:
-            print('Error: no xml preference file found. Please check the biology folder. \n')
+            print('Error: no xml preference file found.\
+                Please check the biology folder. \n')
             return
 
     # for all xml file
@@ -554,10 +601,12 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                 docxml = ET.parse(os.path.join(path_bio, preffile))
                 root = docxml.getroot()
             except IOError:
-                print("Warning: the xml file " + preffile + " does not exist \n")
+                print("Warning: the xml file " + preffile
+                      + " does not exist \n")
                 break
         except ET.ParseError:
-            print("Warning: the xml file " + preffile + " is not well-formed.\n")
+            print("Warning: the xml file " + preffile
+                  + " is not well-formed.\n")
             break
 
         i = -1
@@ -565,7 +614,7 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
         for att in attributes:
             att_langue = att.split('_')
             # special attribute
-            if att == 'Stage':  # this should be the first attribute as i ==-1 !
+            if att == 'Stage':  # this should be the first attribute as i ==-1
                 stages = root.findall(".//Stage")
                 if len(stages) == 0:
                     print('no stage found in ' + preffile + "\n")
@@ -578,7 +627,8 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                         print('no stage found in ' + preffile + "\n")
                         all_ok = False
                         break
-            elif len(att_langue) == 3 and att_langue[1] == 'common' and att_langue[2] == 'name':
+            elif len(att_langue) == 3 and att_langue[1] == 'common' and\
+                    att_langue[2] == 'name':
                     b = root.findall('.//ComName')
                     if b is not None:
                         for bi in b:
@@ -612,8 +662,12 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
         # put data in the new list
         if stages:
             for s in stages:
-                    # careful the char : is necessary for the function  show_info_fish() from bio_info_GUI
-                    data_s = [data[4] + ': ' + s + ' - ' + data[5], s, preffile]  # order mattter HERE! (ind: +3)
+                    # careful the char :
+                    # is necessary for the function  show_info_fish()
+                    # from bio_info_GUI
+                    data_s = [data[4] + ': ' + s + ' - '
+                              + data[5], s, preffile]
+                    #  order mattter HERE! (ind: +3)
                     data_s.extend(data)
                     data_fish.append(data_s)
         else:
@@ -621,7 +675,8 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
         found_one = True
 
     if not found_one:
-        print('Error: No preference file could be read. Please check the biology folder.\n')
+        print('Error: No preference file could be read.\
+            Please check the biology folder.\n')
 
     data_fish = np.array(data_fish)
 
@@ -631,8 +686,10 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
 
 def get_stage(names_bio, path_bio):
     """
-    This function loads all the stages present in a list of  xml preference files (JUV, ADU, etc) and the latin name of
-    the fish species. All the files should be in the same folder indicated by path_bio. It is mainly used by habby_cmd
+    This function loads all the stages present in a list o
+    xml preference files (JUV, ADU, etc) and the latin name of
+    the fish species. All the files should be in the same folder indicated by
+    path_bio. It is mainly used by habby_cmd
     but it can be useful in other cases also.
 
     :param names_bio: A list of xml biological preference file
@@ -682,8 +739,10 @@ def get_stage(names_bio, path_bio):
 
 def plot_hydrosignature(xmlfile):
     """
-    This function plots the hydrosignature in the vclass and hclass given in the xml file.
-    It does only work if: units are SI (meter and m/s) and if the order of data is 'velocity increasing
+    This function plots the hydrosignature in the vclass and hclass given
+    in the xml file.
+    It does only work if: units are SI (meter and m/s) and if the order of data
+     is 'velocity increasing
     and then height of water increasing".
 
     :param xmlfile: the path and name of the xmlfile
@@ -709,8 +768,10 @@ def plot_hydrosignature(xmlfile):
         data = hs.find('HydrosignatureValues')
         if vclass is not None and hclass is not None and data is not None:
             try:
-                if hclass.attrib['Unit'] == 'Meter' and vclass.attrib['Unit'] == 'MeterPerSecond':
-                    if data.attrib['DescriptionMode'] == 'VelocityIncreasingAndThenHeightOfWaterIncreasing':
+                if hclass.attrib['Unit'] == 'Meter' \
+                        and vclass.attrib['Unit'] == 'MeterPerSecond':
+                    if data.attrib['DescriptionMode'] == \
+                            'VelocityIncreasingAndThenHeightOfWaterIncreasing':
                         vclass = vclass.text.split()
                         hclass = hclass.text.split()
                         data = data.text.split()
@@ -719,13 +780,16 @@ def plot_hydrosignature(xmlfile):
                             hclass = list(map(float, hclass))
                             data = list(map(float, data))
                         except ValueError:
-                            print('Warning: hydrosignature data could not be transformed to float')
+                            print('Warning: hydrosignature data could not be\
+                                transformed to float')
                             return
                     else:
-                        print('Warning: no hydrosignature found in the xml file (1). \n')
+                        print('Warning: no hydrosignature found in\
+                            the xml file (1). \n')
                         return
                 else:
-                    print('Warning: no hydrosignature found in the xml file (2). \n')
+                    print('Warning: no hydrosignature found in\
+                        the xml file (2). \n')
                     return
             except KeyError:
                 print('Warning: Unit no found in the hydrosignature \n')
@@ -744,7 +808,8 @@ def plot_hydrosignature(xmlfile):
     hclass = np.array(hclass)
 
     if len(data) != (len(vclass)-1) * (len(hclass)-1):
-        print('Warning: the data for hydrosignature is not of the right length.\n')
+        print('Warning: the data for hydrosignature is not\
+            of the right length.\n')
         return
 
     data = data.reshape((len(vclass)-1, len(hclass)-1))
@@ -752,7 +817,7 @@ def plot_hydrosignature(xmlfile):
 
     plt.figure()
     # cmap should be coherent with text color
-    plt.imshow(data, cmap='Blues', interpolation='nearest',origin='lower')
+    plt.imshow(data, cmap='Blues', interpolation='nearest', origin='lower')
     #  extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()]
     ax1 = plt.gca()
 
@@ -761,9 +826,11 @@ def plot_hydrosignature(xmlfile):
     for (j, i), label in np.ndenumerate(data):
         # text in black or white depending on the data
         if label < maxlab/2:
-            ax1.text(i, j, np.round(label, 2), ha='center', va='center', color='black')
+            ax1.text(i, j, np.round(label, 2), ha='center',
+                     va='center', color='black')
         else:
-            ax1.text(i, j, np.round(label, 2), ha='center', va='center', color='white')
+            ax1.text(i, j, np.round(label, 2), ha='center',
+                     va='center', color='white')
     plt.title('Hydrosignature')
     plt.xlabel('Velocity [m/s]')
     plt.ylabel('Height [m]')
@@ -774,9 +841,12 @@ def plot_hydrosignature(xmlfile):
 
 def read_pref(xmlfile):
     """
-    This function reads the preference curve from the xml file and get the subtrate, height and velocity data.
-    It return the data in meter. Unit for space can be in centimeter, milimeter or meter. Unit for time should be in
-    second .The unit attribute of the xml files should be coherent with the data.
+    This function reads the preference curve from the xml file and
+     get the subtrate, height and velocity data.
+    It return the data in meter. Unit for space can be in centimeter,
+     milimeter or meter. Unit for time should be in
+    second .The unit attribute of the xml files should be
+     coherent with the data.
 
     :param xmlfile: the path and name to the xml file (string)
     :return: height, vel, sub, code_fish, name_fish, stade
@@ -822,7 +892,7 @@ def read_pref(xmlfile):
     # velocity
     vel_all = []
     for s in stages:
-            vel = [[],[]]
+            vel = [[], []]
             rea = ".//Stage[@Type='" + s + "']/PreferenceVelocity/Value"
             vel_data = root.findall(rea)
             if vel_data is not None:
@@ -831,7 +901,8 @@ def read_pref(xmlfile):
                         data2 = float(v.attrib['p'])
                         data1 = float(v.attrib['v'])
                     except ValueError:
-                        print('Error: Value cannot be converted to float in the velocity data of the xml file'
+                        print('Error: Value cannot be converted to float\
+                                    in the velocity data of the xml file'
                               + xml_name + '\n')
                         return failload
                     vel[0].extend([data1])
@@ -842,7 +913,8 @@ def read_pref(xmlfile):
 
             # check increasing velocity
             if vel[0] != sorted(vel[0]):
-                print('Error: Velocity data is not sorted for the xml file ' + xml_name+ '.\n')
+                print('Error: Velocity data is not sorted for the xml file '
+                      + xml_name + '.\n')
                 return failload
 
             # manage units
@@ -863,7 +935,8 @@ def read_pref(xmlfile):
                     data2 = float(v.attrib['p'])
                     data1 = float(v.attrib['hw'])
                 except ValueError:
-                    print('Error: Value cannot be converted to float in the height data of the xml file'
+                    print('Error: Value cannot be converted to float\
+                     in the height data of the xml file'
                           + xml_name + '\n')
                     return failload
                 height[0].extend([data1])
@@ -874,7 +947,8 @@ def read_pref(xmlfile):
 
         # check increasing velocity
         if height[0] != sorted(height[0]):
-            print('Error: Height data is not sorted for the xml file ' + xml_name + '.\n')
+            print('Error: Height data is not sorted for the xml file '
+                  + xml_name + '.\n')
             return failload
         # manage units
         unit = root.find(".//PreferenceHeightOfWater")
@@ -887,13 +961,14 @@ def read_pref(xmlfile):
         sub = [[], []]
         rea = ".//Stage[@Type='" + s + "']/PreferenceSubstrate/Value"
         s_data = root.findall(rea)
-        if len(s_data)>0:
+        if len(s_data) > 0:
             for v in s_data:
                 try:
                     data2 = float(v.attrib['p'])  # get rif of the s
                     data1 = float(v.attrib['s'][1:])
                 except ValueError:
-                    print('Error: Value cannot be converted to float in the substrate data of the xml file '
+                    print('Error: Value cannot be converted to float\
+                     in the substrate data of the xml file '
                           + xml_name + '\n')
                     return failload
                 sub[0].extend([data1])
@@ -903,24 +978,27 @@ def read_pref(xmlfile):
             sub_all.append(sub)
         else:
             # case without substrate
-            sub = [[0 , 1], [1, 1]]
+            sub = [[0, 1], [1, 1]]
             sub_all.append(sub)
 
     return h_all, vel_all, sub_all, code_fish, name_fish, stages
 
 
-def change_unit(data,unit):
+def change_unit(data, unit):
     """
-    This function modify the unit of the data to SI unit. Currently it accept the following unit :
-    Centimeter, Meter, CentimeterPerSecond, MeterPerSecond, Millimeter, "Code EVHA 2.0 (GINOT 1998)"
+    This function modify the unit of the data to SI unit.
+    Currently it accept the following unit :
+    Centimeter, Meter, CentimeterPerSecond, MeterPerSecond, Millimeter,
+     "Code EVHA 2.0 (GINOT 1998)"
 
     :param data: the data which has to be change to SI unti
     :param unit: the unit code
     """
 
-    if unit == 'Centimeter' or unit == "CentimeterPerSecond" :
+    if unit == 'Centimeter' or unit == "CentimeterPerSecond":
         data[0] = [x / 100 for x in data[0]]
-    elif unit == "Meter" or unit == "MeterPerSecond" or unit == "Code EVHA 2.0 (GINOT 1998)":
+    elif unit == "Meter" or unit == "MeterPerSecond"\
+            or unit == "Code EVHA 2.0 (GINOT 1998)":
         pass
     elif unit == "Millimeter":
         data[0] = [x / 1000 for x in data[0]]
@@ -930,16 +1008,20 @@ def change_unit(data,unit):
     return data
 
 
-def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt):
+def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
+               fig_opt):
     """
-    This functionc create a pdf with information about the fish. It tries to follow the chosen language, but
-    the stage name are not translated and the decription are usually only given in French.
+    This functionc create a pdf with information about the fish.
+    It tries to follow the chosen language, but
+    the stage name are not translated and the decription are usually
+    only given in French.
 
     :param xmlfiles: the name of the xmlfile (without the path!)
     :param stages_chosen: the stage chosen (might not be all stages)
     :param path_bio: the path with the biological xml file
     :param path_im_bio: the path with the images of the fish
-    :param path_out: the path where to save the .pdf file (usually other_outputs)
+    :param path_out: the path where to save the .pdf file
+        (usually other_outputs)
     :param fig_opt: the figure options (contain the chosen language)
     """
     plt.close()
@@ -964,53 +1046,67 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt
     xmlfiles = xmlfiles2
 
     # create the pdf
-    for idx,f in enumerate(xmlfiles):
+    for idx, f in enumerate(xmlfiles):
 
         # read pref
         xmlfile = os.path.join(path_bio, f)
-        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = read_pref(xmlfile)
+        [h_all, vel_all, sub_all, code_fish, name_fish, stages] =\
+            read_pref(xmlfile)
 
         # read additionnal info
-        attributes = ['Description', 'Image', 'French_common_name','English_common_name',]
+        attributes = ['Description', 'Image', 'French_common_name',
+                      'English_common_name', ]
         # careful: description is last data returned
         data = load_xml_name(path_bio, attributes, [f])
 
         # create figure
-        [f, axarr] = figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages, True, fig_opt)
+        [f, axarr] = figure_pref(h_all, vel_all, sub_all, code_fish, name_fish,
+                                 stages, True, fig_opt)
 
         # modification of the orginal preference fig
         # (0,0) is bottom left - 1 is the end of the page in x and y direction
-        plt.tight_layout(rect=[0.05, 0.05, 0.95, 0.53])  # position fo the image
+        plt.tight_layout(rect=[0.05, 0.05, 0.95, 0.53])
+        # position for the image
 
         # add a fish image
         if path_im_bio:
             fish_im_name = os.path.join(path_im_bio, data[0][0])
             if os.path.isfile(fish_im_name):
                 im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
-                newax = f.add_axes([0.1, 0.4, 0.25, 0.25], anchor='NE', zorder=-1)
+                newax = f.add_axes([0.1, 0.4, 0.25, 0.25], anchor='NE',
+                                   zorder=-1)
                 newax.imshow(im)
                 newax.axis('off')
 
         # move suptitle
         if fig_opt['language'] == 0:
-            f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32, weight='bold')
+            f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
+                       weight='bold')
         elif fig_opt['language'] == 1:
-            f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32, weight='bold')
+            f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32,
+                       weight='bold')
         else:
-            f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32, weight='bold')
+            f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
+                       weight='bold')
         # general info
         if fig_opt['language'] == 0:
-            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
+            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA\
+                            fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
-            text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + code_fish + '\n\n'
+            text_all = name_fish + '\n\n' + data[0][2]\
+                                 + '\n\n' + code_fish + '\n\n'
         elif fig_opt['language'] == 1:
-            plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA :\n\nStage choisi :\n\nDescription :",
+            plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA\
+             :\n\nStage choisi :\n\nDescription :",
                         weight='bold', fontsize=32)
-            text_all = name_fish + '\n\n' + data[0][1] + '\n\n' + code_fish + '\n\n'
+            text_all = name_fish + '\n\n' + data[0][1] + '\n\n'\
+                + code_fish + '\n\n'
         else:
-            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
+            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA\
+                fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
-            text_all = name_fish + '\n\n' + data[0][2] + '\n\n' + code_fish + '\n\n'
+            text_all = name_fish + '\n\n' + data[0][2] \
+                + '\n\n' + code_fish + '\n\n'
         for idx, s in enumerate(stage_chosen2[idx]):
             text_all += s + ', '
         text_all = text_all[:-2] + '\n\n'
@@ -1019,13 +1115,15 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt
 
         # descirption
         if len(data[0][-1]) > 250:
-            plt.figtext(0.4, 0.61, data[0][-1][:250] + '...', wrap=True, fontsize=32)
+            plt.figtext(0.4, 0.61, data[0][-1][:250] + '...', wrap=True,
+                        fontsize=32)
         else:
             plt.figtext(0.4, 0.61, data[0][-1], wrap=True, fontsize=32)
 
         # title of the page
-        plt.figtext(0.1, 0.9, "REPORT - " + name_fish, fontsize=55, weight='bold',
-                    bbox={'facecolor':'grey', 'alpha':0.15, 'pad':50})
+        plt.figtext(0.1, 0.9, "REPORT - " + name_fish, fontsize=55,
+                    weight='bold',
+                    bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
 
         # day
         plt.figtext(0.8, 0.95, 'HABBY - ' + time.strftime("%d %b %Y"))
@@ -1038,18 +1136,20 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt
             print('Warning: Close .pdf to update fish information')
 
 
-
 def main():
     """
     Used to test the module on the biological preference
     """
 
     # test to load the pref from PRF
-    # path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part1-Multispe1998'
-    # path = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
+    # path = \
+    #   r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part1-Multispe1998'
+    # path = \
+    # r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
     # filenames = load_hdf5.get_all_filename(path, '.PRF')
     # for i in range(0, len(filenames)):
-    #     [height, vel, sub, code_fish, name_fish, stade, descri] = load_evha_curve(filenames[i], path)
+    #     [height, vel, sub, code_fish, name_fish, stade, descri] = \
+    #       load_evha_curve(filenames[i], path)
     #     figure_pref(height, vel, sub, code_fish, name_fish, stade)
     # plt.show()
 
@@ -1058,7 +1158,8 @@ def main():
     # filenames = load_hdf5.get_all_filename(path, '.xml')
     # for i in range(0,len(filenames)):
     #     filename = os.path.join(path, filenames[i])
-    #     [height, vel, sub, code_fish, name_fish, stages] = read_pref(filename)
+    #     [height, vel, sub, code_fish, name_fish, stages] = \
+    #       read_pref(filename)
     #     figure_pref(height, vel, sub, code_fish, name_fish, stages)
     # plt.show()
 
@@ -1068,7 +1169,7 @@ def main():
     # test_evah_xml_pref(path_xml, path_evha)
 
     # test for pdf report
-    path_bio= r'C:\Users\diane.von-gunten\HABBY\biology'
+    path_bio = r'C:\Users\diane.von-gunten\HABBY\biology'
     path_bio_im = r"C:\Users\diane.von-gunten\HABBY\biology\figure_pref"
     path_out = r'C:\Users\diane.von-gunten\HABBY\biology'
     xmlfiles = ['ABL01.xml', 'ABL01.xml', 'BAM01.xml']
@@ -1076,6 +1177,7 @@ def main():
     fig_opt = output_fig_GUI.create_default_figoption()
     fig_opt['language'] = 1
     create_pdf(xmlfiles, stages, path_bio, '', path_out, fig_opt)
+
 
 if __name__ == '__main__':
     main()
