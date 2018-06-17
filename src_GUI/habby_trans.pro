@@ -8,4 +8,4 @@ SOURCES += fstress_GUI.py
 SOURCES += chronicle_GUI.py
 TRANSLATIONS += Zen_EN.ts
 TRANSLATIONS += Zen_FR.ts
-TRANSLATION += ZEN_ES.ts
+TRANSLATIONS += Zen_ES.ts
