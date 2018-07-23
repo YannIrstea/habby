@@ -36,6 +36,7 @@ from src import substrate
 from src import rubar
 from src import river2d
 from src import sw2d
+from src import iber2d
 from src import mascaret
 from src import manage_grid_8
 from src import load_hdf5
@@ -53,8 +54,8 @@ except ImportError:
 
 class Hydro2W(QWidget):
     """
-    The class Hydro2W is the second tab of HABBY. It is the class containing all the classes/Widgets which are used
-    to load the hydrological data.
+    The class Hydro2W is the second tab of HABBY. It is the class containing
+    all the classes/Widgets which are used to load the hydrological data.
 
     List of model supported by Hydro2W:
     files separetly. However, sometime the file was not found
@@ -64,32 +65,42 @@ class Hydro2W(QWidget):
     *   Mascaret (1D)
     *   River2D (2D)
     *   SW2D (2D)
+    *   IBER2D (2D)
 
     **Technical comments**
 
-    To call the different classes used to load the hydrological data, the user selects the name of the hydrological
-    model from a QComboBox call self.mod. The method ‘selection_change” calls the class that the user chooses in
+    To call the different classes used to load the hydrological data, the user
+    selects the name of the hydrological model from a QComboBox call self.mod.
+    The method ‘selection_change” calls the class that the user chooses in
     self.mod. All the classes used to load the
-    hydrological data are created when HABBY starts and are kept in a stack called self.stack. The function
-    selection_change() just changes the selected item of the stack based on the user choice on self.mod.
+    hydrological data are created when HABBY starts and are kept in a stack
+    called self.stack. The function selection_change() just changes
+    the selected item of the stack based on the user choice on self.mod.
 
-    Any new hydrological model should also be added to the stack and to the list of models contained in self.mod
+    Any new hydrological model should also be added to the stack and to
+    the list of models contained in self.mod
     (name of the list: self.name_model).
 
-    In addition to the stack containing the hydrological information, hydro2W has two buttons. One button open
-    a QMessageBox() which give information about the models, using the method “give_info_model”.  It is useful if a
-    special type of file is needed to load the data from a model or to give extra information about one hydrological
-    model. The text which is shown on the QMessageBox is given in one text file for each model.
-    These text file are contained in the folder ‘model_hydro” which is in the HABBY folder. For the moment,
-    there are models for which no text files have been prepared. The text file should have the following format:
+    In addition to the stack containing the hydrological information, hydro2W
+    has two buttons. One button open a QMessageBox() which give information
+    about the models, using the method “give_info_model”.  It is useful if a
+    special type of file is needed to load the data from a model or to give
+    extra information about one hydrological model. The text which is shown on
+    the QMessageBox is given in one text file for each model.
+    These text file are contained in the folder ‘model_hydro” which is
+    in the HABBY folder. For the moment,
+    there are models for which no text files have been prepared.
+    The text file should have the following format:
 
     *	A short sentence with general info
     *	The keyword:  MORE INFO
     *	All other infomation which are needed.
 
-    The second button allows the user to load an hdf5 file containing hydrological data from another project.
-    As long as the hdf5 is in the right format, it does not matter from which hydrological model it was loaded from
-    or even if this hydrological model is supported by HABBY.
+    The second button allows the user to load an hdf5 file containing
+    hydrological data from another project.
+    As long as the hdf5 is in the right format, it does not matter from
+    which hydrological model it was loaded from  or even if this
+    hydrological model is supported by HABBY.
     """
     send_log = pyqtSignal(str, name='send_log')
     """
@@ -103,8 +114,9 @@ class Hydro2W(QWidget):
         # self.mod_loaded = QComboBox()
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET", "RIVER2D", "RUBAR BE", "RUBAR 20",
-                           "SW2D", "TELEMAC", "HABBY HDF5"]  # "MAGE"
+        self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET",
+                           "RIVER2D", "RUBAR BE", "RUBAR 20",
+                           "SW2D", "IBER2D", "TELEMAC", "HABBY HDF5"]  # "MAGE"
         self.mod_act = 0
         self.stack = QStackedWidget()
         self.msgi = QMessageBox()
@@ -131,11 +143,13 @@ class Hydro2W(QWidget):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # add the widgets representing the available models to a stack of widget
+        # add the widgets representing the available models to a stack
+        # of widgets
         self.free = FreeSpace()
         self.hecras1D = HEC_RAS1D(self.path_prj, self.name_prj)
         self.hecras2D = HEC_RAS2D(self.path_prj, self.name_prj)
         self.sw2d = SW2D(self.path_prj, self.name_prj)
+        self.iber2d = IBER2D(self.path_prj, self.name_prj)
         self.telemac = TELEMAC(self.path_prj, self.name_prj)
         self.rubar2d = Rubar2D(self.path_prj, self.name_prj)
         self.rubar1d = Rubar1D(self.path_prj, self.name_prj)
@@ -152,11 +166,12 @@ class Hydro2W(QWidget):
         self.stack.addWidget(self.rubar1d)
         self.stack.addWidget(self.rubar2d)
         self.stack.addWidget(self.sw2d)
+        self.stack.addWidget(self.iber2d)
         self.stack.addWidget(self.telemac)
         self.stack.addWidget(self.habbyhdf5)
         self.stack.setCurrentIndex(self.mod_act)
 
-        #export slf
+        # export slf
         self.slfbut = QPushButton(self.tr('export .slf'))
         self.slfbut.clicked.connect(self.export_slf_gui)
 
@@ -179,9 +194,11 @@ class Hydro2W(QWidget):
 
     def selectionchange(self, i):
         """
-        Change the shown widget which represents each hydrological model (all widget are in a stack)
+        Change the shown widget which represents each hydrological model
+        (all widget are in a stack)
 
-        :param i: the number of the model (0=no model, 1=hecras1d, 2= hecras2D,...)
+        :param i: the number of the model
+                    (0=no model, 1=hecras1d, 2= hecras2D,...)
         """
 
         self.mod_act = i
@@ -190,10 +207,12 @@ class Hydro2W(QWidget):
     def give_info_model(self):
         """
         A function to show extra information about each hydrological model.
-        The information should be in a text file with the same name as the model in the model_hydo folder.
-        General info goes as the start of the text file. If the text is too long, add the keyword "MORE INFO"
-        and add the longer text afterwards. The message box will show the supplementary information only if the user
-        asks for detailed information.
+        The information should be in a text file with the same name as the
+        model in the model_hydo folder. General info goes as the start
+         of the text file. If the text is too long, add the keyword "MORE INFO"
+        and add the longer text afterwards.
+        The message box will show the supplementary information only
+        if the user asks for detailed information.
         """
         self.msgi.setIcon(QMessageBox.Information)
         text_title = self.tr("Information on the hydraulic model")
@@ -216,6 +235,8 @@ class Hydro2W(QWidget):
             website = "<a href=\"http://www.irstea.fr/rubar20\">RUBAR20</a>"
         elif mod_name == "RUBAR BE":
             website = "<a href=\"http://www.irstea.fr/rubar3\">RUBARBE</a>"
+        elif mod_name == "IBER2D":
+            website = "<a href=\"http://www.iberaula.es\">IBER2D</a>"
         else:
             website = ""
         self.msgi.setStandardButtons(QMessageBox.Ok)
@@ -228,21 +249,22 @@ class Hydro2W(QWidget):
         else:
             self.msgi.setText(self.tr('No information yet!         '))
             self.msgi.setDetailedText('No detailed info yet.')
-        self.msgi.setEscapeButton(QMessageBox.Ok)  # detailed text erase the red x
+        # detailed text erase the red x
+        self.msgi.setEscapeButton(QMessageBox.Ok)
         name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
         self.msgi.setWindowIcon(QIcon(name_icon))
         self.msgi.show()
 
     def export_slf_gui(self):
         """
-        This is the function which is used by the GUI to export slf data. NOT FINISHED!!!!!
+        This is the function which is used by the GUI to export slf data.
+        NOT FINISHED!!!!!
         """
         self.send_log.emit('export slf is not finished yet')
-        name_hdf5= self.drop_hyd.currentText()
+        name_hdf5 = self.drop_hyd.currentText()
         path_hdf5 = self.rubar1d.find_path_hdf5()
         path_slf = self.rubar1d.find_path_output('Path_Paraview')
         print(path_slf)
-
 
         if not name_hdf5:
             self.send_log.emit(self.tr('Error: No hydraulic file found. \n'))
@@ -251,20 +273,20 @@ class Hydro2W(QWidget):
         new_create_vtk.save_slf(name_hdf5, path_hdf5, path_slf, False)
 
 
-
-
-
 class FreeSpace(QWidget):
     """
     Simple class with empty space, just to have only Qwidget in the stack.
 
     **Technical comment**
 
-    The idea of this class is that the user see a free space when it opens the “Hydro” Tab instead
-    of directly seeing one of the hydraulic model. The goal is to avoid the case where a user tries to load data before
-    selecting the real model. For example, if a user wants to load mascaret data and that an item is selected by
-    default in the stack of classes related to hydrology (such as HEC-RAS1D), it might be logical for the user to try
-    to load masacret data using the HEC-RAS class. Because of the FreeSpace class, he actually has to select
+    The idea of this class is that the user see a free space when it opens
+    the “Hydro” Tab instead of directly seeing one of the hydraulic model.
+    The goal is to avoid the case where a user tries to load data before
+    selecting the real model. For example, if a user wants to load mascaret
+    data and that an item is selected by default in the stack of classes
+    related to hydrology (such as HEC-RAS1D), it might be logical for the
+    user to try to load masacret data using the HEC-RAS class.
+    Because of the FreeSpace class, he actually has to select
     the model he wants to load.
     """
 
@@ -279,15 +301,20 @@ class FreeSpace(QWidget):
 
 class SubHydroW(QWidget):
     """
-    SubHydroW is class which is the parent of the classes which can be used to open the hydrological models. This class
-    is a bit special. It is not called directly by HABBY but by the classes which load the hydrological data and which
-    inherits from this class. The advantage of this architecture is that all the children classes can use the methods
-    written in SubHydroW(). Indeed, all the children classes load hydrological data and therefore they are similar and
+    SubHydroW is class which is the parent of the classes which can be used
+    to open the hydrological models. This class is a bit special.
+    It is not called directly by HABBY but by the classes which load the
+    hydrological data and which inherits from this class.
+    The advantage of this architecture is that all the children classes can
+    use the methods written in SubHydroW(). Indeed, all the children classes
+    load hydrological data and therefore they are similar and
     can use similar functions.
 
-    In other word, there are MainWindows() which provides the windows around the widget and Hydro2W which provide the
-    widget for the hydrological Tab and one class by hydrological model to really load the model. The latter classes
-    have various methods in common, so they inherit from SubHydroW, this class.
+    In other word, there are MainWindows() which provides the windows around
+    the widget and Hydro2W which provide the
+    widget for the hydrological Tab and one class by hydrological model
+    to really load the model. The latter classes have various methods in
+    common, so they inherit from SubHydroW, this class.
     """
 
     send_log = pyqtSignal(str, name='send_log')
@@ -296,7 +323,8 @@ class SubHydroW(QWidget):
     """
     drop_hydro = pyqtSignal()
     """
-    A PyQtsignal signal for the substrate tab so it can account for the new hydrological info.
+    A PyQtsignal signal for the substrate tab so it can account
+    for the new hydrological info.
     """
     show_fig = pyqtSignal()
     """
@@ -306,9 +334,14 @@ class SubHydroW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         # do not change the string 'unknown file'
-        self.namefile = ['unknown file', 'unknown file']  # for children, careful with list index out of range
-        self.interpo = ["Interpolation by block", "Linear interpolation", "Nearest Neighbors"]  # order matters here
-        self.interpo_choice = 0 # gives which type of interpolation is chosen (it is the index of self.interpo )
+        self.namefile = ['unknown file', 'unknown file']
+
+        # for children, careful with list index out of range
+        self.interpo = ["Interpolation by block", "Linear interpolation",
+                        "Nearest Neighbors"]  # order matters here
+        self.interpo_choice = 0
+        # gives which type of interpolation is chosen
+        # (it is the index of self.interpo )
         self.pathfile = [path_prj, path_prj]
         self.attributexml = [' ', ' ']
         self.model_type = ' '
@@ -324,7 +357,8 @@ class SubHydroW(QWidget):
         self.ikle_all_t = []
         self.point_all_t = []
         self.point_c_all_t = []
-        self.np_point_vel = -99  # -99 -> velocity calculated in the same point than the profile height
+        self.np_point_vel = -99
+        # -99 -> velocity calculated in the same point than the profile height
         self.manning1 = 0.025
         self.manning_arr = []
         self.pro_add = 2  # additional profil during the grid creation
@@ -349,12 +383,16 @@ class SubHydroW(QWidget):
 
     def was_model_loaded_before(self, i=0, many_file=False):
         """
-        A function to test if the model loaded before. If yes, it updates the attibutes anf the widgets of the
+        A function to test if the model loaded before. If yes,
+        it updates the attibutes anf the widgets of the
         hydrological model on consideration.
 
-        :param i: an int used in cases where there is more than one file to load (geometry and output for example)
-        :param many_file: A bollean. If true this function will load more than one file, separated by ','. If False,
-                it will only loads the file of one model (see the comment below).
+        :param i: an int used in cases where there is more than one file to
+         load (geometry and output for example)
+        :param many_file: A bollean. If true this function will load more than
+         one file, separated by ','. If False,
+                it will only loads the file of one model
+                (see the comment below).
 
         **Technical comment**
 
@@ -441,7 +479,7 @@ class SubHydroW(QWidget):
         is then used to loaded the file in other function, which are different for each children class. Based on the
         name of the chosen file, a name is proposed for the hdf5 file.
 
-        :param i: a int for the case where there is more than one file to load
+        :param i: an int for the case where there is more than one file to load
         """
 
         # prepare the filter to show only useful files
@@ -2733,6 +2771,187 @@ class SW2D(SubHydroW):
             if self.out_t2.text() == 'unknown file':
                 blob = self.namefile[0]
                 new_name = blob[:-len(self.extension[0][0])] + self.extension[1][0]
+                pathfilename = os.path.join(self.pathfile[0], new_name)
+                if os.path.isfile(pathfilename):
+                    self.out_t2.setText(new_name)
+                    # keep the name in an attribute until we save it
+                    self.pathfile[1] = self.pathfile[0]
+                    self.namefile[1] = new_name
+
+
+class IBER2D(SubHydroW):
+    """
+    The class IBER2D is there to manage the link between the graphical
+    interface and the functions in src/read_iber2d.py
+    which loads the IBER2D data . It inherits from SubHydroW() so it have all
+    the methods and the variables from the class SubHydroW().
+    """
+
+    def __init__(self, path_prj, name_prj):
+
+        super().__init__(path_prj, name_prj)
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        used by ___init__() in the initialization.
+        """
+
+        # update attibute for iber2d
+        self.attributexml = ['iber2d_geodata', 'iber2d_result']
+        self.model_type = 'IBER2D'
+        # list of list in case there is more than one possible ext.
+        self.extension = ['.dat', '.rep', '.rep', '.rep']
+        self.nb_dim = 2
+
+        # if there is the project file with iber2d geo info,
+        # update the label and attibutes
+        self.was_model_loaded_before(0)
+        self.was_model_loaded_before(1)
+
+        # create and update label with the result and geo filename
+        self.geo_t2 = QLabel(self.namefile[0], self)
+        self.out_t2 = QLabel(self.namefile[1], self)
+        self.out_t2bis = QLabel(self.namefile[1], self)
+        self.out_t2ter = QLabel(self.namefile[1], self)
+        self.geo_t2.setToolTip(self.pathfile[0])
+        self.out_t2.setToolTip(self.pathfile[1])
+
+        # geometry and output data
+        l1 = QLabel(self.tr('<b> Geometry data </b>'))
+        self.geo_b = QPushButton('Choose file (.dat)', self)
+        self.geo_b.clicked.connect(lambda: self.show_dialog(0))
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
+        self.geo_b.clicked.connect(self.propose_next_file)
+        self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
+        l2 = QLabel(self.tr('<b> Output data </b>'))
+        self.out_b = QPushButton('Choose file for h\n (.rep)', self)
+        self.out_b.clicked.connect(lambda: self.show_dialog(1))
+        self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
+        self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
+        l3 = QLabel(self.tr('<b> Output data </b>'))
+        self.outbis_b = QPushButton('Choose file for u\n (.rep)', self)
+        self.outbis_b.clicked.connect(lambda: self.show_dialog(2))
+        self.outbis_b.clicked.connect(lambda: self.out_t2bis.setText(self.namefile[2]))
+        self.outbis_b.clicked.connect(lambda: self.out_t2bis.setToolTip(self.pathfile[1]))
+        l4 = QLabel(self.tr('<b> Output data </b>'))
+        self.outter_b = QPushButton('Choose file for v\n (.rep)', self)
+        self.outter_b.clicked.connect(lambda: self.show_dialog(3))
+        self.outter_b.clicked.connect(lambda: self.out_t2ter.setText(self.namefile[3]))
+        self.outter_b.clicked.connect(lambda: self.out_t2ter.setToolTip(self.pathfile[1]))
+
+        # grid creation
+        l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
+        l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
+
+        # hdf5 name
+        lh = QLabel(self.tr('<b> hdf5 file name </b>'))
+        self.hname = QLineEdit(self.name_hdf5)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
+
+        # load button
+        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.clicked.connect(self.load_iber2d)
+        self.spacer = QSpacerItem(1, 200)
+        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig.clicked.connect(self.recreate_image)
+        if self.namefile[0] == 'unknown file':
+            self.butfig.setDisabled(True)
+
+        # layout
+        self.layout_hec = QGridLayout()
+        self.layout_hec.addWidget(l1, 0, 0)
+        self.layout_hec.addWidget(self.geo_t2, 0, 1)
+        self.layout_hec.addWidget(self.geo_b, 0, 2)
+        self.layout_hec.addWidget(l2, 1, 0)
+        self.layout_hec.addWidget(self.out_t2, 1, 1)
+        self.layout_hec.addWidget(self.out_b, 1, 2)
+        self.layout_hec.addWidget(l3, 2, 0)
+        self.layout_hec.addWidget(self.out_t2bis, 2, 1)
+        self.layout_hec.addWidget(self.outbis_b, 2, 2)
+        self.layout_hec.addWidget(l4, 3, 0)
+        self.layout_hec.addWidget(self.out_t2ter, 3, 1)
+        self.layout_hec.addWidget(self.outter_b, 3, 2)
+        self.layout_hec.addWidget(l2D1, 4, 0)
+        self.layout_hec.addWidget(l2D2, 4, 1, 1, 2)
+        self.layout_hec.addWidget(lh, 5, 0)
+        self.layout_hec.addWidget(self.hname, 5, 1)
+        self.layout_hec.addWidget(self.load_b, 5, 2)
+        self.layout_hec.addWidget(self.butfig, 6, 2)
+        self.layout_hec.addItem(self.spacer, 7, 1)
+        self.setLayout(self.layout_hec)
+
+    def load_iber2d(self):
+        """
+        A function to execute the loading and saving the iber2d files
+        using read_iber2d.py.
+
+        A second thread is used to avoid "freezing" the GUI.
+        """
+        # for error management and figures
+        self.timer.start(1000)
+
+        # update the xml file of the project
+        self.save_xml(0)
+        self.save_xml(1)
+        self.load_b.setDisabled(True)
+        # the path where to save the image
+        path_im = self.find_path_im()
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_hdf5()
+        self.name_hdf5 = self.hname.text()
+
+        # load iber2d, interpolate to node, create grid and save in hdf5 format
+        self.q = Queue()
+        # to be changed
+
+        self.p = Process(target=iber2d.load_iber2d_and_modify_grid,
+                         args=(self.name_hdf5, self.namefile[0],
+                               self.namefile[1], self.pathfile[0],
+                               self.pathfile[1], path_im, self.name_prj,
+                               self.path_prj, self.model_type, self.nb_dim,
+                               path_hdf5, self.q, False, self.fig_opt))
+        self.p.start()
+
+        # copy input file
+        path_input = self.find_path_input()
+        self.p2 = Process(target=load_hdf5.copy_files,
+                          args=(self.namefile, self.pathfile, path_input))
+        self.p2.start()
+
+        # log info
+        self.send_log.emit(self.tr('# Loading: IBER2D data...'))
+        # self.send_err_log()
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit("py    path2=r'" + path_input + "'")
+        # to be changed
+        self.send_log.emit(
+            "py    read_iber2d.myfunc('Hydro_iber2d_log',file1, file2, path1,\
+                                      path2,"
+            " path_prj, name_prj, path_prj, 'IBER2D', 2, path_prj, [])\n")
+        self.send_log.emit("restart LOAD_IBER2D")
+        self.send_log.emit("restart    file1: "
+                           + os.path.join(path_input, self.namefile[0]))
+        self.send_log.emit("restart    file2: "
+                           + os.path.join(path_input, self.namefile[1]))
+
+    def propose_next_file(self):
+        """
+        This function proposes the second IBER2D file when the first is
+        selected. Indeed, to load IBER2D, we need
+        one file with the geometry data and one file with
+        the simulation results. If the user selects a file, this
+        function looks if a file with the same name but with the extension
+        of the other file type exists in the selected folder.
+        """
+        if len(self.extension[1]) == 1:
+            if self.out_t2.text() == 'unknown file':
+                blob = self.namefile[0]
+                new_name = \
+                    blob[:-len(self.extension[0][0])] + self.extension[1][0]
                 pathfilename = os.path.join(self.pathfile[0], new_name)
                 if os.path.isfile(pathfilename):
                     self.out_t2.setText(new_name)
