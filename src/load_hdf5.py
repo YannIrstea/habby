@@ -53,14 +53,14 @@ def open_hdf5(hdf5_name):
 def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     """
     A function to load the 2D hydrological data contained in the hdf5 file in the form required by HABBY. If
-    hdf5_name_sub is an absolute path, the path_prj is not used. If hdf5_name_sub is a relative path, the path is
-    composed of the path to the project (path_prj) composed with hdf5_name_sub.
+    hdf5_name_hyd is an absolute path, the path_hdf5 is not used. If hdf5_name_hyd is a relative path, the path is
+    composed of the path to the project (path_hdf5) composed with hdf5_name_hyd.
 
     :param hdf5_name_hyd: filename of the hdf5 file (string)
     :param path_hdf5: the path to the hdf5 file
     :param merge: If merge is True. this is a merge file with substrate data added
     :return: the connectivity table, the coordinates of the point, the height data, the velocity data
-             on the coordinates.
+             on the coordinates, also substrate if merge is True.
 
     """
 
@@ -77,10 +77,10 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
 
     # open the file with checking for the path
     if os.path.isabs(hdf5_name_hyd):
-        file_hydro = open_hdf5(hdf5_name_hyd)
+        file_hydro = open_hdf5(hdf5_name_hyd,"r")
     else:
         if path_hdf5:
-            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name_hyd))
+            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name_hyd,"r"))
         else:
             print('Error" No path to the project given although a relative path was provided')
             return failload
@@ -88,7 +88,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         print('Error: hdf5 file could not be open. \n')
         return failload
 
-    # load the number of time steps
+    # load the number of time steps #? attribut
     basename1 = 'Data_gen'
     try:
         gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
@@ -104,12 +104,12 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     nb_t = np.array(nb_t)
     nb_t = int(nb_t)
 
-    # load the number of reach
+    # load the number of reach #? attribut
     try:
         gen_dataset = file_hydro[basename1 + "/Nb_reach"]
     except KeyError:
         print(
-            'Error: the number of time step is missing from the hdf5 file. \n')
+            'Error: the number of reaches is missing from the hdf5 file. \n')
         return failload
     nb_r = list(gen_dataset.values())[0]
     nb_r = np.array(nb_r)
@@ -119,7 +119,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     basename1 = 'Data_2D'
     ikle_whole_all = []
 
-    # ikle whole profile
+    # ikle whole profile #? pourquoi pas du numpy direct ? indexError ??
     for r in range(0, nb_r):
         name_ik = basename1 + "/Whole_Profile/Reach_" + str(r) + "/ikle"
         try:
@@ -137,7 +137,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         ikle_whole_all.append(ikle_whole)
     ikle_all_t.append(ikle_whole_all)
 
-    # ikle by time step
+    # ikle by time step  #? pourquoi pas du numpy direct ? indexError ??
     for t in range(0, nb_t):
         ikle_whole_all = []
         for r in range(0, nb_r):
@@ -156,7 +156,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
             ikle_whole_all.append(ikle_whole)
         ikle_all_t.append(ikle_whole_all)
 
-    # coordinate of the point for the  whole profile
+    # coordinate of the point for the  whole profile #? pourquoi pas du numpy direct ? indexError ??
     point_whole_all = []
     for r in range(0, nb_r):
         name_pa = basename1 + "/Whole_Profile/Reach_" + str(r) + "/point_all"
@@ -174,7 +174,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         point_whole = np.array(point_whole)
         point_whole_all.append(point_whole)
     point_all.append(point_whole_all)
-    # coordinate of the point by time step
+    # coordinate of the point by time step #? pourquoi pas du numpy direct ? indexError ??
     for t in range(0, nb_t):
         point_whole_all = []
         for r in range(0, nb_r):
