@@ -25,7 +25,8 @@ from src import rubar
 
 
 def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
-                                result_iber2d_file,
+                                result_iber2d_file1, result_iber2d_file2,
+                                result_iber2d_file3, result_iber2d_file4,
                                 path_geo, path_res, path_im, name_prj,
                                 path_prj, model_type, nb_dim, path_hdf5,
                                 q=[], print_cmd=False, fig_opt={}):
@@ -60,7 +61,6 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
                     height to have a wet node (can be > 0)
     :return: none
     """
-
     # get minimum water height
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
@@ -79,7 +79,9 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
 
     # load iber data
     [baryXY, timesteps, height_cell, vel_cell] = \
-        read_result_iber2d(result_iber2d_file, path_res)
+        read_result_iber2d(result_iber2d_file1, result_iber2d_file2,
+                           result_iber2d_file3, result_iber2d_file4,
+                           path_res)
     if isinstance(baryXY[0], int):
         if baryXY == [-99]:
             print("Error: the IBER2D result file could not be loaded.")
@@ -199,136 +201,145 @@ def read_mesh_iber2d(geofile, pathfile):
     failload = [-99], [-99], [-99]
     filename_path = os.path.join(pathfile, geofile)
     try:
-        with open(filename_path, 'rb') as f:
-            # reading dimensions with Fortran labels
-            data = np.fromfile(f, dtype=np.int32, count=5)
-            ncel = data[1]
-            nint = data[2]
-            nnod = data[3]
-            # reading info on cells
-            noNodElem = np.zeros((ncel, 1), dtype=np.int)
-            nnCel = np.zeros((ncel, 1), dtype=np.int)
-            data = np.fromfile(f, dtype=np.int32, count=1)  # label
-            for i in range(ncel):
-                data = np.fromfile(f, dtype=np.int32, count=3)
-                noNodElem[i] = data[0]
-                nnCel[i] = data[1]
-                data = np.fromfile(f, dtype=np.float, count=4)
-            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-            # reading connectivity
+        with open(filename_path, 'r') as f:
+            line = ''
+            while line != 'MATRIU':
+                line = f.readline()
+                line = line.strip()
+            line = f.readline()
+            line = line.strip()
+            nbelem = np.fromstring(line, dtype=int, sep=' ')
             listNoNodElem = []
-            for i in range(int(ncel)):
-                data = np.fromfile(f, dtype=np.int32, count=1)  # label
-
-                ikle = np.zeros(noNodElem[i], dtype=np.int)
-
-                for j in range(int(noNodElem[i])):
-                    ikle[j] = np.fromfile(f, dtype=np.int32, count=1) - 1
-                    data = np.fromfile(f, dtype=np.float, count=2)
-
-                listNoNodElem.append(ikle)
-
-                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-                data = np.fromfile(f, dtype=np.int32, count=1)  # label
-                # cint
-                data = np.fromfile(f, dtype=np.int32, count=int(noNodElem[i]))
-                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-                data = np.fromfile(f, dtype=np.int32, count=1)  # label
-                # ccel
-                data = np.fromfile(f, dtype=np.int32, count=int(nnCel[i]))
-                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-                data = np.fromfile(f, dtype=np.int32, count=1)  # label
-                # cint
-                data = np.fromfile(f, dtype=np.int32, count=int(noNodElem[i]))
-                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-            # reading info on edges
-            data = np.fromfile(f, dtype=np.int32, count=1)  # label
-            for i in range(nint):
-                data = np.fromfile(f, dtype=np.int32, count=4)
-                data = np.fromfile(f, dtype=np.float, count=7)
-            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-            # reading the coordinates of nodes
-            nodesXYZ = np.zeros((nnod, 3))
-            data = np.fromfile(f, dtype=np.int32, count=1)  # label
-            for i in range(nnod):
-                nodesXYZ[i, ] = np.fromfile(f, dtype=np.float, count=3)
-                data = np.fromfile(f, dtype=np.int32, count=1)
-            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-
+            noNodElem = []
+            for i in range(nbelem[0]):
+                line = f.readline()
+                line = line.strip()
+                elem = np.fromstring(line, dtype=int, sep=' ')
+                if elem[0] == elem[3]:
+                    noNodElem.append(3)
+                    elem = elem[:-2]
+                else:
+                    noNodElem.append(4)
+                    elem = elem[:-1]
+                elem = elem - 1
+                listNoNodElem.append(elem)
+            f.seek(0)
+            line = ''
+            while line != 'VERTEXS':
+                line = f.readline()
+                line = line.strip()
+            line = f.readline()
+            line = line.strip()
+            nnodes = np.fromstring(line, dtype=int, sep=' ')
+            nodesXYZ = np.array([]).reshape(0, 3)  # Only XYZ for now
+            for i in range(nnodes[0]):
+                line = f.readline()
+                line = line.strip()
+                node = np.fromstring(line, dtype=float, sep=' ')
+                node = node[:-1]
+                nodesXYZ = np.vstack([nodesXYZ, node])
     except IOError:
         print('Error: The .geo file does not exist')
         return failload
     f.close()
+
     return noNodElem, listNoNodElem, nodesXYZ
 
 
-def read_result_iber2d(resfile, pathfile):
+def read_result_iber2d(resfile_h, resfile_u, resfile_v, resfile_xyz, pathfile):
     """
     Reads the binary file of IBER2D results
 
-    :param resfile: the name of the result file (string)
+    :param resfile: the name of the result files (string)
     :param pathfile: path of the result file (string)
-    :return: - barycentric coordinates of each elements
+    :return: - barycentric XY-coordinates of each elements
              - time values
              - water depth and velocity values for each time step and element
     """
     failload = [-99], [-99], [-99], [-99]
-    filename_path = os.path.join(pathfile, resfile)
+    # Water depths
+    filename_path = os.path.join(pathfile, resfile_h)
+    tval = np.array(())
+    hval = np.array(())
+    nsteps = 0
     try:
-        with open(filename_path, 'rb') as f:
-            # reading storage info with Fortran labels
-            data = np.fromfile(f, dtype=np.int32, count=18)
-            # reading dimensions with Fortran labels
-            data = np.fromfile(f, dtype=np.int32, count=4)
-            ncel = data[1]
-            nint = data[2]
-            # reading barycentric coordinates
-            # baryXY = np.zeros((ncel, 2))
-            baryXY = []
-            cxy = np.zeros(2)
-            data = np.fromfile(f, dtype=np.int32, count=1)  # label
-            for i in range(ncel):
-                cxy = np.fromfile(f, dtype=np.float, count=2)
-                baryXY.append(cxy)
-            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-            # reading info on edges
-            data = np.fromfile(f, dtype=np.int32, count=1)  # label
-            for i in range(nint):
-                data = np.fromfile(f, dtype=np.int32, count=2)
-                data = np.fromfile(f, dtype=np.float, count=6)
-            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-            # reading results
-            times = np.array([]).reshape(0, 1)
-            h = np.array([]).reshape(0, ncel)
-            v = np.array([]).reshape(0, ncel)
-            while True:
-                data = np.fromfile(f, dtype=np.int32, count=1)  # label
-                if data.size < 1:
-                    break
-                timeval = np.fromfile(f, dtype=np.float, count=1)
-                nvar = np.fromfile(f, dtype=np.int32, count=1)
-                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-                times = np.vstack([times, timeval])
-                data = np.fromfile(f, dtype=np.int32, count=1)  # label
-                result = np.fromfile(f, dtype=np.float, count=ncel)
-                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
-                if nvar == 1:
-                    h = np.vstack([h, result])
-                elif nvar == 8:
-                    v = np.vstack([v, result])
+        with open(filename_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                val = np.fromstring(line, sep=' ')
+                if val.size == 1:
+                    tval = np.hstack((tval, val))
+                    nnodes = 0
+                    nsteps += 1
+                else:
+                    nnodes += val.size
+                    hval = np.hstack((hval, val))
     except IOError:
         print('Error: The .res file does not exist')
         return failload
     f.close()
-    return baryXY, np.unique(times), h, v
+    hval = hval.reshape(nsteps, nnodes)
+
+    # Velocity x-component
+    filename_path = os.path.join(pathfile, resfile_u)
+    uval = np.array(())
+    try:
+        with open(filename_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                val = np.fromstring(line, sep=' ')
+                if val.size != 1:
+                    uval = np.hstack((uval, val))
+    except IOError:
+        print('Error: The .res file does not exist')
+        return failload
+    f.close()
+    # Velocity y-component
+    filename_path = os.path.join(pathfile, resfile_v)
+    vval = np.array(())
+    try:
+        with open(filename_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                val = np.fromstring(line, sep=' ')
+                if val.size != 1:
+                    vval = np.hstack((vval, val))
+    except IOError:
+        print('Error: The .res file does not exist')
+        return failload
+    f.close()
+    # Velocity magnitude
+    vnorm = np.sqrt(uval*uval + vval*vval)
+    vnorm = vnorm.reshape(nsteps, nnodes)
+    # Barycentric XY-coordinates
+    filename_path = os.path.join(pathfile, resfile_xyz)
+    xyval = []
+    try:
+        with open(filename_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                val = np.fromstring(line, dtype=float, sep=' ')
+                val = val[1:3]
+                xyval.append(val)
+    except IOError:
+        print('Error: The .res file does not exist')
+        return failload
+    f.close()
+
+    return xyval, tval, hval, vnorm
 
 
 if __name__ == '__main__':
     # read the mesh of iber2d
-    result_iber2d_file = 'a.geo'
+    result_iber2d_file = 'Iber2D.dat'
     mesh_iber2d = read_mesh_iber2d(result_iber2d_file)
     # read results on the water depth and velocity for all time steps
-    result_iber2d_file = 'alex23.res'
-    result_iber2d = read_result_iber2d(result_iber2d_file)
-
+    result_iber2d_file1 = 'h.rep'
+    result_iber2d_file2 = 'u.rep'
+    result_iber2d_file3 = 'v.rep'
+    result_iber2d_file4 = 'xyz.rep'
+    result_iber2d = read_result_iber2d(result_iber2d_file1,
+                                       result_iber2d_file2,
+                                       result_iber2d_file3,
+                                       result_iber2d_file4)
     print(result_iber2d)

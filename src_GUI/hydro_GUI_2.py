@@ -2801,7 +2801,7 @@ class IBER2D(SubHydroW):
         self.attributexml = ['iber2d_geodata', 'iber2d_result']
         self.model_type = 'IBER2D'
         # list of list in case there is more than one possible ext.
-        self.extension = ['.dat', '.rep', '.rep', '.rep']
+        self.extension = ['.dat', '.rep', '.rep', '.rep', '.rep']
         self.nb_dim = 2
 
         # if there is the project file with iber2d geo info,
@@ -2814,8 +2814,12 @@ class IBER2D(SubHydroW):
         self.out_t2 = QLabel(self.namefile[1], self)
         self.out_t2bis = QLabel(self.namefile[1], self)
         self.out_t2ter = QLabel(self.namefile[1], self)
+        self.out_t2qua = QLabel(self.namefile[1], self)
         self.geo_t2.setToolTip(self.pathfile[0])
         self.out_t2.setToolTip(self.pathfile[1])
+        self.out_t2bis.setToolTip(self.pathfile[1])
+        self.out_t2ter.setToolTip(self.pathfile[1])
+        self.out_t2qua.setToolTip(self.pathfile[1])
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
@@ -2839,6 +2843,11 @@ class IBER2D(SubHydroW):
         self.outter_b.clicked.connect(lambda: self.show_dialog(3))
         self.outter_b.clicked.connect(lambda: self.out_t2ter.setText(self.namefile[3]))
         self.outter_b.clicked.connect(lambda: self.out_t2ter.setToolTip(self.pathfile[1]))
+        l5 = QLabel(self.tr('<b> Output data </b>'))
+        self.outqua_b = QPushButton('Choose file for xyz\n (.rep)', self)
+        self.outqua_b.clicked.connect(lambda: self.show_dialog(4))
+        self.outqua_b.clicked.connect(lambda: self.out_t2qua.setText(self.namefile[4]))
+        self.outqua_b.clicked.connect(lambda: self.out_t2qua.setToolTip(self.pathfile[1]))
 
         # grid creation
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
@@ -2873,13 +2882,16 @@ class IBER2D(SubHydroW):
         self.layout_hec.addWidget(l4, 3, 0)
         self.layout_hec.addWidget(self.out_t2ter, 3, 1)
         self.layout_hec.addWidget(self.outter_b, 3, 2)
-        self.layout_hec.addWidget(l2D1, 4, 0)
-        self.layout_hec.addWidget(l2D2, 4, 1, 1, 2)
-        self.layout_hec.addWidget(lh, 5, 0)
-        self.layout_hec.addWidget(self.hname, 5, 1)
-        self.layout_hec.addWidget(self.load_b, 5, 2)
-        self.layout_hec.addWidget(self.butfig, 6, 2)
-        self.layout_hec.addItem(self.spacer, 7, 1)
+        self.layout_hec.addWidget(l5, 4, 0)
+        self.layout_hec.addWidget(self.out_t2qua, 4, 1)
+        self.layout_hec.addWidget(self.outqua_b, 4, 2)
+        self.layout_hec.addWidget(l2D1, 5, 0)
+        self.layout_hec.addWidget(l2D2, 5, 1, 1, 2)
+        self.layout_hec.addWidget(lh, 6, 0)
+        self.layout_hec.addWidget(self.hname, 6, 1)
+        self.layout_hec.addWidget(self.load_b, 6, 2)
+        self.layout_hec.addWidget(self.butfig, 7, 2)
+        self.layout_hec.addItem(self.spacer, 8, 1)
         self.setLayout(self.layout_hec)
 
     def load_iber2d(self):
@@ -2908,8 +2920,10 @@ class IBER2D(SubHydroW):
 
         self.p = Process(target=iber2d.load_iber2d_and_modify_grid,
                          args=(self.name_hdf5, self.namefile[0],
-                               self.namefile[1], self.pathfile[0],
-                               self.pathfile[1], path_im, self.name_prj,
+                               self.namefile[1], self.namefile[2],
+                               self.namefile[3], self.namefile[4],
+                               self.pathfile[0], self.pathfile[1],
+                               path_im, self.name_prj,
                                self.path_prj, self.model_type, self.nb_dim,
                                path_hdf5, self.q, False, self.fig_opt))
         self.p.start()
