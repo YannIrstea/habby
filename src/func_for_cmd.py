@@ -29,6 +29,7 @@ from src import mascaret
 from src import Hec_ras06
 from src import rubar
 from src import sw2d
+from src import iber2d
 from src import river2d
 from src import load_hdf5
 from shutil import copyfile
@@ -110,6 +111,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print("LOAD_RUBAR_2D: load the Rubar data in 2D. Input: name of .dat or .mai file, name of input .tps file "
               "(output name)")
         print("LOAD_SW2D: load the SW2D dataD. Input: name of .geo file, name of input .res file "
+              "(output name)")
+        print("LOAD_IBER2D: load the IBER2D dataD. Input: name of .dat file, name of input .rep files "
               "(output name)")
         print("LOAD_TELEMAC: load the telemac data. Input: name of the .res file, (output name)")
         print("LOAD_LAMMI: load lammi data. Input: the name of the folder containing transect.txt and facies.txt and "
@@ -305,8 +308,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SW2D':
         if not 3 < len(all_arg) < 6:
-            print('The function LOAD_SW2D needs two to three inputs. Call LIST_COMMAND for more '
-                  'information.')
+            print('The function LOAD_SW2D needs two to three inputs.\
+                   Call LIST_COMMAND for more information.')
             return
 
         filename_geo = all_arg[2]
@@ -328,9 +331,47 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
 
-        sw2d.load_sw2d_and_modify_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
-                                           'SW2D', 2, path_hdf5,[], False)
+        sw2d.load_sw2d_and_modify_grid(name_hdf5, geofile, tpsfile, pathgeo,
+                                       pathtps, '.', name_prj, path_prj,
+                                       'SW2D', 2, path_hdf5, [], False)
 
+# ------------------------------------------------------------------------------
+    elif all_arg[1] == 'LOAD_IBER2D':
+        if not 6 < len(all_arg) < 9:
+            print('The function LOAD_SW2D needs seven to eight inputs.\
+                   Call LIST_COMMAND for more information.')
+            return
+
+        filename_geo = all_arg[2]
+        filename_data1 = all_arg[3]
+        filename_data2 = all_arg[4]
+        filename_data3 = all_arg[5]
+        filename_data4 = all_arg[6]
+        if not input_file:
+            pathgeo = os.path.dirname(filename_geo)
+            pathtps = os.path.dirname(filename_data1)
+        else:
+            pathgeo = path_input
+            pathtps = path_input
+        geofile = os.path.basename(filename_geo)
+        tpsfile1 = os.path.basename(filename_data1)
+        tpsfile2 = os.path.basename(filename_data2)
+        tpsfile3 = os.path.basename(filename_data3)
+        tpsfile4 = os.path.basename(filename_data4)
+
+        if len(all_arg) == 7:
+            name_hdf5 = 'Hydro_IBER2D_' + os.path.splitext(geofile[0])[0]
+            path_hdf5 = path_prj
+        if len(all_arg) == 8:
+            namepath_hdf5 = all_arg[7]
+            name_hdf5 = os.path.basename(namepath_hdf5)
+            path_hdf5 = os.path.dirname(namepath_hdf5)
+
+        iber2d.load_iber2d_and_modify_grid(name_hdf5, geofile, tpsfile1,
+                                           tpsfile2, tpsfile3, tpsfile4,
+                                           pathgeo, pathtps, '.', name_prj,
+                                           path_prj, 'IBER2D', 2, path_hdf5,
+                                           [], False)
 
 # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_MASCARET':
