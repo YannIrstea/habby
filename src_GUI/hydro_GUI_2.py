@@ -2798,7 +2798,9 @@ class IBER2D(SubHydroW):
         """
 
         # update attibute for iber2d
-        self.attributexml = ['iber2d_geodata', 'iber2d_result']
+        self.attributexml = ['iber2d_geodata', 'iber2d_result1',
+                             'iber2d_result2', 'iber2d_result3',
+                             'iber2d_result4']
         self.model_type = 'IBER2D'
         # list of list in case there is more than one possible ext.
         self.extension = ['.dat', '.rep', '.rep', '.rep', '.rep']
@@ -2907,6 +2909,9 @@ class IBER2D(SubHydroW):
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
+        self.save_xml(2)
+        self.save_xml(3)
+        self.save_xml(4)
         self.load_b.setDisabled(True)
         # the path where to save the image
         path_im = self.find_path_im()
@@ -2939,11 +2944,15 @@ class IBER2D(SubHydroW):
         # self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
+        self.send_log.emit("py    file3=r'" + self.namefile[2] + "'")
+        self.send_log.emit("py    file4=r'" + self.namefile[3] + "'")
+        self.send_log.emit("py    file5=r'" + self.namefile[4] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
         self.send_log.emit("py    path2=r'" + path_input + "'")
         # to be changed
         self.send_log.emit(
-            "py    read_iber2d.myfunc('Hydro_iber2d_log',file1, file2, path1,\
+            "py    read_iber2d.myfunc('Hydro_iber2d_log', file1, file2, \
+                                      file3, file4, file5, path1,\
                                       path2,"
             " path_prj, name_prj, path_prj, 'IBER2D', 2, path_prj, [])\n")
         self.send_log.emit("restart LOAD_IBER2D")
@@ -2951,6 +2960,12 @@ class IBER2D(SubHydroW):
                            + os.path.join(path_input, self.namefile[0]))
         self.send_log.emit("restart    file2: "
                            + os.path.join(path_input, self.namefile[1]))
+        self.send_log.emit("restart    file3: "
+                           + os.path.join(path_input, self.namefile[2]))
+        self.send_log.emit("restart    file4: "
+                           + os.path.join(path_input, self.namefile[3]))
+        self.send_log.emit("restart    file5: "
+                           + os.path.join(path_input, self.namefile[4]))
 
     def propose_next_file(self):
         """

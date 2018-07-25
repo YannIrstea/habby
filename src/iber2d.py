@@ -248,7 +248,7 @@ def read_mesh_iber2d(geofile, pathfile):
 
 def read_result_iber2d(resfile_h, resfile_u, resfile_v, resfile_xyz, pathfile):
     """
-    Reads the binary file of IBER2D results
+    Reads the ascii files of IBER2D results
 
     :param resfile: the name of the result files (string)
     :param pathfile: path of the result file (string)
