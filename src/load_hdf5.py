@@ -49,6 +49,28 @@ def open_hdf5(hdf5_name):
 
     return file
 
+def open_hdf5_(hdf5_name, path_hdf5):
+    """
+    A function to load  hdf5 file.  If hdf5_name is an absolute path, the path_hdf5 is not used. If it is a relative path,
+    the path is composed of the path to the 'hdf5' folder (path_hdf5/hdf5_name) composed with hdf5_name.
+    return file object open, false or '', true if error occured
+
+    :param hdf5_name: path and file name to the hdf5 file (string)
+    :param path_hdf5: the path to the hdf5 file
+    """
+    # open the file
+    if os.path.isabs(hdf5_name):
+        file_ = open_hdf5(hdf5_name)
+    else:
+        if path_hdf5:
+            file_ = open_hdf5(os.path.join(path_hdf5, hdf5_name))
+        else:
+            print('Error" No path to the project given although a relative path was provided')
+            return "",True
+    if file_ is None:
+        print('Error: hdf5 file could not be open. \n')
+        return "",True
+    return file_,False
 
 def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     """
@@ -75,17 +97,8 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     if merge:
         failload = [[-99]], [[-99]], [[-99]], [[-99]],[[-99]],[[-99]]
 
-    # open the file with checking for the path
-    if os.path.isabs(hdf5_name_hyd):
-        file_hydro = open_hdf5(hdf5_name_hyd,"r")
-    else:
-        if path_hdf5:
-            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name_hyd,"r"))
-        else:
-            print('Error" No path to the project given although a relative path was provided')
-            return failload
-    if file_hydro is None:
-        print('Error: hdf5 file could not be open. \n')
+    file_hydro,bfailload=open_hdf5_(hdf5_name_hyd, path_hdf5)
+    if bfailload:
         return failload
 
     # load the number of time steps #? attribut
@@ -269,10 +282,11 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom
 
 
+
 def load_timestep_name(hdf5_name, path_hdf5=''):
     """
     This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
-    of the time steps, it retruns them. If not, it return an empty lists.
+    of the time steps, it returns them. If not, it return an empty list.
 
     :param hdf5_name: the name of the merge or hydrological hdf5 file
     :param path_hdf5: the path to the hdf5
@@ -280,17 +294,8 @@ def load_timestep_name(hdf5_name, path_hdf5=''):
     """
     failload = []
 
-    # open the file with checking for the path
-    if os.path.isabs(hdf5_name):
-        file_hydro = open_hdf5(hdf5_name)
-    else:
-        if path_hdf5:
-            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name))
-        else:
-            print('Error" No path to the project given although a relative path was provided')
-            return failload
-    if file_hydro is None:
-        print('Error: hdf5 file could not be open. \n')
+    file_hydro,bfailload=open_hdf5_(hdf5_name, path_hdf5)
+    if bfailload:
         return failload
 
     # get the name of the time steps
@@ -310,7 +315,7 @@ def load_timestep_name(hdf5_name, path_hdf5=''):
     return sim_name
 
 
-def get_timestep_number(hdf5_name, path_hdf5):
+def get_timestep_number(hdf5_name, path_hdf5): #? a changer si on utilise attributs
     """
        This function looks for the number of the timesteps/discharge in hydrological or merge hdf5.
 
@@ -321,17 +326,8 @@ def get_timestep_number(hdf5_name, path_hdf5):
 
     failload = -99
 
-    # open the file with checking for the path
-    if os.path.isabs(hdf5_name):
-        file_hydro = open_hdf5(hdf5_name)
-    else:
-        if path_hdf5:
-            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name))
-        else:
-            print('Error" No path to the project given although a relative path was provided')
-            return failload
-    if file_hydro is None:
-        print('Error: hdf5 file could not be open. \n')
+    file_hydro,bfailload=open_hdf5_(hdf5_name, path_hdf5)
+    if bfailload:
         return failload
 
     # get timestep number
@@ -363,17 +359,12 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     failload = [-99]
     sub_per_all_t = []
 
-    # open the file with checking for the path
-    if os.path.isabs(hdf5_name_hyd):
-        file_hydro = open_hdf5(hdf5_name_hyd)
-    else:
-        if path_hdf5:
-            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name_hyd))
-        else:
-            print('Error" No path to the project given although a relative path was provided')
-            return failload
-    if file_hydro is None:
-        print('Error: hdf5 file could not be open. \n')
+    file_hydro,bfailload=open_hdf5_(hdf5_name_hyd, path_hdf5)
+    if bfailload:
+        return failload
+
+    file_hydro,bfailload=open_hdf5(hdf5_name_hyd, path_hdf5)
+    if bfailload:
         return failload
 
     # load the number of time steps
@@ -433,7 +424,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
     A function to load the substrate data contained in the hdf5 file. It also manage
     the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
     the path is composed of the path to the 'hdf5' folder (path_prj/fichier_hdf5) composed with hdf5_name_sub. it manages constant and
-    vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
+    variable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
     :param path_prj: the path to the hdf5 file
@@ -449,17 +440,8 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
         failload = [[-99]], [[-99]], [[-99]], [[-99]], False
     constcase =False
 
-    # open the file
-    if os.path.isabs(hdf5_name_sub):
-        file_sub = open_hdf5(hdf5_name_sub)
-    else:
-        if path_hdf5:
-            file_sub = open_hdf5(os.path.join(path_hdf5, hdf5_name_sub))
-        else:
-            print('Error" No path to the project given although a relative path was provided')
-            return failload
-    if file_sub is None:
-        print('Error: hdf5 file could not be open. \n')
+    file_hydro,bfailload=open_hdf5_(hdf5_name_sub, path_hdf5)
+    if bfailload:
         return failload
 
     # manage the constant case
@@ -540,7 +522,7 @@ def get_all_filename(dirname, ext):
 def get_hdf5_name(model_name, name_prj, path_prj):
     """
     This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
-    model_name. If there is more than one hdf5 file, it choose the last one. Tha path is the path from the
+    model_name. If there is more than one hdf5 file, it choose the last one. The path is the path from the
     project folder. Hence, it is not the absolute path.
 
     :param model_name: the name of the hydrological model as written in the attribute of the xml project file
@@ -614,17 +596,8 @@ def get_initial_files(path_hdf5, hdf5_name):
     :return: the name of the substrate and hydraulic file used to create the merge file
     """
 
-    # open the file with checking for the path
-    if os.path.isabs(hdf5_name):
-        file = open_hdf5(hdf5_name)
-    else:
-        if path_hdf5:
-            file = open_hdf5(os.path.join(path_hdf5, hdf5_name))
-        else:
-            print('Error" No path to the project given although a relative path was provided')
-            return '',''
-    if file is None:
-        print('Error: hdf5 file could not be open. \n')
+    file,bfailload=open_hdf5_(hdf5_name, path_hdf5)
+    if bfailload:
         return '',''
 
     # get the name
@@ -636,7 +609,7 @@ def get_initial_files(path_hdf5, hdf5_name):
         hydro_ini = file.attrs['hydro_ini_name']
     except KeyError:
         hydro_ini = ''
-
+    file.close()
     return sub_ini, hydro_ini
 
 
@@ -649,21 +622,11 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
     :param path_hdf5: the path to this file
     :param vh_cell: the habitat value by cell
     :param h_cell: the height data by cell
-    :param v_cell: the velcoity data by cell
+    :param v_cell: the velocity data by cell
     :param fish_name: the name of the fish (with the stage in it)
     """
-
-    # open the file with checking for the path
-    if os.path.isabs(hdf5_name):
-        file_hydro = open_hdf5(hdf5_name)
-    else:
-        if path_hdf5:
-            file_hydro = open_hdf5(os.path.join(path_hdf5, hdf5_name))
-        else:
-            print('Error" No path to the project given although a relative path was provided')
-            return
-    if file_hydro is None:
-        print('Error: hdf5 file could not be open. \n')
+    file_hydro,bfailload=open_hdf5_(hdf5_name, path_hdf5)
+    if bfailload:
         return
 
     # load the number of time steps
