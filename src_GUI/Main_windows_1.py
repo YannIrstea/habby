@@ -1763,8 +1763,8 @@ class CentralW(QWidget):
             # order matters here
             self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
             self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
-            self.tab_widget.addTab(self.chronicle_tab, self.tr("Chronicles"))
             self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
+            self.tab_widget.addTab(self.chronicle_tab, self.tr("Chronicles"))
             self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
