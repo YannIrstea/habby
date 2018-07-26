@@ -173,7 +173,8 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
             # if yes, find the two discharge inputs close to
             # the discharge output
             indh = bisect.bisect(discharge_input, d) - 1  # dicharge min
-
+            if indh == len(discharge_input) - 1:
+                indh -= 1
             dis_min = discharge_input[indh]
             dis_max = discharge_input[indh + 1]
 

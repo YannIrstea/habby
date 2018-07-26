@@ -223,7 +223,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     # test if file exists in load_hdf5_hyd
     [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] = \
         load_hdf5.load_hdf5_hyd(merge_name, path_merge, True)
-    if ikle_all_t == [-99]:
+    if ikle_all_t == [[-99]]:
         return failload
 
     a = time.time()
