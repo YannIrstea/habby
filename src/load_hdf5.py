@@ -108,11 +108,13 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     except KeyError:
         print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name_hyd
             + ' an hydrological input? \n')
+        file_hydro.close()
         return failload
     try:
         nb_t = list(gen_dataset.values())[0]
     except IndexError:
         print('Error: Time step are not found')
+        file_hydro.close()
         return failload
     nb_t = np.array(nb_t)
     nb_t = int(nb_t)
@@ -123,6 +125,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     except KeyError:
         print(
             'Error: the number of reaches is missing from the hdf5 file. \n')
+        file_hydro.close()
         return failload
     nb_r = list(gen_dataset.values())[0]
     nb_r = np.array(nb_r)
@@ -140,11 +143,13 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         except KeyError:
             print(
                 'Error: the dataset for ikle (1) is missing from the hdf5 file. \n')
+            file_hydro.close()
             return failload
         try:
             ikle_whole = list(gen_dataset.values())[0]
         except IndexError:
             print('Error: the dataset for ikle (3) is missing from the hdf5 file. \n')
+            file_hydro.close()
             return failload
         ikle_whole = np.array(ikle_whole)
         ikle_whole_all.append(ikle_whole)
@@ -159,11 +164,13 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
                 gen_dataset = file_hydro[name_ik]
             except KeyError:
                 print('Warning: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
+                file_hydro.close()
                 return failload
             try:
                 ikle_whole = list(gen_dataset.values())[0]
             except IndexError:
                 print('Error: the dataset for ikle (4) is missing from the hdf5 file for one time step. \n')
+                file_hydro.close()
                 return failload
             ikle_whole = np.array(ikle_whole)
             ikle_whole_all.append(ikle_whole)
@@ -178,11 +185,13 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         except KeyError:
             print(
                 'Error: the dataset for coordinates of the points (1) is missing from the hdf5 file. \n')
+            file_hydro.close()
             return failload
         try:
             point_whole = list(gen_dataset.values())[0]
         except IndexError:
             print('Error: the dataset for coordinates of the points (3) is missing from the hdf5 file. \n')
+            file_hydro.close()
             return failload
         point_whole = np.array(point_whole)
         point_whole_all.append(point_whole)
@@ -196,11 +205,13 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
                 gen_dataset = file_hydro[name_pa]
             except KeyError:
                 print('Error: the dataset for coordinates of the points (2) is missing from the hdf5 file. \n')
+                file_hydro.close()
                 return failload
             try:
                 point_whole = list(gen_dataset.values())[0]
             except IndexError:
                 print('Error: the dataset for coordinates of the points (4) is missing from the hdf5 file. \n')
+                file_hydro.close()
                 return failload
             point_whole = np.array(point_whole)
             point_whole_all.append(point_whole)
@@ -229,9 +240,11 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
                 gen_dataset = file_hydro[name_vel]
             except KeyError:
                 print('Error: the dataset for velocity is missing from the hdf5 file. \n')
+                file_hydro.close()
                 return failload
             if len(list(gen_dataset.values())) ==0:
                 print('Error: No velocity found in the hdf5 file. \n')
+                file_hydro.close()
                 return failload
             vel = list(gen_dataset.values())[0]
             vel = np.array(vel).flatten()
@@ -241,9 +254,11 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
                 gen_dataset = file_hydro[name_he]
             except KeyError:
                 print('Error: the dataset for water height is missing from the hdf5 file. \n')
+                file_hydro.close()
                 return failload
             if len(list(gen_dataset.values())) == 0:
                 print('Error: No height found in the hdf5 file. \n')
+                file_hydro.close()
                 return failload
             heigh = list(gen_dataset.values())[0]
             heigh = np.array(heigh).flatten()
@@ -255,17 +270,20 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
                     gen_datasetdom = file_hydro[name_dom]
                 except KeyError:
                     print('Error: the dataset for substrate is missing from the hdf5 file. \n')
+                    file_hydro.close()
                     return failload
                 try:
                     subpg = list(gen_datasetpg.values())[0]
                 except IndexError:
                     print('Error: the dataset for substrate is missing from the hdf5 file (2). \n')
+                    file_hydro.close()
                     return failload
                 subpg = np.array(subpg).flatten()
                 try:
                     subdom = list(gen_datasetdom.values())[0]
                 except IndexError:
                     print('Error: the dataset for substrate is missing from the hdf5 file (3). \n')
+                    file_hydro.close()
                     return failload
                 subdom = np.array(subdom).flatten()
                 sub_pg_all.append(subpg)
@@ -275,7 +293,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         if merge:
             substrate_all_dom.append(sub_dom_all)
             substrate_all_pg.append(sub_pg_all)
-
+    file_hydro.close()
     if not merge:
         return ikle_all_t, point_all, inter_vel_all, inter_height_all
     else:
@@ -303,6 +321,7 @@ def load_timestep_name(hdf5_name, path_hdf5=''):
     try:
         gen_dataset = file_hydro[basename1 + "/timestep_name"]
     except KeyError:   # in this case it happens often, it is not really an error
+        file_hydro.close()
         return []
     sim_name1 = list(gen_dataset.values())[0]
 
@@ -311,7 +330,7 @@ def load_timestep_name(hdf5_name, path_hdf5=''):
     for i in range(0, len(sim_name1)):
         sim_name.append(bytes(sim_name1[i]).decode('utf-8'))
         sim_name[i] = sim_name[i].replace('\x00', '')  # why empty byte?
-
+    file_hydro.close()
     return sim_name
 
 
@@ -336,6 +355,7 @@ def get_timestep_number(hdf5_name, path_hdf5): #? a changer si on utilise attrib
         gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
     except KeyError:
         print('The number of time step was not found (1)')
+        file_hydro.close()
         return failload
     nb_timestep = list(gen_dataset.values())[0]
     try:
@@ -343,7 +363,9 @@ def get_timestep_number(hdf5_name, path_hdf5): #? a changer si on utilise attrib
         timestep = int(timestep)
     except ValueError:
         print('The number of time step was not found (2)')
+        file_hydro.close()
         return failload
+    file_hydro.close()
     return timestep
 
 
@@ -359,10 +381,6 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     failload = [-99]
     sub_per_all_t = []
 
-    file_hydro,bfailload=open_hdf5_(hdf5_name_hyd, path_hdf5)
-    if bfailload:
-        return failload
-
     file_hydro,bfailload=open_hdf5(hdf5_name_hyd, path_hdf5)
     if bfailload:
         return failload
@@ -374,11 +392,13 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     except KeyError:
         print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name_hyd
               + ' an hydrological input? \n')
+        file_hydro.close()
         return failload
     try:
         nb_t = list(gen_dataset.values())[0]
     except IndexError:
         print('Error: Time step are not found')
+        file_hydro.close()
         return failload
     nb_t = np.array(nb_t)
     nb_t = int(nb_t)
@@ -389,6 +409,7 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     except KeyError:
         print(
             'Error: the number of time step is missing from the hdf5 file. \n')
+        file_hydro.close()
         return failload
     nb_r = list(gen_dataset.values())[0]
     nb_r = np.array(nb_r)
@@ -405,17 +426,19 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
                 gen_datasetpg = file_hydro[name_per]
             except KeyError:
                 print('Error: the dataset for substrate in percentage form is missing from the hdf5 file. \n')
+                file_hydro.close()
                 return failload
             try:
                 sub_per = list(gen_datasetpg.values())[0]
             except IndexError:
                 print('Error: the dataset for substrate in precentage is missing from the hdf5 file (2). \n')
+                file_hydro.close()
                 return failload
             sub_per = np.array(sub_per).flatten()
             sub_per = np.reshape(sub_per, (int(len(sub_per)/8), 8))
             sub_per_all.append(sub_per)
         sub_per_all_t.append(sub_per_all)
-
+    file_hydro.close()
     return sub_per_all_t
 
 
@@ -440,7 +463,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
         failload = [[-99]], [[-99]], [[-99]], [[-99]], False
     constcase =False
 
-    file_hydro,bfailload=open_hdf5_(hdf5_name_sub, path_hdf5)
+    file_sub,bfailload=open_hdf5_(hdf5_name_sub, path_hdf5)
     if bfailload:
         return failload
 
@@ -453,6 +476,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
             sub_dom = file_sub['constant_sub_dom']
         except KeyError:
             print('Error:Constant substrate data is not found. \n')
+            file_sub.close()
             return failload
         sub_pg = list(sub_pg.values())[0]
         sub_dom = list(sub_dom.values())[0]
@@ -465,6 +489,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
             gen_dataset = file_sub[basename1]
         except KeyError:
             print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
+            file_sub.close()
             return failload
         # longer because we might have non-triangular value
         ikle_sub_no_order = list(gen_dataset.values())  # write the length in the hdf5?
@@ -481,6 +506,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
             gen_dataset = file_sub[basename1]
         except KeyError:
             print('Error: the connectivity table for the substrate grid is missing from the hdf5 file. \n')
+            file_sub.close()
             return failload
         point_all_sub = list(gen_dataset.values())[0]
         point_all_sub = np.array(point_all_sub)
@@ -496,7 +522,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
         sub_pg = np.squeeze(np.array(sub_pg))
         sub_dom = list(sub_dom.values())
         sub_dom = np.squeeze(np.array(sub_dom))
-
+    file_sub.close()
     if not ind_const:
         return ikle_sub, point_all_sub, sub_pg, sub_dom
     else:
@@ -786,7 +812,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     else:
         erase_idem = save_option
 
-    # create hdf5 name if we keep all files (nned a time stamp)
+    # create hdf5 name if we keep all files (need a time stamp)
     if not erase_idem:
         h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
     else:
