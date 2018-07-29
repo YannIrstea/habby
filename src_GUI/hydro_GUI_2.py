@@ -2923,13 +2923,38 @@ class IBER2D(SubHydroW):
         # for error management and figures
         self.timer.start(1000)
 
+        # test the availability of files
+        fileNOK = True
+        if len(self.namefile) == 5:
+            f0 = os.path.join(self.pathfile[0], self.namefile[0])
+            f1 = os.path.join(self.pathfile[1], self.namefile[1])
+            f2 = os.path.join(self.pathfile[1], self.namefile[2])
+            f3 = os.path.join(self.pathfile[1], self.namefile[3])
+            f4 = os.path.join(self.pathfile[1], self.namefile[4])
+            if os.path.isfile(f0) & os.path.isfile(f1) & os.path.isfile(f2)\
+               & os.path.isfile(f3) & os.path.isfile(f4):
+                fileNOK = False
+        if fileNOK:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("IBER2D"))
+            self.msg2.setText(self.tr("Unable to load IBER2D files!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
+
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
         self.save_xml(2)
         self.save_xml(3)
         self.save_xml(4)
+
+        # disable while loading
         self.load_b.setDisabled(True)
+
         # the path where to save the image
         path_im = self.find_path_im()
         # the path where to save the hdf5
