@@ -1598,8 +1598,27 @@ class Mascaret(SubHydroW):
         It also create a 2D grid from the 1D data and distribute the velocity.
         All of theses tasks are done on a second thread to avoid freezing the GUI.
         """
+        # test the availability of files
+        fileNOK = True
+        f0 = os.path.join(self.pathfile[0], self.namefile[0])
+        f1 = os.path.join(self.pathfile[1], self.namefile[1])
+        f2 = os.path.join(self.pathfile[2], self.namefile[2])
+        if os.path.isfile(f0) & os.path.isfile(f1) & os.path.isfile(f2):
+            fileNOK = False
+        if fileNOK:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("MASCARET"))
+            self.msg2.setText(self.tr("Unable to load MASCARET data files!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
 
+        # disable while loading
         self.load_b.setEnabled(False)
+
         # update the xml file of the project
         self.save_xml(0)
         self.save_xml(1)
