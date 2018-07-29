@@ -2308,15 +2308,37 @@ class HEC_RAS2D(SubHydroW):
 
     def load_hec_2d_gui(self):
         """
-        This function calls the function which load hecras 2d and save the names of file in the project file.
-        It is similar to the function to load_rubar2D. It open a second thread to avoid freezing the GUI.
+        This function calls the function which load hecras 2d and save the
+         names of file in the project file.
+        It is similar to the function to load_rubar2D.
+        It open a second thread to avoid freezing the GUI.
 
-        When this function starts, it also starts a timer. Every three seconds, the timer run the function send_data()
-        which is the class SubHydroW(). This function checks if the thread is finished and, it is finished, manage
+        When this function starts, it also starts a timer. Every three seconds,
+         the timer run the function send_data()
+        which is the class SubHydroW(). This function checks if the thread is
+         finished and, it is finished, manage
         figure and errors.
         """
+        # test the availability of files
+        fileNOK = True
+        f0 = os.path.join(self.pathfile[0], self.namefile[0])
+        if os.path.isfile(f0):
+            fileNOK = False
+        if fileNOK:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("HEC-RAS 2D"))
+            self.msg2.setText(self.tr("Unable to load the HEC-RAS data file!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
+
         # save the name of the file in the xml project file
         self.save_xml(0)
+
+        # disable while loading
         self.load_b.setDisabled(True)
 
         # for error management and figures
