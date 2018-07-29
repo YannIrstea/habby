@@ -845,6 +845,11 @@ class StathabW(estimhab_GUI.StatModUseful):
         fish_list = []
         by_vol = True
         if self.list_s.count() == 0:
+            self.msge.setIcon(QMessageBox.Warning)
+            self.msge.setWindowTitle(self.tr("STAHAB"))
+            self.msge.setText(self.tr("Unable to load the STATHAB data!"))
+            self.msge.setStandardButtons(QMessageBox.Ok)
+            self.msge.show()
             self.send_log.emit('Error: no fish chosen')
             return
         for i in range(0, self.list_s.count()):

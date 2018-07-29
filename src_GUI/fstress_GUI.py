@@ -668,7 +668,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.save_river_data()
         if not self.save_ok:
             self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run FStress"))
+            self.msge.setWindowTitle(self.tr("FStress"))
             self.msge.setText(self.tr("FStress data could not be transformed to float. Cannot run FStress."))
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
