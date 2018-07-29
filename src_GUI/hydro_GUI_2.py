@@ -1102,14 +1102,14 @@ class HEC_RAS1D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.g0x)', self)
+        self.geo_b = QPushButton(self.tr('Choose file (.g0x)'), self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
 
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (.xml, .sdf, or .rep file)', self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.xml, .sdf, or .rep file)'), self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
@@ -1132,7 +1132,7 @@ class HEC_RAS1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -1339,13 +1339,13 @@ class Rubar2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.mai, .dat)', self)
+        self.geo_b = QPushButton(self.tr('Choose file (.mai, .dat)'), self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (.tps)', self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.tps)'), self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
@@ -1361,7 +1361,7 @@ class Rubar2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar)
         self.spacer = QSpacerItem(1, 200)
@@ -1523,16 +1523,16 @@ class Mascaret(SubHydroW):
 
         # general, geometry and output data
         l0 = QLabel(self.tr('<b> General data </b>'))
-        self.gen_b = QPushButton('Choose file (.xcas)', self)
+        self.gen_b = QPushButton(self.tr('Choose file (.xcas)'), self)
         self.gen_b.clicked.connect(lambda: self.show_dialog(0))
         self.gen_b.clicked.connect(lambda: self.gen_t2.setText(self.namefile[0]))
         self.gen_b.clicked.connect(self.propose_next_file)
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.geo)', self)
+        self.geo_b = QPushButton(self.tr('Choose file (.geo)'), self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(1))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[1]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (.opt, .rub)', self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.opt, .rub)'), self)
         self.out_b.clicked.connect(lambda: self.show_dialog(2))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[2]))
 
@@ -1569,7 +1569,7 @@ class Mascaret(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
@@ -2084,12 +2084,12 @@ class Rubar1D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.rbe)', self)
+        self.geo_b = QPushButton(self.tr('Choose file (.rbe)'), self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (profil.X)', self)
+        self.out_b = QPushButton(self.tr('Choose file \n (profil.X)'), self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
 
@@ -2124,7 +2124,7 @@ class Rubar1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
@@ -2319,7 +2319,7 @@ class HEC_RAS2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry and output data </b>'))
-        self.h2d_b = QPushButton('Choose file (.hdf, .h5)', self)
+        self.h2d_b = QPushButton(self.tr('Choose file (.hdf, .h5)'), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
         l2 = QLabel(self.tr('<b> Options </b>'))
@@ -2341,7 +2341,7 @@ class HEC_RAS2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_2d_gui)
         self.spacer = QSpacerItem(1, 200)
@@ -2638,7 +2638,7 @@ class LAMMI(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
@@ -2820,13 +2820,13 @@ class SW2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.geo)', self)
+        self.geo_b = QPushButton(self.tr('Choose file (.geo)'), self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file \n (.res)', self)
+        self.out_b = QPushButton(self.tr('Choose file \n (.res)'), self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
@@ -2842,7 +2842,7 @@ class SW2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
@@ -3000,28 +3000,28 @@ class IBER2D(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry data </b>'))
-        self.geo_b = QPushButton('Choose file (.dat)', self)
+        self.geo_b = QPushButton(self.tr('Choose file (.dat)'), self)
         self.geo_b.clicked.connect(lambda: self.show_dialog(0))
         self.geo_b.clicked.connect(lambda: self.geo_t2.setText(self.namefile[0]))
         self.geo_b.clicked.connect(self.propose_next_file)
         self.geo_b.clicked.connect(lambda: self.geo_t2.setToolTip(self.pathfile[0]))
         l2 = QLabel(self.tr('<b> Output data </b>'))
-        self.out_b = QPushButton('Choose file for h\n (.rep)', self)
+        self.out_b = QPushButton(self.tr('Choose file for h\n (.rep)'), self)
         self.out_b.clicked.connect(lambda: self.show_dialog(1))
         self.out_b.clicked.connect(lambda: self.out_t2.setText(self.namefile[1]))
         self.out_b.clicked.connect(lambda: self.out_t2.setToolTip(self.pathfile[1]))
         l3 = QLabel(self.tr('<b> Output data </b>'))
-        self.outbis_b = QPushButton('Choose file for u\n (.rep)', self)
+        self.outbis_b = QPushButton(self.tr('Choose file for u\n (.rep)'), self)
         self.outbis_b.clicked.connect(lambda: self.show_dialog(2))
         self.outbis_b.clicked.connect(lambda: self.out_t2bis.setText(self.namefile[2]))
         self.outbis_b.clicked.connect(lambda: self.out_t2bis.setToolTip(self.pathfile[1]))
         l4 = QLabel(self.tr('<b> Output data </b>'))
-        self.outter_b = QPushButton('Choose file for v\n (.rep)', self)
+        self.outter_b = QPushButton(self.tr('Choose file for v\n (.rep)'), self)
         self.outter_b.clicked.connect(lambda: self.show_dialog(3))
         self.outter_b.clicked.connect(lambda: self.out_t2ter.setText(self.namefile[3]))
         self.outter_b.clicked.connect(lambda: self.out_t2ter.setToolTip(self.pathfile[1]))
         l5 = QLabel(self.tr('<b> Output data </b>'))
-        self.outqua_b = QPushButton('Choose file for xyz\n (.rep)', self)
+        self.outqua_b = QPushButton(self.tr('Choose file for xyz\n (.rep)'), self)
         self.outqua_b.clicked.connect(lambda: self.show_dialog(4))
         self.outqua_b.clicked.connect(lambda: self.out_t2qua.setText(self.namefile[4]))
         self.outqua_b.clicked.connect(lambda: self.out_t2qua.setToolTip(self.pathfile[1]))
@@ -3037,7 +3037,7 @@ class IBER2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_iber2d)
         self.spacer = QSpacerItem(1, 200)

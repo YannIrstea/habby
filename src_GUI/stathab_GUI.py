@@ -846,7 +846,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         by_vol = True
         if self.list_s.count() == 0:
             self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("STAHAB"))
+            self.msge.setWindowTitle(self.tr("STATHAB"))
             self.msge.setText(self.tr("Unable to load the STATHAB data!"))
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
