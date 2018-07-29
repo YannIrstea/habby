@@ -2182,7 +2182,7 @@ class WelcomeW(QWidget):
         """
 
         # Welcome windows
-        l0 = QLabel(self.tr('<b>Start working with HABBY </b>'))
+        l0 = QLabel('<b>HABitat suitaBilitY</b>')
         l0.setAlignment(Qt.AlignCenter)
         font = QFont()
         font.setPointSize(20)
