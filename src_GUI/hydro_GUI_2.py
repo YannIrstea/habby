@@ -2716,6 +2716,23 @@ class LAMMI(SubHydroW):
         """
         This function loads the lammi data, save the text file to the xml project file and create the grid
         """
+        # test the availability of files
+        fileNOK = True
+        f0 = os.path.join(self.pathfile[0], self.namefile[0])
+        f1 = os.path.join(self.pathfile[1], self.namefile[1])
+        f2 = os.path.join(self.pathfile[2], self.namefile[2])
+        if os.path.isfile(f0) & os.path.isfile(f1) & os.path.isfile(f2):
+            fileNOK = False
+        if fileNOK:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("LAMMI"))
+            self.msg2.setText(self.tr("Unable to load LAMMI data files!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
 
         # for error management and figures
         self.timer.start(1000)
@@ -2724,6 +2741,8 @@ class LAMMI(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
         self.save_xml(2)
+
+        # disable while loading
         self.load_b.setDisabled(True)
 
         # the path where to save the hdf5
