@@ -90,9 +90,9 @@ class MainWindows(QMainWindow):
         # load user setting
         self.settings = QSettings('irstea', 'HABBY'+str(self.version))
         name_prj_set = self.settings.value('name_prj')
-        print(name_prj_set)
+        # print(name_prj_set)
         name_path_set = self.settings.value('path_prj')
-        print(name_path_set)
+        # print(name_path_set)
         language_set = self.settings.value('language_code')
 
         # to erase setting of older version
