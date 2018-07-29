@@ -1133,6 +1133,7 @@ class HEC_RAS1D(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         self.butfig = QPushButton(self.tr("Create figure again"))
         self.butfig.clicked.connect(self.recreate_image)
@@ -1344,6 +1345,7 @@ class Rubar2D(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar)
         self.spacer = QSpacerItem(1, 200)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -1531,6 +1533,7 @@ class Mascaret(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -1765,6 +1768,7 @@ class River2D(SubHydroW):
         self.addfileb = QPushButton(self.tr("Add file"))
         self.addfileb.clicked.connect(self.add_file_river2d)
         self.load_b = QPushButton(self.tr("Load all files and create hdf5"))
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_river2d_gui)
 
         # grid creation
@@ -2057,6 +2061,7 @@ class Rubar1D(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -2256,6 +2261,7 @@ class HEC_RAS2D(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_2d_gui)
         self.spacer = QSpacerItem(1, 200)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -2384,6 +2390,7 @@ class TELEMAC(SubHydroW):
 
         # load button
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -2512,6 +2519,7 @@ class LAMMI(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -2696,6 +2704,7 @@ class SW2D(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -2870,6 +2879,7 @@ class IBER2D(SubHydroW):
 
         # load button
         self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_iber2d)
         self.spacer = QSpacerItem(1, 200)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -3332,6 +3342,7 @@ class SubstrateW(SubHydroW):
 
         # the load button from file
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sub_gui)
         self.butfig1 = QPushButton(self.tr("Create figure again"))
         self.butfig1.setDisabled(True)

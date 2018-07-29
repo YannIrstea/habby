@@ -168,7 +168,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # not used anymore (not really helpful). I let it ehre anyway for completness.
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Save and run Stathab"))
-        self.runb.setStyleSheet("background-color: #47B5E6; color: white; font: bold")
+        self.runb.setStyleSheet("background-color: #47B5E6; color: black")
         self.butfig = QPushButton(self.tr("Create Figure Again"))
         self.butfig.clicked.connect(self.recreate_image)
         if len(self.mystathab.q_all) == 0:

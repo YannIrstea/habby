@@ -117,7 +117,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # run model
         self.button1 = QPushButton(self.tr('Save and Run FStress'), self)
-        self.button1.setStyleSheet("background-color: #47B5E6; color: white; font: bold")
+        self.button1.setStyleSheet("background-color: #47B5E6; color: black")
         self.button1.clicked.connect(self.runsave_fstress)
         # self.button2 = QPushButton(self.tr('Save river data'), self)
         # self.button2.clicked.connect(self.save_river_data)

@@ -108,6 +108,8 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
 
         # run
         self.run_chronicle = QPushButton(self.tr("Run Chronicles"))
+        self.run_chronicle.setStyleSheet(
+            "background-color: #47B5E6; color: black")
         self.run_chronicle.clicked.connect(self.run_chronicle_func)
         spacer = QSpacerItem(1, 100)
 

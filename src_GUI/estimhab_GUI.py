@@ -427,7 +427,7 @@ class EstimhabW(StatModUseful):
 
         # send model
         button1 = QPushButton(self.tr('Save and Run ESTIMHAB'), self)
-        button1.setStyleSheet("background-color: #47B5E6; color: white; font: bold")
+        button1.setStyleSheet("background-color: #47B5E6; color: black")
         button1.clicked.connect(self.save_signal_estimhab.emit)
         button1.clicked.connect(self.run_estmihab)
         # button2 = QPushButton(self.tr('Change folder (fish data)'), self)

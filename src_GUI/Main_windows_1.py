@@ -1322,7 +1322,8 @@ class MainWindows(QMainWindow):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save project"))
             self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the start tab before saving ESTIMHAB data"))
+                self.tr("The project is not saved. Save the project in the\
+                 start tab before saving ESTIMHAB data"))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
@@ -1569,7 +1570,7 @@ class CreateNewProject(QWidget):
         button2.clicked.connect(self.setfolder)
         self.button3 = QPushButton(self.tr('Save project'))
         self.button3.clicked.connect(self.save_project)  # is a PyQtSignal
-        self.button3.setStyleSheet("background-color: #47B5E6; color: white; font: bold")
+        self.button3.setStyleSheet("background-color: #47B5E6; color: black")
 
         layoutl = QGridLayout()
         layoutl.addWidget(lg, 0, 0)
