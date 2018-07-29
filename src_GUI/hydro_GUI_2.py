@@ -2421,9 +2421,26 @@ class TELEMAC(SubHydroW):
         """
         # for error management and figures
         self.timer.start(1000)
+
+        # test the availability of files
+        fileNOK = True
+        f0 = os.path.join(self.pathfile[0], self.namefile[0])
+        if os.path.isfile(f0):
+            fileNOK = False
+        if fileNOK:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("TELEMAC2D"))
+            self.msg2.setText(self.tr("Unable to load the TELEMAC file!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
+
         # write the new file name in the project file
         self.save_xml(0)
-        self.load_b.setDisabled(True)
+
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
