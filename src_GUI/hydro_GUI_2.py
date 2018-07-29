@@ -1181,6 +1181,23 @@ class HEC_RAS1D(SubHydroW):
         in the manage_grid.py based on the interpolation type wished by the user (linear, nearest neighbor or by block).
         The variable self.name_hdf5() is taken from the GUI.
         """
+        # test the availability of files
+        fileNOK = True
+        f0 = os.path.join(self.pathfile[0], self.namefile[0])
+        f1 = os.path.join(self.pathfile[1], self.namefile[1])
+        if os.path.isfile(f0) & os.path.isfile(f1):
+            fileNOK = False
+        if fileNOK:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("HEC-RAS 1D"))
+            self.msg2.setText(self.tr("Unable to load HEC-RAS data files!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
+
         self.load_b.setDisabled(True)
 
         # update the xml file of the project
