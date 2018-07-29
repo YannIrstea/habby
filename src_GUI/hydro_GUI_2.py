@@ -1949,18 +1949,26 @@ class River2D(SubHydroW):
         """
         # for error management and figures
         self.timer.start(1000)
+
+        # test the availability of files
+        if len(self.namefile) == 0:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("RIVER 2D"))
+            self.msg2.setText(self.tr("Unable to load the RIVER2D data files!"))
+            self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.show()
+            self.p = Process(target=None)
+            self.p.start()
+            self.q = Queue()
+            return
+
+        # disable while loading
         self.load_b.setDisabled(True)
 
         path_hdf5 = self.find_path_hdf5()
 
         # get minimum water height as we might neglect very low water height
         self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-
-        if len(self.namefile) == 0:
-            self.send_log.emit("Error: No file chosen.")
-            self.timer.stop()
-            self.load_b.setDisabled(False)
-            return
 
         for i in range(0, len(self.namefile)):
             # save each name in the project file, empty list on i == 0
