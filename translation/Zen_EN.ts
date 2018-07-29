@@ -133,7 +133,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1769"/>
+        <location filename="Main_windows_1.py" line="1768"/>
         <source>Substrate</source>
         <translation type="unfinished"></translation>
     </message>
@@ -173,13 +173,13 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2051"/>
+        <location filename="Main_windows_1.py" line="2054"/>
         <source>Error: Project is not saved. 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1768"/>
+        <location filename="Main_windows_1.py" line="1769"/>
         <source>Chronicles</source>
         <translation type="unfinished"></translation>
     </message>
@@ -187,73 +187,73 @@
 <context>
     <name>ChroniqueGui</name>
     <message>
-        <location filename="chronicle_GUI.py" line="58"/>
+        <location filename="chronicle_GUI.py" line="62"/>
         <source>&lt;b&gt; Substrate and hydraulic data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="60"/>
+        <location filename="chronicle_GUI.py" line="64"/>
         <source>Select file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="62"/>
+        <location filename="chronicle_GUI.py" line="66"/>
         <source>Select all file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="66"/>
+        <location filename="chronicle_GUI.py" line="70"/>
         <source>&lt;b&gt; Chosen data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="71"/>
+        <location filename="chronicle_GUI.py" line="75"/>
         <source>Remove all file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="73"/>
+        <location filename="chronicle_GUI.py" line="77"/>
         <source>Remove one file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="75"/>
+        <location filename="chronicle_GUI.py" line="79"/>
         <source>Export file names</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="79"/>
+        <location filename="chronicle_GUI.py" line="83"/>
         <source>&lt;b&gt; Discharge input &lt;/b&gt;[m3/sec]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="88"/>
+        <location filename="chronicle_GUI.py" line="92"/>
         <source>From file (.txt)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="83"/>
+        <location filename="chronicle_GUI.py" line="87"/>
         <source>From chosen data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="86"/>
+        <location filename="chronicle_GUI.py" line="90"/>
         <source>&lt;b&gt; Discharge output &lt;/b&gt;[m3/sec]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="106"/>
+        <location filename="chronicle_GUI.py" line="110"/>
         <source>Run Chronicles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="232"/>
+        <location filename="chronicle_GUI.py" line="241"/>
         <source>No file chosen</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="chronicle_GUI.py" line="574"/>
-        <source>The created file is ready for habitat calculation and has been added to the &apos;Habitat Calc.&apos; tab. 
+        <location filename="chronicle_GUI.py" line="634"/>
+        <source>The created file is ready for habitat         calculation and has been added to the &apos;Habitat Calc.&apos; tab. 
 </source>
         <translation type="unfinished"></translation>
     </message>
@@ -299,12 +299,12 @@
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="Main_windows_1.py" line="2350"/>
+        <location filename="Main_windows_1.py" line="2353"/>
         <source>I am a tab</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2353"/>
+        <location filename="Main_windows_1.py" line="2356"/>
         <source>I am really</source>
         <translation type="unfinished"></translation>
     </message>
@@ -588,56 +588,71 @@
 </source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="fstress_GUI.py" line="90"/>
+        <source>&lt;b&gt; Rivers or Reaches Names &lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="fstress_GUI.py" line="94"/>
+        <source>Modify river name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="fstress_GUI.py" line="96"/>
+        <source>Erase river</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>HEC_RAS1D</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="1072"/>
+        <location filename="hydro_GUI_2.py" line="1110"/>
         <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1079"/>
+        <location filename="hydro_GUI_2.py" line="1117"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1086"/>
+        <location filename="hydro_GUI_2.py" line="1124"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1087"/>
+        <location filename="hydro_GUI_2.py" line="1125"/>
         <source>Velocity distribution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1088"/>
+        <location filename="hydro_GUI_2.py" line="1126"/>
         <source>Model 1.5D: No dist. needed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1089"/>
+        <location filename="hydro_GUI_2.py" line="1127"/>
         <source>Interpolation of the data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1090"/>
+        <location filename="hydro_GUI_2.py" line="1128"/>
         <source>Number of additional profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1097"/>
+        <location filename="hydro_GUI_2.py" line="1135"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1105"/>
+        <location filename="hydro_GUI_2.py" line="1143"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1201"/>
+        <location filename="hydro_GUI_2.py" line="1239"/>
         <source># Loading: Hec-Ras 1D data...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -645,37 +660,37 @@
 <context>
     <name>HEC_RAS2D</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="2204"/>
+        <location filename="hydro_GUI_2.py" line="2242"/>
         <source>&lt;b&gt; Geometry and output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2208"/>
+        <location filename="hydro_GUI_2.py" line="2246"/>
         <source>&lt;b&gt; Options &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2213"/>
+        <location filename="hydro_GUI_2.py" line="2251"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2214"/>
+        <location filename="hydro_GUI_2.py" line="2252"/>
         <source>2D MODEL - No new grid needed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2221"/>
+        <location filename="hydro_GUI_2.py" line="2259"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2230"/>
+        <location filename="hydro_GUI_2.py" line="2268"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2288"/>
+        <location filename="hydro_GUI_2.py" line="2326"/>
         <source># Loading: HEC-RAS 2D...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -683,42 +698,42 @@
 <context>
     <name>HabbyHdf5</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="2778"/>
+        <location filename="hydro_GUI_2.py" line="3033"/>
         <source>Select the hdf5 created by HABBY to be loaded:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2787"/>
+        <location filename="hydro_GUI_2.py" line="3042"/>
         <source>Create figure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2779"/>
+        <location filename="hydro_GUI_2.py" line="3034"/>
         <source>Load hydraulic data from hdf5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2781"/>
+        <location filename="hydro_GUI_2.py" line="3036"/>
         <source>Load merge data from hdf5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2783"/>
+        <location filename="hydro_GUI_2.py" line="3038"/>
         <source>Merge two hdf5 hydraulic files together</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2785"/>
+        <location filename="hydro_GUI_2.py" line="3040"/>
         <source>Merge two hdf5 merge files together</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2978"/>
+        <location filename="hydro_GUI_2.py" line="3233"/>
         <source>Select second file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2979"/>
+        <location filename="hydro_GUI_2.py" line="3234"/>
         <source>The first file was selected. Now select the second file.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -726,96 +741,134 @@
 <context>
     <name>Hydro2W</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="118"/>
+        <location filename="hydro_GUI_2.py" line="130"/>
         <source>&lt;b&gt; LOAD NEW DATA &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="164"/>
+        <location filename="hydro_GUI_2.py" line="179"/>
         <source>&lt;b&gt; Available hdf5 files &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="231"/>
+        <location filename="hydro_GUI_2.py" line="252"/>
         <source>No information yet!         </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="119"/>
+        <location filename="hydro_GUI_2.py" line="131"/>
         <source>&lt;b&gt;Available hydraulic models &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="124"/>
+        <location filename="hydro_GUI_2.py" line="136"/>
         <source>?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="160"/>
+        <location filename="hydro_GUI_2.py" line="175"/>
         <source>export .slf</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="200"/>
+        <location filename="hydro_GUI_2.py" line="219"/>
         <source>Information on the hydraulic model</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="250"/>
+        <location filename="hydro_GUI_2.py" line="272"/>
         <source>Error: No hydraulic file found. 
 </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>LAMMI</name>
+    <name>IBER2D</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="2450"/>
-        <source>&lt;b&gt; General data &lt;/b&gt;</source>
+        <location filename="hydro_GUI_2.py" line="2841"/>
+        <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2452"/>
-        <source>Select the &apos;Entree&apos; directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="hydro_GUI_2.py" line="2455"/>
+        <location filename="hydro_GUI_2.py" line="2862"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2457"/>
-        <source>Select the &apos;SimHydro&apos; directory</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="hydro_GUI_2.py" line="2466"/>
+        <location filename="hydro_GUI_2.py" line="2869"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2467"/>
-        <source>Only &apos;Interpolation by Block&apos; possible for LAMMI data. Substrate data is included.</source>
+        <location filename="hydro_GUI_2.py" line="2870"/>
+        <source>2D MODEL - No new grid needed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2470"/>
+        <location filename="hydro_GUI_2.py" line="2873"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2479"/>
+        <location filename="hydro_GUI_2.py" line="2882"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="hydro_GUI_2.py" line="2957"/>
+        <source># Loading: IBER2D data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>LAMMI</name>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2495"/>
+        <source>&lt;b&gt; General data &lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2497"/>
+        <source>Select the &apos;Entree&apos; directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2500"/>
+        <source>&lt;b&gt; Output data &lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2502"/>
+        <source>Select the &apos;SimHydro&apos; directory</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2511"/>
+        <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="hydro_GUI_2.py" line="2512"/>
+        <source>Only &apos;Interpolation by Block&apos; possible for LAMMI data. Substrate data is included.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2515"/>
+        <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2524"/>
+        <source>Create figure again</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2557"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2591"/>
+        <location filename="hydro_GUI_2.py" line="2636"/>
         <source># Loading: LAMMI data...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1218,77 +1271,77 @@
 <context>
     <name>Mascaret</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="1454"/>
+        <location filename="hydro_GUI_2.py" line="1492"/>
         <source>&lt;b&gt; General data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1459"/>
+        <location filename="hydro_GUI_2.py" line="1497"/>
         <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1463"/>
+        <location filename="hydro_GUI_2.py" line="1501"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1477"/>
+        <location filename="hydro_GUI_2.py" line="1515"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1478"/>
+        <location filename="hydro_GUI_2.py" line="1516"/>
         <source>Velocity distribution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1479"/>
+        <location filename="hydro_GUI_2.py" line="1517"/>
         <source>Based on Manning&apos;s formula</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1480"/>
+        <location filename="hydro_GUI_2.py" line="1518"/>
         <source>Nb. of velocity points by profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1481"/>
+        <location filename="hydro_GUI_2.py" line="1519"/>
         <source>Manning coefficient</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1482"/>
+        <location filename="hydro_GUI_2.py" line="1520"/>
         <source>Interpolation of the data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1483"/>
+        <location filename="hydro_GUI_2.py" line="1521"/>
         <source>Nb. of additional profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1488"/>
+        <location filename="hydro_GUI_2.py" line="1526"/>
         <source>or</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1489"/>
+        <location filename="hydro_GUI_2.py" line="1527"/>
         <source>Load .txt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1495"/>
+        <location filename="hydro_GUI_2.py" line="1533"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1504"/>
+        <location filename="hydro_GUI_2.py" line="1542"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1604"/>
+        <location filename="hydro_GUI_2.py" line="1642"/>
         <source># Loading: Mascaret data...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1296,72 +1349,72 @@
 <context>
     <name>River2D</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="1717"/>
+        <location filename="hydro_GUI_2.py" line="1755"/>
         <source>&lt;b&gt; Geometry and Output data &lt;/.b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1727"/>
+        <location filename="hydro_GUI_2.py" line="1765"/>
         <source>Add all .cdg files (choose dir)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1729"/>
+        <location filename="hydro_GUI_2.py" line="1767"/>
         <source>Remove file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1731"/>
+        <location filename="hydro_GUI_2.py" line="1769"/>
         <source>Remove all files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1733"/>
+        <location filename="hydro_GUI_2.py" line="1771"/>
         <source>Add file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1735"/>
+        <location filename="hydro_GUI_2.py" line="1773"/>
         <source>Load all files and create hdf5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1739"/>
+        <location filename="hydro_GUI_2.py" line="1777"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1740"/>
+        <location filename="hydro_GUI_2.py" line="1778"/>
         <source>2D MODEL - No new grid needed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1743"/>
+        <location filename="hydro_GUI_2.py" line="1781"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1827"/>
+        <location filename="hydro_GUI_2.py" line="1865"/>
         <source>File type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1828"/>
+        <location filename="hydro_GUI_2.py" line="1866"/>
         <source>Needed type for the file to be loaded:  ,</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1866"/>
+        <location filename="hydro_GUI_2.py" line="1904"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1721"/>
+        <location filename="hydro_GUI_2.py" line="1759"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1929"/>
+        <location filename="hydro_GUI_2.py" line="1967"/>
         <source># Loading : River2D data...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1369,72 +1422,72 @@
 <context>
     <name>Rubar1D</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="1987"/>
+        <location filename="hydro_GUI_2.py" line="2025"/>
         <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1992"/>
+        <location filename="hydro_GUI_2.py" line="2030"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2004"/>
+        <location filename="hydro_GUI_2.py" line="2042"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2005"/>
+        <location filename="hydro_GUI_2.py" line="2043"/>
         <source>Velocity distribution</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2006"/>
+        <location filename="hydro_GUI_2.py" line="2044"/>
         <source>Based on Manning&apos;s formula</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2007"/>
+        <location filename="hydro_GUI_2.py" line="2045"/>
         <source>Nb. of velocity points by profile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2008"/>
+        <location filename="hydro_GUI_2.py" line="2046"/>
         <source>Manning coefficient</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2009"/>
+        <location filename="hydro_GUI_2.py" line="2047"/>
         <source>Interpolation of the data</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2010"/>
+        <location filename="hydro_GUI_2.py" line="2048"/>
         <source>Nb. of additional profiles</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2015"/>
+        <location filename="hydro_GUI_2.py" line="2053"/>
         <source>or</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2016"/>
+        <location filename="hydro_GUI_2.py" line="2054"/>
         <source>Load .txt</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2022"/>
+        <location filename="hydro_GUI_2.py" line="2060"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2031"/>
+        <location filename="hydro_GUI_2.py" line="2069"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2124"/>
+        <location filename="hydro_GUI_2.py" line="2162"/>
         <source># Loading: Rubar 1D data...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1442,37 +1495,37 @@
 <context>
     <name>Rubar2D</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="1291"/>
+        <location filename="hydro_GUI_2.py" line="1329"/>
         <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1297"/>
+        <location filename="hydro_GUI_2.py" line="1335"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1304"/>
+        <location filename="hydro_GUI_2.py" line="1342"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1305"/>
+        <location filename="hydro_GUI_2.py" line="1343"/>
         <source>2D MODEL - No new grid needed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1308"/>
+        <location filename="hydro_GUI_2.py" line="1346"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1317"/>
+        <location filename="hydro_GUI_2.py" line="1355"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="1380"/>
+        <location filename="hydro_GUI_2.py" line="1418"/>
         <source># Loading: Rubar 2D data...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1480,37 +1533,37 @@
 <context>
     <name>SW2D</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="2637"/>
+        <location filename="hydro_GUI_2.py" line="2682"/>
         <source>&lt;b&gt; Geometry data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2643"/>
+        <location filename="hydro_GUI_2.py" line="2688"/>
         <source>&lt;b&gt; Output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2650"/>
+        <location filename="hydro_GUI_2.py" line="2695"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2651"/>
+        <location filename="hydro_GUI_2.py" line="2696"/>
         <source>2D MODEL - No new grid needed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2654"/>
+        <location filename="hydro_GUI_2.py" line="2699"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2663"/>
+        <location filename="hydro_GUI_2.py" line="2708"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2718"/>
+        <location filename="hydro_GUI_2.py" line="2763"/>
         <source># Loading: SW2D data...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1518,27 +1571,27 @@
 <context>
     <name>ShowImageW</name>
     <message>
-        <location filename="Main_windows_1.py" line="2437"/>
+        <location filename="Main_windows_1.py" line="2440"/>
         <source>ALL FIGURES</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2468"/>
+        <location filename="Main_windows_1.py" line="2471"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2477"/>
+        <location filename="Main_windows_1.py" line="2480"/>
         <source>Change Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2478"/>
+        <location filename="Main_windows_1.py" line="2481"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2509"/>
+        <location filename="Main_windows_1.py" line="2512"/>
         <source>Available figures</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1697,68 +1750,68 @@
 <context>
     <name>SubHydroW</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="404"/>
+        <location filename="hydro_GUI_2.py" line="442"/>
         <source>Previously Loaded File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="399"/>
+        <location filename="hydro_GUI_2.py" line="437"/>
         <source>One of the file given in the project file does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="405"/>
+        <location filename="hydro_GUI_2.py" line="443"/>
         <source>The file given in the project file does not exist. Hydrological model:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="485"/>
+        <location filename="hydro_GUI_2.py" line="523"/>
         <source>File type</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="486"/>
+        <location filename="hydro_GUI_2.py" line="524"/>
         <source>Needed type for the file to be loaded:  ,</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="597"/>
+        <location filename="hydro_GUI_2.py" line="635"/>
         <source>Save the path to the figures</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="684"/>
+        <location filename="hydro_GUI_2.py" line="722"/>
         <source>The project is not saved. Save the project in the General tab.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="735"/>
+        <location filename="hydro_GUI_2.py" line="773"/>
         <source>Warning: too many information for the GUI</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="651"/>
+        <location filename="hydro_GUI_2.py" line="689"/>
         <source>Save the path to the copied inputs</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="860"/>
+        <location filename="hydro_GUI_2.py" line="898"/>
         <source>Figures could not be shown because of a prior error 
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="863"/>
+        <location filename="hydro_GUI_2.py" line="901"/>
         <source>Merging of substrate and hydraulic data finished.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="866"/>
+        <location filename="hydro_GUI_2.py" line="904"/>
         <source>Loading of hydraulic data finished.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="683"/>
+        <location filename="hydro_GUI_2.py" line="721"/>
         <source>Save the path to the fichier text</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1766,191 +1819,211 @@
 <context>
     <name>SubstrateW</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="3064"/>
+        <location filename="hydro_GUI_2.py" line="3319"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3099"/>
+        <location filename="hydro_GUI_2.py" line="3356"/>
         <source>hdf5 file name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3118"/>
+        <location filename="hydro_GUI_2.py" line="3375"/>
         <source>Default substrate value:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3066"/>
+        <location filename="hydro_GUI_2.py" line="3321"/>
         <source>Code Substrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3086"/>
+        <location filename="hydro_GUI_2.py" line="3343"/>
         <source>Load data and create hdf5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3095"/>
+        <location filename="hydro_GUI_2.py" line="3352"/>
         <source>&lt;b&gt; Load constant substrate &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3096"/>
+        <location filename="hydro_GUI_2.py" line="3353"/>
         <source>Constant substrate value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3098"/>
+        <location filename="hydro_GUI_2.py" line="3355"/>
         <source>(Code type: Cemagref)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3104"/>
+        <location filename="hydro_GUI_2.py" line="3361"/>
         <source>Load const. data and create hdf5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3110"/>
+        <location filename="hydro_GUI_2.py" line="3367"/>
         <source>Substrate data (hdf5)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3113"/>
+        <location filename="hydro_GUI_2.py" line="3370"/>
         <source>Merge grid and create hdf5</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3322"/>
+        <location filename="hydro_GUI_2.py" line="3579"/>
         <source>Dominant substrate</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3323"/>
+        <location filename="hydro_GUI_2.py" line="3580"/>
         <source>Our analysis found that the dominant substrate of certain substrate cells cannot be determined. Indeed, the maximum percentage of two or more classes are equal. In these cases, should we take the larger or the smaller substrate class?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3327"/>
+        <location filename="hydro_GUI_2.py" line="3584"/>
         <source>Larger</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3328"/>
+        <location filename="hydro_GUI_2.py" line="3585"/>
         <source>Smaller</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3505"/>
+        <location filename="hydro_GUI_2.py" line="3762"/>
         <source># Load: Substrate data - text file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3053"/>
+        <location filename="hydro_GUI_2.py" line="3308"/>
         <source>&lt;b&gt; Type of Substrate Data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3054"/>
+        <location filename="hydro_GUI_2.py" line="3309"/>
         <source>From Files (.txt, .shp)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3055"/>
+        <location filename="hydro_GUI_2.py" line="3310"/>
         <source>Constant Value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3063"/>
+        <location filename="hydro_GUI_2.py" line="3318"/>
         <source>&lt;b&gt;Substrate from File &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3116"/>
+        <location filename="hydro_GUI_2.py" line="3373"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3108"/>
+        <location filename="hydro_GUI_2.py" line="3365"/>
         <source>&lt;b&gt; Merge the hydraulic and substrate grid &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3109"/>
+        <location filename="hydro_GUI_2.py" line="3366"/>
         <source>Hydraulic data (hdf5)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3124"/>
+        <location filename="hydro_GUI_2.py" line="3381"/>
         <source>Last file created</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3127"/>
+        <location filename="hydro_GUI_2.py" line="3384"/>
         <source>No file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3256"/>
+        <location filename="hydro_GUI_2.py" line="3513"/>
         <source># Loading: Substrate data...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3279"/>
+        <location filename="hydro_GUI_2.py" line="3536"/>
         <source># Substrate data type: constant value</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3355"/>
+        <location filename="hydro_GUI_2.py" line="3612"/>
         <source># Substrate data type: Shapefile</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3387"/>
+        <location filename="hydro_GUI_2.py" line="3644"/>
         <source># Substrate data type: text file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3119"/>
+        <location filename="hydro_GUI_2.py" line="3376"/>
         <source>Cemagref Code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="3329"/>
+        <source>Choose file (.txt, .shp)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>TELEMAC</name>
     <message>
-        <location filename="hydro_GUI_2.py" line="2327"/>
+        <location filename="hydro_GUI_2.py" line="2369"/>
         <source>&lt;b&gt; Geometry and output data &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2331"/>
+        <location filename="hydro_GUI_2.py" line="2374"/>
         <source>&lt;b&gt; Options &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2339"/>
+        <location filename="hydro_GUI_2.py" line="2383"/>
         <source>&lt;b&gt;Grid creation &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2340"/>
+        <location filename="hydro_GUI_2.py" line="2384"/>
         <source>2D MODEL - No new grid needed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2343"/>
+        <location filename="hydro_GUI_2.py" line="2387"/>
         <source>&lt;b&gt; hdf5 file name &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2352"/>
+        <location filename="hydro_GUI_2.py" line="2396"/>
         <source>Create figure again</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="2402"/>
+        <location filename="hydro_GUI_2.py" line="2447"/>
         <source># Loading: TELEMAC data...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2370"/>
+        <source>Choose file (.slf, .res)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2375"/>
+        <source>All time steps</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="hydro_GUI_2.py" line="2393"/>
+        <source>Load data and create hdf5</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1959,55 +2032,55 @@
     <message>
         <location filename="Main_windows_1.py" line="2184"/>
         <source>&lt;b&gt;Start working with HABBY &lt;/b&gt;</source>
-        <translation type="unfinished">&lt;b&gt; HABBY: Start here &lt;/b&gt;</translation>
+        <translation type="obsolete">&lt;b&gt; HABBY: Start here &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2189"/>
+        <location filename="Main_windows_1.py" line="2192"/>
         <source>Open Exisiting Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2191"/>
+        <location filename="Main_windows_1.py" line="2194"/>
         <source>New Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2199"/>
+        <location filename="Main_windows_1.py" line="2202"/>
         <source> &lt;b&gt; Current Project &lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2200"/>
+        <location filename="Main_windows_1.py" line="2203"/>
         <source>Project Name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2202"/>
+        <location filename="Main_windows_1.py" line="2205"/>
         <source>Main Folder: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2204"/>
+        <location filename="Main_windows_1.py" line="2207"/>
         <source>Set Folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2208"/>
+        <location filename="Main_windows_1.py" line="2211"/>
         <source>Description: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2213"/>
+        <location filename="Main_windows_1.py" line="2216"/>
         <source>User Name: </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2290"/>
+        <location filename="Main_windows_1.py" line="2293"/>
         <source>Open Directory</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2206"/>
+        <location filename="Main_windows_1.py" line="2209"/>
         <source>Move the project to a new location. The data might be long to copy if the project folder is large.</source>
         <translation type="unfinished"></translation>
     </message>

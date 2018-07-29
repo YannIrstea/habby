@@ -2329,9 +2329,12 @@ class HEC_RAS2D(SubHydroW):
 
 class TELEMAC(SubHydroW):
     """
-    The class Telemac is there to manage the link between the graphical interface and the functions in src/selafin_habby1.py
-    which loads the Telemac data in 2D. It inherits from SubHydroW() so it have all the methods and the variables
-    from the class SubHydroW(). It is very similar to RUBAR2D class, but data from Telemac is on the node as in HABBY.
+    The class Telemac is there to manage the link between the graphical
+    interface and the functions in src/selafin_habby1.py
+    which loads the Telemac data in 2D. It inherits from SubHydroW()
+    so it have all the methods and the variables
+    from the class SubHydroW(). It is very similar to RUBAR2D class,
+    but data from Telemac is on the node as in HABBY.
     """
 
     def __init__(self, path_prj, name_prj):
@@ -2350,21 +2353,24 @@ class TELEMAC(SubHydroW):
         self.extension = [['.res', '.slf']]
         self.nb_dim = 2
 
-        # if there is the project file with telemac info, update the label and attibutes
+        # if there is the project file with telemac info, update
+        # the label and attibutes
         self.was_model_loaded_before()
         self.h2d_t2 = QLabel(self.namefile[0], self)
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry and output data </b>'))
-        self.h2d_b = QPushButton('Choose file (.slf, .res)', self)
+        self.h2d_b = QPushButton(self.tr('Choose file (.slf, .res)'), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
+        self.h2d_b.clicked.connect(
+            lambda: self.h2d_t2.setText(self.namefile[0]))
         l2 = QLabel(self.tr('<b> Options </b>'))
-        l3 = QLabel('All time steps', self)
+        l3 = QLabel(self.tr('All time steps'), self)
 
         # ToolTip to indicated in which folder are the files
         self.h2d_t2.setToolTip(self.pathfile[0])
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+        self.h2d_b.clicked.connect(
+            lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
 
         # grid creation
         l2D1 = QLabel(self.tr('<b>Grid creation </b>'))
@@ -2377,7 +2383,7 @@ class TELEMAC(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton('Load data and create hdf5', self)
+        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
         self.butfig = QPushButton(self.tr("Create figure again"))
@@ -2403,7 +2409,8 @@ class TELEMAC(SubHydroW):
 
     def load_telemac_gui(self):
         """
-        The function which call the function which load telemac and save the name of files in the project file
+        The function which call the function which load telemac and
+         save the name of files in the project file
         """
         # for error management and figures
         self.timer.start(1000)
@@ -3310,10 +3317,12 @@ class SubstrateW(SubHydroW):
             self.gethdf5_name_gui()
 
         # choose file button
-        self.h2d_b = QPushButton('Choose file (.txt, .shp)', self)
+        self.h2d_b = QPushButton(self.tr('Choose file (.txt, .shp)'), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
+        self.h2d_b.clicked.connect(
+            lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
+        self.h2d_b.clicked.connect(
+            lambda: self.h2d_t2.setText(self.namefile[0]))
 
         # if there was substrate info before, update the label and attibutes
         self.was_model_loaded_before()
