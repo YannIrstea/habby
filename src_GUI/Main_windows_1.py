@@ -85,7 +85,7 @@ class MainWindows(QMainWindow):
 
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = 0.23
+        self.version = 0.24
 
         # load user setting
         self.settings = QSettings('irstea', 'HABBY'+str(self.version))
