@@ -641,7 +641,7 @@ class SubHydroW(QWidget):
     def find_path_hdf5(self):
         """
         A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
-        path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
+        path_hdf5 is in the project folder in the folder 'hdf5_files'.
         """
 
         path_hdf5 = 'no_path'
@@ -652,7 +652,7 @@ class SubHydroW(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
-                path_hdf5 = os.path.join(self.path_prj, r'/fichier_hdf5')
+                path_hdf5 = os.path.join(self.path_prj, r'/hdf5_files')
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:

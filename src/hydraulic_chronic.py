@@ -351,7 +351,7 @@ def main():
     """
 
     merge_files = ['MERGE_Hydro_RIVER2D_test23.00.h5']
-    path_merges = [r'D:\Diane_work\dummy_folder\inter_test\fichier_hdf5']
+    path_merges = [r'D:\Diane_work\dummy_folder\inter_test\hdf5_files']
     discharge_input = range(23, 85)
     np.savetxt('discharge_river2d.txt', discharge_input, delimiter='\n')
     discharge_output = np.arange(28, 32) + 0.5

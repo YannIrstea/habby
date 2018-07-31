@@ -1252,7 +1252,7 @@ class Stathab:
         """
         A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py
         and in estimhab_GUI. By default,
-        path_hdf5 is in the project folder in the folder 'fichier_hdf5'.
+        path_hdf5 is in the project folder in the folder 'hdf5_files'.
         """
 
         path_hdf5 = 'no_path'

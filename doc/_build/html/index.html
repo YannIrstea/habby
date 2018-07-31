@@ -1272,7 +1272,7 @@ only works with 1D and 1.5D model.</p>
 <dt id="src_GUI.hydro_GUI_2.SubHydroW.find_path_hdf5">
 <code class="descname">find_path_hdf5</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.hydro_GUI_2.SubHydroW.find_path_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
-path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+path_hdf5 is in the project folder in the folder &#8216;hdf5_files&#8217;.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2090,7 +2090,7 @@ only send warning and it used to check the entry before the calculation.</p>
 <dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_hdf5_est">
 <code class="descname">find_path_hdf5_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_hdf5_est" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py and in
-stathab_c. By default, path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+stathab_c. By default, path_hdf5 is in the project folder in the folder &#8216;hdf5_files&#8217;.</p>
 </dd></dl>
 
 <dl class="method">
@@ -2136,7 +2136,7 @@ practical to use to add new folder.</p>
 <dt id="src_GUI.estimhab_GUI.StatModUseful.find_path_text_est">
 <code class="descname">find_path_text_est</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.estimhab_GUI.StatModUseful.find_path_text_est" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
-path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+path_hdf5 is in the project folder in the folder &#8216;hdf5_files&#8217;.</p>
 </dd></dl>
 
 <dl class="method">
@@ -4587,7 +4587,7 @@ project (path_prj) composed with hdf5_name_sub.</p>
 <code class="descclassname">src.load_hdf5.</code><code class="descname">load_hdf5_sub</code><span class="sig-paren">(</span><em>hdf5_name_sub</em>, <em>path_hdf5</em>, <em>ind_const=False</em><span class="sig-paren">)</span><a class="headerlink" href="#src.load_hdf5.load_hdf5_sub" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to load the substrate data contained in the hdf5 file. It also manage
 the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
-the path is composed of the path to the &#8216;hdf5&#8217; folder (path_prj/fichier_hdf5) composed with hdf5_name_sub. it manages constant and
+the path is composed of the path to the &#8216;hdf5&#8217; folder (path_prj/hdf5_files) composed with hdf5_name_sub. it manages constant and
 vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -5849,7 +5849,7 @@ t x f1 + (1-t) x f where t depends on the ratio of the length of station and the
 <code class="descname">find_path_hdf5_stat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src.stathab_c.Stathab.find_path_hdf5_stat" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py
 and in estimhab_GUI. By default,
-path_hdf5 is in the project folder in the folder &#8216;fichier_hdf5&#8217;.</p>
+path_hdf5 is in the project folder in the folder &#8216;hdf5_files&#8217;.</p>
 </dd></dl>
 
 <dl class="method">

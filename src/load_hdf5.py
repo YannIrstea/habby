@@ -432,7 +432,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
     """
     A function to load the substrate data contained in the hdf5 file. It also manage
     the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
-    the path is composed of the path to the 'hdf5' folder (path_prj/fichier_hdf5) composed with hdf5_name_sub. it manages constant and
+    the path is composed of the path to the 'hdf5' folder (path_prj/hdf5_files) composed with hdf5_name_sub. it manages constant and
     vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
 
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
