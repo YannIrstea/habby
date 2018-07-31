@@ -3545,6 +3545,7 @@ class SubstrateW(SubHydroW):
 
         # the load button for constant substrate
         self.load_const = QPushButton(self.tr('Load const. data and create hdf5'), self)
+        self.load_const.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_const.clicked.connect(lambda: self.load_sub_gui(True))
 
         # label and button for the part to merge the grid
@@ -3554,6 +3555,7 @@ class SubstrateW(SubHydroW):
         self.drop_hyd = QComboBox()
         self.drop_sub = QComboBox()
         self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
+        self.load_b2.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)
         self.butfig2 = QPushButton(self.tr("Create figure again"))
