@@ -626,8 +626,8 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
             p.append(pi)
         p.append(list(xy[ikle[i][0]]))
         w.poly(parts=[p])  # the double [[]] is important or it bugs, but why?
-    w.field('sub_dom', 'F')
-    w.field('sub_pg', 'F')
+    w.field('sub_dom', 'F', 10, 8)
+    w.field('sub_pg', 'F', 10, 8)
     try:
         for i in range(0, len(ikle)):
             data_here = [sub_dom2[i], sub_pg2[i]]
