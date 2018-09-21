@@ -1681,7 +1681,7 @@ class CentralW(QWidget):
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
         self.vbar = self.scroll.verticalScrollBar()
         self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
-        self.max_lengthshow = 90
+        self.max_lengthshow = 180
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
         self.opttab = 8 # the position of the option tab
