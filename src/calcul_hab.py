@@ -756,15 +756,15 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
             if t > 0:
                 # attribute
                 for n in name_fish_sh:
-                    w.field('hv'+n, 'F')
-                w.field('velocity', 'F')
-                w.field('water heig', 'F')
-                w.field('conveyance', 'F')
-                w.field('sub_coarser', 'F')
-                w.field('sub_dom', 'F')
+                    w.field('hv'+n, 'F', 50, 8)
+                w.field('velocity', 'F', 50, 8)
+                w.field('water heig', 'F', 50, 8)
+                w.field('conveyance', 'F', 50, 8)
+                w.field('sub_coarser', 'F', 50, 8)
+                w.field('sub_dom', 'F', 50, 8)
                 if save_perc:
                     for i in range(0, 8):  # cemagref code
-                        w.field('sub_cl_'+str(i+1), 'F')
+                        w.field('sub_cl_'+str(i+1), 'F', 50, 8)
 
                 # fill attribute
                 for r in range(0, nb_reach):

@@ -1356,12 +1356,12 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
 
             if t > 0:
                 # attribute
-                w.field('velocity', 'F')
-                w.field('water heig', 'F')
-                w.field('conveyance', 'F')
+                w.field('velocity', 'F', 50, 8)
+                w.field('water heig', 'F', 50, 8)
+                w.field('conveyance', 'F', 50, 8)
                 if merge:
-                    w.field('sub_coarser', 'F')
-                    w.field('sub_dom', 'F')
+                    w.field('sub_coarser', 'F', 50, 8)
+                    w.field('sub_dom', 'F', 50, 8)
 
                 # fill attribute
                 for r in range(0, nb_reach):
