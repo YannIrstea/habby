@@ -14,6 +14,8 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
+from sys import platform
+from subprocess import call
 import glob
 import os
 import shutil
@@ -1272,10 +1274,14 @@ class MainWindows(QMainWindow):
         This function allows the user to see the files in the project folder and to open them.
         """
 
-        file_name = QFileDialog.getOpenFileName(self, self.tr('Open File'), self.path_prj)[0]
+        # file_name = QFileDialog.getOpenFileName(self, self.tr('Open File'), self.path_prj)[0]
 
-        if file_name:
-            wbopen(file_name)
+        # if file_name:
+        #    wbopen(file_name)
+        if platform == 'linux2':
+            call(["xdg-open", os.path.normpath(self.path_prj)])
+        else:
+            call(['explorer', os.path.normpath(self.path_prj)])
 
     def save_project_estimhab(self):
         """
