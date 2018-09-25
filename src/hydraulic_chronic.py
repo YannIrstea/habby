@@ -159,12 +159,12 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
 
         # check if in the range, if not ignore
         if d > dmax or d < dmin:
-            ikle_all_new.append([])
-            point_all_new.append([])
-            inter_vel_all_new.append([])
-            inter_height_all_new.append([])
-            substrate_pg_all_new.append([substrate_pg_full])
-            substrate_dom_all_new.append([substrate_dom_full])
+            # ikle_all_new.append([])
+            # point_all_new.append([])
+            # inter_vel_all_new.append([])
+            # inter_height_all_new.append([])
+            # substrate_pg_all_new.append([substrate_pg_full])
+            # substrate_dom_all_new.append([substrate_dom_full])
             if warn1:
                 print('Warning: One or more output are neglected as\
                  they are outside of the modelling range. \n')
