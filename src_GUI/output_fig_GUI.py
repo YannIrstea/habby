@@ -631,9 +631,9 @@ def create_default_figoption():
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800
     fig_dict['fish_name_type'] = 0
-    fig_dict['text_output'] = 'False'
-    fig_dict['shape_output'] = 'False'
-    fig_dict['paraview'] = 'False'
+    fig_dict['text_output'] = 'True'
+    fig_dict['shape_output'] = 'True'
+    fig_dict['paraview'] = 'True'
     fig_dict['fish_info'] = 'True'
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
