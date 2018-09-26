@@ -514,7 +514,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                             'by a comma or in the format start:end:step or\
                              LOG start:end:number points (5). \n')
                         return [-99]
-                    discharge = range(startd, endd, step)
+                    discharge = range(startd, endd + step, step)
                 else:
                     self.send_log.emit(
                         'Error: Discharge format was not understood.\
