@@ -999,7 +999,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value for the Reach ' + str(r))
-            plt.ylim(ymin=-0.02)
+            plt.ylim(0, 1)
             if sim_name:
                 if len(sim_name[0]) > 5:
                     rot = 'vertical'
@@ -1074,7 +1074,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Computational step or discharge ')
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value For All Reaches')
-            plt.ylim(ymin=-0.02)
+            plt.ylim(0, 1)
             plt.tight_layout()
             if sim_name:
                 if len(sim_name[0]) > 5:
