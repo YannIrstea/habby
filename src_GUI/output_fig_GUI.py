@@ -638,7 +638,7 @@ def create_default_figoption():
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
-    fig_dict['marker'] = 'False'
+    fig_dict['marker'] = 'True'  # Add point to line plot
     fig_dict['erase_id'] = 'True'
 
     return fig_dict

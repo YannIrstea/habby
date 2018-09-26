@@ -951,7 +951,6 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         t_all.append(t)
                 t_all_s = t_all
                 plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
-                plt.scatter(t_all, data_plot, marker=mar, s=8)
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m$^2$]')
@@ -989,7 +988,6 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         sum_data_spu_div[s][t] += data_here
                         t_all.append(t)
                 plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
-                plt.scatter(t_all, data_plot, marker=mar, s=8)
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
