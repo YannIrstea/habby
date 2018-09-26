@@ -123,7 +123,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     # text output
     if create_text:
-        save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base,
+        save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, area_c_all, vel_c_all_t, height_c_all_t, name_fish, path_txt, name_base,
                      sim_name, erase_id)
     save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'], erase_id)
 
@@ -481,7 +481,7 @@ def find_pref_value(data, pref):
     return pref_data
 
 
-def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish, path_txt, name_base,
+def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, area_c_all, vel_data, height_data, name_fish, path_txt, name_base,
                  sim_name=[], erase_id=False):
     """
     This function print the text output. We create one set of text file by time step. Each Reach is separated by the
@@ -499,6 +499,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
     :param vel_data: the velocity by reach by time step on the cell (not node!)
     :param height_data: the height by reach by time step on the cell (not node!)
     :param vh_data: the habitat value data by speces by reach by tims tep
+    :param area_c_all: the area by reach by time step on the cell (not node!)
     :param name_fish: the list of fish latin name + stage
     :param path_txt: the path where to save the text file
     :param name_base: a string on which to base the name of the files
@@ -580,23 +581,23 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                     f.write('reach\tx\ty'+'\n')
                     for p in p_here:
                         f.write(str(r) + '\t' + str(p[0]) + '\t' + str(p[1])+'\n')
-
             # result
             with open(name3, 'wt', encoding='utf-8') as f:
                 for r in range(0, nb_reach):
+                    s_here = area_c_all[t][r]
                     v_here = vel_data[t][r]
                     h_here = height_data[t][r]
                     sub_pg = sub_pg_data[t][r]
                     sub_dom = sub_dom_data[t][r]
                     f.write('REACH ' + str(r) + '\n')
                     # header 1
-                    header = 'reach\tcells\tvelocity\theight\tcoarser_substrate\tdominant_substrate'
+                    header = 'reach\tcells\tarea\tvelocity\theight\tcoarser_substrate\tdominant_substrate'
                     for i in range(0, len(name_fish)):
                         header += '\tVH'+str(i)
                     header += '\n'
                     f.write(header)
                     # header 2
-                    header = '[]\t[]\t[m/s]\t[m]\t[Code_Cemagref]\t[Code_Cemagref]'
+                    header = '[]\t[]\t[m2]\t[m/s]\t[m]\t[Code_Cemagref]\t[Code_Cemagref]'
                     for i in name_fish:
                         i = i.replace(' ', '_')  # so space/tab is only a separator
                         header += '\t' + i
@@ -611,7 +612,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, nam
                             except IndexError:
                                 print('Error: Results could not be written to text file. \n')
                                 return
-                        f.write(str(r) + '\t' + str(i) + '\t' + str(v_here[i]) + '\t' + str(h_here[i]) + '\t' +
+                        f.write(str(r) + '\t' + str(i) + '\t' + str(s_here[i]) + '\t' + str(v_here[i]) + '\t' + str(h_here[i]) + '\t' +
                                 str(sub_pg[i]) + '\t' + str(sub_dom[i]) + '\t' + vh_str + '\n')
 
 
