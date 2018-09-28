@@ -408,7 +408,7 @@ class MainWindows(QMainWindow):
 
         # Menu to open and close file
         exitAction = QAction(self.tr('Exit'), self)
-        exitAction.setShortcut('Ctrl+C')
+        exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip(self.tr('Exit application'))
         exitAction.triggered.connect(self.closeEvent)
         openprj = QAction(self.tr('Open Project'), self)
