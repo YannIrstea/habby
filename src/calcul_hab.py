@@ -908,6 +908,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             else:
                 plt.ylabel('HV (WUA/A) []')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+            plt.ylim(0, 1)
             if fig_opt['language'] == 0:
                 plt.title('Habitat value for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
@@ -1000,7 +1001,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value for the Reach ' + str(r))
-            plt.ylim(bottom=0)
+            plt.ylim(0, 1)
             if sim_name:
                 if len(sim_name[0]) > 5:
                     rot = 'vertical'
@@ -1075,7 +1076,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 plt.xlabel('Computational step or discharge ')
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value For All Reaches')
-            plt.ylim(bottom=0)
+            plt.ylim(0, 1)
             plt.tight_layout()
             if sim_name:
                 if len(sim_name[0]) > 5:
