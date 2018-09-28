@@ -90,7 +90,8 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         l3 = QLabel(self.tr("<b> Discharge output </b>[m3/sec]"))
         self.output = QLineEdit("q1,q2,...")
         self.fileout = QPushButton(self.tr("From file (.txt)"))
-        self.fileout.clicked.connect(lambda: self.load_file(self.output))
+        self.fileout.clicked.connect(lambda: self.load_file_output_discharge(self.output))
+        l3_info = QLabel(self.tr("(One column)"))
         # update Qlabel for discharge
         root, docxml, xmlfile = self.open_xml()
         if isinstance(root, int):  # no project found
@@ -133,6 +134,8 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l3, 5, 0)
         self.layout4.addWidget(self.output, 5, 1)
         self.layout4.addWidget(self.fileout, 5, 2)
+        self.layout4.addWidget(l3_info, 5, 3)
+
 
         self.layout4.addWidget(self.run_chronicle, 7, 1)
         self.layout4.addItem(spacer, 8, 1)
@@ -397,6 +400,62 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         # add text to QLineEdit
         linetext.setText(dis_all)
 
+    def load_file_output_discharge(self, linetext):
+        """
+        This functions lets the user choose a text file and use
+         it to get the discharge output.
+        The format of the text file is :
+            Separator : TAB
+            An header with "Q[" for the discharge
+            #An header with "DATE" for a date (not required)
+            Headers : by starting the line with the sign #
+            one discharge value by line
+        are in m3/sec.
+
+        It is important that the order of the discharge are the name than
+         in the file. We check that here. It
+        cannot be checked afterwards as the number in
+         the QLineEdit might change before execution.
+
+        :param linetext: This is the QLineEdit where the discharge
+        have to be shown.
+        """
+
+        filename_path = QFileDialog.getOpenFileName(
+            self, 'QFileDialog.getOpenFileName()', self.path_prj)[0]
+
+        try:
+            with open(filename_path, 'rt') as f:
+                data_dis = f.read()
+        except IOError or UnicodeDecodeError:
+            self.send_log.emit(
+             "Error: the discharge file could not be loaded.\n")
+            return
+        data_dis = data_dis.strip()  # remove the last "\n"
+        data_dis = data_dis.split('\n') # sep by \n to list
+        if len(data_dis) == 0:
+            self.send_log.emit('Warning: No data found in file')
+            return
+
+        # get dicharge data in string
+        dis_all = ''  # string for the xml file
+        for d in data_dis:
+            if not d[0] == '#':  # ignore header
+                d2 = d.split()
+                if len(d2) == 1:
+                    # check for float
+                    try:
+                        blob = float(d2[0])
+                    except:
+                        self.end_log.emit('Could not read discharge\
+                         from file as it should be a float')
+                        return
+                    # get discharge and name
+                    dis_all += d2[0] + ','
+        dis_all = dis_all[:-1]  # one comma too much
+        # add text to QLineEdit
+        linetext.setText(dis_all)
+
     def discharge_from_chosen_data(self):
         """
         This function open the chosen merge files and find
@@ -630,7 +689,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         # add to the merge files in habitat calc
         self.drop_merge.emit()
         self.send_log.emit(self.tr("The created file is ready for habitat\
-         calculation and has been added to the 'Habitat Calc.' tab. \n"))
+         calculation and has been added to the 'Habitat Calc.' tab. (Chronic_") + merge_files[0] + ")\n")
 
         # send log (with message on getting the data in habitat calc)
         self.send_log.emit(
