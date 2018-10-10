@@ -136,7 +136,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub'
               '- all data in float')
         print('RUN_HABITAT: Estimate the habitat value from an hdf5 merged files. It used the coarser substrate '
-              'as the substrate layer if the parameter run_choice is zero. We can also choose to make the calculation'
+              'as the substrate layer if the parameter run_choice is 0. We can also choose to make the calculation'
               'on the dominant substrate (run_choice:1) or the substrate by percentage (run_choice:2). The chosen stage'
               'mshould be separated by a comma.If the keyword all is given as the chosen stage, all available stage '
               'will be used. To get the calculation on more than one fish species, separate the names of '
@@ -1493,7 +1493,7 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
         a = time.time()
         all_command(all_arg_here, name_prj, path_prj, path_bio, option_restart, erase_id=True)
         t = time.time() - a
-        print('Command executed in ' + str(t) + ' sec.')
+        print('Command executed in {:.0f} sec.'.format(t))
         print('----------------------------------------------------------------------')
 
         # avoid risk of over-wrting
