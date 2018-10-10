@@ -91,9 +91,9 @@ def get_useful_attribute(attributes):
     """
 
     # all the different attribute names which can be accepted in the shape file
-    pg = ['plus gros', 'coarser', 'PG', 'PLUS GROS', 'COARSER']
-    dom = ['dominant', 'DOMINANT', 'DM']
-    acc1 = ['acc', 'ACC', 'ACCESSORY', 'accessoire', 'ACCESSOIRE']
+    pg = ['plus gros', 'coarser', 'PG', 'PLUS GROS', 'COARSER', 'sub_coarser']
+    dom = ['dominant', 'DOMINANT', 'DM', 'sub_dom']
+    acc1 = ['acc', 'ACC', 'ACCESSORY', 'accessoire', 'ACCESSOIRE', 'sub_acc']
     # create per_name
     per_all = []
     for m in range(0,15):
@@ -521,8 +521,24 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
         return failload
     # Voronoi
     point_in = np.vstack((np.array(x), np.array(y))).T
+    # # translation ovtherwise numerical problems some voronoi cells may content several points
+    # min_x = min([pt[0] for pt in point_in])
+    # min_y = min([pt[1] for pt in point_in])
+    # for dataelement in point_in:
+    #     dataelement[0] = dataelement[0] - min_x
+    #     dataelement[1] = dataelement[1] - min_y
+    # voronoi
     vor = Voronoi(point_in)
+    # plot
+    voronoi_plot_2d(vor)
+    plt.axis('scaled')
+    plt.show()
+    # get vertices
     xy = vor.vertices
+    # # remove translation
+    # for dataelement in xy:
+    #     dataelement[0] = dataelement[0] + min_x
+    #     dataelement[1] = dataelement[1] + min_y
     xy = np.reshape(xy, (len(xy), len(xy[0])))
     ikle = vor.regions
     ikle = [var for var in ikle if var]  # erase empy element
