@@ -91,7 +91,6 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.output = QLineEdit("q1,q2,...")
         self.fileout = QPushButton(self.tr("From file (.txt)"))
         self.fileout.clicked.connect(lambda: self.load_file_output_discharge(self.output))
-        l3_info = QLabel(self.tr("(One column)"))
         # update Qlabel for discharge
         root, docxml, xmlfile = self.open_xml()
         if isinstance(root, int):  # no project found
@@ -134,8 +133,6 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l3, 5, 0)
         self.layout4.addWidget(self.output, 5, 1)
         self.layout4.addWidget(self.fileout, 5, 2)
-        self.layout4.addWidget(l3_info, 5, 3)
-
 
         self.layout4.addWidget(self.run_chronicle, 7, 1)
         self.layout4.addItem(spacer, 8, 1)
@@ -371,7 +368,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 if len(d2) > 1:
                     # check for float
                     try:
-                        blob = float(d2[1])
+                        float(d2[1])
                     except:
                         self.end_log.emit('Could not read discharge\
                          from file as it should be a float')
@@ -405,18 +402,15 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         This functions lets the user choose a text file and use
          it to get the discharge output.
         The format of the text file is :
-            Separator : TAB
-            An header with "Q[" for the discharge
-            #An header with "DATE" for a date (not required)
-            Headers : by starting the line with the sign #
-            one discharge value by line
-        are in m3/sec.
-
-        It is important that the order of the discharge are the name than
-         in the file. We check that here. It
-        cannot be checked afterwards as the number in
-         the QLineEdit might change before execution.
-
+            first line start with '#' == headers
+            no white space in individual headers
+            all other lines with '#' are ignored
+            headers without space ' '
+            discharge column define with 'Q[' and ']'
+            if date : date column define with "date" upper or lower case
+            column separator : '\t' or '   ' or '  ' or ' '
+            row separator : '\n'
+            decimal separator : '.' or ','
         :param linetext: This is the QLineEdit where the discharge
         have to be shown.
         """
@@ -431,30 +425,80 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
             self.send_log.emit(
              "Error: the discharge file could not be loaded.\n")
             return
-        data_dis = data_dis.strip()  # remove the last "\n"
-        data_dis = data_dis.split('\n') # sep by \n to list
         if len(data_dis) == 0:
-            self.send_log.emit('Warning: No data found in file')
+            self.send_log.emit('Error: No data found in file')
             return
 
-        # get dicharge data in string
+        # clean
+        data_dis = data_dis.strip()  # remove the last "\n"
+        data_dis = data_dis.split('\n')  # row sep by \n to list
+        data_dis[0] = data_dis[0].strip("#")
+        data_dis[0] = data_dis[0].strip(" ")
+
+        # remove comment lines (row start with #)
+        comment_lines = []
+        for i in range(1, len(data_dis)):
+            if data_dis[i][0] == '#':
+                comment_lines.append(i)
+        data_dis = [j for i, j in enumerate(data_dis) if i not in comment_lines]
+
+        # check column separator
+        c_separator = None
+        if all([';' in i for i in data_dis]): # check if ';' is in all element
+            c_separator = ';'
+
+        # headers index
+        date_index = None
+        q_index = None
+        headers = data_dis[0].upper().split(c_separator)  # split take tabulation or 1, 2 or 3 white spaces or mixing
+        for i in range(len(headers)):
+            if 'DATE' in headers[i]:  # Date
+                date_index = i
+            if 'Q[' in headers[i] and ']' in headers[i]:  # Q
+                q_index = i
+        if q_index is None:
+            self.send_log.emit('Error: No discharge header (Q[...]) found in file')
+            return
+
+        # get data
+        date = []
+        q_output = []
+        for i in range(1, len(data_dis)):
+            if date_index is not None and len(data_dis[i].split(c_separator)) == 1:
+                self.send_log.emit('Error: Column separators are not homogeneous for all lines\
+                                    (different at line ' + str(i + 1) + ')')
+                return
+            if date_index is not None:
+                date.append(data_dis[i].split(c_separator)[date_index])
+            if q_index is not None:
+                q_output.append(data_dis[i].split(c_separator)[q_index])
+
+        # convert decimal separator , by .
+        for i in range(len(q_output)):
+            if ',' in q_output[i]:
+                q_output[i] = q_output[i].replace(',', '.')
+            try:
+                float(q_output[i])
+            except ValueError or TypeError:
+                self.send_log.emit('Error: Could not read discharge\
+                 from file as it should be a float')
+                return
+
+        # get discharge data in string
         dis_all = ''  # string for the xml file
-        for d in data_dis:
-            if not d[0] == '#':  # ignore header
-                d2 = d.split()
-                if len(d2) == 1:
-                    # check for float
-                    try:
-                        blob = float(d2[0])
-                    except:
-                        self.end_log.emit('Could not read discharge\
-                         from file as it should be a float')
-                        return
-                    # get discharge and name
-                    dis_all += d2[0] + ','
+        date_all = ''
+        for i in range(len(q_output)):
+            # get discharge and name
+            dis_all += q_output[i] + ','
+            if date_index is not None:
+                date_all += date[i] + ','
         dis_all = dis_all[:-1]  # one comma too much
-        # add text to QLineEdit
-        linetext.setText(dis_all)
+        date_all = date_all[:-1]  # one comma too much
+
+        # save
+        linetext.setText(dis_all)  # add text to QLineEdit
+        self.save_discharge()  # save into the xml project file
+        self.send_log.emit('The discharge output file has been correctly read')  # log valid file
 
     def discharge_from_chosen_data(self):
         """
