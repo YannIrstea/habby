@@ -848,26 +848,26 @@ class SubHydroW(QWidget):
     def send_data(self):
         """
         This function is call regularly by the methods which have a second thread (so moslty the function
-        to load the hydrological data). To call this functin regularly, the variable self.timer of QTimer type is used.
-        The variable self.timer is connected to this function in the initiation of SubHydroW() and so in the initation
+        to load the hydrological data). To call this function regularly, the variable self.timer of QTimer type is used.
+        The variable self.timer is connected to this function in the initiation of SubHydroW() and so in the initiation
         of all class which inherits from SubHydroW().
 
         This function just wait while the thread is alive. When it has terminated, it creates the figure and the error
         messages.
         """
 
-        # say in the Stauts bar that the processus is alove
+        # say in the status bar that the processus is alive
         if self.p.is_alive():
             self.running_time += 1  # this is useful for GUI to update the running, should be logical with self.Timer()
-            # get the langugage
+            # get the language
             self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
             # send the message
             if self.fig_opt['language'] == str(1):
                 if self.model_type == 'SUBSTRATE':
-                    self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis "  + str(self.running_time) + " sec")
+                    self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis " + str(self.running_time) + " sec")
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
-                    self.send_log.emit("Processus 'Hydraulique' fonctionne depuis "  + str(self.running_time) + " sec")
+                    self.send_log.emit("Processus 'Hydraulique' fonctionne depuis " + str(self.running_time) + " sec")
             else:
                 if self.model_type == 'SUBSTRATE':
                     self.send_log.emit("Process 'Merge Grid' is alive and run since " + str(self.running_time) + " sec")

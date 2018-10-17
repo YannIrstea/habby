@@ -90,7 +90,7 @@ class MainWindows(QMainWindow):
         self.version = 0.24
 
         # load user setting
-        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
+        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
         name_prj_set = self.settings.value('name_prj')
         # print(name_prj_set)
         name_path_set = self.settings.value('path_prj')
@@ -168,7 +168,6 @@ class MainWindows(QMainWindow):
         else:
             lang_bio = 'English'
         self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj, lang_bio)
-
         self.msg2 = QMessageBox()
 
         # call the normal constructor of QWidget
@@ -501,6 +500,7 @@ class MainWindows(QMainWindow):
             fileMenu = self.menubar.addMenu(self.tr('&File'))
             fileMenu4 = self.menubar.addMenu(self.tr('Options'))
             fileMenu2 = self.menubar.addMenu(self.tr('Language'))
+            ViewMenu = self.menubar.addMenu(self.tr('View'))
             fileMenu3 = self.menubar.addMenu(self.tr('Help'))
 
         # add all the rest
@@ -528,14 +528,60 @@ class MainWindows(QMainWindow):
         fileMenu2.addAction(lAction3)
         fileMenu3.addAction(helpm)
 
+
+
         if not right_menu:
+
+            # physical
+            physicalmodelaction = QAction('Physical models', self.menubar, checkable=True)
+            def manage_tab_physical():
+                """ Prints selected menu labels. """
+                if not physicalmodelaction.isChecked():
+                    self.central_widget.tab_widget.setTabEnabled(1, False)
+                    self.central_widget.tab_widget.setTabEnabled(2, False)
+                    self.central_widget.tab_widget.setTabEnabled(3, False)
+                    self.central_widget.tab_widget.setTabEnabled(4, False)
+                    self.central_widget.tab_widget.setStyleSheet(
+                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
+                if physicalmodelaction.isChecked():
+                    self.central_widget.tab_widget.setTabEnabled(1, True)
+                    self.central_widget.tab_widget.setTabEnabled(2, True)
+                    self.central_widget.tab_widget.setTabEnabled(3, True)
+                    self.central_widget.tab_widget.setTabEnabled(4, True)
+                    self.central_widget.tab_widget.setStyleSheet(
+                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
+            physicalmodelaction.changed.connect(manage_tab_physical)
+            ViewMenu.addAction(physicalmodelaction)
+            physicalmodelaction.setChecked(True)
+
+            # statistic
+            statisticmodelaction = QAction('Statistical models', self.menubar, checkable=True)
+            def manage_tab_statistics():
+                """ Prints selected menu labels. """
+                if not statisticmodelaction.isChecked():
+                    self.central_widget.tab_widget.setTabEnabled(5, False)
+                    self.central_widget.tab_widget.setTabEnabled(6, False)
+                    self.central_widget.tab_widget.setTabEnabled(7, False)
+                    self.central_widget.tab_widget.setStyleSheet(
+                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
+                if statisticmodelaction.isChecked():
+                    self.central_widget.tab_widget.setTabEnabled(5, True)
+                    self.central_widget.tab_widget.setTabEnabled(6, True)
+                    self.central_widget.tab_widget.setTabEnabled(7, True)
+                    self.central_widget.tab_widget.setStyleSheet(
+                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
+            statisticmodelaction.changed.connect(manage_tab_statistics)
+            ViewMenu.addAction(statisticmodelaction)
+            statisticmodelaction.setChecked(True)
+            statisticmodelaction.setChecked(False)
+
             # add the status bar
             self.statusBar()
 
             # add the title of the windows
             # let it here as it should be changes if language changes
             if self.name_prj != '':
-                self.setWindowTitle(self.tr('HABBY ')+ str(self.version) + ' - ' + self.name_prj)
+                self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
             else:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
@@ -915,7 +961,7 @@ class MainWindows(QMainWindow):
 
         # open an xml file
         path_here = os.path.dirname(self.path_prj)
-        filename_path = QFileDialog.getOpenFileName(self, 'Open File', path_here, self.tr("XML (*.xml)"))[0]
+        filename_path = QFileDialog.getOpenFileName(self, self.tr('Open File'), path_here, "XML (*.xml)")[0]
         if not filename_path:  # cancel
             return
         blob, ext_xml = os.path.splitext(filename_path)
@@ -1711,9 +1757,10 @@ class CentralW(QWidget):
         if not os.path.isdir(self.path_prj_c) \
                 or not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Project file not found"))
-            self.msg2.setText(self.tr("The xml project file does not exists. \n Create or open a new project."))
+            self.msg2.setWindowTitle(self.tr("First time with HABBY ?"))
+            self.msg2.setText(self.tr("Create or open a project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
+            self.msg2.setMinimumWidth(1000)
             name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
             self.msg2.setWindowIcon(QIcon(name_icon))
             self.msg2.show()
@@ -1777,7 +1824,6 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
             self.tab_widget.addTab(self.output_tab, self.tr("Options"))
-
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))

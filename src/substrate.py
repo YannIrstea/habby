@@ -96,7 +96,7 @@ def get_useful_attribute(attributes):
     acc1 = ['acc', 'ACC', 'ACCESSORY', 'accessoire', 'ACCESSOIRE', 'sub_acc']
     # create per_name
     per_all = []
-    for m in range(0,15):
+    for m in range(0, 15):
         per_all.append('S' + str(m))
         per_all.append('s' + str(m))
 

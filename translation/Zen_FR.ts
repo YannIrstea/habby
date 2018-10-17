@@ -105,42 +105,47 @@
         <source>Erase All Selection</source>
         <translation>Effacer Tout la Sélection</translation>
     </message>
+    <message>
+        <location filename="bio_info_GUI.py" line="109"/>
+        <source> &lt;b&gt; Options for the computation &lt;/b&gt;</source>
+        <translation>Options de calcul</translation>
+    </message>
 </context>
 <context>
     <name>CentralW</name>
     <message>
-        <location filename="Main_windows_1.py" line="1679"/>
+        <location filename="Main_windows_1.py" line="1731"/>
         <source>Log of HABBY started. &lt;br&gt;</source>
         <translation>Début du log d&apos;HABBY &lt;br&gt;</translation>
     </message>
     <message>
         <location filename="Main_windows_1.py" line="1710"/>
         <source>Project file not found</source>
-        <translation>Fichier de projet non trouvé</translation>
+        <translation type="obsolete">Fichier de projet non trouvé</translation>
     </message>
     <message>
         <location filename="Main_windows_1.py" line="1711"/>
         <source>The xml project file does not exists. 
  Create or open a new project.</source>
-        <translation>Le fichier de projet xml n&apos;existe pas. Créez ou ouvrez un nouveau projet.</translation>
+        <translation type="obsolete">Le fichier de projet xml n&apos;existe pas. Créez ou ouvrez un nouveau projet.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1728"/>
+        <location filename="Main_windows_1.py" line="1781"/>
         <source>HABBY says:</source>
         <translation>HABBY dit:</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1783"/>
+        <location filename="Main_windows_1.py" line="1835"/>
         <source>Start</source>
         <translation>Accueil</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1768"/>
+        <location filename="Main_windows_1.py" line="1821"/>
         <source>Hydraulic</source>
         <translation>Hydraulique</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1769"/>
+        <location filename="Main_windows_1.py" line="1822"/>
         <source>Substrate</source>
         <translation>Substrat</translation>
     </message>
@@ -155,51 +160,66 @@
         <translation type="obsolete">Biologie</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1772"/>
+        <location filename="Main_windows_1.py" line="1825"/>
         <source>ESTIMHAB</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1773"/>
+        <location filename="Main_windows_1.py" line="1826"/>
         <source>STATHAB</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1774"/>
+        <location filename="Main_windows_1.py" line="1827"/>
         <source>FStress</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1778"/>
+        <location filename="Main_windows_1.py" line="1830"/>
         <source>Research 1</source>
         <translation>Recherche 1</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1779"/>
+        <location filename="Main_windows_1.py" line="1831"/>
         <source>Research 2</source>
         <translation>Recherche 2</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1771"/>
+        <location filename="Main_windows_1.py" line="1824"/>
         <source>Habitat Calc.</source>
         <translation>Calc. Habitat.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1775"/>
+        <location filename="Main_windows_1.py" line="1828"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2055"/>
+        <location filename="Main_windows_1.py" line="2107"/>
         <source>Error: Project is not saved. 
 </source>
         <translation>Erreur: le project n&apos;est pas sauvé. 
 </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1770"/>
+        <location filename="Main_windows_1.py" line="1823"/>
         <source>Chronicles</source>
         <translation>Chroniques</translation>
+    </message>
+    <message>
+        <location filename="Main_windows_1.py" line="1762"/>
+        <source>First time with habby ?</source>
+        <translation type="obsolete">Premier lancement d&apos;HABBY ?</translation>
+    </message>
+    <message>
+        <location filename="Main_windows_1.py" line="1763"/>
+        <source>Create or open a project.</source>
+        <translation>Créer ou ouvrer un projet</translation>
+    </message>
+    <message>
+        <location filename="Main_windows_1.py" line="1762"/>
+        <source>First time with HABBY ?</source>
+        <translation type="unfinished">Premier lancement d&apos;HABBY ?           </translation>
     </message>
 </context>
 <context>
@@ -280,34 +300,39 @@
         <location filename="chronicle_GUI.py" line="636"/>
         <source>The created file is ready for habitat         calculation and has been added to the &apos;Habitat Calc.&apos; tab. 
 </source>
-        <translation>Le fichier créé est prêt pour le calcul d&apos;habitat et a été ajouté à l&apos;onglet &apos;Habitat Calc.&apos; 
+        <translation type="obsolete">Le fichier créé est prêt pour le calcul d&apos;habitat et a été ajouté à l&apos;onglet &apos;Habitat Calc.&apos; 
 </translation>
+    </message>
+    <message>
+        <location filename="chronicle_GUI.py" line="740"/>
+        <source>The created file is ready for habitat         calculation and has been added to the &apos;Habitat Calc.&apos; tab. (Chronic_</source>
+        <translation></translation>
     </message>
 </context>
 <context>
     <name>CreateNewProject</name>
     <message>
-        <location filename="Main_windows_1.py" line="1566"/>
+        <location filename="Main_windows_1.py" line="1618"/>
         <source> &lt;b&gt; Create a new project &lt;/b&gt;</source>
         <translation> &lt;b&gt; Créer un nouveau projet &lt;/br&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1567"/>
+        <location filename="Main_windows_1.py" line="1619"/>
         <source>Project Name: </source>
         <translation>Nom du Projet: </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1569"/>
+        <location filename="Main_windows_1.py" line="1621"/>
         <source>Main Folder: </source>
         <translation>Dossier de Projet: </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1571"/>
+        <location filename="Main_windows_1.py" line="1623"/>
         <source>Set Folder</source>
         <translation>Choisir un Dossier</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1573"/>
+        <location filename="Main_windows_1.py" line="1625"/>
         <source>Save project</source>
         <translation>Sauver le projet</translation>
     </message>
@@ -317,12 +342,12 @@
         <translation type="obsolete">HABBY- NOUVEAU PROJET</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1597"/>
+        <location filename="Main_windows_1.py" line="1649"/>
         <source>Open Directory</source>
         <translation>Ouvrir le dossier</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1588"/>
+        <location filename="Main_windows_1.py" line="1640"/>
         <source>HABBY- New Project</source>
         <translation>HABBY- Nouveau Projet</translation>
     </message>
@@ -330,12 +355,12 @@
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="Main_windows_1.py" line="2354"/>
+        <location filename="Main_windows_1.py" line="2406"/>
         <source>I am a tab</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2357"/>
+        <location filename="Main_windows_1.py" line="2409"/>
         <source>I am really</source>
         <translation></translation>
     </message>
@@ -1122,32 +1147,32 @@
 <context>
     <name>MainWindows</name>
     <message>
-        <location filename="Main_windows_1.py" line="410"/>
+        <location filename="Main_windows_1.py" line="411"/>
         <source>Exit</source>
         <translation>Sortie</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="412"/>
+        <location filename="Main_windows_1.py" line="413"/>
         <source>Exit application</source>
         <translation>Sortir de l&apos;application</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="588"/>
+        <location filename="Main_windows_1.py" line="636"/>
         <source>Open Project</source>
         <translation>Ouvrir un Projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="416"/>
+        <location filename="Main_windows_1.py" line="417"/>
         <source>Open an exisiting project</source>
         <translation>Ouvrir un projet existant</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="592"/>
+        <location filename="Main_windows_1.py" line="640"/>
         <source>New Project</source>
         <translation>Nouveau projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="593"/>
+        <location filename="Main_windows_1.py" line="641"/>
         <source>Create a new project</source>
         <translation>Créer un nouveau projet</translation>
     </message>
@@ -1162,7 +1187,7 @@
         <translation type="obsolete">Sauver le projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="437"/>
+        <location filename="Main_windows_1.py" line="438"/>
         <source>Close Project</source>
         <translation>Fermer le Projet</translation>
     </message>
@@ -1172,32 +1197,32 @@
         <translation type="obsolete">Ferme le projet actuel sans en ouvirir un nouveau.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="443"/>
+        <location filename="Main_windows_1.py" line="444"/>
         <source>Clear Log Windows</source>
         <translation>Effacer la fenêtre du log/registre</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="444"/>
+        <location filename="Main_windows_1.py" line="445"/>
         <source>Empty the log windows at the bottom of the main window. Do not erase the .log file.</source>
         <translation>Efface la fenêtre du registre (ou log) qui se trouve en bas de la fenêtre principale d&apos;HABBY. Cette commande n&apos;efface pas le fichier qui contient les infos sur le log.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="447"/>
+        <location filename="Main_windows_1.py" line="448"/>
         <source>Do Not Save Log</source>
         <translation>Ne pas sauver le registre (log)</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="448"/>
+        <location filename="Main_windows_1.py" line="449"/>
         <source>The .log file will not be updated further.</source>
         <translation>The fichier &quot;registre&quot; ne sera plus mis à jour.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="450"/>
+        <location filename="Main_windows_1.py" line="451"/>
         <source>Save Log</source>
         <translation>Sauver le Registre</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="451"/>
+        <location filename="Main_windows_1.py" line="452"/>
         <source>Events will be written to the .log file.</source>
         <translation>Les évenements seront écrit au registre (log).</translation>
     </message>
@@ -1207,7 +1232,7 @@
         <translation type="obsolete">Effacer les images et les  fichiers hdf5</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="454"/>
+        <location filename="Main_windows_1.py" line="455"/>
         <source>Figures saved by HABBY will be deleted</source>
         <translation>Les figures sauvées par HABBY seront effacées</translation>
     </message>
@@ -1222,122 +1247,117 @@
         <translation type="obsolete">Ouvre la fenêtre pour voir les figures créées</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="463"/>
+        <location filename="Main_windows_1.py" line="464"/>
         <source>More Options</source>
         <translation>Plus d&apos;Options</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="464"/>
+        <location filename="Main_windows_1.py" line="465"/>
         <source>Various options to modify the figures produced by HABBY.</source>
         <translation>Options diverses pour modifier les figures produites par HABBY.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="467"/>
+        <location filename="Main_windows_1.py" line="468"/>
         <source>Show Research Options</source>
         <translation>Montrer les options &quot;recherche&quot;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="469"/>
+        <location filename="Main_windows_1.py" line="470"/>
         <source>Add untested research options</source>
         <translation>Ajouter les options &quot;recherche&quot; non testées</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="471"/>
+        <location filename="Main_windows_1.py" line="472"/>
         <source>Hide Research Options</source>
         <translation>Cacher les options &quot;recherche&quot;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="473"/>
+        <location filename="Main_windows_1.py" line="474"/>
         <source>Hide untested research options</source>
         <translation>Cache les options &quot;recherche&quot;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="477"/>
+        <location filename="Main_windows_1.py" line="478"/>
         <source>&amp;English</source>
         <translation>&amp;Anglais</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="478"/>
+        <location filename="Main_windows_1.py" line="479"/>
         <source>click here for English</source>
         <translation>Cliquez ici pour avoir la version anglaise d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="480"/>
+        <location filename="Main_windows_1.py" line="481"/>
         <source>&amp;French</source>
         <translation>&amp;Français</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="481"/>
+        <location filename="Main_windows_1.py" line="482"/>
         <source>click here for French</source>
         <translation>Cliquez ici pour avoir la version française d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="504"/>
+        <location filename="Main_windows_1.py" line="506"/>
         <source>Help</source>
         <translation>Aide</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="489"/>
+        <location filename="Main_windows_1.py" line="490"/>
         <source>Get help to use the programme</source>
         <translation>Obtenir de l&apos;aide pour utiliser le programme HABBY</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="501"/>
+        <location filename="Main_windows_1.py" line="502"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="508"/>
+        <location filename="Main_windows_1.py" line="510"/>
         <source>Open Recent Project</source>
         <translation>Ouvrir un Projet Récent</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="502"/>
+        <location filename="Main_windows_1.py" line="503"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="514"/>
+        <location filename="Main_windows_1.py" line="516"/>
         <source>Log</source>
         <translation>Registre</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="518"/>
+        <location filename="Main_windows_1.py" line="520"/>
         <source>Image options</source>
         <translation>Options pour les images</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="523"/>
+        <location filename="Main_windows_1.py" line="525"/>
         <source>Research options</source>
         <translation>Options &quot;Recherche&quot;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="503"/>
+        <location filename="Main_windows_1.py" line="504"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="654"/>
+        <location filename="Main_windows_1.py" line="702"/>
         <source>Path to project</source>
         <translation>Chemin d&apos;accès au projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="655"/>
+        <location filename="Main_windows_1.py" line="703"/>
         <source>The directory indicated in the project path does not exists. Project not saved.</source>
         <translation>Le dossier indiqué dans le fichier projet n&apos;existe pas. Le projet n&apos;est pas sauvé.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="918"/>
-        <source>XML (*.xml)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="Main_windows_1.py" line="1105"/>
+        <location filename="Main_windows_1.py" line="1153"/>
         <source>Start</source>
         <translation>Accueil</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1188"/>
+        <location filename="Main_windows_1.py" line="1236"/>
         <source>Erase old project?</source>
         <translation>Effacer l&apos;ancien projet?</translation>
     </message>
@@ -1347,57 +1367,57 @@
         <translation type="obsolete">Un projet avec un nom identique existe? Est-ce qu&apos;il faut effacer ce projet definitivement?</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1179"/>
+        <location filename="Main_windows_1.py" line="1227"/>
         <source>Change Project name</source>
         <translation>Changer le Nom du Projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1179"/>
+        <location filename="Main_windows_1.py" line="1227"/>
         <source>Enter the new project name:</source>
         <translation>Donnez le nouveau nom du projet:</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1368"/>
+        <location filename="Main_windows_1.py" line="1420"/>
         <source>Save project</source>
         <translation>Sauver le projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1369"/>
+        <location filename="Main_windows_1.py" line="1421"/>
         <source>The project is not saved. Save the project in the start tab before saving ESTIMHAB data</source>
         <translation>Le projet n&apos;est pas sauvé. Sauver le projet dans le tab &quot;Accueil&quot; avant de sauver des données ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1403"/>
+        <location filename="Main_windows_1.py" line="1455"/>
         <source>Data for ESTIMHAB</source>
         <translation>Données pour ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1405"/>
+        <location filename="Main_windows_1.py" line="1457"/>
         <source>Data cannot be converted to float.</source>
         <translation>Une entrée ne peut pas être convertie en donnée numérique.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1406"/>
+        <location filename="Main_windows_1.py" line="1458"/>
         <source>First problematic data is </source>
         <translation>La première donnée problématique est </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1409"/>
+        <location filename="Main_windows_1.py" line="1461"/>
         <source>Data is empty or partially empty. Data is saved, but cannot be executed</source>
         <translation>Les données sont totallement ou partiellement vide. Les données ont été sauvées, mais elle ne sont pas suffisantes pour exectuer ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1442"/>
+        <location filename="Main_windows_1.py" line="1494"/>
         <source>Log erased in this window.&lt;br&gt;</source>
         <translation>Registre effacé dans cette fenêtre &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1455"/>
+        <location filename="Main_windows_1.py" line="1507"/>
         <source>This log will not be saved anymore in the .log file. &lt;br&gt;</source>
         <translation>Le registre ne sera plus sauvé dans le fichier log depuis maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1455"/>
+        <location filename="Main_windows_1.py" line="1507"/>
         <source>This log will not be saved anymore in the restart file. &lt;br&gt;</source>
         <translation>Le registre ne sera plus sauvé dans le fichier restart depuis maintenant. &lt;br&gt;</translation>
     </message>
@@ -1407,79 +1427,79 @@
         <translation type="obsolete">Le registre sera sauvé dans le fichier &quot;log&quot; depuis maintenant. &lt;br&gt;Le registre sera sauvé dans le fichier &quot;restart&quot; depuis maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1474"/>
+        <location filename="Main_windows_1.py" line="1526"/>
         <source>Log Info</source>
         <translation>Information Registre</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1475"/>
+        <location filename="Main_windows_1.py" line="1527"/>
         <source>Information related to the .log file are incomplete. Please check.</source>
         <translation>Les informations liées au fichier log sont incomplète. Il est nécessaire de corriger cela.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1502"/>
+        <location filename="Main_windows_1.py" line="1554"/>
         <source>Save Hydrological Data</source>
         <translation>Sauver les Données Hydrauliques</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1503"/>
+        <location filename="Main_windows_1.py" line="1555"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation>Le projet n&apos;est pas sauvé. Sauver le projet dans le tab &quot;Accueil&quot; avant de sauver des données.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1510"/>
+        <location filename="Main_windows_1.py" line="1562"/>
         <source>Delete figure</source>
         <translation>Effacer les Images</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1511"/>
+        <location filename="Main_windows_1.py" line="1563"/>
         <source>Are you sure that you want to delete all file in the folder: 
 </source>
         <translation>Etes-vous sûr de vouloir effacer tous les fichiers dans le dossier: 
 </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1526"/>
+        <location filename="Main_windows_1.py" line="1578"/>
         <source>Images deleted. &lt;br&gt;</source>
         <translation>Image effacée</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="377"/>
+        <location filename="Main_windows_1.py" line="378"/>
         <source>Habby says:</source>
         <translation>Log  Habby:</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="439"/>
+        <location filename="Main_windows_1.py" line="440"/>
         <source>Close the current project without opening a new one</source>
         <translation>Ferme le projet actuel sans en ouvrir un nouveau</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="453"/>
+        <location filename="Main_windows_1.py" line="454"/>
         <source>Delete All Images</source>
         <translation>Effacer toutes les images</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="459"/>
+        <location filename="Main_windows_1.py" line="460"/>
         <source>Close All Images</source>
         <translation>Fermer Toutes les Images</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="460"/>
+        <location filename="Main_windows_1.py" line="461"/>
         <source>Close the figures which are currently created.</source>
         <translation>Ferme les images en cours de création.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="488"/>
+        <location filename="Main_windows_1.py" line="489"/>
         <source>Developper Help</source>
         <translation>Aide pour les Développeurs</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="589"/>
+        <location filename="Main_windows_1.py" line="637"/>
         <source>Open an existing project</source>
         <translation>Ouvrir un projet existant</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="596"/>
+        <location filename="Main_windows_1.py" line="644"/>
         <source>See Files of the Current Project</source>
         <translation>Voir les fichiers du projet courant</translation>
     </message>
@@ -1489,81 +1509,86 @@
         <translation type="obsolete">Voir les fichiers du projet courant dans le dossier du projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="600"/>
+        <location filename="Main_windows_1.py" line="648"/>
         <source>Close Figures</source>
         <translation>Fermer les Figures</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="601"/>
+        <location filename="Main_windows_1.py" line="649"/>
         <source>Close all figures</source>
         <translation>Fermer toutes les figures</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1124"/>
+        <location filename="Main_windows_1.py" line="1172"/>
         <source>Permission Error</source>
         <translation>Erreur de Permission</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1125"/>
+        <location filename="Main_windows_1.py" line="1173"/>
         <source>You do not have the permission to write in this folder. Choose another folder. 
 </source>
         <translation>Vous n&apos;avez pas la permission pour écrire dans ce dossier. Choissiez un autre dossier. 
 </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1141"/>
+        <location filename="Main_windows_1.py" line="1189"/>
         <source>Identical name</source>
         <translation>Nom Identique</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1189"/>
+        <location filename="Main_windows_1.py" line="1237"/>
         <source>A project with an identical name exists. Choose another name.</source>
         <translation>Un projet avec un nom identique existe. Choissiez un autre nom.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1277"/>
+        <location filename="Main_windows_1.py" line="966"/>
         <source>Open File</source>
-        <translation>Ouvrir un fichier</translation>
+        <translation>Ouverture fichier</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1424"/>
+        <location filename="Main_windows_1.py" line="1476"/>
         <source>Research 1</source>
         <translation>Recherche 1</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1425"/>
+        <location filename="Main_windows_1.py" line="1477"/>
         <source>Research 2</source>
         <translation>Recherche 2</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="483"/>
+        <location filename="Main_windows_1.py" line="484"/>
         <source>&amp;Spanish</source>
         <translation>&amp;Espagnol</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="484"/>
+        <location filename="Main_windows_1.py" line="485"/>
         <source>click here for Spanish</source>
         <translation>cliquez ici pour l&apos;espagnol</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1460"/>
+        <location filename="Main_windows_1.py" line="1512"/>
         <source>This log will be saved in the .log file.&lt;br&gt; This log will be saved in the restart file. &lt;br&gt;</source>
         <translation>Le registre sera sauvé dans le fichier &quot;log&quot; depuis maintenant. &lt;br&gt;Le registre sera sauvé dans le fichier &quot;restart&quot; depuis maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="905"/>
+        <location filename="Main_windows_1.py" line="953"/>
         <source>HABBY </source>
         <translation>HABBY </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="597"/>
+        <location filename="Main_windows_1.py" line="645"/>
         <source>See the existing file of a project and open them.</source>
         <translation>Voir le fichier existant du projet et l&apos;ouvrir.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="1326"/>
+        <location filename="Main_windows_1.py" line="1378"/>
         <source>The project is not saved. Save the project in the                 start tab before saving ESTIMHAB data</source>
         <translation>Le projet n&apos;est pas sauvé. Sauvez les projet dans l&apos;onglet de démarrage avant de sauver les données ESTIMHAB</translation>
+    </message>
+    <message>
+        <location filename="Main_windows_1.py" line="505"/>
+        <source>View</source>
+        <translation>Vue</translation>
     </message>
 </context>
 <context>
@@ -1626,7 +1651,7 @@
     <message>
         <location filename="hydro_GUI_2.py" line="1566"/>
         <source>Load .txt</source>
-        <translation type="unfinished">Charger .txt</translation>
+        <translation>Charger .txt</translation>
     </message>
     <message>
         <location filename="hydro_GUI_2.py" line="1572"/>
@@ -2032,27 +2057,27 @@
 <context>
     <name>ShowImageW</name>
     <message>
-        <location filename="Main_windows_1.py" line="2441"/>
+        <location filename="Main_windows_1.py" line="2493"/>
         <source>ALL FIGURES</source>
         <translation>TOUTES FIGURES</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2472"/>
+        <location filename="Main_windows_1.py" line="2524"/>
         <source>Open Directory</source>
         <translation>Ouvrir le dossier</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2481"/>
+        <location filename="Main_windows_1.py" line="2533"/>
         <source>Change Folder</source>
         <translation>Changer le dossier</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2482"/>
+        <location filename="Main_windows_1.py" line="2534"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation>Le projet n&apos;est pas sauvé. Sauver le projet dans le tab &quot;Accueil&quot; avant de sauver des données.</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2513"/>
+        <location filename="Main_windows_1.py" line="2565"/>
         <source>Available figures</source>
         <translation>Figures disponibles</translation>
     </message>
@@ -2331,7 +2356,7 @@
         <translation>Nom du fichier hdf5</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3570"/>
+        <location filename="hydro_GUI_2.py" line="3572"/>
         <source>Default substrate value:</source>
         <translation>Valeur de substrat par défaut:</translation>
     </message>
@@ -2381,32 +2406,32 @@
         <translation type="obsolete">Données hydrauliques (hdf5) </translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3562"/>
+        <location filename="hydro_GUI_2.py" line="3563"/>
         <source>Substrate data (hdf5)</source>
         <translation>Données de substrat (hdf5)</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3565"/>
+        <location filename="hydro_GUI_2.py" line="3566"/>
         <source>Merge grid and create hdf5</source>
         <translation>Fusionner les grilles et creér un hdf5</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3774"/>
+        <location filename="hydro_GUI_2.py" line="3776"/>
         <source>Dominant substrate</source>
         <translation>Substrat dominant</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3775"/>
+        <location filename="hydro_GUI_2.py" line="3777"/>
         <source>Our analysis found that the dominant substrate of certain substrate cells cannot be determined. Indeed, the maximum percentage of two or more classes are equal. In these cases, should we take the larger or the smaller substrate class?</source>
         <translation>Notre analyse a montré que le substrat dominant ne pouvait pas être determiné pour certaines cellules. En effet, le pourcentage maximum de deux classes ou plus sont égale. Est-ce qu&apos;on prend la plus grande ou la plus petite classe de substrate dans ces cas?</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3779"/>
+        <location filename="hydro_GUI_2.py" line="3781"/>
         <source>Larger</source>
         <translation>Plus grande</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3780"/>
+        <location filename="hydro_GUI_2.py" line="3782"/>
         <source>Smaller</source>
         <translation>Plus petite</translation>
     </message>
@@ -2416,7 +2441,7 @@
         <translation type="obsolete"># Charger le substrat (shapefile)</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3957"/>
+        <location filename="hydro_GUI_2.py" line="3959"/>
         <source># Load: Substrate data - text file</source>
         <translation># Charger le substrat (Texte)</translation>
     </message>
@@ -2441,52 +2466,52 @@
         <translation>&lt;b&gt; Substrat depuis un Fichier &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3568"/>
+        <location filename="hydro_GUI_2.py" line="3570"/>
         <source>Create figure again</source>
         <translation>Recréer les figures</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3560"/>
+        <location filename="hydro_GUI_2.py" line="3561"/>
         <source>&lt;b&gt; Merge the hydraulic and substrate grid &lt;/b&gt;</source>
         <translation>&lt;b&gt; Fusionner les données hydrauliques et de substrat&lt;b&gt;</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3561"/>
+        <location filename="hydro_GUI_2.py" line="3562"/>
         <source>Hydraulic data (hdf5)</source>
         <translation>Données hydraulique (hdf5)</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3576"/>
+        <location filename="hydro_GUI_2.py" line="3578"/>
         <source>Last file created</source>
         <translation>Dernier fichier créé</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3579"/>
+        <location filename="hydro_GUI_2.py" line="3581"/>
         <source>No file</source>
         <translation>Pas de fichier</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3708"/>
+        <location filename="hydro_GUI_2.py" line="3710"/>
         <source># Loading: Substrate data...</source>
         <translation># Chargement: Substrat...</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3731"/>
+        <location filename="hydro_GUI_2.py" line="3733"/>
         <source># Substrate data type: constant value</source>
         <translation># Type de substrat: valeur constante</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3807"/>
+        <location filename="hydro_GUI_2.py" line="3809"/>
         <source># Substrate data type: Shapefile</source>
         <translation># Type de substrat: Shapefile</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3839"/>
+        <location filename="hydro_GUI_2.py" line="3841"/>
         <source># Substrate data type: text file</source>
         <translation># Type de substrat: fichier texte</translation>
     </message>
     <message>
-        <location filename="hydro_GUI_2.py" line="3571"/>
+        <location filename="hydro_GUI_2.py" line="3573"/>
         <source>Cemagref Code</source>
         <translation>Cemagref Code</translation>
     </message>
@@ -2577,12 +2602,12 @@
         <translation type="obsolete">&lt;b&gt; HABBY - Commencer ici &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2193"/>
+        <location filename="Main_windows_1.py" line="2245"/>
         <source>Open Exisiting Project</source>
         <translation>Ouvrir un projet existant</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2195"/>
+        <location filename="Main_windows_1.py" line="2247"/>
         <source>New Project</source>
         <translation>Nouveau Projet</translation>
     </message>
@@ -2592,22 +2617,22 @@
         <translation type="obsolete">Ouvrir un projet d&apos;exemple</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2203"/>
+        <location filename="Main_windows_1.py" line="2255"/>
         <source> &lt;b&gt; Current Project &lt;/b&gt;</source>
         <translation> &lt;b&gt; Projet actuel &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2204"/>
+        <location filename="Main_windows_1.py" line="2256"/>
         <source>Project Name: </source>
         <translation>Nom du Projet: </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2206"/>
+        <location filename="Main_windows_1.py" line="2258"/>
         <source>Main Folder: </source>
         <translation>Dossier de Projet: </translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2208"/>
+        <location filename="Main_windows_1.py" line="2260"/>
         <source>Set Folder</source>
         <translation>Choisir un Dossier</translation>
     </message>
@@ -2617,12 +2642,12 @@
         <translation type="obsolete">Changer le Nom du Projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2212"/>
+        <location filename="Main_windows_1.py" line="2264"/>
         <source>Description: </source>
         <translation></translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2217"/>
+        <location filename="Main_windows_1.py" line="2269"/>
         <source>User Name: </source>
         <translation>Nom de l&apos;Utilisateur: </translation>
     </message>
@@ -2632,12 +2657,12 @@
         <translation type="obsolete">Sauver les Informations du Projet</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2294"/>
+        <location filename="Main_windows_1.py" line="2346"/>
         <source>Open Directory</source>
         <translation>Ouvrir le dossier</translation>
     </message>
     <message>
-        <location filename="Main_windows_1.py" line="2210"/>
+        <location filename="Main_windows_1.py" line="2262"/>
         <source>Move the project to a new location. The data might be long to copy if the project folder is large.</source>
         <translation>Déplacer le projet vers un nouvel emplacement. La copie du projet peut être longue si les données sont larges.</translation>
     </message>

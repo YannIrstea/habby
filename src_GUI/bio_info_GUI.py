@@ -105,7 +105,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.list_f.setMinimumWidth(280)
 
         # run habitat value
-        self.l9 = QLabel(' <b> Options for the computation </b>')
+        self.l9 = QLabel(self.tr(' <b> Options for the computation </b>'))
         self.l9.setAlignment(Qt.AlignBottom)
         self.choice_run = QComboBox()
         self.choice_run.addItems(self.all_run_choice)
@@ -199,7 +199,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.keys = QComboBox()
         self.keys.addItems(self.attribute_acc[:-1])
         self.keys.currentIndexChanged.connect(self.get_autocompletion)
-        l02 = QLabel('is equal to')
+        l02 = QLabel(" = ")
         l02.setAlignment(Qt.AlignCenter)
         self.cond1 = QLineEdit()
         self.cond1.returnPressed.connect(self.next_completion)
