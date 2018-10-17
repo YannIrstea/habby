@@ -14,7 +14,7 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from sys import platform
+from platform import system as operatingsystem
 from subprocess import call
 import glob
 import os
@@ -88,6 +88,14 @@ class MainWindows(QMainWindow):
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
         self.version = 0.24
+
+        # operating system
+        if operatingsystem() == 'Linux':
+            self.operatingsystemactual = 'Linux'
+        if operatingsystem() == 'Windows':
+            self.operatingsystemactual = 'Windows'
+        if operatingsystem() == 'Darwin':
+            self.operatingsystemactual = 'Darwin'
 
         # load user setting
         self.settings = QSettings('irstea', 'HABBY' + str(self.version))
@@ -1319,15 +1327,12 @@ class MainWindows(QMainWindow):
         """
         This function allows the user to see the files in the project folder and to open them.
         """
-
-        # file_name = QFileDialog.getOpenFileName(self, self.tr('Open File'), self.path_prj)[0]
-
-        # if file_name:
-        #    wbopen(file_name)
-        if platform == 'linux2':
+        if self.operatingsystemactual == 'Linux':
             call(["xdg-open", os.path.normpath(self.path_prj)])
-        else:
+        if self.operatingsystemactual == 'Windows':
             call(['explorer', os.path.normpath(self.path_prj)])
+        if self.operatingsystemactual == 'Darwin':
+            call(['open', os.path.normpath(self.path_prj)])
 
     def save_project_estimhab(self):
         """
