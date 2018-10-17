@@ -1609,9 +1609,9 @@ class CreateNewProject(QWidget):
         if oldpath_prj and os.path.isdir(oldpath_prj):
             self.default_fold = os.path.dirname(oldpath_prj)
         else:
-            self.default_fold = os.getcwd()
+            self.default_fold = os.path.expanduser("~")
         if self.default_fold == '':
-            self.default_fold = os.getcwd()
+            self.default_fold = os.path.expanduser("~")
         self.default_name = 'DefaultProj'
         super().__init__()
 
