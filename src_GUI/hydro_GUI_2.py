@@ -488,7 +488,7 @@ class SubHydroW(QWidget):
             for e in self.extension[i]:
                 filter2 += '*'+e+' '
             filter2 = filter2[:-1]
-            filter2 += ')'
+            filter2 += ')' + ";; All File (*.*)"
         else:
             filter2 = ''
 
@@ -513,6 +513,12 @@ class SubHydroW(QWidget):
             blob, ext = os.path.splitext(filename)
             if any(e in ext for e in extension_i):
                 pass
+            if ext == '':  # no extension
+                self.msg2.setIcon(QMessageBox.Warning)
+                self.msg2.setWindowTitle(self.tr("File type"))
+                self.msg2.setText(self.tr("The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(extension_i)))
+                self.msg2.setStandardButtons(QMessageBox.Ok)
+                self.msg2.show()
             else:
                 self.msg2.setIcon(QMessageBox.Warning)
                 self.msg2.setWindowTitle(self.tr("File type"))
@@ -2459,7 +2465,7 @@ class TELEMAC(SubHydroW):
         # update the attibutes
         self.attributexml = ['telemac_data']
         self.model_type = 'TELEMAC'
-        self.extension = [['.res', '.slf']]
+        self.extension = [['.res', '.slf', '.srf']]
         self.nb_dim = 2
 
         # if there is the project file with telemac info, update
@@ -2469,7 +2475,7 @@ class TELEMAC(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry and output data </b>'))
-        self.h2d_b = QPushButton(self.tr('Choose file (.slf, .res)'), self)
+        self.h2d_b = QPushButton(self.tr('Choose file (.slf, .srf, .res)'), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
         self.h2d_b.clicked.connect(
             lambda: self.h2d_t2.setText(self.namefile[0]))
