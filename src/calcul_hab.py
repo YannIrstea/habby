@@ -1205,6 +1205,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             ax.add_collection(collection)
                             ax.autoscale_view()
                             ax.ticklabel_format(useOffset=False)
+                            plt.axis('equal')
                             # cbar = plt.colorbar()
                             # cbar.ax.set_ylabel('Substrate')
                             if r == 0:

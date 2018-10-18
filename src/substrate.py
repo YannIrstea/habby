@@ -952,6 +952,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     sub1 = fig.add_subplot(211)
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map1'])
+    plt.axis('equal')
     colors_val = np.array(sub_pg) # convert nfloors to colors that we can use later (cemagref)
     # Set norm to correspond to the data for which
     # the colorbar will be used.
@@ -1006,6 +1007,7 @@ def fig_substrate(coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt = [-
     sub2.add_collection(collection)
     collection.set_array(colors_val)
     sub2.autoscale_view()
+    plt.axis('equal')
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')
     #sub2.plot(xlist, ylist, c='b', linewidth=0.2)

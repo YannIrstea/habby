@@ -2265,6 +2265,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
 
             plt.plot(xlist, ylist, '-b', linewidth=0.1)
             plt.ticklabel_format(useOffset=False)
+            plt.axis('equal')
             # to add water value on grid point (usualy to debug)
             # for idx, c in enumerate(coord_p):
             #     plt.annotate(str(inter_h_all[r][idx]),c)
@@ -2344,6 +2345,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 sc = plt.tricontourf(point_here[:, 0], point_here[:, 1],
                                      ikle_all[r], inter_vel, cmap=cm,
                                      levels=bounds, extend='both')
+                plt.axis('equal')
                 if r == len(inter_vel_all) - 1:
                     # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
@@ -2423,6 +2425,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
                 inter_h[inter_h < 0] = 0
                 sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm,
                                      vmin=0, vmax=mvc,levels=bounds, extend='both')
+                plt.axis('equal')
                 if r == len(inter_h_all) - 1:
                     cbar = plt.colorbar(sc)
                     if fig_opt['language'] == 0:
