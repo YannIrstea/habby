@@ -511,20 +511,22 @@ class SubHydroW(QWidget):
             # check extension
             extension_i = self.extension[i]
             blob, ext = os.path.splitext(filename)
-            if any(e in ext for e in extension_i):
+            if any(e in ext for e in extension_i):  # extension known
                 pass
-            if ext == '':  # no extension
-                self.msg2.setIcon(QMessageBox.Warning)
-                self.msg2.setWindowTitle(self.tr("File type"))
-                self.msg2.setText(self.tr("The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(extension_i)))
-                self.msg2.setStandardButtons(QMessageBox.Ok)
-                self.msg2.show()
             else:
-                self.msg2.setIcon(QMessageBox.Warning)
-                self.msg2.setWindowTitle(self.tr("File type"))
-                self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
-                self.msg2.setStandardButtons(QMessageBox.Ok)
-                self.msg2.show()
+                if ext == '':  # no extension
+                    self.msg2.setIcon(QMessageBox.Warning)
+                    self.msg2.setWindowTitle(self.tr("File type"))
+                    self.msg2.setText(self.tr("The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(extension_i)))
+                    self.msg2.setStandardButtons(QMessageBox.Ok)
+                    self.msg2.show()
+                else:  # no extension known (if not any(e in ext for e in extension_i))
+                    self.msg2.setIcon(QMessageBox.Warning)
+                    self.msg2.setWindowTitle(self.tr("File type"))
+                    self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
+                    self.msg2.setStandardButtons(QMessageBox.Ok)
+                    self.msg2.show()
+
             # keep the name in an attribute until we save it
             if i >= len(self.pathfile) or len(self.pathfile) == 0:
                 self.pathfile.append(os.path.dirname(filename_path))
