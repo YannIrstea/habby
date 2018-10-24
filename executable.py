@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # Python 3
 
+
+
 import sys
 import os
 import os.path
@@ -17,9 +19,9 @@ os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
 path = sys.path
 # python modules if cx_freeze does not find them
 includes = ['numpy.core._methods', 'numpy.lib.format',
-            'matplotlib.backends.backend_qt5agg']
+            'matplotlib.backends.backend_qt5agg', 'matplotlib.backends.backend_pdf', 'scipy.sparse.csgraph._validation']
 # exclusion
-excludes = ['scipy.spatial.cKDTree']
+excludes = ['scipy.spatial.cKDTree'] # 
 # package
 packages = []
 # include files
@@ -58,10 +60,14 @@ if sys.platform == "win32":
 #
 # Targets
 #
+
 base = None
+#************************* to see error in windows console set this two lines in comment : ***********************#
 if sys.platform == "win32":
     base = "Win32GUI"  # graphical app
+#****************************************************************************************************************#
     # base = "Console"  # text app
+
 # icon
 ico = None
 if sys.platform == "win32":
