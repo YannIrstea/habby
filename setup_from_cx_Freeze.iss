@@ -23,7 +23,7 @@ DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=C:\habby\Licence_CeCILL_V2.1-fr.txt
 InfoBeforeFile=C:\habby\disclamer.txt
-OutputDir=C:\habby\build
+OutputDir=C:\habby\build\cx_Freeze
 OutputBaseFilename=habby_setup
 Compression=lzma
 SolidCompression=yes
@@ -37,8 +37,8 @@ Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\habby\build\exe.win-amd64-3.6\habby.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\habby\build\exe.win-amd64-3.6\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\habby\build\cx_Freeze\exe.win-amd64-3.6\habby.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\habby\build\cx_Freeze\exe.win-amd64-3.6\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

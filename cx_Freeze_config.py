@@ -17,15 +17,17 @@ os.environ['TK_LIBRARY'] = os.path.join(PYTHON_INSTALL_DIR, 'tcl', 'tk8.6')
 # Options
 #
 path = sys.path
+
 # python modules if cx_freeze does not find them
-includes = ['numpy.core._methods', 'numpy.lib.format',
-            'matplotlib.backends.backend_qt5agg', 'matplotlib.backends.backend_pdf', 'scipy.sparse.csgraph._validation']
+includes = ['numpy.core._methods', 'numpy.lib.format', 'matplotlib.backends.backend_qt5agg', 'matplotlib.backends.backend_pdf', 'scipy.sparse.csgraph._validation']
 # exclusion
 excludes = ['scipy.spatial.cKDTree'] # 
 # package
 packages = []
 # include files
 includefiles = []
+
+
 if sys.platform == "win32":
     pass
     # includefiles += [...]
@@ -35,14 +37,19 @@ elif sys.platform == "linux2":
 else:
     pass
     # includefiles += [...]
+
+	
 # Linux libraries
 binpathincludes = []
 if sys.platform == "linux2":
     binpathincludes += ["/usr/lib"]
+
 # optimization level (bytecode)
 optimize = 0
+
 # verbose mode
-silent = True
+silent = False
+
 # dictionary of the options
 options = {"path": path,
            "includes": includes,
@@ -53,7 +60,8 @@ options = {"path": path,
            "optimize": optimize,
            "silent": silent
            }
-# Windows dll
+
+		   # Windows dll
 if sys.platform == "win32":
     options["include_msvcr"] = True
 
