@@ -1,4 +1,5 @@
 ECHO OFF
+set /p VarQuestion= Do you want to create an installer after the creation of the executable ? (y/n) : 
 
 ECHO if build\pyinstaller folder exist, remove it
 if exist build\pyinstaller rmdir /Q /S build\pyinstaller
@@ -22,11 +23,10 @@ habby.exe
 cd ..\..\..
 ECHO executable created in ..\habby\build\pyinstaller
 
-set /p VarQuestion= Start the creation of the setup ? (yes/no) : 
-if %VarQuestion%== yes ECHO Setup running..
-if %VarQuestion%== yes start "" /w "C:\Program Files (x86)\Inno Script Studio\isstudio.exe" -compile setup_from_pyinstaller.iss
-if %VarQuestion%== yes ECHO Setup successfully created in ..\habby\build\pyinstaller
-if %VarQuestion%== no ECHO Setup not started
+if %VarQuestion%== y ECHO Setup running..
+if %VarQuestion%== y start "" /w "C:\Program Files (x86)\Inno Script Studio\isstudio.exe" -compile setup_from_pyinstaller.iss
+if %VarQuestion%== y ECHO Setup successfully created in ..\habby\build\pyinstaller
+if not %VarQuestion%== n ECHO Setup not started
 
 :: Get console open to see details
 @pause 
