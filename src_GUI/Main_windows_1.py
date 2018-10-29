@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
     QMessageBox, QComboBox, QScrollArea, \
-    QSizePolicy, QInputDialog, QMenu, QToolBar
+    QSizePolicy, QInputDialog, QMenu, QToolBar, QFrame
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 from webbrowser import open as wbopen
 import h5py
@@ -43,6 +43,7 @@ from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
 from src_GUI import output_fig_GUI
+from src_GUI import plot_GUI
 from src_GUI import bio_info_GUI
 from src_GUI import fstress_GUI
 from src_GUI import chronicle_GUI
@@ -215,7 +216,7 @@ class MainWindows(QMainWindow):
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
-        self.setGeometry(200, 200, 900, 800)
+        self.setGeometry(50, 75, 1100, 910)
         self.setCentralWidget(self.central_widget)
 
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -331,6 +332,7 @@ class MainWindows(QMainWindow):
             self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+            self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
@@ -918,6 +920,7 @@ class MainWindows(QMainWindow):
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.output_tab.save_option_fig()
+            self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
             self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
@@ -1046,6 +1049,7 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
         self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
         self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+        self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
         self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
         self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
         self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
@@ -1711,6 +1715,12 @@ class CentralW(QWidget):
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
+
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidget(self.tab_widget)
+        self.scroll_area.setWidgetResizable(True)
+        self.scroll_area.setFrameShape(QFrame.NoFrame)
+
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
 
@@ -1721,6 +1731,7 @@ class CentralW(QWidget):
             self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
+            self.plot_tab = plot_GUI.PlotTab(path_prj, name_prj)
             self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
             self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
@@ -1793,6 +1804,7 @@ class CentralW(QWidget):
         self.scroll.setWidgetResizable(True)
         # colors
         self.scroll.setStyleSheet('background-color: white')
+        self.scroll.setFixedHeight(100)
         self.vbar.setStyleSheet('background-color: lightGrey')
 
         self.welcome_tab.save_info_signal.connect(self.save_info_projet)
@@ -1801,7 +1813,7 @@ class CentralW(QWidget):
 
         # layout
         self.layoutc = QGridLayout()
-        self.layoutc.addWidget(self.tab_widget, 1, 0)
+        self.layoutc.addWidget(self.scroll_area, 1, 0)
         self.layoutc.addWidget(self.l1, 2, 0)
         self.layoutc.addWidget(self.scroll, 3, 0)
         self.setLayout(self.layoutc)
@@ -1829,6 +1841,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
             self.tab_widget.addTab(self.output_tab, self.tr("Options"))
+            self.tab_widget.addTab(self.plot_tab, self.tr("Graphics"))
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
