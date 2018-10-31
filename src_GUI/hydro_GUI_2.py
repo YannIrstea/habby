@@ -981,11 +981,11 @@ class SubHydroW(QWidget):
                         if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                             self.send_log.emit('Warning: Substrate data created but not plotted. '
                                                'See the created shapefile for subtrate outputs. \n')
-                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
                                                            inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
                                                            substrate_all_pg[t], substrate_all_dom[t])
                         else:
-                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
                                                            inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
             # plot the figure for some time steps
             else:
@@ -998,11 +998,11 @@ class SubHydroW(QWidget):
                             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                                 self.send_log.emit('Warning: Substrate data created but not plotted. '
                                                    'See the created shapefile for subtrate outputs. \n')
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
                                                                inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
                                                                substrate_all_pg[t], substrate_all_dom[t])
                             else:
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt,
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
                                                                inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
                                 # to debug
                                 # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,

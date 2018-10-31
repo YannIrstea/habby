@@ -2193,7 +2193,7 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     return ikle_sub, coord_sub
 
 
-def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False,
+def plot_grid_simple(point_all_reach, ikle_all, fig_opt, mesh=True, velocity=True, height=True, inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False,
                      time_step=0, sub_pg=[], sub_dom=[]):
     """
     This is the function to plot grid output for one time step. The data is one the node. A more complicated function
@@ -2211,7 +2211,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     :param sub_pg: coarser data from the subtrate
     :param sub_dom: doominat data from the subtrate
     """
-
+    #print(mesh, velocity, height, time_step)
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -2229,87 +2229,80 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     else:
         erase1 = False
 
-    plt.figure()
-    # the grid
-    plt.xlabel('x coord []')
-    plt.ylabel('y coord []')
-    for r in range(0, len(ikle_all)):
-        # get data for this reach
-        ikle = ikle_all[r]
-        coord_p = point_all_reach[r]
+    if mesh:
+        plt.figure()
+        # the grid
+        plt.xlabel('x coord []')
+        plt.ylabel('y coord []')
+        for r in range(0, len(ikle_all)):
+            # get data for this reach
+            ikle = ikle_all[r]
+            coord_p = point_all_reach[r]
 
-        # prepare the grid
-        if ikle is not None:  # case empty grid
-            xlist = []
-            ylist = []
-            for i in range(0, len(ikle)):
-                pi = 0
-                ikle_i = ikle[i]
-                if len(ikle_i) == 3:
-                    while pi < 2:  # we have all sort of xells, max eight sides
-                        # The conditions should be tested in this order to avoid to go out of the array
-                        p = ikle_i[pi]  # we start at 0 in python, careful about -1 or not
-                        p2 = ikle_i[pi + 1]
+            # prepare the grid
+            if ikle is not None:  # case empty grid
+                xlist = []
+                ylist = []
+                for i in range(0, len(ikle)):
+                    pi = 0
+                    ikle_i = ikle[i]
+                    if len(ikle_i) == 3:
+                        while pi < 2:  # we have all sort of xells, max eight sides
+                            # The conditions should be tested in this order to avoid to go out of the array
+                            p = ikle_i[pi]  # we start at 0 in python, careful about -1 or not
+                            p2 = ikle_i[pi + 1]
+                            xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+                            xlist.append(None)
+                            ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+                            ylist.append(None)
+                            pi += 1
+
+                        p = ikle_i[pi]
+                        p2 = ikle_i[0]
                         xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
                         xlist.append(None)
                         ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                         ylist.append(None)
-                        pi += 1
 
-                    p = ikle_i[pi]
-                    p2 = ikle_i[0]
-                    xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
-                    xlist.append(None)
-                    ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
-                    ylist.append(None)
-
-            plt.plot(xlist, ylist, '-b', linewidth=0.1)
-            plt.ticklabel_format(useOffset=False)
-            plt.axis('equal')
-            # to add water value on grid point (usualy to debug)
-            # for idx, c in enumerate(coord_p):
-            #     plt.annotate(str(inter_h_all[r][idx]),c)
-    if time_step == -1:
-        if fig_opt['language'] == 0:
-            plt.title('Computational Grid  - Last Time Step')
-        elif fig_opt['language'] == 1:
-            plt.title('Maillage - Dernier Pas de Temps')
-        else:
-            plt.title('Computational Grid  - Last Time Step')
-    else:
+                plt.plot(xlist, ylist, '-b', linewidth=0.1)
+                plt.ticklabel_format(useOffset=False)
+                plt.axis('equal')
+                # to add water value on grid point (usualy to debug)
+                # for idx, c in enumerate(coord_p):
+                #     plt.annotate(str(inter_h_all[r][idx]),c)
         if fig_opt['language'] == 0:
             plt.title('Computational Grid - Time Step ' + str(time_step))
         elif fig_opt['language'] == 1:
             plt.title('Maillage - Pas de Temps: ' + str(time_step))
         else:
             plt.title('Computational Grid - Time Step ' + str(time_step))
-    plt.tight_layout()
+        plt.tight_layout()
 
-    # save figures
-    if merge_case:
-        suffix = 'Merge_grid_t' + str(time_step) + '_'
-    else:
-        suffix = 'Hydro_grid_t' + str(time_step) + '_'
-    if not erase1:
-        if format1 == 0 or format1 == 1:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                        dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 0 or format1 == 3:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                        dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 2:
-            plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                        dpi=fig_opt['resolution'], transparent=True)
-    else:
-        test = calcul_hab.remove_image(suffix, path_im, format1)
-        if not test and format1 in [0,1,2,3,4,5]:  # [0,1,2,3,4,5] currently existing format
-            return
-        if format1 == 0 or format1 == 1:
-            plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 0 or format1 == 3:
-            plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
-        if format1 == 2:
-            plt.savefig(os.path.join(path_im, suffix  + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+        # save figures
+        if merge_case:
+            suffix = 'Merge_grid_t' + str(time_step) + '_'
+        else:
+            suffix = 'Hydro_grid_t' + str(time_step) + '_'
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image(suffix, path_im, format1)
+            if not test and format1 in [0,1,2,3,4,5]:  # [0,1,2,3,4,5] currently existing format
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # plot the interpolated velocity
     bounds = []
@@ -2323,163 +2316,147 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, inter_vel_all=[], inter
     #         plt.title('Hydraulic Data - Time Step ' + str(time_step))
     #     elif fig_opt['language'] == 1:
     #         plt.title('Données Hydrauliques - Pas de Temps: ' + str(time_step))
-    if len(inter_vel_all) > 0:  # 0
-        plt.figure()
-        plt.ticklabel_format(useOffset=False)
-        # plt.subplot(2, 1, 1)
-        # get colormap limit
-        cm = plt.cm.get_cmap(fig_opt['color_map1'])
-        mvc = 0.001
-        for r in range(0, len(inter_vel_all)):
-            inter_vel = inter_vel_all[r]
-            if len(inter_vel) > 0:
-                mv = max(inter_vel)
-                if mv > mvc:
-                    mvc = mv
-        bounds = np.linspace(0, mvc, 15)
-        # do the figure for all reach
-        for r in range(0, len(inter_vel_all)):
-            point_here = np.array(point_all_reach[r])
-            inter_vel = inter_vel_all[r]
-            if len(point_here[:, 1]) == len(inter_vel) and len(ikle_all[r]) > 2:
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1],
-                                     ikle_all[r], inter_vel, cmap=cm,
-                                     levels=bounds, extend='both')
-                plt.axis('equal')
-                if r == len(inter_vel_all) - 1:
-                    # plt.clim(0, np.nanmax(inter_vel))
-                    cbar = plt.colorbar(sc)
-                    if fig_opt['language'] == 0:
-                        cbar.ax.set_ylabel('Velocity [m/sec]')
-                    elif fig_opt['language'] == 1:
-                        cbar.ax.set_ylabel('Vitesse [m/sec]')
-                    else:
-                        cbar.ax.set_ylabel('Velocity [m/sec]')
-                # plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
-                # plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        if fig_opt['language'] == 0:
-            if time_step == -1:
-                plt.title('Velocity - Last Time Step')
-            else:
+    if velocity:
+        if len(inter_vel_all) > 0:  # 0
+            plt.figure()
+            plt.ticklabel_format(useOffset=False)
+            # plt.subplot(2, 1, 1)
+            # get colormap limit
+            cm = plt.cm.get_cmap(fig_opt['color_map1'])
+            mvc = 0.001
+            for r in range(0, len(inter_vel_all)):
+                inter_vel = inter_vel_all[r]
+                if len(inter_vel) > 0:
+                    mv = max(inter_vel)
+                    if mv > mvc:
+                        mvc = mv
+            bounds = np.linspace(0, mvc, 15)
+            # do the figure for all reach
+            for r in range(0, len(inter_vel_all)):
+                point_here = np.array(point_all_reach[r])
+                inter_vel = inter_vel_all[r]
+                if len(point_here[:, 1]) == len(inter_vel) and len(ikle_all[r]) > 2:
+                    sc = plt.tricontourf(point_here[:, 0], point_here[:, 1],
+                                         ikle_all[r], inter_vel, cmap=cm,
+                                         levels=bounds, extend='both')
+                    plt.axis('equal')
+                    if r == len(inter_vel_all) - 1:
+                        # plt.clim(0, np.nanmax(inter_vel))
+                        cbar = plt.colorbar(sc)
+                        if fig_opt['language'] == 0:
+                            cbar.ax.set_ylabel('Velocity [m/sec]')
+                        elif fig_opt['language'] == 1:
+                            cbar.ax.set_ylabel('Vitesse [m/sec]')
+                        else:
+                            cbar.ax.set_ylabel('Velocity [m/sec]')
+                    # plt.xlim([min(point_here[:, 0]), max(point_here[:, 0])])
+                    # plt.ylim([min(point_here[:, 1]), max(point_here[:, 1])])
+            plt.xlabel('x coord []')
+            plt.ylabel('y coord []')
+            if fig_opt['language'] == 0:
                 plt.title('Velocity - Time Step: ' + str(time_step))
-        elif fig_opt['language'] == 1:
-            if time_step == -1:
-                plt.title('Vitesse - Dernier Pas de Temps')
-            else:
+            elif fig_opt['language'] == 1:
                 plt.title('Vitesse - Pas de Temps: ' + str(time_step))
-        else:
-            if time_step == -1:
-                plt.title('Velocity - Last Time Step')
             else:
                 plt.title('Velocity - Time Step: ' + str(time_step))
 
-        # save figure
-        plt.tight_layout()
-        if merge_case:
-            suffix = 'Merge_Velocity_t' + str(time_step) + '_'
-        else:
-            suffix = 'Velocity_t' + str(time_step) + '_'
-        if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=fig_opt['resolution'], transparent=True)
-        else:
-            test = calcul_hab.remove_image(suffix, path_im, format1)
-            if not test and format1 in [0,1,2,3,4,5]:
-                return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+            # save figure
+            plt.tight_layout()
+            if merge_case:
+                suffix = 'Merge_Velocity_t' + str(time_step) + '_'
+            else:
+                suffix = 'Velocity_t' + str(time_step) + '_'
+            if not erase1:
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=fig_opt['resolution'], transparent=True)
+            else:
+                test = calcul_hab.remove_image(suffix, path_im, format1)
+                if not test and format1 in [0,1,2,3,4,5]:
+                    return
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
-    # plot the interpolated height
-    if len(inter_h_all) > 0:  # 0
-        # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
-        plt.figure()
-        plt.ticklabel_format(useOffset=False)
-        # color map (the same for al reach)
-        mvc = 0.001
-        cm = plt.cm.get_cmap(fig_opt['color_map2'])
-        for r in range(0, len(inter_h_all)):
-            inter_h = inter_h_all[r]
-            if len(inter_h) > 0:
-                mv = max(inter_h)
-                # mv = np.mean(inter_h[inter_h >= 0]) * 2
-                if mv > mvc:
-                    mvc = mv
-        bounds = np.linspace(0, mvc, 15)
-        for r in range(0, len(inter_h_all)):
-            point_here = np.array(point_all_reach[r])
-            inter_h = inter_h_all[r]
-            if len(point_here) == len(inter_h) and len(ikle_all[r]) > 2:
-                inter_h[inter_h < 0] = 0
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm,
-                                     vmin=0, vmax=mvc,levels=bounds, extend='both')
-                plt.axis('equal')
-                if r == len(inter_h_all) - 1:
-                    cbar = plt.colorbar(sc)
-                    if fig_opt['language'] == 0:
-                        cbar.ax.set_ylabel('Water depth [m]')
-                    elif fig_opt['language'] == 1:
-                        cbar.ax.set_ylabel("Hauteur d'eau [m]")
-                    else:
-                        cbar.ax.set_ylabel('Water depth [m]')
-            else:
-                print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        if fig_opt['language'] == 0:
-            if time_step == -1:
-                plt.title('Water depth - Last Time Step')
-            else:
+    if height:
+        # plot the interpolated height
+        if len(inter_h_all) > 0:  # 0
+            # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
+            plt.figure()
+            plt.ticklabel_format(useOffset=False)
+            # color map (the same for al reach)
+            mvc = 0.001
+            cm = plt.cm.get_cmap(fig_opt['color_map2'])
+            for r in range(0, len(inter_h_all)):
+                inter_h = inter_h_all[r]
+                if len(inter_h) > 0:
+                    mv = max(inter_h)
+                    # mv = np.mean(inter_h[inter_h >= 0]) * 2
+                    if mv > mvc:
+                        mvc = mv
+            bounds = np.linspace(0, mvc, 15)
+            for r in range(0, len(inter_h_all)):
+                point_here = np.array(point_all_reach[r])
+                inter_h = inter_h_all[r]
+                if len(point_here) == len(inter_h) and len(ikle_all[r]) > 2:
+                    inter_h[inter_h < 0] = 0
+                    sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm,
+                                         vmin=0, vmax=mvc,levels=bounds, extend='both')
+                    plt.axis('equal')
+                    if r == len(inter_h_all) - 1:
+                        cbar = plt.colorbar(sc)
+                        if fig_opt['language'] == 0:
+                            cbar.ax.set_ylabel('Water depth [m]')
+                        elif fig_opt['language'] == 1:
+                            cbar.ax.set_ylabel("Hauteur d'eau [m]")
+                        else:
+                            cbar.ax.set_ylabel('Water depth [m]')
+                else:
+                    print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
+            plt.xlabel('x coord []')
+            plt.ylabel('y coord []')
+            if fig_opt['language'] == 0:
                 plt.title('Water depth - Time Step: ' + str(time_step) )
-        elif fig_opt['language'] == 1:
-            if time_step == -1:
-                plt.title("Hauteur d'eau - Dernier Pas de Temps")
-            else:
+            elif fig_opt['language'] == 1:
                 plt.title("Hauteur d'eau - Pas de Temps: " + str(time_step))
-        else:
-            if time_step == -1:
-                plt.title("Hauteur d'eau - Dernier Pas de Temps")
             else:
                 plt.title("Hauteur d'eau - Pas de Temps: " + str(time_step))
 
-        # save figure
-        plt.tight_layout()
-        if merge_case:
-            suffix = 'Merge_Waterheight_t'+str(time_step) + '_'
-        else:
-            suffix = 'Water_height_t'+str(time_step) + '_'
-        if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=fig_opt['resolution'], transparent=True)
-        else:
-            test = calcul_hab.remove_image(suffix, path_im, format1)
-            if not test and format1 in [0,1,2,3,4,5]:
-                return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+            # save figure
+            plt.tight_layout()
+            if merge_case:
+                suffix = 'Merge_Waterheight_t'+str(time_step) + '_'
+            else:
+                suffix = 'Water_height_t'+str(time_step) + '_'
+            if not erase1:
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                                dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                                dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                                dpi=fig_opt['resolution'], transparent=True)
+            else:
+                test = calcul_hab.remove_image(suffix, path_im, format1)
+                if not test and format1 in [0,1,2,3,4,5]:
+                    return
+                if format1 == 0 or format1 == 1:
+                    plt.savefig(os.path.join(path_im, suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 0 or format1 == 3:
+                    plt.savefig(os.path.join(path_im, suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                if format1 == 2:
+                    plt.savefig(os.path.join(path_im, suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # plot substrate for the whole hydrological grid for each reach
     # Not done anymore as it freezes the GUI for large models.

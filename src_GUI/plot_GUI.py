@@ -15,20 +15,22 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-import h5py
+import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QListWidget, QAbstractItemView, \
     QComboBox, QMessageBox,\
     QVBoxLayout, QHBoxLayout, QGroupBox, QSpacerItem, QSizePolicy
-from matplotlib.backends.backend_qt5agg import (FigureCanvasQTAgg as FigureCanvas)
-from matplotlib.figure import (Figure)
+import matplotlib
+matplotlib.use("Qt5Agg")
+import matplotlib.pyplot as plt
 from src import load_hdf5
+from src import manage_grid_8
+from src_GUI import output_fig_GUI
 
 
 class PlotTab(QWidget):
     """
-    The class which support the creation and management of the output. It is notably used to select the options to
-    create the figures.
+    New tab
 
     """
     send_log = pyqtSignal(str, name='send_log')
@@ -38,6 +40,7 @@ class PlotTab(QWidget):
 
     def __init__(self, path_prj, name_prj):
         super().__init__()
+        self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
@@ -58,6 +61,8 @@ class PlotTab(QWidget):
 
         # add layout
         self.setLayout(self.plot_layout)
+
+
 
 
 class GroupPlot(QGroupBox):
@@ -202,7 +207,7 @@ class GroupPlot(QGroupBox):
                 self.msg2.setIcon(QMessageBox.Warning)
                 self.msg2.setWindowTitle(self.tr("Warning"))
                 self.msg2.setText(
-                    self.tr("The selected files don't have same timestep !"))
+                    self.tr("The selected files don't have same units !"))
                 self.msg2.setStandardButtons(QMessageBox.Ok)
                 self.msg2.show()
                 # clean
@@ -210,7 +215,6 @@ class GroupPlot(QGroupBox):
                 self.units_QListWidget.clear()
 
     def plot(self):
-        aa = 1
         # types
         types_hdf5 = self.types_hdf5_QComboBox.currentText()
 
@@ -225,18 +229,148 @@ class GroupPlot(QGroupBox):
         variables = []
         for i in range(len(selection)):
             variables.append(selection[i].text())
+        if "height" in variables:
+            height = True
+        else:
+            height = False
+        if "velocity" in variables:
+            velocity = True
+        else:
+            velocity = False
+        if "mesh" in variables:
+            mesh = True
+        else:
+            mesh = False
 
         # units
         selection = self.units_QListWidget.selectedItems()
         units = []
+        units_index = []
         for i in range(len(selection)):
             units.append(selection[i].text())
+            units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
+        together = zip(units_index, units)  # TRIS DANS ORDRE TRONCON
+        sorted_together = sorted(together, reverse=True)  # TRIS DANS ORDRE TRONCON
+        units_index = [x[0] for x in sorted_together]
+        units = [x[1] for x in sorted_together]
 
         # type of plot
         types_plot = self.types_plot_QComboBox.currentText()
 
-        print(types_hdf5)
-        print(names_hdf5)
-        print(variables)
-        print(units)
-        print(types_plot)
+        #print(types_hdf5)
+        #print(names_hdf5)
+        #print(variables)
+        #print(units)
+        #print(types_plot)
+
+        ################ from hydro_GUI_2.create_image ###################
+
+        if types_plot == "view interactive graphics":
+            save_fig = False
+        if types_plot == "export files graphics" or types_plot == "both":
+            save_fig = True
+        path_hdf5 = self.parent().path_prj + "/hdf5_files/"
+        show_info = True
+        path_im = self.parent().path_prj + "/figures/"
+        # for all hdf5 file selected
+        for i in range(len(names_hdf5)):
+            name_hdf5 = names_hdf5[i]
+            print(name_hdf5)
+            if name_hdf5:
+                # load data
+                if types_hdf5 == 'substrat': #  or self.model_type == 'LAMMI'
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg, substrate_all_dom] \
+                        = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, True)
+                else:
+                    substrate_all_pg = []
+                    substrate_all_dom = []
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
+                                                                                                        path_hdf5)
+                if ikle_all_t == [[-99]]:
+                    self.parent().send_log.emit('Error: No data found in hdf5 (from create_image)')
+                    return
+                # figure option
+                self.fig_opt = output_fig_GUI.load_fig_option(self.parent().path_prj, self.parent().name_prj)
+                if not save_fig:
+                    self.fig_opt['format'] = 123456  # random number  but should be bigger than number of format
+
+                # plot the figure for all time step
+                if self.units_QListWidget.count() == len(units): #self.fig_opt['time_step'][0] == -99:  # all time steps
+                    for t in range(1, len(ikle_all_t)):  # do not plot full profile
+                        if t < len(ikle_all_t):
+                            if types_hdf5 == 'substrat':  # or self.model_type == 'LAMMI':
+                                self.parent().send_log.emit('Warning: Substrate data created but not plotted. '
+                                                   'See the created shapefile for subtrate outputs. \n')
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
+                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, True, units[t - 1],
+                                                               substrate_all_pg[t], substrate_all_dom[t]) # , mesh, velocity, height
+                            else:
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
+                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, False, units[t - 1])
+                # plot the figure for some time steps
+                else:
+                    print("-------------------------------")
+                    print(units, units_index)
+                    for index, t in enumerate(units_index):  # self.fig_opt['time_step'] # range(0, len(vel_cell)):
+                        t = t + 1
+                        # if print last and first time step and one time step only, only print it once
+                        if t == -1 and len(ikle_all_t) == 2 and 1 in self.fig_opt['time_step']:
+                            pass
+                        else:
+                            if t < len(ikle_all_t):
+                                if types_hdf5 == 'substrat':  # or self.model_type == 'LAMMI':
+                                    self.parent().send_log.emit('Warning: Substrate data created but not plotted. '
+                                                       'See the created shapefile for subtrate outputs. \n')
+                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
+                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, True, units[index],
+                                                                   substrate_all_pg[t], substrate_all_dom[t])
+                                else:
+                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
+                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, False, units[index])
+                                    # to debug
+                                    # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
+                                    # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+
+                # show basic information
+                if show_info and len(ikle_all_t) > 0:
+                    self.parent().send_log.emit("# ------------------------------------------------")
+                    self.parent().send_log.emit("# Information about the hydrological data from the model " + types_hdf5)
+                    self.parent().send_log.emit("# - Number of time step: " + str(len(ikle_all_t) - 1))
+                    extx = 0
+                    exty = 0
+                    nb_node = 0
+                    hmean = 0
+                    vmean = 0
+                    for r in range(0, len(point_all_t[0])):
+                        extxr = max(point_all_t[0][r][:, 0]) - min(point_all_t[0][r][:, 0])
+                        extyr = max(point_all_t[0][r][:, 1]) - min(point_all_t[0][r][:, 1])
+                        nb_node += len(point_all_t[0][r])
+                        if extxr > extx:
+                            extx = extxr
+                        if extyr > exty:
+                            exty = extyr
+                        hmean += np.sum(inter_h_all_t[-1][r])
+                        vmean += np.sum(inter_vel_all_t[-1][r])
+                    hmean /= nb_node
+                    vmean /= nb_node
+                    self.parent().send_log.emit("# - Maximal number of nodes: " + str(nb_node))
+                    self.parent().send_log.emit("# - Maximal geographical extend: " + str(round(extx, 3)) + 'm X ' +
+                                       str(round(exty, 3)) + "m")
+                    self.parent().send_log.emit(
+                        "# - Mean water height at the last time step, not weighted by cell area: " +
+                        str(round(hmean, 3)) + 'm')
+                    self.parent().send_log.emit(
+                        "# - Mean velocity at the last time step, not weighted by cell area: " +
+                        str(round(vmean, 3)) + 'm/sec')
+                    self.parent().send_log.emit("# ------------------------------------------------")
+
+                print(save_fig)
+                if not save_fig:
+                    matplotlib.interactive(True)
+                    plt.show()
+                if save_fig:
+                    matplotlib.interactive(False)
+            else:
+                self.parent().send_log.emit('Error: The hydrological model is not found. \n')
+
+
