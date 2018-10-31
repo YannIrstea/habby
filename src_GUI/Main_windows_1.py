@@ -31,7 +31,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
     QMessageBox, QComboBox, QScrollArea, \
     QSizePolicy, QInputDialog, QMenu, QToolBar, QFrame
-from PyQt5.QtGui import QPixmap, QFont, QIcon
+from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
+import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
 import matplotlib
@@ -216,7 +217,7 @@ class MainWindows(QMainWindow):
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
-        self.setGeometry(50, 75, 1100, 910)
+        self.setGeometry(50, 75, 1100, 930)
         self.setCentralWidget(self.central_widget)
 
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -560,7 +561,7 @@ class MainWindows(QMainWindow):
                     self.central_widget.tab_widget.setTabEnabled(4, True)
                     self.central_widget.tab_widget.setStyleSheet(
                         "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
-            physicalmodelaction.changed.connect(manage_tab_physical)
+            physicalmodelaction.triggered.connect(manage_tab_physical)
             ViewMenu.addAction(physicalmodelaction)
             physicalmodelaction.setChecked(True)
 
@@ -580,10 +581,36 @@ class MainWindows(QMainWindow):
                     self.central_widget.tab_widget.setTabEnabled(7, True)
                     self.central_widget.tab_widget.setStyleSheet(
                         "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
-            statisticmodelaction.changed.connect(manage_tab_statistics)
+            statisticmodelaction.triggered.connect(manage_tab_statistics)
             ViewMenu.addAction(statisticmodelaction)
             statisticmodelaction.setChecked(True)
-            statisticmodelaction.setChecked(False)
+
+            # theme sub menu
+            themesub = ViewMenu.addMenu("Themes")
+            classicthemeaction = QAction('classic', themesub, checkable=True)
+            classicthemeaction.setChecked(True)
+            themesub.addAction(classicthemeaction)
+            darkthemeaction = QAction('dark', themesub, checkable=True)
+            darkthemeaction.setChecked(False)
+            themesub.addAction(darkthemeaction)
+            def setthemeclassic():
+                if not classicthemeaction.isChecked():
+                    classicthemeaction.setChecked(True)
+                else:
+                    darkthemeaction.setChecked(False)
+                    app = QApplication.instance()
+                    app.setStyleSheet("")
+            def setthemedark():
+                if not darkthemeaction.isChecked():
+                    darkthemeaction.setChecked(True)
+                else:
+                    classicthemeaction.setChecked(False)
+                    app = QApplication.instance()
+                    #app.setStyleSheet(open("qdarkstyle.qss", "r").read())
+                    app.setStyleSheet(qdarkgraystyle.load_stylesheet())
+                    #app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+            classicthemeaction.triggered.connect(setthemeclassic)
+            darkthemeaction.triggered.connect(setthemedark)
 
             # add the status bar
             self.statusBar()
@@ -1498,7 +1525,7 @@ class MainWindows(QMainWindow):
         Clear the log in the GUI.
         """
         self.central_widget.l2.clear()
-        self.central_widget.l2.setText(self.tr('Log erased in this window.<br>'))
+        self.central_widget.l2.textCursor().insertHtml(self.tr('Log erased in this window.<br>'))
 
     def do_log(self, save_log):
         """
@@ -1511,12 +1538,12 @@ class MainWindows(QMainWindow):
         """
         if save_log == 0:
             t = self.central_widget.l2.text()
-            self.central_widget.l2.setText(t+self.tr('This log will not be saved anymore in the .log file. <br>')
+            self.central_widget.l2.textCursor().insertHtml(self.tr('This log will not be saved anymore in the .log file. <br>')
                                            + self.tr('This log will not be saved anymore in the restart file. <br>'))
             self.central_widget.logon = False
         if save_log == 1:
             t = self.central_widget.l2.text()
-            self.central_widget.l2.setText(t + self.tr('This log will be saved in the .log file.<br> '
+            self.central_widget.l2.textCursor().insertHtml(self.tr('This log will be saved in the .log file.<br> '
                                                        'This log will be saved in the restart file. <br>'))
             self.central_widget.logon = True
 
@@ -1582,7 +1609,7 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.drop_sub.clear()
         # log
         t = self.central_widget.l2.text()
-        self.central_widget.l2.setText(t + self.tr('Images deleted. <br>'))
+        self.central_widget.l2.textCursor().insertHtml(self.tr('Images deleted. <br>'))
 
     def open_help(self):
         """
@@ -1715,7 +1742,6 @@ class CentralW(QWidget):
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
-
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidget(self.tab_widget)
         self.scroll_area.setWidgetResizable(True)
@@ -1737,12 +1763,16 @@ class CentralW(QWidget):
             self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
             self.update_merge_for_chronicle()
 
-        self.scroll = QScrollArea()
+        #self.scroll = QScrollArea()
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
-        self.vbar = self.scroll.verticalScrollBar()
-        self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
+        #self.vbar = self.scroll.verticalScrollBar()
+        #self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
+        self.l2 = QTextEdit(self)  # where the log is show
+        self.l2.textChanged.connect(self.scrolldown)
+        self.l2.setReadOnly(True)
+        self.l2.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
         self.max_lengthshow = 180
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
@@ -1793,19 +1823,20 @@ class CentralW(QWidget):
         # Area to show the log
         # add two Qlabel l1 ad l2 , with one scroll for the log in l2
         self.l1 = QLabel(self.tr('HABBY says:'))
-        self.l2.setAlignment(Qt.AlignTop)
-        self.l2.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        self.l2.setTextFormat(Qt.RichText)
-        self.l2.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        #self.l2.setAlignment(Qt.AlignTop)
+        #self.l2.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        #self.l2.setTextFormat(Qt.RichText)
+        #self.l2.setAcceptRichText(True)
+        #self.l2.setTextInteractionFlags(Qt.TextSelectableByMouse)
         # see the end of the log first
-        self.vbar.rangeChanged.connect(self.scrolldown)
-        self.scroll.setWidget(self.l2)
+        #self.vbar.rangeChanged.connect(self.scrolldown)
+        #self.scroll.setWidget(self.l2)
         # to have the Qlabel at the right size
-        self.scroll.setWidgetResizable(True)
+        #self.scroll.setWidgetResizable(True)
         # colors
-        self.scroll.setStyleSheet('background-color: white')
-        self.scroll.setFixedHeight(100)
-        self.vbar.setStyleSheet('background-color: lightGrey')
+        #self.scroll.setStyleSheet('background-color: white')
+        self.l2.setFixedHeight(100)
+        #self.vbar.setStyleSheet('background-color: lightGrey')
 
         self.welcome_tab.save_info_signal.connect(self.save_info_projet)
         # save the description and the figure option if tab changed
@@ -1815,14 +1846,15 @@ class CentralW(QWidget):
         self.layoutc = QGridLayout()
         self.layoutc.addWidget(self.scroll_area, 1, 0)
         self.layoutc.addWidget(self.l1, 2, 0)
-        self.layoutc.addWidget(self.scroll, 3, 0)
+        self.layoutc.addWidget(self.l2, 3, 0)
         self.setLayout(self.layoutc)
 
     def scrolldown(self):
         """
         Move the scroll bar to the bottom if the ScollArea is getting bigger
         """
-        self.vbar.setValue(self.vbar.maximum())
+        #self.vbar.setValue(self.vbar.maximum())
+        self.l2.moveCursor(QTextCursor.End)
 
     def add_all_tab(self):
         """
@@ -1931,6 +1963,7 @@ class CentralW(QWidget):
             self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
             self.chronicle_tab.send_log.connect(self.write_log)
+            self.plot_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
@@ -2007,8 +2040,7 @@ class CentralW(QWidget):
             if child_logfile is not None:
                 pathname_logfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
-                t = self.l2.text()
-                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The "
+                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
                                     "log file is not indicated in the xml file. No log written. </br> <br>")
                 return
             # restart log
@@ -2016,22 +2048,19 @@ class CentralW(QWidget):
             if child_logfile is not None:
                 pathname_restartfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
-                t = self.l2.text()
-                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The "
+                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
                                     "restart file is not indicated in the xml file. No log written. </br> <br>")
                 return
         else:
             # if only one tab, project not open, so it is normal that no log can be written.
             if self.tab_widget.count() > 1:
-                t = self.l2.text()
-                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
+                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The project file is not "
                                     "found. no Log written. </br> <br>")
             return
 
         # add comments to Qlabel and .log file
         if text_log[0] == '#':
-            t = self.l2.text()
-            self.l2.setText(t + "<FONT COLOR='#000000'>" + text_log[1:] + '</br><br>')
+            self.l2.textCursor().insertHtml(text_log[1:] + '</br><br>') # "<FONT COLOR='#000000'>" +
             self.write_log_file(text_log, pathname_logfile)
         # add python code to the .log file
         elif text_log[:2] == 'py':
@@ -2040,13 +2069,11 @@ class CentralW(QWidget):
         elif text_log[:7] == 'restart':
             self.write_log_file(text_log[7:], pathname_restartfile)
         elif text_log[:5] == 'Error' or text_log[:6] == 'Erreur':
-            t = self.l2.text()
-            self.l2.setText(t + "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
+            self.l2.textCursor().insertHtml("<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
             self.write_log_file('# ' +text_log, pathname_logfile)
         # add warning
         elif text_log[:7] == 'Warning':
-            t = self.l2.text()
-            self.l2.setText(t + "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
+            self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
             self.write_log_file('# ' + text_log, pathname_logfile)
         # update to check that processus is alive
         elif text_log[:7] == 'Process':
@@ -2055,8 +2082,7 @@ class CentralW(QWidget):
             self.parent().statusBar().clearMessage()
         # other case not accounted for
         else:
-            t = self.l2.text()
-            self.l2.setText(t + "<FONT COLOR='#000000'>" + text_log + '</br><br>')\
+            self.l2.textCursor().insertHtml(text_log + '</br><br>') # "<FONT COLOR='#000000'>" +
 
     def write_log_file(self, text_log, pathname_logfile):
         """
@@ -2072,8 +2098,7 @@ class CentralW(QWidget):
             elif self.name_prj_c == '':
                 return
             else:
-                t = self.l2.text()
-                self.l2.setText(t + "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
+                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
                 shutil.copy(os.path.join('src_GUI', 'log0.txt'),
                             os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
                 shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),

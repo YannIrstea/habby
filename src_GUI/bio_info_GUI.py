@@ -18,7 +18,7 @@ from io import StringIO
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QStringListModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QLineEdit, \
     QComboBox, QAbstractItemView, \
-    QSizePolicy, QScrollArea, QFrame, QCompleter
+    QSizePolicy, QScrollArea, QFrame, QCompleter, QTextEdit
 from PyQt5.QtGui import QPixmap
 from multiprocessing import Process, Queue
 import os
@@ -140,24 +140,27 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l7 = QLabel(self.tr('ONEMA fish code: '))
         self.fish_code = QLabel('')
         l8 = QLabel(self.tr('Description:'))
-        self.descr = QLabel()
+        #self.descr = QLabel()
+        self.descr = QTextEdit(self)  # where the log is show
         self.pref_curve = QPushButton(self.tr('Show suitability curve'))
         self.pref_curve.clicked.connect(self.show_pref)
 
         # get a scollable area for the decription which might be long
-        self.scroll = QScrollArea()
-        self.scroll.setFrameStyle(QFrame.NoFrame)
-        self.vbar = self.scroll.verticalScrollBar()
-        self.descr.setWordWrap(True)
-        self.descr.setMaximumSize(200, 210)
-        self.descr.setAlignment(Qt.AlignTop)
+        #self.scroll = QScrollArea()
+        #self.scroll.setFrameStyle(QFrame.NoFrame)
+        #self.vbar = self.scroll.verticalScrollBar()
+        #self.descr.setWordWrap(True)
+        #self.descr.setMaximumSize(200, 210)
+        #self.descr.setAlignment(Qt.AlignTop)
         self.descr.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        self.descr.setTextFormat(Qt.RichText)
-        self.scroll.setWidget(self.descr)
+        #self.descr.setTextFormat(Qt.RichText)
+        #self.scroll.setWidget(self.descr)
         # to have the Qlabel at the right size
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setStyleSheet('background-color: white')
-        self.vbar.setStyleSheet('background-color: lightGrey')
+        #self.scroll.setWidgetResizable(True)
+        #self.scroll.setStyleSheet('background-color: white')
+        #self.vbar.setStyleSheet('background-color: lightGrey')
+        self.descr.setReadOnly(True)
+
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -232,7 +235,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l7, 8, 0)
         self.layout4.addWidget(self.fish_code,8, 1)
         self.layout4.addWidget(l8,9,0)
-        self.layout4.addWidget(self.scroll, 9, 1, 3, 2) # in fact self.descr is in self.scoll
+        self.layout4.addWidget(self.descr, 9, 1, 3, 2) # in fact self.descr is in self.scoll
         self.layout4.addWidget(self.pic, 11, 0)
         self.layout4.addWidget(self.l9, 3, 3)
         self.layout4.addWidget(self.choice_run, 4, 3)
