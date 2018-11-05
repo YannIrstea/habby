@@ -18,8 +18,8 @@ import os
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QListWidget, QAbstractItemView, \
-    QComboBox, QMessageBox,\
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSpacerItem, QSizePolicy
+    QComboBox, QMessageBox, QFrame, \
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSpacerItem, QSizePolicy, QScrollArea
 import matplotlib
 matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ from src import manage_grid_8
 from src_GUI import output_fig_GUI
 
 
-class PlotTab(QWidget):
+class PlotTab(QScrollArea):
     """
     New tab
 
@@ -54,13 +54,25 @@ class PlotTab(QWidget):
         # GroupPlot
         self.GroupPlot_first = GroupPlot()
 
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
+
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # add widgets to layout
-        self.plot_layout = QVBoxLayout()  # vetical layout
+        self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
         self.plot_layout.setAlignment(Qt.AlignTop)
         self.plot_layout.addWidget(self.GroupPlot_first)
 
         # add layout
-        self.setLayout(self.plot_layout)
+        #self.setLayout(self.plot_layout)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
 
 
 
@@ -190,18 +202,18 @@ class GroupPlot(QGroupBox):
         if len(selection) == 1:  # one file selected
             hdf5name = selection[0].text()
             self.units_QListWidget.clear()
-            self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().path_prj + "/hdf5_files/"))
+            self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
         if len(selection) > 1:  # more than one file selected
             nb_file = len(selection)
             hdf5name = []
             timestep = []
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
-                timestep.append(load_hdf5.load_timestep_name(selection[i].text(), self.parent().path_prj + "/hdf5_files/"))
+                timestep.append(load_hdf5.load_timestep_name(selection[i].text(), self.parent().parent().parent().path_prj + "/hdf5_files/"))
             if all(x == timestep[0] for x in timestep):  # OK
                 self.units_QListWidget.clear()
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_timestep_name(hdf5name[i], self.parent().path_prj + "/hdf5_files/"))
+                    load_hdf5.load_timestep_name(hdf5name[i], self.parent().parent().parent().path_prj + "/hdf5_files/"))
             else:  # timestep are diferrents
                 self.msg2 = QMessageBox(self)
                 self.msg2.setIcon(QMessageBox.Warning)
@@ -269,9 +281,9 @@ class GroupPlot(QGroupBox):
             save_fig = False
         if types_plot == "export files graphics" or types_plot == "both":
             save_fig = True
-        path_hdf5 = self.parent().path_prj + "/hdf5_files/"
+        path_hdf5 = self.parent().parent().parent().path_prj + "/hdf5_files/"
         show_info = True
-        path_im = self.parent().path_prj + "/figures/"
+        path_im = self.parent().parent().parent().path_prj + "/figures/"
         # for all hdf5 file selected
         for i in range(len(names_hdf5)):
             name_hdf5 = names_hdf5[i]
@@ -287,10 +299,10 @@ class GroupPlot(QGroupBox):
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
                                                                                                         path_hdf5)
                 if ikle_all_t == [[-99]]:
-                    self.parent().send_log.emit('Error: No data found in hdf5 (from create_image)')
+                    self.parent().parent().parent().send_log.emit('Error: No data found in hdf5 (from create_image)')
                     return
                 # figure option
-                self.fig_opt = output_fig_GUI.load_fig_option(self.parent().path_prj, self.parent().name_prj)
+                self.fig_opt = output_fig_GUI.load_fig_option(self.parent().parent().parent().path_prj, self.parent().parent().parent().name_prj)
                 if not save_fig:
                     self.fig_opt['format'] = 123456  # random number  but should be bigger than number of format
 
@@ -299,7 +311,7 @@ class GroupPlot(QGroupBox):
                     for t in range(1, len(ikle_all_t)):  # do not plot full profile
                         if t < len(ikle_all_t):
                             if types_hdf5 == 'substrat':  # or self.model_type == 'LAMMI':
-                                self.parent().send_log.emit('Warning: Substrate data created but not plotted. '
+                                self.parent().parent().parent().send_log.emit('Warning: Substrate data created but not plotted. '
                                                    'See the created shapefile for subtrate outputs. \n')
                                 manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
                                                                inter_vel_all_t[t], inter_h_all_t[t], path_im, True, units[t - 1],
@@ -319,7 +331,7 @@ class GroupPlot(QGroupBox):
                         else:
                             if t < len(ikle_all_t):
                                 if types_hdf5 == 'substrat':  # or self.model_type == 'LAMMI':
-                                    self.parent().send_log.emit('Warning: Substrate data created but not plotted. '
+                                    self.parent().parent().parent().send_log.emit('Warning: Substrate data created but not plotted. '
                                                        'See the created shapefile for subtrate outputs. \n')
                                     manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
                                                                    inter_vel_all_t[t], inter_h_all_t[t], path_im, True, units[index],
@@ -333,9 +345,9 @@ class GroupPlot(QGroupBox):
 
                 # show basic information
                 if show_info and len(ikle_all_t) > 0:
-                    self.parent().send_log.emit("# ------------------------------------------------")
-                    self.parent().send_log.emit("# Information about the hydrological data from the model " + types_hdf5)
-                    self.parent().send_log.emit("# - Number of time step: " + str(len(ikle_all_t) - 1))
+                    self.parent().parent().parent().send_log.emit("# ------------------------------------------------")
+                    self.parent().parent().parent().send_log.emit("# Information about the hydrological data from the model " + types_hdf5)
+                    self.parent().parent().parent().send_log.emit("# - Number of time step: " + str(len(ikle_all_t) - 1))
                     extx = 0
                     exty = 0
                     nb_node = 0
@@ -353,16 +365,16 @@ class GroupPlot(QGroupBox):
                         vmean += np.sum(inter_vel_all_t[-1][r])
                     hmean /= nb_node
                     vmean /= nb_node
-                    self.parent().send_log.emit("# - Maximal number of nodes: " + str(nb_node))
-                    self.parent().send_log.emit("# - Maximal geographical extend: " + str(round(extx, 3)) + 'm X ' +
+                    self.parent().parent().parent().send_log.emit("# - Maximal number of nodes: " + str(nb_node))
+                    self.parent().parent().parent().send_log.emit("# - Maximal geographical extend: " + str(round(extx, 3)) + 'm X ' +
                                        str(round(exty, 3)) + "m")
-                    self.parent().send_log.emit(
+                    self.parent().parent().parent().send_log.emit(
                         "# - Mean water height at the last time step, not weighted by cell area: " +
                         str(round(hmean, 3)) + 'm')
-                    self.parent().send_log.emit(
+                    self.parent().parent().parent().send_log.emit(
                         "# - Mean velocity at the last time step, not weighted by cell area: " +
                         str(round(vmean, 3)) + 'm/sec')
-                    self.parent().send_log.emit("# ------------------------------------------------")
+                    self.parent().parent().parent().send_log.emit("# ------------------------------------------------")
 
                 print(save_fig)
                 if not save_fig:
@@ -371,6 +383,6 @@ class GroupPlot(QGroupBox):
                 if save_fig:
                     matplotlib.interactive(False)
             else:
-                self.parent().send_log.emit('Error: The hydrological model is not found. \n')
+                self.parent().parent().parent().send_log.send_log.emit('Error: The hydrological model is not found. \n')
 
 

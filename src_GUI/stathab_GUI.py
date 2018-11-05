@@ -18,7 +18,7 @@ from io import StringIO
 import os
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
-    QListWidget, QListWidgetItem, QMessageBox, QComboBox, QAbstractItemView
+    QListWidget, QListWidgetItem, QMessageBox, QComboBox, QAbstractItemView, QFrame
 from PyQt5.QtGui import QFont
 import sys
 import copy
@@ -236,8 +236,11 @@ class StathabW(estimhab_GUI.StatModUseful):
                 self.msge.setStandardButtons(QMessageBox.Ok)
                 self.msge.show()
 
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # Layout
-        self.layout = QGridLayout()
+        self.layout = QGridLayout(content_widget)
         self.layout.addWidget(self.l1, 0, 0)
         self.layout.addWidget(loadb, 0, 2)
         self.layout.addWidget(self.l0, 0, 1)
@@ -256,7 +259,12 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.runb, 6, 2)
         self.layout.addWidget(self.fishall, 7, 1)
         self.layout.addWidget(self.butfig, 7, 2)
-        self.setLayout(self.layout)
+
+        #self.setLayout(self.layout3)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
+
 
     def select_dir(self):
         """

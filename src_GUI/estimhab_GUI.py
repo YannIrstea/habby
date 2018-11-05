@@ -24,7 +24,7 @@ except ImportError:
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QFileDialog, QListWidget,  QListWidgetItem, \
-    QAbstractItemView, QMessageBox
+    QAbstractItemView, QMessageBox, QScrollArea, QFrame
 from PyQt5.QtGui import QFont
 import h5py
 import sys
@@ -32,7 +32,7 @@ from io import StringIO
 from src_GUI import output_fig_GUI
 
 
-class StatModUseful(QWidget):
+class StatModUseful(QScrollArea):
     """
     This class is not called directly by HABBY, but it is the parent class of EstihabW and FstressW. As fstress and
     estimhab have a similar graphical user interface, this architecture allows to re-use some functions between the
@@ -433,8 +433,11 @@ class EstimhabW(StatModUseful):
         # button2 = QPushButton(self.tr('Change folder (fish data)'), self)
         # button2.clicked.connect(self.change_folder)
 
+        # empty frame scrolable
+        content_widget = QFrame()
+
         #layout
-        self.layout3 = QGridLayout()
+        self.layout3 = QGridLayout(content_widget)
         self.layout3.addWidget(l1, 0, 0)
         self.layout3.addWidget(l2, 1, 0)
         self.layout3.addWidget(l3, 1, 1)
@@ -458,7 +461,11 @@ class EstimhabW(StatModUseful):
         self.layout3.addWidget(self.list_s, 9, 1)
         self.layout3.addWidget(button1, 10, 2)
         #self.layout3.addWidget(button2, 10, 0)
-        self.setLayout(self.layout3)
+
+        #self.setLayout(self.layout3)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
 
     def read_fish_name(self):
         """

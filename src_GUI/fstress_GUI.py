@@ -21,7 +21,7 @@ except ImportError:
 import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog,\
-    QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog
+    QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QFrame
 from PyQt5.QtGui import QFont
 import sys
 import os
@@ -137,8 +137,11 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.riv_name.append(self.defriver)
             self.found_file = [[None,None]]
 
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # layout
-        self.layout3 = QGridLayout()
+        self.layout3 = QGridLayout(content_widget)
         self.layout3.addItem(spacer, 0, 3)
         self.layout3.addWidget(l001, 0, 0)
         self.layout3.addWidget(self.loadtxt, 1, 0)
@@ -168,7 +171,14 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.layout3.addWidget(self.fishall, 13, 0)
         self.layout3.addWidget(self.button1, 13, 2)
         # self.layout3.addWidget(self.button2, 13, 1)
-        self.setLayout(self.layout3)
+
+        # add layout
+        #self.setLayout(self.layout3)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
+
+
 
     def was_loaded_before(self):
         """

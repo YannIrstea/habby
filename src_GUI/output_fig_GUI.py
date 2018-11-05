@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QSpacerItem, QComboBox, QMessageBox,\
-    QCheckBox
+    QCheckBox, QScrollArea, QFrame
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -26,7 +26,7 @@ import numpy as np
 import os
 
 
-class outputW(QWidget):
+class outputW(QScrollArea):
     """
     The class which support the creation and management of the output. It is notably used to select the options to
     create the figures.
@@ -211,12 +211,13 @@ class outputW(QWidget):
             self.out5b.setChecked(True)
 
         # save
-        self.saveb =QPushButton(self.tr('Save options'))
+        self.saveb = QPushButton(self.tr('Save options'))
         self.saveb.clicked.connect(self.save_option_fig)
 
-        spacer = QSpacerItem(10, 130)
+        # empty frame scrolable
+        content_widget = QFrame()
 
-        self.layout = QGridLayout()
+        self.layout = QGridLayout(content_widget)
         self.layout.addWidget(self.fig0l, 0, 0)
         self.layout.addWidget(self.fig1l, 1, 0)
         self.layout.addWidget(self.fig2l, 2, 0)
@@ -267,11 +268,12 @@ class outputW(QWidget):
         self.layout.addWidget(self.out4, 8, 3)
         self.layout.addWidget(self.out4a, 8, 4)
         self.layout.addWidget(self.out4b, 8, 5)
-
-        self.layout.addItem(spacer,22,0)
         self.layout.addWidget(self.saveb, 21, 4, 1, 2)
 
-        self.setLayout(self.layout)
+        self.layout.setAlignment(Qt.AlignTop)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
 
     def check_uncheck(self, main_checkbox, other_checkbox):
         """

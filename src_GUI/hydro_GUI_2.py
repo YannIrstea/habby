@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget, \
     QListWidgetItem, QComboBox, QMessageBox,\
-    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView
+    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy
 from PyQt5.QtGui import QIcon
 import h5py
 from multiprocessing import Process, Queue
@@ -52,7 +52,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 
 
-class Hydro2W(QWidget):
+class Hydro2W(QScrollArea):
     """
     The class Hydro2W is the second tab of HABBY. It is the class containing
     all the classes/Widgets which are used to load the hydrological data.
@@ -170,6 +170,9 @@ class Hydro2W(QWidget):
         self.stack.addWidget(self.telemac)
         self.stack.addWidget(self.habbyhdf5)
         self.stack.setCurrentIndex(self.mod_act)
+        self.stack.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.stack.adjustSize()
+        self.stack.setFixedSize(100, 100)
 
         # export slf
         self.slfbut = QPushButton(self.tr('export .slf'))
@@ -179,8 +182,14 @@ class Hydro2W(QWidget):
         l4 = QLabel(self.tr('<b> Available hdf5 files </b>'))
         self.drop_hyd = QComboBox()
 
+        # spacer to align top
+        verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # layout
-        self.layout4 = QGridLayout()
+        self.layout4 = QGridLayout(content_widget)
         self.layout4.addWidget(l3, 0, 0)
         self.layout4.addWidget(self.mod, 1, 0)
         self.layout4.addItem(spacer2, 1, 1)
@@ -189,8 +198,14 @@ class Hydro2W(QWidget):
         self.layout4.addWidget(l4, 3, 0)
         self.layout4.addWidget(self.drop_hyd, 4, 0)
         self.layout4.addWidget(self.slfbut, 4, 1)
+        self.layout4.addItem(verticalSpacer)
 
-        self.setLayout(self.layout4)
+
+        #self.setLayout(self.layout4)
+        self.layout4.setAlignment(Qt.AlignTop)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
 
     def selectionchange(self, i):
         """
@@ -3614,8 +3629,11 @@ class SubstrateW(SubHydroW):
         self.const_part = QWidget()
         self.const_part.setLayout(self.layout_const)
 
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # layout general
-        self.layout_sub = QGridLayout()
+        self.layout_sub = QGridLayout(content_widget)
         self.layout_sub.addWidget(l1, 0, 0)
         self.layout_sub.addWidget(self.rb1, 1, 0)
         self.layout_sub.addWidget(self.rb2, 1, 1)
@@ -3639,7 +3657,15 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(self.lm2, 14, 1)
         self.layout_sub.addItem(self.spacer2, 11, 1)
 
-        self.setLayout(self.layout_sub)
+        #self.setLayout(self.layout_sub)
+        self.scrollarea = QScrollArea()
+        self.scrollarea.setWidgetResizable(True)
+        self.scrollarea.setFrameShape(QFrame.Shape.NoFrame)
+        self.scrollarea.setWidget(content_widget)
+        self.layoutscroll = QVBoxLayout()
+        self.layoutscroll.setContentsMargins(0, 0, 0, 0)
+        self.layoutscroll.addWidget(self.scrollarea)
+        self.setLayout(self.layoutscroll)
 
     def btnstate(self, rb_sel, rb_del):
         """

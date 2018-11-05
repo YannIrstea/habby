@@ -14,9 +14,9 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout,  QLineEdit, \
-    QComboBox, QListWidget, QSpacerItem, QFileDialog
+    QComboBox, QListWidget, QSpacerItem, QFileDialog, QFrame
 import numpy as np
 from src import hydraulic_chronic
 from src import load_hdf5
@@ -66,6 +66,12 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.add_allmerge = QPushButton(self.tr("Select all file"))
         self.add_allmerge.clicked.connect(self.add_all_file)
 
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
+
         # selected merge file
         l1 = QLabel(self.tr("<b> Chosen data </b>"))
         self.chosen_all = QListWidget()
@@ -113,8 +119,11 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.run_chronicle.clicked.connect(self.run_chronicle_func)
         spacer = QSpacerItem(1, 100)
 
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # layout
-        self.layout4 = QGridLayout()
+        self.layout4 = QGridLayout(content_widget)
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.merge_all, 0, 1)
         self.layout4.addWidget(self.add_merge, 0, 2)
@@ -136,7 +145,11 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
 
         self.layout4.addWidget(self.run_chronicle, 7, 1)
         self.layout4.addItem(spacer, 8, 1)
-        self.setLayout(self.layout4)
+
+        #self.setLayout(self.layout4)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
 
     def open_xml(self):
         """

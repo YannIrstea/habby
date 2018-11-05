@@ -140,27 +140,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l7 = QLabel(self.tr('ONEMA fish code: '))
         self.fish_code = QLabel('')
         l8 = QLabel(self.tr('Description:'))
-        #self.descr = QLabel()
         self.descr = QTextEdit(self)  # where the log is show
+        self.descr.setReadOnly(True)
         self.pref_curve = QPushButton(self.tr('Show suitability curve'))
         self.pref_curve.clicked.connect(self.show_pref)
-
-        # get a scollable area for the decription which might be long
-        #self.scroll = QScrollArea()
-        #self.scroll.setFrameStyle(QFrame.NoFrame)
-        #self.vbar = self.scroll.verticalScrollBar()
-        #self.descr.setWordWrap(True)
-        #self.descr.setMaximumSize(200, 210)
-        #self.descr.setAlignment(Qt.AlignTop)
-        self.descr.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        #self.descr.setTextFormat(Qt.RichText)
-        #self.scroll.setWidget(self.descr)
-        # to have the Qlabel at the right size
-        #self.scroll.setWidgetResizable(True)
-        #self.scroll.setStyleSheet('background-color: white')
-        #self.vbar.setStyleSheet('background-color: lightGrey')
-        self.descr.setReadOnly(True)
-
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -219,8 +202,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # fill hdf5 list
         self.update_merge_list()
 
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # layout
-        self.layout4 = QGridLayout()
+        self.layout4 = QGridLayout(content_widget)
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
 
@@ -251,9 +237,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.cond1, 13, 2)
         self.layout4.addWidget(self.bs, 13, 3)
 
-        # self.layout4.addItem(spacer1, 0, 2)
-        # self.layout4.addItem(spacer2, 3, 3)
-        self.setLayout(self.layout4)
+        #self.setLayout(self.layout4)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
 
     def next_completion(self):
         """
@@ -366,14 +353,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get the description
         data = root.findall('.//Description')
-        if len(data)>0:
+        if len(data) > 0:
             found = False
             for d in data:
                 if d.attrib['Language'] == self.lang:
-                    self.descr.setText(d.text)
+                    self.descr.setText(d.text[2:-1])
                     found = True
             if not found:
-                self.descr.setText(data[0].text)
+                self.descr.setText(data[0].text[2:-1])
 
         # get the image fish
         data = root.find('.//Image')

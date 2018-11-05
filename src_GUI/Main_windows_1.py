@@ -137,11 +137,11 @@ class MainWindows(QMainWindow):
                 self.lang = 0
         else:
             self.lang = 0
-        app = QApplication.instance()
-        app.removeTranslator(self.languageTranslator)
+        self.app = QApplication.instance()
+        self.app.removeTranslator(self.languageTranslator)
         self.languageTranslator = QTranslator()
         self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
-        app.installTranslator(self.languageTranslator)
+        self.app.installTranslator(self.languageTranslator)
 
         # prepare the attributes, careful if change the Qsetting!
         self.msg2 = QMessageBox()
@@ -217,7 +217,7 @@ class MainWindows(QMainWindow):
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
-        self.setGeometry(50, 75, 1100, 930)
+        self.setGeometry(50, 75, 950, 700)
         self.setCentralWidget(self.central_widget)
 
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -317,26 +317,26 @@ class MainWindows(QMainWindow):
         # get the old tab
         ind_tab = self.central_widget.tab_widget.currentIndex()
         # get a new translator
-        app = QApplication.instance()
-        app.removeTranslator(self.languageTranslator)
+        self.app = QApplication.instance()
+        self.app.removeTranslator(self.languageTranslator)
         self.languageTranslator = QTranslator()
         self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
-        app.installTranslator(self.languageTranslator)
+        self.app.installTranslator(self.languageTranslator)
 
         # recreate new widget
         if self.central_widget.tab_widget.count() == 1:
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
         else:
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
-            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
             self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+            self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+            self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
-            self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
 
             # pass the info to the bio info tab
             # to be modified if a new language is added !
@@ -587,30 +587,14 @@ class MainWindows(QMainWindow):
 
             # theme sub menu
             themesub = ViewMenu.addMenu("Themes")
-            classicthemeaction = QAction('classic', themesub, checkable=True)
-            classicthemeaction.setChecked(True)
-            themesub.addAction(classicthemeaction)
-            darkthemeaction = QAction('dark', themesub, checkable=True)
-            darkthemeaction.setChecked(False)
-            themesub.addAction(darkthemeaction)
-            def setthemeclassic():
-                if not classicthemeaction.isChecked():
-                    classicthemeaction.setChecked(True)
-                else:
-                    darkthemeaction.setChecked(False)
-                    app = QApplication.instance()
-                    app.setStyleSheet("")
-            def setthemedark():
-                if not darkthemeaction.isChecked():
-                    darkthemeaction.setChecked(True)
-                else:
-                    classicthemeaction.setChecked(False)
-                    app = QApplication.instance()
-                    #app.setStyleSheet(open("qdarkstyle.qss", "r").read())
-                    app.setStyleSheet(qdarkgraystyle.load_stylesheet())
-                    #app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-            classicthemeaction.triggered.connect(setthemeclassic)
-            darkthemeaction.triggered.connect(setthemedark)
+            self.classicthemeaction = QAction('classic', themesub, checkable=True)
+            self.classicthemeaction.setChecked(True)
+            themesub.addAction(self.classicthemeaction)
+            self.darkthemeaction = QAction('dark', themesub, checkable=True)
+            self.darkthemeaction.setChecked(False)
+            themesub.addAction(self.darkthemeaction)
+            self.classicthemeaction.triggered.connect(self.setthemeclassic)
+            self.darkthemeaction.triggered.connect(self.setthemedark)
 
             # add the status bar
             self.statusBar()
@@ -624,6 +608,27 @@ class MainWindows(QMainWindow):
 
             # in case we need a tool bar
             # self.toolbar = self.addToolBar('')
+
+
+    def setthemeclassic(self):
+        if not self.classicthemeaction.isChecked():
+            self.classicthemeaction.setChecked(True)
+        else:
+            self.darkthemeaction.setChecked(False)
+            #app = QApplication.instance()
+            self.app.setStyleSheet("")
+
+    def setthemedark(self):
+        if not self.darkthemeaction.isChecked():
+            self.darkthemeaction.setChecked(True)
+        else:
+            self.classicthemeaction.setChecked(False)
+            #self.app = QApplication.instance()
+            self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
+            # other
+            self.central_widget.welcome_tab.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
+
+
 
     def create_menu_right(self):
         """
@@ -1742,10 +1747,10 @@ class CentralW(QWidget):
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
-        self.scroll_area = QScrollArea()
-        self.scroll_area.setWidget(self.tab_widget)
-        self.scroll_area.setWidgetResizable(True)
-        self.scroll_area.setFrameShape(QFrame.NoFrame)
+        # self.scroll_area = QScrollArea()
+        # self.scroll_area.setWidget(self.tab_widget)
+        # self.scroll_area.setWidgetResizable(True)
+        # self.scroll_area.setFrameShape(QFrame.NoFrame)
 
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
@@ -1770,8 +1775,9 @@ class CentralW(QWidget):
         #self.vbar = self.scroll.verticalScrollBar()
         #self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
         self.l2 = QTextEdit(self)  # where the log is show
-        self.l2.textChanged.connect(self.scrolldown)
         self.l2.setReadOnly(True)
+        #self.l2.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.l2.textChanged.connect(self.scrolldown)
         self.l2.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
         self.max_lengthshow = 180
         pyqtRemoveInputHook()
@@ -1844,7 +1850,7 @@ class CentralW(QWidget):
 
         # layout
         self.layoutc = QGridLayout()
-        self.layoutc.addWidget(self.scroll_area, 1, 0)
+        self.layoutc.addWidget(self.tab_widget, 1, 0)
         self.layoutc.addWidget(self.l1, 2, 0)
         self.layoutc.addWidget(self.l2, 3, 0)
         self.setLayout(self.layoutc)
@@ -2231,7 +2237,7 @@ class CentralW(QWidget):
                 self.chronicle_tab.merge_all.setItemData(i, self.bioinfo_tab.tooltip[i], Qt.ToolTipRole)
 
 
-class WelcomeW(QWidget):
+class WelcomeW(QScrollArea):
     """
     The class WeLcomeW()  creates the first tab of HABBY (the tab called “General”). This tab is there to create
     a new project or to change the name, path, etc. of a project.
@@ -2265,7 +2271,7 @@ class WelcomeW(QWidget):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        self.imname = os.path.join('translation','banner.jpg') # image should be in the translation folder
+        self.imname = os.path.join('translation','banner.png') # image should be in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
@@ -2315,10 +2321,10 @@ class WelcomeW(QWidget):
         self.lowpart = QWidget()
 
         # background image
-        pic = QLabel()
-        pic.setMaximumSize(1000, 200)
+        self.pic = QLabel()
+        self.pic.setMaximumSize(1000, 200)
         # use full ABSOLUTE path to the image, not relative
-        pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
+        self.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
         # pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
 
         # insist on white background color (for linux, mac)
@@ -2340,8 +2346,11 @@ class WelcomeW(QWidget):
             self.e4.setText(user_child.text)
             self.e3.setText(des_child.text)
 
+        # empty frame scrolable
+        content_widget = QFrame()
+
         # layout (in two parts)
-        layout2 = QGridLayout()
+        layout2 = QGridLayout(content_widget)
         layouth = QGridLayout()
         layoutl = QGridLayout()
 
@@ -2365,10 +2374,14 @@ class WelcomeW(QWidget):
         layoutl.addWidget(self.e3, 4, 1)
         self.lowpart.setLayout(layoutl)
 
-        layout2.addWidget(pic, 0, 0)
+        layout2.addWidget(self.pic, 0, 0)
         layout2.addWidget(highpart, 0, 0)
         layout2.addWidget(self.lowpart, 1, 0)
-        self.setLayout(layout2)
+
+        #self.setLayout(layout2)
+        self.setWidgetResizable(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setWidget(content_widget)
 
     def open_example(self):
         """
