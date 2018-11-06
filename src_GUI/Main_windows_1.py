@@ -217,7 +217,7 @@ class MainWindows(QMainWindow):
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
-        self.setGeometry(50, 75, 950, 700)
+        self.setGeometry(50, 75, 950, 720)
         self.setCentralWidget(self.central_widget)
 
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -286,7 +286,7 @@ class MainWindows(QMainWindow):
         if self.name_prj is not None:
 
             # open the text file
-            filename = os.path.join(os.path.join(self.path_prj,'hdf5_files'), 'check_concurrency.txt')
+            filename = os.path.join(os.path.join(self.path_prj, 'hdf5_files'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
                 self.central_widget.write_log('Warning: Could not check if the project was open by '
                                               'another instance of HABBY (3) \n')
@@ -316,6 +316,8 @@ class MainWindows(QMainWindow):
         self.lang = int(nb_lang)
         # get the old tab
         ind_tab = self.central_widget.tab_widget.currentIndex()
+        # get hydraulic type open
+        ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
@@ -329,6 +331,8 @@ class MainWindows(QMainWindow):
         else:
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
             self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+            if ind_hydrau_tab != 0:
+                self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
             self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
             self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
@@ -1747,11 +1751,6 @@ class CentralW(QWidget):
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
-        # self.scroll_area = QScrollArea()
-        # self.scroll_area.setWidget(self.tab_widget)
-        # self.scroll_area.setWidgetResizable(True)
-        # self.scroll_area.setFrameShape(QFrame.NoFrame)
-
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
 
@@ -1768,15 +1767,11 @@ class CentralW(QWidget):
             self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
             self.update_merge_for_chronicle()
 
-        #self.scroll = QScrollArea()
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
-        #self.vbar = self.scroll.verticalScrollBar()
-        #self.l2 = QLabel(self.tr('Log of HABBY started. <br>'))  # where the log is show
         self.l2 = QTextEdit(self)  # where the log is show
         self.l2.setReadOnly(True)
-        #self.l2.setTextInteractionFlags(Qt.NoTextInteraction)
         self.l2.textChanged.connect(self.scrolldown)
         self.l2.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
         self.max_lengthshow = 180
@@ -1827,22 +1822,8 @@ class CentralW(QWidget):
         self.add_all_tab()
 
         # Area to show the log
-        # add two Qlabel l1 ad l2 , with one scroll for the log in l2
         self.l1 = QLabel(self.tr('HABBY says:'))
-        #self.l2.setAlignment(Qt.AlignTop)
-        #self.l2.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        #self.l2.setTextFormat(Qt.RichText)
-        #self.l2.setAcceptRichText(True)
-        #self.l2.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        # see the end of the log first
-        #self.vbar.rangeChanged.connect(self.scrolldown)
-        #self.scroll.setWidget(self.l2)
-        # to have the Qlabel at the right size
-        #self.scroll.setWidgetResizable(True)
-        # colors
-        #self.scroll.setStyleSheet('background-color: white')
         self.l2.setFixedHeight(100)
-        #self.vbar.setStyleSheet('background-color: lightGrey')
 
         self.welcome_tab.save_info_signal.connect(self.save_info_projet)
         # save the description and the figure option if tab changed
@@ -1904,8 +1885,8 @@ class CentralW(QWidget):
                 self.path_im = os.path.join(self.path_prj_c,child.text)
 
         # if os.name == 'nt':  # windows
-        matplotlib.interactive(True)
-        plt.show()
+        #plt.show()
+        print("showfig")
         # else:
         #     num_fig = plt.get_fignums()
         #     self.all_fig_widget = []
@@ -2271,7 +2252,7 @@ class WelcomeW(QScrollArea):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        self.imname = os.path.join('translation','banner.png') # image should be in the translation folder
+        self.imname = os.path.join('translation', 'banner.jpg') # image should be in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
