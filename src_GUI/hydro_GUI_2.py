@@ -23,8 +23,8 @@ from PyQt5.QtCore import QTranslator, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget, \
-    QListWidgetItem, QComboBox, QMessageBox,\
-    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy
+    QListWidgetItem, QComboBox, QMessageBox, QGroupBox,\
+    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, QHBoxLayout
 from PyQt5.QtGui import QIcon
 import h5py
 from multiprocessing import Process, Queue
@@ -126,26 +126,19 @@ class Hydro2W(QScrollArea):
         """
         Used in the initialization by __init__()
         """
-        # generic label
-        l2 = QLabel(self.tr('<b> LOAD NEW DATA </b>'))
-        l3 = QLabel(self.tr('<b>Available hydraulic models </b>'))
-
-        # available model
-        self.mod.addItems(self.name_model)
-        self.mod.currentIndexChanged.connect(self.selectionchange)
-        self.button1 = QPushButton(self.tr('?'), self)
-        self.button1.clicked.connect(self.give_info_model)
-        spacer2 = QSpacerItem(50, 1)
-
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # add the widgets representing the available models to a stack
-        # of widgets
-        self.free = FreeSpace()
+        # group hydraulic model
+        self.mod.addItems(self.name_model)  # available model
+        self.mod.currentIndexChanged.connect(self.selectionchange)
+        self.button1 = QPushButton(self.tr('?'), self)
+        self.button1.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.button1.clicked.connect(self.give_info_model)
+        self.free = QWidget()  # add the widgets representing the available models to a stack of widgets
         self.hecras1D = HEC_RAS1D(self.path_prj, self.name_prj)
         self.hecras2D = HEC_RAS2D(self.path_prj, self.name_prj)
         self.sw2d = SW2D(self.path_prj, self.name_prj)
@@ -170,39 +163,46 @@ class Hydro2W(QScrollArea):
         self.stack.addWidget(self.telemac)
         self.stack.addWidget(self.habbyhdf5)
         self.stack.setCurrentIndex(self.mod_act)
-        self.stack.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.stack.adjustSize()
-        self.stack.setFixedSize(100, 100)
+        self.stack.setFixedHeight(0)
+        self.stack.setFixedWidth(0)
 
-        # export slf
-        self.slfbut = QPushButton(self.tr('export .slf'))
+        # group hydraulic hdf5
+        self.slfbut = QPushButton(self.tr('export .slf'))  # export slf
+        self.slfbut.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.slfbut.clicked.connect(self.export_slf_gui)
-
-        # list with available hdf5
-        l4 = QLabel(self.tr('<b> Available hdf5 files </b>'))
-        self.drop_hyd = QComboBox()
-
-        # spacer to align top
-        verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.drop_hyd = QComboBox()  # list with available hdf5
 
         # empty frame scrolable
         content_widget = QFrame()
+        self.layout = QVBoxLayout(content_widget)
 
-        # layout
-        self.layout4 = QGridLayout(content_widget)
-        self.layout4.addWidget(l3, 0, 0)
-        self.layout4.addWidget(self.mod, 1, 0)
-        self.layout4.addItem(spacer2, 1, 1)
-        self.layout4.addWidget(self.button1, 1, 2)
-        self.layout4.addWidget(self.stack, 2, 0)
-        self.layout4.addWidget(l4, 3, 0)
-        self.layout4.addWidget(self.drop_hyd, 4, 0)
-        self.layout4.addWidget(self.slfbut, 4, 1)
-        self.layout4.addItem(verticalSpacer)
+        # layout hydraulic model
+        hydrau_group = QGroupBox(self.tr('Available hydraulic models'))
+        hydrau_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        hydrau_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.mod)
+        button_layout.addWidget(self.button1)
+        hydrau_layout = QVBoxLayout()
+        hydrau_layout.addLayout(button_layout)
+        hydrau_layout.addWidget(self.stack)
+        hydrau_group.setLayout(hydrau_layout)
+        self.layout.addWidget(hydrau_group)
 
+        # layout hdf5 model
+        hdf5_group = QGroupBox(self.tr('Available hdf5 files'))
+        hdf5_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        hdf5_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
+        hdf5_layout = QHBoxLayout()
+        hdf5_layout.addWidget(self.drop_hyd)
+        hdf5_layout.addWidget(self.slfbut)
+        hdf5_group.setLayout(hdf5_layout)
+        self.layout.addWidget(hdf5_group)
 
-        #self.setLayout(self.layout4)
-        self.layout4.setAlignment(Qt.AlignTop)
+        # spacer to align top
+        verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.layout.addItem(verticalSpacer)
+
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
@@ -218,6 +218,12 @@ class Hydro2W(QScrollArea):
 
         self.mod_act = i
         self.stack.setCurrentIndex(self.mod_act)
+        if self.mod_act == 0:
+            self.stack.setFixedHeight(0)
+            self.stack.setFixedWidth(0)
+        else:
+            self.stack.setFixedHeight(self.stack.currentWidget().minimumSizeHint().height())
+            self.stack.setFixedWidth(self.stack.currentWidget().minimumSizeHint().width())
 
     def give_info_model(self):
         """
@@ -286,32 +292,6 @@ class Hydro2W(QScrollArea):
             return
 
         new_create_vtk.save_slf(name_hdf5, path_hdf5, path_slf, False)
-
-
-class FreeSpace(QWidget):
-    """
-    Simple class with empty space, just to have only Qwidget in the stack.
-
-    **Technical comment**
-
-    The idea of this class is that the user see a free space when it opens
-    the “Hydro” Tab instead of directly seeing one of the hydraulic model.
-    The goal is to avoid the case where a user tries to load data before
-    selecting the real model. For example, if a user wants to load mascaret
-    data and that an item is selected by default in the stack of classes
-    related to hydrology (such as HEC-RAS1D), it might be logical for the
-    user to try to load masacret data using the HEC-RAS class.
-    Because of the FreeSpace class, he actually has to select
-    the model he wants to load.
-    """
-
-    def __init__(self):
-
-        super().__init__()
-        self.spacer = QSpacerItem(1, 1)
-        self.layout_s = QGridLayout()
-        self.layout_s.addItem(self.spacer, 0, 0)
-        self.setLayout(self.layout_s)
 
 
 class SubHydroW(QWidget):
@@ -506,18 +486,14 @@ class SubHydroW(QWidget):
             filter2 += ')' + ";; All File (*.*)"
         else:
             filter2 = ''
-
         # find the filename based on user choice
         if len(self.pathfile) == 0:  # case where no file was open before
-            filename_path = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', self.path_prj, filter2,
-                                                        filter2)[0]
+            filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.path_prj, filter2)[0]
         elif i >= len(self.pathfile):
-            filename_path = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', self.pathfile[0], filter2
-                                                        ,filter2)[0]
+            filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[0], filter2)[0]
         else:
             # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
-            filename_path = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', self.pathfile[i], filter2
-                                                        ,filter2)[0]
+            filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[i], filter2)[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
             return
@@ -910,7 +886,8 @@ class SubHydroW(QWidget):
 
             # create the figure and show them
             if not error:
-                self.create_image(show_info=True)
+                #self.create_image(show_info=True)
+                self.send_log.emit(self.tr("Figures can be displayed via the Graphics tab\n"))
             else:
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
@@ -996,11 +973,13 @@ class SubHydroW(QWidget):
                         if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                             self.send_log.emit('Warning: Substrate data created but not plotted. '
                                                'See the created shapefile for subtrate outputs. \n')
-                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
+                            aa = 1
+                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, name_hdf5, True, True, True,
                                                            inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
                                                            substrate_all_pg[t], substrate_all_dom[t])
                         else:
-                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
+                            aa = 1
+                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, name_hdf5, True, True, True,
                                                            inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
             # plot the figure for some time steps
             else:
@@ -1013,11 +992,13 @@ class SubHydroW(QWidget):
                             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                                 self.send_log.emit('Warning: Substrate data created but not plotted. '
                                                    'See the created shapefile for subtrate outputs. \n')
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
+                                aa = 1
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, name_hdf5, True, True, True,
                                                                inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
                                                                substrate_all_pg[t], substrate_all_dom[t])
                             else:
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, True, True, True,
+                                aa = 1
+                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, os.path.basename(name_hdf5), True, True, True,
                                                                inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
                                 # to debug
                                 # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
@@ -1151,6 +1132,7 @@ class HEC_RAS1D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit('')
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -1186,7 +1168,7 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 8, 1)
         self.layout_hec.addWidget(self.load_b, 8, 3)
         self.layout_hec.addWidget(self.butfig, 9, 3)
-        self.layout_hec.addItem(self.spacer2, 10, 1)
+        #self.layout_hec.addItem(self.spacer2, 10, 1)
         self.setLayout(self.layout_hec)
 
     def load_hec_ras_gui(self):
@@ -1380,6 +1362,7 @@ class Rubar2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -1407,7 +1390,7 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 3, 1)
         self.layout_hec.addWidget(self.load_b, 3, 2)
         self.layout_hec.addWidget(self.butfig, 4, 2)
-        self.layout_hec.addItem(self.spacer, 5, 1)
+        #self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
     def load_rubar(self):
@@ -1588,6 +1571,7 @@ class Mascaret(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -1629,7 +1613,7 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(self.hname, 8, 1)
         self.layout.addWidget(self.load_b, 9, 2)
         self.layout.addWidget(self.butfig, 9, 4)
-        self.layout.addItem(spacer, 10, 1)
+        #self.layout.addItem(spacer, 10, 1)
         self.setLayout(self.layout)
 
     def load_mascaret_gui(self):
@@ -1857,6 +1841,7 @@ class River2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
         spacer = QSpacerItem(1, 100)
@@ -1875,7 +1860,7 @@ class River2D(SubHydroW):
         self.layout.addWidget(self.hname, 5, 1)
         self.layout.addWidget(self.load_b, 5, 2)
         self.layout.addWidget(self.butfig, 6, 2)
-        self.layout.addItem(spacer, 7, 0)
+        #self.layout.addItem(spacer, 7, 0)
         self.setLayout(self.layout)
 
     def remove_file(self):
@@ -2143,6 +2128,7 @@ class Rubar1D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -2181,7 +2167,7 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 7, 1)
         self.layout_hec.addWidget(self.load_b, 8, 2)
         self.layout_hec.addWidget(self.butfig, 8, 4)
-        self.layout_hec.addItem(self.spacer1, 9, 1)
+        #self.layout_hec.addItem(self.spacer1, 9, 1)
         self.setLayout(self.layout_hec)
 
     def load_rubar1d(self):
@@ -2360,6 +2346,7 @@ class HEC_RAS2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -2387,7 +2374,7 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(self.hname, 3, 1)
         self.layout_hec2.addWidget(self.load_b, 4, 2)
         self.layout_hec2.addWidget(self.butfig, 5, 2)
-        self.layout_hec2.addItem(self.spacer, 6, 1)
+        #self.layout_hec2.addItem(self.spacer, 6, 1)
         self.setLayout(self.layout_hec2)
 
     def load_hec_2d_gui(self):
@@ -2511,6 +2498,7 @@ class TELEMAC(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -2537,7 +2525,7 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.hname, 3, 1)
         self.layout_hec2.addWidget(self.load_b, 4, 2)
         self.layout_hec2.addWidget(self.butfig, 5, 2)
-        self.layout_hec2.addItem(self.spacer, 6, 1)
+        #self.layout_hec2.addItem(self.spacer, 6, 1)
         self.setLayout(self.layout_hec2)
 
     def load_telemac_gui(self):
@@ -2657,6 +2645,7 @@ class LAMMI(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -2684,7 +2673,7 @@ class LAMMI(SubHydroW):
         self.layout_hec2.addWidget(self.hname, 4, 1)
         self.layout_hec2.addWidget(self.load_b, 5, 2)
         self.layout_hec2.addWidget(self.butfig, 6, 2)
-        self.layout_hec2.addItem(self.spacer, 7, 1)
+        #self.layout_hec2.addItem(self.spacer, 7, 1)
         self.setLayout(self.layout_hec2)
 
     def show_dialog_lammi(self, i = 0):
@@ -2861,6 +2850,7 @@ class SW2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -2888,7 +2878,7 @@ class SW2D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 3, 1)
         self.layout_hec.addWidget(self.load_b, 3, 2)
         self.layout_hec.addWidget(self.butfig, 4, 2)
-        self.layout_hec.addItem(self.spacer, 5, 1)
+        #self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
     def load_sw2d(self):
@@ -3056,6 +3046,7 @@ class IBER2D(SubHydroW):
         # hdf5 name
         lh = QLabel(self.tr('<b> hdf5 file name </b>'))
         self.hname = QLineEdit(self.name_hdf5)
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
@@ -3092,7 +3083,7 @@ class IBER2D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 6, 1)
         self.layout_hec.addWidget(self.load_b, 6, 2)
         self.layout_hec.addWidget(self.butfig, 7, 2)
-        self.layout_hec.addItem(self.spacer, 8, 1)
+        #self.layout_hec.addItem(self.spacer, 8, 1)
         self.setLayout(self.layout_hec)
 
     def load_iber2d(self):
@@ -3499,6 +3490,7 @@ class SubstrateW(SubHydroW):
         self.max_lengthshow = 90  # the maximum length of a file name to be show in full
         self.nb_dim = 10  # just to ckeck
         self.hname2 = QLineEdit('Sub_CONST')
+        self.hname2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         # order and name matters here!
         # change with caution!
         # roughness height if ok with George
@@ -3530,6 +3522,7 @@ class SubstrateW(SubHydroW):
         self.e2 = QComboBox()
         self.e2.addItems(self.all_code_type)
         self.hname = QLineEdit('')  # hdf5 name
+        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
