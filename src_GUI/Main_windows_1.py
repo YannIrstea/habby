@@ -123,7 +123,6 @@ class MainWindows(QMainWindow):
             if len(recent_projects_set) > self.nb_recent:
                 self.settings.setValue('recent_project_name', recent_projects_set[ -self.nb_recent+1:])
                 self.settings.setValue('recent_project_path', recent_projects_path_set[-self.nb_recent+1:])
-
         del self.settings
 
         # set up translation
@@ -166,6 +165,7 @@ class MainWindows(QMainWindow):
         self.username_prj = "NoUserName"
         self.descri_prj = ""
         self.does_it_work = True
+        self.actual_theme = "classic"
 
         # the path to the biological data by default (HABBY force the user to use this path)
         self.path_bio_default = "biology"
@@ -217,7 +217,19 @@ class MainWindows(QMainWindow):
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
         # set geometry
-        self.setGeometry(50, 75, 950, 720)
+        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
+        if not self.settings.value('wind_position'):
+            self.setGeometry(50, 75, 950, 720)
+        if self.settings.value('wind_position'):
+            windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(map(int, self.settings.value('wind_position').split(",")))
+            self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
+        # set theme
+        if self.settings.value('theme') == "dark":
+            self.setthemedark()
+        del self.settings
+
+
+
         self.setCentralWidget(self.central_widget)
 
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -234,8 +246,13 @@ class MainWindows(QMainWindow):
 
         :param event: managed by the operating system.
         """
-
         self.end_concurrency()
+
+        # save theme and windows position
+        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
+        self.settings.setValue('wind_position', ",".join([str(self.geometry().x()), str(self.geometry().y()), str(self.geometry().width()), str(self.geometry().height())]))
+        self.settings.setValue('theme', self.actual_theme)
+        del self.settings
         os._exit(1)
 
     def check_concurrency(self):
@@ -613,26 +630,19 @@ class MainWindows(QMainWindow):
             # in case we need a tool bar
             # self.toolbar = self.addToolBar('')
 
-
     def setthemeclassic(self):
-        if not self.classicthemeaction.isChecked():
-            self.classicthemeaction.setChecked(True)
-        else:
-            self.darkthemeaction.setChecked(False)
-            #app = QApplication.instance()
-            self.app.setStyleSheet("")
+        self.darkthemeaction.setChecked(False)
+        self.classicthemeaction.setChecked(True)
+        self.app.setStyleSheet("")
+        self.actual_theme = "classic"
 
     def setthemedark(self):
-        if not self.darkthemeaction.isChecked():
-            self.darkthemeaction.setChecked(True)
-        else:
-            self.classicthemeaction.setChecked(False)
-            #self.app = QApplication.instance()
-            self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
-            # other
-            self.central_widget.welcome_tab.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
-
-
+        self.darkthemeaction.setChecked(True)
+        self.classicthemeaction.setChecked(False)
+        self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
+        self.actual_theme = "dark"
+        # other
+        self.central_widget.welcome_tab.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
 
     def create_menu_right(self):
         """
@@ -942,7 +952,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.path_prj = self.path_prj
 
         # send the new name to all widget and re-connect signal
-        t = self.central_widget.l2.text()
+        t = self.central_widget.l2.toPlainText()
         m = self.central_widget.tab_widget.count()
 
         for i in range(m, 0, -1):
@@ -1080,15 +1090,15 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # recreate new widget
-        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
         self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
         self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+        self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
         self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
         self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
         self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
-        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-        self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
