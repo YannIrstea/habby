@@ -23,7 +23,7 @@ from PyQt5.QtCore import QTranslator, pyqtSignal, QTimer, Qt
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget, \
-    QListWidgetItem, QComboBox, QMessageBox, QGroupBox,\
+    QListWidgetItem, QComboBox, QMessageBox, QGroupBox, \
     QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, QHBoxLayout
 from PyQt5.QtGui import QIcon
 import h5py
@@ -224,6 +224,11 @@ class Hydro2W(QScrollArea):
         else:
             self.stack.setFixedHeight(self.stack.currentWidget().minimumSizeHint().height())
             self.stack.setFixedWidth(self.stack.currentWidget().minimumSizeHint().width())
+            #print(self.stack.currentWidget().minimumSizeHint().width())
+            #self.stack.setMinimumWidth(self.stack.currentWidget().minimumSizeHint().width())
+            #self.stack.setMaximumWidth(99999)
+            #self.stack.setWid(self.stack.currentWidget().minimumSizeHint().width())
+            #self.stack.currentWidget().setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def give_info_model(self):
         """
@@ -887,7 +892,7 @@ class SubHydroW(QWidget):
             # create the figure and show them
             if not error:
                 #self.create_image(show_info=True)
-                self.send_log.emit(self.tr("Figures can be displayed via the Graphics tab\n"))
+                self.send_log.emit(self.tr("Figures can be displayed from create figure button or from graphics tab.\n"))
             else:
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
@@ -929,125 +934,57 @@ class SubHydroW(QWidget):
 
     def create_image(self, save_fig=True, show_info=False):
         """
-        This function is used to create the images related to the grid and the hydrology. It is called by send_data
-        and recreate_image. This function exists because the two functions above have similar needs and that we do not
-        copy too much codes. It can also show basic information about the data in the log windows and in the log file
-        if the variable show_info is True.
+        plot hydraulic data
 
         :param save_fig: a boolean to save the figure or not
         :param show_info: If True, basic information about the data will be displayed into the log window.
         """
+        # getting the subtrate name
+        name_hdf5 = os.path.basename(load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj))
 
-        path_im = self.find_path_im()
-        path_hdf5 = self.find_path_hdf5()
-        sys.stdout = self.mystdout = StringIO()
+        # getting the subtrate data
+        units_raw = load_hdf5.load_timestep_name(name_hdf5, self.path_prj + "/hdf5_files/")
 
-        # find hsf5 name (files where is hte data)
-        if self.model_type == 'SUBSTRATE':
-            name_hdf5 = load_hdf5.get_hdf5_name('MERGE', self.name_prj, self.path_prj)
-            if self.model_type == 'SUBSTRATE':
-                self.lm2.setText(name_hdf5)
-        else:
-            name_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
-        if name_hdf5:
-            # load data
-            if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg, substrate_all_dom] \
-                    = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, True)
-            else:
-                substrate_all_pg = []
-                substrate_all_dom = []
-                [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
-                                                                                                path_hdf5)
-            if ikle_all_t == [[-99]]:
-                self.send_log.emit('Error: No data found in hdf5 (from create_image)')
-                return
-            # figure option
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-            if not save_fig:
-                self.fig_opt['format'] = 123456  # random number  but should be bigger than number of format
-            # plot the figure for all time step
-            if self.fig_opt['time_step'][0] == -99:  # all time steps
-                for t in range(1, len(ikle_all_t)):  # do not plot full profile
-                    if t < len(ikle_all_t):
-                        if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                            self.send_log.emit('Warning: Substrate data created but not plotted. '
-                                               'See the created shapefile for subtrate outputs. \n')
-                            aa = 1
-                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, name_hdf5, True, True, True,
-                                                           inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
-                                                           substrate_all_pg[t], substrate_all_dom[t])
-                        else:
-                            aa = 1
-                            manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, name_hdf5, True, True, True,
-                                                           inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
-            # plot the figure for some time steps
-            else:
-                for t in self.fig_opt['time_step']:  # range(0, len(vel_cell)):
-                    # if print last and first time step and one time step only, only print it once
-                    if t == -1 and len(ikle_all_t) == 2 and 1 in self.fig_opt['time_step']:
-                        pass
-                    else:
-                        if t < len(ikle_all_t):
-                            if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                                self.send_log.emit('Warning: Substrate data created but not plotted. '
-                                                   'See the created shapefile for subtrate outputs. \n')
-                                aa = 1
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, name_hdf5, True, True, True,
-                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, True, t,
-                                                               substrate_all_pg[t], substrate_all_dom[t])
-                            else:
-                                aa = 1
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, os.path.basename(name_hdf5), True, True, True,
-                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, False, t)
-                                # to debug
-                                # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                                # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
+        # plot hydraulic data (h, v, mesh)
+        types_hdf5 = "hydraulic"
+        names_hdf5 = [name_hdf5]
+        variables = ["height", "velocity", "mesh"]
+        if len(units_raw) > 1:  # several timestep
+            units = [units_raw[0], units_raw[-1]]  # the first and the last timesteo
+            units_index = [0, len(units_raw) - 1]
+        else:  # one timestep
+            units = units_raw
+            units_index = [0]
+        types_plot = "display"
+        self.nativeParentWidget().central_widget.plot_tab.GroupPlot.plot(types_hdf5, names_hdf5, variables, units,
+                                                                         units_index, types_plot)
 
-            # show basic information
-            if show_info and len(ikle_all_t) > 0:
-                self.send_log.emit("# ------------------------------------------------")
-                self.send_log.emit("# Information about the hydrological data from the model " + self.model_type)
-                self.send_log.emit("# - Number of time step: " + str(len(ikle_all_t) - 1))
-                extx = 0
-                exty = 0
-                nb_node = 0
-                hmean = 0
-                vmean = 0
-                for r in range(0, len(point_all_t[0])):
-                    extxr = max(point_all_t[0][r][:, 0]) - min(point_all_t[0][r][:, 0])
-                    extyr = max(point_all_t[0][r][:, 1]) - min(point_all_t[0][r][:, 1])
-                    nb_node += len(point_all_t[0][r])
-                    if extxr > extx:
-                        extx = extxr
-                    if extyr > exty:
-                        exty = extyr
-                    hmean += np.sum(inter_h_all_t[-1][r])
-                    vmean += np.sum(inter_vel_all_t[-1][r])
-                hmean /= nb_node
-                vmean /= nb_node
-                self.send_log.emit("# - Maximal number of nodes: " + str(nb_node))
-                self.send_log.emit("# - Maximal geographical extend: " + str(round(extx, 3)) + 'm X ' +
-                                   str(round(exty, 3)) + "m")
-                self.send_log.emit(
-                    "# - Mean water height at the last time step, not weighted by cell area: " +
-                    str(round(hmean, 3)) + 'm')
-                self.send_log.emit(
-                    "# - Mean velocity at the last time step, not weighted by cell area: " +
-                    str(round(vmean, 3)) + 'm/sec')
-                self.send_log.emit("# ------------------------------------------------")
+    def create_image_merge(self, save_fig=True, show_info=False):
+        """
+        plot merge data
 
-            if self.model_type == 'SUBSTRATE':
-                self.butfig2.setDisabled(False)
-            else:
-                self.butfig.setEnabled(True)
-            self.show_fig.emit()
-        else:
-            self.send_log.emit('Error: The hydrological model is not found. \n')
+        :param save_fig: a boolean to save the figure or not
+        :param show_info: If True, basic information about the data will be displayed into the log window.
+        """
+        # getting the subtrate name
+        name_hdf5 = self.lm2.text()
 
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
+        # getting the subtrate data
+        units_raw = load_hdf5.load_timestep_name(name_hdf5, self.path_prj + "/hdf5_files/")
 
+        # plot hydraulic data (h, v, mesh)
+        types_hdf5 = "hydraulic"
+        names_hdf5 = [name_hdf5]
+        variables = ["height", "velocity", "mesh"]
+        if len(units_raw) > 1:  # several timestep
+            units = [units_raw[0], units_raw[-1]]  # the first and the last timesteo
+            units_index = [0, len(units_raw)]
+        else:  # one timestep
+            units = units_raw
+            units_index = [0]
+        types_plot = "display"
+        self.nativeParentWidget().central_widget.plot_tab.GroupPlot.plot(types_hdf5, names_hdf5, variables, units,
+                                                                         units_index, types_plot)
 
 class HEC_RAS1D(SubHydroW):
     """
@@ -1140,7 +1077,7 @@ class HEC_RAS1D(SubHydroW):
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -1371,7 +1308,7 @@ class Rubar2D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar)
         self.spacer = QSpacerItem(1, 200)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -1580,7 +1517,7 @@ class Mascaret(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -1816,7 +1753,7 @@ class River2D(SubHydroW):
         self.list_f = QListWidget()
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.add_file_to_list()
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if not self.namefile:
             self.butfig.setDisabled(True)
@@ -2137,7 +2074,7 @@ class Rubar1D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -2355,7 +2292,7 @@ class HEC_RAS2D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_2d_gui)
         self.spacer = QSpacerItem(1, 200)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -2476,6 +2413,8 @@ class TELEMAC(SubHydroW):
         # the label and attibutes
         self.was_model_loaded_before()
         self.h2d_t2 = QLabel(self.namefile[0], self)
+        self.h2d_t2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+
 
         # geometry and output data
         l1 = QLabel(self.tr('<b> Geometry and output data </b>'))
@@ -2507,7 +2446,7 @@ class TELEMAC(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -2525,7 +2464,6 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.hname, 3, 1)
         self.layout_hec2.addWidget(self.load_b, 4, 2)
         self.layout_hec2.addWidget(self.butfig, 5, 2)
-        #self.layout_hec2.addItem(self.spacer, 6, 1)
         self.setLayout(self.layout_hec2)
 
     def load_telemac_gui(self):
@@ -2654,7 +2592,7 @@ class LAMMI(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -2859,7 +2797,7 @@ class SW2D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -3055,7 +2993,7 @@ class IBER2D(SubHydroW):
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_iber2d)
         self.spacer = QSpacerItem(1, 200)
-        self.butfig = QPushButton(self.tr("Create figure again"))
+        self.butfig = QPushButton(self.tr("create figure"))
         self.butfig.clicked.connect(self.recreate_image)
         if self.namefile[0] == 'unknown file':
             self.butfig.setDisabled(True)
@@ -3544,7 +3482,7 @@ class SubstrateW(SubHydroW):
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sub_gui)
-        self.butfig1 = QPushButton(self.tr("Create figure again"))
+        self.butfig1 = QPushButton(self.tr("create figure"))
         self.butfig1.setDisabled(True)
         self.butfig1.clicked.connect(self.recreate_image_sub)
         if self.namefile[0] == 'unknown file':
@@ -3564,6 +3502,8 @@ class SubstrateW(SubHydroW):
         self.load_const.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_const.clicked.connect(lambda: self.load_sub_gui(True))
 
+
+
         # label and button for the part to merge the grid
         l8 = QLabel(self.tr("<b> Merge the hydraulic and substrate grid </b>"))
         l9 = QLabel(self.tr("Hydraulic data (hdf5)"))
@@ -3574,8 +3514,8 @@ class SubstrateW(SubHydroW):
         self.load_b2.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)
-        self.butfig2 = QPushButton(self.tr("Create figure again"))
-        self.butfig2.clicked.connect(self.recreate_image)
+        self.butfig2 = QPushButton(self.tr("create figure"))
+        self.butfig2.clicked.connect(self.create_image_merge)
         l11 = QLabel(self.tr('Default substrate value:'))
         l112 = QLabel(self.tr('Cemagref Code'))
         self.e3 = QLineEdit('1')  # default substrate value
@@ -3622,33 +3562,50 @@ class SubstrateW(SubHydroW):
         self.const_part = QWidget()
         self.const_part.setLayout(self.layout_const)
 
+        # layout susbtrate
+        self.layout_sub = QGridLayout()
+        self.layout_sub.addWidget(l1, 0, 0)
+        self.layout_sub.addWidget(self.rb1, 1, 0)
+        self.layout_sub.addWidget(self.rb2, 1, 1)
+        self.layout_sub.addWidget(self.file_part, 2, 0, 3, 4)
+        self.layout_sub.addWidget(self.const_part, 2, 0, 3, 4)
+        self.const_part.hide()  # by default we show the load from file
+        # group substrate
+        susbtrate_group = QGroupBox(self.tr('Substrate'))
+        susbtrate_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        susbtrate_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
+        susbtrate_group.setLayout(self.layout_sub)
+
+        # layout merge
+        self.layout_merge = QGridLayout()
+        #self.layout_merge.addItem(spacer, 6, 1)
+        self.layout_merge.addWidget(l9, 11, 0)
+        self.layout_merge.addWidget(self.drop_hyd, 11, 1)
+        self.layout_merge.addWidget(l10, 12, 0)
+        self.layout_merge.addWidget(self.drop_sub, 12, 1)
+        self.layout_merge.addWidget(self.load_b2, 15, 2)
+        self.layout_merge.addWidget(self.butfig2, 15, 3)
+        self.layout_merge.addWidget(l11, 13, 0)
+        self.layout_merge.addWidget(self.e3, 13, 1)
+        self.layout_merge.addWidget(l112, 13, 2)
+        self.layout_merge.addWidget(lm1, 14, 0)
+        self.layout_merge.addWidget(self.lm2, 14, 1)
+        self.layout_merge.addItem(self.spacer2, 11, 1)
+        # group merge
+        merge_group = QGroupBox(self.tr('Merge the hydraulic and substrate grid'))
+        merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
+        merge_group.setLayout(self.layout_merge)
+
         # empty frame scrolable
         content_widget = QFrame()
 
         # layout general
-        self.layout_sub = QGridLayout(content_widget)
-        self.layout_sub.addWidget(l1, 0, 0)
-        self.layout_sub.addWidget(self.rb1, 1, 0)
-        self.layout_sub.addWidget(self.rb2, 1, 1)
-
-        self.layout_sub.addWidget(self.file_part, 2, 0, 3, 4)
-        self.layout_sub.addWidget(self.const_part, 2, 0, 3, 4)
-        self.const_part.hide()  # by default we show the load from file
-
-        self.layout_sub.addItem(spacer,6,1)
-        self.layout_sub.addWidget(l8, 10, 0, 1, 2)
-        self.layout_sub.addWidget(l9, 11, 0)
-        self.layout_sub.addWidget(self.drop_hyd, 11, 1)
-        self.layout_sub.addWidget(l10, 12, 0)
-        self.layout_sub.addWidget(self.drop_sub, 12, 1)
-        self.layout_sub.addWidget(self.load_b2, 15, 2)
-        self.layout_sub.addWidget(self.butfig2, 15, 3)
-        self.layout_sub.addWidget(l11, 13, 0)
-        self.layout_sub.addWidget(self.e3, 13, 1)
-        self.layout_sub.addWidget(l112, 13, 2)
-        self.layout_sub.addWidget(lm1, 14, 0)
-        self.layout_sub.addWidget(self.lm2, 14, 1)
-        self.layout_sub.addItem(self.spacer2, 11, 1)
+        self.layout_sub_tab = QVBoxLayout(content_widget)
+        self.layout_sub_tab.addWidget(susbtrate_group)
+        self.layout_sub_tab.addWidget(merge_group)
+        verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.layout_sub_tab.addItem(verticalSpacer)
 
         #self.setLayout(self.layout_sub)
         self.scrollarea = QScrollArea()
@@ -3880,7 +3837,7 @@ class SubstrateW(SubHydroW):
                                     self.coord_p, self.name_hdf5, False, self.model_type, True)
 
             # show image
-            self.recreate_image_sub(True)
+            #self.recreate_image_sub(True)
             self.butfig1.setEnabled(True)
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
@@ -3906,23 +3863,15 @@ class SubstrateW(SubHydroW):
         # getting the subtrate data
         path_hdf5 = self.find_path_hdf5()
 
-        [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(self.last_hdf5, path_hdf5, True)
-
-        if not ikle_sub:
-            self.send_log.emit('Error: No connectivity table found. \n')
-            return
-        if len(point_all_sub) < 3:
-            self.send_log.emit('Error: Not enough point found to form a grid \n')
-            return
-
-        # plot it
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        if not save_fig:
-            self.fig_opt['format'] = 40000  # should be a higher int than the number of format
-        substrate.fig_substrate(point_all_sub, ikle_sub, sub_pg, sub_dom, path_im, self.fig_opt)
-        # show figure
-        if path_im != 'no_path':
-            self.show_fig.emit()
+        # plot susbstrate
+        types_hdf5 = "substrate"
+        names_hdf5 = [self.last_hdf5]
+        variables = ["coarser_dominant"]
+        units = ["no unit"]
+        units_index = [0]
+        types_plot = "display"
+        self.nativeParentWidget().central_widget.plot_tab.GroupPlot.plot(types_hdf5, names_hdf5, variables, units,
+                                                                         units_index, types_plot)
 
     def update_sub_hdf5_name(self):
         """

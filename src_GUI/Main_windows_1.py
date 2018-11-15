@@ -20,6 +20,7 @@ import glob
 import os
 import shutil
 import numpy as np
+import gc
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -35,11 +36,8 @@ from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
 import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
-import matplotlib
-matplotlib.use("Qt5Agg")
-# from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
-# from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
-import matplotlib.pyplot as plt
+import matplotlib as mpl
+mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
 from src_GUI import stathab_GUI
@@ -228,8 +226,6 @@ class MainWindows(QMainWindow):
             self.setthemedark()
         del self.settings
 
-
-
         self.setCentralWidget(self.central_widget)
 
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
@@ -248,11 +244,16 @@ class MainWindows(QMainWindow):
         """
         self.end_concurrency()
 
+        # close all process plot
+        self.central_widget.closefig()
+
         # save theme and windows position
         self.settings = QSettings('irstea', 'HABBY'+str(self.version))
         self.settings.setValue('wind_position', ",".join([str(self.geometry().x()), str(self.geometry().y()), str(self.geometry().width()), str(self.geometry().height())]))
         self.settings.setValue('theme', self.actual_theme)
         del self.settings
+
+
         os._exit(1)
 
     def check_concurrency(self):
@@ -335,6 +336,9 @@ class MainWindows(QMainWindow):
         ind_tab = self.central_widget.tab_widget.currentIndex()
         # get hydraulic type open
         ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
+        # if plot process are open, close them
+        if hasattr(self.central_widget.plot_tab.GroupPlot, 'plot_process_list'):
+            self.central_widget.plot_tab.GroupPlot.plot_process_list.close_all_plot_process()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
@@ -385,6 +389,9 @@ class MainWindows(QMainWindow):
 
         # create the new menu
         self.my_menu_bar()
+        if self.actual_theme == "dark":
+            self.darkthemeaction.setChecked(True)
+            self.classicthemeaction.setChecked(False)
 
         # create the new toolbar
         self.my_toolbar()
@@ -1896,7 +1903,10 @@ class CentralW(QWidget):
 
         # if os.name == 'nt':  # windows
         #plt.show()
-        print("showfig")
+        aa = 1
+        #plt.clf()
+        #plt.cla()
+        #plt.close()
         # else:
         #     num_fig = plt.get_fignums()
         #     self.all_fig_widget = []
@@ -1924,7 +1934,8 @@ class CentralW(QWidget):
         """
         A small function to close the images open in HABBY and managed by matplotlib
         """
-        plt.close('all')
+        if hasattr(self.plot_tab.GroupPlot, 'plot_process_list'):
+            self.plot_tab.GroupPlot.plot_process_list.close_all_plot_process()
 
     def optfig(self):
         """
@@ -2169,6 +2180,11 @@ class CentralW(QWidget):
                     else:
                         self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
                         self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
+
+            # reset graphics tab
+            current = self.plot_tab.GroupPlot.types_hdf5_QComboBox.currentIndex()
+            self.plot_tab.GroupPlot.types_hdf5_QComboBox.setCurrentIndex(0)
+            self.plot_tab.GroupPlot.types_hdf5_QComboBox.setCurrentIndex(current)
 
     def save_info_projet(self):
         """

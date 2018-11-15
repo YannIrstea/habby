@@ -16,28 +16,24 @@ https://github.com/YannIrstea/habby
 """
 import os
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QListWidget, QAbstractItemView, \
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
+from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSpacerItem, QSizePolicy, QScrollArea
-import matplotlib
-matplotlib.use("Qt5Agg")
-import matplotlib.pyplot as plt
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar
 from src import load_hdf5
 from src import manage_grid_8
 from src_GUI import output_fig_GUI
+from multiprocessing import Process, Value
 
 
 class PlotTab(QScrollArea):
     """
-    New tab
-
+    This class contains the tab with Graphic production biological information (the curves of preference).
     """
     send_log = pyqtSignal(str, name='send_log')
     """
-    A PyQtsignal used to write the log.
+    A PyQt signal to send the log.
     """
-
     def __init__(self, path_prj, name_prj):
         super().__init__()
         self.mystdout = None
@@ -52,7 +48,7 @@ class PlotTab(QScrollArea):
 
     def init_iu(self):
         # GroupPlot
-        self.GroupPlot_first = GroupPlot()
+        self.GroupPlot = GroupPlot()
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -66,10 +62,9 @@ class PlotTab(QScrollArea):
         # add widgets to layout
         self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
         self.plot_layout.setAlignment(Qt.AlignTop)
-        self.plot_layout.addWidget(self.GroupPlot_first)
+        self.plot_layout.addWidget(self.GroupPlot)
 
         # add layout
-        #self.setLayout(self.plot_layout)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
@@ -79,17 +74,18 @@ class PlotTab(QScrollArea):
 
 class GroupPlot(QGroupBox):
     """
-    zzzz
+    This class is a subclass of class QGroupBox.
     """
     def __init__(self):
         super().__init__()
         # title
-        self.setTitle(self.tr('Graphic selection'))
+        self.setTitle(self.tr('Graphic production'))
+        self.setStyleSheet('QGroupBox {font-weight: bold;}')
 
         # types_hdf5_QComboBox
         self.types_hdf5_QLabel = QLabel(self.tr('hdf5 types :'))
         self.types_hdf5_QComboBox = QComboBox()
-        self.types_hdf5_list = ["", "hydraulic", "substrat", "habitat"]
+        self.types_hdf5_list = ["", "hydraulic", "substrate", "habitat"]
         self.types_hdf5_QComboBox.addItems(self.types_hdf5_list)
         self.types_hdf5_QComboBox.currentIndexChanged.connect(self.types_hdf5_change)
         self.types_hdf5_layout = QVBoxLayout()
@@ -111,6 +107,7 @@ class GroupPlot(QGroupBox):
         self.variable_hdf5_QLabel = QLabel(self.tr('variables :'))
         self.variable_QListWidget = QListWidget()
         self.variable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.variable_QListWidget.itemSelectionChanged.connect(self.count_plot)
         self.variable_hdf5_layout = QVBoxLayout()
         self.variable_hdf5_layout.setAlignment(Qt.AlignTop)
         self.variable_hdf5_layout.addWidget(self.variable_hdf5_QLabel)
@@ -120,24 +117,31 @@ class GroupPlot(QGroupBox):
         self.units_QLabel = QLabel(self.tr('units :'))
         self.units_QListWidget = QListWidget()
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.units_QListWidget.itemSelectionChanged.connect(self.count_plot)
         self.units_layout = QVBoxLayout()
         self.units_layout.setAlignment(Qt.AlignTop)
         self.units_layout.addWidget(self.units_QLabel)
         self.units_layout.addWidget(self.units_QListWidget)
 
         # types_plot_QComboBox
-        self.types_plot_QLabel = QLabel(self.tr('type of plot :'))
+        self.types_plot_QLabel = QLabel(self.tr('type of graphics :'))
         self.types_plot_QComboBox = QComboBox()
-        self.types_plot_QComboBox.addItems(["view interactive graphics", "export files graphics", "both"])
+        self.types_plot_QComboBox.addItems(["display", "export", "both"])
         self.types_plot_layout = QVBoxLayout()
         self.types_plot_layout.setAlignment(Qt.AlignTop)
         self.types_plot_layout.addWidget(self.types_plot_QLabel)
         self.types_plot_layout.addWidget(self.types_plot_QComboBox)
 
         # buttons plot_button
-        self.plot_button = QPushButton("plot")
-        self.plot_button.clicked.connect(self.plot)
+        self.plot_button = QPushButton(self.tr("run"))
+        self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
         self.plot_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.types_plot_layout.addWidget(self.plot_button)
+
+        # progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
+        self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
         # create layout and add widgets
         self.hbox_layout = QHBoxLayout()
@@ -146,13 +150,32 @@ class GroupPlot(QGroupBox):
         self.hbox_layout.addLayout(self.variable_hdf5_layout)
         self.hbox_layout.addLayout(self.units_layout)
         self.hbox_layout.addLayout(self.types_plot_layout)
-        self.hbox_layout.addWidget(self.plot_button)
+        self.vbox_layout = QVBoxLayout()
+        self.vbox_layout.addLayout(self.hbox_layout)
+        self.vbox_layout.addWidget(self.progress_bar)
 
         # add layout to group
-        self.setLayout(self.hbox_layout)
+        self.setLayout(self.vbox_layout)
         self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
+    def count_plot(self):
+        """
+        count number of graphic to produce and ajust progress bar range
+        """
+        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_plot_from_gui()
+        if types_hdf5 and names_hdf5 and variables and units:
+            nb_plot_total = len(names_hdf5) * len(variables) * len(units)
+            self.progress_bar.setRange(0, nb_plot_total)
+            self.progress_bar.setValue(0)
+            self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, nb_plot_total))
+        if not types_hdf5 or not names_hdf5 or not variables or not units:
+            self.progress_bar.setValue(0)
+            self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
+
     def types_hdf5_change(self):
+        """
+        Ajust item list according to hdf5 type selected by user
+        """
         index = self.types_hdf5_QComboBox.currentIndex()
         if index == 0:  # nothing
             self.names_hdf5_QListWidget.clear()
@@ -181,7 +204,7 @@ class GroupPlot(QGroupBox):
             self.names_hdf5_QListWidget.addItems(names)
             # set list variable
             self.variable_QListWidget.clear()
-            self.variable_QListWidget.addItems(["coarser", "dominant"])
+            self.variable_QListWidget.addItems(["coarser_dominant"])
         if index == 3:  # chronics / merge ==> habitat
             # get list of file name
             absname = self.parent().parent().parent().parent().parent().parent().bioinfo_tab.hdf5_merge
@@ -193,16 +216,31 @@ class GroupPlot(QGroupBox):
             self.names_hdf5_QListWidget.addItems(names)
             # set list variable
             self.variable_QListWidget.clear()
-            self.variable_QListWidget.addItems(["habitat value map", "global habitat value and SPU"])
+            self.variable_QListWidget.addItems(["height", "velocity", "mesh", "habitat value map", "global habitat value and SPU"])
+        if index == 1 or index == 2 or index == 3:
+            # resize QListWidget
+            self.names_hdf5_QListWidget.setFixedWidth(self.names_hdf5_QListWidget.sizeHintForColumn(0) + self.names_hdf5_QListWidget.sizeHintForColumn(0) * 0.1)
+            self.variable_QListWidget.setFixedWidth(self.variable_QListWidget.sizeHintForColumn(0) + self.variable_QListWidget.sizeHintForColumn(0) * 0.1)
+        # update progress bar
+        self.count_plot()
 
     def names_hdf5_change(self):
+        """
+        Ajust item list according to hdf5 filename selected by user
+        """
         selection = self.names_hdf5_QListWidget.selectedItems()
         if not selection:  # no file selected
             self.units_QListWidget.clear()
         if len(selection) == 1:  # one file selected
             hdf5name = selection[0].text()
             self.units_QListWidget.clear()
-            self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+            if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic
+                self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+            if self.types_hdf5_QComboBox.currentIndex() == 2:  # substrat
+                self.units_QListWidget.addItems(["no unit"])
+                self.units_QListWidget.item(0).setSelected(True)
+            self.units_QListWidget.setFixedWidth(
+                self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
         if len(selection) > 1:  # more than one file selected
             nb_file = len(selection)
             hdf5name = []
@@ -210,11 +248,7 @@ class GroupPlot(QGroupBox):
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
                 timestep.append(load_hdf5.load_timestep_name(selection[i].text(), self.parent().parent().parent().path_prj + "/hdf5_files/"))
-            if all(x == timestep[0] for x in timestep):  # OK
-                self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(
-                    load_hdf5.load_timestep_name(hdf5name[i], self.parent().parent().parent().path_prj + "/hdf5_files/"))
-            else:  # timestep are diferrents
+            if not all(x == timestep[0] for x in timestep):  # timestep are diferrents
                 self.msg2 = QMessageBox(self)
                 self.msg2.setIcon(QMessageBox.Warning)
                 self.msg2.setWindowTitle(self.tr("Warning"))
@@ -225,8 +259,18 @@ class GroupPlot(QGroupBox):
                 # clean
                 self.names_hdf5_QListWidget.clearSelection()
                 self.units_QListWidget.clear()
+            if all(x == timestep[0] for x in timestep):  # OK
+                self.units_QListWidget.clear()
+                self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name[i], self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                self.units_QListWidget.setFixedWidth(
+                    self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
+        # update progress bar
+        self.count_plot()
 
-    def plot(self):
+    def collect_data_plot_from_gui(self):
+        """
+        Get selected values by user
+        """
         # types
         types_hdf5 = self.types_hdf5_QComboBox.currentText()
 
@@ -241,18 +285,6 @@ class GroupPlot(QGroupBox):
         variables = []
         for i in range(len(selection)):
             variables.append(selection[i].text())
-        if "height" in variables:
-            height = True
-        else:
-            height = False
-        if "velocity" in variables:
-            velocity = True
-        else:
-            velocity = False
-        if "mesh" in variables:
-            mesh = True
-        else:
-            mesh = False
 
         # units
         selection = self.units_QListWidget.selectedItems()
@@ -269,80 +301,106 @@ class GroupPlot(QGroupBox):
         # type of plot
         types_plot = self.types_plot_QComboBox.currentText()
 
-        #print(types_hdf5)
-        #print(names_hdf5)
-        #print(variables)
-        #print(units)
-        #print(types_plot)
+        # store values
+        return types_hdf5, names_hdf5, variables, units, units_index, types_plot
 
-        ################ from hydro_GUI_2.create_image ###################
+    def collect_data_from_gui_and_plot(self):
+        """
+        Get selected values by user and plot them
+        """
+        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_plot_from_gui()
+        self.plot(types_hdf5, names_hdf5, variables, units, units_index, types_plot)
 
-        if types_plot == "view interactive graphics":
-            save_fig = False
-        if types_plot == "export files graphics" or types_plot == "both":
-            save_fig = True
-        path_hdf5 = self.parent().parent().parent().path_prj + "/hdf5_files/"
-        show_info = True
-        path_im = self.parent().parent().parent().path_prj + "/figures/"
-        # for all hdf5 file selected
-        for i in range(len(names_hdf5)):
-            name_hdf5 = names_hdf5[i]
-            print(name_hdf5)
-            if name_hdf5:
-                # load data
-                if types_hdf5 == 'substrat': #  or self.model_type == 'LAMMI'
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg, substrate_all_dom] \
-                        = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, True)
-                else:
-                    substrate_all_pg = []
-                    substrate_all_dom = []
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
+    def plot(self, types_hdf5, names_hdf5, variables, units, units_index, types_plot):
+        """
+        Plot
+        :param types_hdf5: string representing the type of hdf5 ("hydraulic", "substrat", "habitat")
+        :param names_hdf5: list of string representing hdf5 filenames
+        :param variables: list of string representing variables to be ploted, depend on type of hdf5 selected ("height", "velocity", "mesh")
+        :param units: list of string representing units names (timestep value or discharge)
+        :param units_index: list of integer representing the position of units in hdf5 file
+        :param types_plot: string representing plot types production ("display", "export", "both")
+        """
+        print("types_hdf5 : ", types_hdf5)
+        print("names_hdf5 : ", names_hdf5)
+        print("variables : ", variables)
+        print("units : ", units)
+        print("units_index : ", units_index)
+        print("types_plot : ", types_plot)
+        if not types_hdf5:
+            self.parent().parent().parent().send_log.emit('Error: No hdf5 type selected. \n')
+        if not names_hdf5:
+            self.parent().parent().parent().send_log.emit('Error: No hdf5 file selected. \n')
+        if not variables:
+            self.parent().parent().parent().send_log.emit('Error: No variable selected. \n')
+        if not units:
+            self.parent().parent().parent().send_log.emit('Error: No units selected. \n')
+        if types_hdf5 and names_hdf5 and variables and units:
+            # figure option
+            fig_opt = output_fig_GUI.load_fig_option(self.parent().parent().parent().path_prj,
+                                                          self.parent().parent().parent().name_prj)
+            fig_opt['type_plot'] = types_plot  # "display", "export", "both"
+
+            # path
+            path_hdf5 = self.parent().parent().parent().path_prj + "/hdf5_files/"
+            show_info = False
+            path_im = self.parent().parent().parent().path_prj + "/figures/"
+
+            # check plot process done
+            nb_plot_total = len(names_hdf5) * len(variables) * len(units)
+            self.plot_process_list = MyProcessList(nb_plot_total, self.progress_bar)
+
+            # prog
+            self.progress_bar.setRange(0, nb_plot_total)
+
+            # for all hdf5 file selected
+            for i in range(len(names_hdf5)):
+                # load hydraulic data
+                if "hydraulic" in types_hdf5 or "habitat" in types_hdf5:
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(names_hdf5[i],
                                                                                                         path_hdf5)
-                if ikle_all_t == [[-99]]:
-                    self.parent().parent().parent().send_log.emit('Error: No data found in hdf5 (from create_image)')
-                    return
-                # figure option
-                self.fig_opt = output_fig_GUI.load_fig_option(self.parent().parent().parent().path_prj, self.parent().parent().parent().name_prj)
-                if not save_fig:
-                    self.fig_opt['format'] = 123456  # random number  but should be bigger than number of format
-
-                # plot the figure for all time step
-                if self.units_QListWidget.count() == len(units): #self.fig_opt['time_step'][0] == -99:  # all time steps
-                    for t in range(1, len(ikle_all_t)):  # do not plot full profile
-                        if t < len(ikle_all_t):
-                            if types_hdf5 == 'substrat':  # or self.model_type == 'LAMMI':
-                                self.parent().parent().parent().send_log.emit('Warning: Substrate data created but not plotted. '
-                                                   'See the created shapefile for subtrate outputs. \n')
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
-                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, True, units[t - 1],
-                                                               substrate_all_pg[t], substrate_all_dom[t]) # , mesh, velocity, height
-                            else:
-                                manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
-                                                               inter_vel_all_t[t], inter_h_all_t[t], path_im, False, units[t - 1])
-                # plot the figure for some time steps
-                else:
-                    print("-------------------------------")
-                    print(units, units_index)
-                    for index, t in enumerate(units_index):  # self.fig_opt['time_step'] # range(0, len(vel_cell)):
-                        t = t + 1
-                        # if print last and first time step and one time step only, only print it once
-                        if t == -1 and len(ikle_all_t) == 2 and 1 in self.fig_opt['time_step']:
-                            pass
-                        else:
-                            if t < len(ikle_all_t):
-                                if types_hdf5 == 'substrat':  # or self.model_type == 'LAMMI':
-                                    self.parent().parent().parent().send_log.emit('Warning: Substrate data created but not plotted. '
-                                                       'See the created shapefile for subtrate outputs. \n')
-                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
-                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, True, units[index],
-                                                                   substrate_all_pg[t], substrate_all_dom[t])
-                                else:
-                                    manage_grid_8.plot_grid_simple(point_all_t[t], ikle_all_t[t], self.fig_opt, mesh, velocity, height,
-                                                                   inter_vel_all_t[t], inter_h_all_t[t], path_im, False, units[index])
-                                    # to debug
-                                    # manage_grid_8.plot_grid(point_all_reach, ikle_all, lim_by_reach,
-                                    # hole_all, overlap, point_c_all, inter_vel_all, inter_height_all, path_im)
-
+                # load substrate data
+                if "substrate" in types_hdf5:
+                    [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(names_hdf5[i],
+                                                                                                path_hdf5,
+                                                                                                True)
+                    if not ikle_sub:
+                        self.parent().parent().parent().send_log.emit('Error: No connectivity table found. \n')
+                        return
+                    if len(point_all_sub) < 3:
+                        self.parent().parent().parent().send_log.emit('Error: Not enough point found to form a grid \n')
+                        return
+                # plot each units (timestep or discharge)
+                for index, t in enumerate(units_index):  # self.fig_opt['time_step'] # range(0, len(vel_cell)):
+                    t = t + 1
+                    if "height" in variables:
+                        state = Value("i", 0)  # process not finished
+                        height_process = Process(target=manage_grid_8.plot_grid_height, args=(state,
+                        point_all_t[t], ikle_all_t[t], fig_opt, names_hdf5[i], inter_h_all_t[t],
+                        path_im, units[index]))
+                        height_process.start()
+                        self.plot_process_list.append((height_process, state))
+                    if "velocity" in variables:
+                        state = Value("i", 0)  # process not finished
+                        velocity_process = Process(target=manage_grid_8.plot_grid_velocity, args=(state,
+                        point_all_t[t], ikle_all_t[t], fig_opt, names_hdf5[i], inter_vel_all_t[t],
+                        path_im, units[index]))
+                        velocity_process.start()
+                        self.plot_process_list.append((velocity_process, state))
+                    if "mesh" in variables:
+                        state = Value("i", 0)  # process not finished
+                        mesh_process = Process(target=manage_grid_8.plot_grid_mesh, args=(state,
+                        point_all_t[t], ikle_all_t[t], fig_opt, names_hdf5[i], path_im, units[index]))
+                        mesh_process.start()
+                        self.plot_process_list.append((mesh_process, state))
+                    if "coarser_dominant" in variables:
+                        state = Value("i", 0)  # process not finished
+                        susbtrat_process = Process(target=manage_grid_8.plot_substrate, args=(state,
+                                                                                          point_all_sub, ikle_sub,
+                                                                                          sub_pg, sub_dom, path_im,
+                                                                                          fig_opt))
+                        susbtrat_process.start()
+                        self.plot_process_list.append((susbtrat_process, state))
                 # show basic information
                 if show_info and len(ikle_all_t) > 0:
                     self.parent().parent().parent().send_log.emit("# ------------------------------------------------")
@@ -376,13 +434,61 @@ class GroupPlot(QGroupBox):
                         str(round(vmean, 3)) + 'm/sec')
                     self.parent().parent().parent().send_log.emit("# ------------------------------------------------")
 
-                print(save_fig)
-                if not save_fig:
-                    matplotlib.interactive(True)
-                    plt.show()
-                if save_fig:
-                    matplotlib.interactive(False)
-            else:
-                self.parent().parent().parent().send_log.send_log.emit('Error: The hydrological model is not found. \n')
+
+class MyProcessList(list):
+    """
+    This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
+
+    :param nb_plot_total: integer value representing the total number of graphs to be produced.
+    :param progress_bar: Qprogressbar of GroupPlot to be refreshed
+    """
+    def __init__(self, nb_plot_total, progress_bar):
+        super().__init__()
+        self.nb_plot_total = nb_plot_total
+        self.progress_bar = progress_bar
+
+    def append(self, *args):
+        """
+        Overriding of append method in order to analyse state of plot processes and refresh progress bar.
+        Each time the list is appended, state is analysed and progress bar refreshed.
+
+        :param args: tuple(process, state of process)
+        """
+        self.extend(args)
+        self.check_all_plot_produced()
+
+    def check_all_plot_produced(self):
+        """
+        State is analysed and progress bar refreshed.
+        """
+        nb_finished = 0
+        state_list = []
+        for i in range(len(self)):
+            state = self[i][1].value
+            state_list.append(state)
+            if state == 1:
+                nb_finished = nb_finished + 1
+            if state == 0:
+                if i == self.nb_plot_total - 1:  # last of all plot
+                    while 0 in state_list:
+                        for j in [k for k, l in enumerate(state_list) if l == 0]:
+                            state = self[j][1].value
+                            state_list[j] = state
+                            if state == 1:
+                                nb_finished = nb_finished + 1
+                                self.progress_bar.setValue(nb_finished)
+                                self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
+                                QCoreApplication.processEvents()
+
+        self.progress_bar.setValue(nb_finished)
+        self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
+        QCoreApplication.processEvents()
+
+    def close_all_plot_process(self):
+        """
+        Close all plot process. usefull for button close all figure and for closeevent of Main_windows_1.
+        """
+        for i in range(len(self)):
+            self[i][0].terminate()
 
 
