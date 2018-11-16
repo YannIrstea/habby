@@ -237,7 +237,7 @@ class GroupPlot(QGroupBox):
             if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic
                 self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
             if self.types_hdf5_QComboBox.currentIndex() == 2:  # substrat
-                self.units_QListWidget.addItems(["no unit"])
+                self.units_QListWidget.addItems(["one unit"])
                 self.units_QListWidget.item(0).setSelected(True)
             self.units_QListWidget.setFixedWidth(
                 self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))

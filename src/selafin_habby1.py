@@ -27,7 +27,7 @@ from src_GUI import output_fig_GUI
 from src import manage_grid_8
 
 
-def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
+def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, units_index=None, q=[],
                               print_cmd=False, fig_opt={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
@@ -42,6 +42,8 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
     :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
+    :param units_index : List of integer values representing index of units (timestep or discharge). If not specify,
+            all timestep are selected (from cmd command).
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
@@ -55,7 +57,12 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     minwh = fig_opt['min_height_hyd']
 
     # load data
-    [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
+    if not units_index:  # all timestep are selected
+        [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
+        units_index = list(range(len(timestep)))
+    if units_index:  # timestep selected by user are selected
+        [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
+        timestep = timestep[units_index]
 
     if isinstance(v,int) and v == [-99]:
         print('Error: Telemac data not loaded.')
@@ -72,7 +79,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     point_c_all_t = [[coord_c]]
     inter_h_all_t = [[]]
     inter_vel_all_t = [[]]
-    for t in range(0, len(v)):
+    for t in units_index:
         [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], minwh)
         point_all_t.append([point_all])  # only one reach
         ikle_all_t.append([ikle2])
@@ -202,7 +209,11 @@ def get_time_step(namefilet, pathfilet):
     # time step name
     nbtimes = telemac_data.tags['times'].size
     timestep = telemac_data.tags['times']
-    return nbtimes, timestep
+    timestep_string = []
+    for i in range(len(timestep)):
+        timestep_string.append(str(timestep[i]))
+
+    return nbtimes, timestep_string
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
     """

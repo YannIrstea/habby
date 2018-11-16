@@ -889,11 +889,8 @@ class SubHydroW(QWidget):
             # enable to loading of another model
             self.load_b.setDisabled(False)
 
-            # create the figure and show them
-            if not error:
-                #self.create_image(show_info=True)
-                self.send_log.emit(self.tr("Figures can be displayed from create figure button or from graphics tab.\n"))
-            else:
+            # info
+            if error:
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
@@ -901,6 +898,8 @@ class SubHydroW(QWidget):
                 self.drop_merge.emit()
             else:
                 self.send_log.emit(self.tr("Loading of hydraulic data finished."))
+                self.send_log.emit(
+                    self.tr("Figures can be displayed from create figure button or from graphics tab.\n"))
                 # send a signal to the substrate tab so it can account for the new info
                 self.drop_hydro.emit()
             self.send_log.emit("clear status bar")
@@ -2427,7 +2426,10 @@ class TELEMAC(SubHydroW):
 
         l2 = QLabel(self.tr('<b> Number of time steps </b>'))
         self.number_timstep_label = QLabel(self.tr('-'), self)
-
+        self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.units_QListWidget.setMinimumHeight(100)
+        l_selecttimestep = QLabel(self.tr('<b> Select the desired time steps </b>'))
         # ToolTip to indicated in which folder are the files
         self.h2d_t2.setToolTip(self.pathfile[0])
         self.h2d_b.clicked.connect(
@@ -2461,25 +2463,31 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         self.layout_hec2.addWidget(l2, 1, 0)
         self.layout_hec2.addWidget(self.number_timstep_label, 1, 1)
-        self.layout_hec2.addWidget(l2D1, 2, 0)
-        self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
-        self.layout_hec2.addWidget(lh, 3, 0)
-        self.layout_hec2.addWidget(self.hname, 3, 1)
-        self.layout_hec2.addWidget(self.load_b, 4, 2)
-        self.layout_hec2.addWidget(self.butfig, 5, 2)
+        self.layout_hec2.addWidget(l_selecttimestep, 2, 0)
+        self.layout_hec2.addWidget(self.units_QListWidget, 2, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_hec2.addWidget(l2D1, 4, 0)
+        self.layout_hec2.addWidget(l2D2, 4, 1)
+        self.layout_hec2.addWidget(lh, 5, 0)
+        self.layout_hec2.addWidget(self.hname, 5, 1)
+        self.layout_hec2.addWidget(self.load_b, 5, 2)
+        self.layout_hec2.addWidget(self.butfig, 6, 2)
         self.setLayout(self.layout_hec2)
 
     def get_time_step(self):
-        print("aaaa")
-        aa = 1
+        """
+        The function get timestep if selafin files to display them in GUI, in order for the user to be able to choose some of them.
+        """
         nbtimes, timestep = selafin_habby1.get_time_step(self.namefile[0], self.pathfile[0])
 
         # number timestep
         self.number_timstep_label.setText(str(nbtimes))
 
         self.units_QListWidget.clear()
-        self.units_QListWidget.addItems(timestep.tolist())
-        self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
+        self.units_QListWidget.addItems(timestep)
+        for i in range(nbtimes):
+            self.units_QListWidget.item(i).setSelected(True)
+            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignRight)
+        #self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
 
     def load_telemac_gui(self):
         """
@@ -2489,53 +2497,65 @@ class TELEMAC(SubHydroW):
         # for error management and figures
         self.timer.start(1000)
 
-        # test the availability of files
-        fileNOK = True
-        f0 = os.path.join(self.pathfile[0], self.namefile[0])
-        if os.path.isfile(f0):
-            fileNOK = False
-        if fileNOK:
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("TELEMAC2D"))
-            self.msg2.setText(self.tr("Unable to load the TELEMAC data file!"))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            self.p = Process(target=None)
-            self.p.start()
-            self.q = Queue()
+        # get timestep selected
+        selection = self.units_QListWidget.selectedItems()
+        if not selection:
+            self.send_log.emit("Error: No units selected. \n")
             return
+        else:
+            units = []
+            units_index = []
+            for i in range(len(selection)):
+                units.append(selection[i].text())
+                units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
 
-        # write the new file name in the project file
-        self.save_xml(0)
+            # test the availability of files
+            fileNOK = True
+            f0 = os.path.join(self.pathfile[0], self.namefile[0])
+            if os.path.isfile(f0):
+                fileNOK = False
+            if fileNOK:
+                self.msg2.setIcon(QMessageBox.Warning)
+                self.msg2.setWindowTitle(self.tr("TELEMAC2D"))
+                self.msg2.setText(self.tr("Unable to load the TELEMAC data file!"))
+                self.msg2.setStandardButtons(QMessageBox.Ok)
+                self.msg2.show()
+                self.p = Process(target=None)
+                self.p.start()
+                self.q = Queue()
+                return
 
-        # the path where to save the hdf5
-        path_hdf5 = self.find_path_hdf5()
-        self.name_hdf5 = self.hname.text()
+            # write the new file name in the project file
+            self.save_xml(0)
 
-        # get minimum water height as we might neglect very low water height
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            # the path where to save the hdf5
+            path_hdf5 = self.find_path_hdf5()
+            self.name_hdf5 = self.hname.text()
 
-        # load the telemac data
-        self.q = Queue()
-        self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
-                        self.pathfile[0], self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q,
-                        False, self.fig_opt))
-        self.p.start()
+            # get minimum water height as we might neglect very low water height
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
 
-        # path input
-        path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
-        self.p2.start()
+            # load the telemac data
+            self.q = Queue()
+            self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
+                            self.pathfile[0], self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, units_index, self.q,
+                            False, self.fig_opt))
+            self.p.start()
 
-        # log info
-        self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
-        self.send_err_log()
-        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-        self.send_log.emit("py    path1=r'" + path_input + "'")
-        self.send_log.emit("py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
-                           "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
-        self.send_log.emit("restart LOAD_TELEMAC")
-        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+            # path input
+            path_input = self.find_path_input()
+            self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2.start()
+
+            # log info
+            self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
+            self.send_err_log()
+            self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+            self.send_log.emit("py    path1=r'" + path_input + "'")
+            self.send_log.emit("py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
+                               "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
+            self.send_log.emit("restart LOAD_TELEMAC")
+            self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
 
 class LAMMI(SubHydroW):
