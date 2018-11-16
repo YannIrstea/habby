@@ -71,8 +71,8 @@ if sys.platform == "win32":
 
 base = None
 #************************* to see error in windows console set this two lines in comment : ***********************#
-if sys.platform == "win32":
-    base = "Win32GUI"  # graphical app
+#if sys.platform == "win32":
+#    base = "Win32GUI"  # graphical app
 #****************************************************************************************************************#
     # base = "Console"  # text app
 

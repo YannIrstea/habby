@@ -4,9 +4,9 @@ ECHO OFF
 ECHO Set the different folders
 :: This should be modified when run on a new computer
 :: folder with result, folder with the expected result, folder with the inputs in various folder
-SET p=D:\Diane_work\file_test\compare_test_long\result
-SET pex=D:\Diane_work\file_test\compare_test_long\expected
-SET pin=D:\Diane_work\file_test\
+SET p=C:\Users\quentin.royer\Documents\TAF\DATA\HABBY\file_test\compare_test_long\result
+SET pex=C:\Users\quentin.royer\Documents\TAF\DATA\HABBY\file_test\compare_test_long\expected
+SET pin=C:\Users\quentin.royer\Documents\TAF\DATA\HABBY\file_test\
 
 ECHO Load hydrological models and put them in the command_cmd folder
 python habby.py LOAD_LAMMI %pin%\Lammi\Entree %pin%\Lammi\Resu\SimHydro
@@ -45,3 +45,6 @@ python habby.py RUN_STATHAB %pin%\input_stathab path_prj=%p%
 
 ECHO check with past results
 python habby.py COMPARE_TEST %pex% %p%
+
+:: Get console open to see details
+@pause 
