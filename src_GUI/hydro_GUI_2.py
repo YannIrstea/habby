@@ -986,6 +986,7 @@ class SubHydroW(QWidget):
         self.nativeParentWidget().central_widget.plot_tab.GroupPlot.plot(types_hdf5, names_hdf5, variables, units,
                                                                          units_index, types_plot)
 
+
 class HEC_RAS1D(SubHydroW):
     """
    The class Hec_ras 1D is there to manage the link between the graphical interface and the functions in
@@ -2422,8 +2423,10 @@ class TELEMAC(SubHydroW):
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
         self.h2d_b.clicked.connect(
             lambda: self.h2d_t2.setText(self.namefile[0]))
-        l2 = QLabel(self.tr('<b> Options </b>'))
-        l3 = QLabel(self.tr('All time steps'), self)
+        self.h2d_b.clicked.connect(lambda: self.get_time_step())
+
+        l2 = QLabel(self.tr('<b> Number of time steps </b>'))
+        self.number_timstep_label = QLabel(self.tr('-'), self)
 
         # ToolTip to indicated in which folder are the files
         self.h2d_t2.setToolTip(self.pathfile[0])
@@ -2457,7 +2460,7 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.h2d_t2, 0, 1)
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         self.layout_hec2.addWidget(l2, 1, 0)
-        self.layout_hec2.addWidget(l3, 1, 1)
+        self.layout_hec2.addWidget(self.number_timstep_label, 1, 1)
         self.layout_hec2.addWidget(l2D1, 2, 0)
         self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
         self.layout_hec2.addWidget(lh, 3, 0)
@@ -2465,6 +2468,18 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.load_b, 4, 2)
         self.layout_hec2.addWidget(self.butfig, 5, 2)
         self.setLayout(self.layout_hec2)
+
+    def get_time_step(self):
+        print("aaaa")
+        aa = 1
+        nbtimes, timestep = selafin_habby1.get_time_step(self.namefile[0], self.pathfile[0])
+
+        # number timestep
+        self.number_timstep_label.setText(str(nbtimes))
+
+        self.units_QListWidget.clear()
+        self.units_QListWidget.addItems(timestep.tolist())
+        self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
 
     def load_telemac_gui(self):
         """

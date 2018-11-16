@@ -175,6 +175,35 @@ def load_telemac(namefilet, pathfilet):
     return v, h, coord_p, ikle, coord_c, timestep
 
 
+def get_time_step(namefilet, pathfilet):
+    """
+    A function which load the telemac time step using the Selafin class.
+
+    :param namefilet: the name of the selafin file (string)
+    :param pathfilet: the path to this file (string)
+    :return: timestep
+    """
+    faiload = [-99], [-99], [-99], [-99], [-99], [-99]
+
+    filename_path_res = os.path.join(pathfilet, namefilet)
+    # load the data and do some test
+    if not os.path.isfile(filename_path_res):
+        print('Error: The telemac file does not exist. Cannot be loaded.')
+        return faiload
+    blob, ext = os.path.splitext(namefilet)
+    if ext != '.res' and ext != '.slf':
+        print('Warning: The extension of the telemac file is not .res or .slf')
+    try:
+        telemac_data = Selafin(filename_path_res)
+    except ValueError or KeyError:
+        print('Error: The telemac file cannot be loaded.')
+        return faiload
+
+    # time step name
+    nbtimes = telemac_data.tags['times'].size
+    timestep = telemac_data.tags['times']
+    return nbtimes, timestep
+
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
     """
      a function to plot the velocity and height which are the output from TELEMAC. It is used to debug.
