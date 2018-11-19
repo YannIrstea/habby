@@ -17,8 +17,9 @@ https://github.com/YannIrstea/habby
 import sys
 from src_GUI import Main_windows_1
 from src import func_for_cmd
-from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import QSettings, Qt
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QSplashScreen
 import multiprocessing
 import os
 
@@ -38,9 +39,20 @@ def main():
     if len(sys.argv) == 1:
         # create app
         app = QApplication(sys.argv)
+
+        # Create and display the splash screen
+        splash_pix = QPixmap('translation/habby_icon.png')
+        splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
+        splash.setMask(splash_pix.mask())
+        splash.show()
+        app.processEvents()
+
         # create windows
         ex = Main_windows_1.MainWindows()
         app.setActiveWindow(ex)
+
+        # close the splash screen
+        splash.finish(ex)
 
         # close
         sys.exit(app.exec_())
@@ -118,6 +130,8 @@ def main():
 
 
 if __name__ == '__main__':
+
+
     # necessary to freeze the application with parallel process
     multiprocessing.freeze_support()
     main()
