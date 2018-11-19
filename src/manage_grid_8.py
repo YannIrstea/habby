@@ -2821,7 +2821,7 @@ def plot_grid_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im
         plt.close()
 
 
-def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, xtxt=[-99], ytxt=[-99], subtxt=[-99],
+def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fig_opt={}, xtxt=[-99], ytxt=[-99], subtxt=[-99],
                   reach_num=-99):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
@@ -2853,12 +2853,6 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, x
     else:
         erase1 = False
 
-    sub_dom = np.array(sub_dom)
-    sub_pg = np.array(sub_pg)
-    if len(sub_dom) == 0 or len(sub_pg) == 0:
-        print('no data found to plot.')
-        return
-
     # prepare grid (to optimize)
     xlist = []
     ylist = []
@@ -2882,7 +2876,7 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, fig_opt={}, x
         ylist.append(None)
 
     # substrate coarser
-    fig = plt.figure()
+    fig = plt.figure(name_hdf5[:-3])
     sub1 = fig.add_subplot(211)
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map1'])
