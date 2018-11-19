@@ -86,9 +86,12 @@ def get_useful_attribute(attributes):
     """
 
     # all the different attribute names which can be accepted in the shape file
-    pg = ['plus gros', 'coarser', 'PG', 'PLUS GROS', 'COARSER', 'sub_coarser']
-    dom = ['dominant', 'DOMINANT', 'DM', 'sub_dom']
-    acc1 = ['acc', 'ACC', 'ACCESSORY', 'accessoire', 'ACCESSOIRE', 'sub_acc']
+    pg = ['PG', 'PLUS_GROS', 'COARSER', 'SUB_COARSER']
+    pg = pg + list(map(lambda x: x.lower(), pg))
+    dom = ['DM', 'DOMINANT', 'DOM', 'SUB_DOM']
+    dom = dom + list(map(lambda x: x.lower(), dom))
+    acc1 = ['ACC', 'ACCESSORY', 'ACCESSOIRE', 'SUB_ACC']
+    acc1 = acc1 + list(map(lambda x: x.lower(), acc1))
     # create per_name
     per_all = []
     for m in range(0, 15):
