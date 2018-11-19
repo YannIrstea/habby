@@ -290,7 +290,6 @@ class Hydro2W(QScrollArea):
         name_hdf5 = self.drop_hyd.currentText()
         path_hdf5 = self.rubar1d.find_path_hdf5()
         path_slf = self.rubar1d.find_path_output('Path_Paraview')
-        print(path_slf)
 
         if not name_hdf5:
             self.send_log.emit(self.tr('Error: No hydraulic file found. \n'))
@@ -894,10 +893,11 @@ class SubHydroW(QWidget):
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                self.send_log.emit(self.tr("Merging of substrate and hydraulic data finished."))
+                self.send_log.emit(self.tr("Merging of substrate and hydraulic data finished (computation time = ") + str(self.running_time) + " s).")
                 self.drop_merge.emit()
+                self.name_last_merge()
             else:
-                self.send_log.emit(self.tr("Loading of hydraulic data finished."))
+                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(self.running_time) + " s).")
                 self.send_log.emit(
                     self.tr("Figures can be displayed from create figure button or from graphics tab.\n"))
                 # send a signal to the substrate tab so it can account for the new info
@@ -3544,7 +3544,9 @@ class SubstrateW(SubHydroW):
         l9 = QLabel(self.tr("Hydraulic data (hdf5)"))
         l10 = QLabel(self.tr("Substrate data (hdf5)"))
         self.drop_hyd = QComboBox()
+        self.drop_hyd.currentIndexChanged.connect(self.create_hdf5_merge_name)
         self.drop_sub = QComboBox()
+        self.drop_sub.currentIndexChanged.connect(self.create_hdf5_merge_name)
         self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
         self.load_b2.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b2.clicked.connect(self.send_merge_grid)
@@ -3556,6 +3558,9 @@ class SubstrateW(SubHydroW):
         self.e3 = QLineEdit('1')  # default substrate value
         # get possible substrate from the project file
         self.update_sub_hdf5_name()
+        # file name output
+        hdf5_merge_label = QLabel(self.tr('hdf5 file name'))
+        self.hdf5_merge_lineedit = QLineEdit('')  # default substrate value
         # get the last file created
         lm1 = QLabel(self.tr('Last file created'))
         self.lm2 = QLabel(self.tr('No file'))
@@ -3623,8 +3628,10 @@ class SubstrateW(SubHydroW):
         self.layout_merge.addWidget(l11, 13, 0)
         self.layout_merge.addWidget(self.e3, 13, 1)
         self.layout_merge.addWidget(l112, 13, 2)
-        self.layout_merge.addWidget(lm1, 14, 0)
-        self.layout_merge.addWidget(self.lm2, 14, 1)
+        self.layout_merge.addWidget(hdf5_merge_label, 14, 0)
+        self.layout_merge.addWidget(self.hdf5_merge_lineedit, 14, 1)
+        self.layout_merge.addWidget(lm1, 15, 0)
+        self.layout_merge.addWidget(self.lm2, 15, 1)
         self.layout_merge.addItem(self.spacer2, 11, 1)
         # group merge
         merge_group = QGroupBox(self.tr('Merge the hydraulic and substrate grid'))
@@ -3774,7 +3781,7 @@ class SubstrateW(SubHydroW):
                     return
 
                 # load substrate
-                sys.stdout = self.mystdout = StringIO()
+                #sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0],
                                                                                   self.pathfile[0], code_type)
                 # we have a case where two dominant substrate are "equally" dominant
@@ -3797,8 +3804,8 @@ class SubstrateW(SubHydroW):
                         dom_solve = -1
                     [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
                         self.namefile[0],self.pathfile[0], code_type, dom_solve)
-                #sys.stdout = sys.__stdout__
-                #self.send_err_log()
+                sys.stdout = sys.__stdout__
+                self.send_err_log()
 
                 if self.ikle_sub == [-99]:
                     self.send_log.emit('Error: Substrate data not loaded')
@@ -3881,7 +3888,7 @@ class SubstrateW(SubHydroW):
         self.butfig1.setEnabled(True)
         self.load_b.setDisabled(False)
 
-        self.send_log.emit('Loading of substrate data finished \n')
+        self.send_log.emit('Loading of substrate data finished. \n')
 
     def recreate_image_sub(self, save_fig=False):
         """
@@ -3933,6 +3940,13 @@ class SubstrateW(SubHydroW):
             else:
                 self.drop_sub.addItem(os.path.basename(self.sub_name[i]))
         self.drop_sub.setCurrentIndex(0)
+
+    def create_hdf5_merge_name(self):
+        hdf5_name_hyd = self.drop_hyd.currentText()
+        hdf5_name_sub = self.drop_sub.currentText()
+        if hdf5_name_hyd != ' ' and hdf5_name_hyd != '' and hdf5_name_sub != ' ' and hdf5_name_sub != '':
+            name_hdf5merge = 'MERGE_' + hdf5_name_hyd[:-3] + "_" + hdf5_name_sub[:-3]
+            self.hdf5_merge_lineedit.setText(name_hdf5merge)
 
     def get_attribute_from_shp(self):
         """
@@ -3993,8 +4007,11 @@ class SubstrateW(SubHydroW):
         self.send_log.emit('# Merging: substrate and hydraulic grid...')
 
         # get useful data
+        default_data = self.e3.text()
+        path_hdf5 = self.find_path_hdf5()
+        path_shp = self.find_path_output("Path_Shape")
         if len(self.drop_hyd) > 1:
-            hdf5_name_hyd = self.hyd_name[self.drop_hyd.currentIndex()-1]
+            hdf5_name_hyd = path_hdf5 + "/" + self.drop_hyd.currentText()
         elif len(self.drop_hyd) == 0:
             self.send_log.emit('Error: No hydrological file available \n')
             return
@@ -4003,10 +4020,16 @@ class SubstrateW(SubHydroW):
         if len(self.sub_name) == 0:
             self.send_log.emit('Error: No substrate file available \n')
             return
-        hdf5_name_sub = self.sub_name[self.drop_sub.currentIndex()]
-        default_data = self.e3.text()
-        path_hdf5 = self.find_path_hdf5()
-        path_shp = self.find_path_output("Path_Shape")
+        hdf5_name_sub = self.drop_sub.currentText()
+
+        # hdf5 output file
+        name_hdf5merge = self.hdf5_merge_lineedit.text()
+        # if file exist add number
+        nb = 0
+        while os.path.isfile(path_hdf5 + "/" + name_hdf5merge + ".h5"):
+            nb = nb + 1
+            name_hdf5merge = self.hdf5_merge_lineedit.text() + "_" + str(nb)
+
 
         # get if we erase old data or not
         # get the figure options and the type of output to be created
@@ -4021,7 +4044,7 @@ class SubstrateW(SubHydroW):
 
         # run the function
         self.q = Queue()
-        self.p = Process(target=mesh_grid2.merge_grid_and_save, args=(hdf5_name_hyd, hdf5_name_sub, path_hdf5,
+        self.p = Process(target=mesh_grid2.merge_grid_and_save, args=(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
                                                                      default_data, self.name_prj, self.path_prj,
                                                                      self.model_type, self.q, False, path_shp, erase_id))
         self.p.start()

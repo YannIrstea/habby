@@ -25,7 +25,7 @@ import triangle
 import matplotlib.pyplot as plt
 
 
-def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj, model_type,
+def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj, model_type,
                         q=[], print_cmd=False, path_shp='', erase_id=False):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
@@ -34,7 +34,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
     merge_grid_hydro_sub().
 
 
-
+    :param name_hdf5merge: the name of the hdf5 merge output
     :param hdf5_name_hyd: the name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the name of the hdf5 with the substrate data
     :param path_hdf5: the path to the hdf5 data
@@ -66,11 +66,6 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, n
     # get time step name if they exists
     sim_name = load_hdf5.load_timestep_name(hdf5_name_hyd, path_hdf5)
 
-    # save hdf5
-    if len(os.path.basename(hdf5_name_hyd)) > 80:
-        name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-25]  # take out the date in most case
-    else:
-        name_hdf5merge = 'MERGE_' + os.path.basename(hdf5_name_hyd)[:-3]
     load_hdf5.save_hdf5(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
                         point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
                         sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
