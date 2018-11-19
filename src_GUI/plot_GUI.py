@@ -70,8 +70,6 @@ class PlotTab(QScrollArea):
         self.setWidget(content_widget)
 
 
-
-
 class GroupPlot(QGroupBox):
     """
     This class is a subclass of class QGroupBox.
@@ -234,7 +232,7 @@ class GroupPlot(QGroupBox):
         if len(selection) == 1:  # one file selected
             hdf5name = selection[0].text()
             self.units_QListWidget.clear()
-            if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic
+            if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic or merge
                 self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
             if self.types_hdf5_QComboBox.currentIndex() == 2:  # substrat
                 self.units_QListWidget.addItems(["one unit"])
@@ -261,7 +259,10 @@ class GroupPlot(QGroupBox):
                 self.units_QListWidget.clear()
             if all(x == timestep[0] for x in timestep):  # OK
                 self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name[i], self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                if self.types_hdf5_QComboBox.currentIndex() == 2:  # substrat
+                    self.units_QListWidget.addItems(["one unit"])
+                if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic or merge
+                    self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name[i], self.parent().parent().parent().path_prj + "/hdf5_files/"))
                 self.units_QListWidget.setFixedWidth(
                     self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
         # update progress bar
@@ -364,6 +365,9 @@ class GroupPlot(QGroupBox):
                     [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(names_hdf5[i],
                                                                                                 path_hdf5,
                                                                                                 True)
+                    if len(sub_dom) == 0 or len(sub_pg) == 0:
+                        self.parent().parent().parent().send_log.emit('Error: No data found to plot.')
+                        return
                     if not ikle_sub:
                         self.parent().parent().parent().send_log.emit('Error: No connectivity table found. \n')
                         return
@@ -397,7 +401,7 @@ class GroupPlot(QGroupBox):
                         state = Value("i", 0)  # process not finished
                         susbtrat_process = Process(target=manage_grid_8.plot_substrate, args=(state,
                                                                                           point_all_sub, ikle_sub,
-                                                                                          sub_pg, sub_dom, path_im,
+                                                                                          sub_pg, sub_dom, path_im, names_hdf5[i],
                                                                                           fig_opt))
                         susbtrat_process.start()
                         self.plot_process_list.append((susbtrat_process, state))
