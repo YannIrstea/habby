@@ -49,6 +49,7 @@ def open_hdf5(hdf5_name):
 
     return file
 
+
 def open_hdf5_(hdf5_name, path_hdf5):
     """
     A function to load  hdf5 file.  If hdf5_name is an absolute path, the path_hdf5 is not used. If it is a relative path,
@@ -71,6 +72,7 @@ def open_hdf5_(hdf5_name, path_hdf5):
         print('Error: hdf5 file could not be open. \n')
         return "",True
     return file_,False
+
 
 def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     """
@@ -97,7 +99,7 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
     if merge:
         failload = [[-99]], [[-99]], [[-99]], [[-99]],[[-99]],[[-99]]
 
-    file_hydro,bfailload=open_hdf5_(hdf5_name_hyd, path_hdf5)
+    file_hydro, bfailload=open_hdf5_(hdf5_name_hyd, path_hdf5)
     if bfailload:
         return failload
 
@@ -300,7 +302,6 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom
 
 
-
 def load_timestep_name(hdf5_name, path_hdf5=''):
     """
     This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
@@ -446,14 +447,8 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
     """
     A function to load the substrate data contained in the hdf5 file. It also manage
     the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
-<<<<<<< HEAD
     the path is composed of the path to the 'hdf5' folder (path_prj/hdf5_files) composed with hdf5_name_sub. it manages constant and
     vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
-=======
-    the path is composed of the path to the 'hdf5' folder (path_prj/fichier_hdf5) composed with hdf5_name_sub. it manages constant and
-    variable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
->>>>>>> bad4e96cec605c66f5ebb8bbdb93b329d4c33566
-
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
     :param path_prj: the path to the hdf5 file
     :param ind_const: If True this function return a boolean which indicates if the substrant is constant or not
@@ -483,8 +478,8 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
             print('Error:Constant substrate data is not found. \n')
             file_sub.close()
             return failload
-        sub_pg = list(sub_pg.values())[0]
-        sub_dom = list(sub_dom.values())[0]
+        sub_pg = list(sub_pg.values())[0][0]
+        sub_dom = list(sub_dom.values())[0][0]
 
     # the variable case
     else:
@@ -527,6 +522,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5, ind_const=False):
         sub_pg = np.squeeze(np.array(sub_pg))
         sub_dom = list(sub_dom.values())
         sub_dom = np.squeeze(np.array(sub_dom))
+
     file_sub.close()
     if not ind_const:
         return ikle_sub, point_all_sub, sub_pg, sub_dom
@@ -656,7 +652,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
     :param v_cell: the velocity data by cell
     :param fish_name: the name of the fish (with the stage in it)
     """
-    file_hydro,bfailload=open_hdf5_(hdf5_name, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
     if bfailload:
         return
 
@@ -697,16 +693,18 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
     # to load use list(for.keys()) and use all the one starting with data_habitat
     data_all = file_hydro.create_group('Data_habitat_' + time.strftime("%d_%m_%Y_at_%H_%M_%S"))
     name_fishg = data_all.create_group('Fish_name')
-    name_fishg.create_dataset(hdf5_name, (len(fish_name), 1), data=ascii_str, maxshape=None)
+    name_fishg.create_dataset(name=hdf5_name, shape=(len(fish_name), ), data=ascii_str)  # , maxshape=None
 
     # habitat value and cell data
     m = 0
     all_ok = True
+    # for all timestep
     for t in range(1, nb_t):
         there = data_all.create_group('Timestep_' + str(t - 1))
-
+        # for all reach
         for r in range(0, nb_r):
             rhere = there.create_group('Reach_' + str(r))
+            # for all fish
             for s in range(0, len(fish_name)):
                 try:
                     habitatg = rhere.create_group('habitat_' + fish_name[s])
@@ -714,6 +712,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
                     print('Warning: Two identical fish name are found \n')
                     habitatg = rhere.create_group('habitat_' + fish_name[s]+str(m))
                     m += 1
+                aa = 1
                 if len(vh_cell[s]) > 0:
                     try:
                         if len(vh_cell[s][t]) > 2:
@@ -722,7 +721,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
                     except IndexError or ValueError:
                        print('Warning: One fish information could not be saved\n')
 
-            velg = rhere.create_group('velocity_by_cell_reach_'+str(r))
+            velg = rhere.create_group('velocity_by_cell_reach_' + str(r))
             if len(v_cell[t][r]) > 0:
                 velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
                                     maxshape=None)
@@ -733,6 +732,10 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
 
     file_hydro.close()
     time.sleep(1)  # as we need to insure different group of name
+
+
+def get_habitat_value():
+    print("aa")
 
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,

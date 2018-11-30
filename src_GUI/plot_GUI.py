@@ -248,6 +248,7 @@ class GroupPlot(QGroupBox):
             # merge
             if self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic or merge
                 self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                #items = load_hdf5.
                 self.variable_QListWidget.addItems(["habitat value map", "global habitat value and SPU"])
             # width adjust
             self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
@@ -369,7 +370,7 @@ class GroupPlot(QGroupBox):
             # for all hdf5 file selected
             for i in range(len(names_hdf5)):
                 # load hydraulic data
-                if "hydraulic" in types_hdf5 or "habitat" in types_hdf5:
+                if "hydraulic" in types_hdf5:
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(names_hdf5[i],
                                                                                                         path_hdf5)
                 # load substrate data
@@ -377,6 +378,10 @@ class GroupPlot(QGroupBox):
                     [ikle_sub, point_all_sub, sub_pg, sub_dom, const] = load_hdf5.load_hdf5_sub(names_hdf5[i],
                                                                                                 path_hdf5,
                                                                                                 True)
+                if "habitat" in types_hdf5:
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(
+                        names_hdf5[i],
+                        path_hdf5)
                     if len(sub_dom) == 0 or len(sub_pg) == 0:
                         self.parent().parent().parent().send_log.emit('Error: No data found to plot.')
                         return

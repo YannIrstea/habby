@@ -1684,6 +1684,7 @@ class CreateNewProject(QWidget):
         button2.clicked.connect(self.setfolder)
         self.button3 = QPushButton(self.tr('Save project'))
         self.button3.clicked.connect(self.save_project)  # is a PyQtSignal
+        self.e1.returnPressed.connect(self.save_project)
         self.button3.setStyleSheet("background-color: #47B5E6; color: black")
 
         layoutl = QGridLayout()
