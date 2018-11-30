@@ -63,6 +63,7 @@ class PlotTab(QScrollArea):
         self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
         self.plot_layout.setAlignment(Qt.AlignTop)
         self.plot_layout.addWidget(self.GroupPlot)
+        self.GroupPlot.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         # add layout
         self.setWidgetResizable(True)
@@ -114,6 +115,7 @@ class GroupPlot(QGroupBox):
         # units_QListWidget
         self.units_QLabel = QLabel(self.tr('units :'))
         self.units_QListWidget = QListWidget()
+        self.units_QListWidget.setFixedWidth(50)
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.units_QListWidget.itemSelectionChanged.connect(self.count_plot)
         self.units_layout = QVBoxLayout()
@@ -175,11 +177,13 @@ class GroupPlot(QGroupBox):
         Ajust item list according to hdf5 type selected by user
         """
         index = self.types_hdf5_QComboBox.currentIndex()
-        if index == 0:  # nothing
+        # nothing
+        if index == 0:
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             self.units_QListWidget.clear()
-        if index == 1:  # hydraulic
+        # hydraulic
+        if index == 1:
             # get list of file name
             absname = self.parent().parent().parent().parent().parent().parent().hyd_name
             names = []
@@ -191,7 +195,8 @@ class GroupPlot(QGroupBox):
             # set list variable
             self.variable_QListWidget.clear()
             self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
-        if index == 2:  # substrat
+        # substrat
+        if index == 2:
             # get list of file name
             absname = self.parent().parent().parent().parent().parent().parent().substrate_tab.sub_name
             names = []
@@ -203,7 +208,8 @@ class GroupPlot(QGroupBox):
             # set list variable
             self.variable_QListWidget.clear()
             self.variable_QListWidget.addItems(["coarser_dominant"])
-        if index == 3:  # chronics / merge ==> habitat
+        # chronics / merge == > habitat
+        if index == 3:
             # get list of file name
             absname = self.parent().parent().parent().parent().parent().parent().bioinfo_tab.hdf5_merge
             names = []
@@ -214,7 +220,7 @@ class GroupPlot(QGroupBox):
             self.names_hdf5_QListWidget.addItems(names)
             # set list variable
             self.variable_QListWidget.clear()
-            self.variable_QListWidget.addItems(["height", "velocity", "mesh", "habitat value map", "global habitat value and SPU"])
+            self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
         if index == 1 or index == 2 or index == 3:
             # resize QListWidget
             self.names_hdf5_QListWidget.setFixedWidth(self.names_hdf5_QListWidget.sizeHintForColumn(0) + self.names_hdf5_QListWidget.sizeHintForColumn(0) * 0.1)
@@ -232,13 +238,19 @@ class GroupPlot(QGroupBox):
         if len(selection) == 1:  # one file selected
             hdf5name = selection[0].text()
             self.units_QListWidget.clear()
-            if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic or merge
+            # hydraulic
+            if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
-            if self.types_hdf5_QComboBox.currentIndex() == 2:  # substrat
+            # substrat
+            if self.types_hdf5_QComboBox.currentIndex() == 2:
                 self.units_QListWidget.addItems(["one unit"])
                 self.units_QListWidget.item(0).setSelected(True)
-            self.units_QListWidget.setFixedWidth(
-                self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
+            # merge
+            if self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic or merge
+                self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                self.variable_QListWidget.addItems(["habitat value map", "global habitat value and SPU"])
+            # width adjust
+            self.units_QListWidget.setFixedWidth(self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
         if len(selection) > 1:  # more than one file selected
             nb_file = len(selection)
             hdf5name = []

@@ -1,15 +1,15 @@
-ECHO OFF
-set /p VarQuestion= Do you want to create an installer after the creation of the executable ? (y/n) : 
+::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
+SET envir_virtuel_path=C:\Users\quentin.royer\Documents\TAF\ENVIRONNEMENTS_VIRTUELS\env_virtuel_habby
+call %envir_virtuel_path%\Scripts\activate.bat
 
-:::::::::::::::::::: put your python path ::::::::::::::::::::::::::::::::::
-SET pythonpath=C:\Users\quentin.royer\AppData\Local\Programs\Python\Python36
-:::::::::::::::::::: put your python path ::::::::::::::::::::::::::::::::::
+::::::::::: RUN COMPILATION :::::::::::::::::::
+set /p VarQuestion= Do you want to create an installer after the creation of the executable ? (y/n) : 
 
 ECHO if build\cx_Freeze folder exist, remove it
 if exist build\cx_Freeze rmdir /Q /S build\cx_Freeze
 
 ECHO cx_Freeze
-%pythonpath%\python.exe cx_Freeze_config.py build -b build\cx_Freeze
+python cx_Freeze_config.py build -b build\cx_Freeze
 
 ECHO copy folders
 robocopy biology build\cx_Freeze\exe.win-amd64-3.6\biology /E

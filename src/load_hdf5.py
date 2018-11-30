@@ -701,7 +701,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
     ascii_str = [n.strip().encode("ascii", "ignore") for n in fish_name]  # unicode is not ok with hdf5
     # not too pratical but rewriting hdf5 is really annoying
     # to load use list(for.keys()) and use all the one starting with data_habitat
-    data_all = file_hydro.create_group('Data_habitat' + time.strftime("%d_%m_%Y_at_%H_%M_%S"))
+    data_all = file_hydro.create_group('Data_habitat_' + time.strftime("%d_%m_%Y_at_%H_%M_%S"))
     name_fishg = data_all.create_group('Fish_name')
     name_fishg.create_dataset(hdf5_name, (len(fish_name), 1), data=ascii_str, maxshape=None)
 

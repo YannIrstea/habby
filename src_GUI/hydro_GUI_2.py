@@ -3540,7 +3540,6 @@ class SubstrateW(SubHydroW):
 
 
         # label and button for the part to merge the grid
-        l8 = QLabel(self.tr("<b> Merge the hydraulic and substrate grid </b>"))
         l9 = QLabel(self.tr("Hydraulic data (hdf5)"))
         l10 = QLabel(self.tr("Substrate data (hdf5)"))
         self.drop_hyd = QComboBox()
@@ -3560,7 +3559,7 @@ class SubstrateW(SubHydroW):
         self.update_sub_hdf5_name()
         # file name output
         hdf5_merge_label = QLabel(self.tr('hdf5 file name'))
-        self.hdf5_merge_lineedit = QLineEdit('')  # default substrate value
+        self.hdf5_merge_lineedit = QLineEdit('')  # default hdf5 merge name
         # get the last file created
         lm1 = QLabel(self.tr('Last file created'))
         self.lm2 = QLabel(self.tr('No file'))
@@ -3755,7 +3754,7 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
             #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
-        else:
+        else:  #sub from txt or shp
             # save path and name substrate
             self.save_xml(0)
             namebase, ext = os.path.splitext(self.namefile[0])
@@ -3781,7 +3780,7 @@ class SubstrateW(SubHydroW):
                     return
 
                 # load substrate
-                #sys.stdout = self.mystdout = StringIO()
+                sys.stdout = self.mystdout = StringIO()
                 [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0],
                                                                                   self.pathfile[0], code_type)
                 # we have a case where two dominant substrate are "equally" dominant
@@ -4030,7 +4029,6 @@ class SubstrateW(SubHydroW):
             nb = nb + 1
             name_hdf5merge = self.hdf5_merge_lineedit.text() + "_" + str(nb)
 
-
         # get if we erase old data or not
         # get the figure options and the type of output to be created
         fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
@@ -4068,6 +4066,7 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart    defval: " + self.e3.text())
         else:
             self.send_log.emit("restart    defval: -99")
+
 
 if __name__ == '__main__':
     pass

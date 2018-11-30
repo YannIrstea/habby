@@ -724,7 +724,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]],
                                               path_im, name_fish, name_base, fig_dict, [t], save_fig=False)
 
-           # sys.stdout = sys.__stdout__
+           # sys.stdout = sys.__stdout__ # reset normal print output
             #self.send_err_log()
 
             # show figure

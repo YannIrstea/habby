@@ -1,11 +1,15 @@
-ECHO OFF
+::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
+SET envir_virtuel_path=C:\Users\quentin.royer\Documents\TAF\ENVIRONNEMENTS_VIRTUELS\env_virtuel_habby
+call %envir_virtuel_path%\Scripts\activate.bat
+
+::::::::::: RUN COMPILATION :::::::::::::::::::
 set /p VarQuestion= Do you want to create an installer after the creation of the executable ? (y/n) : 
 
 ECHO if build\pyinstaller folder exist, remove it
 if exist build\pyinstaller rmdir /Q /S build\pyinstaller
 
-ECHO pyinstaller 
-pyinstaller --windowed --icon=translation\habby_icon.ico --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --name=habby habby.py
+ECHO pyinstaller
+pyinstaller --icon=translation\habby_icon.ico --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --name=habby habby.py
 
 ECHO if build folder exist, remove it
 if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp
