@@ -2821,7 +2821,7 @@ def plot_grid_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im
         plt.close()
 
 
-def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fig_opt={}, xtxt=[-99], ytxt=[-99], subtxt=[-99],
+def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99], ytxt=[-99], subtxt=[-99],
                   reach_num=-99):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
@@ -2852,6 +2852,19 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
         erase1 = True
     else:
         erase1 = False
+
+    if fig_opt['language'] == 0:
+        title_pg = 'Substrate Grid - Coarser Data - Time Step ' + str(time_step)
+        title_dom = 'Substrate Grid - Dominant - Time Step ' + str(time_step)
+        filename_pg_dm = name_hdf5[:-3] + "_substrate_" + str(time_step)
+    elif fig_opt['language'] == 1:
+        title_pg = 'Maillaige substrat - Plus Gros - Time Step ' + str(time_step)
+        title_dom = 'Maillaige substrat - Dominant - Time Step ' + str(time_step)
+        filename_pg_dm = name_hdf5[:-3] + "_substrate_" + str(time_step)
+    else:
+        title_pg = 'Substrate Grid - Coarser Data - Time Step ' + str(time_step)
+        title_dom = 'Substrate Grid - Dominant - Time Step ' + str(time_step)
+        filename_pg_dm = name_hdf5[:-3] + "_substrate_" + str(time_step)
 
     # prepare grid (to optimize)
     xlist = []
@@ -2901,20 +2914,7 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
     #sub1.plot(xlist, ylist, c='b', linewidth=0.2)
     #plt.xlabel('x coord []')
     plt.ylabel('y coord []')
-    if reach_num ==-99:
-        if fig_opt['language'] == 0:
-            plt.title('Substrate Grid - Coarser Data')
-        elif fig_opt['language'] == 1:
-            plt.title('Maillage Substrat - Plus Gros')
-        else:
-            plt.title('Substrate Grid - Coarser Data')
-    else:
-        if fig_opt['language'] == 0:
-            plt.title('Substrate Grid - Coarser Data - Reach ' + str(reach_num))
-        elif fig_opt['language'] == 1:
-            plt.title('Maillage Substrat - Plus Gros - Bief ' + str(reach_num))
-        else:
-            plt.title('Substrate Grid - Coarser Data - Reach ' + str(reach_num))
+    plt.title(title_pg)
 
     # substrate dominant
     sub2 = fig.add_subplot(212)
@@ -2941,20 +2941,7 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
     #sub2.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
-    if reach_num == -99:
-        if fig_opt['language'] == 0:
-            plt.title('Substrate Grid - Dominant')
-        elif fig_opt['language'] == 1:
-            plt.title('Maillage Substrat - Dominant')
-        else:
-            plt.title('Substrate Grid - Dominant')
-    else:
-        if fig_opt['language'] == 0:
-            plt.title('Substrate Grid - Dominant - Reach ' + str(reach_num))
-        elif fig_opt['language'] == 1:
-            plt.title('Maillage Substrat - Dominant - Reach ' + str(reach_num))
-        else:
-            plt.title('Substrate Grid - Dominant - Reach ' + str(reach_num))
+    plt.title(title_dom)
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7]) # posistion x2, sizex2, 1= top of the figure
@@ -2968,26 +2955,27 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
     #plt.tight_layout()
 
     # save the figure
-    if not erase1:
-        if format == 0 or format == 1:
-            plt.savefig(os.path.join(path_im, "substrate_coars_dom_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                     '.png'), dpi=fig_opt['resolution'], transparent=True)
-        if format == 0 or format == 3:
-            plt.savefig(os.path.join(path_im, "substrate_coars_dom_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                     '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-        if format == 2:
-            plt.savefig(os.path.join(path_im, "substrate_coars_dom_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                     '.jpg'), dpi=fig_opt['resolution'], transparent=True)
-    else:
-        test = calcul_hab.remove_image("substrate_coars_dom", path_im, format)
-        if not test:
-            return
-        if format == 0 or format == 1:
-            plt.savefig(os.path.join(path_im, "substrate_coars_dom.png"), dpi=fig_opt['resolution'], transparent=True)
-        if format == 0 or format == 3:
-            plt.savefig(os.path.join(path_im, "substrate_coars_dom.pdf"), dpi=fig_opt['resolution'], transparent=True)
-        if format == 2:
-            plt.savefig(os.path.join(path_im, "substrate_coars_dom.jpg"), dpi=fig_opt['resolution'], transparent=True)
+    if types_plot == "export" or types_plot == "both":
+        if not erase1:
+            if format == 0 or format == 1:
+                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                         '.png'), dpi=fig_opt['resolution'], transparent=True)
+            if format == 0 or format == 3:
+                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                         '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+            if format == 2:
+                plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
+                                         '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image("substrate_coars_dom", path_im, format)
+            if not test:
+                return
+            if format == 0 or format == 1:
+                plt.savefig(os.path.join(path_im, filename_pg_dm + ".png"), dpi=fig_opt['resolution'], transparent=True)
+            if format == 0 or format == 3:
+                plt.savefig(os.path.join(path_im, filename_pg_dm + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+            if format == 2:
+                plt.savefig(os.path.join(path_im, filename_pg_dm + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
 
     # if we start with txt data, plot the original data
     # not done usually, but we let it here to debug
@@ -3013,17 +3001,18 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
             plt.title('Données Substrat Original (x,y)')
         else:
             plt.title('Original Substrate Data (x,y)')
-        if not erase1:
-            plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
-                        fig_opt['resolution'], transparent=True)
-            plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
-                        fig_opt['resolution'], transparent=True)
-        else:
-            test = calcul_hab.remove_image("substrate_txtdata", path_im, format)
-            if not test:
-                return
-            plt.savefig(os.path.join(path_im, "substrate_txtdata.png"), fig_opt['resolution'], transparent=True)
-            plt.savefig(os.path.join(path_im, "substrate_txtdata.pdf"), fig_opt['resolution'], transparent=True)
+        if types_plot == "export" or types_plot == "both":
+            if not erase1:
+                plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
+                            fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
+                            fig_opt['resolution'], transparent=True)
+            else:
+                test = calcul_hab.remove_image("substrate_txtdata", path_im, format)
+                if not test:
+                    return
+                plt.savefig(os.path.join(path_im, "substrate_txtdata.png"), fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, "substrate_txtdata.pdf"), fig_opt['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -3031,6 +3020,232 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
         plt.show()
     if types_plot == "export":
         plt.close()
+
+
+def plot_fish_habitat_map(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_opt={}, path_im=[], time_step=0):
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
+    types_plot = fig_opt['type_plot']
+    erase1 = fig_opt['erase_id']
+    if erase1 == 'True':  # xml in text
+        erase1 = True
+    else:
+        erase1 = False
+
+    # title and filename
+    if fig_opt['language'] == 0:
+        title = 'Habitat Value of ' + fish_name + '- Computational Step: ' + time_step
+        filename = name_hdf5[:-3] + '_HSI_' + fish_name + '_' + str(time_step)
+    elif fig_opt['language'] == 1:
+        title = "Valeur d'Habitat pour " + fish_name + '- Pas de temps/débit: ' + time_step
+        filename = name_hdf5[:-3] + "_VH_" + fish_name + '_' + str(time_step)
+    else:
+        title = 'Habitat Value of ' + fish_name + '- Computational Step: ' + time_step
+        filename = name_hdf5[:-3] + '_HSI_' + fish_name + '_' + str(time_step)
+
+    # preplot
+    fig, ax = plt.subplots(1)  # new figure
+    norm = mpl.colors.Normalize(vmin=0, vmax=1)
+
+    # plot the habitat value
+    cmap = plt.get_cmap(fig_opt['color_map2'])
+    #colors = cmap(vh.tolist())
+
+    n = len(vh)
+    patches = []
+    for i in range(0, n):
+        verts = []
+        for j in range(0, 3):
+            verts_j = coord_p[int(ikle[i][j]), :]
+            verts.append(verts_j)
+        polygon = Polygon(verts, closed=True, edgecolor='w')
+        patches.append(polygon)
+
+    collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
+    #collection.set_color(colors) too slow
+    collection.set_array(vh)
+    ax.add_collection(collection)
+    ax.autoscale_view()
+    ax.ticklabel_format(useOffset=False)
+    plt.axis('equal')
+    # cbar = plt.colorbar()
+    # cbar.ax.set_ylabel('Substrate')
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    plt.title(title)
+    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
+
+    # colorbar
+    # Set norm to correspond to the data for which
+    # the colorbar will be used.
+    # ColorbarBase derives from ScalarMappable and puts a colorbar
+    # in a specified axes, so it has everything needed for a
+    # standalone colorbar.  There are many more kwargs, but the
+    # following gives a basic continuous colorbar with ticks
+    # and labels.
+    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+    if fig_opt['language'] == 0:
+        cb1.set_label('HV []')
+    elif fig_opt['language'] == 1:
+        cb1.set_label('VH []')
+    else:
+        cb1.set_label('HV []')
+
+    # save figure
+    if types_plot == "export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image(filename, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'],
+                            transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'],
+                            transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'],
+                            transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "display" or types_plot == "both":
+        plt.show()
+    if types_plot == "export":
+        plt.close()
+
+
+def plot_wua_hv_mean(state, spu, area, name_fish, name_hdf5, fig_opt={}, path_im=[], time_step=0):
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    if fig_opt['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = fig_opt['erase_id']
+    types_plot = fig_opt['type_plot']
+    if erase1 == 'True':  # xml in text
+        erase1 = True
+    else:
+        erase1 = False
+    if fig_opt['marker'] == 'True':
+        mar = 'o'
+    else:
+        mar = None
+
+    # title and filename
+    if fig_opt['language'] == 0:
+        title_wua = f'Weighted Usable Area of {name_fish} - Time Step ' + str(time_step)
+        title_hv = f'Habitat value of {name_fish} - Time Step ' + str(time_step)
+        filename_hv = name_hdf5[:-3] + "_wua_hv_" + name_fish + "_" + str(time_step)
+    elif fig_opt['language'] == 1:
+        title_wua = f'Surface Ponderée Utile de {name_fish} - Time Step ' + str(time_step)
+        title_hv = f"Valeur d'Habitat of {name_fish} - Time Step " + str(time_step)
+        filename_hv = name_hdf5[:-3] + "_substrate_" + str(time_step)
+    else:
+        title_wua = f'Weighted Usable Area of {name_fish} - Time Step ' + str(time_step)
+        title_hv = f'Habitat value of {name_fish} - Time Step ' + str(time_step)
+        filename_hv = name_hdf5[:-3] + "_wua_hv_" + name_fish + "_" + str(time_step)
+
+    # prepare data
+    spu = [float(spu)]
+    area = float(area)
+
+    # SPU
+    data_bar = spu
+    y_pos = np.arange(len(spu))
+    fig = plt.figure()
+    fig.add_subplot(211)
+    data_bar2 = np.array(data_bar)
+    plt.bar(y_pos, data_bar2, 0.5)
+    plt.xticks(y_pos+0.25, [name_fish])
+    if fig_opt['language'] == 0:
+        plt.ylabel('WUA [m^2]')
+    elif fig_opt['language'] == 1:
+        plt.ylabel('SPU [m^2]')
+    else:
+        plt.ylabel('WUA [m^2]')
+    plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+    plt.title(title_wua)
+
+
+    # VH
+    fig.add_subplot(212)
+    data_bar2 = np.array(data_bar)
+    plt.bar(y_pos, data_bar2/area, 0.5)
+    plt.xticks(y_pos + 0.25, [name_fish])
+    if fig_opt['language'] == 0:
+        plt.ylabel('HV (WUA/A) []')
+    elif fig_opt['language'] == 1:
+        plt.ylabel('VH (SPU/A) []')
+    else:
+        plt.ylabel('HV (WUA/A) []')
+    plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+    plt.ylim(0, 1)
+    plt.title(title_hv)
+
+    # save figure
+    plt.tight_layout()  # remove margin out of plot
+    if types_plot == "export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename_hv + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename_hv + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename_hv + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image(filename_hv, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename_hv + ".png"), dpi=fig_opt['resolution'],
+                            transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename_hv + ".pdf"), dpi=fig_opt['resolution'],
+                            transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename_hv + ".jpg"), dpi=fig_opt['resolution'],
+                            transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "display" or types_plot == "both":
+        plt.show()
+    if types_plot == "export":
+        plt.close()
+
+
 
 
 

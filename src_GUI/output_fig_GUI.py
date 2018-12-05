@@ -642,6 +642,7 @@ def create_default_figoption():
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
     fig_dict['marker'] = 'True'  # Add point to line plot
     fig_dict['erase_id'] = 'True'
+    fig_dict['type_plot'] = 'display'
 
     return fig_dict
 

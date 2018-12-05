@@ -3725,6 +3725,8 @@ class SubstrateW(SubHydroW):
 
         self.send_log.emit(self.tr('# Loading: Substrate data...'))
         self.load_b.setDisabled(True)
+
+        # constante case
         if const_sub:
             try:
                 data_sub = int(self.e1.text())
@@ -3754,7 +3756,9 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
             #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
-        else:  #sub from txt or shp
+
+        # sub from txt or shp
+        else:
             # save path and name substrate
             self.save_xml(0)
             namebase, ext = os.path.splitext(self.namefile[0])
