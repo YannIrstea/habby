@@ -169,8 +169,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
     # saving hdf5 data of the habitat value
-    load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
-                                   name_fish)
+    load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
 
     print('# Habitat calculation is finished. \n')
     if not print_cmd:
@@ -1484,7 +1483,7 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
     :param vh_all_t_sp: The habitat value by cell by reach by time step by species
     :param area_c_all_t: the area of each cell
     :param name_fish: the name of the fish chosen
-     :param fig_opt: the figure options
+    :param fig_opt: the figure options
     :param path_im: the path where to save the images
     :param timestep: a list with the time step to be plotted
     :param name_base: the base on which to form the figure name

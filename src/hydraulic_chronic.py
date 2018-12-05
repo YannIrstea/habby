@@ -342,7 +342,7 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
                         inter_vel_all_new, inter_height_all_new,  merge=True,
                         sub_pg_all_t=substrate_pg_all_new,
                         sub_dom_all_t=substrate_dom_all_new,
-                        sim_name=discharge_output_str)
+                        sim_name=discharge_output_str, hdf5_type="chronic")
 
 
 def main():

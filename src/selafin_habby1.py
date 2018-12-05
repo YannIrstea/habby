@@ -90,7 +90,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     # save data
     timestep_str = list(map(str, timestep))
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
-                        inter_vel_all_t, inter_h_all_t, sim_name=timestep_str)
+                        inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

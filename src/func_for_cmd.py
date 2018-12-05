@@ -943,7 +943,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
                              point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
-                            sub_dom_all_both, save_option=erase_id)
+                            sub_dom_all_both, save_option=erase_id, hdf5_type="substrate")
 
         # create shpafile to control intput
         load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
@@ -1017,7 +1017,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # save it
         load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
                             point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
-                            sub_dom_all_both)
+                            sub_dom_all_both, hdf5_type="substrate")
 
         # create shapefile to test input
         load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)

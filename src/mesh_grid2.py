@@ -69,7 +69,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     load_hdf5.save_hdf5(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
                         point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
                         sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
-                        hydro_ini_name=hdf5_name_hyd)
+                        hydro_ini_name=hdf5_name_hyd, hdf5_type="merge")
 
     # save in a shapefile form
     if path_shp:

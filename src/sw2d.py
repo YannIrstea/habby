@@ -156,7 +156,7 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     timestep_str = list(map(str, timesteps))
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t,
                         point_c_all_t,
-                        inter_vel_all_t, inter_h_all_t, sim_name=timestep_str)
+                        inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

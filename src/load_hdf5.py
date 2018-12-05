@@ -302,6 +302,259 @@ def load_hdf5_hyd(hdf5_name_hyd, path_hdf5='', merge=False):
         return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom
 
 
+def load_hdf5_hab(hdf5_name_hyd, path_hdf5, fish_names):
+    """
+    A function to load the habitat data contained in the hdf5 file in the form required by HABBY. If
+    hdf5_name_hyd is an absolute path, the path_hdf5 is not used. If hdf5_name_hyd is a relative path, the path is
+    composed of the path to the project (path_hdf5) composed with hdf5_name_hyd.
+
+    :param hdf5_name_hyd: filename of the hdf5 file (string)
+    :param path_hdf5: the path to the hdf5 file
+    :return: the connectivity table, the coordinates of the point, the height data, the velocity data
+             on the coordinates, also substrate if merge is True.
+
+    """
+
+    # correct all change to the hdf5 form in the documentation!
+    ikle_all_t = []
+    point_all = []
+    inter_vel_all = []
+    inter_height_all = []
+    substrate_all_pg = []
+    substrate_all_dom = []
+    failload = [[-99]], [[-99]], [[-99]], [[-99]],[[-99]],[[-99]]
+
+    file_hydro, bfailload=open_hdf5_(hdf5_name_hyd, path_hdf5)
+
+    # load the number of time steps #? attribut
+    basename1 = 'Data_gen'
+    try:
+        gen_dataset = file_hydro[basename1 + "/Nb_timestep"]
+    except KeyError:
+        print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name_hyd
+            + ' an hydrological input? \n')
+        file_hydro.close()
+        return failload
+    try:
+        nb_t = list(gen_dataset.values())[0]
+    except IndexError:
+        print('Error: Time step are not found')
+        file_hydro.close()
+        return failload
+    nb_t = np.array(nb_t)
+    nb_t = int(nb_t)
+
+    # load the number of reach #? attribut
+    try:
+        gen_dataset = file_hydro[basename1 + "/Nb_reach"]
+    except KeyError:
+        print(
+            'Error: the number of reaches is missing from the hdf5 file. \n')
+        file_hydro.close()
+        return failload
+    nb_r = list(gen_dataset.values())[0]
+    nb_r = np.array(nb_r)
+    nb_r = int(nb_r)
+
+    # load ikle
+    basename1 = 'Data_2D'
+    ikle_whole_all = []
+
+    # ikle whole profile #? pourquoi pas du numpy direct ? indexError ??
+    for r in range(0, nb_r):
+        name_ik = basename1 + "/Whole_Profile/Reach_" + str(r) + "/ikle"
+        try:
+            gen_dataset = file_hydro[name_ik]
+        except KeyError:
+            print(
+                'Error: the dataset for ikle (1) is missing from the hdf5 file. \n')
+            file_hydro.close()
+            return failload
+        try:
+            ikle_whole = list(gen_dataset.values())[0]
+        except IndexError:
+            print('Error: the dataset for ikle (3) is missing from the hdf5 file. \n')
+            file_hydro.close()
+            return failload
+        ikle_whole = np.array(ikle_whole)
+        ikle_whole_all.append(ikle_whole)
+    ikle_all_t.append(ikle_whole_all)
+
+    # ikle by time step  #? pourquoi pas du numpy direct ? indexError ??
+    for t in range(0, nb_t):
+        ikle_whole_all = []
+        for r in range(0, nb_r):
+            name_ik = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/ikle"
+            try:
+                gen_dataset = file_hydro[name_ik]
+            except KeyError:
+                print('Warning: the dataset for ikle (2) is missing from the hdf5 file for one time step. \n')
+                file_hydro.close()
+                return failload
+            try:
+                ikle_whole = list(gen_dataset.values())[0]
+            except IndexError:
+                print('Error: the dataset for ikle (4) is missing from the hdf5 file for one time step. \n')
+                file_hydro.close()
+                return failload
+            ikle_whole = np.array(ikle_whole)
+            ikle_whole_all.append(ikle_whole)
+        ikle_all_t.append(ikle_whole_all)
+
+    # coordinate of the point for the  whole profile #? pourquoi pas du numpy direct ? indexError ??
+    point_whole_all = []
+    for r in range(0, nb_r):
+        name_pa = basename1 + "/Whole_Profile/Reach_" + str(r) + "/point_all"
+        try:
+            gen_dataset = file_hydro[name_pa]
+        except KeyError:
+            print(
+                'Error: the dataset for coordinates of the points (1) is missing from the hdf5 file. \n')
+            file_hydro.close()
+            return failload
+        try:
+            point_whole = list(gen_dataset.values())[0]
+        except IndexError:
+            print('Error: the dataset for coordinates of the points (3) is missing from the hdf5 file. \n')
+            file_hydro.close()
+            return failload
+        point_whole = np.array(point_whole)
+        point_whole_all.append(point_whole)
+    point_all.append(point_whole_all)
+    # coordinate of the point by time step #? pourquoi pas du numpy direct ? indexError ??
+    for t in range(0, nb_t):
+        point_whole_all = []
+        for r in range(0, nb_r):
+            name_pa = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/point_all"
+            try:
+                gen_dataset = file_hydro[name_pa]
+            except KeyError:
+                print('Error: the dataset for coordinates of the points (2) is missing from the hdf5 file. \n')
+                file_hydro.close()
+                return failload
+            try:
+                point_whole = list(gen_dataset.values())[0]
+            except IndexError:
+                print('Error: the dataset for coordinates of the points (4) is missing from the hdf5 file. \n')
+                file_hydro.close()
+                return failload
+            point_whole = np.array(point_whole)
+            point_whole_all.append(point_whole)
+        point_all.append(point_whole_all)
+
+    # load height and velocity data
+    inter_vel_all.append([])  # no data for the whole profile case
+    inter_height_all.append([])
+    substrate_all_pg.append([])
+    substrate_all_dom.append([])
+    for t in range(0, nb_t):
+        h_all = []
+        vel_all = []
+        sub_pg_all = []
+        sub_dom_all = []
+
+        for r in range(0, nb_r):
+            name_vel = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_vel_all"
+            name_he = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/inter_h_all"
+            name_pg = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/data_substrate_pg"
+            name_dom = basename1 + "/Timestep_" + str(t) + "/Reach_" + str(r) + "/data_substrate_dom"
+            #velocity
+            try:
+                gen_dataset = file_hydro[name_vel]
+            except KeyError:
+                print('Error: the dataset for velocity is missing from the hdf5 file. \n')
+                file_hydro.close()
+                return failload
+            if len(list(gen_dataset.values())) ==0:
+                print('Error: No velocity found in the hdf5 file. \n')
+                file_hydro.close()
+                return failload
+            vel = list(gen_dataset.values())[0]
+            vel = np.array(vel).flatten()
+            vel_all.append(vel)
+            #height
+            try:
+                gen_dataset = file_hydro[name_he]
+            except KeyError:
+                print('Error: the dataset for water height is missing from the hdf5 file. \n')
+                file_hydro.close()
+                return failload
+            if len(list(gen_dataset.values())) == 0:
+                print('Error: No height found in the hdf5 file. \n')
+                file_hydro.close()
+                return failload
+            heigh = list(gen_dataset.values())[0]
+            heigh = np.array(heigh).flatten()
+            h_all.append(heigh)
+            #substrate
+            try:
+                gen_datasetpg = file_hydro[name_pg]
+                gen_datasetdom = file_hydro[name_dom]
+            except KeyError:
+                print('Error: the dataset for substrate is missing from the hdf5 file. \n')
+                file_hydro.close()
+                return failload
+            try:
+                subpg = list(gen_datasetpg.values())[0]
+            except IndexError:
+                print('Error: the dataset for substrate is missing from the hdf5 file (2). \n')
+                file_hydro.close()
+                return failload
+            subpg = np.array(subpg).flatten()
+            try:
+                subdom = list(gen_datasetdom.values())[0]
+            except IndexError:
+                print('Error: the dataset for substrate is missing from the hdf5 file (3). \n')
+                file_hydro.close()
+                return failload
+            subdom = np.array(subdom).flatten()
+            sub_pg_all.append(subpg)
+            sub_dom_all.append(subdom)
+        inter_vel_all.append(vel_all)
+        inter_height_all.append(h_all)
+        substrate_all_dom.append(sub_dom_all)
+        substrate_all_pg.append(sub_pg_all)
+
+
+    # load fish habitat data
+    habitat_group = file_hydro["Habitat"]
+
+    # create empty list
+    total_HV_list = [[]]
+    total_WUA_list_all_t = [[]]
+    HV_data_list_all_t = [[]]
+    total_wetarea_all_t = [[]]
+
+    # for all units (timestep or discharge)
+    for t in range(1, nb_t + 1):
+        unit_group = habitat_group['Unit_' + str(t - 1)]
+        # for all reach
+        for r in range(0, nb_r):
+            reach_group = unit_group['Reach_' + str(r)]
+            # get reach attributes
+            total_wetarea_all_t.append(reach_group.attrs['AREA'])
+            HV_data_list = []
+            total_WUA_list = []
+            # for all fish
+            for s in range(0, len(fish_names)):
+                fish_dataset = reach_group[fish_names[s]]
+                total_HV_list.append(fish_dataset.attrs['HV'])
+                total_WUA_list.append(fish_dataset.attrs['WUA'])
+                HV_data_list.append(np.array(fish_dataset).flatten())
+            HV_data_list_all_t.append(HV_data_list)
+            total_WUA_list_all_t.append(total_WUA_list)
+
+    fish_data_all_t = dict()
+    fish_data_all_t["fish_names"] = fish_names
+    fish_data_all_t["total_HV"] = total_HV_list
+    fish_data_all_t["total_WUA"] = total_WUA_list_all_t
+    fish_data_all_t["HV_data"] = HV_data_list_all_t
+
+    file_hydro.close()
+    return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom, fish_data_all_t, total_wetarea_all_t
+
+
+
 def load_timestep_name(hdf5_name, path_hdf5=''):
     """
     This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
@@ -546,6 +799,32 @@ def get_all_filename(dirname, ext):
     return filenames
 
 
+def get_filename_by_type(type, path):
+    """
+    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
+    from one hydraulic model.
+
+    :param dirname: the path to the directory (string)
+    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
+    :return: a list with the filename (filename no dir) for each extension
+    """
+    # "hydraulic", "substrate", "merge", "chronic", "habitat"
+    dirname = path
+
+    filenames = []
+    for file in os.listdir(dirname):
+        if file.endswith(".h5"):
+            file_hydro, _ = open_hdf5_(file, dirname)
+            if file_hydro.attrs["hdf5_type"] == type:
+                if type == "substrate":
+                    if file_hydro.attrs["source_type"] == "from_file":
+                        filenames.append(file)
+                else:
+                    filenames.append(file)
+            file_hydro.close()
+    return filenames
+
+
 def get_hdf5_name(model_name, name_prj, path_prj):
     """
     This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
@@ -640,7 +919,7 @@ def get_initial_files(path_hdf5, hdf5_name):
     return sub_ini, hydro_ini
 
 
-def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_name):
+def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_name):
     """
     This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
     velocity and the water height by cell (and not by node)
@@ -648,8 +927,8 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
     :param hdf5_name: the name of the merge file
     :param path_hdf5: the path to this file
     :param vh_cell: the habitat value by cell
-    :param h_cell: the height data by cell
-    :param v_cell: the velocity data by cell
+    :param area_all: total wet area by reach
+    :param spu_all: total SPU by reach
     :param fish_name: the name of the fish (with the stage in it)
     """
     file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
@@ -688,60 +967,86 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, h_cell, v_cell, fish_nam
         print('Error: length of the list of fish name is not coherent')
         file_hydro.close()
         return
-    ascii_str = [n.strip().encode("ascii", "ignore") for n in fish_name]  # unicode is not ok with hdf5
-    # not too pratical but rewriting hdf5 is really annoying
-    # to load use list(for.keys()) and use all the one starting with data_habitat
-    data_all = file_hydro.create_group('Data_habitat_' + time.strftime("%d_%m_%Y_at_%H_%M_%S"))
-    name_fishg = data_all.create_group('Fish_name')
-    name_fishg.create_dataset(name=hdf5_name, shape=(len(fish_name), ), data=ascii_str)  # , maxshape=None
 
-    # habitat value and cell data
-    m = 0
-    all_ok = True
-    # for all timestep
-    for t in range(1, nb_t):
-        there = data_all.create_group('Timestep_' + str(t - 1))
+    # create group habitat
+    if 'Habitat' in file_hydro:  # if exist take it
+        habitat_group = file_hydro['Habitat']
+    else:  # create it
+        habitat_group = file_hydro.create_group('Habitat')
+
+    # for all units (timestep or discharge)
+    for t in range(1, nb_t + 1):
+        if 'Unit_' + str(t - 1) in habitat_group:  # if exist take it
+            unit_group = habitat_group['Unit_' + str(t - 1)]
+        else:  # create it
+            unit_group = habitat_group.create_group('Unit_' + str(t - 1))
         # for all reach
         for r in range(0, nb_r):
-            rhere = there.create_group('Reach_' + str(r))
+            if 'Reach_' + str(r) in unit_group:  # if exist take it
+                reach_group = unit_group['Reach_' + str(r)]
+            else:
+                reach_group = unit_group.create_group('Reach_' + str(r))
+            # add reach attributes
+            reach_group.attrs['AREA'] = str(area_all[t][0])
             # for all fish
             for s in range(0, len(fish_name)):
-                try:
-                    habitatg = rhere.create_group('habitat_' + fish_name[s])
-                except ValueError:
-                    print('Warning: Two identical fish name are found \n')
-                    habitatg = rhere.create_group('habitat_' + fish_name[s]+str(m))
-                    m += 1
-                aa = 1
-                if len(vh_cell[s]) > 0:
-                    try:
-                        if len(vh_cell[s][t]) > 2:
-                            habitatg.create_dataset(hdf5_name, [len(vh_cell[s][t][r]), 1],
-                                                 data=vh_cell[s][t][r], maxshape=None)
-                    except IndexError or ValueError:
-                       print('Warning: One fish information could not be saved\n')
+                if fish_name[s] in reach_group:  # if exist erase it
+                    del reach_group[fish_name[s]]
+                    fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
+                                         data=vh_cell[s][t][r], maxshape=None)
+                    print(f'Warning: information of {fish_name[s]} has been replaced.\n')
+                else:
+                    fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
+                                         data=vh_cell[s][t][r], maxshape=None)
+                # add fish attributes
+                fish_dataset.attrs['WUA'] = str(spu_all[s][t][0])
+                fish_dataset.attrs['HV'] = str(spu_all[s][t][0] / area_all[t][0])
 
-            velg = rhere.create_group('velocity_by_cell_reach_' + str(r))
-            if len(v_cell[t][r]) > 0:
-                velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
-                                    maxshape=None)
-            velg = rhere.create_group('height_by_cell_reach_'+str(r))
-            if len(h_cell[t][r]) > 0:
-                velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
-                                    maxshape=None)
+            # velg = rhere.create_group('velocity_by_cell_reach_' + str(r))
+            # if len(v_cell[t][r]) > 0:
+            #     velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
+            #                         maxshape=None)
+            # velg = rhere.create_group('height_by_cell_reach_'+str(r))
+            # if len(h_cell[t][r]) > 0:
+            #     velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
+            #                         maxshape=None)
 
+    file_hydro.attrs['hdf5_type'] = "habitat"
     file_hydro.close()
     time.sleep(1)  # as we need to insure different group of name
 
 
-def get_habitat_value():
-    print("aa")
+def get_fish_names_habitat(hdf5_name, path_hdf5):
+    """
+    This function looks for the name of fish.
+
+    :param hdf5_name: the name of the merge or hydrological hdf5 file
+    :param path_hdf5: the path to the hdf5
+    :return: the name of the time step if they exist. Otherwise, an empty list
+    """
+    failload = []
+
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
+    if bfailload:
+        return failload
+
+    # search in habitat group
+    habitat_group = file_hydro["Habitat"]
+    first_unit_group = habitat_group["Unit_0"]
+    first_reach_group = first_unit_group["Reach_0"]
+
+    # get list of fish names
+    fish_names_list = list(first_reach_group.keys())
+
+    # close file
+    file_hydro.close()
+    return fish_names_list
 
 
 def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
               inter_vel_all_t, inter_h_all_t, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[], merge=False,
               sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name='', hydro_ini_name='',
-              save_option=None, version=0):
+              save_option=None, version=0.24, hdf5_type=None):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -848,6 +1153,7 @@ def save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle
     file.attrs['h5py_version'] = h5py.version.version
     file.attrs['sub_ini_name'] = sub_ini_name
     file.attrs['hydro_ini_name'] = hydro_ini_name
+    file.attrs['hdf5_type'] = hdf5_type
 
     # create all datasets and group
     data_all = file.create_group('Data_gen')
@@ -1057,6 +1363,9 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
         file.attrs['name_projet'] = name_prj
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
         file.attrs['h5py_version'] = h5py.version.version
+        file.attrs['hdf5_type'] = "substrate"
+        file.attrs['source_type'] = "constant_value"
+
 
         # add the constant value of substrate
         constsubpg = file.create_group('constant_sub_pg')
@@ -1103,6 +1412,8 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
         file.attrs['name_projet'] = name_prj
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
         file.attrs['h5py_version'] = h5py.version.version
+        file.attrs['hdf5_type'] = "substrate"
+        file.attrs['source_type'] = "from_file"
 
         # save ikle, coordonate and data
         ikleg = file.create_group('ikle_sub')
@@ -1260,13 +1571,13 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
             new_hdf5_name = name_out
         save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
                   inter_vel1, inter_height1, merge=merge, sub_pg_all_t=substrate_all_pg1,
-                  sub_dom_all_t=substrate_all_dom1, sim_name=sim_name,save_option=erase_id)
+                  sub_dom_all_t=substrate_all_dom1, sim_name=sim_name,save_option=erase_id, hdf5_type="merge")
     else:
         new_hdf5_name = 'ADDHYDRO' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
         if name_out:
             new_hdf5_name = name_out
         save_hdf5(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
-                  inter_vel1, inter_height1, merge=merge, sim_name=sim_name, save_option=erase_id)
+                  inter_vel1, inter_height1, merge=merge, sim_name=sim_name, save_option=erase_id, hdf5_type="hydraulic")
 
     # return name if necessary (often used if more than two hdf5 are added at the same time)
     if return_name:

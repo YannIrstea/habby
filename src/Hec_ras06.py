@@ -97,7 +97,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     # save the hdf5 file
     load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
                         point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
-                        sim_name=sim_name)
+                        sim_name=sim_name, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
