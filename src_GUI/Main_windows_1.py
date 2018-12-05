@@ -959,7 +959,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.path_prj = self.path_prj
 
         # send the new name to all widget and re-connect signal
-        t = self.central_widget.l2.toPlainText()
+        t = self.central_widget.tracking_journal_QTextEdit.toPlainText()
         m = self.central_widget.tab_widget.count()
 
         for i in range(m, 0, -1):
@@ -1550,8 +1550,8 @@ class MainWindows(QMainWindow):
         """
         Clear the log in the GUI.
         """
-        self.central_widget.l2.clear()
-        self.central_widget.l2.textCursor().insertHtml(self.tr('Log erased in this window.<br>'))
+        self.central_widget.tracking_journal_QTextEdit.clear()
+        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Log erased in this window.<br>'))
 
     def do_log(self, save_log):
         """
@@ -1563,13 +1563,13 @@ class MainWindows(QMainWindow):
         *   1: save the log in the .log file and restart file
         """
         if save_log == 0:
-            t = self.central_widget.l2.text()
-            self.central_widget.l2.textCursor().insertHtml(self.tr('This log will not be saved anymore in the .log file. <br>')
-                                           + self.tr('This log will not be saved anymore in the restart file. <br>'))
+            t = self.central_widget.tracking_journal_QTextEdit.text()
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('This log will not be saved anymore in the .log file. <br>')
+                                                                                   + self.tr('This log will not be saved anymore in the restart file. <br>'))
             self.central_widget.logon = False
         if save_log == 1:
-            t = self.central_widget.l2.text()
-            self.central_widget.l2.textCursor().insertHtml(self.tr('This log will be saved in the .log file.<br> '
+            t = self.central_widget.tracking_journal_QTextEdit.text()
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('This log will be saved in the .log file.<br> '
                                                        'This log will be saved in the restart file. <br>'))
             self.central_widget.logon = True
 
@@ -1634,8 +1634,8 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.drop_hyd.clear()
         self.central_widget.substrate_tab.drop_sub.clear()
         # log
-        t = self.central_widget.l2.text()
-        self.central_widget.l2.textCursor().insertHtml(self.tr('Images deleted. <br>'))
+        t = self.central_widget.tracking_journal_QTextEdit.text()
+        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Images deleted. <br>'))
 
     def open_help(self):
         """
@@ -1788,10 +1788,10 @@ class CentralW(QWidget):
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
-        self.l2 = QTextEdit(self)  # where the log is show
-        self.l2.setReadOnly(True)
-        self.l2.textChanged.connect(self.scrolldown)
-        self.l2.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
+        self.tracking_journal_QTextEdit = QTextEdit(self)  # where the log is show
+        self.tracking_journal_QTextEdit.setReadOnly(True)
+        self.tracking_journal_QTextEdit.textChanged.connect(self.scrolldown)
+        self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
         self.max_lengthshow = 180
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
@@ -1841,7 +1841,7 @@ class CentralW(QWidget):
 
         # Area to show the log
         self.l1 = QLabel(self.tr('HABBY says:'))
-        self.l2.setFixedHeight(100)
+        self.tracking_journal_QTextEdit.setFixedHeight(100)
 
         self.welcome_tab.save_info_signal.connect(self.save_info_projet)
         # save the description and the figure option if tab changed
@@ -1851,7 +1851,7 @@ class CentralW(QWidget):
         self.layoutc = QGridLayout()
         self.layoutc.addWidget(self.tab_widget, 1, 0)
         self.layoutc.addWidget(self.l1, 2, 0)
-        self.layoutc.addWidget(self.l2, 3, 0)
+        self.layoutc.addWidget(self.tracking_journal_QTextEdit, 3, 0)
         self.setLayout(self.layoutc)
 
     def scrolldown(self):
@@ -1859,7 +1859,7 @@ class CentralW(QWidget):
         Move the scroll bar to the bottom if the ScollArea is getting bigger
         """
         #self.vbar.setValue(self.vbar.maximum())
-        self.l2.moveCursor(QTextCursor.End)
+        self.tracking_journal_QTextEdit.moveCursor(QTextCursor.End)
 
     def add_all_tab(self):
         """
@@ -2049,7 +2049,7 @@ class CentralW(QWidget):
             if child_logfile is not None:
                 pathname_logfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
-                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
+                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
                                     "log file is not indicated in the xml file. No log written. </br> <br>")
                 return
             # restart log
@@ -2057,19 +2057,19 @@ class CentralW(QWidget):
             if child_logfile is not None:
                 pathname_restartfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
-                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
+                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
                                     "restart file is not indicated in the xml file. No log written. </br> <br>")
                 return
         else:
             # if only one tab, project not open, so it is normal that no log can be written.
             if self.tab_widget.count() > 1:
-                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The project file is not "
+                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The project file is not "
                                     "found. no Log written. </br> <br>")
             return
 
         # add comments to Qlabel and .log file
         if text_log[0] == '#':
-            self.l2.textCursor().insertHtml(text_log[1:] + '</br><br>') # "<FONT COLOR='#000000'>" +
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(text_log[1:] + '</br><br>') # "<FONT COLOR='#000000'>" +
             self.write_log_file(text_log, pathname_logfile)
         # add python code to the .log file
         elif text_log[:2] == 'py':
@@ -2078,11 +2078,11 @@ class CentralW(QWidget):
         elif text_log[:7] == 'restart':
             self.write_log_file(text_log[7:], pathname_restartfile)
         elif text_log[:5] == 'Error' or text_log[:6] == 'Erreur':
-            self.l2.textCursor().insertHtml("<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
+            self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
             self.write_log_file('# ' +text_log, pathname_logfile)
         # add warning
         elif text_log[:7] == 'Warning':
-            self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
+            self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
             self.write_log_file('# ' + text_log, pathname_logfile)
         # update to check that processus is alive
         elif text_log[:7] == 'Process':
@@ -2091,7 +2091,7 @@ class CentralW(QWidget):
             self.parent().statusBar().clearMessage()
         # other case not accounted for
         else:
-            self.l2.textCursor().insertHtml(text_log + '</br><br>') # "<FONT COLOR='#000000'>" +
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(text_log + '</br><br>') # "<FONT COLOR='#000000'>" +
 
     def write_log_file(self, text_log, pathname_logfile):
         """
@@ -2107,7 +2107,7 @@ class CentralW(QWidget):
             elif self.name_prj_c == '':
                 return
             else:
-                self.l2.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
+                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
                 shutil.copy(os.path.join('src_GUI', 'log0.txt'),
                             os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
                 shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
