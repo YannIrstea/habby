@@ -80,6 +80,7 @@ class GroupPlot(QGroupBox):
         super().__init__()
         self.nb_plot = 0
         self.init_ui()
+        self.plot_process_list = MyProcessList(self.progress_bar)
 
     def init_ui(self):
         # title
@@ -323,13 +324,13 @@ class GroupPlot(QGroupBox):
                 timestep.append(load_hdf5.load_timestep_name(selection[i].text(),
                                                              self.parent().parent().parent().path_prj + "/hdf5_files/"))
             if not all(x == timestep[0] for x in timestep):  # timestep are diferrents
-                self.msg2 = QMessageBox(self)
-                self.msg2.setIcon(QMessageBox.Warning)
-                self.msg2.setWindowTitle(self.tr("Warning"))
-                self.msg2.setText(
+                msg2 = QMessageBox(self)
+                msg2.setIcon(QMessageBox.Warning)
+                msg2.setWindowTitle(self.tr("Warning"))
+                msg2.setText(
                     self.tr("The selected files don't have same units !"))
-                self.msg2.setStandardButtons(QMessageBox.Ok)
-                self.msg2.show()
+                msg2.setStandardButtons(QMessageBox.Ok)
+                msg2.show()
                 # clean
                 self.names_hdf5_QListWidget.clearSelection()
                 self.units_QListWidget.clear()
@@ -429,7 +430,16 @@ class GroupPlot(QGroupBox):
             path_im = self.parent().parent().parent().path_prj + "/figures/"
 
             # check plot process done
-            self.plot_process_list = MyProcessList(self.nb_plot, self.progress_bar)
+            if self.plot_process_list.check_all_plot_closed():
+                print("new_plots")
+                self.plot_process_list.new_plots(self.nb_plot)
+            else:
+                print("add_plots")
+                self.plot_process_list.add_plots(self.nb_plot)
+
+            self.progress_bar.setValue(0)
+            self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
+            QCoreApplication.processEvents()
 
             # for all hdf5 file
             for name_hdf5 in names_hdf5:
@@ -581,6 +591,11 @@ class GroupPlot(QGroupBox):
                         str(round(vmean, 3)) + 'm/sec')
                     self.parent().parent().parent().send_log.emit("# ------------------------------------------------")
 
+            if self.plot_process_list.add_plots_state:
+                self.plot_process_list[:] = self.plot_process_list[:] + self.plot_process_list.save_process[:]
+
+
+
 
 class MyProcessList(list):
     """
@@ -590,10 +605,23 @@ class MyProcessList(list):
     :param progress_bar: Qprogressbar of GroupPlot to be refreshed
     """
 
-    def __init__(self, nb_plot_total, progress_bar):
+    def __init__(self, progress_bar):
         super().__init__()
-        self.nb_plot_total = nb_plot_total
+
         self.progress_bar = progress_bar
+        self.nb_plot_total = 0
+
+    def new_plots(self, nb_plot_total):
+        self.add_plots_state = False
+        self.nb_plot_total = nb_plot_total
+        self.save_process = []
+        self[:] = []
+
+    def add_plots(self, nb_plot_total):
+        self.add_plots_state = True
+        self.nb_plot_total = nb_plot_total
+        self.save_process = self[:]
+        self[:] = []
 
     def append(self, *args):
         """
@@ -611,6 +639,7 @@ class MyProcessList(list):
         """
         nb_finished = 0
         state_list = []
+        print("avant : ", len(self))
         for i in range(len(self)):
             state = self[i][1].value
             state_list.append(state)
@@ -631,6 +660,16 @@ class MyProcessList(list):
         self.progress_bar.setValue(nb_finished)
         self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
         QCoreApplication.processEvents()
+
+
+    def check_all_plot_closed(self):
+        """
+        Check if a process is alive (plot window open)
+        """
+        if any([self[i][0].is_alive() for i in range(len(self))]): # plot window open or plot not finished
+            return False
+        else:
+            return True
 
     def close_all_plot_process(self):
         """
