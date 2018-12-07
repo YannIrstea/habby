@@ -23,6 +23,8 @@ import matplotlib.pyplot as plt
 import time
 import triangle
 from random import randrange
+from shapely.geometry.polygon import Polygon
+from shapely.geometry import Point
 from src import load_hdf5
 
 
@@ -145,6 +147,100 @@ def get_useful_attribute(attributes):
         attribute_type = -99
 
     return attribute_type, attribute_name
+
+
+def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(path_prj, filename, path):
+    # Read shapefile
+    file = os.path.join(path, filename)
+    sf = shapefile.Reader(file)
+    shapes = sf.shapes()
+    records = sf.records()
+    fields = sf.fields[1:]
+    prj = open(file[:-4] + ".prj", "r").read()
+    # shapes[i].points[:] [(x0, y0), (x1, y1), (x2, y2), (x3, y3),(x0, y0) ] clockwise description
+
+    # Extract list of points and segments from shp
+    vertices_array = []  # point
+    segments_array = []  # segment index or connectivity table
+    polyg_index = []
+    for i in range(len(shapes)):  # for each polygon
+        polyg_index.append((i, i))
+        new_points = list((shapes[i].points[:-1]))  # taking off the first redundant description point
+        vertices_array.extend(new_points)
+        if i == 0:
+            a, b = 0, len(new_points) - 1
+        else:
+            a = b + 1
+            b += len(new_points)
+        for j in range(a, b):  # pour chaque point du polygone
+            segments_array.append([j, j + 1])
+        segments_array.append([b, a])  # triangle requires this segment to close the polygon
+    vertices_array = np.array(vertices_array)
+
+    # Taking off the doublons (AIM: for using triangle to transform polygons into triangles it is necessary to avoid any point doublon)
+    n0 = np.array([[i] for i in range(b + 1)])
+    t = np.hstack([vertices_array, n0])
+    t = t[t[:, 1].argsort()]  # sort in y secondary key
+    t = t[t[:, 0].argsort()]  # sort in x primary key
+    vertices_array2 = []
+    corresp = []
+    j = -1
+    for i in range(b + 1):
+        if i == 0 or not (x0 == t[i][0] and y0 == t[i][1]):
+            x0, y0 = t[i][0], t[i][1]
+            vertices_array2.append([x0, y0])
+            j += 1
+        corresp.append([int(t[i][2]), j])
+    corresp = np.array(corresp)
+    corresp = corresp[corresp[:, 0].argsort()]  # sort in n0 primary key
+    segments_array2 = []
+    for elem in segments_array:
+        segments_array2.append([corresp[elem[0]][1], corresp[elem[1]][1]])
+    segments_array2 = np.array(segments_array2)
+    vertices_array2 = np.array(vertices_array2)
+
+    # triangulate on polygon (if we use regions
+    polygon_from_shp = dict(vertices=vertices_array2, segments=segments_array2)  # , regions=polyg_index2
+    polygon_triangle = triangle.triangulate(polygon_from_shp, "p")  # , opts="p")
+    # triangle.plot.compare(plt, polygon_from_shp, polygon_triangle)
+    # plt.show()
+
+    # get geometry and attributes of triangles
+    verticeList = polygon_triangle["vertices"]
+    trianglesListIndex = polygon_triangle["triangles"]
+    shapeType_OUT = sf.shapeType
+    polyg_OUT = []
+    trianglesListRecords2 = []
+    for i in range(len(trianglesListIndex)):
+        # triangle coords
+        p1 = verticeList[trianglesListIndex[i][0]].tolist()
+        p2 = verticeList[trianglesListIndex[i][1]].tolist()
+        p3 = verticeList[trianglesListIndex[i][2]].tolist()
+        polyg_OUT.append([p1, p2, p3])
+        # triangle centroid
+        xmean = (p1[0] + p2[0] + p3[0]) / 3
+        ymean = (p1[1] + p2[1] + p3[1]) / 3
+        polyg_center = (xmean, ymean)
+        # if center in polygon: get attributes
+        for j in range(len(shapes)):  # for each polygon
+            if Polygon(shapes[j].points[:-1]).contains(Point(polyg_center)):
+                # polygon attributes
+                trianglesListRecords2.append(records[j])
+
+    # export new shapefile triangle
+    filenameOUT = filename[:-4] + "_trianglulated"  # "Substrat_simple_pr_triangle.shp" # #  #
+    fileOUT = os.path.join(path_prj, filenameOUT)
+    w = shapefile.Writer(shapeType_OUT)
+    for field in fields:
+        w.field(*field)
+    for i in range(len(polyg_OUT)):
+        w.poly(parts=[polyg_OUT[i]])
+        w.record(*trianglesListRecords2[i])
+
+    w.save(fileOUT)
+    open(fileOUT + ".prj", "w").write(prj)
+
+    return True
 
 
 def load_sub_shp(filename, path, code_type, dominant_case=0):
