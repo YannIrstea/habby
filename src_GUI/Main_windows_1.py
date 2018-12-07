@@ -1935,8 +1935,9 @@ class CentralW(QWidget):
         """
         A small function to close the images open in HABBY and managed by matplotlib
         """
-        if hasattr(self.plot_tab.GroupPlot, 'plot_process_list'):
-            self.plot_tab.GroupPlot.plot_process_list.close_all_plot_process()
+        if hasattr(self, 'plot_tab'):
+            if hasattr(self.plot_tab.GroupPlot, 'plot_process_list'):
+                self.plot_tab.GroupPlot.plot_process_list.close_all_plot_process()
 
     def optfig(self):
         """
