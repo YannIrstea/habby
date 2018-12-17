@@ -34,6 +34,8 @@ def main():
     For more complicated case, one can directly do a python script using
     the function from HABBY.
     """
+    # set version
+    VERSION = 0.25
 
     # graphical user interface is called if no argument
     if len(sys.argv) == 1:
@@ -48,7 +50,7 @@ def main():
         app.processEvents()
 
         # create windows
-        ex = Main_windows_1.MainWindows()
+        ex = Main_windows_1.MainWindows(VERSION)
         app.setActiveWindow(ex)
 
         # close the splash screen
@@ -64,12 +66,10 @@ def main():
         """
 
         # get path and project name
-
         namedir = 'result_cmd3'
         path_bio = './biology'
-        version = 0.24
         # find the best path_prj
-        settings = QSettings('irstea', 'HABBY' + str(version))
+        settings = QSettings('irstea', 'HABBY' + str(VERSION))
         name_prj = settings.value('name_prj')
         path_prj = settings.value('path_prj')
         proj_def = False

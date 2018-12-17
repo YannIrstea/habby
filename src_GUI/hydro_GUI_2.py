@@ -942,7 +942,7 @@ class SubHydroW(QWidget):
         name_hdf5 = os.path.basename(load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj))
 
         # getting the subtrate data
-        units_raw = load_hdf5.load_timestep_name(name_hdf5, self.path_prj + "/hdf5_files/")
+        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hdf5_files/")
 
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
@@ -969,7 +969,7 @@ class SubHydroW(QWidget):
         name_hdf5 = self.lm2.text()
 
         # getting the subtrate data
-        units_raw = load_hdf5.load_timestep_name(name_hdf5, self.path_prj + "/hdf5_files/")
+        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hdf5_files/")
 
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
@@ -2445,6 +2445,8 @@ class TELEMAC(SubHydroW):
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
+            if self.h2d_t2.text()[-4:] in self.extension[0]:
+                self.get_time_step()
 
         # load button
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
@@ -2494,15 +2496,15 @@ class TELEMAC(SubHydroW):
         The function which call the function which load telemac and
          save the name of files in the project file
         """
-        # for error management and figures
-        self.timer.start(1000)
-
         # get timestep selected
         selection = self.units_QListWidget.selectedItems()
         if not selection:
             self.send_log.emit("Error: No units selected. \n")
             return
         else:
+            # for error management and figures
+            self.timer.start(1000)
+
             units = []
             units_index = []
             for i in range(len(selection)):
@@ -3258,7 +3260,7 @@ class HabbyHdf5(SubHydroW):
             self.send_log.emit('Warning: No file selected.\n')
             return
         # load the data to check integrity
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(fname_h5)
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(fname_h5)
 
         # copy the file and update the attribute
         path_input = self.find_path_input()
@@ -3314,7 +3316,7 @@ class HabbyHdf5(SubHydroW):
             return
         # load the data to check integrity
         [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
-            = load_hdf5.load_hdf5_hyd(fname_h5, merge=True)
+            = load_hdf5.load_hdf5_hyd_and_merge(fname_h5, merge=True)
 
         # copy the file and update the attribute
         path_hdf5 = self.find_path_hdf5()
@@ -3741,7 +3743,7 @@ class SubstrateW(SubHydroW):
                 self.name_hdf5 = self.hname2.text() + '_' + str(data_sub)
             path_hdf5 = self.find_path_hdf5()
             sys.stdout = self.mystdout = StringIO()
-            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, [], [],
+            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, [], [], [], [],
                                     self.name_hdf5, True, self.model_type)
             sys.stdout = sys.__stdout__
             self.send_err_log()
@@ -3751,7 +3753,7 @@ class SubstrateW(SubHydroW):
             self.send_log.emit(self.tr('# Substrate data type: constant value'))
             self.send_log.emit("py    val_c=" + str(data_sub))
             self.send_log.emit(
-                "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], 're_run_const_sub'"
+                "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], [], [], 're_run_const_sub'"
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
@@ -3777,64 +3779,68 @@ class SubstrateW(SubHydroW):
                 name3 = namebase + '.prj'  # it is ok if it does not exists
                 pathname1 = os.path.join(self.pathfile[0], name1)
                 pathname2 = os.path.join(self.pathfile[0], name2)
+                pathname3 = os.path.join(self.pathfile[0], name3)
                 if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
-                    self.send_log.emit('Error: A shapefile is composed of three files: a .shp file, a .shx file, and'
+                    self.send_log.emit('Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
                                        ' a .dbf file.')
                     self.load_b.setDisabled(False)
                     return
 
-                # load substrate
-                sys.stdout = self.mystdout = StringIO()
-                [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0],
-                                                                                  self.pathfile[0], code_type)
-                # we have a case where two dominant substrate are "equally" dominant
-                # so we ask the user to solve this for us
-                dom_solve = 0
-                if not ok_dom:
-                    # in this case ask the user
-                    self.msg2 = QMessageBox()
-                    self.msg2.setWindowTitle(self.tr('Dominant substrate'))
-                    self.msg2.setText(self.tr('Our analysis found that the dominant substrate of certain substrate'
-                                              ' cells cannot be determined. Indeed, the maximum percentage of two or '
-                                              'more classes are equal. In these cases, should we take the larger or the'
-                                              ' smaller substrate class?'))
-                    b1 = self.msg2.addButton(self.tr('Larger'), QMessageBox.NoRole)
-                    b2 = self.msg2.addButton(self.tr('Smaller'), QMessageBox.YesRole)
-                    self.msg2.exec()
-                    if self.msg2.clickedButton() == b1:
-                       dom_solve = 1
-                    elif self.msg2.clickedButton() == b2:
-                        dom_solve = -1
-                    [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
-                        self.namefile[0],self.pathfile[0], code_type, dom_solve)
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
+                # before loading substrate shapefile data : create triangulare mesh subsrtate from shapefile polygon substrate
+                if substrate.convert_sub_shapefile_polygon_to_sub_shapefile_triangle(self.path_prj + r"/input", self.namefile[0],
+                                                                                  self.pathfile[0]):
+                    # load substrate
+                    sys.stdout = self.mystdout = StringIO()
+                    [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0][:-4] + "_trianglulated.shp",
+                                                                                                    self.path_prj + r"/input", code_type)
+                    # we have a case where two dominant substrate are "equally" dominant
+                    # so we ask the user to solve this for us
+                    dom_solve = 0
+                    if not ok_dom:
+                        # in this case ask the user
+                        self.msg2 = QMessageBox()
+                        self.msg2.setWindowTitle(self.tr('Dominant substrate'))
+                        self.msg2.setText(self.tr('Our analysis found that the dominant substrate of certain substrate'
+                                                  ' cells cannot be determined. Indeed, the maximum percentage of two or '
+                                                  'more classes are equal. In these cases, should we take the larger or the'
+                                                  ' smaller substrate class?'))
+                        b1 = self.msg2.addButton(self.tr('Larger'), QMessageBox.NoRole)
+                        b2 = self.msg2.addButton(self.tr('Smaller'), QMessageBox.YesRole)
+                        self.msg2.exec()
+                        if self.msg2.clickedButton() == b1:
+                           dom_solve = 1
+                        elif self.msg2.clickedButton() == b2:
+                            dom_solve = -1
+                        [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
+                            self.namefile[0],self.pathfile[0], code_type, dom_solve)
+                    sys.stdout = sys.__stdout__
+                    self.send_err_log()
 
-                if self.ikle_sub == [-99]:
-                    self.send_log.emit('Error: Substrate data not loaded')
-                    self.load_b.setDisabled(False)
-                    return
+                    if self.ikle_sub == [-99]:
+                        self.send_log.emit('Error: Substrate data not loaded')
+                        self.load_b.setDisabled(False)
+                        return
 
-                # copy shape file (compsed of .shp, .shx and .dbf)
-                path_input = self.find_path_input()
-                name_all = [self.namefile[0], name1, name2]
-                path_all = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
-                self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
-                self.p2.start()
-                # we might have an addition projection file to copy (short)
-                if os.path.isfile(name3):
-                    load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
+                    # copy shape file (compsed of .shp, .shx and .dbf)
+                    path_input = self.find_path_input()
+                    name_all = [self.namefile[0], name1, name2]
+                    path_all = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
+                    self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
+                    self.p2.start()
+                    # we might have an addition projection file to copy (short)
+                    if os.path.isfile(pathname3):
+                        load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
 
-                # log info
-                self.send_log.emit(self.tr('# Substrate data type: Shapefile'))
-                self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-                self.send_log.emit("py    path1=r'" + path_input + "'")
-                self.send_log.emit("py    type='" + code_type + "'")
-                self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
-                                   "(file1, path1, type)\n")
-                self.send_log.emit("restart LOAD_SUB_SHP")
-                self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-                self.send_log.emit("restart    code_type: " + code_type)
+                    # log info
+                    self.send_log.emit(self.tr('# Substrate data type: Shapefile'))
+                    self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+                    self.send_log.emit("py    path1=r'" + path_input + "'")
+                    self.send_log.emit("py    type='" + code_type + "'")
+                    self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
+                                       "(file1, path1, type)\n")
+                    self.send_log.emit("restart LOAD_SUB_SHP")
+                    self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+                    self.send_log.emit("restart    code_type: " + code_type)
 
             # if the substrate data is a text form
             elif ext == '.txt' or ext == ".asc":
@@ -3879,7 +3885,7 @@ class SubstrateW(SubHydroW):
             # save shp and txt in the substrate hdf5
             path_hdf5 = self.find_path_hdf5()
             self.last_hdf5 = load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom, self.ikle_sub,
-                                    self.coord_p, self.name_hdf5, False, self.model_type, True)
+                                    self.coord_p, [], [], self.name_hdf5, False, self.model_type, True)
 
             # show image
             #self.recreate_image_sub(True)

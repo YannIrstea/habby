@@ -38,7 +38,7 @@ else:
     pass
     # includefiles += [...]
 
-	
+
 # Linux libraries
 binpathincludes = []
 if sys.platform == "linux2":
@@ -61,7 +61,7 @@ options = {"path": path,
            "silent": silent
            }
 
-		   # Windows dll
+# Windows dll
 if sys.platform == "win32":
     options["include_msvcr"] = True
 
@@ -90,7 +90,7 @@ target = Executable(
 #
 setup(
     name="Habby",
-    version="0.24",
+    version="0.25",
     description="HABitat suitaBilitY",
     author="Fabrice Zaoui",
     options={"build_exe": options},

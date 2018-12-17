@@ -80,14 +80,14 @@ class MainWindows(QMainWindow):
     We show the created widget.
     """
 
-    def __init__(self):
+    def __init__(self, version):
 
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
 
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = 0.24
+        self.version = version
 
         # operating system
         if operatingsystem() == 'Linux':

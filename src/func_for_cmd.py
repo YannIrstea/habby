@@ -801,7 +801,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         [xy, ikle, sub_dom, sub_pg, blob] = substrate.load_sub_shp(filename, path, code_type, dominant_case)
         if ikle == [-99]:
             return
-        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy, '', False, 'SUBSTRATE')
+        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy, [], [], '', False, 'SUBSTRATE')
 
         # --------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_TXT':
@@ -820,7 +820,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         [xy, ikle, sub_dom2, sub_pg2, x, y, blob, blob] = substrate.load_sub_txt(filename, path, code_type)
         if ikle == [-99]:
             return
-        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, '', False, 'SUBSTRATE')
+        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, [], [], '', False, 'SUBSTRATE')
 
     # ----------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_CONST':
@@ -847,7 +847,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                     name_hdf5 = 'Sub_CONST_' + str(i+1)
                     path_hdf5 = path_prj
 
-                load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, i+1, sub_val, [], [], name_hdf5, True,
+                load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, i+1, sub_val, [], [], [], [], name_hdf5, True,
                                         'SUBSTRATE')
         else:
             if len(all_arg) == 4:
@@ -858,7 +858,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                 name_hdf5 = 'Sub_CONST_' + str(sub_val)
                 path_hdf5 = path_prj
 
-            load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], name_hdf5, True, 'SUBSTRATE')
+            load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], [], [], name_hdf5, True, 'SUBSTRATE')
 
     # ----------------------------------------------------------------
     elif all_arg[1] == 'MERGE_GRID_SUB':
@@ -941,9 +941,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('Error: data not merged.')
             return
 
-        load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
-                             point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
-                            sub_dom_all_both, save_option=erase_id, hdf5_type="substrate")
+        load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
+                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
+                                          sub_dom_all_both, save_option=erase_id, hdf5_type="substrate")
 
         # create shpafile to control intput
         load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
@@ -984,7 +984,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # path_im2 = r'C:\Users\diane.von-gunten\HABBY\output_cmd\result_cmd2'
         # substrate.fig_substrate(xy, ikle, sub_pg, sub_dom, path_im2)
 
-        hdf5_name_sub = load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy,
+        hdf5_name_sub = load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy, [], [],
                                                 '', False, 'SUBSTRATE', True)
 
         # delete the random shapefile (so we can create a new one without problem)
@@ -1015,9 +1015,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             mesh_grid2.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_prj, h5name)
 
         # save it
-        load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
-                            point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
-                            sub_dom_all_both, hdf5_type="substrate")
+        load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
+                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
+                                          sub_dom_all_both, hdf5_type="substrate")
 
         # create shapefile to test input
         load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
@@ -1034,7 +1034,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         else:
             name_hyd = os.path.basename(all_arg[2])
             hdf5_name_hyd = os.path.join(path_input, name_hyd)
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd, path_prj)
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_prj)
 
     # ---------------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_HDF5':

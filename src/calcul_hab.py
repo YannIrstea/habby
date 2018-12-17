@@ -119,7 +119,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen,  name_fi
 
     # get the time step name
     # get time step name if they exists
-    sim_name = load_hdf5.load_timestep_name(hdf5_file, path_hdf5)
+    sim_name = load_hdf5.load_unit_name(hdf5_file, path_hdf5)
 
     # text output
     if create_text:
@@ -221,7 +221,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     # load merge
     # test if file exists in load_hdf5_hyd
     [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] = \
-        load_hdf5.load_hdf5_hyd(merge_name, path_merge, True)
+        load_hdf5.load_hdf5_hyd_and_merge(merge_name, path_merge, True)
     if ikle_all_t == [[-99]]:
         return failload
 
@@ -507,7 +507,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, area_c_all, vel_data, heig
     """
 
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
+        load_hdf5.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, True)
     if ikle == [-99]:
         return
 
@@ -723,7 +723,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     :param erase_id: If True, we erase old text file from identical hydraulic model
     """
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
+        load_hdf5.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, True)
     if ikle == [[-99]]:
         return
 
@@ -1138,7 +1138,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     b= 0
     # get grid data from hdf5
     [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd(name_merge_hdf5, path_hdf5, True)
+        load_hdf5.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, True)
     if ikle_all_t == [-99]:
         return
     # format name fish
@@ -1332,7 +1332,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
         sim_name = []
 
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd(hdf5_file, path_hdf5, True)
+        load_hdf5.load_hdf5_hyd_and_merge(hdf5_file, path_hdf5, True)
     if ikle == [[-99]]:
         return
 

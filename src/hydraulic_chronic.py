@@ -83,7 +83,7 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
     for i in range(0, len(merge_files)):
         [ikle_all, point_all, inter_vel_all, inter_height_all,
          substrate_all_pg, substrate_all_dom] = \
-            load_hdf5.load_hdf5_hyd(merge_files[i], path_merges[i], True)
+            load_hdf5.load_hdf5_hyd_and_merge(merge_files[i], path_merges[i], True)
         # special cases and checks
         if len(ikle_all) == 1 and ikle_all[0] == [-99]:
             print('Error: hydrological data could not be loaded.')
@@ -102,7 +102,7 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
         substrate_dom_all_m.extend(substrate_all_dom[1:])
 
         # simulation name
-        sim_name = load_hdf5.load_timestep_name(merge_files[i], path_merges[i])
+        sim_name = load_hdf5.load_unit_name(merge_files[i], path_merges[i])
         sim_name_all.extend(sim_name)
 
         # one full, uncut, dry profile (if more than one, take the first one)
@@ -337,12 +337,12 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
     # save in a new merge file
     discharge_output_str = list(map(str, discharge_output))
     name_hdf5 = 'Chronic_' + merge_files[0][:-3]
-    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 2,
-                        path_merges[0], ikle_all_new, point_all_new, [],
-                        inter_vel_all_new, inter_height_all_new,  merge=True,
-                        sub_pg_all_t=substrate_pg_all_new,
-                        sub_dom_all_t=substrate_dom_all_new,
-                        sim_name=discharge_output_str, hdf5_type="chronic")
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 2,
+                                      path_merges[0], ikle_all_new, point_all_new, [],
+                                      inter_vel_all_new, inter_height_all_new, merge=True,
+                                      sub_pg_all_t=substrate_pg_all_new,
+                                      sub_dom_all_t=substrate_dom_all_new,
+                                      sim_name=discharge_output_str, hdf5_type="chronic")
 
 
 def main():

@@ -64,12 +64,12 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
             return
 
     # get time step name if they exists
-    sim_name = load_hdf5.load_timestep_name(hdf5_name_hyd, path_hdf5)
+    sim_name = load_hdf5.load_unit_name(hdf5_name_hyd, path_hdf5)
 
-    load_hdf5.save_hdf5(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
-                        point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
-                        sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
-                        hydro_ini_name=hdf5_name_hyd, hdf5_type="merge")
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
+                                      point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
+                                      sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
+                                      hydro_ini_name=hdf5_name_hyd, hdf5_type="merge")
 
     # save in a shapefile form
     if path_shp:
@@ -117,7 +117,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
 
     m = time.time()
     # load hdf5 hydro
-    [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(hdf5_name_hyd, path_hdf5)
+    [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5)
 
     # load hdf5 sub
     [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)

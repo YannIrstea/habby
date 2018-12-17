@@ -101,9 +101,9 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
     # save the hdf5 file
     for idx, t in enumerate(timestep):
         timestep[idx] = str(t)
-    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
-                        point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
-                        sim_name=timestep, hdf5_type="hydraulic")
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
+                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
+                                      sim_name=timestep, hdf5_type="hydraulic")
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:

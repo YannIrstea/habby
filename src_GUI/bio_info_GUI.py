@@ -710,7 +710,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             #sys.stdout = self.mystdout = StringIO()
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-            sim_name = load_hdf5.load_timestep_name(self.hdf5_file, self.path_hdf5)
+            sim_name = load_hdf5.load_unit_name(self.hdf5_file, self.path_hdf5)
             if fig_dict['erase_id'] == 'True':
                 erase_id = True
             else:

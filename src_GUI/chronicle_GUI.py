@@ -312,7 +312,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         path_hdf5 = self.find_path_hdf5_est()
         nb_t_all = []
         for n in namefile:
-            nb_t = load_hdf5.get_timestep_number(n, path_hdf5)
+            nb_t = load_hdf5.get_unit_number(n, path_hdf5)
             if nb_t != -99:
                 nb_t_all.append(nb_t)
             else:
@@ -533,7 +533,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 self.send_log.emit('Warning: A merge file was not found in\
                 the hdf5 folder. \n')
             else:
-                timestep = load_hdf5.load_timestep_name(namefile, path_hdf5)
+                timestep = load_hdf5.load_unit_name(namefile, path_hdf5)
                 for t in timestep:
                     discharge += t + ','
         discharge = discharge[:-1]

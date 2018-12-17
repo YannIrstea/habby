@@ -134,9 +134,9 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         sub_per_all_t.append(inter_per_all)
 
     # save the data in an hdf5 (merge) file with hydro and subtrate data
-    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, 2, path_hdf5, ikle_all_t,
-                        point_all_t, [], inter_vel_all_t, inter_h_all_t, [], [], [], [], True,
-                        sub_pg_all_t, sub_dom_all_t, sub_per_all_t, sim_name=q_step, hdf5_type="merge")
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 2, path_hdf5, ikle_all_t,
+                                      point_all_t, [], inter_vel_all_t, inter_h_all_t, [], [], [], [], True,
+                                      sub_pg_all_t, sub_dom_all_t, sub_per_all_t, sim_name=q_step, hdf5_type="merge")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

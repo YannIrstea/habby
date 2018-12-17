@@ -864,7 +864,7 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     """
 
     # load hydro hdf5
-    [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd(h5name, path)
+    [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(h5name, path)
 
     # get min max of coord
     minx = 1e40

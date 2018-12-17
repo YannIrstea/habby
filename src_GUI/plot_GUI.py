@@ -297,7 +297,7 @@ class GroupPlot(QGroupBox):
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
                 self.units_QListWidget.addItems(["one unit"])
@@ -305,7 +305,7 @@ class GroupPlot(QGroupBox):
             # merge
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
             # chronic
             if self.types_hdf5_QComboBox.currentIndex() == 4:
                 pass
@@ -314,15 +314,15 @@ class GroupPlot(QGroupBox):
                 self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name,
                                                                                     self.parent().parent().parent().path_prj + "/hdf5_files/"))
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_timestep_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
         if len(selection) > 1:  # more than one file selected
             nb_file = len(selection)
             hdf5name = []
             timestep = []
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
-                timestep.append(load_hdf5.load_timestep_name(selection[i].text(),
-                                                             self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                timestep.append(load_hdf5.load_unit_name(selection[i].text(),
+                                                         self.parent().parent().parent().path_prj + "/hdf5_files/"))
             if not all(x == timestep[0] for x in timestep):  # timestep are diferrents
                 msg2 = QMessageBox(self)
                 msg2.setIcon(QMessageBox.Warning)
@@ -339,8 +339,8 @@ class GroupPlot(QGroupBox):
                 if self.types_hdf5_QComboBox.currentIndex() == 2:  # substrat
                     self.units_QListWidget.addItems(["one unit"])
                 if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic or merge
-                    self.units_QListWidget.addItems(load_hdf5.load_timestep_name(hdf5name[i],
-                                                                                 self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    self.units_QListWidget.addItems(load_hdf5.load_unit_name(hdf5name[i],
+                                                                             self.parent().parent().parent().path_prj + "/hdf5_files/"))
                 self.units_QListWidget.setFixedWidth(
                     self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
 
@@ -401,12 +401,12 @@ class GroupPlot(QGroupBox):
         :param units_index: list of integer representing the position of units in hdf5 file
         :param types_plot: string representing plot types production ("display", "export", "both")
         """
-        # print("types_hdf5 : ", types_hdf5)
-        # print("names_hdf5 : ", names_hdf5)
-        # print("variables : ", variables)
-        # print("units : ", units)
-        # print("units_index : ", units_index)
-        # print("types_plot : ", types_plot)
+        print("types_hdf5 : ", types_hdf5)
+        print("names_hdf5 : ", names_hdf5)
+        print("variables : ", variables)
+        print("units : ", units)
+        print("units_index : ", units_index)
+        print("types_plot : ", types_plot)
         if not types_hdf5:
             self.parent().parent().parent().send_log.emit('Error: No hdf5 type selected. \n')
         if not names_hdf5:
@@ -445,8 +445,8 @@ class GroupPlot(QGroupBox):
             for name_hdf5 in names_hdf5:
                 # load hydraulic data
                 if types_hdf5 == "hydraulic":
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd(name_hdf5,
-                                                                                                        path_hdf5)
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5,
+                                                                                                                  path_hdf5)
                 # load substrate data
                 if types_hdf5 == "substrate":
                     [ikle_sub, point_all_sub, sub_pg, sub_dom] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5,
@@ -454,11 +454,11 @@ class GroupPlot(QGroupBox):
                 # load merge data
                 if types_hdf5 == "merge":
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                     substrate_all_dom] = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, merge=True)
+                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
                 # load chronic data
                 if types_hdf5 == "chronic":
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                     substrate_all_dom] = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, merge=True)
+                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
                 # load habitat data
                 if types_hdf5 == "habitat":
                     variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
@@ -468,7 +468,7 @@ class GroupPlot(QGroupBox):
                          fish_data, total_wetarea_all_t] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names)
                     else:  # get only input data data (hydraulic and substrate)
                         [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                         substrate_all_dom] = load_hdf5.load_hdf5_hyd(name_hdf5, path_hdf5, merge=True)
+                         substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
 
                 # check validity susbtrate
                 if types_hdf5 == "substrate":
@@ -595,8 +595,6 @@ class GroupPlot(QGroupBox):
                 self.plot_process_list[:] = self.plot_process_list[:] + self.plot_process_list.save_process[:]
 
 
-
-
 class MyProcessList(list):
     """
     This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
@@ -639,7 +637,6 @@ class MyProcessList(list):
         """
         nb_finished = 0
         state_list = []
-        print("avant : ", len(self))
         for i in range(len(self)):
             state = self[i][1].value
             state_list.append(state)

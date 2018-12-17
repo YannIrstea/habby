@@ -116,8 +116,8 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
         ikle_all_t.append(ikle_f)
 
     # save data
-    load_hdf5.save_hdf5(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
-                        inter_vel_all_t, inter_h_all_t, sim_name=timesteps, hdf5_type="hydraulic")
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+                                      inter_vel_all_t, inter_h_all_t, sim_name=timesteps, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
