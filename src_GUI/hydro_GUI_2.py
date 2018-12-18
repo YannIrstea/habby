@@ -24,7 +24,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, qApp, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget, \
     QListWidgetItem, QComboBox, QMessageBox, QGroupBox, \
-    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, QHBoxLayout
+    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
+    QHBoxLayout
 from PyQt5.QtGui import QIcon
 import h5py
 from multiprocessing import Process, Queue
@@ -224,11 +225,11 @@ class Hydro2W(QScrollArea):
         else:
             self.stack.setFixedHeight(self.stack.currentWidget().minimumSizeHint().height())
             self.stack.setFixedWidth(self.stack.currentWidget().minimumSizeHint().width())
-            #print(self.stack.currentWidget().minimumSizeHint().width())
-            #self.stack.setMinimumWidth(self.stack.currentWidget().minimumSizeHint().width())
-            #self.stack.setMaximumWidth(99999)
-            #self.stack.setWid(self.stack.currentWidget().minimumSizeHint().width())
-            #self.stack.currentWidget().setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+            # print(self.stack.currentWidget().minimumSizeHint().width())
+            # self.stack.setMinimumWidth(self.stack.currentWidget().minimumSizeHint().width())
+            # self.stack.setMaximumWidth(99999)
+            # self.stack.setWid(self.stack.currentWidget().minimumSizeHint().width())
+            # self.stack.currentWidget().setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
 
     def give_info_model(self):
         """
@@ -244,7 +245,7 @@ class Hydro2W(QScrollArea):
         text_title = self.tr("Information on the hydraulic model")
         mod_name = self.name_model[self.mod_act]
         self.msgi.setWindowTitle(text_title)
-        info_filename = os.path.join('./model_hydro', mod_name+'.txt')
+        info_filename = os.path.join('./model_hydro', mod_name + '.txt')
         if mod_name == "TELEMAC":
             website = "<a href=\"http://www.opentelemac.org\">TELEMAC</a>"
         elif mod_name == "HEC-RAS 1D":
@@ -433,14 +434,15 @@ class SubHydroW(QWidget):
                         else:
                             self.msg2.setIcon(QMessageBox.Warning)
                             self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
-                            self.msg2.setText(self.tr("One of the file given in the project file does not exist." ))
+                            self.msg2.setText(self.tr("One of the file given in the project file does not exist."))
                             self.msg2.setStandardButtons(QMessageBox.Ok)
                             self.msg2.show()
                 elif os.path.basename(geo_name_path) != 'unknown file':
                     self.msg2.setIcon(QMessageBox.Warning)
                     self.msg2.setWindowTitle(self.tr("Previously Loaded File"))
                     self.msg2.setText(
-                        self.tr("The file given in the project file does not exist. Hydrological model:" + self.model_type))
+                        self.tr(
+                            "The file given in the project file does not exist. Hydrological model:" + self.model_type))
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
 
@@ -489,7 +491,7 @@ class SubHydroW(QWidget):
         if len(self.extension[i]) <= 4:
             filter2 = "Model File ("
             for e in self.extension[i]:
-                filter2 += '*'+e+' '
+                filter2 += '*' + e + ' '
             filter2 = filter2[:-1]
             filter2 += ')' + ";; All File (*.*)"
         else:
@@ -516,7 +518,9 @@ class SubHydroW(QWidget):
                 if ext == '':  # no extension
                     self.msg2.setIcon(QMessageBox.Warning)
                     self.msg2.setWindowTitle(self.tr("File type"))
-                    self.msg2.setText(self.tr("The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(extension_i)))
+                    self.msg2.setText(self.tr(
+                        "The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(
+                            extension_i)))
                     self.msg2.setStandardButtons(QMessageBox.Ok)
                     self.msg2.show()
                 else:  # no extension known (if not any(e in ext for e in extension_i))
@@ -546,9 +550,9 @@ class SubHydroW(QWidget):
                     self.name_hdf5 = 'Substrate_' + filename2 + '_' + ext
             else:
                 if len(filename) > 9:
-                    self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2[:9]
+                    self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2[:9]
                 else:
-                    self.name_hdf5 = 'Hydro_'+self.model_type+'_'+filename2
+                    self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
 
             self.hname.setText(self.name_hdf5)
 
@@ -571,7 +575,7 @@ class SubHydroW(QWidget):
             self.nb_extrapro_text.setDisabled(False)
             self.l5.setDisabled(False)
 
-    def save_xml(self, i=0, append_name = False):
+    def save_xml(self, i=0, append_name=False):
         """
         A function to save the loaded data in the xml file.
 
@@ -596,7 +600,7 @@ class SubHydroW(QWidget):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
             # geo data
-            child1 = root.find(".//"+self.model_type)
+            child1 = root.find(".//" + self.model_type)
             if child1 is None:
                 child1 = ET.SubElement(root, self.model_type)
             child = root.find(".//" + self.attributexml[i])
@@ -770,7 +774,7 @@ class SubHydroW(QWidget):
         for i in range(0, min(len(str_found), max_send)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-            if i == max_send-1:
+            if i == max_send - 1:
                 self.send_log.emit(self.tr('Warning: too many information for the GUI'))
             if 'Error' in str_found[i] and check_ok:
                 error = True
@@ -821,10 +825,10 @@ class SubHydroW(QWidget):
         # create manning array (to pass to dist_vitess)
         data = data.split('\n')
         manning = np.zeros((len(data), 3))
-        com= 0
+        com = 0
         for l in range(0, len(data)):
             data[l] = data[l].strip()
-            if len(data[l])>0:
+            if len(data[l]) > 0:
                 if data[l][0] != '#':
                     data_here = data[l].split(',')
                     if len(data_here) == 3:
@@ -871,7 +875,8 @@ class SubHydroW(QWidget):
             # send the message
             if self.fig_opt['language'] == str(1):
                 if self.model_type == 'SUBSTRATE':
-                    self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis " + str(self.running_time) + " sec")
+                    self.send_log.emit(
+                        "Processus 'Fusion de Grille' fonctionne depuis " + str(self.running_time) + " sec")
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
                     self.send_log.emit("Processus 'Hydraulique' fonctionne depuis " + str(self.running_time) + " sec")
@@ -897,13 +902,16 @@ class SubHydroW(QWidget):
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
 
             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                self.send_log.emit(self.tr("Merging of substrate and hydraulic data finished (computation time = ") + str(self.running_time) + " s).")
+                self.send_log.emit(
+                    self.tr("Merging of substrate and hydraulic data finished (computation time = ") + str(
+                        self.running_time) + " s).")
                 self.drop_merge.emit()
                 # update last name
                 self.name_last_hdf5("hdf5_mergedata")
                 print("update merge")
             else:
-                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(self.running_time) + " s).")
+                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(
+                    self.running_time) + " s).")
                 self.send_log.emit(
                     self.tr("Figures can be displayed from create figure button or from graphics tab.\n"))
                 # send a signal to the substrate tab so it can account for the new info
@@ -1004,7 +1012,7 @@ class SubHydroW(QWidget):
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
             self.send_log.emit('Error: The project is not saved. '
-                              'Save the project in the General tab before saving hydraulic data. \n')
+                               'Save the project in the General tab before saving hydraulic data. \n')
         else:
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
@@ -1071,7 +1079,7 @@ class HEC_RAS1D(SubHydroW):
         # update attibute for hec-ras 1d
         self.attributexml = ['geodata', 'resdata']
         self.model_type = 'HECRAS1D'
-        self.extension = [['.g01', '.g02', '.g03', '.g04','.g05 ', '.g06', '.g07', '.g08',
+        self.extension = [['.g01', '.g02', '.g03', '.g04', '.g05 ', '.g06', '.g07', '.g08',
                            '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
         self.nb_dim = 1.5
 
@@ -1131,7 +1139,7 @@ class HEC_RAS1D(SubHydroW):
         # layout
         self.layout_hec = QGridLayout()
         self.layout_hec.addWidget(l1, 0, 0)
-        self.layout_hec.addWidget(self.geo_t2,0, 1)
+        self.layout_hec.addWidget(self.geo_t2, 0, 1)
         self.layout_hec.addWidget(self.geo_b, 0, 2)
         self.layout_hec.addWidget(l2, 1, 0)
         self.layout_hec.addWidget(self.out_t2, 1, 1)
@@ -1145,11 +1153,11 @@ class HEC_RAS1D(SubHydroW):
         self.layout_hec.addWidget(self.l5, 6, 1)
         self.layout_hec.addWidget(self.nb_extrapro_text, 6, 2, 1, 2)
         self.layout_hec.addItem(self.spacer1, 7, 1)
-        self.layout_hec.addWidget(lh,8,0)
+        self.layout_hec.addWidget(lh, 8, 0)
         self.layout_hec.addWidget(self.hname, 8, 1)
         self.layout_hec.addWidget(self.load_b, 8, 3)
         self.layout_hec.addWidget(self.butfig, 9, 3)
-        #self.layout_hec.addItem(self.spacer2, 10, 1)
+        # self.layout_hec.addItem(self.spacer2, 10, 1)
         self.setLayout(self.layout_hec)
 
     def load_hec_ras_gui(self):
@@ -1219,7 +1227,7 @@ class HEC_RAS1D(SubHydroW):
         # load hec_ras data and create the grid in a second thread
         self.q = Queue()
         self.p = Process(target=Hec_ras06.open_hec_hec_ras_and_create_grid, args=(self.name_hdf5, path_hdf5,
-                                                                                  self.name_prj,self.path_prj,
+                                                                                  self.name_prj, self.path_prj,
                                                                                   self.model_type, self.namefile,
                                                                                   self.pathfile, self.interpo_choice,
                                                                                   path_im, show_all_fig,
@@ -1242,7 +1250,7 @@ class HEC_RAS1D(SubHydroW):
         self.send_log.emit("py    path2=r'" + path_input + "'")
         self.send_log.emit("py    files = [file1, file2]")
         self.send_log.emit("py    paths = [path1, path2]")
-        self.send_log.emit("py    interp=" + str(self.interpo_choice) )
+        self.send_log.emit("py    interp=" + str(self.interpo_choice))
         self.send_log.emit("py    pro_add=" + str(self.pro_add))
         self.send_log.emit(
             "py    Hec_ras06.open_hec_hec_ras_and_create_grid('re_run',path_prj"
@@ -1360,7 +1368,7 @@ class Rubar2D(SubHydroW):
         # layout
         self.layout_hec = QGridLayout()
         self.layout_hec.addWidget(l1, 0, 0)
-        self.layout_hec.addWidget(self.geo_t2,0, 1)
+        self.layout_hec.addWidget(self.geo_t2, 0, 1)
         self.layout_hec.addWidget(self.geo_b, 0, 2)
         self.layout_hec.addWidget(l2, 1, 0)
         self.layout_hec.addWidget(self.out_t2, 1, 1)
@@ -1371,7 +1379,7 @@ class Rubar2D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 3, 1)
         self.layout_hec.addWidget(self.load_b, 3, 2)
         self.layout_hec.addWidget(self.butfig, 4, 2)
-        #self.layout_hec.addItem(self.spacer, 5, 1)
+        # self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
     def load_rubar(self):
@@ -1424,9 +1432,12 @@ class Rubar2D(SubHydroW):
 
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
-        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.name_hdf5,self.namefile[0],
-                         self.namefile[1], self.pathfile[0], self.pathfile[1], path_im, self.name_prj, self.path_prj,
-                         self.model_type, self.nb_dim, path_hdf5, self.q, False, self.fig_opt))
+        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.name_hdf5, self.namefile[0],
+                                                                          self.namefile[1], self.pathfile[0],
+                                                                          self.pathfile[1], path_im, self.name_prj,
+                                                                          self.path_prj,
+                                                                          self.model_type, self.nb_dim, path_hdf5,
+                                                                          self.q, False, self.fig_opt))
         self.p.start()
 
         # copy input file
@@ -1436,7 +1447,7 @@ class Rubar2D(SubHydroW):
 
         # log info
         self.send_log.emit(self.tr('# Loading: Rubar 2D data...'))
-        #self.send_err_log()
+        # self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    file2=r'" + self.namefile[1] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
@@ -1594,7 +1605,7 @@ class Mascaret(SubHydroW):
         self.layout.addWidget(self.hname, 8, 1)
         self.layout.addWidget(self.load_b, 9, 2)
         self.layout.addWidget(self.butfig, 9, 4)
-        #self.layout.addItem(spacer, 10, 1)
+        # self.layout.addItem(spacer, 10, 1)
         self.setLayout(self.layout)
 
     def load_mascaret_gui(self):
@@ -1651,8 +1662,8 @@ class Mascaret(SubHydroW):
             self.manning_arr = []
         if len(self.manning_arr) == 0:
             try:
-                    manning_float = True
-                    self.manning_arr = float(self.manning_text.text())
+                manning_float = True
+                self.manning_arr = float(self.manning_text.text())
             except ValueError:
                 self.send_log.emit("Error: The manning value is not understood.")
                 return
@@ -1666,11 +1677,12 @@ class Mascaret(SubHydroW):
         self.q = Queue()
         # for error management and figures (when time finsiehed call the self.send_data function)
         self.timer.start(1000)
-        self.p = Process(target=mascaret.load_mascaret_and_create_grid, args=(self.name_hdf5, path_hdf5,self.name_prj,
-                                                                              self.path_prj,self.model_type, self.namefile,
+        self.p = Process(target=mascaret.load_mascaret_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
+                                                                              self.path_prj, self.model_type,
+                                                                              self.namefile,
                                                                               self.pathfile, self.interpo_choice,
                                                                               self.manning_arr, self.np_point_vel,
-                                                                              show_all_fig,self.pro_add, self.q,
+                                                                              show_all_fig, self.pro_add, self.q,
                                                                               path_im))
         self.p.start()
 
@@ -1692,7 +1704,8 @@ class Mascaret(SubHydroW):
         self.send_log.emit("py    interp=" + str(self.interpo_choice))
         self.send_log.emit("py    pro_add=" + str(self.pro_add))
         if manning_float:
-            self.send_log.emit("py    manning1 = " + str(self.manning_text.text()))  # to be corrected to include text result
+            self.send_log.emit(
+                "py    manning1 = " + str(self.manning_text.text()))  # to be corrected to include text result
         else:
             self.manning_arr = np.array(self.manning_arr)
             blob = np.array2string(self.manning_arr, separator=',', )
@@ -1710,8 +1723,8 @@ class Mascaret(SubHydroW):
         if manning_float:
             self.send_log.emit("restart    manning: " + str(self.manning1))
         else:
-            blob = np.array2string(self.manning_arr, separator=',',)
-            blob = blob.replace('\n','')
+            blob = np.array2string(self.manning_arr, separator=',', )
+            blob = blob.replace('\n', '')
             self.send_log.emit("restart    manning1 = " + self.manning_textname)
         self.send_log.emit("restart    interpo: " + str(self.interpo_choice))
         if self.interpo_choice > 0:
@@ -1841,7 +1854,7 @@ class River2D(SubHydroW):
         self.layout.addWidget(self.hname, 5, 1)
         self.layout.addWidget(self.load_b, 5, 2)
         self.layout.addWidget(self.butfig, 6, 2)
-        #self.layout.addItem(spacer, 7, 0)
+        # self.layout.addItem(spacer, 7, 0)
         self.setLayout(self.layout)
 
     def remove_file(self):
@@ -1861,7 +1874,7 @@ class River2D(SubHydroW):
             int_ind.append(i.row())
         int_ind = sorted(int_ind)
 
-        for i in range(len(int_ind)-1, -1, -1):
+        for i in range(len(int_ind) - 1, -1, -1):
             self.list_f.takeItem(int_ind[i])
             del self.namefile[int_ind[i]]
             del self.pathfile[int_ind[i]]
@@ -1889,11 +1902,11 @@ class River2D(SubHydroW):
             self.attributexml.append(self.attributexml[0])
         # the user select file or files
 
-        if len(self.pathfile) == 0: # no file opened before
+        if len(self.pathfile) == 0:  # no file opened before
             filename_path = QFileDialog.getOpenFileNames(self, 'Open File', self.path_prj)[0]
         else:
             filename_path = QFileDialog.getOpenFileNames(self, 'Open File', self.pathfile[0])[0]
-        if not filename_path: #cancel case
+        if not filename_path:  # cancel case
             return
         # manage the found file
         for j in range(0, len(filename_path)):
@@ -1926,7 +1939,7 @@ class River2D(SubHydroW):
             self.extension.append(self.extension[0])
             self.attributexml.append(self.attributexml[0])
         for i in range(0, len(self.namefile)):
-                self.list_f.addItem(self.namefile[i])
+            self.list_f.addItem(self.namefile[i])
 
         # add all path from the files as a QToolTip
         # only unique path is added to the Tooltip for the QComboBox
@@ -2003,9 +2016,10 @@ class River2D(SubHydroW):
                 self.save_xml(i, True)
 
         self.q = Queue()
-        self.p = Process(target=river2d.load_river2d_and_cut_grid, args=(self.name_hdf5,self.namefile, self.pathfile,
-                         self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5, self.q, False,
-                         self.fig_opt))
+        self.p = Process(target=river2d.load_river2d_and_cut_grid, args=(self.name_hdf5, self.namefile, self.pathfile,
+                                                                         self.name_prj, self.path_prj, self.model_type,
+                                                                         self.nb_dim, path_hdf5, self.q, False,
+                                                                         self.fig_opt))
         self.p.start()
 
         # copy input file
@@ -2126,7 +2140,7 @@ class Rubar1D(SubHydroW):
         # layout
         self.layout_hec = QGridLayout()
         self.layout_hec.addWidget(l1, 0, 0)
-        self.layout_hec.addWidget(self.geo_t2,0, 1)
+        self.layout_hec.addWidget(self.geo_t2, 0, 1)
         self.layout_hec.addWidget(self.geo_b, 0, 2)
         self.layout_hec.addWidget(l2, 1, 0)
         self.layout_hec.addWidget(self.out_t2, 1, 1)
@@ -2148,7 +2162,7 @@ class Rubar1D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 7, 1)
         self.layout_hec.addWidget(self.load_b, 8, 2)
         self.layout_hec.addWidget(self.butfig, 8, 4)
-        #self.layout_hec.addItem(self.spacer1, 9, 1)
+        # self.layout_hec.addItem(self.spacer1, 9, 1)
         self.setLayout(self.layout_hec)
 
     def load_rubar1d(self):
@@ -2200,8 +2214,8 @@ class Rubar1D(SubHydroW):
             self.manning_arr = []
         if len(self.manning_arr) == 0:
             try:
-                    manning_float = True
-                    self.manning_arr = float(self.manning_text.text())
+                manning_float = True
+                self.manning_arr = float(self.manning_text.text())
             except ValueError:
                 self.send_log.emit("Error: The manning value is not understood.")
                 return
@@ -2216,10 +2230,10 @@ class Rubar1D(SubHydroW):
         # for error management and figures (when time finished call the self.send_data function)
         self.timer.start(1000)
         self.p = Process(target=rubar.load_rubar1d_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
-                                                                        self.path_prj, self.model_type, self.namefile,
-                                                                        self.pathfile, self.interpo_choice,
-                                                                        self.manning_arr, self.np_point_vel,
-                                                                        show_all_fig, self.pro_add, self.q, path_im))
+                                                                          self.path_prj, self.model_type, self.namefile,
+                                                                          self.pathfile, self.interpo_choice,
+                                                                          self.manning_arr, self.np_point_vel,
+                                                                          show_all_fig, self.pro_add, self.q, path_im))
         self.p.start()
 
         # path input
@@ -2253,8 +2267,8 @@ class Rubar1D(SubHydroW):
         if manning_float:
             self.send_log.emit("restart    manning: " + str(self.manning1))
         else:
-            blob = np.array2string(self.manning_arr, separator=',',)
-            blob = blob.replace('\n','')
+            blob = np.array2string(self.manning_arr, separator=',', )
+            blob = blob.replace('\n', '')
             self.send_log.emit("restart    manning1 = " + self.manning_textname)
         self.send_log.emit("restart    interpo: " + str(self.interpo_choice))
         if self.interpo_choice > 0:
@@ -2301,7 +2315,7 @@ class HEC_RAS2D(SubHydroW):
         self.attributexml = ['data2D']
         self.model_type = 'HECRAS2D'
         self.extension = [['.hdf']]
-        self.nb_dim =2
+        self.nb_dim = 2
 
         # if there is the project file with hecras info, update the label and attibutes
         self.was_model_loaded_before()
@@ -2344,7 +2358,7 @@ class HEC_RAS2D(SubHydroW):
         # layout
         self.layout_hec2 = QGridLayout()
         self.layout_hec2.addWidget(l1, 0, 0)
-        self.layout_hec2.addWidget(self.h2d_t2, 0 , 1)
+        self.layout_hec2.addWidget(self.h2d_t2, 0, 1)
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         self.layout_hec2.addWidget(l2, 1, 0)
         self.layout_hec2.addWidget(l3, 1, 1)
@@ -2355,7 +2369,7 @@ class HEC_RAS2D(SubHydroW):
         self.layout_hec2.addWidget(self.hname, 3, 1)
         self.layout_hec2.addWidget(self.load_b, 4, 2)
         self.layout_hec2.addWidget(self.butfig, 5, 2)
-        #self.layout_hec2.addItem(self.spacer, 6, 1)
+        # self.layout_hec2.addItem(self.spacer, 6, 1)
         self.setLayout(self.layout_hec2)
 
     def load_hec_2d_gui(self):
@@ -2405,9 +2419,11 @@ class HEC_RAS2D(SubHydroW):
 
         # load the hec_ras data and cut the grid to the needed side
         self.q = Queue()
-        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.name_hdf5,self.namefile[0],
-                         self.pathfile[0], self.name_prj, self.path_prj, self.model_type, self.nb_dim, path_hdf5,
-                         self.q, False, self.fig_opt))
+        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
+                                                                              self.pathfile[0], self.name_prj,
+                                                                              self.path_prj, self.model_type,
+                                                                              self.nb_dim, path_hdf5,
+                                                                              self.q, False, self.fig_opt))
         self.p.start()
 
         # path input
@@ -2419,8 +2435,8 @@ class HEC_RAS2D(SubHydroW):
         self.send_log.emit(self.tr('# Loading: HEC-RAS 2D...'))
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
-        self.send_log.emit("py    interpo=" + str(self.interpo_choice) )
-        self.send_log.emit("py    pro_add=" + str(self.pro_add) )
+        self.send_log.emit("py    interpo=" + str(self.interpo_choice))
+        self.send_log.emit("py    pro_add=" + str(self.pro_add))
         self.send_log.emit("py    hec_ras2D.load_hec_ras_2d_and_cut_grid('HEC_RAS2D_log', file1, path1, name_prj, "
                            "path_prj, 'HECRAS2D',2, path_prj, [], True)\n")
         self.send_log.emit("restart LOAD_HECRAS_2D")
@@ -2588,8 +2604,11 @@ class TELEMAC(SubHydroW):
             # load the telemac data
             self.q = Queue()
             self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
-                            self.pathfile[0], self.name_prj,self.path_prj, self.model_type, self.nb_dim, path_hdf5, units_index, self.q,
-                            False, self.fig_opt))
+                                                                                    self.pathfile[0], self.name_prj,
+                                                                                    self.path_prj, self.model_type,
+                                                                                    self.nb_dim, path_hdf5, units_index,
+                                                                                    self.q,
+                                                                                    False, self.fig_opt))
             self.p.start()
 
             # path input
@@ -2602,8 +2621,9 @@ class TELEMAC(SubHydroW):
             self.send_err_log()
             self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
             self.send_log.emit("py    path1=r'" + path_input + "'")
-            self.send_log.emit("py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
-                               "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
+            self.send_log.emit(
+                "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
+                "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
             self.send_log.emit("restart LOAD_TELEMAC")
             self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
@@ -2651,7 +2671,7 @@ class LAMMI(SubHydroW):
         self.h2d_b = QPushButton(self.tr("Select the 'Entree' directory"), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog_lammi(0))
         self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0] + ', ' + self.namefile[1]))
-        l2 =  QLabel(self.tr('<b> Output data </b>'))
+        l2 = QLabel(self.tr('<b> Output data </b>'))
         self.dirlab = QLabel(self.pathfile[2])
         self.dirbut = QPushButton(self.tr("Select the 'SimHydro' directory"))
         self.dirbut.clicked.connect(lambda: self.show_dialog_lammi(1))
@@ -2696,10 +2716,10 @@ class LAMMI(SubHydroW):
         self.layout_hec2.addWidget(self.hname, 4, 1)
         self.layout_hec2.addWidget(self.load_b, 5, 2)
         self.layout_hec2.addWidget(self.butfig, 6, 2)
-        #self.layout_hec2.addItem(self.spacer, 7, 1)
+        # self.layout_hec2.addItem(self.spacer, 7, 1)
         self.setLayout(self.layout_hec2)
 
-    def show_dialog_lammi(self, i = 0):
+    def show_dialog_lammi(self, i=0):
         """
         When using lammi data, the user selects a directory and not a file. Hence, we need to modify the ususal
         show_dialog function. Hence, function the show_dilaog_lammi() obtain the directory chosen by the user.
@@ -2798,7 +2818,7 @@ class LAMMI(SubHydroW):
         self.q = Queue()
         self.p = Process(target=lammi.open_lammi_and_create_grid,
                          args=(self.pathfile[0], self.pathfile[1], path_im, self.name_hdf5, self.name_prj, self.path_prj
-                               , path_hdf5, self.pathfile[2], self.fig_opt, show_all_fig,  self.namefile[1],
+                               , path_hdf5, self.pathfile[2], self.fig_opt, show_all_fig, self.namefile[1],
                                self.namefile[0], False, self.q, 1, self.model_type))
         self.p.start()
 
@@ -2901,7 +2921,7 @@ class SW2D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 3, 1)
         self.layout_hec.addWidget(self.load_b, 3, 2)
         self.layout_hec.addWidget(self.butfig, 4, 2)
-        #self.layout_hec.addItem(self.spacer, 5, 1)
+        # self.layout_hec.addItem(self.spacer, 5, 1)
         self.setLayout(self.layout_hec)
 
     def load_sw2d(self):
@@ -2946,9 +2966,12 @@ class SW2D(SubHydroW):
         # load sw2d, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
         # to be changed
-        self.p = Process(target=sw2d.load_sw2d_and_modify_grid, args=(self.name_hdf5,self.namefile[0],
-                         self.namefile[1], self.pathfile[0], self.pathfile[1], path_im, self.name_prj, self.path_prj,
-                         self.model_type, self.nb_dim, path_hdf5, self.q, False, self.fig_opt))
+        self.p = Process(target=sw2d.load_sw2d_and_modify_grid, args=(self.name_hdf5, self.namefile[0],
+                                                                      self.namefile[1], self.pathfile[0],
+                                                                      self.pathfile[1], path_im, self.name_prj,
+                                                                      self.path_prj,
+                                                                      self.model_type, self.nb_dim, path_hdf5, self.q,
+                                                                      False, self.fig_opt))
         self.p.start()
 
         # copy input file
@@ -3106,7 +3129,7 @@ class IBER2D(SubHydroW):
         self.layout_hec.addWidget(self.hname, 6, 1)
         self.layout_hec.addWidget(self.load_b, 6, 2)
         self.layout_hec.addWidget(self.butfig, 7, 2)
-        #self.layout_hec.addItem(self.spacer, 8, 1)
+        # self.layout_hec.addItem(self.spacer, 8, 1)
         self.setLayout(self.layout_hec)
 
     def load_iber2d(self):
@@ -3127,8 +3150,8 @@ class IBER2D(SubHydroW):
             f2 = os.path.join(self.pathfile[1], self.namefile[2])
             f3 = os.path.join(self.pathfile[1], self.namefile[3])
             f4 = os.path.join(self.pathfile[1], self.namefile[4])
-            if os.path.isfile(f0) & os.path.isfile(f1) & os.path.isfile(f2)\
-               & os.path.isfile(f3) & os.path.isfile(f4):
+            if os.path.isfile(f0) & os.path.isfile(f1) & os.path.isfile(f2) \
+                    & os.path.isfile(f3) & os.path.isfile(f4):
                 fileNOK = False
         if fileNOK:
             self.msg2.setIcon(QMessageBox.Warning)
@@ -3445,7 +3468,7 @@ class HabbyHdf5(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
 
         # select the first file
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5,  '*.h5', '*.h5')[0]
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
         if fname_h5 != '':  # cancel
             hdf51 = os.path.basename(fname_h5)
             path1 = os.path.dirname(fname_h5)
@@ -3666,13 +3689,13 @@ class SubstrateW(SubHydroW):
 
         # layout merge
         self.layout_merge = QGridLayout()
-        #self.layout_merge.addItem(spacer, 6, 1)
+        # self.layout_merge.addItem(spacer, 6, 1)
         self.layout_merge.addWidget(l9, 11, 0)
         self.layout_merge.addWidget(self.drop_hyd, 11, 1)
         self.layout_merge.addWidget(l10, 12, 0)
         self.layout_merge.addWidget(self.drop_sub, 12, 1)
         self.layout_merge.addWidget(self.load_b2, 14, 2)
-        #self.layout_merge.addWidget(self.butfig2, 15, 3)
+        # self.layout_merge.addWidget(self.butfig2, 15, 3)
         self.layout_merge.addWidget(l11, 13, 0)
         self.layout_merge.addWidget(self.e3, 13, 1)
         self.layout_merge.addWidget(l112, 13, 2)
@@ -3697,7 +3720,7 @@ class SubstrateW(SubHydroW):
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.layout_sub_tab.addItem(verticalSpacer)
 
-        #self.setLayout(self.layout_sub)
+        # self.setLayout(self.layout_sub)
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameShape(QFrame.Shape.NoFrame)
@@ -3730,8 +3753,6 @@ class SubstrateW(SubHydroW):
         self.const_part.hide()
         self.file_part.show()
 
-
-
     # def name_last_sub(self):
     #     """
     #     This function opens the xml project file to find the name of the last hdf5 substrate file and to add it
@@ -3753,8 +3774,6 @@ class SubstrateW(SubHydroW):
     #             if len(child1) > 0:
     #                 mergename = child1[-1].text
     #                 self.last_sub_file_name_label.setText(mergename)
-
-
 
     def load_sub_gui(self, const_sub=False):
         """
@@ -3781,7 +3800,7 @@ class SubstrateW(SubHydroW):
             except ValueError:
                 self.send_log.emit('The substrate data should be between 1 and 8')
                 return
-            if not 0 < data_sub <9:
+            if not 0 < data_sub < 9:
                 self.send_log.emit('The substrate data should be between 1 and 8')
             if self.hname2.text()[-3:] == '.h5':
                 self.name_hdf5 = self.hname2.text()[:-3] + '_' + str(data_sub)
@@ -3793,7 +3812,7 @@ class SubstrateW(SubHydroW):
                                     self.name_hdf5, True, self.model_type)
             sys.stdout = sys.__stdout__
             self.send_err_log()
-            path_im = self.find_path_im()  #needed
+            path_im = self.find_path_im()  # needed
 
             # log info
             self.send_log.emit(self.tr('# Substrate data type: constant value'))
@@ -3803,7 +3822,7 @@ class SubstrateW(SubHydroW):
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
-            #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
+            # self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
 
         # sub from txt or shp
         else:
@@ -3827,18 +3846,21 @@ class SubstrateW(SubHydroW):
                 pathname2 = os.path.join(self.pathfile[0], name2)
                 pathname3 = os.path.join(self.pathfile[0], name3)
                 if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
-                    self.send_log.emit('Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
-                                       ' a .dbf file.')
+                    self.send_log.emit(
+                        'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
+                        ' a .dbf file.')
                     self.load_b.setDisabled(False)
                     return
 
                 # before loading substrate shapefile data : create triangulare mesh subsrtate from shapefile polygon substrate
-                if substrate.convert_sub_shapefile_polygon_to_sub_shapefile_triangle(self.path_prj + r"/input", self.namefile[0],
-                                                                                  self.pathfile[0]):
+                if substrate.convert_sub_shapefile_polygon_to_sub_shapefile_triangle(self.path_prj + r"/input",
+                                                                                     self.namefile[0],
+                                                                                     self.pathfile[0]):
                     # load substrate
                     sys.stdout = self.mystdout = StringIO()
-                    [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(self.namefile[0][:-4] + "_trianglulated.shp",
-                                                                                                    self.path_prj + r"/input", code_type)
+                    [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
+                        self.namefile[0][:-4] + "_trianglulated.shp",
+                        self.path_prj + r"/input", code_type)
                     # we have a case where two dominant substrate are "equally" dominant
                     # so we ask the user to solve this for us
                     dom_solve = 0
@@ -3854,11 +3876,11 @@ class SubstrateW(SubHydroW):
                         b2 = self.msg2.addButton(self.tr('Smaller'), QMessageBox.YesRole)
                         self.msg2.exec()
                         if self.msg2.clickedButton() == b1:
-                           dom_solve = 1
+                            dom_solve = 1
                         elif self.msg2.clickedButton() == b2:
                             dom_solve = -1
                         [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
-                            self.namefile[0],self.pathfile[0], code_type, dom_solve)
+                            self.namefile[0], self.pathfile[0], code_type, dom_solve)
                     sys.stdout = sys.__stdout__
                     self.send_err_log()
 
@@ -3930,11 +3952,12 @@ class SubstrateW(SubHydroW):
 
             # save shp and txt in the substrate hdf5
             path_hdf5 = self.find_path_hdf5()
-            self.last_hdf5 = load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom, self.ikle_sub,
-                                    self.coord_p, [], [], self.name_hdf5, False, self.model_type, True)
+            self.last_hdf5 = load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom,
+                                                     self.ikle_sub,
+                                                     self.coord_p, [], [], self.name_hdf5, False, self.model_type, True)
 
             # show image
-            #self.recreate_image_sub(True)
+            # self.recreate_image_sub(True)
             self.butfig1.setEnabled(True)
 
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
@@ -4098,14 +4121,15 @@ class SubstrateW(SubHydroW):
 
         # run the function
         self.q = Queue()
-        self.p = Process(target=mesh_grid2.merge_grid_and_save, args=(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
-                                                                     default_data, self.name_prj, self.path_prj,
-                                                                     self.model_type, self.q, False, path_shp, erase_id))
+        self.p = Process(target=mesh_grid2.merge_grid_and_save,
+                         args=(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
+                               default_data, self.name_prj, self.path_prj,
+                               self.model_type, self.q, False, path_shp, erase_id))
         self.p.start()
 
         # log
         # functions if ind is zero also
-        self.send_log.emit("py    file_hyd=r'" + self.hyd_name[self.drop_hyd.currentIndex()-1] + "'")
+        self.send_log.emit("py    file_hyd=r'" + self.hyd_name[self.drop_hyd.currentIndex() - 1] + "'")
         self.send_log.emit("py    name_sub=r'" + self.sub_name[self.drop_sub.currentIndex()] + "'")
         self.send_log.emit("py    path_sub=r'" + path_hdf5 + "'")
         if len(self.e3.text()) > 0:
@@ -4115,10 +4139,10 @@ class SubstrateW(SubHydroW):
         self.send_log.emit("py    mesh_grid2.merge_grid_and_save(file_hyd,name_sub, path_sub, defval, name_prj, "
                            "path_prj, 'SUBSTRATE', [], True) \n")
         self.send_log.emit("restart MERGE_GRID_SUB")
-        self.send_log.emit("restart    file_hyd: r" + self.hyd_name[self.drop_hyd.currentIndex()-1])
+        self.send_log.emit("restart    file_hyd: r" + self.hyd_name[self.drop_hyd.currentIndex() - 1])
         self.send_log.emit("restart    file_sub: r" + os.path.join(path_hdf5,
-                                                                  self.sub_name[self.drop_sub.currentIndex()]))
-        if  len(self.e3.text()) > 0:
+                                                                   self.sub_name[self.drop_sub.currentIndex()]))
+        if len(self.e3.text()) > 0:
             self.send_log.emit("restart    defval: " + self.e3.text())
         else:
             self.send_log.emit("restart    defval: -99")
