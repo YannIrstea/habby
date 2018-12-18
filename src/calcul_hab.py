@@ -73,7 +73,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     # calcuation habitat
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
         calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
-    b = time.time()
 
     if vh_all_t_sp == [-99] or isinstance(name_fish[0], int):
         if q:
@@ -111,8 +110,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         name_fish[id] = n + '_' + stages_chosen[id]
         all_name += name_fish_sh[id]
     if len(hdf5_file) > 25:
-        name_base = hdf5_file[:25] + '_' + all_name
-        name_base2 = hdf5_file[:25]
+        name_base = hdf5_file[:-3][:25] + '_' + all_name
+        name_base2 = hdf5_file[:-3][:25]
     else:
         name_base = hdf5_file[:-3] + '_' + all_name
         name_base2 = hdf5_file[:-3]
@@ -161,23 +160,22 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         del timestep[1]
 
     # figure
-    save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base2, fig_opt, timestep, sim_name,
-                   erase_id=erase_id)
-    plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
-                    name_base2, sim_name, erase_id)
-    plot_hist_biology(vh_all_t_sp, area_c_all, name_fish, fig_opt, path_im, timestep, name_base2, sim_name, erase_id)
+    # save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base2, fig_opt, timestep, sim_name,
+    #                erase_id=erase_id)
+    # plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
+    #                 name_base2, sim_name, erase_id)
+    # plot_hist_biology(vh_all_t_sp, area_c_all, name_fish, fig_opt, path_im, timestep, name_base2, sim_name, erase_id)
     # 1d figure (done on the main thread, so not necessary)
     # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
     # saving hdf5 data of the habitat value
     load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
 
-    print('# Habitat calculation is finished. \n')
+    print('Habitat calculation is finished.\n')
     if not print_cmd:
-        print("Outputs and 2d figures created from the habitat calculation. 1d figure and the last 2d figure "
-              "will be shown. \n")
+        print("Figures can be displayed/exported from graphics tab.\n")
     else:
-        print("Outputs and 2d figures created from the habitat calculation. \n")
+        print("Figures can be displayed/exported from graphics tab.\n")
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
