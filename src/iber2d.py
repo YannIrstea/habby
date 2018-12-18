@@ -121,7 +121,7 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
         if connect[i]:
             pointer[i] = k
             k = k + 1
-    nds = [nodes[i, ] for i in range(nbnode) if connect[i]]
+    nds = [nodes[i,] for i in range(nbnode) if connect[i]]
     coord_p = np.asarray(nds)
 
     tria1 = np.ravel(triangles[:, 0])
@@ -309,7 +309,7 @@ def read_result_iber2d(resfile_h, resfile_u, resfile_v, resfile_xyz, pathfile):
         return failload
     f.close()
     # Velocity magnitude
-    vnorm = np.sqrt(uval*uval + vval*vval)
+    vnorm = np.sqrt(uval * uval + vval * vval)
     vnorm = vnorm.reshape(nsteps, nnodes)
     # Barycentric XY-coordinates
     filename_path = os.path.join(pathfile, resfile_xyz)

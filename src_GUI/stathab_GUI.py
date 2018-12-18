@@ -90,7 +90,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # name of all the text file (see stathabinfo.pdf)
         self.listrivname = 'listriv'
         self.end_file_reach = ['deb', 'qhw', 'gra', 'dis']  # .txt or .csv
-        self.end_file_reach_trop = ['deb', 'qhw', 'ii'] # .txt or .csv
+        self.end_file_reach_trop = ['deb', 'qhw', 'ii']  # .txt or .csv
         self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref_latin.txt']
         self.name_file_allreach_trop = []
         self.hdf5_name = self.tr('No hdf5 selected')
@@ -108,7 +108,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # see if a directory was selected before for Stathab
         # see if an hdf5 was selected before for Stathab
         # if both are there, reload as the last time
-        filename_prj = os.path.join(self.path_prj,self.name_prj + '.xml')
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')
         if os.path.isfile(filename_prj):
             doc = ET.parse(filename_prj)
             root = doc.getroot()
@@ -187,7 +187,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.riverint = self.riverint
 
         # avoid list which look too big or too small
-        size_max = self.frameGeometry().height()/2.5
+        size_max = self.frameGeometry().height() / 2.5
         self.list_needed.setMaximumHeight(size_max)
         self.list_re.setMaximumHeight(size_max)
         self.list_file.setMaximumHeight(size_max)
@@ -253,18 +253,17 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.rivtype, 3, 2)
         self.layout.addWidget(l5, 4, 0)
         self.layout.addWidget(l6, 4, 1)
-        #self.layout.addWidget(loadhdf5b, 5, 2)
-        self.layout.addWidget(self.list_f, 5, 0, 2,1)
+        # self.layout.addWidget(loadhdf5b, 5, 2)
+        self.layout.addWidget(self.list_f, 5, 0, 2, 1)
         self.layout.addWidget(self.list_s, 5, 1, 2, 1)
         self.layout.addWidget(self.runb, 6, 2)
         self.layout.addWidget(self.fishall, 7, 1)
         self.layout.addWidget(self.butfig, 7, 2)
 
-        #self.setLayout(self.layout3)
+        # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
-
 
     def select_dir(self):
         """
@@ -312,7 +311,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     dirxml.text = self.dir_name
                 dirxml = root.find(".//TypeloadStathab")
                 if child is None:
-                    dirxml = ET.SubElement(child, "TypeloadStathab")   # last load from txt or hdf5?
+                    dirxml = ET.SubElement(child, "TypeloadStathab")  # last load from txt or hdf5?
                     dirxml.text = 'txt'
                 else:
                     dirxml.text = 'txt'
@@ -440,10 +439,10 @@ class StathabW(estimhab_GUI.StatModUseful):
                 file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
 
             for i in range(0, len(end_file_reach_here)):
-                file = os.path.join(self.dir_name, name_reach[r]+end_file_reach_here[i] + '.txt')
-                file2 = os.path.join(self.dir_name, name_reach[r]+end_file_reach_here[i] + '.csv')
+                file = os.path.join(self.dir_name, name_reach[r] + end_file_reach_here[i] + '.txt')
+                file2 = os.path.join(self.dir_name, name_reach[r] + end_file_reach_here[i] + '.csv')
                 if os.path.isfile(file):
-                    itemf = QListWidgetItem(name_reach[r]+end_file_reach_here[i] + '.txt')
+                    itemf = QListWidgetItem(name_reach[r] + end_file_reach_here[i] + '.txt')
                     end_file_reach_here[i] += '.txt'
                     self.list_file.addItem(itemf)
                     c += 1
@@ -453,9 +452,9 @@ class StathabW(estimhab_GUI.StatModUseful):
                     self.list_file.addItem(itemf)
                     c += 1
                 else:
-                    itemf = QListWidgetItem(name_reach[r]+end_file_reach_here[i])
+                    itemf = QListWidgetItem(name_reach[r] + end_file_reach_here[i])
                     self.list_needed.addItem(itemf)
-                if i == 0: # note the first item to be able to highlight it afterwards
+                if i == 0:  # note the first item to be able to highlight it afterwards
                     self.firstitemreach.append([itemf, c])
 
             self.list_file.addItem('----------------')
@@ -486,7 +485,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     self.path_bio_stathab = self.dir_name
             else:
                 # case 1: a file is missing
-                if i != len(file_name_all_reach_here)-1:
+                if i != len(file_name_all_reach_here) - 1:
                     self.list_needed.addItem(file_name_all_reach_here[i])
                 # Or: if Pref.txt is missing, let's use the default file (temperate river)
                 elif self.riverint == 0:
@@ -553,7 +552,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             return
         var1 = 'py    var1 = ['
         if self.riverint == 0:
-            for i in range(0, len(self.end_file_reach)-1):  # Pref by default
+            for i in range(0, len(self.end_file_reach) - 1):  # Pref by default
                 if '.txt' in self.end_file_reach[i]:
                     var1 += "'" + self.end_file_reach[i] + "',"
                 else:
@@ -632,7 +631,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     dirxml.text = self.hdf5_name
                 typeload = root.find(".//TypeloadStathab")
                 if typeload is None:
-                    typeload = ET.SubElement(child, "TypeloadStathab")   # last load from txt or hdf5?
+                    typeload = ET.SubElement(child, "TypeloadStathab")  # last load from txt or hdf5?
                     typeload.text = 'hdf5'
                 else:
                     typeload.text = 'hdf5'
@@ -708,7 +707,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         # update list with name of data
         if self.riverint == 0:
             data_reach = [self.mystathab.qlist, self.mystathab.qwh, self.mystathab.disthmes,
-                    self.mystathab.qhmoy, self.mystathab.dist_gran]
+                          self.mystathab.qhmoy, self.mystathab.dist_gran]
             data_reach_str = ['qlist', 'qwh', 'dishhmes', 'qhmoy', 'dist_granulo']
         else:
             data_reach = [self.mystathab.qlist, self.mystathab.qwh, self.mystathab.data_ii]
@@ -719,7 +718,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                 if data_reach[i]:
                     itemr = QListWidgetItem(data_reach_str[i])
                     self.list_file.addItem(itemr)
-                    c +=1
+                    c += 1
                 else:
                     self.list_needed.addItem(data_reach_str[i])
                 if i == 0:  # note the first item to be able to highlight it afterwards
@@ -901,7 +900,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             return
 
         # caught some errors, special cases.
-        if self.riverint ==0:
+        if self.riverint == 0:
             if len(self.mystathab.disthmes) == 0:  # you cannot use seld.list_needed.count()
                 self.send_log.emit('Error: Stathab could not be run. Are all files available?')
                 return
@@ -932,7 +931,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit("py    mystathab.stathab_calc(path_bio2)")
         elif self.riverint == 1:
             self.send_log.emit("py    by_vol = " + str(by_vol))
-            self.send_log.emit('py    mystathab.fish_chosen = ' + "['"+ "', '".join(self.mystathab.fish_chosen) + "']")
+            self.send_log.emit('py    mystathab.fish_chosen = ' + "['" + "', '".join(self.mystathab.fish_chosen) + "']")
             self.send_log.emit("py    mystathab.stathab_trop_univ(path_bio2, by_vol)")
         elif self.riverint == 2:
             self.send_log.emit('py    mystathab.fish_chosen = ' + "['" + "', '".join(self.mystathab.fish_chosen) + "']")

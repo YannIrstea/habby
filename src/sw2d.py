@@ -23,6 +23,7 @@ from src_GUI import output_fig_GUI
 from src import load_hdf5
 from src import rubar
 
+
 def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_geo, path_res, path_im, name_prj,
                               path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, fig_opt={}):
     """
@@ -88,7 +89,7 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
 
     # get triangular nodes from quadrilateral
     [ikle_base, coord_c, coord_p, height_cell, vel_cell] = rubar.get_triangular_grid(listNoNodElem, baryXY, \
-                                                                                     nodesXYZ[:,:2], height_cell, \
+                                                                                     nodesXYZ[:, :2], height_cell, \
                                                                                      vel_cell)
 
     # remove non connected nodes
@@ -107,9 +108,9 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     nds = [nodes[i,] for i in range(nbnode) if connect[i]]
     coord_p = np.asarray(nds)
 
-    tria1 = np.ravel(triangles[:,0])
-    tria2 = np.ravel(triangles[:,1])
-    tria3 = np.ravel(triangles[:,2])
+    tria1 = np.ravel(triangles[:, 0])
+    tria2 = np.ravel(triangles[:, 1])
+    tria3 = np.ravel(triangles[:, 2])
     trs1 = [pointer[tria1[i]] for i in range(nbtriangle)]
     trs2 = [pointer[tria2[i]] for i in range(nbtriangle)]
     trs3 = [pointer[tria3[i]] for i in range(nbtriangle)]
@@ -154,7 +155,8 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
 
     # save data
     timestep_str = list(map(str, timesteps))
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                      point_all_t,
                                       point_c_all_t,
                                       inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
@@ -164,6 +166,7 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
         q.put(mystdout)
     else:
         return
+
 
 def read_mesh_sw2d(geofile, pathfile):
     """
@@ -185,19 +188,19 @@ def read_mesh_sw2d(geofile, pathfile):
             nnod = data[3]
             # reading info on cells
             noNodElem = np.zeros((ncel, 1), dtype=np.int)
-            nnCel = np.zeros((ncel,1), dtype=np.int)
-            data = np.fromfile(f, dtype=np.int32, count=1) #label
+            nnCel = np.zeros((ncel, 1), dtype=np.int)
+            data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(ncel):
                 data = np.fromfile(f, dtype=np.int32, count=3)
                 noNodElem[i] = data[0]
                 nnCel[i] = data[1]
                 data = np.fromfile(f, dtype=np.float, count=4)
-            data = np.fromfile(f, dtype=np.int32, count=1) #end label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading connectivity
             ### listNoNodElem = np.zeros([ncel, np.max(noNodElem)], dtype=np.int)
             listNoNodElem = []
             for i in range(int(ncel)):
-                data = np.fromfile(f, dtype=np.int32, count=1) #label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # label
 
                 ikle = np.zeros(noNodElem[i], dtype=np.int)
 
@@ -207,29 +210,29 @@ def read_mesh_sw2d(geofile, pathfile):
 
                 listNoNodElem.append(ikle)
 
-                data = np.fromfile(f, dtype=np.int32, count=1) #end label
-                data = np.fromfile(f, dtype=np.int32, count=1) #label
-                data = np.fromfile(f, dtype=np.int32, count=int(noNodElem[i])) # cint
-                data = np.fromfile(f, dtype=np.int32, count=1) #end label
-                data = np.fromfile(f, dtype=np.int32, count=1) #label
-                data = np.fromfile(f, dtype=np.int32, count=int(nnCel[i])) # ccel
-                data = np.fromfile(f, dtype=np.int32, count=1) #end label
-                data = np.fromfile(f, dtype=np.int32, count=1) #label
-                data = np.fromfile(f, dtype=np.int32, count=int(noNodElem[i])) # cint
-                data = np.fromfile(f, dtype=np.int32, count=1) #end label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # label
+                data = np.fromfile(f, dtype=np.int32, count=int(noNodElem[i]))  # cint
+                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # label
+                data = np.fromfile(f, dtype=np.int32, count=int(nnCel[i]))  # ccel
+                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # label
+                data = np.fromfile(f, dtype=np.int32, count=int(noNodElem[i]))  # cint
+                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading info on edges
-            data = np.fromfile(f, dtype=np.int32, count=1) #label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(nint):
                 data = np.fromfile(f, dtype=np.int32, count=4)
                 data = np.fromfile(f, dtype=np.float, count=7)
-            data = np.fromfile(f, dtype=np.int32, count=1) #end label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading the coordinates of nodes
             nodesXYZ = np.zeros((nnod, 3))
-            data = np.fromfile(f, dtype=np.int32, count=1) #label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(nnod):
                 nodesXYZ[i,] = np.fromfile(f, dtype=np.float, count=3)
                 data = np.fromfile(f, dtype=np.int32, count=1)
-            data = np.fromfile(f, dtype=np.int32, count=1) #end label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
 
     except IOError:
         print('Error: The .geo file does not exist')
@@ -262,33 +265,33 @@ def read_result_sw2d(resfile, pathfile):
             ###baryXY = np.zeros((ncel, 2))
             baryXY = []
             cxy = np.zeros(2)
-            data = np.fromfile(f, dtype=np.int32, count=1) #label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(ncel):
-                #baryXY[i,] = np.fromfile(f, dtype=np.float, count=2)
+                # baryXY[i,] = np.fromfile(f, dtype=np.float, count=2)
                 cxy = np.fromfile(f, dtype=np.float, count=2)
                 baryXY.append(cxy)
-            data = np.fromfile(f, dtype=np.int32, count=1) #end label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading info on edges
-            data = np.fromfile(f, dtype=np.int32, count=1) #label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(nint):
                 data = np.fromfile(f, dtype=np.int32, count=2)
                 data = np.fromfile(f, dtype=np.float, count=6)
-            data = np.fromfile(f, dtype=np.int32, count=1) #end label
+            data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading results
             times = np.array([]).reshape(0, 1)
             h = np.array([]).reshape(0, ncel)
             v = np.array([]).reshape(0, ncel)
             while True:
-                data = np.fromfile(f, dtype=np.int32, count=1) #label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # label
                 if data.size < 1:
                     break
                 timeval = np.fromfile(f, dtype=np.float, count=1)
                 nvar = np.fromfile(f, dtype=np.int32, count=1)
-                data = np.fromfile(f, dtype=np.int32, count=1) #end label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
                 times = np.vstack([times, timeval])
-                data = np.fromfile(f, dtype=np.int32, count=1) #label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # label
                 result = np.fromfile(f, dtype=np.float, count=ncel)
-                data = np.fromfile(f, dtype=np.int32, count=1) #end label
+                data = np.fromfile(f, dtype=np.int32, count=1)  # end label
                 if nvar == 1:
                     h = np.vstack([h, result])
                 elif nvar == 8:
@@ -299,6 +302,7 @@ def read_result_sw2d(resfile, pathfile):
     f.close()
     return baryXY, np.unique(times), h, v
 
+
 if __name__ == '__main__':
     # read the mesh of sw2d
     result_sw2d_file = 'a.geo'
@@ -308,4 +312,3 @@ if __name__ == '__main__':
     result_sw2d = read_result_sw2d(result_sw2d_file)
 
     print(result_sw2d)
-    

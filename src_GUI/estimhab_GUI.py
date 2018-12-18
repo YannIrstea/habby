@@ -17,13 +17,14 @@ https://github.com/YannIrstea/habby
 import os
 from src import estimhab
 import glob
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
-    QLineEdit, QFileDialog, QListWidget,  QListWidgetItem, \
+    QLineEdit, QFileDialog, QListWidget, QListWidgetItem, \
     QAbstractItemView, QMessageBox, QScrollArea, QFrame
 from PyQt5.QtGui import QFont
 import h5py
@@ -325,7 +326,7 @@ class StatModUseful(QScrollArea):
             q2 = self.qall[0]
             q1 = self.qall[1]
 
-        if q2 < 2*q1:
+        if q2 < 2 * q1:
             self.send_log.emit('Warning: Measured discharge are not very different. The results might '
                                'not be realistic. \n')
         if (self.qall[4] < q1 / 10 or self.qall[4] > 5 * q2) and self.qall[4] != -99:  # q50 not always necessary
@@ -334,7 +335,6 @@ class StatModUseful(QScrollArea):
             self.send_log.emit('Warning: Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n')
         if self.qall[3] < q1 / 10 or self.qall[3] > 5 * q2:
             self.send_log.emit('Warning: Discharge range should be between q1/10 and 5*q2 for optimum results. (1) \n')
-
 
 
 class EstimhabW(StatModUseful):
@@ -436,7 +436,7 @@ class EstimhabW(StatModUseful):
         # empty frame scrolable
         content_widget = QFrame()
 
-        #layout
+        # layout
         self.layout3 = QGridLayout(content_widget)
         self.layout3.addWidget(l1, 0, 0)
         self.layout3.addWidget(l2, 1, 0)
@@ -460,9 +460,9 @@ class EstimhabW(StatModUseful):
         self.layout3.addWidget(self.list_f, 9, 0)
         self.layout3.addWidget(self.list_s, 9, 1)
         self.layout3.addWidget(button1, 10, 2)
-        #self.layout3.addWidget(button2, 10, 0)
+        # self.layout3.addWidget(button2, 10, 0)
 
-        #self.setLayout(self.layout3)
+        # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
@@ -483,7 +483,7 @@ class EstimhabW(StatModUseful):
                     docxml = ET.parse(f)
                     root = docxml.getroot()
                 except IOError:
-                    print("Warning: the xml file " +f + " could not be open \n")
+                    print("Warning: the xml file " + f + " could not be open \n")
                     return
             except ET.ParseError:
                 print("Warning: the xml file " + f + " is not well-formed.\n")
@@ -564,7 +564,7 @@ class EstimhabW(StatModUseful):
         self.path_bio_estimhab = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         # update list
         self.list_f.clear()
-        all_file = glob.glob(os.path.join(self.path_bio_estimhab,r'*.xml'))
+        all_file = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
         # make it look nicer
         for i in range(0, len(all_file)):
             all_file[i] = all_file[i].replace(self.path_bio_estimhab, "")
@@ -621,7 +621,6 @@ class EstimhabW(StatModUseful):
                     fish_list.append(os.path.basename(self.filenames[1][id]))
                     fish_name2.append(fish_item_str)
 
-
         # check internal logic
         if not fish_list:
             self.msge.setIcon(QMessageBox.Warning)
@@ -658,7 +657,7 @@ class EstimhabW(StatModUseful):
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             return
-        if (q[0] > q[1] and h[0] < h[1]) or (q[0] > q[1] and w[0] < w[1]) or (q[1] > q[0] and h[1] < h[0])\
+        if (q[0] > q[1] and h[0] < h[1]) or (q[0] > q[1] and w[0] < w[1]) or (q[1] > q[0] and h[1] < h[0]) \
                 or (q[1] > q[0] and w[1] < w[0]):
             self.msge.setIcon(QMessageBox.Warning)
             self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
@@ -666,8 +665,8 @@ class EstimhabW(StatModUseful):
             self.msge.setStandardButtons(QMessageBox.Ok)
             self.msge.show()
             return
-        if q[0] < 0 or q[1] < 0 or w[0]< 0 or w[1]< 0 or h[0]< 0 or h[1]< 0 or qrange[0]< 0 or qrange[1]< 0 \
-                or substrate < 0 or q50<0:
+        if q[0] < 0 or q[1] < 0 or w[0] < 0 or w[1] < 0 or h[0] < 0 or h[1] < 0 or qrange[0] < 0 or qrange[1] < 0 \
+                or substrate < 0 or q50 < 0:
             self.msge.setIcon(QMessageBox.Warning)
             self.msge.setWindowTitle(self.tr("run ESTIMHAB"))
             self.msge.setText(self.tr("Negative data found. Could not run estimhab. \n"))
@@ -691,13 +690,13 @@ class EstimhabW(StatModUseful):
         # run and save
         path_im = self.find_path_im_est()
         path_txt = self.find_path_text_est()
-        fig_opt = output_fig_GUI.  load_fig_option(self.path_prj, self.name_prj)
+        fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
         [self.VH, self.SPU] = estimhab.estimhab(q, w, h, q50, qrange, substrate, self.path_bio_estimhab, fish_list,
                                                 path_im, True, fig_opt, path_txt, fish_name2)
         self.save_signal_estimhab.emit()
 
-        #log info
+        # log info
         str_found = mystdout.getvalue()
         str_found = str_found.split('\n')
         for i in range(0, len(str_found)):
@@ -708,7 +707,7 @@ class EstimhabW(StatModUseful):
         self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')
         self.send_log.emit("py    path1= os.path.join(os.path.dirname(path_bio),'" + self.path_bio_estimhab + "')")
         fish_list_str = "py    fish_list = ["
-        for i in range(0,len(fish_list)):
+        for i in range(0, len(fish_list)):
             fish_list_str += "'" + fish_list[i] + "',"
         fish_list_str = fish_list_str[:-1] + ']'
         self.send_log.emit(fish_list_str)
@@ -729,6 +728,7 @@ class EstimhabW(StatModUseful):
         # we always do a figure for estmihab
         if path_im != 'no_path':
             self.show_fig.emit()
+
 
 if __name__ == '__main__':
     pass

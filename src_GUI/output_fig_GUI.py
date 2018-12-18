@@ -16,8 +16,9 @@ https://github.com/YannIrstea/habby
 """
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
-    QLineEdit, QSpacerItem, QComboBox, QMessageBox,\
+    QLineEdit, QSpacerItem, QComboBox, QMessageBox, \
     QCheckBox, QScrollArea, QFrame
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -43,7 +44,7 @@ class outputW(QScrollArea):
         self.path_prj = path_prj
         self.name_prj = name_prj
         # list with the available color map
-        self.namecmap = ['coolwarm','jet','magma','viridis', 'inferno', 'plasma', 'Blues',
+        self.namecmap = ['coolwarm', 'jet', 'magma', 'viridis', 'inferno', 'plasma', 'Blues',
                          'Greens', 'Greys', 'Oranges', 'Purples',
                          'Reds', 'gist_earth', 'terrain', 'ocean', ]
         self.msg2 = QMessageBox()
@@ -97,7 +98,7 @@ class outputW(QScrollArea):
         self.fig7a.clicked.connect(lambda: self.check_uncheck(self.fig7a, self.fig7b))
         self.fig7b = QCheckBox(self.tr('Off'), self)
         self.fig7b.clicked.connect(lambda: self.check_uncheck(self.fig7b, self.fig7a))
-        if fig_dict['grid'] == 'True':   # is a string not a boolean
+        if fig_dict['grid'] == 'True':  # is a string not a boolean
             self.fig7a.setChecked(True)
             self.fig7b.setChecked(False)
         else:
@@ -113,7 +114,7 @@ class outputW(QScrollArea):
         self.fig9a.clicked.connect(lambda: self.check_uncheck(self.fig9a, self.fig9b))
         self.fig9b = QCheckBox(self.tr('No'), self)
         self.fig9b.clicked.connect(lambda: self.check_uncheck(self.fig9b, self.fig9a))
-        if fig_dict['raw_data'] == 'True':   # is a string not a boolean
+        if fig_dict['raw_data'] == 'True':  # is a string not a boolean
             self.fig9a.setChecked(True)
             self.fig9b.setChecked(False)
         else:
@@ -153,7 +154,7 @@ class outputW(QScrollArea):
         self.out1a.clicked.connect(lambda: self.check_uncheck(self.out1a, self.out1b))
         self.out1b = QCheckBox(self.tr('No'))
         self.out1b.clicked.connect(lambda: self.check_uncheck(self.out1b, self.out1a))
-        if fig_dict['text_output'] == 'True':   # is a string not a boolean
+        if fig_dict['text_output'] == 'True':  # is a string not a boolean
             self.out1a.setChecked(True)
             self.out1b.setChecked(False)
         else:
@@ -164,7 +165,7 @@ class outputW(QScrollArea):
         self.out2a.clicked.connect(lambda: self.check_uncheck(self.out2a, self.out2b))
         self.out2b = QCheckBox(self.tr('No'))
         self.out2b.clicked.connect(lambda: self.check_uncheck(self.out2b, self.out2a))
-        if fig_dict['shape_output'] == 'True':   # is a string not a boolean
+        if fig_dict['shape_output'] == 'True':  # is a string not a boolean
             self.out2a.setChecked(True)
             self.out2b.setChecked(False)
         else:
@@ -175,7 +176,7 @@ class outputW(QScrollArea):
         self.out3a.clicked.connect(lambda: self.check_uncheck(self.out3a, self.out3b))
         self.out3b = QCheckBox(self.tr('No'))
         self.out3b.clicked.connect(lambda: self.check_uncheck(self.out3b, self.out3a))
-        if fig_dict['paraview'] == 'True':   # is a string not a boolean
+        if fig_dict['paraview'] == 'True':  # is a string not a boolean
             self.out3a.setChecked(True)
             self.out3b.setChecked(False)
         else:
@@ -232,7 +233,7 @@ class outputW(QScrollArea):
         self.layout.addWidget(self.fig12l, 11, 0)
         self.layout.addWidget(self.out9, 12, 0)
 
-        self.layout.addWidget(self.fig1, 1, 1 ,1, 2)
+        self.layout.addWidget(self.fig1, 1, 1, 1, 2)
         self.layout.addWidget(self.fig2, 2, 1, 1, 2)
         self.layout.addWidget(self.fig3, 3, 1, 1, 2)
         self.layout.addWidget(self.fig5, 4, 1, 1, 2)
@@ -250,12 +251,12 @@ class outputW(QScrollArea):
 
         self.layout.addWidget(self.outgen, 0, 3)
         self.layout.addWidget(self.l1, 1, 3)
-        self.layout.addWidget(self.hopt, 1, 4,1, 2)
+        self.layout.addWidget(self.hopt, 1, 4, 1, 2)
         self.layout.addWidget(self.out5, 2, 3)
         self.layout.addWidget(self.out5a, 2, 4)
         self.layout.addWidget(self.out5b, 2, 5)
 
-        self.layout.addWidget(self.out0, 3, 3,2,1)
+        self.layout.addWidget(self.out0, 3, 3, 2, 1)
         self.layout.addWidget(self.out1, 5, 3)
         self.layout.addWidget(self.out1a, 5, 4)
         self.layout.addWidget(self.out1b, 5, 5)
@@ -415,7 +416,7 @@ class outputW(QScrollArea):
             doc = ET.parse(fname)
             root = doc.getroot()
             child1 = root.find(".//Figure_Option")
-            if child1 is not None: # modify existing option
+            if child1 is not None:  # modify existing option
                 width1 = root.find(".//Width")
                 height1 = root.find(".//Height")
                 colormap1 = root.find(".//ColorMap1")
@@ -450,14 +451,14 @@ class outputW(QScrollArea):
                 format1 = ET.SubElement(child1, "Format")
                 reso1 = ET.SubElement(child1, "Resolution")
                 fish1 = ET.SubElement(child1, "FishNameType")
-                marker1 = ET.SubElement(child1,"Marker")
+                marker1 = ET.SubElement(child1, "Marker")
                 text1 = ET.SubElement(child1, "TextOutput")
                 shape1 = ET.SubElement(child1, "ShapeOutput")
                 para1 = ET.SubElement(child1, "ParaviewOutput")
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
                 fishinfo1 = ET.SubElement(child1, "FishInfo")
-                erase1 = ET.SubElement(child1,"EraseId")
+                erase1 = ET.SubElement(child1, "EraseId")
             width1.text = str(fig_dict['width'])
             height1.text = str(fig_dict['height'])
             colormap1.text = fig_dict['color_map1']
@@ -465,7 +466,7 @@ class outputW(QScrollArea):
             fontsize1.text = str(fig_dict['font_size'])
             linewidth1.text = str(fig_dict['line_width'])
             grid1.text = str(fig_dict['grid'])
-            time1.text = str(fig_dict['time_step']) # -99 is all time steps
+            time1.text = str(fig_dict['time_step'])  # -99 is all time steps
             raw1.text = str(fig_dict['raw_data'])
             format1.text = str(fig_dict['format'])
             reso1.text = str(fig_dict['resolution'])
@@ -504,7 +505,7 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
     fname = os.path.join(path_prj, name_prj + '.xml')
     # save the name and the path in the xml .prj file
     if not os.path.isfile(fname):
-        #print('Error: project is not found \n')
+        # print('Error: project is not found \n')
         return
     else:
         doc = ET.parse(fname)
@@ -579,7 +580,7 @@ def load_fig_option(path_prj, name_prj):
                 if grid1 is not None:
                     fig_dict['grid'] = grid1.text
                 if time1 is not None:
-                    fig_dict['time_step'] = time1.text # -99 is all
+                    fig_dict['time_step'] = time1.text  # -99 is all
                 if raw1 is not None:
                     fig_dict['raw_data'] = raw1.text
                 if format1 is not None:

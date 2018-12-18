@@ -52,7 +52,7 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
     """
 
     file_names_all = []
-    if len(file_name_base)>60:
+    if len(file_name_base) > 60:
         file_name_base = os.path.join(path_out, file_name_base)[:-25]
     else:
         file_name_base = os.path.join(path_out, file_name_base)
@@ -114,7 +114,6 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
                 file_names_all.append(name_here)
                 hl.unstructuredGridToVTK(fileName + '_t' + str(t), x, y, z, connectivity, offsets, cell_types, cellData)
 
-
         # create the "grouping" file to read all time step together
         name_here = fileName + '.pvd'
         if erase_id:
@@ -159,7 +158,8 @@ def writePVD(fileName, fileNames):
     pvd.writexml(outFile, newl='\n')
     outFile.close()
 
-def save_slf(name_hdf5, path_hdf5, path_slf, merge, output_name='', habitat = []):
+
+def save_slf(name_hdf5, path_hdf5, path_slf, merge, output_name='', habitat=[]):
     """
     This is a function to export slf.
 
@@ -177,13 +177,13 @@ def save_slf(name_hdf5, path_hdf5, path_slf, merge, output_name='', habitat = []
     else:
         [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
             = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge)
-    if isinstance(ikle_all_t[0][0], int) and  ikle_all_t[0][0]== -99:
+    if isinstance(ikle_all_t[0][0], int) and ikle_all_t[0][0] == -99:
         print('Error: Hdf5 file not loaded \n')
         return
 
-    #print(ikle_all_t[1][0])
+    # print(ikle_all_t[1][0])
     if not output_name:
-        filename=os.path.join(path_slf,name_hdf5[:-3] + '.slf')
+        filename = os.path.join(path_slf, name_hdf5[:-3] + '.slf')
     else:
         filename = os.path.join(path_slf, output_name + '.slf')
     f = open(filename, "w")
@@ -199,11 +199,11 @@ def main():
     name_hdf5 = r'MERGE_Hydro_RUBAR2D_BS15a621_03_2017_at_10_15_45.h5'
     blob = None
     path_vtk = r'D:\Diane_work\dummy_folder\res_vtk'
-    fileName = os.path.join(path_vtk,'test')
+    fileName = os.path.join(path_vtk, 'test')
     path_bio = r'C:\Users\diane.von-gunten\HABBY\biology'
 
-    #[vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp] = calcul_hab.calc_hab(name_hdf5, path_hdf5, ['BAM01.xml'], ['juvenile'], path_bio, 0)
-    #habitat_to_vtu(fileName, path_vtk, path_hdf5, name_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, ['BAM'], True)
+    # [vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp] = calcul_hab.calc_hab(name_hdf5, path_hdf5, ['BAM01.xml'], ['juvenile'], path_bio, 0)
+    # habitat_to_vtu(fileName, path_vtk, path_hdf5, name_hdf5, vh_all_t_sp, vel_c_att_t, height_c_all_t, ['BAM'], True)
 
 
 if __name__ == '__main__':

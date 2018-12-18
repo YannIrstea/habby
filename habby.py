@@ -130,8 +130,6 @@ def main():
 
 
 if __name__ == '__main__':
-
-
     # necessary to freeze the application with parallel process
     multiprocessing.freeze_support()
     main()

@@ -180,11 +180,11 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
 
             # cases where the discharge is already known
             if d == dis_max:
-                ikle_all_new.append(ikle_all_m[indh+1])
-                point_all_new.append(point_all_m[indh+1])
+                ikle_all_new.append(ikle_all_m[indh + 1])
+                point_all_new.append(point_all_m[indh + 1])
                 inter_vel_all_new.append(inter_vel_all_m[indh + 1])
                 inter_height_all_new.append(inter_height_all_m[indh + 1])
-                substrate_pg_all_new.append(substrate_pg_all_m[indh+1])
+                substrate_pg_all_new.append(substrate_pg_all_m[indh + 1])
                 substrate_dom_all_new.append(substrate_dom_all_m[indh + 1])
             elif d == dis_min:
                 ikle_all_new.append(ikle_all_m[indh])
@@ -215,11 +215,11 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
             else:
                 # we use the grid of the higher discharge
                 # (often the bigger one even if not true everywhere)
-                ikle_here_all_r = ikle_all_m[indh+1]
-                point_here_all_r = point_all_m[indh+1]
+                ikle_here_all_r = ikle_all_m[indh + 1]
+                point_here_all_r = point_all_m[indh + 1]
                 vel_base_here_high = inter_vel_all_m[indh + 1]
                 height_base_here_high = inter_height_all_m[indh + 1]
-                substrate_pg_base_here_high = substrate_pg_all_m[indh+1]
+                substrate_pg_base_here_high = substrate_pg_all_m[indh + 1]
                 substrate_dom_base_here_high = substrate_dom_all_m[indh + 1]
 
                 # check if an interpolation between these two discharges exists
@@ -270,16 +270,16 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
                 # get the velocity and the heigth data
                 # data = (1_x)* data_low + x * data_low where x
                 # depends on the dicharge d
-                x = (d-dis_min)/(dis_max - dis_min)
+                x = (d - dis_min) / (dis_max - dis_min)
                 if x > 1 or x < 0:
                     x = 0.0
                 vel_here = []
                 height_here = []
                 for r in range(0, len(vel_base_here)):
-                    vel_here_r = (1-x) * vel_base_here[r]\
-                        + x * vel_base_here_high[r]
-                    height_here_r = (1-x) * height_base_here[r]\
-                        + x * height_base_here_high[r]
+                    vel_here_r = (1 - x) * vel_base_here[r] \
+                                 + x * vel_base_here_high[r]
+                    height_here_r = (1 - x) * height_base_here[r] \
+                                    + x * height_base_here_high[r]
                     vel_here.append(vel_here_r)
                     height_here.append(height_here_r)
 
@@ -300,8 +300,8 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
                 [ikle_here_all_r, point_here_all_r, height_here,
                  vel_here, ind_new_all] = \
                     manage_grid_8.cut_2d_grid_all_reach(
-                    ikle_here_all_r, point_here_all_r, height_here, vel_here,
-                    min_height, True)
+                        ikle_here_all_r, point_here_all_r, height_here, vel_here,
+                        min_height, True)
 
                 # figures to debug cutting
                 # manage_grid_8.plot_grid_simple(point_here_all_r,
@@ -324,10 +324,10 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
                 sub_pg_all_r = []
                 sub_dom_all_r = []
                 for r in range(0, len(ikle_here_all_r)):
-                    sub_pg_here =\
-                     [substrate_pg_base_here_high[r][i] for i in ind_new_all[r]]
-                    sub_dom_here =\
-                     [substrate_dom_base_here_high[r][i] for i in ind_new_all[r]]
+                    sub_pg_here = \
+                        [substrate_pg_base_here_high[r][i] for i in ind_new_all[r]]
+                    sub_dom_here = \
+                        [substrate_dom_base_here_high[r][i] for i in ind_new_all[r]]
                     sub_pg_all_r.append(sub_pg_here)
                     sub_dom_all_r.append(sub_dom_here)
                 substrate_pg_all_new.append(sub_pg_all_r)

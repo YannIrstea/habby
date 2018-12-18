@@ -23,7 +23,7 @@ from io import StringIO
 import sys
 import time
 from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
-    show, subplot, fill_between, rcParams, savefig, close, rcParams,suptitle
+    show, subplot, fill_between, rcParams, savefig, close, rcParams, suptitle
 import matplotlib as mpl
 from src import manage_grid_8
 from src import load_hdf5
@@ -66,12 +66,13 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
         fig_opt = output_fig_GUI.create_default_figoption()
 
     # load the hec-ra data (the function is just below)
-    [coord_pro, vh_pro, nb_pro_reach, sim_name] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1], path_im,
-                                                    save_fig1d, fig_opt)
+    [coord_pro, vh_pro, nb_pro_reach, sim_name] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1],
+                                                              path_im,
+                                                              save_fig1d, fig_opt)
     # manager error
     if save_fig1d:  # to avoid problem with matplotlib
         close()
-    if coord_pro == [-99] or len(vh_pro) <1:
+    if coord_pro == [-99] or len(vh_pro) < 1:
         print('Error: HEC-RAS data not loaded')
         if q:
             sys.stdout = sys.__stdout__
@@ -95,8 +96,10 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
             return
 
     # save the hdf5 file
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
-                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
+                                      point_all_t,
+                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
+                                      nb_pro_reach,
                                       sim_name=sim_name, hdf5_type="hydraulic")
 
     if not print_cmd:
@@ -108,7 +111,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
         return
 
 
-def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False, fig_opt =[]):
+def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False, fig_opt=[]):
     """
     This function will open HEC-RAS outputs, i.e. the .geo file and the outputs (either .XML, .sdf or .rep) from HEC-RAS.
     All arguments from this function are string.
@@ -172,7 +175,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
     # load the xml, rep, or sdf file to get velocity and wse
     blob, ext = os.path.splitext(res_file)
     if ext == ".xml":
-         [vel, wse, riv_name, nb_sim, sim_name] = open_xmlfile(res_file, reach_name, path_res)
+        [vel, wse, riv_name, nb_sim, sim_name] = open_xmlfile(res_file, reach_name, path_res)
     elif ext == ".sdf":
         try:
             [vel, wse, riv_name, nb_sim, sim_name] = open_sdffile(res_file, reach_name, path_res)
@@ -188,7 +191,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
         [vel, wse, riv_name, nb_sim, sim_name] = open_xmlfile(res_file, reach_name, path_res)
     # if data could not be extracted
     if vel == [-99]:
-        return  [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99]
     # get water height in the (x,y coordinate) and get the velocity in the (x,y) coordinates
     # velocity is by zone (between 2 points) and height is on the node
     # maximum distance between two velocity point: yTO BE DEFINED
@@ -216,7 +219,7 @@ def open_hecras(geo_file, res_file, path_geo, path_res, path_im, save_fig=False,
         for t in tfig:
             t = int(t)
             if t < len(xy_h):
-                figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, fig_opt,  t, riv_name)
+                figure_xml(data_profile, coord_pro_old, coord_r, xy_h, zone_v, pro, path_im, fig_opt, t, riv_name)
 
     # update the form of the vector to be coherent with rubar and mascaret
     [coord_pro, vh_pro, nb_pro_reach] = update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach)
@@ -282,7 +285,7 @@ def open_xmlfile(xml_file, reach_name, path):
     try:
         sim_name = root.findall(".//ProfileNames")
         sim_name = str(sim_name[0].text)
-        sim_name = sim_name[1:-1] # erase firt and last " sign
+        sim_name = sim_name[1:-1]  # erase firt and last " sign
         sim_name = sim_name.split('" "')
         nb_sim = len(sim_name)
         for si in range(0, nb_sim):
@@ -343,19 +346,19 @@ def open_xmlfile(xml_file, reach_name, path):
         river_xml = root.findall(".//River")
         reach_xml = root.findall(".//Reach")
         for p in range(0, nbstat):
-            reach_xml_p = str(reach_xml[int(np.floor(p/nb_sim))].text)
-            river_xml_p = str(river_xml[int(np.floor(p/nb_sim))].text)
-            name_reach_p = river_xml_p+','+reach_xml_p
+            reach_xml_p = str(reach_xml[int(np.floor(p / nb_sim))].text)
+            river_xml_p = str(river_xml[int(np.floor(p / nb_sim))].text)
+            name_reach_p = river_xml_p + ',' + reach_xml_p
             name_reach_xml.append(name_reach_p)
         name_reach_xml = np.array(name_reach_xml)
         m = 0
         for r in range(0, len(reach_name)):
             f_reach = np.where(name_reach_xml == reach_name[r])
             f_reach = np.squeeze(f_reach)
-            for i in range(0, len(f_reach)): # list in this case cannot be changed to numpy.array
-                data_wse[m+i] = data_wse2[f_reach[i]]
-                data_vel[m+i] = data_vel2[f_reach[i]]
-                riv_name[m+i] = riv_name2[f_reach[i]]
+            for i in range(0, len(f_reach)):  # list in this case cannot be changed to numpy.array
+                data_wse[m + i] = data_wse2[f_reach[i]]
+                data_vel[m + i] = data_vel2[f_reach[i]]
+                riv_name[m + i] = riv_name2[f_reach[i]]
 
             m += len(f_reach)
         if m == 0:
@@ -387,7 +390,7 @@ def load_xml(xml_file, path):
             docxml = Etree.parse(os.path.join(path, xml_file))
             root = docxml.getroot()
         except IOError:
-            print("Error: the file "+xml_file+" does not exist\n")
+            print("Error: the file " + xml_file + " does not exist\n")
             return [-99]
     except Etree.ParseError:
         print('Error: the XML is not well-formed.\n')
@@ -438,7 +441,7 @@ def open_geofile(geo_file, path):
     not a “real” profile, but the representation of a bridge or a culvert.
     """
 
-    failload = [-99],[-99], [-99], '-99', [-99], [-99]
+    failload = [-99], [-99], [-99], '-99', [-99], [-99]
     # check that the geo file has the right extension (.goX)
     blob, ext_geo = os.path.splitext(geo_file)
     if ext_geo[:3] == '.G0':
@@ -451,14 +454,14 @@ def open_geofile(geo_file, path):
         with open(os.path.join(path, geo_file), 'rt') as f:
             data_geo = f.read()
     except IOError or UnicodeDecodeError:
-        print("Error: the file "+geo_file+" does not exist.\n")
+        print("Error: the file " + geo_file + " does not exist.\n")
         return failload
 
     # find the (x,z) data related to the profiles.
-        # HEC_RAS manual p5-4: the geometry file is for-the-most-part self explanotary.
-        # Unfortunately not for me. :-(
-        # look for all Stat/Elev, then get rid of everything until next line
-        # then save all data until not a digit (or white space) arrive
+    # HEC_RAS manual p5-4: the geometry file is for-the-most-part self explanotary.
+    # Unfortunately not for me. :-(
+    # look for all Stat/Elev, then get rid of everything until next line
+    # then save all data until not a digit (or white space) arrive
 
     exp_reg1 = "Sta/Elev=\s+\d+\s*\n([\s+\d+\.-]+)"
     data_profile_str = re.findall(exp_reg1, data_geo, re.DOTALL)
@@ -468,8 +471,8 @@ def open_geofile(geo_file, path):
     data_profile = []
     try:
         for i in range(0, len(data_profile_str)):
-                xz = pass_in_float_from_geo(data_profile_str[i], 8)
-                data_profile.append(xz)  # fill a list with an array (x,z) for each profile
+            xz = pass_in_float_from_geo(data_profile_str[i], 8)
+            data_profile.append(xz)  # fill a list with an array (x,z) for each profile
     except ValueError:
         print('Error: The profile data could be extracted from the geometry file. The format should be checked. \n')
         return failload
@@ -503,7 +506,8 @@ def open_geofile(geo_file, path):
         data_bank_right = list(map(float, data_bank_str[:, 1]))
         data_bank = np.column_stack((data_bank_left, data_bank_right))
     except ValueError:
-        print('Error: The location of the bank stations on the profile could not be extracted from the geometry file.\n')
+        print(
+            'Error: The location of the bank stations on the profile could not be extracted from the geometry file.\n')
         return failload
 
     # load the order of the reaches and rivers in .geo file
@@ -524,13 +528,13 @@ def open_geofile(geo_file, path):
     # necessary if more than one reach and not georeferenced
     nb_pro_reach = np.zeros(len(reach_name))
     if len(reach_name) > 1:
-        for i in range(0, len(reach_name)-1):
-            a = data_geo.find('River Reach='+reach_name_ini[i])
-            b = data_geo.find('River Reach='+reach_name_ini[i+1])
+        for i in range(0, len(reach_name) - 1):
+            a = data_geo.find('River Reach=' + reach_name_ini[i])
+            b = data_geo.find('River Reach=' + reach_name_ini[i + 1])
             reach_nb_str = data_geo[a:b]
             nb_pro_reach[i] = int(reach_nb_str.count('#Sta/Elev='))
         reach_nb_str = data_geo[b:]
-        nb_pro_reach[i+1] = int(reach_nb_str.count('#Sta/Elev='))
+        nb_pro_reach[i + 1] = int(reach_nb_str.count('#Sta/Elev='))
         check_nb_pro_reach = len(data_profile_str) - np.sum(nb_pro_reach)
         if check_nb_pro_reach > 1:
             print("Warning: The number of profile by reach might not be right.\n")
@@ -556,7 +560,7 @@ def open_geofile(geo_file, path):
             # Manage the cases where no distance is given in the .geo file
             if ",," in data_dist_str_i:
                 # if we are on the last profile, let it pass
-                if i == len(data_dist_str)-1:
+                if i == len(data_dist_str) - 1:
                     data_dist_str_i = '-99,0,-99'
                 else:  # erase (it is probably a bridge or culvert or other)
                     print('Warning: At least one distance between profile is not found. Distance data erased.\
@@ -564,7 +568,7 @@ def open_geofile(geo_file, path):
                     erase = True
                     data_dist_str_i = '-99,0,-99'
             if data_dist_str_i[0] == ',':
-                data_dist_str_i = '-99'+data_dist_str_i
+                data_dist_str_i = '-99' + data_dist_str_i
                 print('Warning: One distance between left overbanks is not found.\n')
             if data_dist_str_i[-1] == ',':
                 data_dist_str_i += '-99'
@@ -583,9 +587,9 @@ def open_geofile(geo_file, path):
         for i in range(0, len(data_xy_pro_str)):
             data_xy_i_str = data_xy_pro_str[i]
             data_xy_i_str = data_xy_i_str.replace('\n', '')
-            data_xy_i_str = [data_xy_i_str[i:i+16] for i in range(0, len(data_xy_i_str), 16)]
-            data_pro_x = np.array(list(map(float,data_xy_i_str[0::2])))
-            data_pro_y = np.array(list(map(float,data_xy_i_str[1::2])))
+            data_xy_i_str = [data_xy_i_str[i:i + 16] for i in range(0, len(data_xy_i_str), 16)]
+            data_pro_x = np.array(list(map(float, data_xy_i_str[0::2])))
+            data_pro_y = np.array(list(map(float, data_xy_i_str[1::2])))
             xy = np.column_stack((data_pro_x, data_pro_y))  # or xy
             coord_p.append(xy)
     else:
@@ -631,9 +635,9 @@ def coord_profile_non_georeferenced(data_bank_all, data_dist_all, data_river_all
     for r in range(0, len(data_river_all)):
         # get the data for this reach
         data_river = data_river_all[r]
-        data_bank = data_bank_all[ap:ap+int(nb_pro_reach[r])]
-        data_dist = data_dist_all[ap:ap+int(nb_pro_reach[r])]
-        data_profile = data_profile_all[ap:ap+int(nb_pro_reach[r])]
+        data_bank = data_bank_all[ap:ap + int(nb_pro_reach[r])]
+        data_dist = data_dist_all[ap:ap + int(nb_pro_reach[r])]
+        data_profile = data_profile_all[ap:ap + int(nb_pro_reach[r])]
         data_dist[-1] = [0, 0, 0]  # HYP: last profile at the end of the profile
         ap += int(nb_pro_reach[r])
         # find the relationship between distance in (x,y) and distance in m or feet
@@ -655,46 +659,52 @@ def coord_profile_non_georeferenced(data_bank_all, data_dist_all, data_river_all
         coord_p_0[2, :] = data_river[0, :]
         #  find the vector perpendicular to river (= profile)
         vec_pro = [data_river[1, 1] - data_river[0, 1], data_river[0, 0] - data_river[1, 0]]
-        vec_pro_n1 = vec_pro / np.sqrt(vec_pro[0]**2+vec_pro[1]**2)
+        vec_pro_n1 = vec_pro / np.sqrt(vec_pro[0] ** 2 + vec_pro[1] ** 2)
         # HYPOTHESIS: the river pass in the middle of the left and right bank station
-        dist_left_pro = (data_bank[0, 0] - data_profile_0[0, 0]) * alpha + 0.5 * (data_bank[0, 1] - data_bank[0, 0]) * alpha
+        dist_left_pro = (data_bank[0, 0] - data_profile_0[0, 0]) * alpha + 0.5 * (
+                    data_bank[0, 1] - data_bank[0, 0]) * alpha
         dist_right_pro = (data_profile_0[-1, 0] - data_profile_0[0, 0]) * alpha - dist_left_pro
         # find the right and left end coordinates
         coord_p_0[4, :] = vec_pro_n1 * dist_right_pro + coord_p_0[2, :]
         coord_p_0[0, :] = -vec_pro_n1 * dist_left_pro + coord_p_0[2, :]
         # find the left and right river bank
-        coord_p_0[3, :] = vec_pro_n1 * (data_bank[0, 0] - data_profile_0[0, 0])*alpha + coord_p_0[0, :]
-        coord_p_0[1, :] = vec_pro_n1 * (data_bank[0, 1] - data_profile_0[0, 0])*alpha + coord_p_0[0, :]
+        coord_p_0[3, :] = vec_pro_n1 * (data_bank[0, 0] - data_profile_0[0, 0]) * alpha + coord_p_0[0, :]
+        coord_p_0[1, :] = vec_pro_n1 * (data_bank[0, 1] - data_profile_0[0, 0]) * alpha + coord_p_0[0, :]
         coord_p[ar, :, :] = coord_p_0
 
         dact = 0.0
         m = 1
         # find the profiles
-        for i in range(0, len(data_river)-1):
+        for i in range(0, len(data_river) - 1):
             # find the coord of the points on the river where the profiles are
             ri = dist_riv[(dist_riv > dact) & (dist_riv <= dact + dist_xy[i])]
-            alpha_r = (ri-dact) / dist_xy[i]
+            alpha_r = (ri - dact) / dist_xy[i]
             # coordinates crossing between profile and river
-            coord_p[ar+m:ar+m+len(ri), 2, 0] = data_river[i, 0] + alpha_r * (data_river[i+1, 0] - data_river[i, 0])
-            coord_p[ar+m:ar+m+len(ri), 2, 1] = data_river[i, 1] + alpha_r * (data_river[i+1, 1] - data_river[i, 1])
+            coord_p[ar + m:ar + m + len(ri), 2, 0] = data_river[i, 0] + alpha_r * (
+                        data_river[i + 1, 0] - data_river[i, 0])
+            coord_p[ar + m:ar + m + len(ri), 2, 1] = data_river[i, 1] + alpha_r * (
+                        data_river[i + 1, 1] - data_river[i, 1])
             # find the coord of the two points where are the river banks
             # vec_r = data_river[i+1 ,:] - data_river[i, :]
-            vec_pro = [data_river[i+1, 1] - data_river[i, 1], - data_river[i+1, 0] + data_river[i, 0]]
-            vec_pro_n1 = vec_pro / np.sqrt(vec_pro[0]**2+vec_pro[1]**2)
-            dist_bank = alpha * (data_bank[m:m+len(ri), 1] - data_bank[m:m+len(ri), 0]) / 2
-            coord_p[ar+m:ar+m+len(ri), 3, 0] = dist_bank * vec_pro_n1[0] + coord_p[ar+m:ar+m+len(ri), 2, 0]
-            coord_p[ar+m:ar+m+len(ri), 3, 1] = dist_bank * vec_pro_n1[1] + coord_p[ar+m:ar+m+len(ri), 2, 1]
-            coord_p[ar+m:ar+m+len(ri), 1, 0] = - dist_bank * vec_pro_n1[0] + coord_p[ar+m:ar+m+len(ri), 2, 0]
-            coord_p[ar+m:ar+m+len(ri), 1, 1] = - dist_bank * vec_pro_n1[1] + coord_p[ar+m:ar+m+len(ri), 2, 1]
+            vec_pro = [data_river[i + 1, 1] - data_river[i, 1], - data_river[i + 1, 0] + data_river[i, 0]]
+            vec_pro_n1 = vec_pro / np.sqrt(vec_pro[0] ** 2 + vec_pro[1] ** 2)
+            dist_bank = alpha * (data_bank[m:m + len(ri), 1] - data_bank[m:m + len(ri), 0]) / 2
+            coord_p[ar + m:ar + m + len(ri), 3, 0] = dist_bank * vec_pro_n1[0] + coord_p[ar + m:ar + m + len(ri), 2, 0]
+            coord_p[ar + m:ar + m + len(ri), 3, 1] = dist_bank * vec_pro_n1[1] + coord_p[ar + m:ar + m + len(ri), 2, 1]
+            coord_p[ar + m:ar + m + len(ri), 1, 0] = - dist_bank * vec_pro_n1[0] + coord_p[ar + m:ar + m + len(ri), 2,
+                                                                                   0]
+            coord_p[ar + m:ar + m + len(ri), 1, 1] = - dist_bank * vec_pro_n1[1] + coord_p[ar + m:ar + m + len(ri), 2,
+                                                                                   1]
             # find the end of the profile
             # HYPOTHESIS: Straight profile
             for j in range(0, len(ri)):
-                data_profile_j = data_profile[m+j]
-                dist_left_pro = (data_bank[m+j, 0] - data_profile_j[0, 0]) * alpha + 0.5 * (data_bank[m+j, 1] - data_bank[m+j, 0]) * alpha
+                data_profile_j = data_profile[m + j]
+                dist_left_pro = (data_bank[m + j, 0] - data_profile_j[0, 0]) * alpha + 0.5 * (
+                            data_bank[m + j, 1] - data_bank[m + j, 0]) * alpha
                 dist_right_pro = (data_profile_j[-1, 0] - data_profile_j[0, 0]) * alpha - dist_left_pro
-                coord_p[ar+m+j, 4, :] = vec_pro_n1 * dist_right_pro + coord_p[ar+m+j, 2, :]
-                coord_p[ar+m+j, 0, :] = -vec_pro_n1 * dist_left_pro + coord_p[ar+m+j, 2, :]
-            #just in case
+                coord_p[ar + m + j, 4, :] = vec_pro_n1 * dist_right_pro + coord_p[ar + m + j, 2, :]
+                coord_p[ar + m + j, 0, :] = -vec_pro_n1 * dist_left_pro + coord_p[ar + m + j, 2, :]
+            # just in case
             dact += dist_xy[i]
             m += len(ri)
 
@@ -743,7 +753,7 @@ def open_sdffile(sdf_file, reach_name, path):
         with open(os.path.join(path, sdf_file), 'rt') as f:
             data_sdf = f.read()
     except IOError:
-        print("Error: the file "+sdf_file+" does not exist.\n")
+        print("Error: the file " + sdf_file + " does not exist.\n")
         return [-99], [-99], '-99', -99
 
     # get the velocity data
@@ -757,9 +767,9 @@ def open_sdffile(sdf_file, reach_name, path):
     vel = []
     try:
         for i in range(0, len(vel_str)):
-                vel_str[i] = vel_str[i].replace(',', ' ')
-                vel_i = pass_in_float_from_geo(vel_str[i], -99)  # HYP: No data given without space -> -99
-                vel.append(vel_i)
+            vel_str[i] = vel_str[i].replace(',', ' ')
+            vel_i = pass_in_float_from_geo(vel_str[i], -99)  # HYP: No data given without space -> -99
+            vel.append(vel_i)
     except ValueError:
         print('Error: The velocity data could not be extracted from the sdf file.\n')
         return [-99], [-99], '-99', -99
@@ -773,11 +783,11 @@ def open_sdffile(sdf_file, reach_name, path):
     wse = []
     try:
         for i in range(0, len(wse_str)):
-                wse_str[i] = wse_str[i].replace(',', ' ')
-                sep_str = wse_str[i].split()
-                wse_i = list(map(float, sep_str))
-                for j in range(0, len(wse_i)):
-                    wse.append(wse_i[j])
+            wse_str[i] = wse_str[i].replace(',', ' ')
+            sep_str = wse_str[i].split()
+            wse_i = list(map(float, sep_str))
+            for j in range(0, len(wse_i)):
+                wse.append(wse_i[j])
     except ValueError:
         print('Error: The water height data could not be extracted from the sdf file.\n')
         return [-99], [-99], '-99', -99
@@ -813,7 +823,7 @@ def open_sdffile(sdf_file, reach_name, path):
         return [-99], [-99], '-99', -99
 
     # get the simulation name or the name of the time steps
-    exp_reg_n = "PROFILE ID:(.+)\n|$" # $ to avoid problem if no match is found
+    exp_reg_n = "PROFILE ID:(.+)\n|$"  # $ to avoid problem if no match is found
     sim_name_all = re.findall(exp_reg_n, data_sdf2[0])
     sim_name = []
     for s in sim_name_all:
@@ -835,7 +845,7 @@ def open_sdffile(sdf_file, reach_name, path):
     if not riv_name:
         print('Warning: Profile name could not be extracted from the sdf file.\n')
 
-    [wse, vel, riv_name] = reorder_reach(wse, vel,riv_name, reach_name, reach_str, stream_str, nb_sim)
+    [wse, vel, riv_name] = reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim)
 
     riv_name = riv_name[::nb_sim]  # get the name only once
     return vel, wse, riv_name, nb_sim, sim_name
@@ -868,9 +878,9 @@ def reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim)
         riv_name2 = np.copy(riv_name)
         name_reach_sdf = []
         for p in range(0, len(vel)):
-            reach_p = reach_str[int(np.floor(p/nb_sim))]
-            river_p = stream_str[int(np.floor(p/nb_sim))]
-            name_reach_p = river_p+','+reach_p
+            reach_p = reach_str[int(np.floor(p / nb_sim))]
+            river_p = stream_str[int(np.floor(p / nb_sim))]
+            name_reach_p = river_p + ',' + reach_p
             name_reach_sdf.append(name_reach_p)
         name_reach_sdf = np.array(name_reach_sdf)
         m = 0
@@ -880,10 +890,10 @@ def reorder_reach(wse, vel, riv_name, reach_name, reach_str, stream_str, nb_sim)
             f_reach = np.where(name_reach_sdf == reach_name[r])
             f_reach = np.squeeze(f_reach)
             for i in range(0, len(f_reach)):  # list in this case cannot be changed to numpy.array
-                wse[m+i] = wse2[f_reach[i]]
-                vel[m+i] = vel2[f_reach[i]]
+                wse[m + i] = wse2[f_reach[i]]
+                vel[m + i] = vel2[f_reach[i]]
                 try:
-                    riv_name[m+i] = riv_name2[f_reach[i]]
+                    riv_name[m + i] = riv_name2[f_reach[i]]
                 except IndexError:
                     if out_print:
                         print("Error: Some reaches are possibly missing. It is necessary to export all reaches.\n")
@@ -951,8 +961,8 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
         with open(os.path.join(path, report_file), 'rt') as f:
             data_rep = f.read()
     except IOError:
-        print("Error: the file "+report_file+" does not exist.\n")
-        return [-99],[-99], -99, '-99'
+        print("Error: the file " + report_file + " does not exist.\n")
+        return [-99], [-99], -99, '-99'
 
     # obtain WSE data
     exp_reg = "W.S. Elev\s*\(\D+\)\s*([\d\.-]+)\D"
@@ -969,7 +979,7 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     # it is not really given so we we could the number of cross section output
     exp_reg1 = 'CROSS SECTION OUTPUT'
     cros_sec_o = re.findall(exp_reg1, data_rep)
-    nb_sim = len(cros_sec_o)/len(data_profile)
+    nb_sim = len(cros_sec_o) / len(data_profile)
     if np.floor(nb_sim) != nb_sim:
         print("Warning: The number of simulation does not seems right. It should be an integer.\n")
     nb_sim = int(nb_sim)
@@ -982,7 +992,7 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     reach_str = []
     pro_str = []
     stream_str = []
-    for i in range(0,len(name_str)):
+    for i in range(0, len(name_str)):
         exp_reg1 = "RIVER:\s*(.+)\n"
         exp_reg2 = "RS:\s*(.+)\n"
         exp_reg3 = "REACH:\s*(.+)\n"
@@ -990,14 +1000,14 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
         pro_str_i = re.findall(exp_reg2, name_str[i])
         reach_str_i = re.findall(exp_reg3, name_str[i])
         reach_str_i = reach_str_i[0]
-        reach_str_i = reach_str_i[:len(reach_str_i) - len(pro_str_i[0]) - 4]   # -4 because RS:
+        reach_str_i = reach_str_i[:len(reach_str_i) - len(pro_str_i[0]) - 4]  # -4 because RS:
         reach_str.append(reach_str_i)
         pro_str.append(pro_str_i[0])
         stream_str.append(stream_str_i[0])
     reach_str = get_rid_of_white_space(reach_str)
     pro_str = get_rid_of_white_space(pro_str)
     stream_str = get_rid_of_white_space(stream_str)
-    riv_name = pro_str # just to kkep the same variable name
+    riv_name = pro_str  # just to kkep the same variable name
 
     # obtain the name of the time steps
     exp_reg4 = 'Profile #(.+)'
@@ -1027,10 +1037,10 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
             vel_av_str_i = vel_av_str[i].split()
             # the three velocities are not always present. Find which velocity is present
             if len(vel_av_str_i) == 1:  # it will be the center velocity in this case
-                    m.append([1])
+                m.append([1])
             if len(vel_av_str_i) == 2:
                 vel_av_str_i_whole = vel_av_str[i]
-                if not vel_av_str_i_whole[-8:].split():  #if empty
+                if not vel_av_str_i_whole[-8:].split():  # if empty
                     m.append([0, 1])  # velocity is on Left OB in this case
                 else:
                     m.append([1, 2])  # velocity is on Right Ob
@@ -1047,13 +1057,14 @@ def open_repfile(report_file, reach_name, path, data_profile, data_bank):
     try:
         for i in range(0, len(data_profile)):
             data_profile_i = data_profile[i]
-            data_bank_i = data_bank[i] - data_profile_i[0,0]
+            data_bank_i = data_bank[i] - data_profile_i[0, 0]
             len_pro = data_profile_i[-1, 0] - data_profile_i[0, 0]
-            vel_x_i = np.array([0, data_bank_i[0], data_bank_i[1] ])/len_pro
+            vel_x_i = np.array([0, data_bank_i[0], data_bank_i[1]]) / len_pro
             for j in range(0, nb_sim):
                 x_av.append(vel_x_i)
     except ValueError:
-        print("Error: the coordinate of the velocity could not be extracted from the .rep file (non-georeferenced case).\n")
+        print(
+            "Error: the coordinate of the velocity could not be extracted from the .rep file (non-georeferenced case).\n")
         return [-99], [-99], -99, '-99'
 
     # put the (x and v) data together
@@ -1090,10 +1101,9 @@ def pass_in_float_from_geo(data_str, len_number):
         # manage the case where number are together such as 0.234290.23323
         try:
             l = 0
-            data_str = data_str.replace('\n', '')  #windows vs Linux?
+            data_str = data_str.replace('\n', '')  # windows vs Linux?
             while l < len(data_str):
-
-                data_i.append(float(data_str[l:l+len_number]))
+                data_i.append(float(data_str[l:l + len_number]))
                 l += len_number
 
             # separe x and z
@@ -1153,7 +1163,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
             coord_pro_p = coord_pro[p]
             elev = data_profile[p]
             x = elev[:, 0] - elev[0, 0]
-            vel_p = vel[p*nb_sim + s]
+            vel_p = vel[p * nb_sim + s]
 
             # create array
             zone_v_p = np.zeros((len(vel_p), 4))  # (x,y) of the start of the zone distance and v
@@ -1189,13 +1199,15 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
                 xi = x[(x > dact) & (x < dact + dist2[i])]  # <=???
                 vxi = vel_x[(vel_x > dact) & (vel_x <= dact + dist2[i])]
 
-                alpha = (xi-dact) / dist2[i]
-                xy2[m:m+len(xi), 0] = coord_pro_p[i, 0] + alpha * (coord_pro_p[i+1, 0] - coord_pro_p[i, 0])
-                xy2[m:m+len(xi), 1] = coord_pro_p[i, 1] + alpha * (coord_pro_p[i+1, 1] - coord_pro_p[i, 1])
+                alpha = (xi - dact) / dist2[i]
+                xy2[m:m + len(xi), 0] = coord_pro_p[i, 0] + alpha * (coord_pro_p[i + 1, 0] - coord_pro_p[i, 0])
+                xy2[m:m + len(xi), 1] = coord_pro_p[i, 1] + alpha * (coord_pro_p[i + 1, 1] - coord_pro_p[i, 1])
 
-                alpha_v = (vxi-dact) / dist2[i]
-                zone_v_p[mv:mv+len(vxi), 0] = coord_pro_p[i, 0] + alpha_v * (coord_pro_p[i+1, 0] - coord_pro_p[i, 0])
-                zone_v_p[mv:mv+len(vxi), 1] = coord_pro_p[i, 1] + alpha_v * (coord_pro_p[i+1, 1] - coord_pro_p[i, 1])
+                alpha_v = (vxi - dact) / dist2[i]
+                zone_v_p[mv:mv + len(vxi), 0] = coord_pro_p[i, 0] + alpha_v * (
+                            coord_pro_p[i + 1, 0] - coord_pro_p[i, 0])
+                zone_v_p[mv:mv + len(vxi), 1] = coord_pro_p[i, 1] + alpha_v * (
+                            coord_pro_p[i + 1, 1] - coord_pro_p[i, 1])
 
                 dact += dist2[i]
                 m += len(xi)
@@ -1203,7 +1215,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
 
             zone_v_p[:, 3] = vel_p[:, 1]
             zone_v_p[:, 2] = vel_x + elev[0, 0]
-            xy2[:, 3] = wse[p*nb_sim + s] - elev[:, 1]  # height
+            xy2[:, 3] = wse[p * nb_sim + s] - elev[:, 1]  # height
             xy2[:, 2] = x + elev[0, 0]
             xy_h.append(xy2)
             zone_v.append(zone_v_p)
@@ -1211,7 +1223,7 @@ def find_coord_height_velocity(coord_pro, data_profile, vel, wse, nb_sim, max_ve
             #  check if we get enough velocity point
             #  max_vel_dist is the maximum distance between two velocity measurements
             warn_vel = False
-            if dist_pro/len(zone_v_p) >= max_vel_dist and warn_vel:
+            if dist_pro / len(zone_v_p) >= max_vel_dist and warn_vel:
                 print('Warning: the number of velocity point is low compared to the profile length.\n')
 
         xy_h_all.append(xy_h)
@@ -1282,23 +1294,23 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                         warn_dup = False
                     for i in range(0, len(duplicate)):
                         ind_dup = np.where(xy_h_pro[:, 2] == duplicate[i])[0]
-                        for j in range(0, len(ind_dup)-1):
-                            xy_h_pro[ind_dup[j], 2] -= dist_mov * (j+1)* xy_h_pro[ind_dup[j], 2] #+ dist_mov/100
-                            #if ind_dup[j]>0:
-                             #   ax = xy_h_pro[ind_dup[j], 0] - xy_h_pro[ind_dup[j]-1, 0]
-                             #   ay = xy_h_pro[ind_dup[j], 1] - xy_h_pro[ind_dup[j]-1, 1]
-                            #else:
+                        for j in range(0, len(ind_dup) - 1):
+                            xy_h_pro[ind_dup[j], 2] -= dist_mov * (j + 1) * xy_h_pro[ind_dup[j], 2]  # + dist_mov/100
+                            # if ind_dup[j]>0:
+                            #   ax = xy_h_pro[ind_dup[j], 0] - xy_h_pro[ind_dup[j]-1, 0]
+                            #   ay = xy_h_pro[ind_dup[j], 1] - xy_h_pro[ind_dup[j]-1, 1]
+                            # else:
                             ax = xy_h_pro[-1, 0] - xy_h_pro[0, 0]
                             ay = xy_h_pro[-1, 1] - xy_h_pro[0, 1]
-                            norm = np.sqrt(ax**2 + ay**2)
+                            norm = np.sqrt(ax ** 2 + ay ** 2)
                             ax = ax / norm
                             ay = ay / norm
                             if ax == 0 and ay == 0:
                                 xy_h_pro[ind_dup[j], 0] -= 1e-10
                                 xy_h_pro[ind_dup[j], 1] -= 1e-10
                             else:
-                                xy_h_pro[ind_dup[j], 0] -= ax * dist_mov * (j+1)
-                                xy_h_pro[ind_dup[j], 1] -= ay * dist_mov * (j+1)
+                                xy_h_pro[ind_dup[j], 0] -= ax * dist_mov * (j + 1)
+                                xy_h_pro[ind_dup[j], 1] -= ay * dist_mov * (j + 1)
 
                 # add the new profile
                 coord_pro_p = [xy_h_pro[:, 0], xy_h_pro[:, 1], data_profile_p[:, 1], xy_h_pro[:, 2]]
@@ -1338,7 +1350,7 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
                 else:
                     print('Error x-coordinate does not increase. \n')
                     return [-99], [-99], [-99]
-                #indv = np.argmin(abs(zone_v_pro[:, 2] - x_p[i]))
+                # indv = np.argmin(abs(zone_v_pro[:, 2] - x_p[i]))
                 zone_v_new[i] = zone_v_pro[indv, 3]
             # velcoity is zeros if water height = 0, velocity is by zone and not by point
             # so two additional point needed for plotting
@@ -1364,14 +1376,14 @@ def update_output(zone_v, coord_pro_old, data_profile, xy_h, nb_pro_reach_old):
 
     # update nb_pro_reach
     nb_pro_reach = []
-    for r in range(0,len(nb_pro_reach_old)):
+    for r in range(0, len(nb_pro_reach_old)):
         nb_pro_reach.append(int(np.sum(nb_pro_reach_old[:r])))
     nb_pro_reach.append(int(np.sum(nb_pro_reach_old)))
 
     return coord_pro, vh_pro, nb_pro_reach
 
 
-def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro, path_im, fig_opt, nb_sim=0,
+def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all, pro, path_im, fig_opt, nb_sim=0,
                name_profile='no_name', coord_p2=-99):
     """
     A function to plot the results of the loading of hec-ras data.
@@ -1424,7 +1436,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
         rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
     rcParams['legend.loc'] = 'best'
 
-    #close()
+    # close()
 
     # choose the simulation to plot
     xy_h = xy_h_all[nb_sim]
@@ -1445,21 +1457,21 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
         wet = np.squeeze(np.where(hi > 0))
         p1 = wet[0]
         p2 = wet[-1]
-        if xz[p1, 0] != xz[p1-1, 0]:  # not vertical profile
-            a1 = (xz[p1, 1] - xz[p1-1, 1])/(xz[p1, 0] - xz[p1-1, 0])
-            b1 = xz[p1, 1] - a1*xz[p1, 0]
+        if xz[p1, 0] != xz[p1 - 1, 0]:  # not vertical profile
+            a1 = (xz[p1, 1] - xz[p1 - 1, 1]) / (xz[p1, 0] - xz[p1 - 1, 0])
+            b1 = xz[p1, 1] - a1 * xz[p1, 0]
             xint1 = (h0 - b1) / a1
         else:  # vertical profile
             xint1 = xz[p1, 0]
-        if wet[0] == 0:   # if the left overbank is totally wet
+        if wet[0] == 0:  # if the left overbank is totally wet
             xint1 = xz[0, 0]
-        if p2 < len(xz)-1:  # if at the end of the profile
-            if xz[p2, 0] != xz[p2+1, 0]:  # not vertical profile
-                a2 = (xz[p2, 1] - xz[p2+1, 1])/(xz[p2, 0] - xz[p2+1, 0])
-                b2 = xz[p2, 1] - a2*xz[p2, 0]
+        if p2 < len(xz) - 1:  # if at the end of the profile
+            if xz[p2, 0] != xz[p2 + 1, 0]:  # not vertical profile
+                a2 = (xz[p2, 1] - xz[p2 + 1, 1]) / (xz[p2, 0] - xz[p2 + 1, 0])
+                b2 = xz[p2, 1] - a2 * xz[p2, 0]
                 xint2 = (h0 - b2) / a2
             else:
-                xint2 = xz[p2+1, 0]
+                xint2 = xz[p2 + 1, 0]
         else:
             xint2 = xz[p2, 0]
         # update velocity data with point where water level h=0
@@ -1470,7 +1482,7 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
             v_xy_i_wet = np.vstack(([[0, 0], [xint1, v_xy_i[0, 3]], [xint2, 0]]))
         # print velocity
         step(v_xy_i_wet[:, 0], v_xy_i_wet[:, 1], where='post', color='r')
-        xlim([np.min(xz[:, 0]-1)*0.95, np.max(xz[:, 0])*1.05])
+        xlim([np.min(xz[:, 0] - 1) * 0.95, np.max(xz[:, 0]) * 1.05])
         if fig_opt['language'] == 0:
             xlabel("x [m or ft]")
             ylabel(" Velocity [m/sec or ft/sec]")
@@ -1479,7 +1491,8 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
             ylabel(" Vitesse [m/sec ou ft/sec]")
         ax1 = subplot(211)
         plot(xz[:, 0], xz[:, 1], 'k')  # profile
-        fill_between(xz[:, 0], xz[:, 1],hi + xz[:, 1], where=xz[:, 1] < hi + xz[:, 1], facecolor='blue', alpha=0.5, interpolate=True)
+        fill_between(xz[:, 0], xz[:, 1], hi + xz[:, 1], where=xz[:, 1] < hi + xz[:, 1], facecolor='blue', alpha=0.5,
+                     interpolate=True)
         if fig_opt['language'] == 0:
             xlabel("x [m or ft]")
             ylabel("altitude of the profile [m or ft]")
@@ -1496,13 +1509,13 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
             else:
                 title("Profil " + name_profile[i])
             legend(("Profil", "Surface de l'eau"), fancybox=True, framealpha=0.5)
-        xlim([np.min(xz[:, 0]-1)*0.95, np.max(xz[:, 0])*1.05])
+        xlim([np.min(xz[:, 0] - 1) * 0.95, np.max(xz[:, 0]) * 1.05])
         m += 1
         if format == 0 or format == 1:
-            savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+
+            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.png'), dpi=fig_opt['resolution'])
         if format == 0 or format == 3:
-            savefig(os.path.join(path_im, "HEC_profile_"+str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S")+
+            savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.pdf'), dpi=fig_opt['resolution'])
         if format == 2:
             savefig(os.path.join(path_im, "HEC_profile_" + str(i) + '_day' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
@@ -1528,31 +1541,31 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     xmip = 1000
     xmap = -1000
 
-    for i in range(0,len(coord_r)):
+    for i in range(0, len(coord_r)):
         coord_r_i = coord_r[i]
         plot(coord_r_i[:, 0], coord_r_i[:, 1], label=txt_riv + str(i))
     for j in range(0, len(coord_pro_old)):
         coord_j = coord_pro_old[j]
         xy_j = xy_h[j]
         v_xy_j = zone_v[j]
-        plot(coord_j[:, 0], coord_j[:, 1], '-xm', label=txt_pro,  markersize=8)  # profile
+        plot(coord_j[:, 0], coord_j[:, 1], '-xm', label=txt_pro, markersize=8)  # profile
         if coord_p2 != -99:
             coord_j2 = coord_p2[j]
-            plot(coord_j2[:, 0], coord_j2[:, 1], '-^g', label=txt_pro,  markersize=2)  # profile not georeferenced
+            plot(coord_j2[:, 0], coord_j2[:, 1], '-^g', label=txt_pro, markersize=2)  # profile not georeferenced
         if name_profile == 'no_name':
             text(coord_j[0, 0] + 0.03, coord_j[0, 1] + 0.03, str(j))
         else:
             text(coord_j[0, 0] + 0.03, coord_j[0, 1] + 0.03, name_profile[j])
-        plot(xy_j[:, 0], xy_j[:, 1], '.k', label=txt_h,  markersize=3)  # height
-        plot(v_xy_j[:, 0], v_xy_j[:, 1], '*g', label=txt_v,  markersize=7)  # velocity
+        plot(xy_j[:, 0], xy_j[:, 1], '.k', label=txt_h, markersize=3)  # height
+        plot(v_xy_j[:, 0], v_xy_j[:, 1], '*g', label=txt_v, markersize=7)  # velocity
         txt_pro = '_nolegend_'
         txt_h = "_nolegend_"
         txt_v = "_nolegend_"
         xmip = np.min([xmip, np.min(coord_j[:, 0])])
         xmap = np.max([xmap, np.max(coord_j[:, 0])])
     rcParams.update({'font.size': 12})
-    xlim([xmip, xmap*1.05])
-    ylim([xmip, xmap*1.05])
+    xlim([xmip, xmap * 1.05])
+    ylim([xmip, xmap * 1.05])
     xlabel("x []")
     ylabel("y []")
     if fig_opt['language'] == 0:
@@ -1562,16 +1575,15 @@ def figure_xml(data_profile, coord_pro_old, coord_r, xy_h_all, zone_v_all,  pro,
     axis('equal')  # if right angle are needed
     legend(fancybox=True, framealpha=0.5)
     if format == 0 or format == 1:
-        savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".png"),
+        savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
                 dpi=fig_opt['resolution'], transparent=True)
     if format == 0 or format == 3:
-        savefig(os.path.join(path_im, "HEC_all_pro_"+time.strftime("%d_%m_%Y_at_%H_%M_%S")+".pdf"),
+        savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
                 dpi=fig_opt['resolution'], transparent=True)
     if format == 2:
         savefig(os.path.join(path_im, "HEC_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                 dpi=fig_opt['resolution'], transparent=True)
     show()
-
 
 
 def main():
@@ -1580,13 +1592,14 @@ def main():
     """
 
     path_test = r'D:\Diane_work\version\file_test'
-    #path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
+    # path_test = r'C:\Users\Diane.Von-Gunten\Documents\HEC Data\HEC-RAS\Steady Examples'
     name = 'thames'
-    name_xml = name+ '.O01.xml'
-    name_geo = name+'.g01'
+    name_xml = name + '.O01.xml'
+    name_geo = name + '.g01'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 
     [coord_pro, vh_pro, nb_pro_reach] = open_hecras(name_geo, name_xml, path_test, path_test, path_im, True)
+
 
 if __name__ == '__main__':
     main()

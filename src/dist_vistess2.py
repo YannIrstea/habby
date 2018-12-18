@@ -133,17 +133,17 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 x_ini = coord_pro[p][3]
                 h_ini = coord_pro[p][2]
                 x_p = np.linspace(x_ini[0], x_ini[-1], num=nb_point)
-                #x_p = np.arange(x_ini[0], x_ini[-1], (x_ini[-1] - x_ini[0]) / (nb_point-1))
+                # x_p = np.arange(x_ini[0], x_ini[-1], (x_ini[-1] - x_ini[0]) / (nb_point-1))
                 h_p = np.zeros((len(x_p),))
                 for i in range(0, len(x_p)):
-                    #indh = np.where(x_ini <= x_p[i])
-                    #indh = max(indh[0])
+                    # indh = np.where(x_ini <= x_p[i])
+                    # indh = max(indh[0])
                     indh = bisect.bisect(x_ini, x_p[i]) - 1  # about 3 time quicker than max(np.where(x_ini <= x_p[i]))
                     xhmin = x_ini[indh]
                     hmin = h_ini[indh]
-                    if indh < len(x_ini)-1:
+                    if indh < len(x_ini) - 1:
                         xhmax = x_ini[indh + 1]
-                        hmax = h_ini[indh+1]
+                        hmax = h_ini[indh + 1]
                         a1 = (hmax - hmin) / (xhmax - xhmin)
                         b1 = hmax - a1 * xhmax
                     else:
@@ -165,35 +165,35 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
 
             # add extra point where the profile is getting out of the water
             # possibility of an island, so no easy [h_wp h[h>h_wp] h_wp]
-            for i in range(0, len(h_p)-1):
+            for i in range(0, len(h_p) - 1):
                 # if the profile is not regular
-                if x_p[i] > x_p[i+1]:
+                if x_p[i] > x_p[i + 1]:
                     if warn_point:
                         warn_point = False
                         print('Warning: the x-coordinates of the profile decreases. Some points are neglected.\n')
-                    x_p[i+1] = x_p[i]
-                    h_p[i+1] = h_p[i]
-                    n[i+1] = n[i]
+                    x_p[i + 1] = x_p[i]
+                    h_p[i + 1] = h_p[i]
+                    n[i + 1] = n[i]
                 # test if pass from wet to dry or dry to wet
                 if h_p[i + 1] < h_w_p < h_p[i] or h_p[i + 1] > h_w_p > h_p[i]:
-                    if x_p[i] < x_p[i+1]:
-                        a = (h_p[i] - h_p[i+1]) / (x_p[i] - x_p[i+1])   # lin interpolation
-                        b = h_p[i] - a*x_p[i]
-                        new_x = (h_w_p - b)/a
-                    elif x_p[i] == x_p[i+1]:
+                    if x_p[i] < x_p[i + 1]:
+                        a = (h_p[i] - h_p[i + 1]) / (x_p[i] - x_p[i + 1])  # lin interpolation
+                        b = h_p[i] - a * x_p[i]
+                        new_x = (h_w_p - b) / a
+                    elif x_p[i] == x_p[i + 1]:
                         new_x = x_p[i]
                     else:
                         # theorically not useful
                         print('Error: x-coordinates are not increasing.\n')
                         return [-99]
                     h_p = np.concatenate((h_p[:i + 1], [h_w_p], h_p[i + 1:]))
-                    x_p = np.concatenate((x_p[:i+1], [new_x], x_p[i+1:]))
-                    n = np.concatenate((n[:i+1], [n[i+1]], n[i+1:]))
+                    x_p = np.concatenate((x_p[:i + 1], [new_x], x_p[i + 1:]))
+                    n = np.concatenate((n[:i + 1], [n[i + 1]], n[i + 1:]))
                 # quickly maanged if a profile start under water
                 # just add a small bump a the height h_w_p
                 # keen h_w_p at the ind 1 to be coherent (used by manage_grid)
             if h_p[0] < h_w_p:
-                new_x = (x_p[1] - x_p[0])/2
+                new_x = (x_p[1] - x_p[0]) / 2
                 h_p = np.concatenate(([h_w_p], h_p[1:]))
                 x_p = np.concatenate(([x_p[0]], x_p[1:]))
                 n = np.concatenate(([n[0]], [n[1]], n[1:]))
@@ -231,19 +231,19 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                     n = 1e-6
 
                 # get wetted perimeter, area, hydraulic radius
-                wet_pro = np.sqrt((hmax - hmin)**2 + (x1 - x0)**2)
+                wet_pro = np.sqrt((hmax - hmin) ** 2 + (x1 - x0) ** 2)
                 area = 0.5 * (hmax - hmin) * (x1 - x0) + (x1 - x0) * (h_w_p - hmax)
                 area[area == 0] = 0.000001  # should not be needed but just in case
                 hyd_rad = area / wet_pro
 
                 # conveyance k for each slice of the profile
-                k_s = eng * n**(-1.0) * hyd_rad**(2.0/3.0) * area
+                k_s = eng * n ** (-1.0) * hyd_rad ** (2.0 / 3.0) * area
 
                 # conveyance K for the whole profile
                 a = np.sum(area)
-                wp = np.sum(np.sqrt((hmax - hmin)**2 + (x1 - x0)**2))   # wet perimeter profile
-                r = a/wp
-                k_tot = eng/np.mean(n) * r**(2.0/3.0) * a
+                wp = np.sum(np.sqrt((hmax - hmin) ** 2 + (x1 - x0) ** 2))  # wet perimeter profile
+                r = a / wp
+                k_tot = eng / np.mean(n) * r ** (2.0 / 3.0) * a
 
                 # correcting conveyance by slice
                 k_s_tot = np.sum(k_s)
@@ -262,12 +262,12 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                     h_here = np.concatenate(([h_p0[min(ind) - 1]], h0, [h_p0[max(ind)]]))
                 else:
                     if x_p0[0] > 0:
-                        x_here = np.concatenate(([x_p0[0]*0.99], x0, [x_p0[max(ind)]]))
+                        x_here = np.concatenate(([x_p0[0] * 0.99], x0, [x_p0[max(ind)]]))
                     elif x_p0[0] == 0:
                         x_here = np.concatenate(([-1e-5], x0, [x_p0[max(ind)]]))
                     else:
                         x_here = np.concatenate(([x_p0[0] * 1.01], x0, [x_p0[max(ind)]]))
-                    h_here = np.concatenate(([h_p0[0]*1.01], h0, [h_p0[max(ind)]]))
+                    h_here = np.concatenate(([h_p0[0] * 1.01], h0, [h_p0[max(ind)]]))
                 h_here = h_w_p - h_here  # water hieght and not elevation
                 v_here = np.concatenate(([0], v, [0]))
                 v_pro_t.append([x_here, h_here, v_here])
@@ -280,7 +280,8 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
     return vh_pro
 
 
-def plot_dist_vit(v_pro, coord_pro, xhzv_data, plot_timestep, pro, name_pro=[], on_profile=[], zone_v_all =[], data_profile = [], xy_h_all = []):
+def plot_dist_vit(v_pro, coord_pro, xhzv_data, plot_timestep, pro, name_pro=[], on_profile=[], zone_v_all=[],
+                  data_profile=[], xy_h_all=[]):
     """
     This is a function to plot the distribution of velocity and the elevation of the profile. It is quite close to the
     similar function which is in hec-ras (see this function for a more detailed explanation)
@@ -348,8 +349,8 @@ def plot_dist_vit(v_pro, coord_pro, xhzv_data, plot_timestep, pro, name_pro=[], 
                 plt.xlim(-0.05, 1.05 * max(coord_pro_p[3]))
             else:
                 plt.xlim(a, 1.05 * max(coord_pro_p[3]))
-            #if np.sum(v_pro_p[2]) != 0:
-              #  plt.ylim(0, max(v_pro_p[2])*1.05)
+            # if np.sum(v_pro_p[2]) != 0:
+            #  plt.ylim(0, max(v_pro_p[2])*1.05)
             plt.xlabel('Distance along the profile [m or ft]')
             plt.ylabel('Velocity [m/sec or ft/sec]')
             # only if use this fonction to compare velocity output
@@ -395,41 +396,41 @@ def plot_dist_vit(v_pro, coord_pro, xhzv_data, plot_timestep, pro, name_pro=[], 
 
 
 def preparetest_velocity(coord_pro, vh_pro_orr, v_in):
-        """
-        This is a debugging function. It takes as input the output from the hec-ras model and gives a 1D velocity as
-        output. This is only to test this program. It will not be used by HABBY directly. To use this function, it is
-        necessary to use the function to load hec-ras data from HABBY, so that the hec-ras data is in the right form.
-        The 1D-velocity is assumed to be the velocity as the lowest part of the profile. This is where a 1D-model would
-        estimate the position of the river (the lowest part of the river bed).
+    """
+    This is a debugging function. It takes as input the output from the hec-ras model and gives a 1D velocity as
+    output. This is only to test this program. It will not be used by HABBY directly. To use this function, it is
+    necessary to use the function to load hec-ras data from HABBY, so that the hec-ras data is in the right form.
+    The 1D-velocity is assumed to be the velocity as the lowest part of the profile. This is where a 1D-model would
+    estimate the position of the river (the lowest part of the river bed).
 
-        A complicated point to test the program is to put the velocity point at the same point than hec-ras. As hec-ras
-        calculate velocity between zones and not on one point, this is more or less impossible to do with precision.
-        However, one can count the number of velocity zone and give this as an input to dist_velocity_hecras() for the
-        variable nb_point. However, both line will not be exactly at the same place. The results should however be close
-        enough.
+    A complicated point to test the program is to put the velocity point at the same point than hec-ras. As hec-ras
+    calculate velocity between zones and not on one point, this is more or less impossible to do with precision.
+    However, one can count the number of velocity zone and give this as an input to dist_velocity_hecras() for the
+    variable nb_point. However, both line will not be exactly at the same place. The results should however be close
+    enough.
 
-        :param coord_pro: the coordinate of the profile (x,y,h,dist along profile)
-        :param vh_pro_orr: the velocity distribution which is the output from hec ras (produced by hec-ras06.py)
-        :param v_in: the uni-dimensional velocity
-        """
-        xhzv_data = []
-        for t in range(0, len(vh_pro_orr)):
-            vh_pro_t = vh_pro_orr[t]
-            xhzv_data_t = []
-            for p in range(0, len(coord_pro)):
-                coord_pro_p = coord_pro[p]
-                vh_p = vh_pro_t[p]
-                ind = np.argmin(coord_pro_p[2])
-                z = min(coord_pro_p[2])
-                #ind_vh = np.argmin(abs(vh_p[0] - coord_pro_p[3][ind]))
-                ind_vh = np.argmax(vh_p[1])
-                distx = vh_p[0][ind_vh]
-                h = vh_p[1][ind_vh]
-                v = v_in[p]
-                xhzv_data_t.append([distx, h, z, v])
-            xhzv_data.append(np.array(xhzv_data_t))
+    :param coord_pro: the coordinate of the profile (x,y,h,dist along profile)
+    :param vh_pro_orr: the velocity distribution which is the output from hec ras (produced by hec-ras06.py)
+    :param v_in: the uni-dimensional velocity
+    """
+    xhzv_data = []
+    for t in range(0, len(vh_pro_orr)):
+        vh_pro_t = vh_pro_orr[t]
+        xhzv_data_t = []
+        for p in range(0, len(coord_pro)):
+            coord_pro_p = coord_pro[p]
+            vh_p = vh_pro_t[p]
+            ind = np.argmin(coord_pro_p[2])
+            z = min(coord_pro_p[2])
+            # ind_vh = np.argmin(abs(vh_p[0] - coord_pro_p[3][ind]))
+            ind_vh = np.argmax(vh_p[1])
+            distx = vh_p[0][ind_vh]
+            h = vh_p[1][ind_vh]
+            v = v_in[p]
+            xhzv_data_t.append([distx, h, z, v])
+        xhzv_data.append(np.array(xhzv_data_t))
 
-        return xhzv_data
+    return xhzv_data
 
 
 def get_manning(manning1, nb_point, nb_profil, coord_pro):
@@ -465,7 +466,7 @@ def get_manning(manning1, nb_point, nb_profil, coord_pro):
                   ' than the profile), coord_pro should be provided. \n')
     if isinstance(manning1, float):
         for p in range(0, nb_profil):
-             manning_array.append([manning1] * nb_point)
+            manning_array.append([manning1] * nb_point)
     else:
         print('Error: the value given for maning is not a float \n')
 
@@ -513,23 +514,23 @@ def get_manning_arr(manning_arr, nb_point, coord_pro):
         c = 0
         len_tot = 0
         for m in ind:
-            if len(ind) <=1:
+            if len(ind) <= 1:
                 len_here = nb_point
             else:
                 # hyp: no identical points
                 # points before the first manning info (all point before)
                 if c == 0:
-                    len_here = bisect.bisect_left(x_p, manning_arr[m,1])
+                    len_here = bisect.bisect_left(x_p, manning_arr[m, 1])
                 # point in between manning info
-                elif c < len(ind) -1:
-                    st = bisect.bisect_left(x_p, manning_arr[m-1,1])
-                    end = bisect.bisect_left(x_p, manning_arr[m,1])
-                    len_here = end-st
-                # last manning info (point before and after)
-                if c == len(ind)-1:
-                    st = bisect.bisect_left(x_p, manning_arr[m-1, 1])
+                elif c < len(ind) - 1:
+                    st = bisect.bisect_left(x_p, manning_arr[m - 1, 1])
                     end = bisect.bisect_left(x_p, manning_arr[m, 1])
-                    len_here = end-st + nb_point - bisect.bisect_left(x_p, manning_arr[m, 1])
+                    len_here = end - st
+                # last manning info (point before and after)
+                if c == len(ind) - 1:
+                    st = bisect.bisect_left(x_p, manning_arr[m - 1, 1])
+                    end = bisect.bisect_left(x_p, manning_arr[m, 1])
+                    len_here = end - st + nb_point - bisect.bisect_left(x_p, manning_arr[m, 1])
             new_manning = [manning_arr[m, 2]] * len_here  # * is to add new element in a list
             # if this is the informatin about manning on this profile
             if len(manning_array) == p:
@@ -591,11 +592,11 @@ def main():
     mail = 'mail.LE13'
     geofile = 'LE13.rbe'
     data = 'profil.LE13'
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\1D\RubarBE_four_0'
-    #mail = 'mail.LE13'
-    #geofile = 'four.rbe'
-    #data = 'profil.four'
-    #[xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
+    # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\1D\RubarBE_four_0'
+    # mail = 'mail.LE13'
+    # geofile = 'four.rbe'
+    # data = 'profil.four'
+    # [xhzv_data_all, coord_pro, lim_riv] = rubar.load_rubar1d(geofile, data, path, path, path, False)
 
     # test the new manning function
     # nb_point = 5
@@ -618,6 +619,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-

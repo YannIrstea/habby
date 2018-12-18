@@ -445,12 +445,12 @@ class GroupPlot(QGroupBox):
             for name_hdf5 in names_hdf5:
                 # load hydraulic data
                 if types_hdf5 == "hydraulic":
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5,
-                                                                                                                  path_hdf5)
+                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(
+                        name_hdf5,
+                        path_hdf5)
                 # load substrate data
                 if types_hdf5 == "substrate":
-                    [ikle_sub, point_all_sub, sub_pg, sub_dom] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5,
-                                                                                         ind_const=False)
+                    [ikle_sub, point_all_sub, sub_pg, sub_dom] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
                 # load merge data
                 if types_hdf5 == "merge":
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
@@ -658,12 +658,11 @@ class MyProcessList(list):
         self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(nb_finished, self.nb_plot_total))
         QCoreApplication.processEvents()
 
-
     def check_all_plot_closed(self):
         """
         Check if a process is alive (plot window open)
         """
-        if any([self[i][0].is_alive() for i in range(len(self))]): # plot window open or plot not finished
+        if any([self[i][0].is_alive() for i in range(len(self))]):  # plot window open or plot not finished
             return False
         else:
             return True

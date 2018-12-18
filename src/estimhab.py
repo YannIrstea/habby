@@ -88,32 +88,32 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     if qrange[1] > qrange[0]:
         diff = (qrange[1] - qrange[0]) / nb_q
         if qrange[0] == 0:
-            qrange[0] = 10**-10   # if exactly zero, you cannot divide anymore
-        q_all = np.arange(qrange[0], qrange[1]+diff, diff)
+            qrange[0] = 10 ** -10  # if exactly zero, you cannot divide anymore
+        q_all = np.arange(qrange[0], qrange[1] + diff, diff)
     else:
         print('Error: The mininum discharge is higher or equal than the maximum')
         return [-99], [-99]
 
     # height
     slope = (np.log(height[1]) - np.log(height[0])) / (np.log(qmes[1]) - np.log(qmes[0]))
-    exp_cte = np.exp(np.log(height[0]) - slope*np.log(qmes[0]))
-    h_all = exp_cte * q_all**slope
-    h50 = exp_cte * q50**slope
+    exp_cte = np.exp(np.log(height[0]) - slope * np.log(qmes[0]))
+    h_all = exp_cte * q_all ** slope
+    h50 = exp_cte * q50 ** slope
 
     # width
     slope = (np.log(width[1]) - np.log(width[0])) / (np.log(qmes[1]) - np.log(qmes[0]))
-    exp_cte = np.exp(np.log(width[0]) - slope*np.log(qmes[0]))
-    w_all = exp_cte * q_all**slope
-    l50 = exp_cte * q50**slope
+    exp_cte = np.exp(np.log(width[0]) - slope * np.log(qmes[0]))
+    w_all = exp_cte * q_all ** slope
+    l50 = exp_cte * q50 ** slope
 
     # velocity
-    vel = (q_all/h_all)/w_all
-    v50 = (q50/h50)/l50
-    re = q_all/(10 * w_all)
-    re50 = q50/(10*l50)
+    vel = (q_all / h_all) / w_all
+    v50 = (q50 / h50) / l50
+    re = q_all / (10 * w_all)
+    re50 = q50 / (10 * l50)
 
     # extra-data related to q50
-    fr50 = q50 / (9.81**0.5 * h50**1.5*l50)
+    fr50 = q50 / (9.81 ** 0.5 * h50 ** 1.5 * l50)
     dh50 = substrat / h50
     q50_data = [q50, h50, l50, v50, re50, fr50, dh50, np.exp(dh50)]
 
@@ -135,7 +135,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             doc = ET.parse(filename)
             root = doc.getroot()
         else:
-            print('Error: the xml file for the file '+fish_xml[f]+" does not exist")
+            print('Error: the xml file for the file ' + fish_xml[f] + " does not exist")
             return [-99], [-99]
 
         # get data
@@ -145,21 +145,21 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             coeff_const = pass_to_float_estimhab(".//coeff_const", root)
             var_const = pass_to_float_estimhab(".//var_const", root)
         except ValueError:
-            print('Error: Some data can not be read or are not number. Check the xml file '+ fish_name[f])
+            print('Error: Some data can not be read or are not number. Check the xml file ' + fish_name[f])
             return [-99], [-99]
 
         # calculate VH
         if func_q[0] == 0.:
-            part_q = re**coeff_q[0]*np.exp(coeff_q[1] * re)
+            part_q = re ** coeff_q[0] * np.exp(coeff_q[1] * re)
         elif func_q[0] == 1.:
-            part_q = 1 + coeff_q[0]*np.exp(coeff_q[1] * re)
+            part_q = 1 + coeff_q[0] * np.exp(coeff_q[1] * re)
         else:
             print('Error: no function defined for Q')
         const = coeff_const[0]
         for i in range(0, len(var_const)):
-            const += coeff_const[i+1] * np.log(q50_data[int(var_const[i])])
-        VH_f = const*part_q
-        SPU_f = VH_f*w_all*100
+            const += coeff_const[i + 1] * np.log(q50_data[int(var_const[i])])
+        VH_f = const * part_q
+        SPU_f = VH_f * w_all * 100
         if pict:
             if not fig_opt:
                 fig_opt = output_fig_GUI.create_default_figoption()
@@ -216,7 +216,6 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             if os.path.isfile(name_input + '.txt'):
                 os.remove(name_input + '.txt')
 
-
         # save image
         if format1 == 0 or format1 == 1:
             plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'], transparent=True)
@@ -236,7 +235,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
         txt_header += '\n[m3/sec]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
-        np.savetxt(os.path.join(path_txt, name_pict+'.txt'), data.T, newline=os.linesep, header=txt_header,
+        np.savetxt(os.path.join(path_txt, name_pict + '.txt'), data.T, newline=os.linesep, header=txt_header,
                    delimiter='\t')
 
         # text file input
@@ -244,15 +243,15 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
         txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
         txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
         txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
-        txtin += 'Mean substrate size [m]:\t' + str(substrat)+ '\n'
+        txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
         txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
         txtin += 'Fish chosen:\t'
         for n in fish_name:
             txtin += n + '\t'
         txtin = txtin[:-1]
         txtin += '\n'
-        txtin += 'Output file:\t' + name_pict+'.txt\n'
-        with open(os.path.join(path_txt,name_input + '.txt'), 'wt') as f:
+        txtin += 'Output file:\t' + name_pict + '.txt\n'
+        with open(os.path.join(path_txt, name_input + '.txt'), 'wt') as f:
             f.write(txtin)
 
     del fish_name
@@ -289,8 +288,7 @@ def main():
     qrange = [1, 38]
     substrat = 0.25
     fish = ['TRF_ADU', 'TRF_JUV', 'BAF', 'CHA', 'GOU']
-    path =  os.path.join('.', 'biology')
-
+    path = os.path.join('.', 'biology')
 
     [VH, SPU] = estimhab(q, w, h, q50, qrange, substrat, path, fish, True, True)
 

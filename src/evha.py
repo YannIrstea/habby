@@ -110,7 +110,7 @@ def load_top(path, name_evha):
     h = []
 
     # get the name
-    topnamepath = os.path.join(path, name_evha+'.top')
+    topnamepath = os.path.join(path, name_evha + '.top')
     if not os.path.isfile(topnamepath):
         print('Error: no topographical file found for the evha project. \n')
         return failload
@@ -154,23 +154,23 @@ def load_top(path, name_evha):
         if len(d) == 1 and d[0] == '0':
             break
         if d[0] != '!' and ind != 0:  # comment
-                if d[1] == 'P':
-                    pli.append(ind)
-                    try:
-                        pnum.append(float(d[2:4].strip()))
-                        ref_here = float(d[0])
-                        if ref_here > 11 or ref_here < 0:
-                            print('Warning: Pivot point\
+            if d[1] == 'P':
+                pli.append(ind)
+                try:
+                    pnum.append(float(d[2:4].strip()))
+                    ref_here = float(d[0])
+                    if ref_here > 11 or ref_here < 0:
+                        print('Warning: Pivot point\
                              should be between 1 and 10 \n')
-                        pref.append(ref_here)
-                    except ValueError:
-                        print('Error: Could not read the pivot point on\
+                    pref.append(ref_here)
+                except ValueError:
+                    print('Error: Could not read the pivot point on\
                             the topographical files (1) \n')
-                        return failload
+                    return failload
 
     # check if we have a double of each point
     sing_pnum = list(set(pnum))  # all pnum one times
-    if len(pnum) != len(sing_pnum)*2:
+    if len(pnum) != len(sing_pnum) * 2:
         print('Error: Each pivot point should be doubled')
         return failload
 
@@ -215,8 +215,8 @@ def load_top(path, name_evha):
                 # check that we have a new reference point
                 already_known = False
                 for p2 in coord_ref:
-                    if abs(p2[0] - coord_ref_here[0])\
-                           + abs(p2[1] + coord_ref_here[1]) < 1e-5:
+                    if abs(p2[0] - coord_ref_here[0]) \
+                            + abs(p2[1] + coord_ref_here[1]) < 1e-5:
                         already_known = True
                 if not already_known:
                     coord_ref.append(coord_ref_here)
@@ -242,7 +242,7 @@ def load_top(path, name_evha):
                     ref_here = float(d[0])
                 except ValueError:
                     print('Error: The loading of the topographical\
-                     file failed at line ' + str(ind+1) + '\n')
+                     file failed at line ' + str(ind + 1) + '\n')
                     return failload
                 if ref_here > 11 or ref_here < 0:
                     print('Warning: Pivot point should be between 1 and 10 \n')
@@ -253,7 +253,7 @@ def load_top(path, name_evha):
                                                   data[ind], addan=angleall)
                 if not coord_bank:
                     print('Error: The loading of the topographical file failed\
-                                at line ' + str(ind+1) + '\n')
+                                at line ' + str(ind + 1) + '\n')
                     return failload
 
                 # find the section num
@@ -264,7 +264,7 @@ def load_top(path, name_evha):
                         file failed at line ' + str(ind) + '\n')
                     return failload
 
-                if d[1] == 'G':   # Left
+                if d[1] == 'G':  # Left
                     coord_left.append(coord_bank)
                     sec_left.append(num_sec)
                     try:
@@ -293,20 +293,20 @@ def load_top(path, name_evha):
         print('Error: the number of point on the left bank are not equal\
             to the number of point on the left bank \n')
     for indl, n in enumerate(sec_left):
-            indr = [i2 for i2, n2 in enumerate(sec_right) if n == n2]
-            if len(indr) == 0:
-                print('Error: One of the pint which descibed the right bank\
+        indr = [i2 for i2, n2 in enumerate(sec_right) if n == n2]
+        if len(indr) == 0:
+            print('Error: One of the pint which descibed the right bank\
                     is not known \n')
-                return
-            elif len(indr) > 1:
-                print('Warning: More than one right point is found')
-            else:
-                indr = indr[0]
-            distx = coord_right[indr][0] - coord_left[indl][0]
-            disty = coord_right[indr][1] - coord_left[indl][1]
-            # norm = np.sqrt(distx**2 + disty**2)
-            dir_here = [distx, disty]
-            dir_t.append(dir_here)
+            return
+        elif len(indr) > 1:
+            print('Warning: More than one right point is found')
+        else:
+            indr = indr[0]
+        distx = coord_right[indr][0] - coord_left[indl][0]
+        disty = coord_right[indr][1] - coord_left[indl][1]
+        # norm = np.sqrt(distx**2 + disty**2)
+        dir_here = [distx, disty]
+        dir_t.append(dir_here)
 
     # get the coordinates of the points on the transect
     # either with decameter or angle
@@ -388,13 +388,13 @@ def load_top(path, name_evha):
                         print('Error: The loading of the topographical file\
                          failed at line ' + str(ind + 1) + '\n')
                         return failload
-                    if (deca_left_here-deca_right_here) > 0:
-                        dist = deca/(deca_left_here-deca_right_here)
+                    if (deca_left_here - deca_right_here) > 0:
+                        dist = deca / (deca_left_here - deca_right_here)
                     else:
                         dist = 0
                     xt = coord_left_here[0] + dir_here[0] * dist
                     yt = coord_left_here[1] + dir_here[1] * dist
-                    zt = coord_ref_here[2] + cote_mid/100
+                    zt = coord_ref_here[2] + cote_mid / 100
                     coord_trans.append([xt, yt, zt])
 
     plt.figure()
@@ -430,16 +430,16 @@ def add_angle(xy, angle):
     """
     xy_old = deepcopy(xy)
     xy_new = []
-    angle2 = angle * np.pi/200  # to radian
+    angle2 = angle * np.pi / 200  # to radian
 
     for p in xy_old:
-        r = np.sqrt(p[0]**2 + p[1]**2)
-        new_angle = np.arccos(p[0]/r)
+        r = np.sqrt(p[0] ** 2 + p[1] ** 2)
+        new_angle = np.arccos(p[0] / r)
 
         new_angle += angle2  # radian
-        if new_angle > 2*np.pi:  # we might go over the circle
-            new_angle -= 2*np.pi
-        pnew = [r*np.cos(new_angle), r*np.sin(new_angle), p[2]]
+        if new_angle > 2 * np.pi:  # we might go over the circle
+            new_angle -= 2 * np.pi
+        pnew = [r * np.cos(new_angle), r * np.sin(new_angle), p[2]]
         xy_new.append(pnew)
 
     return xy_new
@@ -485,7 +485,7 @@ def get_point_from_angle(coord0, d, inv=False, addan=0):
         print('Error: Could not read one angle in the topographical file\
          from evha (2) \n')
         return p
-    angle = angle * np.pi/200 + addan * np.pi/200
+    angle = angle * np.pi / 200 + addan * np.pi / 200
 
     # calculate point
     dist = (cote_max - cote_min)
@@ -524,21 +524,21 @@ def get_point_on_transect(angle, dir, refc, lefc, cod_mid):
     """
 
     # insure unit vector
-    norm = np.sqrt(dir[0]**2 + dir[1]**2)
-    dir = [dir[0]/norm, dir[1]/norm]
+    norm = np.sqrt(dir[0] ** 2 + dir[1] ** 2)
+    dir = [dir[0] / norm, dir[1] / norm]
 
     # radian angle from grad
     a = angle * np.pi / 200
 
     # find r using uncertain formula
-    r1 = dir[1] * (lefc[0] - refc[0]) + dir[0] * (refc[1]-lefc[1])
+    r1 = dir[1] * (lefc[0] - refc[0]) + dir[0] * (refc[1] - lefc[1])
     r2 = dir[1] * np.cos(a) - dir[0] * np.sin(a)
-    r = r1/r2
+    r = r1 / r2
 
     # find coord
     x = refc[0] + r * np.cos(a)
     y = refc[1] + r * np.sin(a)
-    z = refc[1] + cod_mid/100
+    z = refc[1] + cod_mid / 100
     coord = [x, y, z]
 
     return coord

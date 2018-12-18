@@ -23,6 +23,7 @@ import sqlite3
 import time
 from src import load_hdf5
 from src_GUI import output_fig_GUI
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -149,7 +150,7 @@ def test_evah_xml_pref(path_xml, path_evha):
     stage_evha = []
     for i in range(0, len(filenames)):
         [height, vel, sub, code_fish, name_fish, stages, blob] = \
-                load_evha_curve(filenames[i], path_evha)
+            load_evha_curve(filenames[i], path_evha)
         h_evha.append(height)
         v_evha.append(vel)
         sub_evha.append(sub)
@@ -182,8 +183,8 @@ def test_evah_xml_pref(path_xml, path_evha):
             else:
                 j += 1
         # last one
-        if j > len(code_fish_evha)-1:
-            j = len(code_fish_evha)-1
+        if j > len(code_fish_evha) - 1:
+            j = len(code_fish_evha) - 1
 
         # pass from stades in evha to stages in xml
         if len(stages) != len(stage_evha[j]):
@@ -217,7 +218,7 @@ def test_evah_xml_pref(path_xml, path_evha):
         plt.suptitle('Comparision of preference curve of ' + code_fish
                      + '\n (xml as straight line, .PRF as triangle)')
         if len(stages) > 1:  # if you take this out, the commande axarr[x,x]
-                            # does not work as axarr is only 1D
+            # does not work as axarr is only 1D
             # f, axarr = plt.subplots(len(stage_evha[j]), 3, sharey='row')
             for s2 in range(0, len(stage_evha[j])):
                 s = stage_corr_evha[s2]
@@ -266,7 +267,7 @@ def figure_pref(height, vel, sub, code_fish, name_fish,
         return
 
     if len(stade) > 1:  # if you take this out, the command
-                        # axarr[x,x] does not work as axarr is only 1D
+        # axarr[x,x] does not work as axarr is only 1D
         f, axarr = plt.subplots(len(stade), 3, sharey='row')
         if fig_opt['language'] == 0:
             plt.suptitle('Suitability curve of ' + name_fish
@@ -293,7 +294,7 @@ def figure_pref(height, vel, sub, code_fish, name_fish,
             axarr[s, 1].set_ylim([0, 1.1])
 
             if len(sub[0][0]) > 2:  # if substrate is accounted,
-                                    # it is accounted for all stages
+                # it is accounted for all stages
                 axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
                                 align='center')
             if fig_opt['language'] == 0:
@@ -419,7 +420,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
     found_one = False
     j = 0
     for preffile in preffiles:
-        data = [None]*(len(attribute)-1)
+        data = [None] * (len(attribute) - 1)
 
         # load the file
         try:
@@ -427,10 +428,10 @@ def create_and_fill_database(path_bio, name_database, attribute):
                 docxml = ET.parse(os.path.join(path_bio, preffile))
                 root = docxml.getroot()
             except IOError:
-                print("Warning: the xml file "+preffile + " does not exist \n")
+                print("Warning: the xml file " + preffile + " does not exist \n")
                 break
         except ET.ParseError:
-            print("Warning: the xml file "+preffile + "is not well-formed.\n")
+            print("Warning: the xml file " + preffile + "is not well-formed.\n")
             break
 
         # get the data
@@ -464,7 +465,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
                             data[i] = data[i].text
             elif att == 'Code_Sandre':
                 data[i] = \
-                        root.find('.//CdAppelTaxon[@schemeAgencyID="SANDRE"]')
+                    root.find('.//CdAppelTaxon[@schemeAgencyID="SANDRE"]')
                 if data[i] is not None:
                     data[i] = data[i].text
             elif att == 'XML_filename':
@@ -482,7 +483,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
             # normal attributes
             # the tag figure_hydrosignature is None (Null) by default
             else:
-                data[i] = root.find(".//"+att)
+                data[i] = root.find(".//" + att)
                 # None is null for python 3
                 if data[i] is not None:
                     data[i] = data[i].text
@@ -627,23 +628,23 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                         print('no stage found in ' + preffile + "\n")
                         all_ok = False
                         break
-            elif len(att_langue) == 3 and att_langue[1] == 'common' and\
+            elif len(att_langue) == 3 and att_langue[1] == 'common' and \
                     att_langue[2] == 'name':
-                    b = root.findall('.//ComName')
-                    if b is not None:
-                        for bi in b:
-                            try:
-                                if bi.attrib['Language'] == att_langue[0]:
-                                    data[i] = bi.text.strip()
-                            except KeyError:
-                                all_ok = False
-                                break
+                b = root.findall('.//ComName')
+                if b is not None:
+                    for bi in b:
+                        try:
+                            if bi.attrib['Language'] == att_langue[0]:
+                                data[i] = bi.text.strip()
+                        except KeyError:
+                            all_ok = False
+                            break
             elif att == 'Code_ONEMA':
-                    data[i] = root.find('.//CdAlternative')
-                    if data[i] is not None:
-                        if data[i].attrib['OrgCdAlternative']:
-                            if data[i].attrib['OrgCdAlternative'] == 'ONEMA':
-                                data[i] = data[i].text.strip()
+                data[i] = root.find('.//CdAlternative')
+                if data[i] is not None:
+                    if data[i].attrib['OrgCdAlternative']:
+                        if data[i].attrib['OrgCdAlternative'] == 'ONEMA':
+                            data[i] = data[i].text.strip()
             elif att == 'Code_Sandre':
                 data[i] = root.find('.//CdAppelTaxon')
                 if data[i] is not None:
@@ -662,14 +663,14 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
         # put data in the new list
         if stages:
             for s in stages:
-                    # careful the char :
-                    # is necessary for the function  show_info_fish()
-                    # from bio_info_GUI
-                    data_s = [data[4] + ': ' + s + ' - '
-                              + data[5], s, preffile]
-                    #  order mattter HERE! (ind: +3)
-                    data_s.extend(data)
-                    data_fish.append(data_s)
+                # careful the char :
+                # is necessary for the function  show_info_fish()
+                # from bio_info_GUI
+                data_s = [data[4] + ': ' + s + ' - '
+                          + data[5], s, preffile]
+                #  order mattter HERE! (ind: +3)
+                data_s.extend(data)
+                data_fish.append(data_s)
         else:
             data_fish.append(data)
         found_one = True
@@ -807,12 +808,12 @@ def plot_hydrosignature(xmlfile):
     vclass = np.array(vclass)
     hclass = np.array(hclass)
 
-    if len(data) != (len(vclass)-1) * (len(hclass)-1):
+    if len(data) != (len(vclass) - 1) * (len(hclass) - 1):
         print('Warning: the data for hydrosignature is not\
             of the right length.\n')
         return
 
-    data = data.reshape((len(vclass)-1, len(hclass)-1))
+    data = data.reshape((len(vclass) - 1, len(hclass) - 1))
     mpl.rcParams['pdf.fonttype'] = 42
 
     plt.figure()
@@ -825,7 +826,7 @@ def plot_hydrosignature(xmlfile):
     maxlab = np.max(data)
     for (j, i), label in np.ndenumerate(data):
         # text in black or white depending on the data
-        if label < maxlab/2:
+        if label < maxlab / 2:
             ax1.text(i, j, np.round(label, 2), ha='center',
                      va='center', color='black')
         else:
@@ -892,36 +893,36 @@ def read_pref(xmlfile):
     # velocity
     vel_all = []
     for s in stages:
-            vel = [[], []]
-            rea = ".//Stage[@Type='" + s + "']/PreferenceVelocity/Value"
-            vel_data = root.findall(rea)
-            if vel_data is not None:
-                for v in vel_data:
-                    try:
-                        data2 = float(v.attrib['p'])
-                        data1 = float(v.attrib['v'])
-                    except ValueError:
-                        print('Error: Value cannot be converted to float\
+        vel = [[], []]
+        rea = ".//Stage[@Type='" + s + "']/PreferenceVelocity/Value"
+        vel_data = root.findall(rea)
+        if vel_data is not None:
+            for v in vel_data:
+                try:
+                    data2 = float(v.attrib['p'])
+                    data1 = float(v.attrib['v'])
+                except ValueError:
+                    print('Error: Value cannot be converted to float\
                                     in the velocity data of the xml file'
-                              + xml_name + '\n')
-                        return failload
-                    vel[0].extend([data1])
-                    vel[1].extend([data2])
-            else:
-                print('Error: Velocity data was not found \n')
-                return failload
+                          + xml_name + '\n')
+                    return failload
+                vel[0].extend([data1])
+                vel[1].extend([data2])
+        else:
+            print('Error: Velocity data was not found \n')
+            return failload
 
-            # check increasing velocity
-            if vel[0] != sorted(vel[0]):
-                print('Error: Velocity data is not sorted for the xml file '
-                      + xml_name + '.\n')
-                return failload
+        # check increasing velocity
+        if vel[0] != sorted(vel[0]):
+            print('Error: Velocity data is not sorted for the xml file '
+                  + xml_name + '.\n')
+            return failload
 
-            # manage units
-            unit = root.find(".//PreferenceVelocity")
-            vel = change_unit(vel, unit.attrib["Unit"])
+        # manage units
+        unit = root.find(".//PreferenceVelocity")
+        vel = change_unit(vel, unit.attrib["Unit"])
 
-            vel_all.append(vel)
+        vel_all.append(vel)
 
     # height
     h_all = []
@@ -997,7 +998,7 @@ def change_unit(data, unit):
 
     if unit == 'Centimeter' or unit == "CentimeterPerSecond":
         data[0] = [x / 100 for x in data[0]]
-    elif unit == "Meter" or unit == "MeterPerSecond"\
+    elif unit == "Meter" or unit == "MeterPerSecond" \
             or unit == "Code EVHA 2.0 (GINOT 1998)":
         pass
     elif unit == "Millimeter":
@@ -1050,7 +1051,7 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
 
         # read pref
         xmlfile = os.path.join(path_bio, f)
-        [h_all, vel_all, sub_all, code_fish, name_fish, stages] =\
+        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
             read_pref(xmlfile)
 
         # read additionnal info
@@ -1093,20 +1094,20 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
             plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA\
                             fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
-            text_all = name_fish + '\n\n' + data[0][2]\
-                                 + '\n\n' + code_fish + '\n\n'
+            text_all = name_fish + '\n\n' + data[0][2] \
+                       + '\n\n' + code_fish + '\n\n'
         elif fig_opt['language'] == 1:
             plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA\
              :\n\nStage choisi :\n\nDescription :",
                         weight='bold', fontsize=32)
-            text_all = name_fish + '\n\n' + data[0][1] + '\n\n'\
-                + code_fish + '\n\n'
+            text_all = name_fish + '\n\n' + data[0][1] + '\n\n' \
+                       + code_fish + '\n\n'
         else:
             plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA\
                 fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][2] \
-                + '\n\n' + code_fish + '\n\n'
+                       + '\n\n' + code_fish + '\n\n'
         for idx, s in enumerate(stage_chosen2[idx]):
             text_all += s + ', '
         text_all = text_all[:-2] + '\n\n'

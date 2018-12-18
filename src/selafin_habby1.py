@@ -27,7 +27,8 @@ from src_GUI import output_fig_GUI
 from src import manage_grid_8
 
 
-def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5, units_index=None, q=[],
+def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5,
+                              units_index=None, q=[],
                               print_cmd=False, fig_opt={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
@@ -64,7 +65,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
         timestep = timestep[units_index]
 
-    if isinstance(v,int) and v == [-99]:
+    if isinstance(v, int) and v == [-99]:
         print('Error: Telemac data not loaded.')
         if q:
             sys.stdout = sys.__stdout__
@@ -89,7 +90,8 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
 
     # save data
     timestep_str = list(map(str, timestep))
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                      point_all_t, point_c_all_t,
                                       inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
     if not print_cmd:
@@ -139,7 +141,7 @@ def load_telemac(namefilet, pathfilet):
         ht = []
 
         # load variable based on their name (english or french)
-        for id,n in enumerate(telemac_data.varnames):
+        for id, n in enumerate(telemac_data.varnames):
             n = n.decode('utf-8')
             if 'VITESSE MOY' in n or 'MEAN VELOCITY' in n:
                 vt = val_all[:, id]
@@ -155,7 +157,7 @@ def load_telemac(namefilet, pathfilet):
                 bt = val_all[:, id]
 
         if foundu and foundv:
-            vt = np.sqrt(vu**2 + vv**2)
+            vt = np.sqrt(vu ** 2 + vv ** 2)
 
         if len(vt) == 0:
             print('Error: The variable name of the telemec file were not recognized. (1) \n')
@@ -227,26 +229,27 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
      :param path_im: the path where the image should be saved (string)
      :param timestep: which time step should be plotted
     """
-    #plt.rcParams['figure.figsize'] = 7, 3
-    #plt.close()
+    # plt.rcParams['figure.figsize'] = 7, 3
+    # plt.close()
     plt.rcParams['font.size'] = 10
 
     for i in timestep:
         plt.figure()
         cm = plt.cm.get_cmap('terrain')
-        sc = plt.scatter(coord_p2[:,0], coord_p2[:,1], c=h[i], vmin=np.nanmin(h[i]), vmax=np.nanmax(h[i]), s=6, cmap=cm,
+        sc = plt.scatter(coord_p2[:, 0], coord_p2[:, 1], c=h[i], vmin=np.nanmin(h[i]), vmax=np.nanmax(h[i]), s=6,
+                         cmap=cm,
                          edgecolors='none')
-        #sc = plt.tricontourf(coord_p2[:,0], coord_p2[:,1], ikle_all[r], h[i], min=0, max=np.nanmax(h[i]), cmap=cm)
+        # sc = plt.tricontourf(coord_p2[:,0], coord_p2[:,1], ikle_all[r], h[i], min=0, max=np.nanmax(h[i]), cmap=cm)
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
-        plt.title('Telemac data - water height at time step '+str(i))
+        plt.title('Telemac data - water height at time step ' + str(i))
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Water height [m]')
         plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.png'))
         plt.savefig(os.path.join(path_im, "telemac_height_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.pdf'))
-        #plt.close()
+        # plt.close()
 
         plt.figure()
         cm = plt.cm.get_cmap('terrain')
@@ -255,15 +258,15 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
                          edgecolors='none')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
-        plt.title('Telemac data - velocity at time step '+str(i))
+        plt.title('Telemac data - velocity at time step ' + str(i))
         cbar = plt.colorbar()
         cbar.ax.set_ylabel('Velocity [m/s]')
         plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.png'))
         plt.savefig(os.path.join(path_im, "telemac_vel_t" + str(i) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                  '.pdf'))
-        #plt.close()
-    #plt.show()
+        # plt.close()
+    # plt.show()
 
 
 def getendianfromchar(fileslf, nchar):
@@ -275,15 +278,15 @@ def getendianfromchar(fileslf, nchar):
     pointer = fileslf.tell()
     endian = ">"
     l, c, chk = unpack(endian + 'i' + str(nchar) + 'si', \
-        fileslf.read(4 + nchar + 4))
+                       fileslf.read(4 + nchar + 4))
     if chk != nchar:
         endian = "<"
         fileslf.seek(pointer)
         l, c, chk = unpack(endian + 'i' + str(nchar) + 'si', \
-            fileslf.read(4 + nchar + 4))
+                           fileslf.read(4 + nchar + 4))
     if l != chk:
         print('Error: ... Cannot read ' + str(nchar) + \
-                ' characters from your binary file')
+              ' characters from your binary file')
         print('     +> Maybe it is the wrong file format ?')
     fileslf.seek(pointer)
     return endian
@@ -296,14 +299,14 @@ def getfloattypefromfloat(fileslf, endian, nfloat):
     pointer = fileslf.tell()
     ifloat = 4
     cfloat = 'f'
-    l = unpack(endian+'i', fileslf.read(4))
+    l = unpack(endian + 'i', fileslf.read(4))
     if l[0] != ifloat * nfloat:
         ifloat = 8
         cfloat = 'd'
     r = unpack(endian + str(nfloat) + cfloat, fileslf.read(ifloat * nfloat))
     chk = unpack(endian + 'i', fileslf.read(4))
     if l != chk:
-        print('Error: ... Cannot read '+str(nfloat)+' floats from your binary file')
+        print('Error: ... Cannot read ' + str(nfloat) + ' floats from your binary file')
         print('     +> Maybe it is the wrong file format ?')
     fileslf.seek(pointer)
     return cfloat, ifloat
@@ -316,12 +319,13 @@ class Selafin(object):
 
     :param filename: the name of the binary Selafin file
     """
+
     def __init__(self, filename):
         self.file = {}
         self.file.update({'name': filename})
         # "<" means little-endian, ">" means big-endian
         self.file.update({'endian': ">"})
-        self.file.update({'float': ('f', 4)}) #'f' size 4, 'd' = size 8
+        self.file.update({'float': ('f', 4)})  # 'f' size 4, 'd' = size 8
         self.datetime = [0, 0, 0, 0, 0, 0]
         if filename != '':
             self.file.update({'hook': open(filename, 'rb')})
@@ -334,11 +338,11 @@ class Selafin(object):
             self.getheaderintegersslf()
             # ~~> checks float encoding
             self.file['float'] = getfloattypefromfloat(self.file['hook'], \
-                self.file['endian'], self.npoin3)
+                                                       self.file['endian'], self.npoin3)
             # ~~> xy mesh
             self.getheaderfloatsslf()
             # ~~> time series
-            self.tags = {'cores':[], 'times':[]}
+            self.tags = {'cores': [], 'times': []}
             self.gettimehistoryslf()
         else:
             self.title = ''
@@ -366,7 +370,7 @@ class Selafin(object):
             self.ipob3 = []
             self.meshx = []
             self.meshy = []
-            self.tags = {'cores':[], 'times':[]}
+            self.tags = {'cores': [], 'times': []}
         self.fole = {}
         self.fole.update({'name': ''})
         self.fole.update({'endian': self.file['endian']})
@@ -393,14 +397,14 @@ class Selafin(object):
         self.varunits = []
         for _ in range(self.nbv1):
             l, vn, vu, chk = unpack(endian + 'i16s16si', \
-                fileslf.read(4 + 16 + 16 + 4))
+                                    fileslf.read(4 + 16 + 16 + 4))
             self.varnames.append(vn)
             self.varunits.append(vu)
         self.cldnames = []
         self.cldunits = []
         for _ in range(self.nbv2):
             l, vn, vu, chk = unpack(endian + 'i16s16si', \
-                fileslf.read(4 + 16 + 16 + 4))
+                                    fileslf.read(4 + 16 + 16 + 4))
             self.cldnames.append(vn)
             self.cldunits.append(vu)
         # ~~ Read iparam array ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -425,25 +429,25 @@ class Selafin(object):
         self.ndp2 = self.ndp3
         self.nplan = max(1, self.nplan)
         if self.iparam[6] > 1:
-            self.nplan = self.iparam[6] # /!\ How strange is that ?
+            self.nplan = self.iparam[6]  # /!\ How strange is that ?
             self.nelem2 = self.nelem3 / (self.nplan - 1)
             self.npoin2 = self.npoin3 / self.nplan
             self.ndp2 = self.ndp3 / 2
         # ~~ Read the IKLE array ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         fileslf.seek(4, 1)
-        self.ikle3 = np.array(unpack(endian + str(self.nelem3 * self.ndp3)\
-                + 'i', fileslf.read(4 * self.nelem3 * self.ndp3))) - 1
+        self.ikle3 = np.array(unpack(endian + str(self.nelem3 * self.ndp3) \
+                                     + 'i', fileslf.read(4 * self.nelem3 * self.ndp3))) - 1
         fileslf.seek(4, 1)
         self.ikle3 = self.ikle3.reshape((self.nelem3, self.ndp3))
         if self.nplan > 1:
             self.ikle2 = np.compress(np.repeat([True, False], self.ndp2), \
-                self.ikle3[0:self.nelem2], axis=1)
+                                     self.ikle3[0:self.nelem2], axis=1)
         else:
             self.ikle2 = self.ikle3
         # ~~ Read the IPOBO array ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         fileslf.seek(4, 1)
         self.ipob3 = np.asarray(unpack(endian + str(self.npoin3) + 'i', \
-            fileslf.read(4 * self.npoin3)))
+                                       fileslf.read(4 * self.npoin3)))
         fileslf.seek(4, 1)
         self.ipob2 = self.ipob3[0:self.npoin2]
 
@@ -457,12 +461,12 @@ class Selafin(object):
         ftype, fsize = self.file['float']
         fileslf.seek(4, 1)
         self.meshx = np.asarray(unpack(endian + str(self.npoin3) + ftype, \
-            fileslf.read(fsize * self.npoin3))[0:self.npoin2])
+                                       fileslf.read(fsize * self.npoin3))[0:self.npoin2])
         fileslf.seek(4, 1)
         # ~~ Read the y-coordinates of the nodes ~~~~~~~~~~~~~~~~~~
         fileslf.seek(4, 1)
         self.meshy = np.asarray(unpack(endian + str(self.npoin3) + ftype, \
-            fileslf.read(fsize * self.npoin3))[0:self.npoin2])
+                                       fileslf.read(fsize * self.npoin3))[0:self.npoin2])
         fileslf.seek(4, 1)
 
     def gettimehistoryslf(self):
@@ -484,7 +488,7 @@ class Selafin(object):
                 # ~~ Skip Values ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 fileslf.seek(self.nvar * (4 + fsize * self.npoin3 + 4), 1)
             except:
-                att.pop(len(att) - 1)   # since the last record failed the try
+                att.pop(len(att) - 1)  # since the last record failed the try
                 break
         self.tags.update({'cores': att})
         self.tags.update({'times': np.asarray(ats)})
@@ -509,8 +513,8 @@ class Selafin(object):
                 fileslf.seek(4, 1)
                 if ivar in varindexes:
                     z[varindexes.index(ivar)] = unpack(endian + \
-                        str(self.npoin3) + ftype, \
-                        fileslf.read(fsize * self.npoin3))
+                                                       str(self.npoin3) + ftype, \
+                                                       fileslf.read(fsize * self.npoin3))
                 else:
                     fileslf.seek(fsize * self.npoin3, 1)
                 fileslf.seek(4, 1)
@@ -529,11 +533,11 @@ class Selafin(object):
         """
         f = self.fole['hook']
         endian = self.fole['endian']
-        ftype,fsize = self.fole['float']
+        ftype, fsize = self.fole['float']
         # ~~ Write title ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        f.write(pack(endian+'i80si', 80, self.title, 80))
+        f.write(pack(endian + 'i80si', 80, self.title, 80))
         # ~~ Write NBV(1) and NBV(2) ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        f.write(pack(endian+'iiii', 4 + 4, self.nbv1, self.nbv2, 4 + 4))
+        f.write(pack(endian + 'iiii', 4 + 4, self.nbv1, self.nbv2, 4 + 4))
         # ~~ Write variable names and units ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         for i in range(self.nbv1):
             f.write(pack(endian + 'i', 32))
@@ -558,24 +562,24 @@ class Selafin(object):
             f.write(pack(endian + 'i', 4 * 6))
         # ~~ Write NELEM3, NPOIN3, NDP3, NPLAN ~~~~~~~~~~~~~~~~~~~~~~~~~~~
         f.write(pack(endian + '6i', 4 * 4, self.nelem3, self.npoin3, \
-            self.ndp3, 1, 4 * 4))  #/!\ where is NPLAN ?
+                     self.ndp3, 1, 4 * 4))  # /!\ where is NPLAN ?
         # ~~ Write the IKLE array ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         f.write(pack(endian + 'i', 4 * self.nelem3 * self.ndp3))
         f.write(pack(endian + str(self.nelem3 * self.ndp3) + 'i', *(self.ikle3.ravel() + 1)))
         f.write(pack(endian + 'i', 4 * self.nelem3 * self.ndp3))
         # ~~ Write the IPOBO array ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         f.write(pack(endian + 'i', 4 * self.npoin3))
-        f.write(pack(endian + str(self.npoin3) +'i', *(self.ipob3)))
+        f.write(pack(endian + str(self.npoin3) + 'i', *(self.ipob3)))
         f.write(pack(endian + 'i', 4 * self.npoin3))
         # ~~ Write the x-coordinates of the nodes ~~~~~~~~~~~~~~~~~~~~~~~
         f.write(pack(endian + 'i', fsize * self.npoin3))
-        #f.write(pack(endian+str(self.NPOIN3)+ftype,*(np.tile(self.MESHX,self.NPLAN))))
+        # f.write(pack(endian+str(self.NPOIN3)+ftype,*(np.tile(self.MESHX,self.NPLAN))))
         for i in range(self.nplan):
             f.write(pack(endian + str(self.npoin2) + ftype, *(self.meshx)))
         f.write(pack(endian + 'i', fsize * self.npoin3))
         # ~~ Write the y-coordinates of the nodes ~~~~~~~~~~~~~~~~~~~~~~~
         f.write(pack(endian + 'i', fsize * self.npoin3))
-        #f.write(pack(endian+str(self.NPOIN3)+ftype,*(np.tile(self.MESHY,self.NPLAN))))
+        # f.write(pack(endian+str(self.NPOIN3)+ftype,*(np.tile(self.MESHY,self.NPLAN))))
         for i in range(self.nplan):
             f.write(pack(endian + str(self.npoin2) + ftype, *(self.meshy)))
         f.write(pack(endian + 'i', fsize * self.npoin3))
@@ -585,9 +589,9 @@ class Selafin(object):
         endian = self.fole['endian']
         ftype, fsize = self.fole['float']
         # Print time record
-        #if type(t) == type(0.0):
-        f.write(pack(endian + 'i' + ftype + 'i', fsize,t, fsize))
-        #else:
+        # if type(t) == type(0.0):
+        f.write(pack(endian + 'i' + ftype + 'i', fsize, t, fsize))
+        # else:
         #    f.write(pack(endian + 'i' + ftype + 'i', fsize, self.tags['times'][t], fsize))
 
     def appendcorevarsslf(self, varsor):
@@ -602,28 +606,28 @@ class Selafin(object):
 
     def putcontent(self, fileName, times, values):
         self.fole.update({'name': fileName})
-        self.fole.update({'hook': open(fileName,'wb')})
+        self.fole.update({'hook': open(fileName, 'wb')})
         self.appendheaderslf()
         npoin = self.npoin2
         nbrow = values.shape[0]
-        if nbrow%npoin != 0:
-            raise Exception(u'The number of values is not equal to the number of nodes : %d'%npoin)
+        if nbrow % npoin != 0:
+            raise Exception(u'The number of values is not equal to the number of nodes : %d' % npoin)
         for i in range(times.size):
             self.appendcoretimeslf(times[i])
-            self.appendcorevarsslf(values[i*npoin:(i+1)*npoin,:])
-        self.fole.update({'hook': self.fole['hook'].close()})    
-    
+            self.appendcorevarsslf(values[i * npoin:(i + 1) * npoin, :])
+        self.fole.update({'hook': self.fole['hook'].close()})
+
     def addcontent(self, fileName, times, values):
-        self.fole.update({'hook': open(fileName,'ab')})
+        self.fole.update({'hook': open(fileName, 'ab')})
         npoin = self.npoin2
         nbrow = values.shape[0]
-        if nbrow%npoin != 0:
-            raise Exception(u'The number of values is not equal to the number of nodes : %d'%npoin)
+        if nbrow % npoin != 0:
+            raise Exception(u'The number of values is not equal to the number of nodes : %d' % npoin)
         for i in range(times.size):
             self.appendcoretimeslf(times[i])
-            self.appendcorevarsslf(values[i*npoin:(i+1)*npoin,:])
-        self.fole.update({'hook': self.fole['hook'].close()})    
-        
+            self.appendcorevarsslf(values[i * npoin:(i + 1) * npoin, :])
+        self.fole.update({'hook': self.fole['hook'].close()})
+
     def __del__(self):
         """
         Destructor method
@@ -632,11 +636,8 @@ class Selafin(object):
             self.file.update({'hook': self.file['hook'].close()})
 
 
-
-
-
 if __name__ == "__main__":
     namefile = 'mersey.res'
     pathfile = r'D:\Diane_work\output_hydro\telemac_py'
     [v, h, coord_p, ikle, coord_c] = load_telemac(namefile, pathfile)
-    plot_vel_h(coord_p,h,v)
+    plot_vel_h(coord_p, h, v)

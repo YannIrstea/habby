@@ -31,8 +31,10 @@ from src_GUI import output_fig_GUI
 import matplotlib as mpl
 
 
-def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
-                                 ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.', print_cmd=False):
+def load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
+                                  interpo_choice
+                                  , manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.',
+                                  print_cmd=False):
     """
     This function is used to load the mascaret data by calling the load_mascaret() function and to create the grid
     by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
@@ -101,8 +103,10 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_
     # save the hdf5 file
     for idx, t in enumerate(timestep):
         timestep[idx] = str(t)
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
-                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
+                                      point_all_t,
+                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
+                                      nb_pro_reach,
                                       sim_name=timestep, hdf5_type="hydraulic")
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -234,8 +238,8 @@ def get_name_from_cas(file_gen, path_gen):
         print('Error: The name of the .geo file was not found in the cas file.\n')
         return
     data_name = data_gen[ind:]
-    ind_end = data_name.find('\n') # it finds the first occurence
-    name_geo = data_name[len(exp_geo):ind_end-1]
+    ind_end = data_name.find('\n')  # it finds the first occurence
+    name_geo = data_name[len(exp_geo):ind_end - 1]
     return name_geo
 
 
@@ -307,7 +311,8 @@ def open_geo_mascaret(file_geo, path_geo):
         len_data_xh = len(data_pro[1].split())
         data_xh = data_pro_all.split()
         if len_data_xh < 2 or len_data_xh > 4:
-            print('Error: the profile number ' + str(p) + ' was not in the right format. X or Y data were not found. \n')
+            print(
+                'Error: the profile number ' + str(p) + ' was not in the right format. X or Y data were not found. \n')
             return failload
         else:
             xstr = data_xh[3::len_data_xh]
@@ -328,7 +333,7 @@ def open_geo_mascaret(file_geo, path_geo):
             coord_pro.append(np.array([x_pro, h_pro]))
 
             # find if you have a bathymetry/topography difference
-            bt_maybe_info = data_xh[len_data_xh-1::len_data_xh]
+            bt_maybe_info = data_xh[len_data_xh - 1::len_data_xh]
             if bt_maybe_info[1] == 'B' or bt_maybe_info[1] == 'T':
                 bt.append(bt_maybe_info[1:])
                 c += 1
@@ -382,12 +387,12 @@ def correct_duplicate(seq, send_warn, idfun=None):
             else:
                 result.append(0.01 * c / le)
             if send_warn:
-                 print('Warning: Vertical profile. One or more profiles were modified. \n')
-                 send_warn = False
+                print('Warning: Vertical profile. One or more profiles were modified. \n')
+                send_warn = False
         else:
             seen[marker] = 1
             result.append(item)
-        c+=1
+        c += 1
     return result, send_warn
 
 
@@ -574,7 +579,8 @@ def river_coord_non_georef_from_cas(file_gen, path_gen, abcisse, nb_pro_reach):
             angles.append(node_n)
 
         # reconstruct the stream network
-        [coord_r, nr] = define_stream_network(node_number, start_node, end_node, angles, nb_pro_reach, nb_reach, abcisse)
+        [coord_r, nr] = define_stream_network(node_number, start_node, end_node, angles, nb_pro_reach, nb_reach,
+                                              abcisse)
 
     return coord_r, nr
 
@@ -718,11 +724,11 @@ def profil_coord_non_georef(coord_pro, coord_r, nr, nb_pro_reach, bt=None):
     :param bt: optional, it indicates which points in the profiles are in the minor/major bed
     :return: the velocity and height data, the timestep
     """
-    #print("Warning: Data is not georeferenced. HYP: profiles perpendicular to the river \n")
+    # print("Warning: Data is not georeferenced. HYP: profiles perpendicular to the river \n")
     coord = []
     for r in range(0, len(coord_r)):
-        coord_pro_r = coord_pro[nb_pro_reach[r]: nb_pro_reach[r+1]]
-        bt_r = bt[nb_pro_reach[r]: nb_pro_reach[r+1]]
+        coord_pro_r = coord_pro[nb_pro_reach[r]: nb_pro_reach[r + 1]]
+        bt_r = bt[nb_pro_reach[r]: nb_pro_reach[r + 1]]
         for p in range(0, len(coord_pro_r)):
             coord_pro_p = coord_pro_r[p]
             xpro = coord_pro_p[0]
@@ -736,7 +742,7 @@ def profil_coord_non_georef(coord_pro, coord_r, nr, nb_pro_reach, bt=None):
             else:
                 btp = np.array(bt_r[p])
                 hriv = np.min(hpro[btp == 'B'])
-                a = int(len(xpro[hpro == hriv])/2)  # if two altitude idem, take the middle one
+                a = int(len(xpro[hpro == hriv]) / 2)  # if two altitude idem, take the middle one
                 xriv = xpro[hpro == hriv][a]
             dist_from_river = xpro - xriv
             # the profile start from the river and is perpendicular to it (-y,x) for the vector n
@@ -783,7 +789,7 @@ def open_res_file(file_res, path_res):
     ind_h = -99
     ind_v = -99
     ind_z = -99
-    nb_var = len(data_name)-1  # get rid of the lign "resultat"
+    nb_var = len(data_name) - 1  # get rid of the lign "resultat"
     for i in range(0, nb_var):
         this_var = data_name[i].split(';')
         if this_var[1] == "\"Y\"":
@@ -805,7 +811,7 @@ def open_res_file(file_res, path_res):
     # height and velocity data
     data_var = data_var[0].split('\n')
     data_var = list(filter(bool, data_var))  # erase empty lines
-    t_data = np.zeros((len(data_var), ))
+    t_data = np.zeros((len(data_var),))
     xhzv_data = np.zeros((len(data_var), 4))
     timestep = []
     for i in range(0, len(data_var)):
@@ -863,7 +869,7 @@ def is_this_res_on_the_profile(abscisse, xhzv_data_all):
         # because 0.99 = 1 and 0.49 = 0.50 even if all number are given with 2 digits
         min_here = np.min(abs(xhzv_data[:, 0] - abscisse[p]))
         if min_here < 0.03:
-            inds = np.where(abs(abscisse[p] - xhzv_data[:, 0]) < 0.03)   # more than one value so no argmin
+            inds = np.where(abs(abscisse[p] - xhzv_data[:, 0]) < 0.03)  # more than one value so no argmin
             inds = inds[0]
             for j in range(0, len(inds)):
                 on_profile[inds[j]] = True
@@ -911,9 +917,9 @@ def open_rub_file(file_res, path_res):
     # get the header (can be useful)
     c = 0
     for i in range(0, 3):
-        c += 4        # fortran have addition octet giving the size
+        c += 4  # fortran have addition octet giving the size
         try:
-            title = unpack("72s", in_fp[c:c+72])[0]
+            title = unpack("72s", in_fp[c:c + 72])[0]
         except errstruct:
             print('Error: header could not be extracted of the .rub file. \n')
             return failload
@@ -954,8 +960,8 @@ def open_rub_file(file_res, path_res):
         print('Error: the number of reach could not be extracted from the .rub file. \n')
         return failload
     if nb_reach > 500:
-        print('Warning: The number of reach looks unlikely. Number of reach: ' + str(nb_reach) + '.\n' )
-    c += 8 + nb_reach * 4 + 8 + nb_reach*4 + 8   # 8 because of padding related to FORTRAN
+        print('Warning: The number of reach looks unlikely. Number of reach: ' + str(nb_reach) + '.\n')
+    c += 8 + nb_reach * 4 + 8 + nb_reach * 4 + 8  # 8 because of padding related to FORTRAN
 
     # get variable name which do not have a time dependance
     var_name = []
@@ -976,7 +982,7 @@ def open_rub_file(file_res, path_res):
             return failload
         if check_end != 'FIN ' and 'x00' not in check_end:
             var_name.append(check_end)
-        c += 4+8
+        c += 4 + 8
         if c >= len(in_fp) - 1:
             still_len = False
     if not still_len:
@@ -1009,7 +1015,7 @@ def open_rub_file(file_res, path_res):
                     zref.append(zrefi)
                 c += 4
             else:
-                c += 4*len_var +4
+                c += 4 * len_var + 4
     except errstruct:
         print('Error: Variable X and ZREF could not be extracted')
     c += 4
@@ -1025,7 +1031,7 @@ def open_rub_file(file_res, path_res):
         check_end = check_end.decode()
         if check_end != 'FIN ' and 'x00' not in check_end:
             var_namet.append(check_end)
-            c += 4+8
+            c += 4 + 8
         if c >= len(in_fp) - 1:
             still_len = False
     if not still_len:
@@ -1044,7 +1050,7 @@ def open_rub_file(file_res, path_res):
         return failload
     if nb_step > 1000:
         print('Warning: More than 1000 time steps found. \n')
-    c +=4
+    c += 4
     nb_step = unpack("1i", in_fp[c:c + 4])[0]
     c += 12
 
@@ -1053,11 +1059,11 @@ def open_rub_file(file_res, path_res):
     for t in range(0, nb_step):
         # get this time step
         try:
-                t = unpack('1f', in_fp[c:c + 4])[0]
-                timestep.append(t)
+            t = unpack('1f', in_fp[c:c + 4])[0]
+            timestep.append(t)
         except errstruct:
             print('Error: the time step could not be exteracted from the .rub file. \n')
-        c += 8*2
+        c += 8 * 2
         # get the length of the variable
         try:
             len_var = unpack("1i", in_fp[c:c + 4])[0]
@@ -1092,13 +1098,14 @@ def open_rub_file(file_res, path_res):
 
     # create xhzv_data
     for t in range(0, nb_step):
-        xhzv_data_t = np.array([x, np.array(z[t])- np.array(zref), np.array(zref), np.array(v[t])])
+        xhzv_data_t = np.array([x, np.array(z[t]) - np.array(zref), np.array(zref), np.array(v[t])])
         xhzv_data.append(xhzv_data_t.T)
 
     return xhzv_data, timestep
 
 
-def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig_opt, name_pro, name_reach, path_im, pro,
+def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig_opt, name_pro, name_reach, path_im,
+                    pro,
                     plot_timestep=[-1], reach_plot=[0]):
     """
     The function to plot the figures related to mascaret.
@@ -1171,16 +1178,17 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
             if fig_opt['language'] == 0:
                 plt.xlabel('Distance along the river [m]')
                 plt.ylabel('Velocity [m/sec]')
-            elif fig_opt['language'] ==1:
+            elif fig_opt['language'] == 1:
                 plt.xlabel('Distance le long de la rivière [m]')
                 plt.ylabel('Vitesse [m/sec]')
             if format == 1 or format == 0:
-                plt.savefig(os.path.join(path_im, "mascaret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                                         + ".png"), dpi = fig_opt['resolution'])
-            if format == 0 or format ==3:
+                plt.savefig(
+                    os.path.join(path_im, "mascaret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                                 + ".png"), dpi=fig_opt['resolution'])
+            if format == 0 or format == 3:
                 plt.savefig(os.path.join(path_im, "masacret_riv_" +
                                          name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                                     + ".pdf"),dpi = fig_opt['resolution'])
+                                         + ".pdf"), dpi=fig_opt['resolution'])
             if format == 3:
                 plt.savefig(
                     os.path.join(path_im, "masacret_riv_" + name_reach[r] + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -1194,9 +1202,9 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
     for p in range(0, len(coord_pro)):
         coord_p = coord_pro[p]
         plt.plot(coord_p[0], coord_p[1], 'k', linewidth=0.5)
-        #plt.plot(coord_p[0], coord_p[1], 'k', markersize=1.5, label=txt_h)
-        #if p % 30 == 0:
-           #plt.text(coord_p[0][-1] * 1.1, coord_p[1][-1], name_pro[p])
+        # plt.plot(coord_p[0], coord_p[1], 'k', markersize=1.5, label=txt_h)
+        # if p % 30 == 0:
+        # plt.text(coord_p[0][-1] * 1.1, coord_p[1][-1], name_pro[p])
         txt_pro = '_nolegend_'
         txt_h = "_nolegend_"
     if fig_opt['language'] == 0:
@@ -1209,10 +1217,10 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
     plt.legend(bbox_to_anchor=(1.1, 1), prop={'size': 10})
     if format == 1 or format == 0:
         plt.savefig(os.path.join(path_im, "mascaret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                dpi=fig_opt['resolution'], transparent=True)
+                    dpi=fig_opt['resolution'], transparent=True)
     if format == 0 or format == 3:
         plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                dpi=fig_opt['resolution'], transparent=True)
+                    dpi=fig_opt['resolution'], transparent=True)
     if format == 2:
         plt.savefig(os.path.join(path_im, "masacret_xy_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                     dpi=fig_opt['resolution'], transparent=True)
@@ -1237,19 +1245,22 @@ def figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, fig
             plt.xlabel('Distance along the profile [m]')
             plt.ylabel('Height of the river bed [m]')
             plt.title('Profile ' + name_pro[p] + ' at the time step ' + str(t))
-        elif fig_opt['language'] ==1:
+        elif fig_opt['language'] == 1:
             plt.xlabel('Distance le long du profil [m]')
             plt.ylabel('Elevation du fond de la rivière [m]')
             plt.title('Profil ' + name_pro[p] + ' au temps t=' + str(t))
         if format == 1 or format == 0:
             plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time' +
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), dpi=fig_opt['resolution'],
+                        transparent=True)
         if format == 0 or format == 3:
             plt.savefig(os.path.join(path_im, "masacret_pro_" + str(p) + '_time' +
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), dpi=fig_opt['resolution'],
+                        transparent=True)
         if format == 2:
-            plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time'+
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, "mascaret_pro_" + str(p) + '_time' +
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"), dpi=fig_opt['resolution'],
+                        transparent=True)
 
 
 def flat_coord_pro(coord_pro):
@@ -1275,17 +1286,16 @@ def main():
     Used to test this module separately.
     """
 
-    #path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
+    # path = r'D:\Diane_work\output_hydro\mascaret\Bort-les-Orgues'
     path = r'D:\Diane_work\output_hydro\mascaret\LecRub'
     file_geo = r'mascaret0.geo'
-    #file_res = r'mascaret0_ecr.opt'
+    # file_res = r'mascaret0_ecr.opt'
     file_res = r'mascaret0_full.rub'
     file_gen = 'mascaret0.xcas'
-    #file_gen = r'failltext.xcas'
+    # file_gen = r'failltext.xcas'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
 
-
-    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] =\
+    [coord_pro, coord_r, xhzv_data, name_pro, name_reach, on_profile, nb_pro_reach] = \
         load_mascaret(file_gen, file_geo, file_res, path, path, path)
 
     figure_mascaret(coord_pro, coord_r, xhzv_data, on_profile, nb_pro_reach, name_pro,

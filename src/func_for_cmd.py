@@ -22,6 +22,7 @@ import difflib
 import matplotlib
 import filecmp
 from copy import deepcopy
+
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from src import selafin_habby1
@@ -119,8 +120,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               "the name of the folder with the HydroSim result, (output name)")
 
         print('\n')
-        print('MERGE_GRID_SUB: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5'
-              ', the name of the substrate hdf5, the default data for the substrate (in cemagref code), (output name)')
+        print(
+            'MERGE_GRID_SUB: merge the hydrological and substrate grid together. Input: the name of the hydrological hdf5'
+            ', the name of the substrate hdf5, the default data for the substrate (in cemagref code), (output name)')
         print('LOAD_SUB_SHP: load the substrate from a shapefile. Input: filename of the shapefile,'
               'code_type as Cemagref or Sandre, (dominant_case as 1 or -1)')
         print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the texte file,'
@@ -142,7 +144,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               'will be used. To get the calculation on more than one fish species, separate the names of '
               'the xml biological files by a comma without a space between the command and the filenames. '
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
-              ' run_choice.' )
+              ' run_choice.')
         print('HYDRO_CHRONIC: hydrological chronicle. Create a new merge file for the chosen output discharge. The'
               'output discharges should be in the range of the input discharge. Input: list of the names of the merge '
               'file without path , list of input discharge, list of output discharge, minimum water height')
@@ -171,7 +173,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print('list of options which can be added after the command: (1) path_prj= path to project, (2) '
               'name_prj= name of the project, (3) path_bio: the path to the biological files')
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_TELEMAC':
         # check
         if not 2 < len(all_arg) < 5:
@@ -194,10 +196,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = 'Hydro_TELEMAC_' + os.path.splitext(namefilet)[0]
             path_hdf5 = path_prj
 
-        selafin_habby1.load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, 'TELEMAC',2,
-                                                 path_hdf5,[], True)
+        selafin_habby1.load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, 'TELEMAC', 2,
+                                                 path_hdf5, [], True)
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_HECRAS_1D':
         if not 4 < len(all_arg) < 8:
             print('The function LOAD_HECRAS needs three to five inputs. Call LIST_COMMAND for more '
@@ -232,7 +234,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             else:
                 name_hdf5 = 'Hydro_HECRAS1D_' + os.path.splitext(namefile[0])[0]
                 path_hdf5 = path_prj
-        if len(all_arg) == 7:   # .py com f1 f2 int_type pro_add output
+        if len(all_arg) == 7:  # .py com f1 f2 int_type pro_add output
             pro_add_is_here = True
             pro_add = int(all_arg[5])
             namepath_hdf5 = all_arg[6]
@@ -248,12 +250,12 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         if pro_add_is_here:
             Hec_ras06.open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'HECRAS1D', namefile,
-                                                       pathfile,inter , '.', False, pro_add,[], True)
+                                                       pathfile, inter, '.', False, pro_add, [], True)
         else:
             Hec_ras06.open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'HECRAS1D', namefile,
-                                                       pathfile, inter, '.', False, 5 , [] , True)
+                                                       pathfile, inter, '.', False, 5, [], True)
 
-# --------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_HECRAS_2D':
         if not 2 < len(all_arg) < 5:
             print('The function LOAD_HECRAS_2D needs one or two inputs, the .res file name and the output name.')
@@ -263,7 +265,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         if not input_file:
             pathfile = os.path.dirname(filename)
         else:
-            pathfile= path_input
+            pathfile = path_input
         namefile = os.path.basename(filename)
 
         if len(all_arg) == 4:
@@ -276,7 +278,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         hec_ras2D.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
                                                path_hdf5, [], True)
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_RUBAR_2D':
         if not 3 < len(all_arg) < 6:
             print('The function LOAD_RUBAR_2D needs two to three inputs. Call LIST_COMMAND for more '
@@ -303,9 +305,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_hdf5 = os.path.dirname(namepath_hdf5)
 
         rubar.load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
-                                           'RUBAR2D', 2, path_hdf5,[], False)
+                                           'RUBAR2D', 2, path_hdf5, [], False)
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SW2D':
         if not 3 < len(all_arg) < 6:
             print('The function LOAD_SW2D needs two to three inputs.\
@@ -335,7 +337,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                                        pathtps, '.', name_prj, path_prj,
                                        'SW2D', 2, path_hdf5, [], False)
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_IBER2D':
         if not 6 < len(all_arg) < 9:
             print('The function LOAD_SW2D needs seven to eight inputs.\
@@ -373,7 +375,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                                            path_prj, 'IBER2D', 2, path_hdf5,
                                            [], False)
 
-# ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_MASCARET':
         if not 6 < len(all_arg) < 11:
             print('The function LOAD_MASCARET needs five to eight inputs. Call LIST_COMMAND for more '
@@ -452,7 +454,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         mascaret.load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'mascaret', namefile, pathfile,
                                                inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
 
-# --------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_RIVER_2D':
         if not 2 < len(all_arg) < 5:
             print('The function LOAD_RIVER_2D needs one or two inputs. Call LIST_COMMAND for more '
@@ -487,7 +489,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         river2d.load_river2d_and_cut_grid(name_hdf5, filenames, paths, name_prj, path_prj, 'RIVER2D', 2,
                                           path_hdf5, [], True)
 
-# -------------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_RUBAR_1D':
         if not 5 < len(all_arg) < 10:
             print('The function LOAD_RUBAR_1D needs four to seven inputs. Call LIST_COMMAND for more '
@@ -561,9 +563,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # load rubar
         rubar.load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'RUBAR1D', namefile, pathfile,
-                                     inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
+                                           inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
 
-# ----------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_LAMMI':
 
         if not 3 < len(all_arg) < 6:
@@ -587,8 +589,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         lammi.open_lammi_and_create_grid(facies_path, transect_path, path_prj, name_hdf5, name_prj, path_prj, path_hdf5,
-                                   new_dir, [], False, 'Transect.txt', 'Facies.txt', True, [], 1, 'LAMMI')
-# ----------------------------------------------------------------------------------------
+                                         new_dir, [], False, 'Transect.txt', 'Facies.txt', True, [], 1, 'LAMMI')
+    # ----------------------------------------------------------------------------------------
     elif all_arg[1] == 'RUN_ESTIMHAB':
         if not len(all_arg) == 12:
             print('RUN_ESTIMHAB needs 12 inputs. See LIST_COMMAND for more info.')
@@ -601,7 +603,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             w = [float(all_arg[4]), float(all_arg[5])]
             h = [float(all_arg[6]), float(all_arg[7])]
             q50 = float(all_arg[8])
-            qrange  =[float(all_arg[9]), float(all_arg[10])]
+            qrange = [float(all_arg[9]), float(all_arg[10])]
             sub = float(all_arg[11])
         except ValueError:
             print('Error; Estimhab needs float as input')
@@ -694,7 +696,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # load the txt data
         path_bio2 = os.path.join(path_bio, 'stathab')
-        mystathab = stathab_c.Stathab(name_prj,path_prj)
+        mystathab = stathab_c.Stathab(name_prj, path_prj)
         mystathab.load_stathab_from_txt('listriv', end_file_reach, name_file_allreach, path_files)
         mystathab.path_im = path_prj
 
@@ -714,7 +716,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                 if 'uni' in f and f[-7:-4] not in name_fish:
                     name_fish.append(f[-7:-4])
             mystathab.fish_chosen = name_fish
-            mystathab.riverint =1
+            mystathab.riverint = 1
             mystathab.stathab_trop_univ(path_bio2, True)
             mystathab.savetxt_stathab()
             mystathab.savefig_stahab(False)
@@ -769,7 +771,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # plot output in txt
         fstress.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
-        #plt.show()
+        # plt.show()
 
     # --------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_SHP':
@@ -792,7 +794,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             except ValueError:
                 print(' the dominant_case argument should -1 or 1 (1)')
                 return
-        if dominant_case ==1 or dominant_case == -1:
+        if dominant_case == 1 or dominant_case == -1:
             pass
         else:
             print(' the dominant_case argument should -1 or 1 (1)')
@@ -820,7 +822,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         [xy, ikle, sub_dom2, sub_pg2, x, y, blob, blob] = substrate.load_sub_txt(filename, path, code_type)
         if ikle == [-99]:
             return
-        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, [], [], '', False, 'SUBSTRATE')
+        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, [], [], '', False,
+                                'SUBSTRATE')
 
     # ----------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_CONST':
@@ -841,13 +844,13 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             for i in range(0, 8):
                 if len(all_arg) == 4:
                     namepath_hdf5 = all_arg[3]
-                    name_hdf5 = os.path.basename(namepath_hdf5) + str(i+1)
+                    name_hdf5 = os.path.basename(namepath_hdf5) + str(i + 1)
                     path_hdf5 = os.path.dirname(namepath_hdf5)
                 else:
-                    name_hdf5 = 'Sub_CONST_' + str(i+1)
+                    name_hdf5 = 'Sub_CONST_' + str(i + 1)
                     path_hdf5 = path_prj
 
-                load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, i+1, sub_val, [], [], [], [], name_hdf5, True,
+                load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, i + 1, sub_val, [], [], [], [], name_hdf5, True,
                                         'SUBSTRATE')
         else:
             if len(all_arg) == 4:
@@ -858,7 +861,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                 name_hdf5 = 'Sub_CONST_' + str(sub_val)
                 path_hdf5 = path_prj
 
-            load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], [], [], name_hdf5, True, 'SUBSTRATE')
+            load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], [], [], name_hdf5, True,
+                                    'SUBSTRATE')
 
     # ----------------------------------------------------------------
     elif all_arg[1] == 'MERGE_GRID_SUB':
@@ -920,7 +924,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         except ValueError:
             print('Default data should be an int between 1 and 8 (1).')
             return
-        if not 0<default_data<9:
+        if not 0 < default_data < 9:
             print('Default data should be an int between 1 and 8 (2).')
             return
 
@@ -942,7 +946,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
-                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
+                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True,
+                                          sub_pg_all_both,
                                           sub_dom_all_both, save_option=erase_id, hdf5_type="substrate")
 
         # create shpafile to control intput
@@ -990,7 +995,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # delete the random shapefile (so we can create a new one without problem)
         for f in os.listdir(path_prj):
             if f[:9] == 'random_sub':
-                os.remove(os.path.join(path_prj,f))
+                os.remove(os.path.join(path_prj, f))
 
         # new merged hdf5 name
         if len(all_arg) == 4:
@@ -1016,7 +1021,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # save it
         load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
-                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True, sub_pg_all_both,
+                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True,
+                                          sub_pg_all_both,
                                           sub_dom_all_both, hdf5_type="substrate")
 
         # create shapefile to test input
@@ -1034,7 +1040,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         else:
             name_hyd = os.path.basename(all_arg[2])
             hdf5_name_hyd = os.path.join(path_input, name_hyd)
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_prj)
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd,
+                                                                                                     path_prj)
 
     # ---------------------------------------------------------------------------------------------
     elif all_arg[1] == 'LOAD_SUB_HDF5':
@@ -1188,13 +1195,13 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('ADD_HYDRO_HDF5 needs at least two arguments. See LIST_COMMAND for more information.')
             return
         filepath1 = ''
-        new_name=''
-        for i in range(2, len(all_arg)-1):
+        new_name = ''
+        for i in range(2, len(all_arg) - 1):
             if i == 2:
                 filepath1 = all_arg[2]
             else:
                 old_name = new_name
-            filepath2 = all_arg[i+1]
+            filepath2 = all_arg[i + 1]
             if not os.path.isfile(filepath1):
                 print('Error: The first hdf5 file was not found')
                 return
@@ -1209,12 +1216,12 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             model_type = 'Imported_hydro'
             new_name = load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
                                                False, True, True, 'ADD_HYDRO_CMD_LAST_' + hdf52[:-3])
-            filepath1 = os.path.join(path_prj,new_name + '.h5')
-            if 2< i < len(all_arg)-1:
+            filepath1 = os.path.join(path_prj, new_name + '.h5')
+            if 2 < i < len(all_arg) - 1:
                 try:
-                    os.remove(os.path.join(path_prj,old_name + '.h5'))
+                    os.remove(os.path.join(path_prj, old_name + '.h5'))
                 except FileNotFoundError:
-                    print('Error: File not found ' + os.path.join(path_prj,old_name + '.h5') )
+                    print('Error: File not found ' + os.path.join(path_prj, old_name + '.h5'))
                     pass
         # ---------------------------------------------------------------------------
     elif all_arg[1] == 'ADD_MERGE_HDF5':
@@ -1278,13 +1285,13 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             new_file = os.path.join(folder2, f)
             if not os.path.isfile(new_file):
                 print('One file was not created by habby during testing. name of the file: ' + os.path.basename(f))
-                num_wrong +=1
+                num_wrong += 1
             else:
                 # check if identical
                 if filecmp.cmp(new_file, os.path.join(folder1, f), shallow=False):
                     pass
                 else:
-                    num_wrong +=1
+                    num_wrong += 1
                     print("One file created by habby during testing was not identical to reference file " +
                           os.path.basename(f))
 
@@ -1300,7 +1307,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
 
 
-def habby_restart(file_comm,name_prj, path_prj, path_bio):
+def habby_restart(file_comm, name_prj, path_prj, path_bio):
     """
     This function reads a list of command from a text file called file_comm. It then calls all_command one each line
     which does contain the symbol ":" . If the lines contains the symbol ":", it considered as an input.
@@ -1336,13 +1343,13 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
             print('-------------------------------------------------------------------')
             print(c)
             c = c.strip()
-            if len(c) < 1: # empty line
+            if len(c) < 1:  # empty line
                 pass
-            elif c[0] == '#': # comment
+            elif c[0] == '#':  # comment
                 pass
-            elif c == 'NAME_PROJECT': # manage project name
-                arg1 = all_data_restart[l+1].split(':', 1)
-                arg2 = all_data_restart[l+2].split(':', 1)
+            elif c == 'NAME_PROJECT':  # manage project name
+                arg1 = all_data_restart[l + 1].split(':', 1)
+                arg2 = all_data_restart[l + 2].split(':', 1)
                 if len(arg1) > 0 and len(arg2) > 0:
                     arg2[1] = arg2[1].strip()
                     print(arg2[1])
@@ -1359,7 +1366,7 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
                         print('Error: the project folder is not found.\n')
                     print(os.path.join(path_prj, name_prj))
             elif c[:3] == 'ALL':  # all command together
-                all_arg_c = ['habby_cmd.py',c[3:].strip()]
+                all_arg_c = ['habby_cmd.py', c[3:].strip()]
                 lc = l + 1
                 while len(all_data_restart) > lc and ':' in all_data_restart[lc]:  # read argument
                     arg1 = all_data_restart[lc].split(':', 1)
@@ -1368,11 +1375,11 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
                         all_arg_c.append(arg1[1].strip())
                     lc += 1
                 habby_on_all(all_arg_c, name_prj, path_prj, path_bio)
-            else: # command
-                all_arg_c = ['habby_cmd.py',c.strip()]
-                lc = l+1
+            else:  # command
+                all_arg_c = ['habby_cmd.py', c.strip()]
+                lc = l + 1
                 while len(all_data_restart) > lc and ':' in all_data_restart[lc]:  # read argument
-                    arg1 = all_data_restart[lc].split(':',1)
+                    arg1 = all_data_restart[lc].split(':', 1)
                     arg1 = arg1
                     if len(arg1) > 0:
                         all_arg_c.append(arg1[1].strip())
@@ -1381,9 +1388,9 @@ def habby_restart(file_comm,name_prj, path_prj, path_bio):
                 plt.close()
             print('DONE')
             print('-------------------------------------------------------------------')
-        l +=1
+        l += 1
     b = time.time()
-    print(str(l) + ' commands executed in ' + str(b-a)+'sec')
+    print(str(l) + ' commands executed in ' + str(b - a) + 'sec')
 
 
 def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
@@ -1461,12 +1468,12 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     if use_file_one_by_one:
         nb_dim = sum(len(x) for x in all_files[1:])
         all_files_old = deepcopy(all_files)
-        if nb_dim >0:
-            all_files = [all_files_old[0]*nb_dim]  # fist dim
+        if nb_dim > 0:
+            all_files = [all_files_old[0] * nb_dim]  # fist dim
         else:
             all_files = [all_files_old[0]]  # fist dim
         for i in range(1, len(all_files_old)):
-            new_files = [val for val in all_files_old[i] for _ in range(0, len(all_files_old[i-1]))]
+            new_files = [val for val in all_files_old[i] for _ in range(0, len(all_files_old[i - 1]))]
             all_files.append(new_files)
 
     # check that each input type has the same length
@@ -1528,7 +1535,7 @@ def load_manning_txt(filename_path):
     com = 0
     for l in range(0, len(data)):
         data[l] = data[l].strip()
-        if len(data[l])>0:
+        if len(data[l]) > 0:
             if data[l][0] != '#':
                 data_here = data[l].split(',')
                 if len(data_here) == 3:
@@ -1538,11 +1545,11 @@ def load_manning_txt(filename_path):
                         manning[l - com, 2] = np.float(data_here[2])
                     except ValueError:
                         print('Error: The manning data could not be converted to float or int.'
-                                           ' Format: p,dist,n line by line.')
+                              ' Format: p,dist,n line by line.')
                         return
                 else:
                     print('Error: The manning data was not in the right format.'
-                                       ' Format: p,dist,n line by line.')
+                          ' Format: p,dist,n line by line.')
                     return
 
             else:
@@ -1575,7 +1582,7 @@ def load_fstress_text(path_fstress):
 
     if not os.path.isfile(filename_path):
         print('Error: listriv.txt could not be found.')
-        return [-99],[-99],[-99]
+        return [-99], [-99], [-99]
 
     # get the river name
     with open(filename_path, 'rt') as f:
@@ -1609,7 +1616,7 @@ def load_fstress_text(path_fstress):
     # if not river found
     if len(riv_name) == 0:
         print('Warning: No river found in files')
-        return [-99],[-99],[-99]
+        return [-99], [-99], [-99]
 
     # load the data for each river
     qrange = []
@@ -1655,11 +1662,11 @@ def load_fstress_text(path_fstress):
             if len(data_qhw) < 6:
                 print('Error: FStress needs at least two discharge measurement.')
                 return [-99], [-99], [-99]
-            if len(data_qhw)%3 != 0:
+            if len(data_qhw) % 3 != 0:
                 print('Error: One discharge measurement must be composed of three data (q,w, and h).')
                 return [-99], [-99], [-99]
 
-            qhw.append([[data_qhw[0], data_qhw[1], data_qhw[2]],[data_qhw[3], data_qhw[4], data_qhw[5]]])
+            qhw.append([[data_qhw[0], data_qhw[1], data_qhw[2]], [data_qhw[3], data_qhw[4], data_qhw[5]]])
         else:
             print('Error: qwh.txt file not found.(2)')
             return [-99], [-99], [-99]

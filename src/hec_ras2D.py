@@ -89,10 +89,13 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
         # cell to node data
         if t == 0:
             [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
-                                                                point_c_all_t[0], vel_cell[t], height_cell[t], warn1)
+                                                                                          point_c_all_t[0], vel_cell[t],
+                                                                                          height_cell[t], warn1)
         else:
             [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
-                                        point_c_all_t[0], vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
+                                                                                          point_c_all_t[0], vel_cell[t],
+                                                                                          height_cell[t], warn1,
+                                                                                          vtx_all, wts_all)
             # to study the difference in average, do no forget to comment sys.stdout = mystdout = StringIO()
             # other wise you get zero for all.
         warn1 = False
@@ -116,7 +119,8 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
         ikle_all_t.append(ikle_f)
 
     # save data
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                      point_all_t, point_c_all_t,
                                       inter_vel_all_t, inter_h_all_t, sim_name=timesteps, hdf5_type="hydraulic")
 
     if not print_cmd:
@@ -226,12 +230,12 @@ def load_hec_ras2d(filename, path):
             ikle_all.append(ikle)
     except KeyError:
         print('Error: Geometry data could not be extracted. Check format of the hdf file.')
-        return [-99],[-99], [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
     # water depth
     for i in range(0, len(name_area)):
         name_area_i = str(name_area[i].strip())
-        path_h5_geo = '/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas'\
+        path_h5_geo = '/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas' \
                       + '/' + name_area_i[2:-1]
         result = file2D[path_h5_geo]
         water_depth = np.array(result['Depth'])
@@ -245,7 +249,7 @@ def load_hec_ras2d(filename, path):
         cells_face_all = np.array(geometry["Cells Face and Orientation Values"])
         cells_face = cells_face_all[:, 0]
         where_is_cells_face = np.array(geometry["Cells Face and Orientation Info"])
-        where_is_cells_face1 = where_is_cells_face[:,1]
+        where_is_cells_face1 = where_is_cells_face[:, 1]
         face_unit_vec = np.array(geometry["Faces NormalUnitVector and Length"])
         face_unit_vec = face_unit_vec[:, :2]
         velocity = np.array(result["Face Velocity"])
@@ -261,9 +265,9 @@ def load_hec_ras2d(filename, path):
             face = cells_face[lim_a:lim_b]
             data_face = new_vel[face, :]
             data_face_t = data_face[:, 2:].T
-            add_vec_x = np.sum(data_face_t*data_face[:, 0], axis=1)
-            add_vec_y = np.sum(data_face_t*data_face[:, 1], axis=1)
-            vel_c[c, :] = (1.0/nb_face) * np.sqrt(add_vec_x**2 + add_vec_y**2)
+            add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
+            add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
+            vel_c[c, :] = (1.0 / nb_face) * np.sqrt(add_vec_x ** 2 + add_vec_y ** 2)
         vel_c_all.append(vel_c)
 
     # get data time step by time step
@@ -354,13 +358,13 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
                 xy.append(coord_c[c])
                 # first triangular cell (erase the old one)
                 ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
-                p1 = xy[len(xy)-1]
-                coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1)/3
+                p1 = xy[len(xy) - 1]
+                coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1) / 3
                 len_c.append(len(ikle_c) - 1)
                 # next triangular cell
-                for s in range(1, len(ikle_c)-1):
-                    ikle.append([ikle_c[s], ikle_c[s+1], len(xy) - 1])
-                    coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s+1]] + p1) / 3)
+                for s in range(1, len(ikle_c) - 1):
+                    ikle.append([ikle_c[s], ikle_c[s + 1], len(xy) - 1])
+                    coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s + 1]] + p1) / 3)
                     # for t in range(0, nbtime):
                     #     v2[t].append(v[t][r][c])
                     #     h2[t].append(h[t][r][c])
@@ -393,7 +397,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
             if len_c[c] > 0.5:
                 h2[:, c] = h[:, r, c]
                 v2[:, c] = v[:, r, c]
-                if len_c[c] >1:
+                if len_c[c] > 1:
                     for s in range(1, len_c[c]):
                         h2[:, m] = h[:, r, c]
                         v2[:, m] = v[:, r, c]
@@ -404,13 +408,14 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
 
         # add data by time step
         for t in range(0, nbtime):
-            v_all[t][r] = v2[t, :] # list of np.array
+            v_all[t][r] = v2[t, :]  # list of np.array
             h_all[t][r] = h2[t, :]
 
     return ikle_all, coord_c_all, point_all, v_all, h_all
 
 
-def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im,  time_step=[0], flow_area=[0], max_point=-99):
+def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im, time_step=[0], flow_area=[0],
+                     max_point=-99):
     """
     This is a function to plot figure of the output from hec-ras 2D. This function is only used to debug, not directly by HABBY.
 
@@ -438,9 +443,9 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
     separately, it would be very long to draw. To optimize the process, we use the prepare_grid function.
     """
     # figure size
-    #plt.close()
-    fig_size_inch = (8,6)
-    #plt.rcParams['figure.figsize'] = 7, 3
+    # plt.close()
+    fig_size_inch = (8, 6)
+    # plt.rcParams['figure.figsize'] = 7, 3
     plt.rcParams['font.size'] = 10
 
     # for each chosen flow_area
@@ -456,22 +461,24 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
         # sc2 = plt.scatter(coord_p[:, 0], coord_p[:, 1], s=0.07, color='r')
         # sc1 = plt.scatter(point_dam_levee[:, 0], point_dam_levee[:, 1], s=0.07, color='k')
         plt.plot(xlist, ylist, c='b', linewidth=0.2)
-        plt.plot(coord_c[:,0], coord_c[:,1], '*b')
+        plt.plot(coord_c[:, 0], coord_c[:, 1], '*b')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Grid ')
-        plt.savefig(os.path.join(path_im, "HEC2D_grid_"+ time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+        plt.savefig(os.path.join(path_im, "HEC2D_grid_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(os.path.join(path_im, "HEC2D_grid" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        #plt.close()
+        # plt.close()
 
         # size of the marker (to avoid having to pale, unclear figure)
         # this is a rough estimation, no need for precise number here
-        d1 = 0.5 * np.sqrt((coord_c[1,0] - coord_c[0,0])**2 + (coord_c[1,1] - coord_c[0, 1])**2)  # dist in coordinate
-        dist_data = np.mean([np.max(coord_c[:,0]) - np.min(coord_c[:,0]), np.max(coord_c[:,1]) - np.min(coord_c[:,1])])
+        d1 = 0.5 * np.sqrt(
+            (coord_c[1, 0] - coord_c[0, 0]) ** 2 + (coord_c[1, 1] - coord_c[0, 1]) ** 2)  # dist in coordinate
+        dist_data = np.mean(
+            [np.max(coord_c[:, 0]) - np.min(coord_c[:, 0]), np.max(coord_c[:, 1]) - np.min(coord_c[:, 1])])
         f_len = fig_size_inch[0] * 72  # point is 1/72 inch
-        transf = f_len/dist_data
-        s1 = 3.1 * (d1* transf)**2 / 2  # markersize is given as an area
-        s2 = s1/10
+        transf = f_len / dist_data
+        s1 = 3.1 * (d1 * transf) ** 2 / 2  # markersize is given as an area
+        s2 = s1 / 10
 
         # # elevation
         # fig = plt.figure()
@@ -491,18 +498,22 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
             vel_c = v_all[t][f]
             water_depth = h_all[t][f]
             # plot water depth
-            #water_deptht = np.squeeze(water_depth[t, :])
+            # water_deptht = np.squeeze(water_depth[t, :])
             scatter_plot(coord_c, water_depth, 'Water Depth [m]', 'terrain', 8, t)
-            plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-            plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-            #plt.close()
+            plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime(
+                "%d_%m_%Y_at_%H_%M_%S") + '.png'))
+            plt.savefig(os.path.join(path_im, "HEC2D_waterdepth_t" + str(t) + '_' + time.strftime(
+                "%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+            # plt.close()
 
-             # plot velocity
-            #vel_c0 = vel_c[:, t]
-            scatter_plot(coord_c,vel_c, 'Vel. [m3/sec]', 'gist_ncar', 8, t)
-            plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-            plt.savefig(os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-            #plt.close()
+            # plot velocity
+            # vel_c0 = vel_c[:, t]
+            scatter_plot(coord_c, vel_c, 'Vel. [m3/sec]', 'gist_ncar', 8, t)
+            plt.savefig(
+                os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+            plt.savefig(
+                os.path.join(path_im, "HEC2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+            # plt.close()
 
     plt.show()
 
@@ -562,7 +573,7 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
     :param s1: the size of the dot for the scatter
     :param t: the time step being plotted
     """
-    s2 = s1/10
+    s2 = s1 / 10
     fig = plt.figure()
     cm = plt.cm.get_cmap(my_cmap)
     # cm = plt.cm.get_cmap('plasma')
@@ -575,7 +586,7 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
         cbar = plt.colorbar(sc)
         cbar.ax.set_ylabel(data_name)
     else:
-        plt.text(np.mean(coord[:,0]), np.mean(coord[:,1]), 'Data is null. No plotting possible')
+        plt.text(np.mean(coord[:, 0]), np.mean(coord[:, 1]), 'Data is null. No plotting possible')
     sc = plt.scatter(coord[data == 0, 0], coord[data == 0, 1], c='0.5', s=s2, cmap=cm, edgecolors='none')
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
@@ -590,12 +601,12 @@ def main():
     Used to test this module independantly of HABBY.
     """
     path = r'C:\Users\diane.von-gunten\HABBY\test_data'
-    filename='Muncie.p04.hdf'
+    filename = 'Muncie.p04.hdf'
     path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
     a = time.clock()
     [v, h, elev, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
     b = time.clock()
-    print('Time to load data:' + str(b-a) + 'sec')
+    print('Time to load data:' + str(b - a) + 'sec')
     figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [50], [0])
 
 

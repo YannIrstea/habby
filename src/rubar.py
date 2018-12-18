@@ -29,8 +29,10 @@ from src_GUI import output_fig_GUI
 import matplotlib as mpl
 
 
-def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_type,namefile,pathfile, interpo_choice
-                                ,manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.', print_cmd=False):
+def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
+                                 interpo_choice
+                                 , manning_data, nb_point_vel, show_fig_1D, pro_add, q=[], path_im='.',
+                                 print_cmd=False):
     """
     This function is used to load rubar 1d data by calling the load_rubar1d() function and to create the grid
     by calling the grid_and_interpo function in manage_grid_8. This function is called in a second thread by the class
@@ -62,13 +64,14 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
 
     # load the rubar 1D
     if not print_cmd:
-       sys.stdout = mystdout = StringIO()
+        sys.stdout = mystdout = StringIO()
 
     fig_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
-    [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0],namefile[1], pathfile[0], pathfile[1], path_im,
-                                                   show_fig_1D, fig_opt)
+    [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0], namefile[1], pathfile[0], pathfile[1],
+                                                             path_im,
+                                                             show_fig_1D, fig_opt)
     if show_fig_1D:
-        plt.close() # just save the figure do not show them
+        plt.close()  # just save the figure do not show them
 
     if xhzv_data == [-99]:
         print("Rubar data could not be loaded.")
@@ -90,11 +93,13 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5,name_prj, path_prj,model_t
 
     # save the hdf5 file
     timestep_str = list(map(str, timestep))
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t, point_all_t,
-                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro, nb_pro_reach,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
+                                      point_all_t,
+                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
+                                      nb_pro_reach,
                                       sim_name=timestep_str, hdf5_type="hydraulic")
     if print_cmd:
-       sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__
     if q:
         q.put(mystdout)
         return
@@ -120,13 +125,13 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, fig_opt=
     failload = [-99], [-99], [-99], [-99]
 
     # load the river coordinates 1d (not needed anymore, but can be useful)
-    #[x, nb_mail] = load_mai_1d(mail, pathgeo)
+    # [x, nb_mail] = load_mai_1d(mail, pathgeo)
 
     # load the profile coordinates
     blob, ext = os.path.splitext(geofile)
     if ext == ".rbe":
         [coord_pro, lim_riv, name_profile, x] = load_coord_1d(geofile, pathgeo)
-        nb_pro_reach = [0, 10**10]
+        nb_pro_reach = [0, 10 ** 10]
     elif blob == "m":
         [coord_pro, name_profile, x, nb_pro_reach] = m_file_load_coord_1d(geofile, pathgeo)
         lim_riv = [0, 0, 0]
@@ -185,7 +190,7 @@ def load_mai_1d(mailfile, path):
         return [-99], 99
     data_geo1d = data_geo1d[1:]
     # get the coordinates
-    if len(data_geo1d) != 2*nb_mail-1:
+    if len(data_geo1d) != 2 * nb_mail - 1:
         print('Error: the number of cells is not the one expected in the mail.ETUDE file')
         return [-99], 99
     try:
@@ -261,7 +266,7 @@ def load_data_1d(name_data_vh, path, x):
                 if warn_num:
                     print('Warning: The number of profile is not the same in the geo file and the data file. \n')
                     warn_num = False
-                #return failload
+                # return failload
             c += 1
     data_xhzv.append(np.array(data))
 
@@ -387,7 +392,7 @@ def m_file_load_coord_1d(geofile_name, pathgeo):
                         dist_here = 0
                     dist_pro.append(dist_here)
 
-    #add the last profil
+    # add the last profil
     nb_pro_reach.append(nb_pro_reach[-1] + pro)
     coord_sect = np.array([coord_x, coord_y, coord_z, dist_pro])
     # For the 2D grid, it is not possible to have vertical profile, i.e. identical points
@@ -395,12 +400,13 @@ def m_file_load_coord_1d(geofile_name, pathgeo):
     coord_pro.append(coord_sect)
 
     # geometry on cell border, hydraulique center of cell for the data (more intesting for us)
-    x= []
+    x = []
     if len(nb_pro_reach) == 1:
-        nb_pro_reach = [0, len(dist_riv)-1]
-    for r in range(0, len(nb_pro_reach)-1):
-        x_r = [(a + b) / 2 for a, b in zip(dist_riv[nb_pro_reach[r]:nb_pro_reach[r+1]], dist_riv[nb_pro_reach[r]+1:nb_pro_reach[r+1]])]
-        x_r = np.concatenate(([dist_riv[nb_pro_reach[r]]], x_r, [dist_riv[nb_pro_reach[r+1]-1]]))
+        nb_pro_reach = [0, len(dist_riv) - 1]
+    for r in range(0, len(nb_pro_reach) - 1):
+        x_r = [(a + b) / 2 for a, b in
+               zip(dist_riv[nb_pro_reach[r]:nb_pro_reach[r + 1]], dist_riv[nb_pro_reach[r] + 1:nb_pro_reach[r + 1]])]
+        x_r = np.concatenate(([dist_riv[nb_pro_reach[r]]], x_r, [dist_riv[nb_pro_reach[r + 1] - 1]]))
         x.extend(x_r)
 
     return coord_pro, name_profile, x, nb_pro_reach
@@ -470,10 +476,10 @@ def load_coord_1d(name_rbe, path):
                 coord_sect[j, 1] = np.float(attrib_p['y'])
                 coord_sect[j, 2] = np.float(attrib_p['z'])
                 if j > 0:
-                    coord_sect[j, 3] = coord_sect[j-1,3] + np.sqrt((coord_sect[j, 0] - coord_sect[j-1, 0])**2 +
-                                                                   (coord_sect[j, 1] - coord_sect[j-1, 1])**2)
+                    coord_sect[j, 3] = coord_sect[j - 1, 3] + np.sqrt((coord_sect[j, 0] - coord_sect[j - 1, 0]) ** 2 +
+                                                                      (coord_sect[j, 1] - coord_sect[j - 1, 1]) ** 2)
             except ValueError:
-                print('Error: Some coordinates of the .rbe file are not float. Section number: ' + str(i+1)+'.\n')
+                print('Error: Some coordinates of the .rbe file are not float. Section number: ' + str(i + 1) + '.\n')
                 return [-99], [-99], [-99], [-99]
             try:
                 name_here = attrib_p['nom']
@@ -549,8 +555,8 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
                 # special case, chosen arbitrarily
                 nx = ny = 1
             if nx == 0 or (result2[c2] - result2[c2 - 1]) == 0:
-                xf = seqf[0, c2] + 0.01 * c/10
-                yf = seqf[1, c2] + 0.01 * c/10
+                xf = seqf[0, c2] + 0.01 * c / 10
+                yf = seqf[1, c2] + 0.01 * c / 10
             else:
                 xf = seqf[0, c2] + nx * add_l
                 yf = seqf[1, c2] + ny * add_l
@@ -576,7 +582,7 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
             add_l = 0.01 * c / le
             if item > 0:
                 result.append(item + add_l)  # moving the duplicate a bit further to correct for it
-                [x,y] = find_point(seq3D, result, c, add_l)
+                [x, y] = find_point(seq3D, result, c, add_l)
                 resultx.append(x)
                 resulty.append(y)
             elif item < 0:
@@ -591,8 +597,8 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
                 resulty.append(y)
 
             if send_warn:
-                 print('Warning: Vertical profile. One or more profiles were modified. \n')
-                 send_warn = False
+                print('Warning: Vertical profile. One or more profiles were modified. \n')
+                send_warn = False
         else:
             seen[marker] = 1
             result.append(item)
@@ -607,8 +613,8 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
     return seq3D, send_warn
 
 
-def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, plot_timestep, nb_pro_reach = [0,10**10]
-                   ,fig_opt ={}):
+def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, plot_timestep, nb_pro_reach=[0, 10 ** 10]
+                   , fig_opt={}):
     """
     The function to plot the loaded RUBAR 1D data (Rubar BE).
 
@@ -643,14 +649,14 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
     for p in range(0, len(coord_pro)):
         coord_p = coord_pro[p]
         plt.plot(coord_p[0], coord_p[1], '-b')
-        #plt.plot(coord_p[0], coord_p[1], 'xk',markersize=1)
-        #if p % 5 == 0:
-          #  plt.text(coord_p[0, 0] + 0.03, coord_p[0, 1] + 0.03, name_profile[p])
+        # plt.plot(coord_p[0], coord_p[1], 'xk',markersize=1)
+        # if p % 5 == 0:
+        #  plt.text(coord_p[0, 0] + 0.03, coord_p[0, 1] + 0.03, name_profile[p])
     # river
-    #if np.sum(lim_riv[1]) != -99 and np.sum(lim_riv[1]) != 0:
-       # riv_sect = lim_riv[p]
-       # riv_mid[p, :] = riv_sect[1]
-       # plt.plot(riv_mid[:, 0], riv_mid[:, 1], '-r')
+    # if np.sum(lim_riv[1]) != -99 and np.sum(lim_riv[1]) != 0:
+    # riv_sect = lim_riv[p]
+    # riv_mid[p, :] = riv_sect[1]
+    # plt.plot(riv_mid[:, 0], riv_mid[:, 1], '-r')
 
     if fig_opt['language'] == 0:
         plt.xlabel("x coordinate []")
@@ -673,14 +679,14 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
 
     # plot speeed and height
     warn_reach = True
-    for r in range(0, len(nb_pro_reach)-1):
+    for r in range(0, len(nb_pro_reach) - 1):
         if r < 10:
-            x = data_xhzv[0][nb_pro_reach[r]:nb_pro_reach[r+1], 0]
-            cote = data_xhzv[0][nb_pro_reach[r]:nb_pro_reach[r+1], 2]
+            x = data_xhzv[0][nb_pro_reach[r]:nb_pro_reach[r + 1], 0]
+            cote = data_xhzv[0][nb_pro_reach[r]:nb_pro_reach[r + 1], 2]
             for t in plot_timestep:
                 fig1 = plt.figure()
-                h_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r+1], 1]
-                v_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r+1], 3]
+                h_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r + 1], 1]
+                v_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r + 1], 3]
                 if t == -1:
                     if fig_opt['language'] == 0:
                         plt.suptitle("RUBAR1D - Last timestep ")
@@ -712,11 +718,11 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
                     plt.ylabel('Vitesse [m/sec]')
                 if format == 0 or format == 1:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
-                                time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'],
+                                             time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'],
                                 transparent=True)
                 if format == 0 or format == 3:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
-                                time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'],
+                                             time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'],
                                 transparent=True)
                 if format == 2:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' + time.strftime(
@@ -725,11 +731,11 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv,  name_profile, path_im, pro, p
             print('Warning: Too many reaches to plot them all. Only the ten first reaches plotted. \n')
             warn_reach = False
 
-    #plt.show()
+    # plt.show()
 
 
-def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im,  name_prj, path_prj, model_type,
-                                 nb_dim, path_hdf5, q=[], print_cmd =False, fig_opt={}):
+def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im, name_prj, path_prj, model_type,
+                                 nb_dim, path_hdf5, q=[], print_cmd=False, fig_opt={}):
     """
     This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
     interpolation and to save the whole in an hdf5 format
@@ -792,10 +798,13 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         # get data no the node (and not on the cells) by linear interpolation
         if t == 0:
             [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
-                                                                        [coord_c], vel_cell[t],height_cell[t], warn1)
+                                                                                                 [coord_c], vel_cell[t],
+                                                                                                 height_cell[t], warn1)
         else:
             [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p], [coord_c],
-                                                                 vel_cell[t], height_cell[t], warn1, vtx_all, wts_all)
+                                                                                                 vel_cell[t],
+                                                                                                 height_cell[t], warn1,
+                                                                                                 vtx_all, wts_all)
         # cut the grid to the water limit
         [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p, height_node[0],
                                                                               vel_node[0], minwh)
@@ -809,7 +818,8 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
 
     # save data
     timestep_str = list(map(str, timestep))
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                      point_all_t, point_c_all_t,
                                       inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
     if not print_cmd:
@@ -892,16 +902,16 @@ def load_mai_2d(geofile, path):
             print('Error: Could not extract the connectivity table from the .mai file.\n')
             return [-99], [-99], [-99], [-99]
         data_l = data_geo2d[m].split()
-        ind_l = np.zeros(len(data_l)-1, dtype=np.int)
-        for i in range(0, len(data_l)-1):
+        ind_l = np.zeros(len(data_l) - 1, dtype=np.int)
+        for i in range(0, len(data_l) - 1):
             try:
-                ind_l[i] = int(data_l[i+1]) - 1
+                ind_l[i] = int(data_l[i + 1]) - 1
             except ValueError:
                 print('Error: Could not extract the connectivity table from the .mai file.\n')
                 return [-99], [-99], [-99], [-99]
         ikle.append(ind_l)
 
-    if len(ikle) != nb_cell+1:
+    if len(ikle) != nb_cell + 1:
         print('Warning: some cells might be missing.\n')
     # nb coordinates
     try:
@@ -935,7 +945,7 @@ def load_mai_2d(geofile, path):
         xy_c = [0, 0]
         for i in range(0, len(ikle_c)):
             xy_c += xy[ikle_c[i]]
-        coord_c.append(xy_c/len(ikle_c))
+        coord_c.append(xy_c / len(ikle_c))
 
     return ikle, xy, coord_c, nb_cell
 
@@ -980,7 +990,7 @@ def load_dat_2d(geofile, path):
     m2 = 2
     m = 1
     ikle = []
-    while m < nb_cell*3:
+    while m < nb_cell * 3:
         if m >= len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .dat file.\n')
             return [-99], [-99], [-99], [-99]
@@ -1001,10 +1011,10 @@ def load_dat_2d(geofile, path):
         print('Warning: some cells might be missing.\n')
 
     # extract the number of side (not needed)
-    m +=1
+    m += 1
     nb_side = int(data_geo2d[m])
     # and directly go to coordinate
-    m += nb_side * 2 +1
+    m += nb_side * 2 + 1
 
     # nb coordinates
     try:
@@ -1016,14 +1026,14 @@ def load_dat_2d(geofile, path):
     data_f = []
     m += 1
     c = 0
-    while c< 2*nb_coord and c < 10**8:
+    while c < 2 * nb_coord and c < 10 ** 8:
         data_str = data_geo2d[m]
         l = 0
         while l < len(data_str):
             try:
                 data_f.append(float(data_str[l:l + 8]))  # the length of number is eight.
                 l += 8
-                c +=1
+                c += 1
             except ValueError:
                 print('Error: Could not extract the coordinates from the .dat file.\n')
                 print(data_geo2d[mi])
@@ -1081,10 +1091,10 @@ def load_tps_2d(tpsfile, path, nb_cell):
             ti = np.float(data_tps[i])
             t.append(ti)
             i += 1
-            hi = np.array(list(map(float, data_tps[i:i+nb_cell])))
+            hi = np.array(list(map(float, data_tps[i:i + nb_cell])))
             h.append(hi)
             i += nb_cell
-            qve = np.array(list(map(float, data_tps[i:i+nb_cell])))
+            qve = np.array(list(map(float, data_tps[i:i + nb_cell])))
             i += nb_cell
             que = np.array(list(map(float, data_tps[i:i + nb_cell])))
             i += nb_cell
@@ -1093,7 +1103,7 @@ def load_tps_2d(tpsfile, path, nb_cell):
             hiv[hiv == 0] = -99  # avoid division by zeros
             if len(que) != len(qve):
                 np.set_printoptions(threshold=np.inf)
-            vi = np.sqrt((que/hiv)**2 + (qve/hiv)**2)
+            vi = np.sqrt((que / hiv) ** 2 + (qve / hiv) ** 2)
             vi[hi == 0] = 0  # get realistic again
             v.append(vi)
         except ValueError:
@@ -1147,12 +1157,12 @@ def get_triangular_grid(ikle, coord_c, xy, h, v):
             xy.append(coord_c[c])
             # first triangular cell
             ikle[c] = [ikle_c[0], ikle_c[1], len(xy) - 1]
-            p1 = xy[len(xy)-1]
-            coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1)/3
+            p1 = xy[len(xy) - 1]
+            coord_c[c] = (xy[ikle_c[0]] + xy[ikle_c[1]] + p1) / 3
             # next triangular cell
-            for s in range(1, len(ikle_c)-1):
-                ikle.append([ikle_c[s], ikle_c[s+1], len(xy) - 1])
-                coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s+1]] + p1) / 3)
+            for s in range(1, len(ikle_c) - 1):
+                ikle.append([ikle_c[s], ikle_c[s + 1], len(xy) - 1])
+                coord_c.append((xy[ikle_c[s]] + xy[ikle_c[s + 1]] + p1) / 3)
                 for t in range(0, nbtime):
                     v2[t].append(v[t][c])
                     h2[t].append(h[t][c])
@@ -1189,12 +1199,12 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
     """
     coord_p = np.array(xy)
     coord_c = np.array(coord_c)
-    #plt.close()
+    # plt.close()
 
     # ikle cannot be an np.array
     xlist = []
     ylist = []
-    for i in range(0, len(ikle)-1):
+    for i in range(0, len(ikle) - 1):
         pi = 0
         ikle_i = ikle[i]
         while pi < len(ikle_i) - 1:  # we have all sort of xells, max eight sides
@@ -1221,26 +1231,28 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
     plt.title('Grid ')
     plt.savefig(os.path.join(path_im, "RUBAR_grid_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     plt.savefig(os.path.join(path_im, "RUBAR_grid" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    #plt.close()  # do not forget to close or the program crash
+    # plt.close()  # do not forget to close or the program crash
 
     for t in time_step:
         # plot water depth
         h_t = np.array(h[t][0])  # 0 in case we have more than one reach
         hec_ras2D.scatter_plot(coord_c, h_t, 'Water Depth [m]', 'terrain', 8, t)
         plt.savefig(
-            os.path.join(path_im, "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+            os.path.join(path_im,
+                         "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(
-            os.path.join(path_im, "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        #plt.close()
+            os.path.join(path_im,
+                         "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        # plt.close()
 
         # plot velocity
         vel_c0 = np.array(v[t][0])
         hec_ras2D.scatter_plot(coord_c, vel_c0, 'Vel. [m/sec]', 'gist_ncar', 8, t)
         plt.savefig(
-                os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+            os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(
-                os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-        #plt.close()
+            os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+        # plt.close()
 
     # plt.show()
 
@@ -1267,15 +1279,15 @@ def main():
     geofile = 'LE13.rbe'
     data = 'profil.LE13'
 
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\1D\RubarBE_four_0'
-    #geofile = r'four.rbe'
-    #geofile = 'm.four'
-    #data = r'profil.four'
+    # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\1D\RubarBE_four_0'
+    # geofile = r'four.rbe'
+    # geofile = 'm.four'
+    # data = r'profil.four'
 
-    #path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\b120'
-    #geofile = 'm.b120'
-    #data = 'profil.b120'
-    #mail = 'mail.b120'
+    # path = r'D:\Diane_work\output_hydro\RUBAR_MAGE\trubarbe\b120'
+    # geofile = 'm.b120'
+    # data = 'profil.b120'
+    # mail = 'mail.b120'
     load_rubar1d(geofile, data, path, path, path_im, True)
 
 

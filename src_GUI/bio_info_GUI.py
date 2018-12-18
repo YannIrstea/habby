@@ -24,6 +24,7 @@ from multiprocessing import Process, Queue
 import os
 import sys
 import numpy as np
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -62,13 +63,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # can be changed but with caution
         # coorect here for new language by adding an attribute in the form "langue"_common_name
         # stage have to be the first attribute !
-        self.attribute_acc = ['Stage', 'French_common_name','English_common_name', 'Code_ONEMA', 'Code_Sandre',
+        self.attribute_acc = ['Stage', 'French_common_name', 'English_common_name', 'Code_ONEMA', 'Code_Sandre',
                               'LatinName', 'CdBiologicalModel']
         self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate'), self.tr('By Percentage'),
                                self.tr('Neglect Substrate')]
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
         self.text_ini = []  # the text with the tooltip
-        #self.name_database = 'pref_bio.db'
+        # self.name_database = 'pref_bio.db'
         self.timer = QTimer()
         self.timer.setInterval(1000)
         self.running_time = 0
@@ -166,7 +167,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # order data fish by alphabetical order on the first column
         ind = self.data_fish[:, 0].argsort()
         self.data_fish = self.data_fish[ind, :]
-        self.list_f.addItems(self.data_fish[:,0])
+        self.list_f.addItems(self.data_fish[:, 0])
 
         # erase fish selection
         self.butdel = QPushButton(self.tr("Erase All Selection"))
@@ -189,7 +190,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         l02.setAlignment(Qt.AlignCenter)
         self.cond1 = QLineEdit()
         self.cond1.returnPressed.connect(self.next_completion)
-        #self.cond1.returnPressed.connect(self.select_fish)
+        # self.cond1.returnPressed.connect(self.select_fish)
         self.bs = QPushButton(self.tr('Select suitability curve'))
         self.bs.clicked.connect(self.select_fish)
         # add auto-completion
@@ -215,13 +216,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.list_f, 3, 0, 3, 2)
         self.layout4.addWidget(self.list_s, 3, 2, 3, 1)
 
-        self.layout4.addWidget(l4, 6, 0,1, 3)
+        self.layout4.addWidget(l4, 6, 0, 1, 3)
         self.layout4.addWidget(l5, 7, 0)
         self.layout4.addWidget(self.com_name, 7, 1)
         self.layout4.addWidget(l7, 8, 0)
-        self.layout4.addWidget(self.fish_code,8, 1)
-        self.layout4.addWidget(l8,9,0)
-        self.layout4.addWidget(self.descr, 9, 1, 3, 2) # in fact self.descr is in self.scoll
+        self.layout4.addWidget(self.fish_code, 8, 1)
+        self.layout4.addWidget(l8, 9, 0)
+        self.layout4.addWidget(self.descr, 9, 1, 3, 2)  # in fact self.descr is in self.scoll
         self.layout4.addWidget(self.pic, 11, 0)
         self.layout4.addWidget(self.l9, 3, 3)
         self.layout4.addWidget(self.choice_run, 4, 3)
@@ -233,11 +234,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         self.layout4.addWidget(l3, 12, 0)
         self.layout4.addWidget(self.keys, 13, 0)
-        self.layout4.addWidget(l02,13, 1)
+        self.layout4.addWidget(l02, 13, 1)
         self.layout4.addWidget(self.cond1, 13, 2)
         self.layout4.addWidget(self.bs, 13, 3)
 
-        #self.setLayout(self.layout4)
+        # self.setLayout(self.layout4)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
@@ -270,7 +271,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         elif ind == 1:
             string_all = list(set(list(self.data_fish[:, 3]) + [item.lower() for item in self.data_fish[:, 3]] +
                                   [item.upper() for item in self.data_fish[:, 3]]))
-        elif ind ==2:
+        elif ind == 2:
             string_all = list(set(list(self.data_fish[:, 4]) + [item.lower() for item in self.data_fish[:, 4]] +
                                   [item.upper() for item in self.data_fish[:, 4]]))
         elif ind == 3:
@@ -324,7 +325,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if len(i) > 0:
             xmlfile = os.path.join(self.path_bio, self.data_fish[i[0], 2])
         else:
-             return
+            return
 
         # open the file
         try:
@@ -428,12 +429,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         match the criteria. Signs such as * do not work.
         """
         # get item s to be selected
-        i = self.keys.currentIndex() # item type
+        i = self.keys.currentIndex()  # item type
         cond = self.cond1.text()
         if i == 0:
-            i = -1 # i +2=1 for the key called 'stage' which is on the second colum of self.data_type
+            i = -1  # i +2=1 for the key called 'stage' which is on the second colum of self.data_type
         data_fish_here = []
-        for f in self.data_fish[:, i+2]:
+        for f in self.data_fish[:, i + 2]:
             data_fish_here.append(f.lower())
         data_fish_here = np.array(data_fish_here)
         if cond.lower() in data_fish_here:
@@ -460,7 +461,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         We add a "tooltip" which indicates the orginal hydraulic and substrate files.
         """
 
-        xmlfile = os.path.join(self.path_prj, self.name_prj +'.xml')
+        xmlfile = os.path.join(self.path_prj, self.name_prj + '.xml')
         # open the file
         try:
             try:
@@ -484,17 +485,17 @@ class BioInfo(estimhab_GUI.StatModUseful):
         path_hdf5 = self.find_path_hdf5_est()
         # add it to the list
         if files is not None:
-            for idx,f in enumerate(files):
-                if os.path.isfile(os.path.join(path_hdf5,f.text)):
+            for idx, f in enumerate(files):
+                if os.path.isfile(os.path.join(path_hdf5, f.text)):
                     [sub_ini, hydro_ini] = load_hdf5.get_initial_files(path_hdf5, f.text)
                     hydro_ini = os.path.basename(hydro_ini)
-                    textini = 'Hydraulic: '+hydro_ini + '\nSubstrate :' + sub_ini
+                    textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate :' + sub_ini
                     if len(f.text) < 55:
                         self.m_all.addItem(f.text)
                     else:
                         blob = f.text[:55] + '...'
                         self.m_all.addItem(blob)
-                    self.m_all.setItemData(idx,textini, Qt.ToolTipRole)
+                    self.m_all.setItemData(idx, textini, Qt.ToolTipRole)
                     self.tooltip.append(textini)
                     name = f.text
                     self.hdf5_merge.append(name)
@@ -515,7 +516,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             return
 
         # get the file
-        i =  self.ind_current # show the info concerning the one selected fish
+        i = self.ind_current  # show the info concerning the one selected fish
         xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
 
         # open the pref
@@ -552,7 +553,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         pref_list = []
         stages_chosen = []
         name_fish = []
-        name_fish_sh = [] # because max 10 characters in attribute table of shapefile
+        name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
         xmlfiles = []
         for i in range(0, self.list_s.count()):
@@ -571,7 +572,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                         name_fish.append(self.data_fish[j][5])
                     else:
                         name_fish.append(self.data_fish[j][5])
-                    name_fish_sh.append(self.data_fish[j][5][:3]+self.data_fish[j][1][:3])
+                    name_fish_sh.append(self.data_fish[j][5][:3] + self.data_fish[j][1][:3])
                     name_fish_sel += fish_item.text() + ','
                     xmlfiles.append(self.data_fish[j][2])
 
@@ -638,7 +639,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
         self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
         self.send_log.emit("py    type=" + str(run_choice))
-        self.send_log.emit("py    name_fish1 = ['"+ "', '".join(name_fish) + "']")
+        self.send_log.emit("py    name_fish1 = ['" + "', '".join(name_fish) + "']")
         self.send_log.emit("py    name_fish2 = ['" + "', '".join(name_fish_sh) + "']")
         self.send_log.emit(
             "py    calcul_hab.calc_hab_and_output(file1, path1 ,pref_list, stages, name_fish1, name_fish2, type, "
@@ -707,7 +708,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     return
 
             # show one image (relatively quick to create)
-            #sys.stdout = self.mystdout = StringIO()
+            # sys.stdout = self.mystdout = StringIO()
             path_im = self.find_path_im_est()
             fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
             sim_name = load_hdf5.load_unit_name(self.hdf5_file, self.path_hdf5)
@@ -724,8 +725,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]],
                                               path_im, name_fish, name_base, fig_dict, [t], save_fig=False)
 
-           # sys.stdout = sys.__stdout__ # reset normal print output
-            #self.send_err_log()
+            # sys.stdout = sys.__stdout__ # reset normal print output
+            # self.send_err_log()
 
             # show figure
             self.show_fig.emit()
@@ -736,10 +737,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # put the timer back to zero and clear status bar
             self.running_time = 0
             self.send_log.emit("clear status bar")
-            self.plot_new= False
+            self.plot_new = False
 
         if not self.p4.is_alive():
-
             # enable the button to call this functin directly again
             self.butfig.setEnabled(True)
             self.timer.stop()
@@ -747,8 +747,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # put the timer back to zero
             self.running_time = 0
             self.send_log.emit("clear status bar")
-
-
 
 
 if __name__ == '__main__':

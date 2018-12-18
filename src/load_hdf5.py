@@ -20,6 +20,7 @@ import numpy as np
 import time
 import shutil
 import shapefile
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -69,11 +70,11 @@ def open_hdf5_(hdf5_name, path_hdf5):
             file_ = open_hdf5(os.path.join(path_hdf5, hdf5_name))
         else:
             print('Error" No path to the project given although a relative path was provided')
-            return "",True
+            return "", True
     if file_ is None:
         print('Error: hdf5 file could not be open. \n')
-        return "",True
-    return file_,False
+        return "", True
+    return file_, False
 
 
 def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t,
@@ -541,7 +542,7 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5='', merge=False):
     substrate_all_dom = []
     failload = [[-99]], [[-99]], [[-99]], [[-99]]
     if merge:
-        failload = [[-99]], [[-99]], [[-99]], [[-99]],[[-99]],[[-99]]
+        failload = [[-99]], [[-99]], [[-99]], [[-99]], [[-99]], [[-99]]
 
     file_hydro, bfailload = open_hdf5_(hdf5_name_hyd, path_hdf5)
     if bfailload:
@@ -791,11 +792,11 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
                 if fish_name[s] in reach_group:  # if exist erase it
                     del reach_group[fish_name[s]]
                     fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
-                                         data=vh_cell[s][t][r], maxshape=None)
+                                                              data=vh_cell[s][t][r], maxshape=None)
                     print(f'Warning: information of {fish_name[s]} has been replaced.\n')
                 else:
                     fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
-                                         data=vh_cell[s][t][r], maxshape=None)
+                                                              data=vh_cell[s][t][r], maxshape=None)
                 # add fish attributes
                 fish_dataset.attrs['WUA'] = str(spu_all[s][t][0])
                 fish_dataset.attrs['HV'] = str(spu_all[s][t][0] / area_all[t][0])
@@ -834,7 +835,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
     inter_height_all = []
     substrate_all_pg = []
     substrate_all_dom = []
-    failload = [[-99]], [[-99]], [[-99]], [[-99]],[[-99]],[[-99]]
+    failload = [[-99]], [[-99]], [[-99]], [[-99]], [[-99]], [[-99]]
 
     file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
 
@@ -953,7 +954,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
             name_he = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/node/h"
             name_pg = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/sub_coarser"
             name_dom = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/sub_dom"
-            #velocity
+            # velocity
             try:
                 gen_dataset = file_hydro[name_vel]
             except KeyError:
@@ -966,7 +967,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
                 return failload
             vel = gen_dataset[:].flatten()
             vel_all.append(vel)
-            #height
+            # height
             try:
                 gen_dataset = file_hydro[name_he]
             except KeyError:
@@ -979,7 +980,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
                 return failload
             heigh = gen_dataset[:].flatten()
             h_all.append(heigh)
-            #substrate
+            # substrate
             try:
                 gen_datasetpg = file_hydro[name_pg]
                 gen_datasetdom = file_hydro[name_dom]
@@ -1082,7 +1083,7 @@ def load_unit_name(hdf5_name, path_hdf5=''):
     return sim_name
 
 
-def get_unit_number(hdf5_name, path_hdf5): #? a changer si on utilise attributs
+def get_unit_number(hdf5_name, path_hdf5):  # ? a changer si on utilise attributs
     """
        This function looks for the number of the timesteps/discharge in hydrological or merge hdf5.
 
@@ -1093,7 +1094,7 @@ def get_unit_number(hdf5_name, path_hdf5): #? a changer si on utilise attributs
 
     failload = -99
 
-    file_hydro,bfailload=open_hdf5_(hdf5_name, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
     if bfailload:
         return failload
 
@@ -1122,7 +1123,7 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     failload = [-99]
     sub_per_all_t = []
 
-    file_hydro,bfailload=open_hdf5(hdf5_name_hyd, path_hdf5)
+    file_hydro, bfailload = open_hdf5(hdf5_name_hyd, path_hdf5)
     if bfailload:
         return failload
 
@@ -1176,7 +1177,7 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
                 file_hydro.close()
                 return failload
             sub_per = np.array(sub_per).flatten()
-            sub_per = np.reshape(sub_per, (int(len(sub_per)/8), 8))
+            sub_per = np.reshape(sub_per, (int(len(sub_per) / 8), 8))
             sub_per_all.append(sub_per)
         sub_per_all_t.append(sub_per_all)
     file_hydro.close()
@@ -1302,9 +1303,9 @@ def get_initial_files(path_hdf5, hdf5_name):
     :return: the name of the substrate and hydraulic file used to create the merge file
     """
 
-    file,bfailload=open_hdf5_(hdf5_name, path_hdf5)
+    file, bfailload = open_hdf5_(hdf5_name, path_hdf5)
     if bfailload:
-        return '',''
+        return '', ''
 
     # get the name
     try:
@@ -1452,13 +1453,15 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
             new_hdf5_name = name_out
         save_hdf5_hyd_and_merge(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
                                 inter_vel1, inter_height1, merge=merge, sub_pg_all_t=substrate_all_pg1,
-                                sub_dom_all_t=substrate_all_dom1, sim_name=sim_name, save_option=erase_id, hdf5_type="merge")
+                                sub_dom_all_t=substrate_all_dom1, sim_name=sim_name, save_option=erase_id,
+                                hdf5_type="merge")
     else:
         new_hdf5_name = 'ADDHYDRO' + hdf51[5:-3] + '_AND' + hdf52[5:-3]
         if name_out:
             new_hdf5_name = name_out
         save_hdf5_hyd_and_merge(new_hdf5_name, name_prj, path_prj, model_type, 2, path_hdf5, ikle1, point1, [],
-                                inter_vel1, inter_height1, merge=merge, sim_name=sim_name, save_option=erase_id, hdf5_type="hydraulic")
+                                inter_vel1, inter_height1, merge=merge, sim_name=sim_name, save_option=erase_id,
+                                hdf5_type="hydraulic")
 
     # return name if necessary (often used if more than two hdf5 are added at the same time)
     if return_name:
@@ -1480,7 +1483,8 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
     """
 
     [ikle_all_t, point_all_t, vel_nodes, height_node, sub_pg_data, sub_dom_data] = load_hdf5_hyd_and_merge(name_hdf5,
-                                                                                                           path_hdf5, merge)
+                                                                                                           path_hdf5,
+                                                                                                           merge)
     if ikle_all_t == [[-99]] or len(ikle_all_t) < 1:
         return
     sim_name = load_unit_name(name_hdf5, path_hdf5)

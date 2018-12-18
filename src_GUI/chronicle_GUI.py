@@ -15,7 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout,  QLineEdit, \
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QLineEdit, \
     QComboBox, QListWidget, QSpacerItem, QFileDialog, QFrame
 import numpy as np
 from src import hydraulic_chronic
@@ -24,6 +24,7 @@ from src_GUI import estimhab_GUI
 from src_GUI import output_fig_GUI
 import os
 import sys
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -146,7 +147,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.run_chronicle, 7, 1)
         self.layout4.addItem(spacer, 8, 1)
 
-        #self.setLayout(self.layout4)
+        # self.setLayout(self.layout4)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
@@ -164,11 +165,11 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 root = docxml.getroot()
             except IOError:
                 self.send_log.emit(
-                   "Warning: the xml project file does not exist \n")
+                    "Warning: the xml project file does not exist \n")
                 return -99, -99, -99
         except ET.ParseError:
             self.send_log.emit(
-                   "Warning: the xml project file is not well-formed.\n")
+                "Warning: the xml project file is not well-formed.\n")
             return -99, -99, -99
 
         return root, docxml, xmlfile
@@ -267,7 +268,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         This function remove one selected merge file
         """
         if self.chosen_all.count() > 0 and \
-           self.chosen_all.currentItem() is not None:
+                self.chosen_all.currentItem() is not None:
             ind = self.chosen_all.currentRow()
             self.chosen_all.takeItem(ind)
 
@@ -300,9 +301,9 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         for x in range(self.chosen_all.count()):
             # this is bad coding ;-) correct this!
             if x == 0 and \
-               (self.chosen_all.item(x).text() == 'No file chosen'
-                or self.chosen_all.item(x).text()
-                    == 'Pas de fichier choisi'):
+                    (self.chosen_all.item(x).text() == 'No file chosen'
+                     or self.chosen_all.item(x).text()
+                     == 'Pas de fichier choisi'):
                 self.send_log.emit('Warning: No file chosen.')
                 return
             else:
@@ -362,7 +363,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 data_dis = f.read()
         except IOError or UnicodeDecodeError:
             self.send_log.emit(
-             "Error: the discharge file could not be loaded.\n")
+                "Error: the discharge file could not be loaded.\n")
             return
         data_dis = data_dis.strip()
 
@@ -436,7 +437,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 data_dis = f.read()
         except IOError or UnicodeDecodeError:
             self.send_log.emit(
-             "Error: the discharge file could not be loaded.\n")
+                "Error: the discharge file could not be loaded.\n")
             return
         if len(data_dis) == 0:
             self.send_log.emit('Error: No data found in file')
@@ -457,7 +458,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
 
         # check column separator
         c_separator = None
-        if all([';' in i for i in data_dis]): # check if ';' is in all element
+        if all([';' in i for i in data_dis]):  # check if ';' is in all element
             c_separator = ';'
 
         # headers index

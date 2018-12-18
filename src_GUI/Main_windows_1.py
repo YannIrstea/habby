@@ -21,6 +21,7 @@ import os
 import shutil
 import numpy as np
 import gc
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -37,6 +38,7 @@ import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
 import matplotlib as mpl
+
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_GUI_2
@@ -119,8 +121,8 @@ class MainWindows(QMainWindow):
         recent_projects_path_set = self.settings.value('recent_project_path')
         if recent_projects_set is not None:
             if len(recent_projects_set) > self.nb_recent:
-                self.settings.setValue('recent_project_name', recent_projects_set[ -self.nb_recent+1:])
-                self.settings.setValue('recent_project_path', recent_projects_path_set[-self.nb_recent+1:])
+                self.settings.setValue('recent_project_name', recent_projects_set[-self.nb_recent + 1:])
+                self.settings.setValue('recent_project_path', recent_projects_path_set[-self.nb_recent + 1:])
         del self.settings
 
         # set up translation
@@ -219,7 +221,8 @@ class MainWindows(QMainWindow):
         if not self.settings.value('wind_position'):
             self.setGeometry(50, 75, 950, 720)
         if self.settings.value('wind_position'):
-            windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(map(int, self.settings.value('wind_position').split(",")))
+            windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(
+                map(int, self.settings.value('wind_position').split(",")))
             self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
         # set theme
         if self.settings.value('theme') == "dark":
@@ -248,11 +251,12 @@ class MainWindows(QMainWindow):
         self.central_widget.closefig()
 
         # save theme and windows position
-        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
-        self.settings.setValue('wind_position', ",".join([str(self.geometry().x()), str(self.geometry().y()), str(self.geometry().width()), str(self.geometry().height())]))
+        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
+        self.settings.setValue('wind_position', ",".join(
+            [str(self.geometry().x()), str(self.geometry().y()), str(self.geometry().width()),
+             str(self.geometry().height())]))
         self.settings.setValue('theme', self.actual_theme)
         del self.settings
-
 
         os._exit(1)
 
@@ -268,11 +272,11 @@ class MainWindows(QMainWindow):
         if self.name_prj is not None:
 
             # open the text file
-            filename = os.path.join(os.path.join(self.path_prj,'hdf5_files'), 'check_concurrency.txt')
+            filename = os.path.join(os.path.join(self.path_prj, 'hdf5_files'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
                 self.central_widget.write_log('Warning: Could not check if the project was open by '
                                               'another instance of HABBY (1) \n')
-                if os.path.isdir(os.path.join(self.path_prj,'hdf5_files')):
+                if os.path.isdir(os.path.join(self.path_prj, 'hdf5_files')):
                     with open(filename, 'wt') as f:
                         f.write('open')
                 return
@@ -283,7 +287,7 @@ class MainWindows(QMainWindow):
                     data = f.read()
             except IOError:
                 self.central_widget.write_log('Warning: Could not check if the project was open by another '
-                                               'instance of HABBY (2) \n')
+                                              'instance of HABBY (2) \n')
                 return
             if data == 'open':
                 self.central_widget.write_log('Warning: The same project is open in another instance of HABBY.'
@@ -415,7 +419,7 @@ class MainWindows(QMainWindow):
         self.central_widget.l1.setText(self.tr('Habby says:'))
 
         # update user option to remember the language
-        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
+        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
         self.settings.setValue('language_code', self.lang)
         del self.settings
 
@@ -479,7 +483,8 @@ class MainWindows(QMainWindow):
 
         # Menu to open menu research
         logc = QAction(self.tr("Clear Log Windows"), self)
-        logc.setStatusTip(self.tr('Empty the log windows at the bottom of the main window. Do not erase the .log file.'))
+        logc.setStatusTip(
+            self.tr('Empty the log windows at the bottom of the main window. Do not erase the .log file.'))
         logc.setShortcut('Ctrl+L')
         logc.triggered.connect(self.clear_log)
         logn = QAction(self.tr("Do Not Save Log"), self)
@@ -491,9 +496,9 @@ class MainWindows(QMainWindow):
         savi = QAction(self.tr("Delete All Images"), self)
         savi.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
         savi.triggered.connect(self.erase_pict)
-        #showim = QAction(self.tr("Show Images"), self)
-        #showim.setStatusTip(self.tr('Open the window to view the created figures.'))
-        #showim.triggered.connect(self.central_widget.showfig2)
+        # showim = QAction(self.tr("Show Images"), self)
+        # showim.setStatusTip(self.tr('Open the window to view the created figures.'))
+        # showim.triggered.connect(self.central_widget.showfig2)
         closeim = QAction(self.tr("Close All Images"), self)
         closeim.setStatusTip(self.tr('Close the figures which are currently created.'))
         closeim.triggered.connect(self.central_widget.closefig)
@@ -555,7 +560,7 @@ class MainWindows(QMainWindow):
         log_all.addAction(logn)
         log_all.addAction(logy)
         im_all = fileMenu4.addMenu(self.tr('Image options'))
-        #im_all.addAction(showim)
+        # im_all.addAction(showim)
         im_all.addAction(savi)
         im_all.addAction(closeim)
         im_all.addAction(optim)
@@ -567,12 +572,11 @@ class MainWindows(QMainWindow):
         fileMenu2.addAction(lAction3)
         fileMenu3.addAction(helpm)
 
-
-
         if not right_menu:
 
             # physical
             physicalmodelaction = QAction('Physical models', self.menubar, checkable=True)
+
             def manage_tab_physical():
                 """ Prints selected menu labels. """
                 if not physicalmodelaction.isChecked():
@@ -589,12 +593,14 @@ class MainWindows(QMainWindow):
                     self.central_widget.tab_widget.setTabEnabled(4, True)
                     self.central_widget.tab_widget.setStyleSheet(
                         "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
+
             physicalmodelaction.triggered.connect(manage_tab_physical)
             ViewMenu.addAction(physicalmodelaction)
             physicalmodelaction.setChecked(True)
 
             # statistic
             statisticmodelaction = QAction('Statistical models', self.menubar, checkable=True)
+
             def manage_tab_statistics():
                 """ Prints selected menu labels. """
                 if not statisticmodelaction.isChecked():
@@ -609,6 +615,7 @@ class MainWindows(QMainWindow):
                     self.central_widget.tab_widget.setTabEnabled(7, True)
                     self.central_widget.tab_widget.setStyleSheet(
                         "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
+
             statisticmodelaction.triggered.connect(manage_tab_statistics)
             ViewMenu.addAction(statisticmodelaction)
             statisticmodelaction.setChecked(True)
@@ -649,7 +656,8 @@ class MainWindows(QMainWindow):
         self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
         self.actual_theme = "dark"
         # other
-        self.central_widget.welcome_tab.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
+        self.central_widget.welcome_tab.pic.setPixmap(
+            QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
 
     def create_menu_right(self):
         """
@@ -682,11 +690,11 @@ class MainWindows(QMainWindow):
         icon_closefig.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_open = QIcon()
-        name1 = os.path.join(os.getcwd(), "translation","icon","openproject.png")
+        name1 = os.path.join(os.getcwd(), "translation", "icon", "openproject.png")
         icon_open.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_see = QIcon()
-        name1 =os.path.join(os.getcwd(),"translation", "icon","see_project.png")
+        name1 = os.path.join(os.getcwd(), "translation", "icon", "see_project.png")
         icon_see.addPixmap(QPixmap(name1), QIcon.Normal)
 
         icon_new = QIcon()
@@ -780,10 +788,10 @@ class MainWindows(QMainWindow):
         e3here = self.central_widget.welcome_tab.e3
         self.descri_prj = e3here.toPlainText()
 
-        fname = os.path.join(self.path_prj, self.name_prj+'.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
 
         # update user option and re-do (the whole) menu
-        self.settings = QSettings('irstea', 'HABBY'+str(self.version))
+        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
         self.settings.setValue('name_prj', self.name_prj)
         self.settings.setValue('path_prj', self.path_prj)
 
@@ -794,7 +802,8 @@ class MainWindows(QMainWindow):
         else:
             ind = np.where(self.recent_project == self.name_prj)[0]
             if ind:
-                if os.path.normpath(self.path_prj) != os.path.normpath(self.recent_project_path[ind[0]]):  # linux windows path
+                if os.path.normpath(self.path_prj) != os.path.normpath(
+                        self.recent_project_path[ind[0]]):  # linux windows path
                     self.recent_project.append(self.name_prj)
                     self.recent_project_path.append(self.path_prj)
         self.settings.setValue('recent_project_name', self.recent_project)
@@ -818,7 +827,7 @@ class MainWindows(QMainWindow):
             pathlog_child = ET.SubElement(log_element, "File_Log")
             pathlog_child.text = os.path.join(self.name_prj + '.log')
             pathlog_child = ET.SubElement(log_element, "File_Restart")
-            pathlog_child.text = os.path.join('restart_'+self.name_prj + '.log')
+            pathlog_child.text = os.path.join('restart_' + self.name_prj + '.log')
             savelog_child = ET.SubElement(log_element, "Save_Log")
             savelog_child.text = str(self.central_widget.logon)
 
@@ -865,7 +874,7 @@ class MainWindows(QMainWindow):
 
             # save new xml file
             if self.name_prj != '':
-                fname = os.path.join(self.path_prj, self.name_prj+'.xml')
+                fname = os.path.join(self.path_prj, self.name_prj + '.xml')
                 tree.write(fname)
 
             # create a default directory for the figures and the hdf5
@@ -928,7 +937,7 @@ class MainWindows(QMainWindow):
             pathbio_child.text = self.path_bio_default
             user_child.text = self.username_prj
             des_child.text = self.descri_prj
-            fname = os.path.join(self.path_prj, self.name_prj+'.xml')
+            fname = os.path.join(self.path_prj, self.name_prj + '.xml')
             doc.write(fname)
 
             # create needed folder if not there yet
@@ -967,7 +976,7 @@ class MainWindows(QMainWindow):
         self.central_widget.tab_widget.removeTab(0)
 
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj +'.xml')):
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
@@ -1088,7 +1097,7 @@ class MainWindows(QMainWindow):
         self.save_project()
 
         # update estimhab and stathab
-        if stathab_info is not None :  # if there is data for STATHAB
+        if stathab_info is not None:  # if there is data for STATHAB
             self.central_widget.stathab_tab.load_from_hdf5_gui()
         self.central_widget.statmod_tab.open_estimhab_hdf5()
 
@@ -1140,7 +1149,7 @@ class MainWindows(QMainWindow):
         self.end_concurrency()
 
         # get the project file
-        filename_path = os.path.join(self.recent_project_path[j], self.recent_project[j] +'.xml')
+        filename_path = os.path.join(self.recent_project_path[j], self.recent_project[j] + '.xml')
 
         # load the xml file
         try:
@@ -1166,7 +1175,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText(self.username_prj)
         self.central_widget.welcome_tab.e3.setText(self.descri_prj)
-        #self.central_widget.write_log('# Project opened successfully. \n')
+        # self.central_widget.write_log('# Project opened successfully. \n')
 
         # save the project
         self.save_project()
@@ -1209,7 +1218,7 @@ class MainWindows(QMainWindow):
         self.empty_project()
 
         # remove tab 9as we have no project anymore)
-        for i in range(self.central_widget.tab_widget.count(),0,-1):
+        for i in range(self.central_widget.tab_widget.count(), 0, -1):
             self.central_widget.tab_widget.removeTab(i)
 
         # add the welcome Widget
@@ -1246,7 +1255,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e4.setText('')
 
         # check if there is not another project with the same path_name
-        fname = os.path.join(self.createnew.e2.text(), name_prj_here+'.xml')
+        fname = os.path.join(self.createnew.e2.text(), name_prj_here + '.xml')
         if os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Identical name"))
@@ -1325,13 +1334,13 @@ class MainWindows(QMainWindow):
             child_logfile1.text = os.path.join(new_path_prj, name_prj_here + '.log')
             child_logfile2 = root.find(".//File_Restart")
             log2_old = child_logfile2.text
-            child_logfile2.text = os.path.join(new_path_prj, 'restart_'+ name_prj_here + '.log')
+            child_logfile2.text = os.path.join(new_path_prj, 'restart_' + name_prj_here + '.log')
 
             # copy the xml
             try:
                 os.rename(os.path.join(old_path_prj, log1_old), os.path.join(old_path_prj, name_prj_here + '.log'))
                 os.rename(os.path.join(old_path_prj, log2_old), os.path.join(old_path_prj,
-                                                                             'restart_'+ name_prj_here + '.log'))
+                                                                             'restart_' + name_prj_here + '.log'))
             except FileNotFoundError:
                 self.central_widget.write_log("Error: the old log files do not exist (2)\n.")
                 return
@@ -1430,7 +1439,7 @@ class MainWindows(QMainWindow):
             fish_list.append(fish_item_str)
 
         # create an empty hdf5 file using all default prop.
-        fname_no_path = self.name_prj+'_ESTIMHAB'+'.h5'
+        fname_no_path = self.name_prj + '_ESTIMHAB' + '.h5'
         fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(fnamep):
             self.msg2.setIcon(QMessageBox.Warning)
@@ -1478,7 +1487,8 @@ class MainWindows(QMainWindow):
         if not os.path.isfile(fnamep):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save project"))
-            self.msg2.setText(self.tr("The project is not saved. Save the project in the start tab before saving ESTIMHAB data"))
+            self.msg2.setText(
+                self.tr("The project is not saved. Save the project in the start tab before saving ESTIMHAB data"))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
@@ -1518,7 +1528,8 @@ class MainWindows(QMainWindow):
                     add_text = self.tr("First problematic data is ")
                     self.msg2.setDetailedText(add_text + var_str)
                 else:
-                    self.msg2.setText(self.tr("Data is empty or partially empty. Data is saved, but cannot be executed"))
+                    self.msg2.setText(
+                        self.tr("Data is empty or partially empty. Data is saved, but cannot be executed"))
                 self.msg2.setStandardButtons(QMessageBox.Ok)
                 self.msg2.show()
 
@@ -1542,7 +1553,7 @@ class MainWindows(QMainWindow):
             two research tabs. Modify this function if a different number of tab is needed.
         """
         if self.rechmain:
-            for i in range(self.central_widget.tab_widget.count(), self.central_widget.tab_widget.count()-3, -1):
+            for i in range(self.central_widget.tab_widget.count(), self.central_widget.tab_widget.count() - 3, -1):
                 self.central_widget.tab_widget.removeTab(i)
         self.rechmain = False
 
@@ -1551,7 +1562,8 @@ class MainWindows(QMainWindow):
         Clear the log in the GUI.
         """
         self.central_widget.tracking_journal_QTextEdit.clear()
-        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Log erased in this window.<br>'))
+        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
+            self.tr('Log erased in this window.<br>'))
 
     def do_log(self, save_log):
         """
@@ -1564,17 +1576,19 @@ class MainWindows(QMainWindow):
         """
         if save_log == 0:
             t = self.central_widget.tracking_journal_QTextEdit.text()
-            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('This log will not be saved anymore in the .log file. <br>')
-                                                                                   + self.tr('This log will not be saved anymore in the restart file. <br>'))
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
+                self.tr('This log will not be saved anymore in the .log file. <br>')
+                + self.tr('This log will not be saved anymore in the restart file. <br>'))
             self.central_widget.logon = False
         if save_log == 1:
             t = self.central_widget.tracking_journal_QTextEdit.text()
-            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('This log will be saved in the .log file.<br> '
-                                                       'This log will be saved in the restart file. <br>'))
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(
+                self.tr('This log will be saved in the .log file.<br> '
+                        'This log will be saved in the restart file. <br>'))
             self.central_widget.logon = True
 
         # save the option in the xml file
-        fname = os.path.join(self.path_prj, self.name_prj +'.xml')
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
         doc = ET.parse(fname)
         root = doc.getroot()
         savelog_child = root.find(".//Save_Log")
@@ -1643,7 +1657,7 @@ class MainWindows(QMainWindow):
         with all the coding detail, but we should create a new html or a new pdf file which would be more practical
         for the user.
         """
-        filename_help = os.path.join(os.getcwd(), "doc","_build", "html","index.html")
+        filename_help = os.path.join(os.getcwd(), "doc", "_build", "html", "index.html")
         print(filename_help)
         wbopen(filename_help)
 
@@ -1795,7 +1809,7 @@ class CentralW(QWidget):
         self.max_lengthshow = 180
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
-        self.opttab = 8 # the position of the option tab
+        self.opttab = 8  # the position of the option tab
 
         self.init_iu()
 
@@ -1858,7 +1872,7 @@ class CentralW(QWidget):
         """
         Move the scroll bar to the bottom if the ScollArea is getting bigger
         """
-        #self.vbar.setValue(self.vbar.maximum())
+        # self.vbar.setValue(self.vbar.maximum())
         self.tracking_journal_QTextEdit.moveCursor(QTextCursor.End)
 
     def add_all_tab(self):
@@ -1900,14 +1914,14 @@ class CentralW(QWidget):
             root = doc.getroot()
             child = root.find(".//" + 'Path_Figure')
             if child is not None:
-                self.path_im = os.path.join(self.path_prj_c,child.text)
+                self.path_im = os.path.join(self.path_prj_c, child.text)
 
         # if os.name == 'nt':  # windows
-        #plt.show()
+        # plt.show()
         aa = 1
-        #plt.clf()
-        #plt.cla()
-        #plt.close()
+        # plt.clf()
+        # plt.cla()
+        # plt.close()
         # else:
         #     num_fig = plt.get_fignums()
         #     self.all_fig_widget = []
@@ -2051,7 +2065,7 @@ class CentralW(QWidget):
                 pathname_logfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
                 self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
-                                    "log file is not indicated in the xml file. No log written. </br> <br>")
+                                                                        "log file is not indicated in the xml file. No log written. </br> <br>")
                 return
             # restart log
             child_logfile = root.find(".//File_Restart")
@@ -2059,18 +2073,20 @@ class CentralW(QWidget):
                 pathname_restartfile = os.path.join(self.path_prj_c, child_logfile.text)
             else:
                 self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The "
-                                    "restart file is not indicated in the xml file. No log written. </br> <br>")
+                                                                        "restart file is not indicated in the xml file. No log written. </br> <br>")
                 return
         else:
             # if only one tab, project not open, so it is normal that no log can be written.
             if self.tab_widget.count() > 1:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: The project file is not "
-                                    "found. no Log written. </br> <br>")
+                self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                    "<FONT COLOR='#FF8C00'> WARNING: The project file is not "
+                    "found. no Log written. </br> <br>")
             return
 
         # add comments to Qlabel and .log file
         if text_log[0] == '#':
-            self.tracking_journal_QTextEdit.textCursor().insertHtml(text_log[1:] + '</br><br>') # "<FONT COLOR='#000000'>" +
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                text_log[1:] + '</br><br>')  # "<FONT COLOR='#000000'>" +
             self.write_log_file(text_log, pathname_logfile)
         # add python code to the .log file
         elif text_log[:2] == 'py':
@@ -2079,11 +2095,13 @@ class CentralW(QWidget):
         elif text_log[:7] == 'restart':
             self.write_log_file(text_log[7:], pathname_restartfile)
         elif text_log[:5] == 'Error' or text_log[:6] == 'Erreur':
-            self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
-            self.write_log_file('# ' +text_log, pathname_logfile)
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
+            self.write_log_file('# ' + text_log, pathname_logfile)
         # add warning
         elif text_log[:7] == 'Warning':
-            self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
             self.write_log_file('# ' + text_log, pathname_logfile)
         # update to check that processus is alive
         elif text_log[:7] == 'Process':
@@ -2092,7 +2110,8 @@ class CentralW(QWidget):
             self.parent().statusBar().clearMessage()
         # other case not accounted for
         else:
-            self.tracking_journal_QTextEdit.textCursor().insertHtml(text_log + '</br><br>') # "<FONT COLOR='#000000'>" +
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                text_log + '</br><br>')  # "<FONT COLOR='#000000'>" +
 
     def write_log_file(self, text_log, pathname_logfile):
         """
@@ -2108,11 +2127,12 @@ class CentralW(QWidget):
             elif self.name_prj_c == '':
                 return
             else:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
+                self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                    "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
                 shutil.copy(os.path.join('src_GUI', 'log0.txt'),
                             os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
                 shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
-                            os.path.join(self.path_prj_c,'restart_' + self.name_prj_c + '.log'))
+                            os.path.join(self.path_prj_c, 'restart_' + self.name_prj_c + '.log'))
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write("    name_projet = " + self.name_prj_c + "'\n")
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
@@ -2280,7 +2300,7 @@ class WelcomeW(QScrollArea):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
-        self.imname = os.path.join('translation', 'banner.jpg') # image should be in the translation folder
+        self.imname = os.path.join('translation', 'banner.jpg')  # image should be in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
@@ -2315,8 +2335,8 @@ class WelcomeW(QScrollArea):
         self.e2 = QLabel(self.path_prj)
         button2 = QPushButton(self.tr('Set Folder'), self)
         button2.clicked.connect(self.setfolder2)
-        button2.setToolTip( self.tr('Move the project to a new location. '
-                                    'The data might be long to copy if the project folder is large.'))
+        button2.setToolTip(self.tr('Move the project to a new location. '
+                                   'The data might be long to copy if the project folder is large.'))
         l3 = QLabel(self.tr('Description: '))
         self.e3 = QTextEdit()
         # this is used to save the data if the QLineEdit is going out of Focus
@@ -2387,7 +2407,7 @@ class WelcomeW(QScrollArea):
         layout2.addWidget(highpart, 0, 0)
         layout2.addWidget(self.lowpart, 1, 0)
 
-        #self.setLayout(layout2)
+        # self.setLayout(layout2)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
@@ -2522,7 +2542,7 @@ class ShowImageW(QWidget):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.label_im = QLabel()
-        self.w = 200  #size of the image (see if we let some options for this)
+        self.w = 200  # size of the image (see if we let some options for this)
         self.h = 200
         self.imtype = '*.png'
         self.path_im = os.path.join(self.path_prj, self.name_prj + r'/figures')
@@ -2555,7 +2575,7 @@ class ShowImageW(QWidget):
 
         self.setWindowTitle(self.tr('ALL FIGURES'))
         self.setGeometry(200, 200, 500, 300)
-        #self.setMaximumSize(100, 100)
+        # self.setMaximumSize(100, 100)
 
         # layout
         self.layout4 = QGridLayout()
@@ -2646,6 +2666,7 @@ class MyFilter(QObject):
     """
     A signal to change the user name and the description of the project
     """
+
     def eventFilter(self, widget, event):
         # FocusOut event
         if event.type() == QEvent.FocusOut:

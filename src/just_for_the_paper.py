@@ -37,13 +37,13 @@ def save_vh_fig_2d(ikle, coord_p, vh, name_fish, fig, pos, max_lim=1.0):
     """
 
     print('Start fig')
-    ax =fig.add_subplot(2,2,pos)
+    ax = fig.add_subplot(2, 2, pos)
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
 
     # create the figure for each species, and each time step
     all_patches = []
 
-    #fig, ax = plt.subplots(1)  # new figure
+    # fig, ax = plt.subplots(1)  # new figure
     norm = mpl.colors.Normalize(vmin=0, vmax=max_lim)
 
     if len(ikle) < 3:
@@ -91,11 +91,7 @@ def save_vh_fig_2d(ikle, coord_p, vh, name_fish, fig, pos, max_lim=1.0):
     return fig
 
 
-
-
-
 def main():
-
     # prep
     path1 = r'D:\Diane_work\presentationInfo\paper1\projetpaper\restart'
     file_grid_base = 'gridcell_t_1_MERGE_Hydro_TELEMAC_a'
@@ -110,9 +106,9 @@ def main():
         grid_all_s = []
         for file in os.listdir(path1):
             if file.endswith(".txt"):
-                if file[:len(file_grid_base)+1] == file_grid_base + str(t):
+                if file[:len(file_grid_base) + 1] == file_grid_base + str(t):
                     # work only with one reach
-                    grid_here = np.loadtxt(os.path.join(path1,file),skiprows=2)
+                    grid_here = np.loadtxt(os.path.join(path1, file), skiprows=2)
 
                     grid_all_s.append(grid_here[:, 1:])  # no need for the reach
         grid_all.append(grid_all_s)
@@ -169,34 +165,34 @@ def main():
     fig = plt.figure()
 
     # plot hsi
-    colo = ['^-g','^-g','^-g','^-g','^-b', '^-m', '^-r', '^-k']
+    colo = ['^-g', '^-g', '^-g', '^-g', '^-b', '^-m', '^-r', '^-k']
     labelleg = ['Clay/Silt/Sand', '', '', 'Gravel', 'Pebble', 'Cobble', 'Small boulders', 'Large boulders']
     fig.add_subplot(311)
-    for s in range(0,8):
-        if s!= 1 or s!= 2:
-            plt.plot(discharge, hsi_all[:,s,1], colo[s], label=labelleg[s])
+    for s in range(0, 8):
+        if s != 1 or s != 2:
+            plt.plot(discharge, hsi_all[:, s, 1], colo[s], label=labelleg[s])
     plt.ylabel('HSI Fry []')
-    #plt.xlabel('Discharge [m$^{3}$/s]')
+    # plt.xlabel('Discharge [m$^{3}$/s]')
     plt.ylim([0, 0.4])
-    plt.xlim([0,280])
+    plt.xlim([0, 280])
     plt.title('Habitat Suitability Index')
-    leg = plt.legend(fontsize=10, loc=1,fancybox=True, ncol=2)
+    leg = plt.legend(fontsize=10, loc=1, fancybox=True, ncol=2)
     leg.get_frame().set_alpha(0.5)
     fig.add_subplot(312)
-    for s in range(0,8):
+    for s in range(0, 8):
         if s != 1 or s != 2:
-            plt.plot(discharge, hsi_all[:,s,3], colo[s])
+            plt.plot(discharge, hsi_all[:, s, 3], colo[s])
     plt.ylabel('HSI Juvenile []')
-    #plt.title('Habitat Suitability Index')
-    #plt.xlabel('Discharge [m$^{3}$/s]')
+    # plt.title('Habitat Suitability Index')
+    # plt.xlabel('Discharge [m$^{3}$/s]')
     plt.ylim([0, 0.4])
     plt.xlim([0, 280])
     fig.add_subplot(313)
-    for s in range(0,8):
+    for s in range(0, 8):
         if s != 1 or s != 2:
-            plt.plot(discharge, hsi_all[:,s,5], colo[s])
+            plt.plot(discharge, hsi_all[:, s, 5], colo[s])
     plt.ylabel('HSI Adult []')
-    #plt.title('Habitat Suitability Index')
+    # plt.title('Habitat Suitability Index')
     plt.xlabel('Discharge [m$^{3}$/s]')
     plt.ylim([0, 0.4])
     plt.xlim([0, 280])
@@ -218,14 +214,13 @@ def main():
     # plot HV for different time step
     fig = plt.figure()
     vh_here = vh_all[0][4]
-    fig = save_vh_fig_2d(grid_all[0, 0], point_all[0,0],vh_here[:,2], 'Habitat value - Q=9.2m$^3$/s', fig, 1, 0.5)
+    fig = save_vh_fig_2d(grid_all[0, 0], point_all[0, 0], vh_here[:, 2], 'Habitat value - Q=9.2m$^3$/s', fig, 1, 0.5)
     vh_here = vh_all[2][4]
     fig = save_vh_fig_2d(grid_all[2, 0], point_all[2, 0], vh_here[:, 2], 'Habitat value - Q=35m$^3$/s', fig, 2, 0.5)
     vh_here = vh_all[5][4]
     fig = save_vh_fig_2d(grid_all[5, 0], point_all[5, 0], vh_here[:, 2], 'Habitat value - Q=110m$^3$/s', fig, 3, 0.5)
     vh_here = vh_all[-1][4]
     fig = save_vh_fig_2d(grid_all[-1, 0], point_all[-1, 0], vh_here[:, 2], 'Habitat value - Q=259m$^3$/s', fig, 4, 0.5)
-
 
     # #plot diff substrate last time step
     # vh1 = []
@@ -245,12 +240,8 @@ def main():
     # fig = save_vh_fig_2d(grid_all[-1, 5], point_all[-1, 5], diff2, 'Substrate influence - Juvenile', fig, 6, 0.5)
     # fig = save_vh_fig_2d(grid_all[-1, 5], point_all[-1, 5], diff3, 'Substrate influence - Adult', fig, 9, 0.5)
 
-
-    #plt.tight_layout()
+    # plt.tight_layout()
     plt.show()
-
-
-
 
 
 if __name__ == '__main__':

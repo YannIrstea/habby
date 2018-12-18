@@ -23,6 +23,7 @@ import re
 import time
 import matplotlib.pyplot as plt
 import h5py
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -37,37 +38,37 @@ class Stathab:
     """
     The class for the Stathab model
     """
-    
+
     def __init__(self, name_prj, path_prj):
         self.qlist = []  # the list of dicharge for each reach, usually in rivdis.txt
         self.qwh = []  # the discharge, the width and height
         # at least at two different dicharges (rivqvh.txt) a list of np.array
-        self.disthmes = [] # the measured distribution of height (rivdist.txt) a list of np.array
+        self.disthmes = []  # the measured distribution of height (rivdist.txt) a list of np.array
         self.qhmoy = []  # the mean height and q (2 first llines of rivdis.txt)
         self.dist_gran = []  # the distribution of granulo (rivgra.txt)-only used by temperate river, a list of np.array
         self.data_ii = []  # only used by tropical river. The slope, waterfall height and length of river
         self.fish_chosen = []  # the name of the fish to be studied, the name should also be in pref.txt
         self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
         self.name_reach = []  # the list with the name of the reaches
-        self.j_all = [] # the suitability indices
+        self.j_all = []  # the suitability indices
         self.granulo_mean_all = []  # average granuloa
         self.vclass_all = []  # volume of each velocity classes
         self.hclass_all = []  # surface height for all classes
-        self.rclass_all = []   # granulo surface for all classes
+        self.rclass_all = []  # granulo surface for all classes
         self.h_all = []  # total height of all the reaches
-        self.w_all = []   # total width of all the reaches
-        self.q_all = []   # discharge
-        self.fish_chosen = np.array([])   # the name of the fish
+        self.w_all = []  # total width of all the reaches
+        self.q_all = []  # discharge
+        self.fish_chosen = np.array([])  # the name of the fish
         self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
         self.name_reach = []  # the name of the reaches of the river
-        self.path_im = path_prj   # path where to save the image
-        self.load_ok = False # a boolean to manage the errors
+        self.path_im = path_prj  # path where to save the image
+        self.load_ok = False  # a boolean to manage the errors
         #  during the load of the files and the hdf5 creation and calculation
         self.path_prj = path_prj
         self.name_prj = name_prj
         # get the option for the figure in a dict
         self.fig_opt = []
-        self.path_txt = path_prj # path where to save the text
+        self.path_txt = path_prj  # path where to save the text
 
     def load_stathab_from_txt(self, reachname_file, end_file_reach, name_file_allreach, path):
         """
@@ -167,7 +168,8 @@ class Stathab:
                     if np.array_equal(data_ii_r, [-99]):  # if failed
                         return
                     if len(data_ii_r) != 3:
-                        print('Error: The file called ' + filename + ' is not in the right format.  Three values needed.\n')
+                        print(
+                            'Error: The file called ' + filename + ' is not in the right format.  Three values needed.\n')
                         return
                     self.data_ii.append(data_ii_r)
 
@@ -255,7 +257,7 @@ class Stathab:
         rinverint = file_stathab.attrs['riverint']
         try:
             riverint = int(rinverint)
-            if riverint >2:
+            if riverint > 2:
                 print('The river type in the hdf5 should be 0,1,or 2.')
                 return
         except ValueError:
@@ -269,7 +271,8 @@ class Stathab:
             gen_dataset = file_stathab[basename1 + "/reach_name"]
         except KeyError:
             file_stathab.close()
-            print('Error: the dataset reach_name is missing from the hdf5 file. Is ' + fname_h5 + ' a stathab input? \n')
+            print(
+                'Error: the dataset reach_name is missing from the hdf5 file. Is ' + fname_h5 + ' a stathab input? \n')
             return
         if len(list(gen_dataset.values())) == 0:
             print('Error: The data name_reach could not be read. \n')
@@ -340,12 +343,13 @@ class Stathab:
                 try:
                     reach_dataset = file_stathab[self.name_reach[r] + "/" + reach_dataset_name[i]]
                 except KeyError:
-                    print("Error: the dataset"+ reach_dataset_name[i]+ "is missing from the hdf5 file. \n")
+                    print("Error: the dataset" + reach_dataset_name[i] + "is missing from the hdf5 file. \n")
                     file_stathab.close()
                     return
                 reach_dataset = list(reach_dataset.values())[0]
                 if not reach_dataset:
-                    print('Error: The variable ' + reach_dataset_name[r] +'could not be extracted from the hdf5 file.\n')
+                    print(
+                        'Error: The variable ' + reach_dataset_name[r] + 'could not be extracted from the hdf5 file.\n')
                 reach_var[i].append(reach_dataset)
 
         self.load_ok = True
@@ -382,9 +386,9 @@ class Stathab:
                 new_name = 'unnamed_reach_' + str(r)
                 # if two identical names
                 if r > 0:
-                    if np.any(self.name_reach[r] == self.name_reach[:r-1]):
+                    if np.any(self.name_reach[r] == self.name_reach[:r - 1]):
                         print('Warning: two reach with identical names.\n')
-                        new_name = self.name_reach[r] + str(r+1)
+                        new_name = self.name_reach[r] + str(r + 1)
                 else:
                     print('Warning: Reach name are not compatible with hdf5.\n')
                 filereach = file.create_group(new_name)
@@ -475,7 +479,8 @@ class Stathab:
         # various info
         nbclaq = 50  # number of discharge point where the data have to be calculate
         nbclagg = 12  # number of empirical roughness class
-        coeff_granu = np.array([0.00001, 0.0001, 0.00028, 0.00125, 0.005, 0.012, 0.024, 0.048, 0.096, 0.192, 0.640, 1.536])  # WHY?
+        coeff_granu = np.array(
+            [0.00001, 0.0001, 0.00028, 0.00125, 0.005, 0.012, 0.024, 0.048, 0.096, 0.192, 0.640, 1.536])  # WHY?
         nb_reach = len(self.name_reach)
         find_one_fish = False
         [name_fish, coeff_all] = load_pref(name_pref, path_pref)
@@ -496,7 +501,7 @@ class Stathab:
                     find_one_fish = True
                 else:
                     print('Warning: One fish species was not found in the '
-                          'Preference file. Fish name: ' + self.fish_chosen[f] +'\n')
+                          'Preference file. Fish name: ' + self.fish_chosen[f] + '\n')
         if not find_one_fish:
             print('Error: No fish species have been given or the fish species could not be found.\n')
             return -99
@@ -517,9 +522,9 @@ class Stathab:
             except IndexError:
                 print('Error: data not coherent with the number of reach \n')
                 return
-            hclass = np.zeros((len(self.lim_all[0])-1, nbclaq))
-            vclass = np.zeros((len(self.lim_all[1])-1, nbclaq))
-            rclass = np.zeros((len(self.lim_all[2])-1, nbclaq))
+            hclass = np.zeros((len(self.lim_all[0]) - 1, nbclaq))
+            vclass = np.zeros((len(self.lim_all[1]) - 1, nbclaq))
+            rclass = np.zeros((len(self.lim_all[2]) - 1, nbclaq))
             qmod = np.zeros((nbclaq, 1))
             hmod = np.zeros((nbclaq, 1))
             wmod = np.zeros((nbclaq, 1))
@@ -530,9 +535,9 @@ class Stathab:
             lim_g = self.lim_all[2]
             lim_g[lim_g < 0] = 0
             lim_g[lim_g > 11] = 11
-            dist_gs = np.zeros(len(lim_g)-1,)
-            for cg in range(0, len(lim_g)-1):
-                lim_cg = [np.int(np.floor(lim_g[cg])), np.floor(lim_g[cg+1])]
+            dist_gs = np.zeros(len(lim_g) - 1, )
+            for cg in range(0, len(lim_g) - 1):
+                lim_cg = [np.int(np.floor(lim_g[cg])), np.floor(lim_g[cg + 1])]
                 dist_chosen = dist_gran_r[np.int(lim_cg[0]):np.int(lim_cg[1])]
                 dist_gs[cg] = np.sum(dist_chosen)
 
@@ -541,33 +546,33 @@ class Stathab:
             sh0 = self.find_sh0_maxvrais(disthmes_r, h0)
 
             # check if discharge are coherent
-            if min(qlist_r) < qwh_r[0, 0]/10 or max(qlist_r) > qwh_r[1, 0]*5:
+            if min(qlist_r) < qwh_r[0, 0] / 10 or max(qlist_r) > qwh_r[1, 0] * 5:
                 print('Warning: Discharge range is far from measured discharge. Results might be unrealisitc. \n')
 
             # for all discharge
             for qind in range(0, nbclaq):
-                lnqs = np.log(min(qlist_r)) + (qind+0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
+                lnqs = np.log(min(qlist_r)) + (qind + 0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
                 qmod[qind] = np.exp(lnqs)
-                hs = np.exp(h_coeff[1] + lnqs*h_coeff[0])
+                hs = np.exp(h_coeff[1] + lnqs * h_coeff[0])
                 hmod[qind] = hs
-                ws = np.exp(w_coeff[1] + lnqs*w_coeff[0])
+                ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
                 wmod[qind] = ws
-                vs = np.exp(lnqs)/(hs*ws)
+                vs = np.exp(lnqs) / (hs * ws)
                 dist_hs = self.dist_h(sh0, h0, self.lim_all[0], hs)
                 dist_vs = self.dist_v(hs, granulo_mean, self.lim_all[1], vs)
                 # multiply by width and surface
                 v = ws * hs  # total volume
-                vclass[:, qind] = ws*dist_vs*hs
+                vclass[:, qind] = ws * dist_vs * hs
                 hclass[:, qind] = dist_hs * ws
-                rclass[:, qind] = dist_gs*ws
+                rclass[:, qind] = dist_gs * ws
                 # calculate the biological preference index
                 j = coeff[:, 0] * v
                 for vc in range(0, len(vclass[:, qind])):
-                    j += vclass[vc, qind] * coeff[:, vc+1]
+                    j += vclass[vc, qind] * coeff[:, vc + 1]
                 for hc in range(0, len(hclass[:, qind])):
                     j += hclass[hc, qind] * coeff[:, hc + len(vclass[:, qind]) + 1]
                 for rc in range(0, len(rclass[:, qind])):
-                    j += rclass[rc, qind] * coeff[:, rc + len(hclass[:, qind]) + len(vclass[:, qind])+1]
+                    j += rclass[rc, qind] * coeff[:, rc + len(hclass[:, qind]) + len(vclass[:, qind]) + 1]
                 self.j_all[r, :, qind] = j
             self.vclass_all.append(vclass)
             self.hclass_all.append(hclass)
@@ -592,7 +597,7 @@ class Stathab:
         self.load_ok = False
         nb_reach = len(self.name_reach)
         nbclaq = 50  # number of discharge value where the data have to be calculated
-        nbclass = 20 # number of height and velcoity class (do not change without changing dist_h_trop and _dist_v_trop)
+        nbclass = 20  # number of height and velcoity class (do not change without changing dist_h_trop and _dist_v_trop)
 
         # get the preference info based on the files known
         code_fish = self.fish_chosen
@@ -729,15 +734,14 @@ class Stathab:
 
                 # calculate J
                 for f in range(0, nb_fish):
-
                     # interpolate the preference file to the new point
                     data_pref = data_pref_all[f]
                     v_born2 = np.repeat(v_born, rep_num)
                     h_born2 = np.squeeze(np.tile(h_born, (1, rep_num)))
                     point_vh = np.array([v_born2, h_born2]).T
-                    pref_here = interpolate.griddata(data_pref[:, :2], data_pref[:,2], point_vh, method='linear')
+                    pref_here = interpolate.griddata(data_pref[:, :2], data_pref[:, 2], point_vh, method='linear')
 
-                    self.j_all[r, f, qind] = np.sum(pref_here * biv_dist.T) * ws*hs
+                    self.j_all[r, f, qind] = np.sum(pref_here * biv_dist.T) * ws * hs
                 self.h_all.append(hmod)
                 self.w_all.append(wmod)
                 self.q_all.append(qmod)
@@ -773,7 +777,8 @@ class Stathab:
         :return: the optimized sh0
         """
 
-        bornhmes = np.arange(0, len(disthmesr)+1) * 5*h0  # in c code, bornes are 1:n, so if we divide by h -> 1:n * h
+        bornhmes = np.arange(0,
+                             len(disthmesr) + 1) * 5 * h0  # in c code, bornes are 1:n, so if we divide by h -> 1:n * h
         # optimization by non-linear least square
         # if start value equal or above one, the optimization fails.
         [sh0_opt, pcov] = optimize.curve_fit(lambda h, sh0: self.dist_h(sh0, h0, bornhmes, h), h0, disthmesr, p0=0.5)
@@ -790,24 +795,25 @@ class Stathab:
         """
         nbclaemp = 20
         vraismax = -np.inf
-        clmax = nbclaemp-1
+        clmax = nbclaemp - 1
         sh0 = 0
         for p in range(0, 101):
-            sh = p/100
+            sh = p / 100
             if sh == 0:
                 sh += 0.00001  # no log(0)
             if sh == 1:
                 sh -= 0.00001
-            vrais = disthmesr[0] * np.log(sh * (1-np.exp(-(1./4.))) + (1-sh)*(stats.norm.cdf(((1./4.)-1)/0.419)))
-            vrais += disthmesr[clmax] * np.log(sh * np.exp(-(clmax/4.)) +
+            vrais = disthmesr[0] * np.log(
+                sh * (1 - np.exp(-(1. / 4.))) + (1 - sh) * (stats.norm.cdf(((1. / 4.) - 1) / 0.419)))
+            vrais += disthmesr[clmax] * np.log(sh * np.exp(-(clmax / 4.)) +
                                                (1 - sh) * (1 - stats.norm.cdf(((clmax / 4.) - 1) / 0.419)))
             for cla in range(1, clmax):
-                vrais += disthmesr[cla] * np.log(sh * (np.exp(-cla / 4.) - np.exp(-(cla + 1) / 4.))+
+                vrais += disthmesr[cla] * np.log(sh * (np.exp(-cla / 4.) - np.exp(-(cla + 1) / 4.)) +
                                                  (1 - sh) * (stats.norm.cdf(((cla + 1) / 4. - 1) / 0.419) -
                                                              stats.norm.cdf((cla / 4. - 1) / 0.419)))
             if vrais > vraismax:
                 vraismax = vrais
-                sh0 = p/100
+                sh0 = p / 100
         return sh0
 
     def dist_h(self, sh0, h0, bornh, h):
@@ -825,14 +831,14 @@ class Stathab:
         """
         # sh
         # sh0 = 0.48
-        sh = sh0 - 0.7 * np.log(h/h0)
+        sh = sh0 - 0.7 * np.log(h / h0)
         if sh > 1:
             sh = 1.
         if sh < 0:
             sh = 0.
         # prep
         nbclass = len(bornh) - 1
-        disth = np.zeros((nbclass, ))
+        disth = np.zeros((nbclass,))
         # all class and calcul
         for cl in range(0, nbclass):
             a = bornh[cl] / h
@@ -871,13 +877,13 @@ class Stathab:
             k3 += 1
             t2 = (-1) * t1 * x * x / (2 * k3)
             t1 = t2
-            t2 = t2/(2 * k3 + 1)
+            t2 = t2 / (2 * k3 + 1)
             s3 += t2
             if abs(t2) < 0.000001:
                 break
         res = 0.5 + 0.398942 * s3
         if n == -1:
-            res = 1-res
+            res = 1 - res
         return res
 
     def dist_v(self, h, d, bornv, v):
@@ -892,7 +898,7 @@ class Stathab:
         :return: the distribution of velocity across the river
         """
         # sv
-        fr = v/np.sqrt(9.81*h)
+        fr = v / np.sqrt(9.81 * h)
         relrough = d / h
         sv = -0.275 - 0.237 * np.log(fr) + 0.274 * relrough
         if sv < 0:
@@ -913,11 +919,11 @@ class Stathab:
             # based on Lamouroux, 1995 (predicting velocity frequency distributions)
             # dist = f1(exp) + f2(gaussian) + f3(gaussian)
             distv[cl] = sv * 0.642 * (np.exp(-a / 0.193) - np.exp(-b / 0.193)) \
-                + sv * 0.358 * (stats.norm.cdf((b - 2.44) / 1.223) - stats.norm.cdf((c - 2.44) / 1.223))\
-                + (1 - sv) * (stats.norm.cdf((b - 1) / 0.611) - stats.norm.cdf((c - 1) / 0.611))
+                        + sv * 0.358 * (stats.norm.cdf((b - 2.44) / 1.223) - stats.norm.cdf((c - 2.44) / 1.223)) \
+                        + (1 - sv) * (stats.norm.cdf((b - 1) / 0.611) - stats.norm.cdf((c - 1) / 0.611))
         return distv
 
-    def dist_h_trop(self,v,h, mean_slope):
+    def dist_h_trop(self, v, h, mean_slope):
         """
         This function calulate the height distribution for steep tropical stream based on the R code from
         Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
@@ -936,30 +942,30 @@ class Stathab:
 
         # general info
         g = 9.80665  # gravitation constant
-        fr = v/np.sqrt(g*h)
+        fr = v / np.sqrt(g * h)
 
         # empirical freq. distributions
-        fd_h =[0.221545010, 0.193846678, 0.117355060, 0.110029404, 0.074083455, 0.071369872, 0.054854534,
-               0.025952644, 0.024479842, 0.021200121, 0.015840696, 0.018349236, 0.010369520, 0.006917000,
-               0.005550880, 0.003432236, 0.001366120, 0.003366120, 0.006118644, 0.013972928]
+        fd_h = [0.221545010, 0.193846678, 0.117355060, 0.110029404, 0.074083455, 0.071369872, 0.054854534,
+                0.025952644, 0.024479842, 0.021200121, 0.015840696, 0.018349236, 0.010369520, 0.006917000,
+                0.005550880, 0.003432236, 0.001366120, 0.003366120, 0.006118644, 0.013972928]
         fc_h = [0.10786195, 0.12074410, 0.14866942, 0.13869359, 0.16721162, 0.11451288, 0.08924672, 0.05603628,
                 0.02442850, 0.02209880, 0.01049615, 0.00000000, 0.00000000, 0.00000000, 0.00000000, 0.00000000,
                 0.00000000, 0.00000000, 0.00000000, 0.00000000]
 
         # get the mixiing parameters
-        tmix_lien = -2.775 - 0.838*np.log(fr) + 0.087*mean_slope
-        tmix = np.exp(tmix_lien)/(1+np.exp(tmix_lien))
+        tmix_lien = -2.775 - 0.838 * np.log(fr) + 0.087 * mean_slope
+        tmix = np.exp(tmix_lien) / (1 + np.exp(tmix_lien))
 
         # height disitrbution
         h_dist = np.zeros((len(fd_h),))
         for i in range(0, len(fd_h)):
-            h_dist[i] = tmix * fd_h[i] + (1-tmix) * fc_h[i]
+            h_dist[i] = tmix * fd_h[i] + (1 - tmix) * fc_h[i]
 
-        h_born = np.arange(0.125, 5, 0.25) *h
+        h_born = np.arange(0.125, 5, 0.25) * h
 
         return h_dist, h_born
 
-    def dist_v_trop(self,v,h, h_waterfall, length_stat):
+    def dist_v_trop(self, v, h, h_waterfall, length_stat):
         """
         This function calulate the velocity distribution for steep tropical stream based on the R code from
         Girard et al. (stathab_hyd_steep). The frequency distribution is based on empirical data which
@@ -976,7 +982,7 @@ class Stathab:
 
         # prep
         g = 9.80665  # gravitation constant
-        ichu = h_waterfall/length_stat
+        ichu = h_waterfall / length_stat
         fr = v / np.sqrt(g * h)
 
         # empirical freq. distributions
@@ -989,9 +995,9 @@ class Stathab:
 
         # get the mixing paramter
         if np.isnan(ichu):
-            smix_lien = -3.163-1.344*np.log(fr)
+            smix_lien = -3.163 - 1.344 * np.log(fr)
         else:
-            smix_lien = -4.53-1.58*np.log(fr)+0.159*ichu
+            smix_lien = -4.53 - 1.58 * np.log(fr) + 0.159 * ichu
         smix = np.exp(smix_lien) / (1 + np.exp(smix_lien))
 
         # velocity distribution
@@ -999,14 +1005,14 @@ class Stathab:
         for i in range(0, len(fd_v)):
             v_dist[i] = smix * fd_v[i] + (1 - smix) * fc_v[i]
 
-        v_born = np.arange(-0.125, 5, 0.25)*v
+        v_born = np.arange(-0.125, 5, 0.25) * v
 
         # change the length as needed
         v_born = v_born[1:]
         v_dist[1] = v_dist[0] + v_dist[1]
         v_dist = v_dist[1:]
 
-        return v_dist,v_born
+        return v_dist, v_born
 
     def savefig_stahab(self, show_class=True):
         """
@@ -1130,7 +1136,7 @@ class Stathab:
                         name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.jpg")
                     if os.path.isfile(name_fig):
                         os.remove(name_fig)
-                    fig.savefig( name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
+                    fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
                                 dpi=self.fig_opt['resolution'])
 
             # suitability index
@@ -1155,7 +1161,7 @@ class Stathab:
             if not erase1:
                 if format == 0 or format == 1:
                     name_fig = os.path.join(self.path_im, self.name_reach[r] +
-                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S")+'.png')
+                                            "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
                 if format == 0 or format == 3:
                     name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                             "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
@@ -1166,11 +1172,11 @@ class Stathab:
                             dpi=self.fig_opt['resolution'], transparent=True)
             else:
                 if format == 0 or format == 1:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +"_suitability_index.png")
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index.png")
                 if format == 0 or format == 3:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +"_suitability_index.pdf")
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index.pdf")
                 if format == 2:
-                    name_fig = os.path.join(self.path_im, self.name_reach[r] +"_suitability_index.jpg")
+                    name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index.jpg")
                 if os.path.isfile(name_fig):
                     os.remove(name_fig)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
@@ -1211,7 +1217,7 @@ class Stathab:
                 data = np.hstack((np.log(qmod), dummy, hmod, wmod, vclass.T, hclass.T, rclass.T))
                 if not erase1:
                     namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] +
-                                            time.strftime("%d_%m_%Y_at_%H_%M_%S")+'rrd.txt')
+                                            time.strftime("%d_%m_%Y_at_%H_%M_%S") + 'rrd.txt')
                 else:
                     namefile = os.path.join(self.path_txt, 'Stathab_' + self.name_reach[r] + 'rrd.txt')
                     if os.path.isfile(namefile):
@@ -1267,7 +1273,7 @@ class Stathab:
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
-           print('Error: Project file is not found')
+            print('Error: Project file is not found')
 
         return path_hdf5
 
@@ -1310,7 +1316,7 @@ class Stathab:
         plt.figure()
         plt.subplot(221)
         plt.title('Volume total')
-        plt.plot(q_orr, 1*vol_all_orr[:, 3]*vol_all_orr[:, 2], '*')
+        plt.plot(q_orr, 1 * vol_all_orr[:, 3] * vol_all_orr[:, 2], '*')
         plt.plot(q_orr, v)
         plt.xlabel('Q [m$^{3}$3/sec]')
         plt.ylabel('Volume for 1m reach [m3]')
@@ -1318,7 +1324,7 @@ class Stathab:
         plt.subplot(222)
         plt.title('Surface by class for the granulometry')
         for g in range(0, len(rclass)):
-            plt.plot(q_orr, vol_all_orr[:, 13+g], '*')
+            plt.plot(q_orr, vol_all_orr[:, 13 + g], '*')
             plt.plot(q_orr, rclass[g], '-')
         plt.xlabel('Q [m$^{3}$3/sec]')
         plt.ylabel('Surface by Class [m2]')
@@ -1350,7 +1356,7 @@ class Stathab:
         plt.ylabel('J')
         plt.title('Suitability index J - STATHAB')
         lgd = plt.legend(bbox_to_anchor=(1, 1), loc='upper right', ncol=1)
-    
+
         plt.show()
 
     def test_stathab_trop_biv(self, path_ori):
@@ -1372,15 +1378,15 @@ class Stathab:
         # compare result
         plt.figure()
         plt.title('Stathab - Tropical bivariate - SIC')
-        plt.plot(self.q_all[0], self.j_all[0, 0, :],'-')
-        plt.plot(q_r, vpu,'x')
+        plt.plot(self.q_all[0], self.j_all[0, 0, :], '-')
+        plt.plot(q_r, vpu, 'x')
         plt.xlabel('Q [m3/sec]')
         plt.ylabel('VPU')
         plt.legend(('Python Code', 'R Code'), loc=2)
         plt.grid('on')
         plt.show()
 
-    def test_stathab_trop_uni(self, path_ori,by_vel=True):
+    def test_stathab_trop_uni(self, path_ori, by_vel=True):
         """
         A short function to test part of the outputs of the stathab tropical rivers against the R code
         in the univariate mode. It is not used in Habby but it is practical to debug. Stathab_trop_uni should be
@@ -1538,21 +1544,21 @@ def load_pref_trop_uni(code_fish, path):
     datav_all = []
 
     # get all possible file
-    all_files = load_hdf5.get_all_filename(path,'.csv')
+    all_files = load_hdf5.get_all_filename(path, '.csv')
 
     # get the name of univariate height files
     filenamesh = []
     for fi in code_fish:
         for file in all_files:
-            if 'uni-h_'+fi in file:
+            if 'uni-h_' + fi in file:
                 filenamesh.append(file)
 
     # load the data
     for fh in filenamesh:
         # get filename with the path
-        fv = fh.replace('uni-h','uni-v')
-        fileh = os.path.join(path,fh)
-        filev = os.path.join(path,fv)
+        fv = fh.replace('uni-h', 'uni-v')
+        fileh = os.path.join(path, fh)
+        filev = os.path.join(path, fv)
 
         # load file
         if not os.path.isfile(fileh) or not os.path.isfile(filev):
@@ -1593,7 +1599,7 @@ def load_pref_trop_biv(code_fish, path):
     # load the data
     for f in filenames:
         # get filename with the path
-        file = os.path.join(path,f)
+        file = os.path.join(path, f)
         if not os.path.isfile(file):
             print('Warning: One preference file was not found.\n')
         else:
@@ -1672,7 +1678,7 @@ def main():
     path_bio = r'C:\Users\diane.von-gunten\HABBY\biology\stathab'
     name_file_allreach_trop = []
     end_file_reach_trop = ['deb.csv', 'qhw.csv', 'ii.csv']  # .txt or .csv
-    biv= False
+    biv = False
 
     mystathab = Stathab(name_prj, path_prj)
     mystathab.riverint = 2

@@ -28,7 +28,7 @@ from io import StringIO
 from src_GUI import output_fig_GUI
 
 
-def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
+def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
                               print_cmd=False, fig_opt={}):
     """
     This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
@@ -78,10 +78,10 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
                     return
 
         # cut grid to wet area
-        [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2],xyzhv_i[:, 3],
+        [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2], xyzhv_i[:, 3],
                                                                                 xyzhv_i[:, 4], minwh)
 
-        #mimic empty grid for t = 0 for 1 D model
+        # mimic empty grid for t = 0 for 1 D model
         if i == 0:
             point_all_t.append([point_all])
             ikle_all_t.append([ikle_i])
@@ -95,9 +95,10 @@ def load_river2d_and_cut_grid(name_hdf5,namefiles, paths, name_prj, path_prj, mo
         inter_vel_all_t.append([velocity])
 
     # save data
-    namefiles2 = [x[:-4] for x in namefiles] # no need of the .cdg to name the time step
+    namefiles2 = [x[:-4] for x in namefiles]  # no need of the .cdg to name the time step
 
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t, point_c_all_t,
+    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                      point_all_t, point_c_all_t,
                                       inter_vel_all_t, inter_h_all_t, sim_name=namefiles2, hdf5_type="hydraulic")
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -191,9 +192,9 @@ def load_river2d_cdg(file_cdg, path):
                 qxqy[n, 0] = float(data_node_n[5 + nb_par])
                 qxqy[n, 1] = float(data_node_n[6 + nb_par])
             except ValueError:
-                print('Error: Some values are not float. Check the node '+ str(n+1) + ' in the .cdg file.\n')
+                print('Error: Some values are not float. Check the node ' + str(n + 1) + ' in the .cdg file.\n')
                 return failload
-        elif 3 + nb_par + nb_var == len(data_node_n):   # there is one coulmn which is not always there
+        elif 3 + nb_par + nb_var == len(data_node_n):  # there is one coulmn which is not always there
             try:
                 xyzhv[n, 0] = float(data_node_n[1])
                 xyzhv[n, 1] = float(data_node_n[2])
@@ -209,7 +210,7 @@ def load_river2d_cdg(file_cdg, path):
             return failload
 
     # get the velocity data
-    xyzhv[:, 4] = np.sqrt((qxqy[:, 0]/xyzhv[:, 3])**2 + (qxqy[:, 0]/xyzhv[:, 3])**2)
+    xyzhv[:, 4] = np.sqrt((qxqy[:, 0] / xyzhv[:, 3]) ** 2 + (qxqy[:, 0] / xyzhv[:, 3]) ** 2)
 
     # if height negative (normal in river 2d) -> h and v = 0
     xyzhv[xyzhv[:, 3] < 0, 2:] = 0
@@ -245,8 +246,8 @@ def load_river2d_cdg(file_cdg, path):
     p1 = coord[ikle[:, 0], :]
     p2 = coord[ikle[:, 1], :]
     p3 = coord[ikle[:, 2], :]
-    coord_c_x = 1.0/3.0 * (p1[:, 0] + p2[:, 0] + p3[:, 0])
-    coord_c_y = 1.0/3.0 * (p1[:, 1] + p2[:, 1] + p3[:, 1])
+    coord_c_x = 1.0 / 3.0 * (p1[:, 0] + p2[:, 0] + p3[:, 0])
+    coord_c_y = 1.0 / 3.0 * (p1[:, 1] + p2[:, 1] + p3[:, 1])
     coord_c = np.array([coord_c_x, coord_c_y]).T
 
     return xyzhv, ikle, coord_c
@@ -304,16 +305,15 @@ def figure_river2d(xyzhv, ikle, path_im, t=0):
     plt.close()
 
     hec_ras2D.scatter_plot(xyzhv[:, :2], xyzhv[:, 3], 'Water Depth [m]', 'terrain', 8, 0)
-    #plt.savefig(
-      #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
-   # plt.savefig(
-      #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-    #plt.close()
+    # plt.savefig(
+    #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
+    # plt.savefig(
+    #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
+    # plt.close()
 
     hec_ras2D.scatter_plot(xyzhv[:, :2], xyzhv[:, 4], 'Vel. [m3/sec]', 'gist_ncar', 8, 0)
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
-
 
 
 def main():
@@ -325,6 +325,7 @@ def main():
 
     [xyzhv, ikle, coord_c] = load_river2d_cdg(name, path)
     figure_river2d(xyzhv, ikle, '.')
+
 
 if __name__ == '__main__':
     main()

@@ -47,7 +47,7 @@ def save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, da
     """
 
     # create the hdf5 file
-    fname_no_path = 'FStress_'+ name_prj + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")  + '.h5'
+    fname_no_path = 'FStress_' + name_prj + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
     fname = os.path.join(path_hdf5, fname_no_path)
     file = h5py.File(fname, 'w')
 
@@ -71,13 +71,13 @@ def save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, da
         rivhere = file.create_group('River_' + str(i))
         rivname = rivhere.create_group('River_name')
         rivname.create_dataset(fname_no_path, data=r.encode("ascii", "ignore"))
-        qmesg = rivhere.create_group(r+'_qmes')
+        qmesg = rivhere.create_group(r + '_qmes')
         qmesg.create_dataset(fname_no_path, [2, 1], data=[q1, q2])
-        wmesg = rivhere.create_group(r+'_wmes')
+        wmesg = rivhere.create_group(r + '_wmes')
         wmesg.create_dataset(fname_no_path, [2, 1], data=[w1, w2])
-        hmesg = rivhere.create_group(r+'_hmes')
+        hmesg = rivhere.create_group(r + '_hmes')
         hmesg.create_dataset(fname_no_path, [2, 1], data=[h1, h2])
-        qrangeg = rivhere.create_group(r+'_qrange')
+        qrangeg = rivhere.create_group(r + '_qrange')
         if len(qrange[i]) == 2:
             [qmin, qmax] = qrange[i]
             qrangeg.create_dataset(fname_no_path, [2, 1], data=[qmin, qmax])
@@ -161,7 +161,7 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
             print('Error: the river name is missing from the FStress hdf5 file. (2) \n')
             return failload
         try:
-            gen_dataset = h5file[basename + '/' + r+'_qmes']
+            gen_dataset = h5file[basename + '/' + r + '_qmes']
         except KeyError:
             print('Error: the discharge is missing from the FStress hdf5 file. \n')
             return failload
@@ -177,7 +177,7 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
         qhw1.append(float(hmes[0]))
         qhw2.append(float(hmes[1]))
         try:
-            gen_dataset = h5file[basename + '/' + r +'_wmes']
+            gen_dataset = h5file[basename + '/' + r + '_wmes']
         except KeyError:
             print('Error: the width is missing from the FStress hdf5 file. \n')
             return failload
@@ -199,7 +199,7 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
     dataset = list(dataset.values())[0]
     for i in range(0, len(dataset)):
         dataset_i = str(dataset[i])
-        fish_name.append(dataset_i[3:-2]) # because hdf5 give the string b'sdfsd', no it is not a binary!
+        fish_name.append(dataset_i[3:-2])  # because hdf5 give the string b'sdfsd', no it is not a binary!
 
     return qhw, qrange, river_name, fish_name
 
@@ -214,7 +214,7 @@ def read_pref(path_bio, name_bio):
     """
     failload = [-99], [-99]
     pref_inver = []
-    all_inv_name= []
+    all_inv_name = []
     # open file
     filenamebio = os.path.join(path_bio, name_bio)
     if os.path.isfile(filenamebio):
@@ -222,14 +222,14 @@ def read_pref(path_bio, name_bio):
             data_inv = f.read()
     else:
         print('Error: No preference file for FStress. To use FStress, add a preference file and restart '
-                          'HABBY.')
+              'HABBY.')
         return failload
     data_inv = data_inv.split('\n')
 
     # get the data by invertebrate species
     if len(data_inv) == 0:
         print('Error: No invertebrate found in the preference file for FStress. To use FStress, add a '
-                          'correct preference file and restart HABBY.')
+              'correct preference file and restart HABBY.')
         return failload
     for i in range(0, len(data_inv)):
         data_this_inv = data_inv[i]
@@ -269,15 +269,15 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
     """
     # initalisation
     nbclaq = 50  # number of discharge point where the data have to be calculate
-    data_hydro = np.array(data_hydro) # qhw
+    data_hydro = np.array(data_hydro)  # qhw
     pref_all = np.array(pref_all)
     # this is the constraint value on dyn/cm2, empirical data probably
     tau = [0.771, 0.828, 0.945, 1.18, 1.41, 1.66, 2.18, 2.72, 3.93, 5.29, 6.82, 8.26, 10.9, 15.9, 22.7, 31.7, 44.8, 63.4
-           , 89.5, 127.]
+        , 89.5, 127.]
     qmod_all = []
     nb_inv = len(inv_select)
     vh = []
-    pref_select = np.zeros((nb_inv, len(tau)))# preference coeff for the selected invertebrate
+    pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
     find_one_inv = False
 
     # there are some functions from FStress which have already be done by Stathab.
@@ -297,7 +297,7 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
                 print('Error: No fish species have been given or the fish species could not be found.\n')
                 return -99, -99, -99
             nb_inv -= 1
-            vh = np.delete(vh, (f),axis=1)
+            vh = np.delete(vh, (f), axis=1)
             pref_select = np.delete(pref_select, (f), axis=0)
             del inv_select[f]
             print('Warning: One fish species was not found in the '
@@ -336,7 +336,7 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
             diststress = func_stress(vm, hs, tau)
             # habitat value
             for ii in range(0, nb_inv):
-                vh_riv[qind,ii] = np.sum(diststress * pref_select[ii, :])
+                vh_riv[qind, ii] = np.sum(diststress * pref_select[ii, :])
         vh.append(vh_riv)
         qmod_all.append(qmod)
 
@@ -356,13 +356,13 @@ def func_stress(vm, h, tau):
 
     """
     # froude and other parameters
-    fr2 = vm**2. / (9.81*h)
-    k = -0.123 * np.log(fr2) - 0.132 # the first parameter of the stress distribution
-    if k>1:
+    fr2 = vm ** 2. / (9.81 * h)
+    k = -0.123 * np.log(fr2) - 0.132  # the first parameter of the stress distribution
+    if k > 1:
         k = 1
     if k < 0:
         k = 0
-    lntaum = 2.61 + 0.319* np.log(fr2)
+    lntaum = 2.61 + 0.319 * np.log(fr2)
     nbst = len(tau)
 
     # estimate the m parameter by dichotomy m is between 2 and 18 (why?)
@@ -370,9 +370,9 @@ def func_stress(vm, h, tau):
     mmin = 2.
     msup = 18.
     for p in range(1, 20):
-        m = (mmin + msup)/2.0
+        m = (mmin + msup) / 2.0
         diststress = denstress(k, m, nbst)
-        fit = np.sum(tau*diststress)
+        fit = np.sum(tau * diststress)
         if np.log(fit) > lntaum:
             msup = m
         else:
@@ -382,7 +382,7 @@ def func_stress(vm, h, tau):
     return diststress
 
 
-def denstress(k,m, nbst):
+def denstress(k, m, nbst):
     """
     This function calulates the stress distrbution function for FStress. This distribution has generally the form
     of k*exp() + (1-k)* \Sigma(x-m)
@@ -393,15 +393,15 @@ def denstress(k,m, nbst):
     :return: the stress disitrbution for the (m,k) parameters
     """
 
-    diststress = np.zeros(nbst,)
+    diststress = np.zeros(nbst, )
 
     # the first and the last class takes all until the end of the distribution
-    diststress[0] = k * (1. - np.exp(-1.)) + (1.-k) * stats.norm.cdf((1.-m)/2.5)
-    diststress[-1] = k * np.exp(-nbst+1) + (1.-k) * (1.-stats.norm.cdf((nbst-1.-m)/2.5))
+    diststress[0] = k * (1. - np.exp(-1.)) + (1. - k) * stats.norm.cdf((1. - m) / 2.5)
+    diststress[-1] = k * np.exp(-nbst + 1) + (1. - k) * (1. - stats.norm.cdf((nbst - 1. - m) / 2.5))
 
-    for cla in range(1, nbst-1):
-        diststress[cla] = k * (np.exp(-cla) - np.exp(-(cla+1.))) + (1.-k) * (stats.norm.cdf((cla+1.-m)/2.5) -
-                                                                           stats.norm.cdf((cla-m)/2.5))
+    for cla in range(1, nbst - 1):
+        diststress[cla] = k * (np.exp(-cla) - np.exp(-(cla + 1.))) + (1. - k) * (stats.norm.cdf((cla + 1. - m) / 2.5) -
+                                                                                 stats.norm.cdf((cla - m) / 2.5))
 
     return diststress
 
@@ -424,7 +424,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
         qmod = qmod_all[i]
         vh = vh_all[i]
         if timestamp:
-            fname = os.path.join(path_txt, 'Fstress_'+ r + time.strftime("%d_%m_%Y_at_%H_%M_%S") +'_rre.txt')
+            fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_rre.txt')
         else:
             fname = os.path.join(path_txt, 'Fstress_' + r + '_rre.txt')
             if os.path.isfile(fname):
@@ -437,7 +437,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
             header_txt += '[]\t'
         np.savetxt(fname, vh, delimiter='\t', header=header_txt)
         if timestamp:
-            fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_discharge.txt')
+            fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_discharge.txt')
         else:
             fname = os.path.join(path_txt, 'Fstress_' + r + '_discharge.txt')
             if os.path.isfile(fname):
@@ -451,7 +451,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
     #     f.write(name_inv_str)
 
 
-def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}):
+def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt={}):
     """
     This function creates the figures for Fstress, notably the suitability index as a function of discharge for all
     rivers
@@ -508,7 +508,7 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt = {}
         i += 1
 
 
-def fstress_test(qmod_all, vh_all, name_inv, name_river,  path_rre, fig_opt={}):
+def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, fig_opt={}):
     """
     This functions compares the output of the C programm of FStress and the output of this script. it is not used
     by HABBY, but it is practical to debug.
@@ -544,10 +544,10 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river,  path_rre, fig_opt={}):
         # plot for this river
         fig = plt.figure()
         ax = plt.subplot(111)
-        dis_c = np.exp(dis_data[:,0])
-        for e in range(0, min(len(name_inv),5)):
+        dis_c = np.exp(dis_data[:, 0])
+        for e in range(0, min(len(name_inv), 5)):
             plt.plot(qmod, j[e, :], '-', label=name_inv[e] + '_Python')
-            plt.plot(dis_c, c_data[:,e], 'x', label=name_inv[e]+ '_C')
+            plt.plot(dis_c, c_data[:, e], 'x', label=name_inv[e] + '_C')
         plt.xlabel('Q [m$^{3}$/sec]')
         plt.ylabel('Index J [ ]')
         plt.title('Suitability index J - FStress')
@@ -567,12 +567,12 @@ def main():
     path_im = path_prj
     path_bio = r'C:\Users\diane.von-gunten\HABBY\biology'
     name_bio = 'pref_fstress.txt'
-    riv_name = ['riv1','riv2']
+    riv_name = ['riv1', 'riv2']
     hdf5_name = r'FStress_DefaultProj_23_02_2017_at_13_31_08.h5'
     hdf5_path = r'D:\Diane_work\dummy_folder\DefaultProj'
     path_rre = r'D:\Diane_work\model_stat\FSTRESSandtathab\fstress_stathab_C\FSTRESSDiane'
 
-    [qhw, qrange, riv_name, name_inv] =read_fstress_hdf5(hdf5_name, hdf5_path)
+    [qhw, qrange, riv_name, name_inv] = read_fstress_hdf5(hdf5_name, hdf5_path)
 
     [pref_all, name_all] = read_pref(path_bio, name_bio)
     # all inv selected -> name_allx2
@@ -580,6 +580,7 @@ def main():
     # figure_fstress(qmod, vh, inv_select, path_im, riv_name)
     fstress_test(qmod, vh, inv_select, riv_name, path_rre)
     plt.show()
+
 
 if __name__ == '__main__':
     main()

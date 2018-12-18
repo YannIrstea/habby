@@ -104,8 +104,8 @@ def get_useful_attribute(attributes):
     found_per = False
     found_pg = False
     found_one_pg = 0  # if we found dominant and "plus gros", we get found_pg = True
-    attribute_type = -99 # -99 indicates a failed load.
-    attribute_name = ['-99','-99', '-99']
+    attribute_type = -99  # -99 indicates a failed load.
+    attribute_name = ['-99', '-99', '-99']
     num_here = 0
 
     for f in attributes:
@@ -124,7 +124,7 @@ def get_useful_attribute(attributes):
             attribute_type = 0
 
         if f[0] in per_all:
-            num_here +=1
+            num_here += 1
             found_per = True
             attribute_type = 1
             if f[-1] == '1':
@@ -270,10 +270,10 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
 
     # get point coordinates and connectivity table in two lists
     shapes = sf.shapes()
-    for i in range(0,len(shapes)):
+    for i in range(0, len(shapes)):
         p_all = shapes[i].points
         ikle_i = []
-        for j in range(0, len(p_all)-1):  # last point of sahpefile is the first point
+        for j in range(0, len(p_all) - 1):  # last point of sahpefile is the first point
             try:
                 ikle_i.append(int(xy.index(p_all[j])))
             except ValueError:
@@ -297,7 +297,7 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
             if f[0] in attribute_name:
                 record_here = sf.records()
                 record_here = np.array(record_here)
-                record_here = record_here[:,ind]
+                record_here = record_here[:, ind]
                 try:
                     record_here = list(map(int, record_here))
                 except ValueError:
@@ -310,7 +310,7 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
         [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
         if len(sub_dom) == 1:
             if sub_dom[0] == -99:
-                return  [-99], [-99], [-99], [-99], False
+                return [-99], [-99], [-99], [-99], False
         # transform to cemagref substrate form
         if code_type == 'Cemagref':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
@@ -353,13 +353,13 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
                 a = int('2')
                 record_here = sf.records()
                 record_here = np.array(record_here)
-                record_here = record_here[:, ind-1]
+                record_here = record_here[:, ind - 1]
                 try:
                     record_here = list(map(float, record_here))  # int('2.000' ) throw an error
                     record_here = list(map(int, record_here))
                 except ValueError:
-                   print('Error: The substrate code should be formed by an int.\n')
-                   return failload
+                    print('Error: The substrate code should be formed by an int.\n')
+                    return failload
 
                 # code type cemagref - checked
                 if code_type == 'Cemagref':
@@ -441,7 +441,7 @@ def edf_to_cemagref(records):
             else:
                 new_record.append(7)
                 one_give_one = True
-            #new_record.append(6)
+            # new_record.append(6)
         elif r == 7:
             new_record.append(7)
         elif r == 8:  # slabs? -> check this
@@ -500,9 +500,9 @@ def sandre_to_cemagref(records):
             new_record.append(5)
         elif r == 8:
             new_record.append(5)
-        elif r ==9:
+        elif r == 9:
             new_record.append(6)
-        elif r ==10:
+        elif r == 10:
             new_record.append(6)
         elif r == 11:
             new_record.append(7)
@@ -555,9 +555,9 @@ def percentage_to_domcoarse(sub_data, dominant_case):
         ind = np.where(record_all_i[record_all_i != 0])[0]
         if len(ind) > 1:
             sub_pg[e] = ind[-1] + 1
-        elif ind:  #just a float
+        elif ind:  # just a float
             sub_pg[e] = ind + 1
-        else: # no zeros
+        else:  # no zeros
             sub_pg[e] = len(record_all_i)
         # cas des dalles
         if sub_pg[e] == 8:
@@ -585,10 +585,10 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
              and an array with substrate type and (x,y,sub) of the orginal data
     """
 
-    failload = [-99], [-99], [-99], [-99], [-99], [-99],[-99],[-99]
+    failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99], [-99]
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
-        print("Error: The txt file "+filename+" does not exist.\n")
+        print("Error: The txt file " + filename + " does not exist.\n")
         return failload
     # read
     with open(file, 'rt') as f:
@@ -597,10 +597,10 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     ind1 = data.find('\n')
     if ind1 == -1:
         print('Error: Could not find more than one line in the substrate input file. Check format \n')
-    data=data[ind1:]
+    data = data[ind1:]
     data = data.split()
     if len(data) % 4 != 0:
-        print('Error: the number of column in ' + filename+ ' is not four. Check format.\n')
+        print('Error: the number of column in ' + filename + ' is not four. Check format.\n')
         return failload
     # get x,y (you might have alphanumeric data in the substrate column)
     x = [data[i] for i in np.arange(0, len(data), 4)]
@@ -608,10 +608,10 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     sub_pg = [data[i] for i in np.arange(2, len(data), 4)]
     sub_dom = [data[i] for i in np.arange(3, len(data), 4)]
     try:
-        x = list(map(float,x))
-        y = list(map(float,y))
+        x = list(map(float, x))
+        y = list(map(float, y))
     except TypeError:
-        print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename +'.\n')
+        print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
         return failload
     # Voronoi
     point_in = np.vstack((np.array(x), np.array(y))).T
@@ -640,18 +640,18 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     # because Qhul from Vornoi has strange results
     # it create element with a value -1. this is not the last point!
     # so we take out all element with -1
-    ikle = [var for var in ikle if len(var) == len([i for i in var if i>0])]
+    ikle = [var for var in ikle if len(var) == len([i for i in var if i > 0])]
     # in addition it creates cells which are areally far away for the center
     ind_bad = []
-    maxxy = [max(x)*2, max(y)*2]
-    minxy = [min(x)/2, min(y)/2]
+    maxxy = [max(x) * 2, max(y) * 2]
+    minxy = [min(x) / 2, min(y) / 2]
     i = 0
     for xyi in xy:
         if xyi[0] > maxxy[0] or xyi[1] > maxxy[1]:
             ind_bad.append(i)
         if xyi[0] < minxy[0] or xyi[1] < minxy[1]:
             ind_bad.append(i)
-        i+=1
+        i += 1
     ikle = [var for var in ikle if len(var) == len([i for i in var if i not in ind_bad])]
 
     # we only want triangle but voronoi might do polygon
@@ -679,13 +679,13 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     if len(ikle) == 0:
         print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
         return failload
-    sub_dom2 = np.zeros(len(ikle),)
+    sub_dom2 = np.zeros(len(ikle), )
     sub_pg2 = np.zeros(len(ikle), )
     for e in range(0, len(ikle)):
         ikle_i = ikle[e]
         centerx = np.mean(xgrid[ikle_i])
         centery = np.mean(ygrid[ikle_i])
-        nearest_ind = np.argmin(np.sqrt((x-centerx)**2 + (y-centery)**2))
+        nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
         sub_dom2[e] = sub_dom[nearest_ind]
         sub_pg2[e] = sub_pg[nearest_ind]
 
@@ -775,19 +775,19 @@ def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
         concave = False
         lenc = len(c)
         sign_old = 0
-        if lenc > 3: # triangle are convex
+        if lenc > 3:  # triangle are convex
             v00 = point_alla[c[1]] - point_alla[c[0]]
             v0 = v00
             for ind in range(0, lenc):
                 # find vector
                 if ind < lenc - 2:
-                    v1 = point_alla[c[ind+2]] - point_alla[c[ind+1]]
+                    v1 = point_alla[c[ind + 2]] - point_alla[c[ind + 1]]
                 elif ind == lenc - 2:
-                    v1 = point_alla[c[0]] - point_alla[c[ind+1]]
-                elif ind == lenc -1:
+                    v1 = point_alla[c[0]] - point_alla[c[ind + 1]]
+                elif ind == lenc - 1:
                     v1 = v00
                 # calulate deteminant (x0y1 - x1y0)
-                det = v0[0]*v1[1] - v1[0] * v0[1]
+                det = v0[0] * v1[1] - v1[0] * v0[1]
                 # check sign
                 if ind == 0:
                     sign_old = np.sign(det)
@@ -806,8 +806,8 @@ def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
             seg_cell = np.zeros((lenc, 2))
             for ind in range(0, lenc):
                 point_cell[ind] = point_all[c[ind]]
-                if ind < lenc-1:
-                    seg_cell[ind] = [ind, ind+1]
+                if ind < lenc - 1:
+                    seg_cell[ind] = [ind, ind + 1]
                 else:
                     seg_cell[ind] = [ind, 0]
             # triangulate
@@ -833,7 +833,7 @@ def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
                 print('Warning: A concave element of the substrate grid could not be corrected \n')
 
     # remove element
-    if len(to_delete)>0:
+    if len(to_delete) > 0:
         for d in reversed(to_delete):  # to_delete is ordered
             del ikle[d]
         sub_pg = np.delete(sub_pg, to_delete)
@@ -894,7 +894,7 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     for p in range(0, nb_point):
         x = uniform(minx, maxx)
         y = uniform(miny, maxy)
-        point_new.append([x,y])
+        point_new.append([x, y])
 
     # get a new substrate grid
     dict_point = dict(vertices=point_new)
@@ -952,10 +952,10 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     elif attribute_type == 1:
         if code_type == 'EDF' or code_type == 'Cemagref':
             for j in range(1, 9):  # we want to start with S1 to get the corresponding class
-                w.field('S'+str(j), 'F', 10, 8)
+                w.field('S' + str(j), 'F', 10, 8)
         elif code_type == 'Sandre':
             for j in range(1, 13):
-                w.field('S'+str(j), 'F', 10, 8)
+                w.field('S' + str(j), 'F', 10, 8)
 
     for i in range(0, len(ikle_r)):
         p1 = list(point_all_r[ikle_r[i][0]])
@@ -967,18 +967,19 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
             w.record(data_sub[i][0], data_sub[i][1])  # data_sub[i] does not work
         elif attribute_type == 1:
             if code_type == 'EDF' or code_type == 'Cemagref':
-                w.record(data_sub[i][0], data_sub[i][1], data_sub[i][2], data_sub[i][3],data_sub[i][4], data_sub[i][5],
+                w.record(data_sub[i][0], data_sub[i][1], data_sub[i][2], data_sub[i][3], data_sub[i][4], data_sub[i][5],
                          data_sub[i][6], data_sub[i][7])
             elif code_type == 'Sandre':
-                w.record(data_sub[i][0], data_sub[i][1],data_sub[i][2], data_sub[i][3],data_sub[i][4], data_sub[i][5],
-                         data_sub[i][6], data_sub[i][7],data_sub[i][8], data_sub[i][9],data_sub[i][10], data_sub[i][11])
+                w.record(data_sub[i][0], data_sub[i][1], data_sub[i][2], data_sub[i][3], data_sub[i][4], data_sub[i][5],
+                         data_sub[i][6], data_sub[i][7], data_sub[i][8], data_sub[i][9], data_sub[i][10],
+                         data_sub[i][11])
     w.autoBalance = 1
     w.save(os.path.join(path_out, new_name + '.shp'))
 
     # pass to text file
     if attribute_type == 0:
         data = np.hstack((np.array(point_new), np.array(data_sub_txt)))
-        np.savetxt(os.path.join(path_out, new_name+'.txt'), data)
+        np.savetxt(os.path.join(path_out, new_name + '.txt'), data)
 
 
 def main():
@@ -988,23 +989,21 @@ def main():
 
     path = r'D:\Diane_work\output_hydro\substrate'
 
-
     # test create shape
-    #filename = 'mytest.shp'
-    #filetxt = 'sub_txt2.txt'
+    # filename = 'mytest.shp'
+    # filetxt = 'sub_txt2.txt'
     # # load shp file
     # [coord_p, ikle_sub, sub_info] = load_sub_shp(filename, path, 'VELOCITY')
     # fig_substrate(coord_p, ikle_sub, sub_info, path)
     # # load txt file
-    #[coord_pt, ikle_subt, sub_infot,  x, y, sub] = load_sub_txt(filetxt, path,)
-    #fig_substrate(coord_pt, ikle_subt, sub_infot, path, x, y, sub)
-
+    # [coord_pt, ikle_subt, sub_infot,  x, y, sub] = load_sub_txt(filetxt, path,)
+    # fig_substrate(coord_pt, ikle_subt, sub_infot, path, x, y, sub)
 
     # test merge grid
     path1 = r'D:\Diane_work\dummy_folder\DefaultProj'
-    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.h5' )
+    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.h5')
     hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.h5')
-    #[ikle_both, point_all_both, sub_data1, subdata2,  vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, -1)
+    # [ikle_both, point_all_both, sub_data1, subdata2,  vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, -1)
     # fig_merge_grid(point_all_both[0], ikle_both[0], path1)
     # plt.show()
 

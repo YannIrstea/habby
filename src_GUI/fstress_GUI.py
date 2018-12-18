@@ -20,7 +20,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 import numpy as np
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog,\
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
     QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QFrame
 from PyQt5.QtGui import QFont
 import sys
@@ -64,7 +64,6 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.qrange = []  # for each river [qmin, qmax]
         self.qhw = []  # for each river [[q1,h1,w1],[q2,h2,w2]]
         self.init_iu()
-
 
     def init_iu(self):
         """
@@ -135,7 +134,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         if self.riv.count() == 0:
             self.riv.addItem(self.defriver)
             self.riv_name.append(self.defriver)
-            self.found_file = [[None,None]]
+            self.found_file = [[None, None]]
 
         # empty frame scrolable
         content_widget = QFrame()
@@ -173,12 +172,10 @@ class FstressW(estimhab_GUI.StatModUseful):
         # self.layout3.addWidget(self.button2, 13, 1)
 
         # add layout
-        #self.setLayout(self.layout3)
+        # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setWidget(content_widget)
-
-
 
     def was_loaded_before(self):
         """
@@ -211,7 +208,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             hdf5_name = hdf5_infoname
 
         # if exists, loads the hdf5
-        if os.path.isfile(os.path.join(hdf5_path,hdf5_name)):
+        if os.path.isfile(os.path.join(hdf5_path, hdf5_name)):
             [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress.read_fstress_hdf5(hdf5_name, hdf5_path)
         else:
             return
@@ -249,7 +246,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # case where the river was not loaded before
         if len(self.qhw) == 0 and ind == 0:
             self.qrange.append([])
-            self.qhw.append([ [],[] ])
+            self.qhw.append([[], []])
         try:
             self.qrange[ind] = [float(self.eqmin.text()), float(self.eqmax.text())]
             self.qhw[ind][0] = [float(self.eq1.text()), float(self.eh1.text()), float(self.ew1.text())]
@@ -259,7 +256,8 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.save_ok = False
             return
         path_hdf5 = self.find_path_hdf5_est()
-        fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
+        fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                             self.qhw,
                              self.qrange, self.fish_selected)
         self.save_ok = True
 
@@ -270,22 +268,23 @@ class FstressW(estimhab_GUI.StatModUseful):
         ind = self.riv.currentIndex()
         del self.riv_name[ind]
         del self.found_file[ind]
-        if len(self.qrange)>0:
+        if len(self.qrange) > 0:
             del self.qrange[ind]
-        if len(self.qhw)>0:
+        if len(self.qhw) > 0:
             del self.qhw[ind]
 
         if self.riv.count() == 1:
             self.riv.addItem(self.defriver)
             self.riv_name.append(self.defriver)
-            self.found_file = [[None,None]]
+            self.found_file = [[None, None]]
             self.qrange = []
             self.qhw = []
         self.update_list_riv()
         self.show_data_one_river()
         if not self.riv.count() == 1:
             path_hdf5 = self.find_path_hdf5_est()
-            fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
+            fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                                 self.qhw,
                                  self.qrange, self.fish_selected)
 
     def add_all_fish(self):
@@ -376,18 +375,18 @@ class FstressW(estimhab_GUI.StatModUseful):
                 f_found = [None, None]
                 # discharge range
                 debfilename = r + 'deb.txt'
-                if os.path.isfile(os.path.join(self.path_fstress,debfilename)):
+                if os.path.isfile(os.path.join(self.path_fstress, debfilename)):
                     f_found[1] = debfilename
-                elif os.path.isfile(os.path.join(self.path_fstress,r+'DEB.TXT')):
-                    debfilename = r[:-7]+'DEB.TXT'
+                elif os.path.isfile(os.path.join(self.path_fstress, r + 'DEB.TXT')):
+                    debfilename = r[:-7] + 'DEB.TXT'
                     f_found[1] = debfilename
                 else:
                     f_found[1] = None
                 # qhw
                 qhwname = r + 'qhw.txt'
-                if os.path.isfile(os.path.join(self.path_fstress,qhwname)):
+                if os.path.isfile(os.path.join(self.path_fstress, qhwname)):
                     f_found[0] = qhwname
-                elif os.path.isfile(os.path.join(self.path_fstress,r + 'QHW.TXT')):
+                elif os.path.isfile(os.path.join(self.path_fstress, r + 'QHW.TXT')):
                     qhwname = r + 'QHW.TXT'
                     f_found[0] = qhwname
                 else:
@@ -404,10 +403,10 @@ class FstressW(estimhab_GUI.StatModUseful):
                 if f[-7:].lower() == 'qhw.txt':
                     # get the name of the file and the river name
                     self.riv_name.append(f[:-7])
-                    debfilename = f[:-7]+'deb.txt'
-                    if os.path.isfile(os.path.join(self.path_fstress,debfilename)):
+                    debfilename = f[:-7] + 'deb.txt'
+                    if os.path.isfile(os.path.join(self.path_fstress, debfilename)):
                         found_f = [f, debfilename]
-                    elif os.path.isfile(os.path.join(self.path_fstress,f[:-7]+'DEB.TXT')):
+                    elif os.path.isfile(os.path.join(self.path_fstress, f[:-7] + 'DEB.TXT')):
                         debfilename = f[:-7] + 'DEB.TXT'
                         found_f = [f, debfilename]
                     else:
@@ -419,7 +418,7 @@ class FstressW(estimhab_GUI.StatModUseful):
                         self.msge.setIcon(QMessageBox.Question)
                         self.msge.setWindowTitle(self.tr("Load all files?"))
                         self.msge.setText(self.tr("We found more than one qhw file. Do you want to load all rivers?"))
-                        self.msge.setStandardButtons(QMessageBox.Yes|QMessageBox.No)
+                        self.msge.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                         self.msge.setDefaultButton(QMessageBox.Yes)
                         retval = self.msge.exec_()
                         self.msge.show()
@@ -433,7 +432,7 @@ class FstressW(estimhab_GUI.StatModUseful):
                                 self.qrange = []
                         else:
                             self.msge.close()
-                    nb_found +=1
+                    nb_found += 1
 
         else:
             self.send_log.emit(self.tr('Error: Only listriv file are accepted. Read Fstress documentation for '
@@ -451,8 +450,9 @@ class FstressW(estimhab_GUI.StatModUseful):
         for i in range(0, len(self.riv_name)):
             self.load_data_fstress(i)
         path_hdf5 = self.find_path_hdf5_est()
-        fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj,self.name_bio,self.path_bio, self.riv_name,self.qhw,
-                             self.qrange,self.fish_selected)
+        fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                             self.qhw,
+                             self.qrange, self.fish_selected)
 
         # copy the input in the input folder
         input_folder = self.find_path_input_est()
@@ -491,7 +491,8 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # save it in a new name and links this copied hdf5 to the project
         path_hdf5 = self.find_path_hdf5_est()
-        fstress.save_fstress(path_hdf5,self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name, self.qhw,
+        fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                             self.qhw,
                              self.qrange, self.fish_selected)
 
     def show_data_one_river(self):
@@ -506,7 +507,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             riv = self.riv_name[0]
             ind = 0
 
-        if len(self.qrange)-1 >= ind and len(self.qrange[ind]) == 2:
+        if len(self.qrange) - 1 >= ind and len(self.qrange[ind]) == 2:
             qmin = self.qrange[ind][0]
             qmax = self.qrange[ind][1]
             self.eqmin.setText(str(qmin))
@@ -515,7 +516,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.eqmin.clear()
             self.eqmax.clear()
 
-        if len(self.qhw)-1 >= ind:
+        if len(self.qhw) - 1 >= ind:
             data_qhw = self.qhw[ind]
             self.eq1.setText(str(data_qhw[0][0]))
             self.eh1.setText(str(data_qhw[0][1]))
@@ -605,11 +606,11 @@ class FstressW(estimhab_GUI.StatModUseful):
             if len(data_qhw) < 6:
                 self.send_log.emit('Error: FStress needs at least two discharge measurement.')
                 return
-            if len(data_qhw)%3 != 0:
+            if len(data_qhw) % 3 != 0:
                 self.send_log.emit('Error: One discharge measurement must be composed of three data (q,w, and h).')
                 return
 
-            self.qhw.append([[data_qhw[0], data_qhw[1], data_qhw[2]],[data_qhw[3], data_qhw[4], data_qhw[5]]])
+            self.qhw.append([[data_qhw[0], data_qhw[1], data_qhw[2]], [data_qhw[3], data_qhw[4], data_qhw[5]]])
         else:
             self.send_log.emit('Error: qhw.txt file not found.(2)')
             self.qhw.append([])
@@ -648,11 +649,11 @@ class FstressW(estimhab_GUI.StatModUseful):
             data_name = data_name.split('\n')
             data_name = [x for x in data_name if x.strip()]  # erase empty lines or lines with just tab
             for d in range(0, len(data_name)):
-                    data_name[d] = data_name[d].split('\t')
-                    if len(data_name[d]) != 2:
-                        self.list_f.addItems(self.all_inv_name)
-                        self.send_log.emit('Warning: Latin name of invertebrate could not be read (2) \n')
-                        return
+                data_name[d] = data_name[d].split('\t')
+                if len(data_name[d]) != 2:
+                    self.list_f.addItems(self.all_inv_name)
+                    self.send_log.emit('Warning: Latin name of invertebrate could not be read (2) \n')
+                    return
             data_name = np.array(data_name)
             names_latin = []
             for abbrev in self.all_inv_name:
@@ -783,7 +784,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # find the latin name again (might be different as FStress might have failed on some species)
         inv_select_latin = []
         for n in inv_select:
-            for idx,n2 in enumerate(self.all_inv_name):
+            for idx, n2 in enumerate(self.all_inv_name):
                 if n == n2:
                     inv_select_latin.append(self.latin_names[idx])
                     break
@@ -819,7 +820,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         riv_name_str = "py    riv_name = ["
         for i in range(0, len(self.riv_name)):
             riv_name_str += "'" + self.riv_name[i] + "',"
-        riv_name_str= riv_name_str[:-1] + ']'
+        riv_name_str = riv_name_str[:-1] + ']'
         self.send_log.emit(riv_name_str)
         self.send_log.emit("py    [pref_inver, all_inv_name] = fstress.read_pref(path_bio, 'pref_fstress.txt')")
         self.send_log.emit("py    [vh, qmod, inv_select] = fstress.run_fstress(data, qrange, riv_name, fish_list, "
@@ -827,6 +828,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.send_log.emit("py    fstress.figure_fstress(qmod, vh, inv_select,'.', riv_name)")
         self.send_log.emit("restart RUN_FSTRESS")
         self.send_log.emit("restart    path_fstress: " + self.path_fstress)
+
 
 if __name__ == '__main__':
     pass

@@ -69,7 +69,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     mystdout = None
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
-        #mystdout = ''
+        # mystdout = ''
     inter_vel_all_t = []
     inter_h_all_t = []
     ikle_all_t = []
@@ -258,9 +258,10 @@ def check_code_change(facies_path):
         for ind, d in enumerate(data_hab):
             if d[:32] == 'Passage codification Utilisateur':
                 try:
-                    if int(data_hab[ind+1]) == 2 and int(data_hab[ind+2]) == 3 and int(data_hab[ind+3]) == 4:
-                        if int(data_hab[ind+4]) == 5 and int(data_hab[ind+5]) == 6 and float(data_hab[ind+6]) == 6.5:
-                            if int(data_hab[ind+7]) == 7 and int(data_hab[ind+8]) == 8:
+                    if int(data_hab[ind + 1]) == 2 and int(data_hab[ind + 2]) == 3 and int(data_hab[ind + 3]) == 4:
+                        if int(data_hab[ind + 4]) == 5 and int(data_hab[ind + 5]) == 6 and float(
+                                data_hab[ind + 6]) == 6.5:
+                            if int(data_hab[ind + 7]) == 7 and int(data_hab[ind + 8]) == 8:
                                 return True
                 except ValueError:
                     return False
@@ -318,13 +319,13 @@ def load_station(station_path, station_name):
                     return failload
             # get the length of the station
             try:
-                lstat_here = float(data_station[idx+1])
+                lstat_here = float(data_station[idx + 1])
             except ValueError or IndexError:
                 print('Error: The length of one station could not be found \n')
                 return failload
             lstat.append(lstat_here)
             # get the number of facies to check
-            if 'Nombre de faci' in data_station[idx+2]:  # avoid the accent :-)
+            if 'Nombre de faci' in data_station[idx + 2]:  # avoid the accent :-)
                 try:
                     nbfac = float(data_station[idx + 3])
                 except ValueError or IndexError:
@@ -388,14 +389,14 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
         # new facies
         if 'Longueur du facies' in n:
             try:
-                lfac_here = float(data_facies[idx+1].strip())
-                first_fac = float(data_facies[idx+5].strip())
-                nb_fac = float(data_facies[idx+3].strip())
+                lfac_here = float(data_facies[idx + 1].strip())
+                first_fac = float(data_facies[idx + 5].strip())
+                nb_fac = float(data_facies[idx + 3].strip())
             except ValueError or IndexError:
                 print('Error: the facies file was not in the right format (1) \n')
                 return
             lfac.append(lfac_here)
-            id_fac = range(int(first_fac), int(nb_fac+first_fac))
+            id_fac = range(int(first_fac), int(nb_fac + first_fac))
             facies_id.append(id_fac)
     if len(lfac) == 0:
         print('Error: the facies file was not in the right format \n')
@@ -423,13 +424,13 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
         if 'Longueur de re' in n:  # new transect
             # length of transect
             try:
-                ltrans_here = float(data_trans[idx+1].strip())
+                ltrans_here = float(data_trans[idx + 1].strip())
             except ValueError or IndexError:
                 print('Error: the transect file was not in the right format \n')
                 return failload
             ltrans.append(ltrans_here)
             # name of the file
-            file_trans_here = data_trans[idx+3].strip()
+            file_trans_here = data_trans[idx + 3].strip()
             # in case we have moved the transect file
             if new_dir != '':
                 basename = os.path.basename(file_trans_here)
@@ -449,7 +450,7 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
         fac_file_name = []
         for fid in facies_id[f]:
             try:
-                fac_file_name.append(file_trans[fid-1])
+                fac_file_name.append(file_trans[fid - 1])
             except IndexError:
                 print('Error: The transect was not found \n')
                 return failload
@@ -458,7 +459,7 @@ def get_transect_filename(facies_path, facies_name, transect_path, transect_name
         fac_len = []
         for fid in facies_id[f]:
             try:
-                fac_len.append(ltrans[fid-1])
+                fac_len.append(ltrans[fid - 1])
             except IndexError:
                 print('Error: The transect was not found. \n')
                 return failload
@@ -487,7 +488,7 @@ def load_transect_data(fac_filename_all):
             data_trans = f.readlines()[1:-1]
     except IOError:
         return failload
-    #data_trans = data_trans.split('\n')
+    # data_trans = data_trans.split('\n')
     if len(data_trans) < 1:
         print('Error: No data was found in the transect file' + tfile + '\n')
         return failload
@@ -686,7 +687,7 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
                 ind = -1
 
                 # point to get ditance, velocity, height, substrate
-                for di in range(0, len(dist_allp)*4):
+                for di in range(0, len(dist_allp) * 4):
                     if di % 4 == 0:
                         ind += 1
                         vel_here.append(vel_allp[ind])
@@ -720,9 +721,9 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
                 if pi == 0:
                     # we will not use the first line of triangle (see maange_grid8, virtualstart)
                     if fi == 0:
-                        x -= length_all[fi][pi] *0.5
+                        x -= length_all[fi][pi] * 0.5
                     else:
-                        x -= 0.5 * (length_all[fi-1][-1] + length_all[fi][pi])
+                        x -= 0.5 * (length_all[fi - 1][-1] + length_all[fi][pi])
                     xpro = [x] * len(dist_allp_new)
                     x += length_all[fi][pi]
                     coord_pro_p = np.array([xpro, ypro, height_here, dist_allp_new])
@@ -757,7 +758,7 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
                 divt.append(0.5)
 
             if ti == 0:
-                nb_pro_reach.append(nb_pro_reach[-1] + len(dist_allf) +2)
+                nb_pro_reach.append(nb_pro_reach[-1] + len(dist_allf) + 2)
             x += 25  # reach is separated by additional 5m along the river
 
         coord_pro.append(coord_prot)
@@ -795,8 +796,8 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     vh_pro = vh_pro[sim_num]
 
     # get the profile data
-    for id,i in enumerate(pro_num):
-        dist = coord_pro[i][3,:]
+    for id, i in enumerate(pro_num):
+        dist = coord_pro[i][3, :]
         vel = vh_pro[i][2]
         # vel[0] = vel[1]
         # vel[-1] = vel[-2]
@@ -805,7 +806,7 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         plt.suptitle("")
         ax1 = plt.subplot(313)
         # print velocity
-        plt.step(dist, vel,  where='mid', color='r')
+        plt.step(dist, vel, where='mid', color='r')
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
         if fig_opt['language'] == 0:
             plt.xlabel("Distance along the profile [m]")
@@ -816,7 +817,7 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         # print water height
         ax1 = plt.subplot(211)
         plt.plot(dist, -h, 'k')  # profile
-        plt.fill_between(dist, -h, [0]*len(h), where=h>=[0]*len(h), facecolor='blue', alpha=0.5, interpolate=True)
+        plt.fill_between(dist, -h, [0] * len(h), where=h >= [0] * len(h), facecolor='blue', alpha=0.5, interpolate=True)
         if fig_opt['language'] == 0:
             plt.xlabel("Distance along the profile [m]")
             plt.ylabel("Altitude of the profile [m]")
@@ -828,17 +829,20 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
             plt.title("Profil " + str(i))
             plt.legend(("Profil", "Surface de l'eau"))
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
-        plt.ylim([np.min(-h) * 1.05, np.max(h)/3])
+        plt.ylim([np.min(-h) * 1.05, np.max(h) / 3])
         # save
         if formate == 0 or formate == 1:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=fig_opt['resolution'],
+                        transparent=True)
         if formate == 0 or formate == 3:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=fig_opt['resolution'],
+                        transparent=True)
         if formate == 2:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                        time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=fig_opt['resolution'],
+                        transparent=True)
 
     # get an (x,y) view of the progile position
     plt.figure(len(pro_num))
@@ -850,11 +854,11 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
         if j in nb_pro_reach:
             nb_fac += 1
             col = color_all[c]
-            if c == len(color_all)-1:
+            if c == len(color_all) - 1:
                 c = 0
             else:
-                c +=1
-        plt.plot(coord_pro[j][0], coord_pro[j][1],  col, label="Facies " + str(nb_fac +1), markersize=3)  # profile
+                c += 1
+        plt.plot(coord_pro[j][0], coord_pro[j][1], col, label="Facies " + str(nb_fac + 1), markersize=3)  # profile
     plt.xlabel("x coord []")
     plt.ylabel("y coord []")
     plt.xlim(coord_pro[0][0][0] - 20, coord_pro[-1][0][0] + 20)
@@ -865,7 +869,7 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, fig_opt, path_i
     # plt.axis('equal')  # if right angle are needed
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
-    plt.legend(by_label.values(), by_label.keys(),bbox_to_anchor=(1.1, 1), prop={'size': 10})
+    plt.legend(by_label.values(), by_label.keys(), bbox_to_anchor=(1.1, 1), prop={'size': 10})
     if formate == 0 or formate == 1:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
                     dpi=fig_opt['resolution'], transparent=True)
@@ -949,7 +953,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
         if len(d) == 2:
             try:
                 area_lammi[ind] = float(d[1])
-                ind +=1
+                ind += 1
             except ValueError:
                 print('Error: Could not read lammi output files (2)')
                 return
@@ -957,16 +961,16 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     # plot habby_lammi spu
     plot_spu = True
     if plot_spu:
-        for r in range(0, int(max(reach_habby))): # int(max(reach_habby))
+        for r in range(0, int(max(reach_habby))):  # int(max(reach_habby))
             plt.figure()
-            plt.plot(q_lammi[reach_lammi == r+1], spu_habby[reach_habby == r], 'b')
-            plt.plot(q_lammi[reach_lammi == r+1], spu_lammi[reach_lammi == r+1], 'g')
-            #plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r]/area_habby[reach_habby == r], 'b')
-            #plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
+            plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r], 'b')
+            plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1], 'g')
+            # plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r]/area_habby[reach_habby == r], 'b')
+            # plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
             plt.legend(('habby', 'lammi'), fancybox=True, framealpha=0.5)
             plt.xlabel('discharge [m^3/sec]')
             plt.ylabel('SPU')
-            plt.title('Comparaison lammi-habby for the facies '+str(r+1))
+            plt.title('Comparaison lammi-habby for the facies ' + str(r + 1))
 
     # plot the surface of each facies
     plot_sur = True
@@ -998,7 +1002,7 @@ def main():
 
     filename_habby = r'D:\Diane_work\dummy_folder\prt5\text_output\spu_Merge_LAMMI_04_08_2017_at_10_10_55.txt'
     filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\FacTRF.txt'
-    #filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\FacTRF.txt'
+    # filename_lammi = r'D:\Diane_work\output_hydro\LAMMI\NesteOueil-S1-4Q\Resu\Habitat\Facies\FacTRF.txt'
     filename_sur = r'D:\Diane_work\output_hydro\LAMMI\ExempleDianeYann\Resu\Habitat\Facies\SurfMouilFac.txt'
     compare_lammi(filename_habby, filename_lammi, filename_sur)
 

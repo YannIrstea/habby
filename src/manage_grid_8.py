@@ -31,10 +31,12 @@ import sys
 from src_GUI import output_fig_GUI
 from src import calcul_hab
 from src import substrate
-#np.set_printoptions(threshold=np.inf)
 
 
-def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1):
+# np.set_printoptions(threshold=np.inf)
+
+
+def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1):
     """
     This function forms the link between GUI and the various grid and interpolation functions. Is called by
     the "loading" function of hec-ras 1D, Mascaret and Rubar BE. It used to be a method in hydro_GUI2, but we have
@@ -93,7 +95,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
     if interpo_choice == 0:
 
         # first whole profile (no need for velcoity and height data)
-        [ikle_all, point_all_reach, point_c_all, blob, blob] =\
+        [ikle_all, point_all_reach, point_c_all, blob, blob] = \
             create_grid_only_1_profile(coord_pro, nb_pro_reach)
         inter_vel_all_t.append([])
         inter_h_all_t.append([])
@@ -104,10 +106,10 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
         # by time step
         for t in range(0, len(vh_pro)):
             if t % 10 == 0 and t > 2:
-                print('time step :'+str(t))
+                print('time step :' + str(t))
 
             [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-                                           create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
+                create_grid_only_1_profile(coord_pro, nb_pro_reach, vh_pro[t])
             inter_vel_all_t.append(inter_vel_all)
             inter_h_all_t.append(inter_height_all)
             ikle_all_t.append(ikle_all)
@@ -118,7 +120,7 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
         # grid for the whole profile
         # it is in an extra thread because the triangle module might crash for too complicated cases
         [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
-                                                                        coord_pro, pro_add, [], [], nb_pro_reach, [])
+            coord_pro, pro_add, [], [], nb_pro_reach, [])
 
         inter_vel_all_t.append([])
         inter_h_all_t.append([])
@@ -126,12 +128,11 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice,  pro_add=1
         point_all_t.append(point_all_reach)
         point_c_all_t.append(point_c_all)
 
-
         # only the wet area, by time step
         for t in range(0, len(vh_pro)):
             [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
-                                                                    coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
-            [inter_vel_all, inter_height_all] = interpo_linear(point_all_reach, coord_pro2,vh_pro[t])
+                coord_pro, pro_add, [], [], nb_pro_reach, vh_pro[t])
+            [inter_vel_all, inter_height_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
 
             inter_vel_all_t.append(inter_vel_all)
             inter_h_all_t.append(inter_height_all)
@@ -290,12 +291,12 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                     new_p_b = newp(p0b, p1b, extra_pro)
                     # add points to the extra profile
                     for i in range(0, len(new_p_a)):
-                        li = np.int(np.floor(l0 + i * (l1-l0) / len(new_p_a)))
+                        li = np.int(np.floor(l0 + i * (l1 - l0) / len(new_p_a)))
                         if li < 2:
                             li = 2
                         point_all_i = newp(new_p_a[i], new_p_b[i], li)
                         point_all = np.concatenate((point_all, point_all_i), axis=0)
-                        #point_all.extend(point_all_i)
+                        # point_all.extend(point_all_i)
                         ind_p.extend([len(point_all)])
                 else:
                     [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, extra_pro, True)
@@ -305,7 +306,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                         ind_p.extend([len(point_all)])
 
         # add the last profile
-        if p == len(coord_pro)-1:
+        if p == len(coord_pro) - 1:
             pro_orr = np.array([coord_pro_p1[0], coord_pro_p1[1]]).transpose()
             ind_s.extend([len(point_all)])  # start
             point_all = np.concatenate((point_all, pro_orr), axis=0)
@@ -341,22 +342,22 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         if extra_pro == 0:
             extra_pro2 = 1
 
-        for p in range(0, len(coord_pro)-1):
+        for p in range(0, len(coord_pro) - 1):
             if np.all(p != np.array(nb_pro_reach)):
                 # find on which extra profile to "finish" and "start" the island
-                if np.any(p-1 == np.array(nb_pro_reach)):
+                if np.any(p - 1 == np.array(nb_pro_reach)):
                     if extra_pro2 % 2 == 0:
                         af = int(extra_pro2 / 2)
-                        bef = -af-1
+                        bef = -af - 1
                     else:
-                        af = int(np.floor(extra_pro2 / 2)+1)
+                        af = int(np.floor(extra_pro2 / 2) + 1)
                         bef = -af
                 else:
                     if extra_pro2 % 2 == 0:
-                        af = int(extra_pro2/2)
+                        af = int(extra_pro2 / 2)
                         bef = -af - 1
                     else:
-                        af = int(np.floor(extra_pro2 / 2)+1)
+                        af = int(np.floor(extra_pro2 / 2) + 1)
                         bef = -af
                 # find if there is and island
                 h_all = np.array(vh_pro_t[p][1])
@@ -385,11 +386,11 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                     x = coord_pro[p][0]
                     y = coord_pro[p][1]
                     # find the end and start indices of the extra-profile before and after
-                    p_here = p + p*extra_pro2 - r * extra_pro2 - 1
+                    p_here = p + p * extra_pro2 - r * extra_pro2 - 1
                     ind_bef_s = ind_p[p_here + bef]
-                    ind_bef_e = ind_p[p_here + bef+1]
+                    ind_bef_e = ind_p[p_here + bef + 1]
                     ind_af_s = ind_p[p_here + af]
-                    ind_af_e = ind_p[p_here + af+1]
+                    ind_af_e = ind_p[p_here + af + 1]
 
                     # calculate minimum distance for all island to get the six vertex
                     len_here = len(ind_lim)
@@ -399,41 +400,41 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                                           (point_bef[:, 1] - y[ind_lim[i]]) ** 2)
                         ind1 = ind_bef_s + np.argmin(dist_xy)
 
-                        dist_xy = np.sqrt((point_bef[:, 0] - x[ind_lim[i+1]]) ** 2 +
-                                          (point_bef[:, 1] - y[ind_lim[i+1]]) ** 2)
+                        dist_xy = np.sqrt((point_bef[:, 0] - x[ind_lim[i + 1]]) ** 2 +
+                                          (point_bef[:, 1] - y[ind_lim[i + 1]]) ** 2)
                         ind2 = ind_bef_s + np.argmin(dist_xy)
                         point_af = np.array(point_all[ind_af_s:ind_af_e])
                         dist_xy = np.sqrt((point_af[:, 0] - x[ind_lim[i]]) ** 2 +
                                           (point_af[:, 1] - y[ind_lim[i]]) ** 2)
                         ind3 = ind_af_s + np.argmin(dist_xy)
-                        dist_xy = np.sqrt((point_af[:, 0] - x[ind_lim[i+1]]) ** 2 +
-                                          (point_af[:, 1] - y[ind_lim[i+1]]) ** 2)
+                        dist_xy = np.sqrt((point_af[:, 0] - x[ind_lim[i + 1]]) ** 2 +
+                                          (point_af[:, 1] - y[ind_lim[i + 1]]) ** 2)
                         ind4 = ind_af_s + np.argmin(dist_xy)
                         # add the six segments (start and end of each segment), so 12 points
                         beg_len = len(seg_island)
                         if ind2 != ind1:
-                            for mi in range(min(ind1, ind2), max(ind1,ind2)):
-                                seg_island.append([mi, r, p_here+bef, isl2])
-                                seg_island.append([mi+1, r,p_here+bef, isl2])
+                            for mi in range(min(ind1, ind2), max(ind1, ind2)):
+                                seg_island.append([mi, r, p_here + bef, isl2])
+                                seg_island.append([mi + 1, r, p_here + bef, isl2])
                             seg_island.append([ind2, r, -99, isl2])
                             seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
                         else:
-                              seg_island.append([ind2, r, -99, isl2])
-                              seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
+                            seg_island.append([ind2, r, -99, isl2])
+                            seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
                         seg_island.append([ind1, r, -99, isl2])
                         seg_island.append([ind_p[p_here] + ind_lim[i], r, -99, isl2])
 
                         seg_island.append([ind_p[p_here] + ind_lim[i], r, -99, isl2])
                         seg_island.append([ind3, r, -99, isl2])
                         if ind3 != ind4:
-                            for mi in range(min(ind3, ind4), max(ind3,ind4)):
-                                seg_island.append([mi, r, p_here+af, isl2])
-                                seg_island.append([mi+1, r, p_here+af, isl2])
+                            for mi in range(min(ind3, ind4), max(ind3, ind4)):
+                                seg_island.append([mi, r, p_here + af, isl2])
+                                seg_island.append([mi + 1, r, p_here + af, isl2])
                             seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
                             seg_island.append([ind4, r, -99, isl2])
                         else:
-                                seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
-                                seg_island.append([ind4, r, -99, isl2])
+                            seg_island.append([ind_p[p_here] + ind_lim[i + 1], r, -99, isl2])
+                            seg_island.append([ind4, r, -99, isl2])
                         isl2 += 1
 
                         # add the holes, so triangle know that this zone should be empty
@@ -446,12 +447,12 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                         seg_poly = []
                         for j in range(0, len(polygon_ind), 2):
                             p1 = point_all[seg_island[polygon_ind[j]][0]]
-                            p2 = point_all[seg_island[polygon_ind[j+1]][0]]
+                            p2 = point_all[seg_island[polygon_ind[j + 1]][0]]
                             seg_poly.append([p1, p2])
                         inside = inside_polygon(seg_poly, hole_here)
                         if inside:
                             hole_all_i.append(hole_here)
-                            hole_isl.extend([isl2-1])
+                            hole_isl.extend([isl2 - 1])
                         else:
                             seg_islandh = np.array(seg_island)
                             # ind_alls = np.where(seg_islandh[:, 3] == isl2-1)[0]
@@ -477,10 +478,10 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                 for s1 in range(0, len(seg_island), 2):
                     seg11 = point_all[seg_island[s1, 0]]
                     seg12 = point_all[seg_island[s1 + 1, 0]]
-                    for s2 in range(s1+2, len(seg_island), 2):
+                    for s2 in range(s1 + 2, len(seg_island), 2):
                         seg21 = point_all[seg_island[s2, 0]]
                         seg22 = point_all[seg_island[s2 + 1, 0]]
-                        if np.sum(seg11 - seg21) != 0 and np.sum(seg11 - seg22) !=0 and np.sum(seg12 - seg21) != 0 \
+                        if np.sum(seg11 - seg21) != 0 and np.sum(seg11 - seg22) != 0 and np.sum(seg12 - seg21) != 0 \
                                 and np.sum(seg12 - seg22) != 0:
                             [inter, pc] = intersection_seg(seg11, seg12, seg21, seg22, False)
                             if inter:
@@ -493,11 +494,12 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
                                         # plt.plot(seg22[0], seg22[1], '.m')
                                         # plt.show()
                                         seg4 = [seg11, seg12, seg21, seg22]
-                                        ind4 = [s1, s1+1, s2, s2+1]
+                                        ind4 = [s1, s1 + 1, s2, s2 + 1]
                                         close = False
                                         for da in range(0, 4):
-                                            dist = np.sqrt((seg4[da][0] - pc[0][0])**2 + (seg4[da][1] - pc[0][1])**2)
-                                            if dist < 10**-4:
+                                            dist = np.sqrt(
+                                                (seg4[da][0] - pc[0][0]) ** 2 + (seg4[da][1] - pc[0][1]) ** 2)
+                                            if dist < 10 ** -4:
                                                 print('Warning: low distance found. \n')
                                                 point_all[seg_island[ind4[da], 0]] = pc[0]
                                                 close = True
@@ -514,7 +516,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         # correct for colinear segments as triangle has difficulties with them
         colinear = True
         if len(seg_island) > 1 and colinear:
-            for p in range(0, len(coord_pro)+len(coord_pro)*extra_pro):
+            for p in range(0, len(coord_pro) + len(coord_pro) * extra_pro):
                 ind = np.where(seg_island[:, 2] == p)[0]  # not always 6 segments
                 seg_island_pro = seg_island[ind, 0]
                 seg_island_pro = np.sort(seg_island_pro)
@@ -524,7 +526,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         test_middle = False
         if len(seg_island) > 1 and test_middle:
             for s in range(0, len(seg_island), 2):
-                mpoint = 0.5 * point_all[seg_island[s, 0]] + 0.5 * point_all[seg_island[s+1, 0]]
+                mpoint = 0.5 * point_all[seg_island[s, 0]] + 0.5 * point_all[seg_island[s + 1, 0]]
                 ind = np.where(abs(mpoint[0] - point_all[:, 0]) + abs(mpoint[1] -
                                                                       point_all[:, 1]) < point_all[0, 0] * 1e-7)[0]
                 point_all[ind, :] = point_all[ind, :] * 0.99
@@ -541,42 +543,42 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         # this is slow , but it might solve problems
         unique_find = []
         a = len(point_all)
-        for ind,p in enumerate(point_all):
+        for ind, p in enumerate(point_all):
             p = list(p)
             if p not in unique_find:
                 unique_find.append(p)
             else:
-                point_all[ind] = [p[0] + p[0]*0.001*ind/a, p[1] + p[1]*0.001*ind/a]
+                point_all[ind] = [p[0] + p[0] * 0.001 * ind / a, p[1] + p[1] * 0.001 * ind / a]
 
     # put data in order and find the limits
     seg_to_be_added2 = []
     lim_by_reach_for_sub = []
     lim_isl_for_sub = []
-    for r in range(0, len(nb_pro_reach)-1):
+    for r in range(0, len(nb_pro_reach) - 1):
         lim_by_reach_r = []
         lim_isl_for_subr = []
         ind_r = nb_pro_reach[r]
-        ind_r2 = nb_pro_reach[r+1]
+        ind_r2 = nb_pro_reach[r + 1]
         # side (for both list)
-        for i in range(ind_r, nb_pro_reach[r+1]-1):
-            lim_by_reach_r.append([ind_s[i], ind_s[i+1]])
-            lim_by_reach_r.append([ind_e[i], ind_e[i+1]])
+        for i in range(ind_r, nb_pro_reach[r + 1] - 1):
+            lim_by_reach_r.append([ind_s[i], ind_s[i + 1]])
+            lim_by_reach_r.append([ind_e[i], ind_e[i + 1]])
         # start and end of each reach
         for sta in range(ind_s[ind_r], ind_e[ind_r]):
-            lim_by_reach_r.append([sta, sta+1])
-        for endr in range(ind_s[ind_r2-1], ind_e[ind_r2-1]):
+            lim_by_reach_r.append([sta, sta + 1])
+        for endr in range(ind_s[ind_r2 - 1], ind_e[ind_r2 - 1]):
             lim_by_reach_r.append([endr, endr + 1])
-        #lim_by_reach_r.append([ind_s[ind_r], ind_e[ind_r]])
-        #lim_by_reach_r.append([ind_s[ind_r2-1], ind_e[ind_r2-1]])
+        # lim_by_reach_r.append([ind_s[ind_r], ind_e[ind_r]])
+        # lim_by_reach_r.append([ind_s[ind_r2-1], ind_e[ind_r2-1]])
         blob = copy.deepcopy(lim_by_reach_r)  # classic, classic, but still annoying
         lim_by_reach_for_sub.append(blob)
         # add the segments realted to the island
         if vh_pro_t:
             if len(seg_island) > 1:
                 ind_isl_re = np.where(seg_island[:, 1] == r)[0]
-                for w in range(0, int(len(ind_isl_re)/2)):
-                    seg_to_be_added = np.array([int(seg_island[ind_isl_re[2*w], 0]),
-                                                int(seg_island[ind_isl_re[2*w+1], 0])])
+                for w in range(0, int(len(ind_isl_re) / 2)):
+                    seg_to_be_added = np.array([int(seg_island[ind_isl_re[2 * w], 0]),
+                                                int(seg_island[ind_isl_re[2 * w + 1], 0])])
                     # seg_to_be_added2.append(seg_to_be_added)
                     # needed because no identical segment possible
                     lim_by_reach_arr = np.array(lim_by_reach_r)
@@ -600,8 +602,8 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
     # plt.axis('equal')
     # plt.show()
 
-    #print('triangulation')
-    for r in range(0, len(nb_pro_reach)-1):
+    # print('triangulation')
+    for r in range(0, len(nb_pro_reach) - 1):
         # do the triangulation
         # perfomance note: Obviously sending only the point_all from this reach would save time
         # however at the junction between the reach we would have different point on which the grid is constructed
@@ -644,7 +646,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         point_here = np.array(point_all_reach[r])
         # reshape allows for a quicker selection
         try:
-            ikle_here = np.reshape(ikle_all[r], (len(ikle_all[r])*3, 1))
+            ikle_here = np.reshape(ikle_all[r], (len(ikle_all[r]) * 3, 1))
             p1s = point_here[ikle_here[::3]]
             p2s = point_here[ikle_here[1::3]]
             p3s = point_here[ikle_here[2::3]]
@@ -668,7 +670,7 @@ def create_grid(coord_pro, extra_pro, coord_sub, ikle_sub, nb_pro_reach=[0, 1e10
         return point_all_reach, ikle_all, lim_by_reach, hole_all_i, overlap, coord_pro, point_c_all
 
 
-def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], sub_pg =[], sub_dom=[], sub_per = [],
+def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], sub_pg=[], sub_dom=[], sub_per=[],
                                virtual_startend=False, divgiv=[], h0ok=False):
     """
     This function creates the grid from the coord_pro data using one additional profil in the middle. No triangulation.
@@ -728,32 +730,42 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
                 data_dom_old = [val for val in sub_dom[nb_pro_reach[r]] for blob in (0, 1)]
                 data_per_old = [val for val in sub_per[nb_pro_reach[r]] for blob in (0, 1)]
 
-        for p in range(nb_pro_reach[r]+1, nb_pro_reach[r+1]):
-            coord_pro_p0 = coord_pro[p-1]
+        for p in range(nb_pro_reach[r] + 1, nb_pro_reach[r + 1]):
+            coord_pro_p0 = coord_pro[p - 1]
             coord_pro_p1 = coord_pro[p]
 
             # find the middle profile
             if len(coord_pro_p0[0]) > 0 and len(coord_pro_p1[0]) > 0:
                 if divgiv:
-                    [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False, divgiv[p-1])
+                    [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False,
+                                                                      divgiv[p - 1])
                 else:
                     [point_mid_x, point_mid_y] = find_profile_between(coord_pro_p0, coord_pro_p1, 1, False)
                 all_point_midx.extend([point_mid_x[0]])
                 all_point_midy.extend([point_mid_y[0]])
 
             # create cells for the profile before the middle profile
-            if p == nb_pro_reach[r]+1 and virtual_startend:
+            if p == nb_pro_reach[r] + 1 and virtual_startend:
                 # if we have double profile ignore the first triangle line
                 # draw it to get it, the idea is that each profil would weight equally.
                 pass
             else:
-                if len(coord_pro_p0[0]) > 0: # just to check
+                if len(coord_pro_p0[0]) > 0:  # just to check
                     # wet profile
                     if vh_pro_t:
-                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t[p - 1], point_mid_x, point_mid_y, point_all, ikle, point_c, 1, h0ok)
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0,
+                                                                                                  vh_pro_t[p - 1],
+                                                                                                  point_mid_x,
+                                                                                                  point_mid_y,
+                                                                                                  point_all, ikle,
+                                                                                                  point_c, 1, h0ok)
                     # whole profile
                     else:
-                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0, vh_pro_t, point_mid_x, point_mid_y,point_all, ikle, point_c, 1)
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p0,
+                                                                                                  vh_pro_t, point_mid_x,
+                                                                                                  point_mid_y,
+                                                                                                  point_all, ikle,
+                                                                                                  point_c, 1)
                 if vh_pro_t:
                     inter_vel += data_vel_old
                     inter_height += data_height_old
@@ -762,17 +774,24 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
                         inter_sub_dom += data_dom_old
                         inter_sub_per += data_per_old
             #  create cells for the profile after the middle profile
-            if p == nb_pro_reach[r+1]-1 and virtual_startend:
+            if p == nb_pro_reach[r + 1] - 1 and virtual_startend:
                 # if we have double profile ignore the last triangle line
                 pass
             else:
                 if len(coord_pro_p1[0]) > 0:
                     if vh_pro_t:
-                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t[p], point_mid_x,
-                                                                                     point_mid_y, point_all, ikle, point_c, -1, h0ok)
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1,
+                                                                                                  vh_pro_t[p],
+                                                                                                  point_mid_x,
+                                                                                                  point_mid_y,
+                                                                                                  point_all, ikle,
+                                                                                                  point_c, -1, h0ok)
                     else:
-                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1, vh_pro_t, point_mid_x,
-                                                                                     point_mid_y, point_all, ikle, point_c, -1)
+                        [point_all, ikle, point_c, p_not_found] = get_new_point_and_cell_1_profil(coord_pro_p1,
+                                                                                                  vh_pro_t, point_mid_x,
+                                                                                                  point_mid_y,
+                                                                                                  point_all, ikle,
+                                                                                                  point_c, -1)
                 # get the data
                 if vh_pro_t:
                     data_height = [val for val in vh_pro_t[p][1] for blob in (0, 1)]
@@ -823,12 +842,12 @@ def create_grid_only_1_profile(coord_pro, nb_pro_reach=[0, 1e10], vh_pro_t=[], s
         #         plt.plot(all_point_midx[er], all_point_midy[er], '.y')
         # for p in range(0, len(coord_pro)):
         #     plt.plot(coord_pro[p][0], coord_pro[p][1], '.b')
-        #for p in range(0, len(p_not_found)):
-           # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
-        #plt.show()
+        # for p in range(0, len(p_not_found)):
+        # plt.plot(p_not_found[p][0], p_not_found[p][1], '.r')
+        # plt.show()
 
     if sub_pg:
-        return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all,\
+        return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all, \
                inter_per_all
     else:
         return ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all
@@ -869,8 +888,8 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     norm = np.sqrt(dirmidx ** 2 + dirmidy ** 2)
     a1 = point_mid_x[0][0] - dirmidx * far / norm
     a2 = point_mid_y[0][0] - dirmidy * far / norm
-    a3= point_mid_x[0][-1] + dirmidx * far / norm
-    a4= point_mid_y[0][-1] + dirmidy * far / norm
+    a3 = point_mid_x[0][-1] + dirmidx * far / norm
+    a4 = point_mid_y[0][-1] + dirmidy * far / norm
     point_mid_x = np.hstack(([a1], point_mid_x[0], [a3]))
     point_mid_y = np.hstack(([a2], point_mid_y[0], [a4]))
 
@@ -892,17 +911,17 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         # find which part of the middle profile to use
         xafter = coord_pro_p[0][s0] - far * nx * dir
         yafter = coord_pro_p[1][s0] - far * ny * dir
-        xbefore = coord_pro_p[0][s0] + nx * dir *far
-        ybefore = coord_pro_p[1][s0] + ny * dir *far
+        xbefore = coord_pro_p[0][s0] + nx * dir * far
+        ybefore = coord_pro_p[1][s0] + ny * dir * far
         p1hyd = [xbefore, ybefore]
         p2hyd = [xafter, yafter]
         if mi > 3:  # to optimize
             mi -= 2
-        for m in range(0, len(point_mid_x)-1):  # to be optimized
-            if max(point_mid_x[mi], point_mid_x[mi+1]) >= min(p1hyd[0], p2hyd[0]) \
-                    and max(point_mid_y[mi], point_mid_y[mi+1]) >= min(p1hyd[1], p2hyd[1]):
+        for m in range(0, len(point_mid_x) - 1):  # to be optimized
+            if max(point_mid_x[mi], point_mid_x[mi + 1]) >= min(p1hyd[0], p2hyd[0]) \
+                    and max(point_mid_y[mi], point_mid_y[mi + 1]) >= min(p1hyd[1], p2hyd[1]):
                 p1 = [point_mid_x[mi], point_mid_y[mi]]
-                p2 = [point_mid_x[mi+1], point_mid_y[mi+1]]
+                p2 = [point_mid_x[mi + 1], point_mid_y[mi + 1]]
                 [inter, pc] = intersection_seg(p1hyd, p2hyd, p1, p2, False)  # do not change this to True (or check)
                 if inter:
                     break
@@ -912,7 +931,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
 
         if not inter:
             pass
-            #print('Warning: Point not found')
+            # print('Warning: Point not found')
             # plt.figure()
             # plt.plot()
             # plt.plot(p1hyd[0], p1hyd[1], 'xb')
@@ -935,18 +954,19 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
                         and max(point_mid_y[m], point_mid_y[m + 1]) >= min(p1hyd[1], p2hyd[1]):
                     p1 = [point_mid_x[m], point_mid_y[m]]
                     p2 = [point_mid_x[m + 1], point_mid_y[m + 1]]
-                    [inter, pc0] = intersection_seg(p1hyd, p2hyd, p1, p2, False)  # do not change this to True (or check)
+                    [inter, pc0] = intersection_seg(p1hyd, p2hyd, p1, p2,
+                                                    False)  # do not change this to True (or check)
                     if inter:
                         break
             if not inter:
                 pass
-                #print('Warning: Point not found')
+                # print('Warning: Point not found')
             try:
                 point_all.append([pc0[0][0], pc0[0][1]])
             except IndexError:
                 if warn_cell:
                     print('Warning: one cell or more is erased. (1) \n')
-                    warn_cell =False
+                    warn_cell = False
                 point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
             point_all.append([coord_pro_p[0][0], coord_pro_p[1][0]])
         point_all.append([coord_pro_p[0][s0], coord_pro_p[1][s0]])
@@ -960,7 +980,7 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
         # add the two new cells to ikle and point_c
         if vh_pro_t_p:
             if vh_pro_t_p[1][s0] >= 0:
-                if (vh_pro_t_p[1][s0] >0 and vh_pro_t_p[1][s0-1] > 0) or h0ok: #
+                if (vh_pro_t_p[1][s0] > 0 and vh_pro_t_p[1][s0 - 1] > 0) or h0ok:  #
                     l = len(point_all) - 1
                     if s0 == 1:
                         ikle.append([l, l - 3, l - 2])
@@ -993,10 +1013,10 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
             cy = (point_all[l - 1][1] + point_all[l - 2][1] + point_all[l][1]) / 3
             point_c.append([cx, cy])
 
-    return point_all, ikle,  point_c, p_not_found
+    return point_all, ikle, point_c, p_not_found
 
 
-def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all, min_height=0.001, get_ind_new =False):
+def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, min_height=0.001, get_ind_new=False):
     """
     This function si just use to call cut_2d-grid for all reach. So that if we have a river with more than reach, we
     do not need to add a for loops to call for all reach. Sometime it can save place. This can be only use for one
@@ -1022,7 +1042,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all, m
     for r in range(0, len(ikle_all)):
         if not get_ind_new:
             [ikle, point_reach, inter_height, inter_vel] = cut_2d_grid(ikle_all[r], point_all[r], inter_height_all[r],
-                                                                       inter_vel_all[r],min_height=min_height)
+                                                                       inter_vel_all[r], min_height=min_height)
         else:
             [ikle, point_reach, inter_height, inter_vel, ind_new] = cut_2d_grid(ikle_all[r], point_all[r],
                                                                                 inter_height_all[r], inter_vel_all[r],
@@ -1039,7 +1059,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all,inter_vel_all, m
         return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
-def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001, get_ind_new=False):
+def cut_2d_grid(ikle, point_all, water_height, velocity, min_height=0.001, get_ind_new=False):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
     with h>0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
@@ -1100,7 +1120,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001, get_in
         which_side.append(which_side_c)
         # let check if we have on or two value under min_height
         if (hc < min_height and ha < min_height) or (hb < min_height and ha < min_height) or (
-                        hb < min_height and hc < min_height):
+                hb < min_height and hc < min_height):
             double_neg.append(True)
         else:
             double_neg.append(False)
@@ -1137,7 +1157,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001, get_in
                         ikle.append([lenp - 1, lenp - 2, iklec[0]])
                         ikle.append([lenp - 2, iklec[2], iklec[0]])
                     else:
-                        ikle.append([lenp - 1, lenp - 2,iklec[2]])
+                        ikle.append([lenp - 1, lenp - 2, iklec[2]])
                         ikle.append([lenp - 1, iklec[2], iklec[0]])  # not understood why not lenp-2
                     if get_ind_new:
                         ind_new.append(c)
@@ -1170,11 +1190,11 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001, get_in
                         ikle.append([lenp - 2, iklec[1], iklec[0]])
                     else:
                         ikle.append([lenp - 1, lenp - 2, iklec[0]])
-                        ikle.append([lenp - 1, iklec[1], iklec[0]])  #?
+                        ikle.append([lenp - 1, iklec[1], iklec[0]])  # ?
                     if get_ind_new:
                         ind_new.append(c)
                         ind_new.append(c)
-        elif len(pc_all[i]) !=0:
+        elif len(pc_all[i]) != 0:
             if warn_cut:
                 print('Warning: One triangle found which touches only one point. The grid was not cut on '
                       'this triangle \n')
@@ -1202,7 +1222,7 @@ def cut_2d_grid(ikle, point_all, water_height,velocity, min_height=0.001, get_in
         return ikle, point_all, water_height, velocity
 
 
-def linear_h_cross(p1,p2,h1,h2, minwh=0.0):
+def linear_h_cross(p1, p2, h1, h2, minwh=0.0):
     """
     This function is called by cut_2D_grid. It find the intersection point along a side of the triangle if part of a
     cells is dry.
@@ -1214,14 +1234,14 @@ def linear_h_cross(p1,p2,h1,h2, minwh=0.0):
     :return: the intersection point
     """
     pc = []
-    if (h1 <= minwh and h2 > minwh) or (h1 >minwh and h2 <= minwh):
+    if (h1 <= minwh and h2 > minwh) or (h1 > minwh and h2 <= minwh):
         # h is linear, i.e., h = a*x +b pc == x(h==0) and y = a2*x + b2
         if h1 > h2:
             mix = (h1 - minwh) / (h1 - h2)
-            pc = p1 + mix * (p2-p1)
+            pc = p1 + mix * (p2 - p1)
         else:
             mix = (h2 - minwh) / (h2 - h1)
-            pc = p2 + mix * (p1-p2)
+            pc = p2 + mix * (p1 - p2)
 
     return pc
 
@@ -1258,7 +1278,7 @@ def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
         norm2 = np.sqrt((coord_pro_p1[0][-1] - coord_pro_p1[0][0]) ** 2 +
                         (coord_pro_p1[1][-1] - coord_pro_p1[1][0]) ** 2)
         dist_in_m = coord_pro_p1[3][-1] - coord_pro_p1[3][0]
-        if dist_in_m ==0:
+        if dist_in_m == 0:
             coord_change.extend([1])
         else:
             coord_change.extend([norm2 / dist_in_m])
@@ -1272,7 +1292,7 @@ def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):
             w = bisect.bisect(dist_coordorr, dist_all[d]) - 1
             if w < 0:  # case with negative ditance after correction of identical point
                 w = 0
-            if wold != w and w+1 < len(coord_pro_p1[0]):
+            if wold != w and w + 1 < len(coord_pro_p1[0]):
                 # find the direction between the two point of the original profile
                 norm = np.sqrt((coord_pro_p1[0][w + 1] - coord_pro_p1[0][w]) ** 2 +
                                (coord_pro_p1[1][w + 1] - coord_pro_p1[1][w]) ** 2)
@@ -1303,16 +1323,16 @@ def newp(p0, p1, extra_pro):
     :param extra_pro: the number of extra profile needed
     :return: the start/end of the new profile
     """
-    new_p = np.zeros((extra_pro+1, 2))  # why +1?????
+    new_p = np.zeros((extra_pro + 1, 2))  # why +1?????
 
     if p1[0] != p0[0]:
         a = (p1[1] - p0[1]) / (p1[0] - p0[0])
         b = p1[1] - a * p1[0]
-        new_p[:, 0] = np.linspace(p0[0], p1[0],  num=extra_pro+1, endpoint=False)
+        new_p[:, 0] = np.linspace(p0[0], p1[0], num=extra_pro + 1, endpoint=False)
         new_p[:, 1] = a * new_p[:, 0] + b
     else:
         new_p[:, 0] = p1[0]
-        new_p[:, 1] = np.linspace(p0[1], p1[1], num=extra_pro+1, endpoint=False)
+        new_p[:, 1] = np.linspace(p0[1], p1[1], num=extra_pro + 1, endpoint=False)
 
     # extract the first point (p0)
     new_p = new_p[1:, :]
@@ -1384,7 +1404,6 @@ def inside_polygon(seg_poly, point):
 
     return inside_poly
 
-
     # the direction of the ray does not matter
     # ray = [point, [point[0], 1e5*abs(point[0])]]
     # inter_count = 0
@@ -1435,8 +1454,8 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True, wig=10e-8):
     y1sub = p1sub[1]
     y2sub = p2sub[1]
     pc = []  # the crossing point
-    #if the start or the end of segment are the same, crossing if col is True
-    #if col = False not crossing
+    # if the start or the end of segment are the same, crossing if col is True
+    # if col = False not crossing
     # find r and s such as r = psub - p2sub  and s = qhyd - q2hyd
     [sx, sy] = [x2hyd - x1hyd, y2hyd - y1hyd]
     [rx, ry] = [x2sub - x1sub, y2sub - y1sub]
@@ -1455,9 +1474,9 @@ def intersection_seg(p1hyd, p2hyd, p1sub, p2sub, col=True, wig=10e-8):
         t = ((x1hyd - x1sub) * sy - sx * (y1hyd - y1sub)) / rxs
         u = term2 / rxs
     else:
-        t = u = 10**10
+        t = u = 10 ** 10
     # in this case, crossing
-    if rxs != 0 and 0-wig <= t <= 1+wig and 0-wig <= u <= 1+wig:
+    if rxs != 0 and 0 - wig <= t <= 1 + wig and 0 - wig <= u <= 1 + wig:
         inter = True
         xcross = x1hyd + u * sx
         ycross = y1hyd + u * sy
@@ -1481,7 +1500,7 @@ def add_point(point_all, point):
     sum_sub = np.sum(abs(point_all - point), axis=1)
     if (sum_sub != 0).all():
         point_all = np.vstack((point_all, point))
-        return point_all, len(point_all)-1
+        return point_all, len(point_all) - 1
     else:
         ind = np.where(sum_sub == 0)[0]
 
@@ -1563,7 +1582,7 @@ def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, i
             inside2 = inside_polygon(lim_here, p2sub)
             if inside1 and inside2:
                 to_delete.append(seg)
-                #lim_by_reachr.remove([p1sub, p2sub])
+                # lim_by_reachr.remove([p1sub, p2sub])
 
         # if crossing, add to lim_by_reach, case by case
         # we could have more than crossing by substrate segment
@@ -1571,7 +1590,7 @@ def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, i
             # in this case we need to order the points
             dist_to_sort = []
             for wp in range(0, len(sp1)):
-                dist = np.sqrt((p1sub[0]-sp1[wp][0][0])**2 + (p1sub[1]-sp1[wp][0][1])**2)
+                dist = np.sqrt((p1sub[0] - sp1[wp][0][0]) ** 2 + (p1sub[1] - sp1[wp][0][1]) ** 2)
                 dist_to_sort.append(dist)
             ind_sp = np.argmin(dist_to_sort)
             dist_to_sort[ind_sp] = np.inf
@@ -1594,7 +1613,7 @@ def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, i
                 to_delete.append(seg)
         if len(sp2) > 0:  # both p1sub and p2sub outside
             if len(sp2) > 1:
-                for w2 in range(0, len(sp1)-1, 2):
+                for w2 in range(0, len(sp1) - 1, 2):
                     [point_all, ind1] = add_point(point_all, sp2[w2])
                     [point_all, ind2] = add_point(point_all, sp2[w2 + 1])
                     lim_by_reachr.append([ind1, ind2])
@@ -1613,7 +1632,7 @@ def get_crossing_segment_sub(p1sub, p2sub, lim_here, lim_by_reachr, point_all, i
                 to_delete.append(seg)
         if len(sp4) > 0:  # both p1sub and p2sub outside
             if len(sp4) > 1:
-                for w2 in range(0, len(sp4)-1, 2):
+                for w2 in range(0, len(sp4) - 1, 2):
                     [point_all, ind1] = add_point(point_all, sp4[w2])
                     [point_all, ind2] = add_point(point_all, sp4[w2 + 1])
                     lim_by_reachr.append([ind1, ind2])
@@ -1831,7 +1850,7 @@ def interp_weights(xyz, uvw):
     :param xyz:
     :param uvw:
     """
-    d=2
+    d = 2
     tri = qhull.Delaunay(xyz)
     simplex = tri.find_simplex(uvw)
     vertices = np.take(tri.simplices, simplex, axis=0)
@@ -1857,7 +1876,7 @@ def interpolate_opti(values, vtx, wts):
     return np.einsum('nj,nj->n', np.take(values, vtx), wts)  # summation based on einstein notation
 
 
-def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv = []):
+def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim=True, divgiv=[]):
     """
     Find n profile between two profiles which are not straight. This functions is useful to create the grid from 1D model
     as profile in 1D model are often far away from another.
@@ -1888,14 +1907,14 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
     # careful the equation is ax + by + c = 0 and not y = ax + b as usual
     # easier for the porjection formula
     if x1 != x2:
-        a = (y1 - y2)/(x1-x2)
+        a = (y1 - y2) / (x1 - x2)
     else:
         a = 1
     b = -1
     c = y1 - a * x1
-    norm = np.sqrt((x2-x1)**2+(y2-y1)**2)
-    nx = (y2-y1) / norm
-    ny = -(x2-x1) / norm
+    norm = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    nx = (y2 - y1) / norm
+    ny = -(x2 - x1) / norm
 
     # !!! test!!!
     # norm = np.sqrt((x1all[0]-x1)**2+(y1all[0]-y1)**2)
@@ -1904,11 +1923,11 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
 
     # project points from both profil perpendiculary on the line
     # from https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
-    if a**2 + b**2 > 0:
-        xpro0 = (b * (b * x0all - a * y0all) - a*c) / (a**2 + b**2)
-        #ypro0 = (a * (-1*b* x0all + a * y0all) - b*c) / (a**2 + b**2)
-        xpro1 = (b * (b * x1all - a * y1all) - a*c) / (a**2 + b**2)
-        #ypro1 = (a * (-1*b * x1all + a * y1all) - b*c) / (a**2 + b**2)
+    if a ** 2 + b ** 2 > 0:
+        xpro0 = (b * (b * x0all - a * y0all) - a * c) / (a ** 2 + b ** 2)
+        # ypro0 = (a * (-1*b* x0all + a * y0all) - b*c) / (a**2 + b**2)
+        xpro1 = (b * (b * x1all - a * y1all) - a * c) / (a ** 2 + b ** 2)
+        # ypro1 = (a * (-1*b * x1all + a * y1all) - b*c) / (a**2 + b**2)
     else:
         xpro0 = xpro1 = 10e10
 
@@ -1916,8 +1935,8 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
     # to avoid case whew the vector nearly touch each other
     xstart0 = x0all + far * nx
     xend0 = x0all - far * nx
-    xstart1 = x1all + far*nx
-    xend1 = x1all - far*nx
+    xstart1 = x1all + far * nx
+    xend1 = x1all - far * nx
     ystart0 = y0all + far * ny
     yend0 = y0all - far * ny
     ystart1 = y1all + far * ny
@@ -1926,26 +1945,27 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
     # find intersection with the other profile
     point_inter0 = np.zeros((len(x0all), 2))
     point_inter1 = np.zeros((len(x1all), 2))
-    no_inter0 = np.zeros((len(x0all), ))
-    no_inter1 = np.zeros((len(x1all), ))
+    no_inter0 = np.zeros((len(x0all),))
+    no_inter1 = np.zeros((len(x1all),))
     # first profile
     s = 0
     for i in range(0, len(x0all)):
         if len(x1all) > 0 and len(x0all) > 0:
             inter = False
-            #p1 = [x0all[i], y0all[i]]
-            #p2 = [xpro0[i], ypro0[i]]
+            # p1 = [x0all[i], y0all[i]]
+            # p2 = [xpro0[i], ypro0[i]]
             p1 = [xstart0[i], ystart0[i]]
             p2 = [xend0[i], yend0[i]]
-            for i2 in range(0, len(x1all)-1):
-                if max(x1all[i2], x1all[i2+1]) > min(p1[0], p2[0]) and max(y1all[i2], y1all[i2+1]) > min(p1[1], p2[1]):
+            for i2 in range(0, len(x1all) - 1):
+                if max(x1all[i2], x1all[i2 + 1]) > min(p1[0], p2[0]) and max(y1all[i2], y1all[i2 + 1]) > min(p1[1],
+                                                                                                             p2[1]):
                     p3 = [x1all[i2], y1all[i2]]
-                    p4 = [x1all[i2+1], y1all[i2+1]]
+                    p4 = [x1all[i2 + 1], y1all[i2 + 1]]
                     [inter, pc] = intersection_seg(p1, p2, p3, p4, False)
                 if inter:
                     point_inter0[i] = pc[0]
                     break
-            #start/end of line
+            # start/end of line
             if not inter:
                 if len(x1all) > 4:
                     p3 = [x1all[-4], y1all[-4]]
@@ -1953,7 +1973,7 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
                 else:
                     p3 = [x1all[0], y1all[0]]
                     p4 = [x1all[-1], y1all[-1]]
-                norm = np.sqrt((p4[0] - p3[0])**2 + (p4[1] - p3[1])**2)
+                norm = np.sqrt((p4[0] - p3[0]) ** 2 + (p4[1] - p3[1]) ** 2)
                 p3x = p3[0] + far * (p4[0] - p3[0]) / norm
                 p3y = p3[1] + far * (p4[1] - p3[1]) / norm
                 p3 = [p3x, p3y]
@@ -1968,16 +1988,16 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
                     p30 = [x1all[0], y1all[0]]
                     p4 = [x1all[1], y1all[1]]
                 norm = np.sqrt((p4[0] - p30[0]) ** 2 + (p4[1] - p30[1]) ** 2)
-                p3x = p30[0] + far * (p4[0] - p30[0])/norm
-                p3y = p30[1] + far * (p4[1] - p30[1]) /norm
+                p3x = p30[0] + far * (p4[0] - p30[0]) / norm
+                p3y = p30[1] + far * (p4[1] - p30[1]) / norm
                 p3 = [p3x, p3y]
                 [inter, pc] = intersection_seg(p1, p2, p3, p30, False)
                 if inter:
                     point_inter0[i] = pc[0]
             if not inter:
-                    no_inter0[i] = -99
-        #if not inter:
-         #    print('Warning: No intersection found when created new profile. (1)')
+                no_inter0[i] = -99
+        # if not inter:
+        #    print('Warning: No intersection found when created new profile. (1)')
         #     point_inter0[i] = point_inter0[i-1] + 0.001
 
     # intersection second profile
@@ -1985,10 +2005,10 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
         inter = False
         p1 = [xstart1[j], ystart1[j]]
         p2 = [xend1[j], yend1[j]]
-        for j2 in range(0, len(x0all)-1):
+        for j2 in range(0, len(x0all) - 1):
             if max(x0all[j2], x0all[j2 + 1]) > min(p1[0], p2[0]) and max(y0all[j2], y0all[j2 + 1]) > min(p1[1], p2[1]):
                 p3 = [x0all[j2], y0all[j2]]
-                p4 = [x0all[j2+1], y0all[j2+1]]
+                p4 = [x0all[j2 + 1], y0all[j2 + 1]]
                 [inter, pc] = intersection_seg(p1, p2, p3, p4, False)
             if inter:
                 point_inter1[j] = pc[0]
@@ -2002,8 +2022,8 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
                 p3 = [x0all[-2], y0all[-2]]
                 p4 = [x0all[-1], y0all[-1]]
             norm = np.sqrt((p4[0] - p3[0]) ** 2 + (p4[1] - p3[1]) ** 2)
-            p3x = p3[0] + far * (p4[0] - p3[0])/norm
-            p3y = p3[1] + far * (p4[1] - p3[1])/norm
+            p3x = p3[0] + far * (p4[0] - p3[0]) / norm
+            p3y = p3[1] + far * (p4[1] - p3[1]) / norm
             p3 = [p3x, p3y]
             [inter, pc] = intersection_seg(p1, p2, p3, p4, False)
             if inter:
@@ -2016,8 +2036,8 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
                 p30 = [x0all[0], y0all[0]]
                 p4 = [x0all[1], y0all[1]]
             norm = np.sqrt((p4[0] - p30[0]) ** 2 + (p4[1] - p30[1]) ** 2)
-            p3x = p30[0] - far * (p4[0] - p30[0])/norm
-            p3y = p30[1] - far * (p4[1] - p30[1])/norm
+            p3x = p30[0] - far * (p4[0] - p30[0]) / norm
+            p3y = p30[1] - far * (p4[1] - p30[1]) / norm
             p3 = [p3x, p3y]
             [inter, pc] = intersection_seg(p1, p2, p3, p30, False)
             if inter:
@@ -2040,14 +2060,14 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
         #     point_inter1[j] = point_inter1[j - 1] + 0.001
 
     # find points between the profile
-    len0 = len(x0all[no_inter0 ==0])
-    len1 = len(x1all[no_inter1 ==0])
+    len0 = len(x0all[no_inter0 == 0])
+    len1 = len(x1all[no_inter1 == 0])
     for n in range(0, nb_pro):
         pm_all = np.zeros((len0 + len1, 2))  # x, y, dist to be ordered
         if divgiv:
             div = divgiv
         else:
-            div = (n+1) / (nb_pro + 1)
+            div = (n + 1) / (nb_pro + 1)
         div2 = 1 - div
 
         # point linked with the first profile
@@ -2080,19 +2100,19 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
                     if x1 > x2:
                         pm_all = pm_all[w2 + 1:, :]
                     if x1 < x2:
-                        pm_all = pm_all[:w2+1, :]
+                        pm_all = pm_all[:w2 + 1, :]
                     break
             p1seg = [x0all[0], y0all[0]]
             p2seg = [x1all[0], y1all[0]]
-            for w in range(0, len(pm_all[:, 0])-1):
+            for w in range(0, len(pm_all[:, 0]) - 1):
                 p3 = pm_all[w]
-                p4 = pm_all[w+1]
+                p4 = pm_all[w + 1]
                 [inter, pc] = intersection_seg(p1seg, p2seg, p3, p4, False)
                 if inter:
                     if x1 > x2:
-                        pm_all = pm_all[:w+1, :]
+                        pm_all = pm_all[:w + 1, :]
                     if x1 < x2:
-                        pm_all = pm_all[w+1:, :]
+                        pm_all = pm_all[w + 1:, :]
                     break
 
         # sort the points
@@ -2110,10 +2130,10 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
         pm_all = pm_all[xprojmid.argsort()]
 
         # control for the risk of a crossing segments
-        norma = np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
-        normb = np.sqrt((x1all[-1] - x1all[0])**2 + (y1all[-1] - y1all[0])**2)
+        norma = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+        normb = np.sqrt((x1all[-1] - x1all[0]) ** 2 + (y1all[-1] - y1all[0]) ** 2)
         # cos(theta) = a.b / (norm(a) * norm(b))
-        dota = ((x2-x1)*(x1all[-1] - x1all[0]) + (y2 - y1)*(y1all[-1] - y1all[0]))/ (norma*normb)
+        dota = ((x2 - x1) * (x1all[-1] - x1all[0]) + (y2 - y1) * (y1all[-1] - y1all[0])) / (norma * normb)
         if dota > 1 or dota < -1:
             theta = 0.5
         else:
@@ -2121,15 +2141,15 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim= True, divgiv 
         inter1 = True
         inter2 = True
         warn_here = True
-        while (inter1 or inter2) and len(pm_all[:,1]) > 3 and abs(theta) > 0.4:
+        while (inter1 or inter2) and len(pm_all[:, 1]) > 3 and abs(theta) > 0.4:
             p3a = [pm_all[0, 0], pm_all[0, 1]]
             p4a = [pm_all[-1, 0], pm_all[-1, 1]]
-            for i in range(0, min(len(x0all), len(x1all))-1):
+            for i in range(0, min(len(x0all), len(x1all)) - 1):
                 p1a = [x0all[i], y0all[i]]
-                p2a = [x0all[i+1], y0all[i+1]]
+                p2a = [x0all[i + 1], y0all[i + 1]]
                 [inter1, pc] = intersection_seg(p1a, p2a, p3a, p4a, False)
                 p1a = [x1all[i], y1all[i]]
-                p2a = [x1all[i+1], y1all[i+1]]
+                p2a = [x1all[i + 1], y1all[i + 1]]
                 [inter2, pc] = intersection_seg(p1a, p2a, p3a, p4a, False)
                 if inter1 or inter2:
                     if warn_here:
@@ -2178,15 +2198,15 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     if maxx == minx or miny == maxy:
         print('Error: no dummy substrate created. \n')
     # create new point on a rectangular grid
-    distx = (maxx-minx)/(sqrtnp-1)
-    disty = (maxy - miny) / (sqrtnp-1)
+    distx = (maxx - minx) / (sqrtnp - 1)
+    disty = (maxy - miny) / (sqrtnp - 1)
     x = np.arange(minx, maxx + distx, distx)
-    y = np.arange(miny, maxy+disty, disty)
+    y = np.arange(miny, maxy + disty, disty)
     for i in range(0, sqrtnp):
         for j in range(0, sqrtnp):
-            coord_sub.extend([x[i],y[j]])
+            coord_sub.extend([x[i], y[j]])
 
-    dict_point = dict(vertices= coord_sub)
+    dict_point = dict(vertices=coord_sub)
     grid_dict = triangle.triangulate(dict_point)  # 'p' would allos for constraint V for verbose
 
     ikle_sub = grid_dict['triangles']
@@ -2195,13 +2215,8 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     return ikle_sub, coord_sub
 
 
-
-
-
-
-
-
-def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, velocity=True, height=True, inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False,
+def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, velocity=True, height=True,
+                     inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False,
                      time_step=0, sub_pg=[], sub_dom=[]):
     """
     This is the function to plot grid output for one time step. The data is one the node. A more complicated function
@@ -2219,7 +2234,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
     :param sub_pg: coarser data from the subtrate
     :param sub_dom: doominat data from the subtrate
     """
-    #print(mesh, velocity, height, time_step)
+    # print(mesh, velocity, height, time_step)
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -2229,7 +2244,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    #mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
     if erase1 == 'True':  # xml in text
@@ -2293,24 +2308,30 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             suffix = 'Hydro_grid_t' + str(time_step) + '_'
         if not erase1:
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                             dpi=fig_opt['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
                             dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                    "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=fig_opt['resolution'], transparent=True)
         else:
             test = calcul_hab.remove_image(suffix, path_im, format1)
-            if not test and format1 in [0,1,2,3,4,5]:  # [0,1,2,3,4,5] currently existing format
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=fig_opt['resolution'],
+                            transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"), dpi=fig_opt['resolution'],
+                            transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"), dpi=fig_opt['resolution'],
+                            transparent=True)
         if format1 == 123456:  # "display"
             plt.show()
         else:  # "export"
@@ -2382,24 +2403,30 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                 suffix = 'Velocity_t' + str(time_step) + '_'
             if not erase1:
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                                 dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
                                 dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=fig_opt['resolution'], transparent=True)
             else:
                 test = calcul_hab.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
+                                dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"),
+                                dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"),
+                                dpi=fig_opt['resolution'], transparent=True)
             if format1 == 123456:  # "display"
                 plt.show()
             else:  # "export"
@@ -2431,7 +2458,8 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                 if len(point_here) == len(inter_h) and len(ikle_all[r]) > 2:
                     inter_h[inter_h < 0] = 0
                     sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm,
-                                         vmin=0, vmax=mvc, levels=bounds, extend='both')  # extent=(min(point_here[:, 0]), max(point_here[:, 0]), min(point_here[:, 1]), max(point_here[:, 1]))
+                                         vmin=0, vmax=mvc, levels=bounds,
+                                         extend='both')  # extent=(min(point_here[:, 0]), max(point_here[:, 0]), min(point_here[:, 1]), max(point_here[:, 1]))
                     if r == len(inter_h_all) - 1:  # end of loop
                         cbar = plt.colorbar(sc)
                         if fig_opt['language'] == 0:
@@ -2446,7 +2474,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             plt.xlabel('x coord []')
             plt.ylabel('y coord []')
             if fig_opt['language'] == 0:
-                plt.title(name_hdf5[:-3] + " : " + 'Water depth - Time Step: ' + str(time_step) )
+                plt.title(name_hdf5[:-3] + " : " + 'Water depth - Time Step: ' + str(time_step))
             elif fig_opt['language'] == 1:
                 plt.title(name_hdf5[:-3] + " : " + "Hauteur d'eau - Pas de Temps: " + str(time_step))
             else:
@@ -2454,29 +2482,35 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             # save figure
             plt.tight_layout()  # remove margin out of plot
             if merge_case:
-                suffix = 'Merge_Waterheight_t'+str(time_step) + '_'
+                suffix = 'Merge_Waterheight_t' + str(time_step) + '_'
             else:
-                suffix = 'Water_height_t'+str(time_step) + '_'
+                suffix = 'Water_height_t' + str(time_step) + '_'
             if not erase1:
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".png"),
                                 dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
                                 dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=fig_opt['resolution'], transparent=True)
             else:
                 test = calcul_hab.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
+                                dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"),
+                                dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"),
+                                dpi=fig_opt['resolution'], transparent=True)
             if format1 == 123456:  # "display"
                 plt.show()
             else:  # "export"
@@ -2494,12 +2528,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
     #             substrate.fig_substrate(point_all_reach[r], ikle_all[r], sub_pg[r], sub_dom[r], path_im)
     #         if r==1:
     #             print('Warning: For the substrate data, only the two first reaches are plotted. \n')
-
-
-
-
-
-
 
 
 def plot_grid_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_h_all=[], path_im=[], time_step=0):
@@ -2619,7 +2647,7 @@ def plot_grid_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, int
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    #mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
@@ -2720,13 +2748,14 @@ def plot_grid_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im
         fig_opt = output_fig_GUI.create_default_figoption()
 
     # plot the grid
-    plt.rcParams['agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
+    plt.rcParams[
+        'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    #mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
@@ -2821,8 +2850,9 @@ def plot_grid_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im
         plt.close()
 
 
-def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99], ytxt=[-99], subtxt=[-99],
-                  reach_num=-99):
+def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99],
+                   ytxt=[-99], subtxt=[-99],
+                   reach_num=-99):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -2872,9 +2902,9 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
     coord_p = np.array(coord_p)
     for i in range(0, len(ikle)):
         pi = 0
-        while pi < len(ikle[i])-1:  # we have all sort of xells, max eight sides
+        while pi < len(ikle[i]) - 1:  # we have all sort of xells, max eight sides
             p = int(ikle[i][pi])  # we start at 0 in python, careful about -1 or not
-            p2 = int(ikle[i][pi+1])
+            p2 = int(ikle[i][pi + 1])
             xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
             xlist.append(None)
             ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
@@ -2885,7 +2915,7 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
         p2 = int(ikle[i][0])
         xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
         xlist.append(None)
-        ylist.extend([coord_p[p,1], coord_p[p2, 1]])
+        ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
         ylist.append(None)
 
     # substrate coarser
@@ -2894,7 +2924,7 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map1'])
     plt.axis('equal')
-    colors_val = np.array(sub_pg) # convert nfloors to colors that we can use later (cemagref)
+    colors_val = np.array(sub_pg)  # convert nfloors to colors that we can use later (cemagref)
     # Set norm to correspond to the data for which
     # the colorbar will be used.
     norm = mpl.colors.Normalize(vmin=1, vmax=8)
@@ -2908,11 +2938,11 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
         patches.append(polygon)
     collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
     sub1.add_collection(collection)
-    #collection.set_color(colors)
+    # collection.set_color(colors)
     collection.set_array(colors_val)
     sub1.autoscale_view()
-    #sub1.plot(xlist, ylist, c='b', linewidth=0.2)
-    #plt.xlabel('x coord []')
+    # sub1.plot(xlist, ylist, c='b', linewidth=0.2)
+    # plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title_pg)
 
@@ -2931,20 +2961,20 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
             verts.append(verts_j)
         polygon = Polygon(verts, closed=True)
         patches.append(polygon)
-    collection = PatchCollection(patches,linewidth=0.0, cmap=cmap, norm=norm)
+    collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
     sub2.add_collection(collection)
     collection.set_array(colors_val)
     sub2.autoscale_view()
     plt.axis('equal')
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')
-    #sub2.plot(xlist, ylist, c='b', linewidth=0.2)
+    # sub2.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.xlabel('x coord []')
     plt.ylabel('y coord []')
     plt.title(title_dom)
 
     # colorbar
-    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7]) # posistion x2, sizex2, 1= top of the figure
+    ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
     # ColorbarBase derives from ScalarMappable and puts a colorbar
     # in a specified axes, so it has everything needed for a
     # standalone colorbar.  There are many more kwargs, but the
@@ -2952,7 +2982,7 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
     # and labels.
     cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
     cb1.set_label('Code Cemagref')
-    #plt.tight_layout()
+    # plt.tight_layout()
 
     # save the figure
     if types_plot == "export" or types_plot == "both":
@@ -2984,11 +3014,11 @@ def plot_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fi
         subtxt = list(map(float, subtxt))
         # size of the marker (to avoid having to pale, unclear figure)
         # this is a rough estimation, no need for precise number here
-        d1 = 0.5 * np.sqrt((xtxt[1] - xtxt[0])**2 + (ytxt[1] - xtxt[1])**2)  # dist in coordinate
+        d1 = 0.5 * np.sqrt((xtxt[1] - xtxt[0]) ** 2 + (ytxt[1] - xtxt[1]) ** 2)  # dist in coordinate
         dist_data = np.mean([np.max(xtxt) - np.min(xtxt), np.max(ytxt) - np.min(ytxt)])
         f_len = 5 * 72  # point is 1/72 inch, figure is 5 inch large
-        transf = f_len/dist_data
-        s1 = 3.1 * (d1 * transf)**2 / 2  # markersize is given as an area
+        transf = f_len / dist_data
+        s1 = 3.1 * (d1 * transf) ** 2 / 2  # markersize is given as an area
 
         cm = plt.cm.get_cmap('gist_rainbow')
         sc = plt.scatter(xtxt, ytxt, c=subtxt, vmin=np.nanmin(subtxt), vmax=np.nanmax(subtxt), s=34, cmap=cm,
@@ -3050,12 +3080,14 @@ def plot_fish_habitat_map(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
         filename = name_hdf5[:-3] + '_HSI_' + fish_name + '_' + str(time_step)
 
     # preplot
-    fig, ax = plt.subplots(1)  # new figure
+    fig = plt.figure(filename)
+    ax = plt.axes()
+    #fig, ax = plt.subplots(1)  # new figure
     norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
     # plot the habitat value
     cmap = plt.get_cmap(fig_opt['color_map2'])
-    #colors = cmap(vh.tolist())
+    # colors = cmap(vh.tolist())
 
     n = len(vh)
     patches = []
@@ -3068,7 +3100,7 @@ def plot_fish_habitat_map(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
         patches.append(polygon)
 
     collection = PatchCollection(patches, linewidth=0.0, norm=norm, cmap=cmap)
-    #collection.set_color(colors) too slow
+    # collection.set_color(colors) too slow
     collection.set_array(vh)
     ax.add_collection(collection)
     ax.autoscale_view()
@@ -3178,11 +3210,11 @@ def plot_wua_hv_mean(state, spu, area, name_fish, name_hdf5, fig_opt={}, path_im
     # SPU
     data_bar = spu
     y_pos = np.arange(len(spu))
-    fig = plt.figure()
+    fig = plt.figure(filename_hv)
     fig.add_subplot(211)
     data_bar2 = np.array(data_bar)
     plt.bar(y_pos, data_bar2, 0.5)
-    plt.xticks(y_pos+0.25, [name_fish])
+    plt.xticks(y_pos + 0.25, [name_fish])
     if fig_opt['language'] == 0:
         plt.ylabel('WUA [m^2]')
     elif fig_opt['language'] == 1:
@@ -3192,11 +3224,10 @@ def plot_wua_hv_mean(state, spu, area, name_fish, name_hdf5, fig_opt={}, path_im
     plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
     plt.title(title_wua)
 
-
     # VH
     fig.add_subplot(212)
     data_bar2 = np.array(data_bar)
-    plt.bar(y_pos, data_bar2/area, 0.5)
+    plt.bar(y_pos, data_bar2 / area, 0.5)
     plt.xticks(y_pos + 0.25, [name_fish])
     if fig_opt['language'] == 0:
         plt.ylabel('HV (WUA/A) []')
@@ -3244,10 +3275,6 @@ def plot_wua_hv_mean(state, spu, area, name_fish, name_hdf5, fig_opt={}, path_im
         plt.show()
     if types_plot == "export":
         plt.close()
-
-
-
-
 
 
 def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all=[], inter_vel_all=[],
@@ -3307,46 +3334,47 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
                 ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
                 ylist.append(None)
 
-            #plt.plot(xlist, ylist, '-b', linewidth=0.1)
+            # plt.plot(xlist, ylist, '-b', linewidth=0.1)
             if lim_by_reach:
                 for hh in range(0, len(h)):
-                     plt.plot(h[hh][0], h[hh][1], "g*", markersize=3)
+                    plt.plot(h[hh][0], h[hh][1], "g*", markersize=3)
                 for i in range(0, len(seg_reach)):
                     seg = seg_reach[i]
                     if i % 3 == 0:
                         m = 'r'
-                    elif i% 3 == 1:
+                    elif i % 3 == 1:
                         m = 'g'
                     else:
                         m = 'y'
-                    plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m, linewidth=1)
+                    plt.plot([coord_p[seg[0], 0], coord_p[seg[1], 0]], [coord_p[seg[0], 1], coord_p[seg[1], 1]], m,
+                             linewidth=1)
                 overlap_r = overlap[r]
-                #if len(overlap_r) > 0:
-                    #for i in range(0, len(overlap_r)):
-                       # plt.plot(coord_p[overlap_r[i], 0],coord_p[overlap_r[i], 1], 'k.')
-    #plt.plot(xlist, ylist, 'g.', markersize=1)
-    #if coord_pro2:
+                # if len(overlap_r) > 0:
+                # for i in range(0, len(overlap_r)):
+                # plt.plot(coord_p[overlap_r[i], 0],coord_p[overlap_r[i], 1], 'k.')
+    # plt.plot(xlist, ylist, 'g.', markersize=1)
+    # if coord_pro2:
     #   for p in range(0, len(coord_pro2)):
     #        plt.plot(coord_pro2[p][0], coord_pro2[p][1], 'b.', markersize=2)
-    #plt.axis('equal')
+    # plt.axis('equal')
     plt.title('Computational Grid')
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"), transparent=True)
     plt.savefig(os.path.join(path_im, "Grid_new_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"), transparent=True)
-    #plt.close()
+    # plt.close()
     plt.show()
 
     # plot the interpolated velocity
-    if len(inter_vel_all) >0: #0
+    if len(inter_vel_all) > 0:  # 0
         cm = plt.cm.get_cmap('coolwarm')
         plt.figure()
         for r in range(0, len(inter_vel_all)):
             point_here = np.array(point_all_reach[r])
             inter_vel = inter_vel_all[r]
             if len(point_here[:, 0]) == len(inter_vel):
-                sc = plt.tricontourf(point_here[:, 0],point_here[:, 1], ikle_all[r], inter_vel
+                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_vel
                                      , min=-1e-5, max=np.nanmax(inter_vel), cmap=cm)
-                if r == len(inter_vel_all) -1:
-                    #plt.clim(0, np.nanmax(inter_vel))
+                if r == len(inter_vel_all) - 1:
+                    # plt.clim(0, np.nanmax(inter_vel))
                     cbar = plt.colorbar(sc)
                     cbar.ax.set_ylabel('Velocity [m/sec]')
             else:
@@ -3354,9 +3382,9 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated velocity')
-        #plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-        #plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-        #plt.close()
+        # plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
+        # plt.savefig(os.path.join(path_im, "Vel_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+        # plt.close()
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
@@ -3377,19 +3405,18 @@ def plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title('Interpolated water height')
-        #plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
-        #plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
-        #plt.close()
-        #plt.show()
+        # plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"))
+        # plt.savefig(os.path.join(path_im, "Water_height_inter_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"))
+        # plt.close()
+        # plt.show()
 
-    #plt.show()
+    # plt.show()
 
 
 def main():
     """
     Used to test this module
     """
-
 
     # #create grid mascaret
     # path = r'D:\Diane_work\output_hydro\mascaret'
@@ -3466,15 +3493,15 @@ def main():
     # print(b-a)
     #
     # #test hec-ras
-    #CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
+    # CAREFUL SOME DATA CAN BE IN IMPERIAL UNIT (no impact on the code, but result can look unlogical)
     path_test = r'D:\Diane_work\version\file_test\hecrasv4'
     name = 'CHANMOD'  # CRITCREK (22), LOOP (12)
     name_xml = name + '.O02.xml'
-    #name_xml = 'BaldEagle.RASexport.sdf'
+    # name_xml = 'BaldEagle.RASexport.sdf'
     name_geo = name + '.g01'
     path_im = r'D:\Diane_work\version\file_test\fig_test'
-    #coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
-    #ikle_sub = [[0, 1, 2]]
+    # coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
+    # ikle_sub = [[0, 1, 2]]
     from src import Hec_ras06
 
     [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
@@ -3482,22 +3509,23 @@ def main():
 
     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(
         coord_pro, 5, [], [], nb_pro_reach, [])
-    #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, [], [], path_im)
-    #plt.show()
+    # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, [], [], path_im)
+    # plt.show()
 
     for t in range(0, len(vh_pro)):
         which_pro = vh_pro[t]
         [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] \
-           = create_grid(coord_pro, 5, [], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
-        #[ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
-           # create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
+            = create_grid(coord_pro, 5, [], [], nb_pro_reach, which_pro)  # [], [] -> coord_sub, ikle_sub,
+        # [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all] = \
+        # create_grid_only_1_profile(coord_pro, nb_pro_reach, [])
         if which_pro:
             [inter_vel_all, inter_h_all] = interpo_linear(point_all_reach, coord_pro2, vh_pro[t])
-            plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all, inter_h_all, path_im)
-            #plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
+            plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, point_c_all, inter_vel_all,
+                      inter_h_all, path_im)
+            # plot_grid(point_all_reach, ikle_all, [], [], [], point_c_all, inter_vel_all, inter_height_all, path_im)
         else:
             pass
-            #plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
+            # plot_grid(point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, seg_island)
         plt.show()
 
     # cut 2D grid

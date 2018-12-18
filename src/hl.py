@@ -28,8 +28,9 @@
 # *  export data to binary VTK file.   *
 # **************************************
 
-from src import vtk # VtkFile, VtkUnstructuredGrid, etc.
+from src import vtk  # VtkFile, VtkUnstructuredGrid, etc.
 import numpy as np
+
 
 # =================================
 #       Helper functions      
@@ -38,7 +39,7 @@ def _addDataToFile(vtkFile, cellData, pointData):
     # Point data
     if pointData != None:
         keys = list(pointData.keys())
-        vtkFile.openData("Point", scalars = keys[0])
+        vtkFile.openData("Point", scalars=keys[0])
         for key in keys:
             data = pointData[key]
             vtkFile.addData(key, data)
@@ -47,11 +48,12 @@ def _addDataToFile(vtkFile, cellData, pointData):
     # Cell data
     if cellData != None:
         keys = list(cellData.keys())
-        vtkFile.openData("Cell", scalars = keys[0])
+        vtkFile.openData("Cell", scalars=keys[0])
         for key in keys:
             data = cellData[key]
             vtkFile.addData(key, data)
         vtkFile.closeData("Cell")
+
 
 def _appendDataToFile(vtkFile, cellData, pointData):
     # Append data to binary section
@@ -67,10 +69,11 @@ def _appendDataToFile(vtkFile, cellData, pointData):
             data = cellData[key]
             vtkFile.appendData(data)
 
+
 # =================================
 #       High level functions      
 # =================================
-def imageToVTK(path, origin = (0.0,0.0,0.0), spacing = (1.0,1.0,1.0), cellData = None, pointData = None ):
+def imageToVTK(path, origin=(0.0, 0.0, 0.0), spacing=(1.0, 1.0, 1.0), cellData=None, pointData=None):
     """ Exports data values as a rectangular image.
         
         PARAMETERS:
@@ -93,9 +96,9 @@ def imageToVTK(path, origin = (0.0,0.0,0.0), spacing = (1.0,1.0,1.0), cellData =
         NOTE: At least, cellData or pointData must be present to infer the dimensions of the image.
     """
     assert (cellData != None or pointData != None)
-    
+
     # Extract dimensions
-    start = (0,0,0)
+    start = (0, 0, 0)
     end = None
     if cellData != None:
         keys = list(cellData.keys())
@@ -109,8 +112,8 @@ def imageToVTK(path, origin = (0.0,0.0,0.0), spacing = (1.0,1.0,1.0), cellData =
 
     # Write data to file
     w = vtk.VtkFile(path, vtk.VtkImageData)
-    w.openGrid(start = start, end = end, origin = origin, spacing = spacing)
-    w.openPiece(start = start, end = end)
+    w.openGrid(start=start, end=end, origin=origin, spacing=spacing)
+    w.openPiece(start=start, end=end)
     _addDataToFile(w, cellData, pointData)
     w.closePiece()
     w.closeGrid()
@@ -118,8 +121,9 @@ def imageToVTK(path, origin = (0.0,0.0,0.0), spacing = (1.0,1.0,1.0), cellData =
     w.save()
     return w.getFileName()
 
+
 # ==============================================================================
-def gridToVTK(path, x, y, z, cellData = None, pointData = None):
+def gridToVTK(path, x, y, z, cellData=None, pointData=None):
     """
         Writes data values as a rectilinear or rectangular grid.
 
@@ -146,7 +150,7 @@ def gridToVTK(path, x, y, z, cellData = None, pointData = None):
 
     """
     # Extract dimensions
-    start = (0,0,0)
+    start = (0, 0, 0)
     nx = ny = nz = 0
 
     if (x.ndim == 1 and y.ndim == 1 and z.ndim == 1):
@@ -159,13 +163,12 @@ def gridToVTK(path, x, y, z, cellData = None, pointData = None):
         isRect = False
         ftype = vtk.VtkStructuredGrid
     else:
-        assert(False)
+        assert (False)
     end = (nx, ny, nz)
 
-
-    w =  vtk.VtkFile(path, ftype)
-    w.openGrid(start = start, end = end)
-    w.openPiece(start = start, end = end)
+    w = vtk.VtkFile(path, ftype)
+    w.openGrid(start=start, end=end)
+    w.openPiece(start=start, end=end)
 
     if isRect:
         w.openElement("Coordinates")
@@ -175,7 +178,7 @@ def gridToVTK(path, x, y, z, cellData = None, pointData = None):
         w.closeElement("Coordinates")
     else:
         w.openElement("Points")
-        w.addData("points", (x,y,z))
+        w.addData("points", (x, y, z))
         w.closeElement("Points")
 
     _addDataToFile(w, cellData, pointData)
@@ -185,7 +188,7 @@ def gridToVTK(path, x, y, z, cellData = None, pointData = None):
     if isRect:
         w.appendData(x).appendData(y).appendData(z)
     else:
-        w.appendData( (x,y,z) )
+        w.appendData((x, y, z))
     # Write data
     _appendDataToFile(w, cellData, pointData)
     w.save()
@@ -210,41 +213,42 @@ def pointsToVTK(path, x, y, z, data):
     """
     assert (x.size == y.size == z.size)
     npoints = x.size
-    
+
     # create some temporary arrays to write grid topology
-    offsets = np.arange(start = 1, stop = npoints + 1, dtype = 'int32')   # index of last node in each cell
-    connectivity = np.arange(npoints, dtype = 'int32')                    # each point is only connected to itself
-    cell_types = np.empty(npoints, dtype = 'uint8') 
-   
+    offsets = np.arange(start=1, stop=npoints + 1, dtype='int32')  # index of last node in each cell
+    connectivity = np.arange(npoints, dtype='int32')  # each point is only connected to itself
+    cell_types = np.empty(npoints, dtype='uint8')
+
     cell_types[:] = vtk.VtkVertex.tid
 
     w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
     w.openGrid()
-    w.openPiece(ncells = npoints, npoints = npoints)
-    
+    w.openPiece(ncells=npoints, npoints=npoints)
+
     w.openElement("Points")
-    w.addData("points", (x,y,z))
+    w.addData("points", (x, y, z))
     w.closeElement("Points")
     w.openElement("Cells")
     w.addData("connectivity", connectivity)
     w.addData("offsets", offsets)
     w.addData("types", cell_types)
     w.closeElement("Cells")
-    
-    _addDataToFile(w, cellData = None, pointData = data)
+
+    _addDataToFile(w, cellData=None, pointData=data)
 
     w.closePiece()
     w.closeGrid()
-    w.appendData( (x,y,z) )
+    w.appendData((x, y, z))
     w.appendData(connectivity).appendData(offsets).appendData(cell_types)
 
-    _appendDataToFile(w, cellData = None, pointData = data)
+    _appendDataToFile(w, cellData=None, pointData=data)
 
     w.save()
     return w.getFileName()
 
+
 # ==============================================================================
-def linesToVTK(path, x, y, z, cellData = None, pointData = None):
+def linesToVTK(path, x, y, z, cellData=None, pointData=None):
     """
         Export line segments that joint 2 points and associated data.
 
@@ -267,43 +271,44 @@ def linesToVTK(path, x, y, z, cellData = None, pointData = None):
     assert (x.size % 2 == 0)
     npoints = x.size
     ncells = x.size / 2
-    
+
     # Check cellData has the same size that the number of cells
-    
+
     # create some temporary arrays to write grid topology
-    offsets = np.arange(start = 2, step = 2, stop = npoints + 1, dtype = 'int32')   # index of last node in each cell
-    connectivity = np.arange(npoints, dtype = 'int32')                              # each point is only connected to itself
-    cell_types = np.empty(npoints, dtype = 'uint8') 
-   
+    offsets = np.arange(start=2, step=2, stop=npoints + 1, dtype='int32')  # index of last node in each cell
+    connectivity = np.arange(npoints, dtype='int32')  # each point is only connected to itself
+    cell_types = np.empty(npoints, dtype='uint8')
+
     cell_types[:] = vtk.VtkLine.tid
 
     w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
     w.openGrid()
-    w.openPiece(ncells = ncells, npoints = npoints)
-    
+    w.openPiece(ncells=ncells, npoints=npoints)
+
     w.openElement("Points")
-    w.addData("points", (x,y,z))
+    w.addData("points", (x, y, z))
     w.closeElement("Points")
     w.openElement("Cells")
     w.addData("connectivity", connectivity)
     w.addData("offsets", offsets)
     w.addData("types", cell_types)
     w.closeElement("Cells")
-    
-    _addDataToFile(w, cellData = cellData, pointData = pointData)
+
+    _addDataToFile(w, cellData=cellData, pointData=pointData)
 
     w.closePiece()
     w.closeGrid()
-    w.appendData( (x,y,z) )
+    w.appendData((x, y, z))
     w.appendData(connectivity).appendData(offsets).appendData(cell_types)
 
-    _appendDataToFile(w, cellData = cellData, pointData = pointData)
+    _appendDataToFile(w, cellData=cellData, pointData=pointData)
 
     w.save()
     return w.getFileName()
 
+
 # ==============================================================================
-def polyLinesToVTK(path, x, y, z, pointsPerLine, cellData = None, pointData = None):
+def polyLinesToVTK(path, x, y, z, pointsPerLine, cellData=None, pointData=None):
     """
         Export line segments that joint 2 points and associated data.
 
@@ -329,46 +334,47 @@ def polyLinesToVTK(path, x, y, z, pointsPerLine, cellData = None, pointData = No
     assert (x.size == y.size == z.size)
     npoints = x.size
     ncells = pointsPerLine.size
-    
+
     # create some temporary arrays to write grid topology
-    offsets = np.zeros(ncells, dtype = 'int32')         # index of last node in each cell
+    offsets = np.zeros(ncells, dtype='int32')  # index of last node in each cell
     ii = 0
     for i in range(ncells):
         ii += pointsPerLine[i]
         offsets[i] = ii
-    
-    connectivity = np.arange(npoints, dtype = 'int32')      # each line connects points that are consecutive
-   
-    cell_types = np.empty(npoints, dtype = 'uint8') 
+
+    connectivity = np.arange(npoints, dtype='int32')  # each line connects points that are consecutive
+
+    cell_types = np.empty(npoints, dtype='uint8')
     cell_types[:] = vtk.VtkPolyLine.tid
 
     w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
     w.openGrid()
-    w.openPiece(ncells = ncells, npoints = npoints)
-    
+    w.openPiece(ncells=ncells, npoints=npoints)
+
     w.openElement("Points")
-    w.addData("points", (x,y,z))
+    w.addData("points", (x, y, z))
     w.closeElement("Points")
     w.openElement("Cells")
     w.addData("connectivity", connectivity)
     w.addData("offsets", offsets)
     w.addData("types", cell_types)
     w.closeElement("Cells")
-    
-    _addDataToFile(w, cellData = cellData, pointData = pointData)
+
+    _addDataToFile(w, cellData=cellData, pointData=pointData)
 
     w.closePiece()
     w.closeGrid()
-    w.appendData( (x,y,z) )
+    w.appendData((x, y, z))
     w.appendData(connectivity).appendData(offsets).appendData(cell_types)
 
-    _appendDataToFile(w, cellData = cellData, pointData = pointData)
+    _appendDataToFile(w, cellData=cellData, pointData=pointData)
 
     w.save()
     return w.getFileName()
 
+
 # ==============================================================================
-def unstructuredGridToVTK(path, x, y, z, connectivity, offsets, cell_types, cellData = None, pointData = None):
+def unstructuredGridToVTK(path, x, y, z, connectivity, offsets, cell_types, cellData=None, pointData=None):
     """
         Export unstructured grid and associated data.
 
@@ -399,32 +405,33 @@ def unstructuredGridToVTK(path, x, y, z, connectivity, offsets, cell_types, cell
     npoints = x.size
     ncells = cell_types.size
     assert (offsets.size == ncells)
-    
+
     w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
     w.openGrid()
-    w.openPiece(ncells = ncells, npoints = npoints)
-    
+    w.openPiece(ncells=ncells, npoints=npoints)
+
     w.openElement("Points")
-    w.addData("points", (x,y,z))
+    w.addData("points", (x, y, z))
     w.closeElement("Points")
     w.openElement("Cells")
     w.addData("connectivity", connectivity)
     w.addData("offsets", offsets)
     w.addData("types", cell_types)
     w.closeElement("Cells")
-    
-    _addDataToFile(w, cellData = cellData, pointData = pointData)
+
+    _addDataToFile(w, cellData=cellData, pointData=pointData)
 
     w.closePiece()
     w.closeGrid()
-    w.appendData( (x,y,z) )
+    w.appendData((x, y, z))
     w.appendData(connectivity).appendData(offsets).appendData(cell_types)
 
-    _appendDataToFile(w, cellData = cellData, pointData = pointData)
+    _appendDataToFile(w, cellData=cellData, pointData=pointData)
 
     w.save()
     return w.getFileName()
-    
+
+
 # ==============================================================================
 def cylindricalToVTK(path, x, y, z, sh, cellData):
     """
@@ -459,55 +466,52 @@ def cylindricalToVTK(path, x, y, z, sh, cellData):
             Full path to saved file.
 
     """
-    assert(x.size==y.size==z.size)
-    s=sh+(1,0,1)
+    assert (x.size == y.size == z.size)
+    s = sh + (1, 0, 1)
     npoints = np.prod(s)
     ncells = np.prod(sh)
-    
-    
-    assert(npoints==x.size)
-    
-    # create some temporary arrays to write grid topology
-    offsets = np.arange(start = 8, stop = 8*(ncells + 1), step=8, dtype = 'int32')   # index of last node in each cell
-    cell_types = np.empty(ncells, dtype = 'uint8') 
-    cell_types[:] = vtk.VtkHexahedron.tid
-    
-    # create connectivity
-    connectivity = np.empty(8*ncells, dtype = 'int32') 
-    i=0
 
-    for zeta in range(0,sh[2]):
-        for tita in range(0,sh[1]):
-            for r in range(0,sh[0]):
-                for d in ((0,0,0),(1,0,0),(1,1,0),(0,1,0),(0,0,1),(1,0,1),(1,1,1),(0,1,1)):
-                    connectivity[i]=r+d[0]+s[0]*((tita+d[1])%s[1])+s[0]*s[1]*(zeta+d[2])
-                    i+=1
+    assert (npoints == x.size)
+
+    # create some temporary arrays to write grid topology
+    offsets = np.arange(start=8, stop=8 * (ncells + 1), step=8, dtype='int32')  # index of last node in each cell
+    cell_types = np.empty(ncells, dtype='uint8')
+    cell_types[:] = vtk.VtkHexahedron.tid
+
+    # create connectivity
+    connectivity = np.empty(8 * ncells, dtype='int32')
+    i = 0
+
+    for zeta in range(0, sh[2]):
+        for tita in range(0, sh[1]):
+            for r in range(0, sh[0]):
+                for d in ((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0), (0, 0, 1), (1, 0, 1), (1, 1, 1), (0, 1, 1)):
+                    connectivity[i] = r + d[0] + s[0] * ((tita + d[1]) % s[1]) + s[0] * s[1] * (zeta + d[2])
+                    i += 1
 
     w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
     w.openGrid()
-    w.openPiece(ncells = ncells, npoints = npoints)
-    
+    w.openPiece(ncells=ncells, npoints=npoints)
+
     w.openElement("Points")
-    w.addData("points", (x,y,z))
+    w.addData("points", (x, y, z))
     w.closeElement("Points")
     w.openElement("Cells")
     w.addData("connectivity", connectivity)
     w.addData("offsets", offsets)
     w.addData("types", cell_types)
     w.closeElement("Cells")
-    
+
     # adaptar cellData segun formato!!! 
-    
-    _addDataToFile(w, cellData = cellData, pointData = None)
+
+    _addDataToFile(w, cellData=cellData, pointData=None)
 
     w.closePiece()
     w.closeGrid()
-    w.appendData( (x,y,z) )
+    w.appendData((x, y, z))
     w.appendData(connectivity).appendData(offsets).appendData(cell_types)
 
-    _appendDataToFile(w, cellData = cellData, pointData = None)
+    _appendDataToFile(w, cellData=cellData, pointData=None)
 
     w.save()
     return w.getFileName()
-
-
