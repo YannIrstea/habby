@@ -1091,20 +1091,17 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
                        weight='bold')
         # general info
         if fig_opt['language'] == 0:
-            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA\
-                            fish code:\n\nStage chosen:\n\nDescription:",
+            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][2] \
                        + '\n\n' + code_fish + '\n\n'
         elif fig_opt['language'] == 1:
-            plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA\
-             :\n\nStage choisi :\n\nDescription :",
+            plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA:\n\nStade choisi :\n\nDescription :",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][1] + '\n\n' \
                        + code_fish + '\n\n'
         else:
-            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA\
-                fish code:\n\nStage chosen:\n\nDescription:",
+            plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][2] \
                        + '\n\n' + code_fish + '\n\n'
