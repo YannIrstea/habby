@@ -168,8 +168,6 @@ def save_slf(name_hdf5, path_hdf5, path_slf, merge, output_name='', habitat=[]):
     :param merge: a boolean to know if you have substrate or not
     :return:
     """
-    print('export here')
-
     # load hdf5
     if not merge:
         [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5,

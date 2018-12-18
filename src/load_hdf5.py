@@ -329,9 +329,18 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
                 child2s = root.findall(".//" + model_type + "/" + type_hdf5)
                 if child2s is not None:
                     found_att_text = False
-                    for c in child2s:
-                        if c.text == h5name:
+                    for i, c in enumerate(child2s):
+                        if c.text == h5name:  # if same : remove/recreate at the end (for the last file create labels)
                             found_att_text = True
+                            index_origin = i
+                    if found_att_text:
+                        # existing element
+                        element = child2s[index_origin]
+                        # remove existing
+                        child.remove(element)
+                        # add existing to the end
+                        hdf5file = ET.SubElement(child, type_hdf5)
+                        hdf5file.text = h5name
                     if not found_att_text:
                         hdf5file = ET.SubElement(child, type_hdf5)
                         hdf5file.text = h5name
@@ -774,6 +783,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
         habitat_group = file_hydro.create_group("habitat")
 
     # for all units (timestep or discharge)
+    fish_replaced = []
     for t in range(1, nb_t + 1):
         if 'unit_' + str(t - 1) in habitat_group:  # if exist take it
             unit_group = habitat_group['unit_' + str(t - 1)]
@@ -793,23 +803,18 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
                     del reach_group[fish_name[s]]
                     fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
                                                               data=vh_cell[s][t][r], maxshape=None)
-                    print(f'Warning: information of {fish_name[s]} has been replaced.\n')
+                    fish_replaced.append(fish_name[s])
                 else:
                     fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
                                                               data=vh_cell[s][t][r], maxshape=None)
                 # add fish attributes
                 fish_dataset.attrs['WUA'] = str(spu_all[s][t][0])
                 fish_dataset.attrs['HV'] = str(spu_all[s][t][0] / area_all[t][0])
-
-            # velg = rhere.create_group('velocity_by_cell_reach_' + str(r))
-            # if len(v_cell[t][r]) > 0:
-            #     velg.create_dataset(hdf5_name, [len(v_cell[t][r]), 1], data=h_cell[t][r],
-            #                         maxshape=None)
-            # velg = rhere.create_group('height_by_cell_reach_'+str(r))
-            # if len(h_cell[t][r]) > 0:
-            #     velg.create_dataset(hdf5_name, [len(h_cell[t][r]), 1], data=h_cell[t][r],
-            #                         maxshape=None)
-
+    # info fish replacement
+    if fish_replaced:
+        fish_replaced = set(fish_replaced)
+        fish_replaced = "; ".join(fish_replaced)
+        print(f'Warning: fish(s) information replaced in hdf5 file ({fish_replaced}).\n')
     file_hydro.attrs['hdf5_type'] = "habitat"
     file_hydro.close()
     time.sleep(1)  # as we need to insure different group of name

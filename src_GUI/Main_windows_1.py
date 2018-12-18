@@ -341,8 +341,8 @@ class MainWindows(QMainWindow):
         # get hydraulic type open
         ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
         # if plot process are open, close them
-        if hasattr(self.central_widget.plot_tab.GroupPlot, 'plot_process_list'):
-            self.central_widget.plot_tab.GroupPlot.plot_process_list.close_all_plot_process()
+        if hasattr(self.central_widget.plot_tab.group_plot, 'plot_process_list'):
+            self.central_widget.plot_tab.group_plot.plot_process_list.close_all_plot_process()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
@@ -1861,6 +1861,9 @@ class CentralW(QWidget):
         # save the description and the figure option if tab changed
         self.tab_widget.currentChanged.connect(self.save_on_change_tab)
 
+        # update plot item in plot tab
+        self.tab_widget.currentChanged.connect(self.update_plot_items_in_plot_tab)
+
         # layout
         self.layoutc = QGridLayout()
         self.layoutc.addWidget(self.tab_widget, 1, 0)
@@ -1950,8 +1953,8 @@ class CentralW(QWidget):
         A small function to close the images open in HABBY and managed by matplotlib
         """
         if hasattr(self, 'plot_tab'):
-            if hasattr(self.plot_tab.GroupPlot, 'plot_process_list'):
-                self.plot_tab.GroupPlot.plot_process_list.close_all_plot_process()
+            if hasattr(self.plot_tab.group_plot, 'plot_process_list'):
+                self.plot_tab.group_plot.plot_process_list.close_all_plot_process()
 
     def optfig(self):
         """
@@ -2203,11 +2206,6 @@ class CentralW(QWidget):
                         self.substrate_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
                         self.hydro_tab.drop_hyd.addItem(os.path.basename(self.hyd_name[i]))
 
-            # reset graphics tab
-            current = self.plot_tab.GroupPlot.types_hdf5_QComboBox.currentIndex()
-            self.plot_tab.GroupPlot.types_hdf5_QComboBox.setCurrentIndex(0)
-            self.plot_tab.GroupPlot.types_hdf5_QComboBox.setCurrentIndex(current)
-
     def save_info_projet(self):
         """
         This function is used to save the description of the project and the username in the xml project file
@@ -2264,6 +2262,10 @@ class CentralW(QWidget):
             if self.bioinfo_tab.m_all.itemText(i)[:7] != 'Chronic':
                 self.chronicle_tab.merge_all.addItem(self.bioinfo_tab.m_all.itemText(i))
                 self.chronicle_tab.merge_all.setItemData(i, self.bioinfo_tab.tooltip[i], Qt.ToolTipRole)
+
+    def update_plot_items_in_plot_tab(self):
+        if self.tab_widget.currentIndex() == 9:
+            self.plot_tab.group_plot.types_hdf5_change()
 
 
 class WelcomeW(QScrollArea):

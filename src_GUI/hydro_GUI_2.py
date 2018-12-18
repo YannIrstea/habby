@@ -904,21 +904,21 @@ class SubHydroW(QWidget):
             if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
                 self.send_log.emit(
                     self.tr("Merging of substrate and hydraulic data finished (computation time = ") + str(
-                        self.running_time) + " s).")
+                        self.running_time) + " s).\n")
+                self.send_log.emit(
+                    self.tr("Figures can be displayed/exported from graphics tab.\n"))
                 self.drop_merge.emit()
                 # update last name
                 self.name_last_hdf5("hdf5_mergedata")
-                print("update merge")
             else:
                 self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(
                     self.running_time) + " s).")
                 self.send_log.emit(
-                    self.tr("Figures can be displayed from create figure button or from graphics tab.\n"))
+                    self.tr("Figures can be displayed/exported from graphics tab.\n"))
                 # send a signal to the substrate tab so it can account for the new info
                 self.drop_hydro.emit()
                 # update last name
                 self.name_last_hdf5(self.model_type)
-                print("update ", self.model_type)
             self.send_log.emit("clear status bar")
             self.running_time = 0
 
@@ -972,7 +972,7 @@ class SubHydroW(QWidget):
             units = units_raw
             units_index = [0]
         types_plot = "display"
-        self.nativeParentWidget().central_widget.plot_tab.GroupPlot.plot(types_hdf5, names_hdf5, variables, units,
+        self.nativeParentWidget().central_widget.plot_tab.group_plot.plot(types_hdf5, names_hdf5, variables, units,
                                                                          units_index, types_plot)
 
     def create_image_merge(self, save_fig=True, show_info=False):
@@ -999,7 +999,7 @@ class SubHydroW(QWidget):
             units = units_raw
             units_index = [0]
         types_plot = "display"
-        self.nativeParentWidget().central_widget.plot_tab.GroupPlot.plot(types_hdf5, names_hdf5, variables, units,
+        self.nativeParentWidget().central_widget.plot_tab.group_plot.plot(types_hdf5, names_hdf5, variables, units,
                                                                          units_index, types_plot)
 
     def name_last_hdf5(self, type):
@@ -1028,6 +1028,7 @@ class SubHydroW(QWidget):
                         self.last_hydraulic_file_name_label.setText(name)
                     if type == "hdf5_substrate":
                         self.last_sub_file_name_label.setText(name)
+                        self.last_subcst_file_name_label.setText(name)
                     if type == "hdf5_mergedata":
                         self.last_merge_file_name_label.setText(name)
 
@@ -3560,7 +3561,7 @@ class SubstrateW(SubHydroW):
         self.rb2.clicked.connect(lambda: self.btnstate(self.rb2, self.rb1))
         self.rb2.clicked.connect(self.add_const_widgets)
 
-        # to load substrate data from file
+        # FROMFILE to load substrate data
         l00 = QLabel(self.tr('<b>Substrate from File </b>'))
         l2 = QLabel(self.tr('File'))
         lh = QLabel(self.tr('hdf5 file name'))
@@ -3568,11 +3569,10 @@ class SubstrateW(SubHydroW):
         self.e2 = QComboBox()
         self.e2.addItems(self.all_code_type)
         self.hname = QLineEdit('')  # hdf5 name
-        self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
-        # choose file button
+        # FROMFILE choose file button
         self.h2d_b = QPushButton(self.tr('Choose file (.txt, .shp)'), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
         self.h2d_b.clicked.connect(
@@ -3580,23 +3580,22 @@ class SubstrateW(SubHydroW):
         self.h2d_b.clicked.connect(
             lambda: self.h2d_t2.setText(self.namefile[0]))
 
-        # if there was substrate info before, update the label and attibutes
+        # FROMFILE if there was substrate info before, update the label and attibutes
         self.was_model_loaded_before()
         self.get_att_name()
         self.h2d_t2 = QLabel(self.namefile[0], self)
         self.h2d_t2.setToolTip(self.pathfile[0])
 
-        # the load button from file
+        # FROMFILE the load button from file
         self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sub_gui)
 
-        # get the last file created
+        # FROMFILE get the last file created
         last_sub_file_label = QLabel(self.tr('Last file created'))
         self.last_sub_file_name_label = QLabel(self.tr('No file'))
-        self.name_last_hdf5(type="hdf5_substrate")  # find the name of the last merge file and add it to self.lm2
 
-        # to load constant substrate
+        # CSTCASE to load constant substrate
         self.l4 = QLabel(self.tr('<b> Load constant substrate </b>'))
         l12 = QLabel(self.tr('Constant substrate value'))
         self.e1 = QLineEdit('1')  # constant substrate value
@@ -3605,12 +3604,17 @@ class SubstrateW(SubHydroW):
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
 
-        # the load button for constant substrate
+        # CSTCASE the load button for constant substrate
         self.load_const = QPushButton(self.tr('Load const. data and create hdf5'), self)
         self.load_const.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_const.clicked.connect(lambda: self.load_sub_gui(True))
 
-        # label and button for the part to merge the grid
+        # CSTCASE get the last file created for constant substrate
+        last_subcst_file_label = QLabel(self.tr('Last file created'))
+        self.last_subcst_file_name_label = QLabel(self.tr('No file'))
+        self.name_last_hdf5(type="hdf5_substrate")  # find th
+
+        # MERGE label and button for the part to merge the grid
         l9 = QLabel(self.tr("Hydraulic data (hdf5)"))
         l10 = QLabel(self.tr("Substrate data (hdf5)"))
         self.drop_hyd = QComboBox()
@@ -3621,8 +3625,6 @@ class SubstrateW(SubHydroW):
         self.load_b2.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)
-        # self.butfig2 = QPushButton(self.tr("create figure"))
-        # self.butfig2.clicked.connect(self.create_image_merge)
         l11 = QLabel(self.tr('Default substrate value:'))
         l112 = QLabel(self.tr('Cemagref Code'))
         self.e3 = QLineEdit('1')  # default substrate value
@@ -3635,9 +3637,6 @@ class SubstrateW(SubHydroW):
         lm1 = QLabel(self.tr('Last file created'))
         self.last_merge_file_name_label = QLabel(self.tr('No file'))
         self.name_last_hdf5(type="hdf5_mergedata")  # find the name of the last merge file and add it to self.lm2
-        # if self.lm2.text() == self.tr('No file'):
-        #     self.butfig2.setDisabled(True)
-        spacer = QSpacerItem(1, 20)
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -3669,7 +3668,9 @@ class SubstrateW(SubHydroW):
         self.layout_const.addWidget(l13, 1, 2)
         self.layout_const.addWidget(lh2, 2, 0)
         self.layout_const.addWidget(self.hname2, 2, 1)
-        self.layout_const.addWidget(self.load_const, 3, 2)
+        self.layout_const.addWidget(self.load_const, 2, 2)
+        self.layout_const.addWidget(last_subcst_file_label, 3, 0)
+        self.layout_const.addWidget(self.last_subcst_file_name_label, 3, 1)
         self.const_part = QWidget()
         self.const_part.setLayout(self.layout_const)
 
@@ -3689,13 +3690,11 @@ class SubstrateW(SubHydroW):
 
         # layout merge
         self.layout_merge = QGridLayout()
-        # self.layout_merge.addItem(spacer, 6, 1)
         self.layout_merge.addWidget(l9, 11, 0)
         self.layout_merge.addWidget(self.drop_hyd, 11, 1)
         self.layout_merge.addWidget(l10, 12, 0)
         self.layout_merge.addWidget(self.drop_sub, 12, 1)
         self.layout_merge.addWidget(self.load_b2, 14, 2)
-        # self.layout_merge.addWidget(self.butfig2, 15, 3)
         self.layout_merge.addWidget(l11, 13, 0)
         self.layout_merge.addWidget(self.e3, 13, 1)
         self.layout_merge.addWidget(l112, 13, 2)
@@ -3705,7 +3704,7 @@ class SubstrateW(SubHydroW):
         self.layout_merge.addWidget(self.last_merge_file_name_label, 15, 1)
         self.layout_merge.addItem(self.spacer2, 11, 1)
         # group merge
-        merge_group = QGroupBox(self.tr('Merge the hydraulic and substrate grid'))
+        merge_group = QGroupBox(self.tr('Merging of hydraulic and substrate grids'))
         merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         merge_group.setLayout(self.layout_merge)
@@ -3753,28 +3752,6 @@ class SubstrateW(SubHydroW):
         self.const_part.hide()
         self.file_part.show()
 
-    # def name_last_sub(self):
-    #     """
-    #     This function opens the xml project file to find the name of the last hdf5 substrate file and to add it
-    #     to the GUI on the QLabel self.last_sub_file_name_label. It also add a QToolTip with the name of substrate and hydraulic files used
-    #     to create this merge file. If there is no file found, this function do nothing.
-    #     """
-    #     filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-    #     # save the name and the path in the xml .prj file
-    #     if not os.path.isfile(filename_path_pro):
-    #         self.send_log.emit('Error: The project is not saved. '
-    #                           'Save the project in the General tab before saving hydraulic data. \n')
-    #     else:
-    #         path_hdf5 = self.find_path_hdf5()
-    #         doc = ET.parse(filename_path_pro)
-    #         root = doc.getroot()
-    #         # geo data
-    #         child1 = root.findall(".//SUBSTRATE/hdf5_substrate")
-    #         if child1 is not None:
-    #             if len(child1) > 0:
-    #                 mergename = child1[-1].text
-    #                 self.last_sub_file_name_label.setText(mergename)
-
     def load_sub_gui(self, const_sub=False):
         """
         This function is used to load the substrate data. The substrate data can be in three forms: a) in the form of a shp
@@ -3790,6 +3767,17 @@ class SubstrateW(SubHydroW):
 
         """
 
+        # if hdf5_filename_output empty: msg
+        if const_sub:
+            if not self.hname2.text():
+                self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
+                return
+        if not const_sub:
+            if not self.hname.text():
+                self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
+                return
+
+        # info
         self.send_log.emit(self.tr('# Loading: Substrate data...'))
         self.load_b.setDisabled(True)
 
@@ -3822,7 +3810,7 @@ class SubstrateW(SubHydroW):
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
-            # self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
+            #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
 
         # sub from txt or shp
         else:
@@ -3956,17 +3944,15 @@ class SubstrateW(SubHydroW):
                                                      self.ikle_sub,
                                                      self.coord_p, [], [], self.name_hdf5, False, self.model_type, True)
 
-            # show image
-            # self.recreate_image_sub(True)
-            self.butfig1.setEnabled(True)
-
         # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
         self.update_sub_hdf5_name()
+        # update last name
+        self.name_last_hdf5("hdf5_substrate")
 
-        self.butfig1.setEnabled(True)
         self.load_b.setDisabled(False)
 
-        self.send_log.emit('Loading of substrate data finished. \n')
+        self.send_log.emit(self.tr("Loading of substrate data finished. \n"))
+        self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
 
     def recreate_image_sub(self, save_fig=False):
         """
@@ -3990,7 +3976,7 @@ class SubstrateW(SubHydroW):
         units = ["no unit"]
         units_index = [0]
         types_plot = "display"
-        self.nativeParentWidget().central_widget.plot_tab.GroupPlot.plot(types_hdf5, names_hdf5, variables, units,
+        self.nativeParentWidget().central_widget.plot_tab.group_plot.plot(types_hdf5, names_hdf5, variables, units,
                                                                          units_index, types_plot)
 
     def update_sub_hdf5_name(self):
@@ -4082,6 +4068,11 @@ class SubstrateW(SubHydroW):
 
         This function can be slow so it call on a second thread.
         """
+        # if hdf5_filename_output empty: msg
+        if not self.hdf5_merge_lineedit.text():
+            self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
+            return
+
         self.send_log.emit('# Merging: substrate and hydraulic grid...')
 
         # get useful data

@@ -48,7 +48,7 @@ class PlotTab(QScrollArea):
 
     def init_iu(self):
         # GroupPlot
-        self.GroupPlot = GroupPlot()
+        self.group_plot = GroupPlot()
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -62,8 +62,8 @@ class PlotTab(QScrollArea):
         # add widgets to layout
         self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
         self.plot_layout.setAlignment(Qt.AlignTop)
-        self.plot_layout.addWidget(self.GroupPlot)
-        self.GroupPlot.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.plot_layout.addWidget(self.group_plot)
+        self.group_plot.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         # add layout
         self.setWidgetResizable(True)
@@ -191,7 +191,7 @@ class GroupPlot(QGroupBox):
         """
         count number of graphic to produce and ajust progress bar range
         """
-        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_plot_from_gui()
+        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_from_gui()
         if types_hdf5 and names_hdf5 and variables and units:
             if types_hdf5 == "habitat":
                 variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
@@ -347,7 +347,7 @@ class GroupPlot(QGroupBox):
         # update progress bar
         self.count_plot()
 
-    def collect_data_plot_from_gui(self):
+    def collect_data_from_gui(self):
         """
         Get selected values by user
         """
@@ -373,8 +373,8 @@ class GroupPlot(QGroupBox):
         for i in range(len(selection)):
             units.append(selection[i].text())
             units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
-        together = zip(units_index, units)  # TRIS DANS ORDRE TRONCON
-        sorted_together = sorted(together, reverse=True)  # TRIS DANS ORDRE TRONCON
+        together = zip(units_index, units)
+        sorted_together = sorted(together, reverse=True)
         units_index = [x[0] for x in sorted_together]
         units = [x[1] for x in sorted_together]
 
@@ -388,7 +388,7 @@ class GroupPlot(QGroupBox):
         """
         Get selected values by user and plot them
         """
-        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_plot_from_gui()
+        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_from_gui()
         self.plot(types_hdf5, names_hdf5, variables, units, units_index, types_plot)
 
     def plot(self, types_hdf5, names_hdf5, variables, units, units_index, types_plot):
@@ -408,13 +408,13 @@ class GroupPlot(QGroupBox):
         print("units_index : ", units_index)
         print("types_plot : ", types_plot)
         if not types_hdf5:
-            self.parent().parent().parent().send_log.emit('Error: No hdf5 type selected. \n')
+            self.parent().parent().parent().send_log.emit('Error: No hdf5 type selected.')
         if not names_hdf5:
-            self.parent().parent().parent().send_log.emit('Error: No hdf5 file selected. \n')
+            self.parent().parent().parent().send_log.emit('Error: No hdf5 file selected.')
         if not variables:
-            self.parent().parent().parent().send_log.emit('Error: No variable selected. \n')
+            self.parent().parent().parent().send_log.emit('Error: No variable selected.')
         if not units:
-            self.parent().parent().parent().send_log.emit('Error: No units selected. \n')
+            self.parent().parent().parent().send_log.emit('Error: No units selected.')
         if types_hdf5 and names_hdf5 and variables and units:
             # figure option
             fig_opt = output_fig_GUI.load_fig_option(self.parent().parent().parent().path_prj,
