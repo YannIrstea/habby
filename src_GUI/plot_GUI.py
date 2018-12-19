@@ -196,18 +196,29 @@ class GroupPlot(QGroupBox):
             if types_hdf5 == "habitat":
                 variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
                 fish_names = [variable for variable in variables if variable not in variables_to_remove]
-                if fish_names:
-                    nb_variable_type_fish = len(fish_names)
-                    nb_plot_total = (len(names_hdf5) * len(variables) * len(units)) + nb_variable_type_fish * len(units)
-                else:
+                variables_other = [variable for variable in variables if variable not in fish_names]
+                if len(fish_names) == 0:
                     nb_plot_total = len(names_hdf5) * len(variables) * len(units)
+                if len(fish_names) == 1:
+                    # one map by fish by unit
+                    nb_map = len(fish_names) * len(units)
+                    if len(units) == 1:
+                        nb_wua_hv = len(fish_names) * len(units)
+                    if len(units) > 1:
+                        nb_wua_hv = len(fish_names)
+                    nb_plot_total = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + nb_wua_hv
+                if len(fish_names) > 1:
+                    # one map by fish by unit
+                    nb_map = len(fish_names) * len(units)
+                    nb_plot_total_hab = nb_map + 1
+                    nb_plot_total = (len(names_hdf5) * len(variables_other) * len(units)) + nb_plot_total_hab
             else:
                 nb_plot_total = len(names_hdf5) * len(variables) * len(units)
             self.nb_plot = nb_plot_total
             self.progress_bar.setRange(0, self.nb_plot)
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
-        if not types_hdf5 or not names_hdf5 or not variables or not units:
+        else:
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
             self.nb_plot = 0
@@ -401,12 +412,12 @@ class GroupPlot(QGroupBox):
         :param units_index: list of integer representing the position of units in hdf5 file
         :param types_plot: string representing plot types production ("display", "export", "both")
         """
-        print("types_hdf5 : ", types_hdf5)
-        print("names_hdf5 : ", names_hdf5)
-        print("variables : ", variables)
-        print("units : ", units)
-        print("units_index : ", units_index)
-        print("types_plot : ", types_plot)
+        # print("types_hdf5 : ", types_hdf5)
+        # print("names_hdf5 : ", names_hdf5)
+        # print("variables : ", variables)
+        # print("units : ", units)
+        # print("units_index : ", units_index)
+        # print("types_plot : ", types_plot)
         if not types_hdf5:
             self.parent().parent().parent().send_log.emit('Error: No hdf5 type selected.')
         if not names_hdf5:
@@ -431,10 +442,8 @@ class GroupPlot(QGroupBox):
 
             # check plot process done
             if self.plot_process_list.check_all_plot_closed():
-                print("new_plots")
                 self.plot_process_list.new_plots(self.nb_plot)
             else:
-                print("add_plots")
                 self.plot_process_list.add_plots(self.nb_plot)
 
             self.progress_bar.setValue(0)
@@ -443,30 +452,26 @@ class GroupPlot(QGroupBox):
 
             # for all hdf5 file
             for name_hdf5 in names_hdf5:
-                # load hydraulic data
-                if types_hdf5 == "hydraulic":
+                # read hdf5 data (get all units)
+                if types_hdf5 == "hydraulic":  # load hydraulic data
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(
                         name_hdf5,
                         path_hdf5)
-                # load substrate data
-                if types_hdf5 == "substrate":
+                if types_hdf5 == "substrate":  # load substrate data
                     [ikle_sub, point_all_sub, sub_pg, sub_dom] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
-                # load merge data
-                if types_hdf5 == "merge":
+                if types_hdf5 == "merge":  # load merge data
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
                      substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
-                # load chronic data
-                if types_hdf5 == "chronic":
+                if types_hdf5 == "chronic":  # load chronic data
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
                      substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
-                # load habitat data
-                if types_hdf5 == "habitat":
+                if types_hdf5 == "habitat":  # load habitat data
                     variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
                     fish_names = [variable for variable in variables if variable not in variables_to_remove]
                     if fish_names:  # get all data (hydraulic and substrate and fish habiat)
                         [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg, substrate_all_dom,
-                         fish_data, total_wetarea_all_t] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names)
-                    else:  # get only input data data (hydraulic and substrate)
+                         fish_data, total_wetarea_all_t] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
+                    else:  # get only input data merge (hydraulic and substrate)
                         [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
                          substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
 
@@ -482,78 +487,105 @@ class GroupPlot(QGroupBox):
                         self.parent().parent().parent().send_log.emit('Error: Not enough point found to form a grid \n')
                         return
 
-                # for each units (timestep or discharge)
+                # output data (HV and WUA)
+                if fish_names:
+                    state = Value("i", 0)  # process not finished
+                    # area_all, spu_all, name_fish, path_im, name_base, fig_opt
+                    plot_hab_fig_spu_process = Process(target=manage_grid_8.plot_hab_fig_spu,
+                                             args=(state,
+                                                   total_wetarea_all_t,
+                                                   fish_data["total_WUA"],
+                                                   fish_names,
+                                                   path_im,
+                                                   name_hdf5,
+                                                   fig_opt))
+                    plot_hab_fig_spu_process.start()
+                    self.plot_process_list.append((plot_hab_fig_spu_process, state))
+
+                # for each desired units (timestep or discharge) ==> maps
                 for index, t in enumerate(units_index):  # self.fig_opt['time_step'] # range(0, len(vel_cell)):
                     t = t + 1
-                    # height
-                    if "height" in variables:
+                    # input data
+                    if "height" in variables:  # height
                         state = Value("i", 0)  # process not finished
-                        height_process = Process(target=manage_grid_8.plot_grid_height, args=(state,
-                                                                                              point_all_t[t],
-                                                                                              ikle_all_t[t], fig_opt,
-                                                                                              name_hdf5,
-                                                                                              inter_h_all_t[t],
-                                                                                              path_im, units[index]))
+                        height_process = Process(target=manage_grid_8.plot_grid_height,
+                                                 args=(state,
+                                                       point_all_t[index + 1],
+                                                       ikle_all_t[index + 1],
+                                                       fig_opt,
+                                                       name_hdf5,
+                                                       inter_h_all_t[index + 1],
+                                                       path_im, units[index]))
                         height_process.start()
                         self.plot_process_list.append((height_process, state))
-                    # velocity
-                    if "velocity" in variables:
+                    if "velocity" in variables:  # velocity
                         state = Value("i", 0)  # process not finished
-                        velocity_process = Process(target=manage_grid_8.plot_grid_velocity, args=(state,
-                                                                                                  point_all_t[t],
-                                                                                                  ikle_all_t[t],
-                                                                                                  fig_opt, name_hdf5,
-                                                                                                  inter_vel_all_t[t],
-                                                                                                  path_im,
-                                                                                                  units[index]))
+                        velocity_process = Process(target=manage_grid_8.plot_grid_velocity,
+                                                   args=(state,
+                                                      point_all_t[index + 1],
+                                                      ikle_all_t[index + 1],
+                                                      fig_opt, name_hdf5,
+                                                      inter_vel_all_t[index + 1],
+                                                      path_im,
+                                                      units[index]))
                         velocity_process.start()
                         self.plot_process_list.append((velocity_process, state))
-                    # mesh
-                    if "mesh" in variables:
+                    if "mesh" in variables:  # mesh
                         state = Value("i", 0)  # process not finished
-                        mesh_process = Process(target=manage_grid_8.plot_grid_mesh, args=(state,
-                                                                                          point_all_t[t], ikle_all_t[t],
-                                                                                          fig_opt, name_hdf5, path_im,
-                                                                                          units[index]))
+                        mesh_process = Process(target=manage_grid_8.plot_grid_mesh,
+                                               args=(state,
+                                                     point_all_t[index + 1],
+                                                     ikle_all_t[index + 1],
+                                                     fig_opt,
+                                                     name_hdf5,
+                                                     path_im,
+                                                     units[index]))
                         mesh_process.start()
                         self.plot_process_list.append((mesh_process, state))
-                    # coarser_dominant
-                    if "coarser_dominant" in variables:
+                    if "coarser_dominant" in variables:  # coarser_dominant
                         state = Value("i", 0)  # process not finished
                         if types_hdf5 == "substrate":
                             susbtrat_process = Process(target=manage_grid_8.plot_substrate,
-                                                       args=(state, point_all_sub, ikle_sub, sub_pg, sub_dom, path_im,
-                                                             name_hdf5, fig_opt))
+                                                       args=(state,
+                                                             point_all_sub,
+                                                             ikle_sub,
+                                                             sub_pg,
+                                                             sub_dom,
+                                                             path_im,
+                                                             name_hdf5,
+                                                             fig_opt))
                         else:
                             susbtrat_process = Process(target=manage_grid_8.plot_substrate,
-                                                       args=(state, point_all_t[t][0], ikle_all_t[t][0],
+                                                       args=(state,
+                                                             point_all_t[t][0],
+                                                             ikle_all_t[t][0],
                                                              substrate_all_pg[t][0],
-                                                             substrate_all_dom[t][0], path_im, name_hdf5, fig_opt,
+                                                             substrate_all_dom[t][0],
+                                                             path_im,
+                                                             name_hdf5,
+                                                             fig_opt,
                                                              units[index]))
                         susbtrat_process.start()
                         self.plot_process_list.append((susbtrat_process, state))
-                    # fish habitat
+
+                    # output data (maps)
                     if fish_names:
-                        # loop on fish
+                        # map by fish
                         for fish_index, fish_name in enumerate(fish_names):
                             # plot map
                             state = Value("i", 0)  # process not finished
                             habitat_map_process = Process(target=manage_grid_8.plot_fish_habitat_map,
-                                                          args=(state, fish_name,
-                                                                point_all_t[t][0], ikle_all_t[t][0],
-                                                                fish_data["HV_data"][t][fish_index], name_hdf5,
-                                                                fig_opt, path_im, units[index]))
+                                                          args=(state,
+                                                                fish_name,
+                                                                point_all_t[index + 1][0],
+                                                                ikle_all_t[index + 1][0],
+                                                                fish_data["HV_data"][index + 1][fish_index + 1],
+                                                                name_hdf5,
+                                                                fig_opt,
+                                                                path_im,
+                                                                units[index]))
                             habitat_map_process.start()
                             self.plot_process_list.append((habitat_map_process, state))
-
-                            # plot mean hist
-                            state = Value("i", 0)  # process not finished
-                            wua_hv_mean_process = Process(target=manage_grid_8.plot_wua_hv_mean,
-                                                          args=(state, fish_data["total_WUA"][t][fish_index],
-                                                                total_wetarea_all_t[t], fish_name, name_hdf5,
-                                                                fig_opt, path_im, units[index]))
-                            wua_hv_mean_process.start()
-                            self.plot_process_list.append((wua_hv_mean_process, state))
 
                 # show basic information
                 if show_info and len(ikle_all_t) > 0:

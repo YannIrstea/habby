@@ -820,7 +820,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
     time.sleep(1)  # as we need to insure different group of name
 
 
-def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
+def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
     """
     A function to load the habitat data contained in the hdf5 file in the form required by HABBY. If
     hdf5_name is an absolute path, the path_hdf5 is not used. If hdf5_name is a relative path, the path is
@@ -884,9 +884,10 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
     ikle_all_t.append(ikle_whole_all)
 
     # ikle by time step  #
-    for t in range(0, nb_t):
+    for t in units_index:
         ikle_whole_all = []
         for r in range(0, nb_r):
+
             name_ik = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/tin"
             try:
                 gen_dataset = file_hydro[name_ik]
@@ -924,7 +925,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
     point_all.append(point_whole_all)
 
     # coordinate of the point by time step #
-    for t in range(0, nb_t):
+    for t in units_index:
         point_whole_all = []
         for r in range(0, nb_r):
             name_pa = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/node/xy"
@@ -948,7 +949,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
     inter_height_all.append([])
     substrate_all_pg.append([])
     substrate_all_dom.append([])
-    for t in range(0, nb_t):
+    for t in units_index:
         h_all = []
         vel_all = []
         sub_pg_all = []
@@ -1017,34 +1018,61 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names):
     habitat_group = file_hydro["habitat"]
 
     # create empty list
-    total_HV_list = [[]]
-    total_WUA_list_all_t = [[]]
     HV_data_list_all_t = [[]]
     total_wetarea_all_t = [[]]
 
-    # for all units (timestep or discharge)
-    for t in range(1, nb_t + 1):
-        unit_group = habitat_group['unit_' + str(t - 1)]
+    # get vh for map
+    # for all units selected (timestep or discharge)
+    for t in units_index:
+        unit_group = habitat_group['unit_' + str(t)]
+        total_wetarea_all = []
         # for all reach
         for r in range(0, nb_r):
             reach_group = unit_group['reach_' + str(r)]
             # get reach attributes
-            total_wetarea_all_t.append(reach_group.attrs['AREA'])
-            HV_data_list = []
-            total_WUA_list = []
+            total_wetarea_all.append(float(reach_group.attrs['AREA']))
+            HV_data_list = [[]]
             # for all fish
             for s in range(0, len(fish_names)):
                 fish_dataset = reach_group[fish_names[s]]
-                total_HV_list.append(fish_dataset.attrs['HV'])
-                total_WUA_list.append(fish_dataset.attrs['WUA'])
                 HV_data_list.append(np.array(fish_dataset).flatten())
             HV_data_list_all_t.append(HV_data_list)
-            total_WUA_list_all_t.append(total_WUA_list)
+        total_wetarea_all_t.append(total_wetarea_all)
 
+    # get hv and wua
+    total_HV_list = []
+    total_WUA_list = []
+    fish_unit_reach_marker = []
+
+    # for all fish
+    for s in range(0, len(fish_names)):
+        total_WUA_list_f = [[]]
+        total_HV_list_f = [[]]
+        fish_unit_reach_marker_f = [[]]
+        # for all timestep
+        for t in units_index:
+            # for all reach
+            total_WUA_list_r = []
+            total_HV_list_r = []
+            fish_unit_reach_marker_r = []
+            for r in range(0, nb_r):
+                fish_dataset = habitat_group['unit_' + str(t)]['reach_' + str(r)][fish_names[s]]
+                total_WUA_list_r.append(float(fish_dataset.attrs['WUA']))
+                total_HV_list_r.append(float(fish_dataset.attrs['HV']))
+                fish_unit_reach_marker_r.append('unit_' + str(t) + ' reach_' + str(r) + " " + fish_names[s])
+            total_WUA_list_f.append(total_WUA_list_r)
+            total_HV_list_f.append(total_HV_list_r)
+            fish_unit_reach_marker_f.append(fish_unit_reach_marker_r)
+        total_WUA_list.append(total_WUA_list_f)
+        total_HV_list.append(total_HV_list_f)
+        fish_unit_reach_marker.append(fish_unit_reach_marker_f)
+
+    # stock data in dict
     fish_data_all_t = dict()
     fish_data_all_t["fish_names"] = fish_names
     fish_data_all_t["total_HV"] = total_HV_list
-    fish_data_all_t["total_WUA"] = total_WUA_list_all_t
+    fish_data_all_t["total_WUA"] = total_WUA_list
+    fish_data_all_t["markersforHVandWUA"] = fish_unit_reach_marker
     fish_data_all_t["HV_data"] = HV_data_list_all_t
 
     file_hydro.close()

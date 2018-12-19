@@ -166,7 +166,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     #                 name_base2, sim_name, erase_id)
     # plot_hist_biology(vh_all_t_sp, area_c_all, name_fish, fig_opt, path_im, timestep, name_base2, sim_name, erase_id)
     # 1d figure (done on the main thread, so not necessary)
-    # save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
+    print(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
+    save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
     # saving hdf5 data of the habitat value
     load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
