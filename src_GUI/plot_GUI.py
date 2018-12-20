@@ -20,7 +20,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QComboBox, QMessageBox, QFrame, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar
 from src import load_hdf5
-from src import manage_grid_8
+from src import plot as plot_hab
 from src_GUI import output_fig_GUI
 from multiprocessing import Process, Value
 
@@ -245,7 +245,7 @@ class GroupPlot(QGroupBox):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 # set list variable
-                self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
+                #self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
         # substrate
         if index == 2:
             # get list of file name by type
@@ -257,7 +257,7 @@ class GroupPlot(QGroupBox):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 # set list variable
-                self.variable_QListWidget.addItems(["coarser_dominant"])
+                #self.variable_QListWidget.addItems(["coarser_dominant"])
         # merge
         if index == 3:
             # get list of file name by type
@@ -268,7 +268,7 @@ class GroupPlot(QGroupBox):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 # set list variable
-                self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
+                #self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
         # chronic
         if index == 4:
             # get list of file name by type
@@ -279,7 +279,7 @@ class GroupPlot(QGroupBox):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 # set list variable
-                self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
+                #self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
         # habitat
         if index == 5:
             # get list of file name by type
@@ -290,7 +290,7 @@ class GroupPlot(QGroupBox):
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
                 # set list variable
-                self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
+                #self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
 
         # update progress bar
         self.count_plot()
@@ -300,21 +300,25 @@ class GroupPlot(QGroupBox):
         Ajust item list according to hdf5 filename selected by user
         """
         selection = self.names_hdf5_QListWidget.selectedItems()
-        if not selection:  # no file selected
-            self.units_QListWidget.clear()
+        self.units_QListWidget.clear()
+        self.variable_QListWidget.clear()
         if len(selection) == 1:  # one file selected
             hdf5name = selection[0].text()
             self.units_QListWidget.clear()
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
+                self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
                 self.units_QListWidget.addItems(
                     load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
+                self.variable_QListWidget.addItems(["coarser_dominant"])
+                self.variable_QListWidget.item(0).setSelected(True)
                 self.units_QListWidget.addItems(["one unit"])
                 self.units_QListWidget.item(0).setSelected(True)
             # merge
             if self.types_hdf5_QComboBox.currentIndex() == 3:
+                self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
                 self.units_QListWidget.addItems(
                     load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
             # chronic
@@ -322,6 +326,7 @@ class GroupPlot(QGroupBox):
                 pass
             # habitat
             if self.types_hdf5_QComboBox.currentIndex() == 5:
+                self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
                 self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name,
                                                                                     self.parent().parent().parent().path_prj + "/hdf5_files/"))
                 self.units_QListWidget.addItems(
@@ -352,8 +357,8 @@ class GroupPlot(QGroupBox):
                 if self.types_hdf5_QComboBox.currentIndex() == 1 or self.types_hdf5_QComboBox.currentIndex() == 3:  # hydraulic or merge
                     self.units_QListWidget.addItems(load_hdf5.load_unit_name(hdf5name[i],
                                                                              self.parent().parent().parent().path_prj + "/hdf5_files/"))
-                self.units_QListWidget.setFixedWidth(
-                    self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
+                # self.units_QListWidget.setFixedWidth(
+                #     self.units_QListWidget.sizeHintForColumn(0) + (self.units_QListWidget.sizeHintForColumn(0) * 0.6))
 
         # update progress bar
         self.count_plot()
@@ -384,10 +389,10 @@ class GroupPlot(QGroupBox):
         for i in range(len(selection)):
             units.append(selection[i].text())
             units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
-        together = zip(units_index, units)
-        sorted_together = sorted(together, reverse=True)
-        units_index = [x[0] for x in sorted_together]
-        units = [x[1] for x in sorted_together]
+        # together = zip(units_index, units)
+        # sorted_together = sorted(together, reverse=True)
+        # units_index = [x[0] for x in sorted_together]
+        # units = [x[1] for x in sorted_together]
 
         # type of plot
         types_plot = self.types_plot_QComboBox.currentText()
@@ -456,15 +461,15 @@ class GroupPlot(QGroupBox):
                 if types_hdf5 == "hydraulic":  # load hydraulic data
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(
                         name_hdf5,
-                        path_hdf5)
+                        path_hdf5, units_index=units_index)
                 if types_hdf5 == "substrate":  # load substrate data
                     [ikle_sub, point_all_sub, sub_pg, sub_dom] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
                 if types_hdf5 == "merge":  # load merge data
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
+                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
                 if types_hdf5 == "chronic":  # load chronic data
                     [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
+                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
                 if types_hdf5 == "habitat":  # load habitat data
                     variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
                     fish_names = [variable for variable in variables if variable not in variables_to_remove]
@@ -473,7 +478,7 @@ class GroupPlot(QGroupBox):
                          fish_data, total_wetarea_all_t] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
                     else:  # get only input data merge (hydraulic and substrate)
                         [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                         substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
+                         substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
 
                 # check validity susbtrate
                 if types_hdf5 == "substrate":
@@ -487,18 +492,19 @@ class GroupPlot(QGroupBox):
                         self.parent().parent().parent().send_log.emit('Error: Not enough point found to form a grid \n')
                         return
 
-                # output data (HV and WUA)
+                # habitat data (HV and WUA)
                 if fish_names:
                     state = Value("i", 0)  # process not finished
                     # area_all, spu_all, name_fish, path_im, name_base, fig_opt
-                    plot_hab_fig_spu_process = Process(target=manage_grid_8.plot_hab_fig_spu,
-                                             args=(state,
+                    plot_hab_fig_spu_process = Process(target=plot_hab.plot_fish_hv_wua,
+                                                       args=(state,
                                                    total_wetarea_all_t,
                                                    fish_data["total_WUA"],
                                                    fish_names,
                                                    path_im,
                                                    name_hdf5,
-                                                   fig_opt))
+                                                   fig_opt,
+                                                   units))
                     plot_hab_fig_spu_process.start()
                     self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
@@ -508,7 +514,7 @@ class GroupPlot(QGroupBox):
                     # input data
                     if "height" in variables:  # height
                         state = Value("i", 0)  # process not finished
-                        height_process = Process(target=manage_grid_8.plot_grid_height,
+                        height_process = Process(target=plot_hab.plot_map_height,
                                                  args=(state,
                                                        point_all_t[index + 1],
                                                        ikle_all_t[index + 1],
@@ -520,7 +526,7 @@ class GroupPlot(QGroupBox):
                         self.plot_process_list.append((height_process, state))
                     if "velocity" in variables:  # velocity
                         state = Value("i", 0)  # process not finished
-                        velocity_process = Process(target=manage_grid_8.plot_grid_velocity,
+                        velocity_process = Process(target=plot_hab.plot_map_velocity,
                                                    args=(state,
                                                       point_all_t[index + 1],
                                                       ikle_all_t[index + 1],
@@ -532,7 +538,7 @@ class GroupPlot(QGroupBox):
                         self.plot_process_list.append((velocity_process, state))
                     if "mesh" in variables:  # mesh
                         state = Value("i", 0)  # process not finished
-                        mesh_process = Process(target=manage_grid_8.plot_grid_mesh,
+                        mesh_process = Process(target=plot_hab.plot_map_mesh,
                                                args=(state,
                                                      point_all_t[index + 1],
                                                      ikle_all_t[index + 1],
@@ -545,7 +551,7 @@ class GroupPlot(QGroupBox):
                     if "coarser_dominant" in variables:  # coarser_dominant
                         state = Value("i", 0)  # process not finished
                         if types_hdf5 == "substrate":
-                            susbtrat_process = Process(target=manage_grid_8.plot_substrate,
+                            susbtrat_process = Process(target=plot_hab.plot_map_substrate,
                                                        args=(state,
                                                              point_all_sub,
                                                              ikle_sub,
@@ -555,12 +561,12 @@ class GroupPlot(QGroupBox):
                                                              name_hdf5,
                                                              fig_opt))
                         else:
-                            susbtrat_process = Process(target=manage_grid_8.plot_substrate,
+                            susbtrat_process = Process(target=plot_hab.plot_map_substrate,
                                                        args=(state,
-                                                             point_all_t[t][0],
-                                                             ikle_all_t[t][0],
-                                                             substrate_all_pg[t][0],
-                                                             substrate_all_dom[t][0],
+                                                             point_all_t[index + 1][0],
+                                                             ikle_all_t[index + 1][0],
+                                                             substrate_all_pg[index + 1][0],
+                                                             substrate_all_dom[index + 1][0],
                                                              path_im,
                                                              name_hdf5,
                                                              fig_opt,
@@ -568,13 +574,13 @@ class GroupPlot(QGroupBox):
                         susbtrat_process.start()
                         self.plot_process_list.append((susbtrat_process, state))
 
-                    # output data (maps)
+                    # habitat data (maps)
                     if fish_names:
                         # map by fish
                         for fish_index, fish_name in enumerate(fish_names):
                             # plot map
                             state = Value("i", 0)  # process not finished
-                            habitat_map_process = Process(target=manage_grid_8.plot_fish_habitat_map,
+                            habitat_map_process = Process(target=plot_hab.plot_map_fish_habitat,
                                                           args=(state,
                                                                 fish_name,
                                                                 point_all_t[index + 1][0],

@@ -3332,7 +3332,7 @@ class HabbyHdf5(SubHydroW):
             self.send_log.emit('Warning: No file selected.\n')
             return
         # load the data to check integrity
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(fname_h5)
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(fname_h5, path_hdf5)
 
         # copy the file and update the attribute
         path_input = self.find_path_input()
@@ -3388,7 +3388,7 @@ class HabbyHdf5(SubHydroW):
             return
         # load the data to check integrity
         [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
-            = load_hdf5.load_hdf5_hyd_and_merge(fname_h5, merge=True)
+            = load_hdf5.load_hdf5_hyd_and_merge(fname_h5, path_hdf5, merge=True)
 
         # copy the file and update the attribute
         path_hdf5 = self.find_path_hdf5()

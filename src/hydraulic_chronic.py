@@ -83,7 +83,7 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
     for i in range(0, len(merge_files)):
         [ikle_all, point_all, inter_vel_all, inter_height_all,
          substrate_all_pg, substrate_all_dom] = \
-            load_hdf5.load_hdf5_hyd_and_merge(merge_files[i], path_merges[i], True)
+            load_hdf5.load_hdf5_hyd_and_merge(merge_files[i], path_merges[i], merge=True)
         # special cases and checks
         if len(ikle_all) == 1 and ikle_all[0] == [-99]:
             print('Error: hydrological data could not be loaded.')

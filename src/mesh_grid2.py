@@ -116,7 +116,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
         print('The default data should be in the Cemagref code (between 1 and 8).')
         return failload
 
-    m = time.time()
     # load hdf5 hydro
     [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5)
 

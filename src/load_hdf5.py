@@ -528,7 +528,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
         return
 
 
-def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5='', merge=False):
+def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=False):
     """
     A function to load the 2D hydrological data contained in the hdf5 file in the form required by HABBY. If
     hdf5_name_hyd is an absolute path, the path_hdf5 is not used. If hdf5_name_hyd is a relative path, the path is
@@ -557,14 +557,16 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5='', merge=False):
     if bfailload:
         return failload
 
-    # load the number of time steps
-    try:
-        nb_t = file_hydro["description_unit"].attrs["nb"]
-    except KeyError:
-        print(
-            'Error: the number of reaches is missing from the hdf5 file. \n')
-        file_hydro.close()
-        return failload
+    if units_index == "all":
+        # load the number of time steps
+        try:
+             nb_t = file_hydro["description_unit"].attrs["nb"]
+             units_index = list(range(nb_t))
+        except KeyError:
+            print(
+                'Error: the number of reaches is missing from the hdf5 file. \n')
+            file_hydro.close()
+            return failload
 
     # load the number of reach
     try:
@@ -610,7 +612,7 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5='', merge=False):
         substrate_all_pg.append([])
         substrate_all_dom.append([])
     # for all unit
-    for t in range(0, nb_t):
+    for t in units_index:
         tin_all = []
         xy_all = []
         h_all = []
@@ -1444,16 +1446,16 @@ def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, pa
     # load first hdf5
     if merge:
         [ikle1, point1, inter_vel1, inter_height1, substrate_all_pg1, substrate_all_dom1] \
-            = load_hdf5_hyd_and_merge(hdf51, path1, merge)
+            = load_hdf5_hyd_and_merge(hdf51, path1, merge=merge)
     else:
-        [ikle1, point1, inter_vel1, inter_height1] = load_hdf5_hyd_and_merge(hdf51, path1, merge)
+        [ikle1, point1, inter_vel1, inter_height1] = load_hdf5_hyd_and_merge(hdf51, path1, merge=merge)
 
     # load second hdf5
     if merge:
         [ikle2, point2, inter_vel2, inter_height2, substrate_all_pg2, substrate_all_dom2] \
-            = load_hdf5_hyd_and_merge(hdf52, path2, merge)
+            = load_hdf5_hyd_and_merge(hdf52, path2, merge=merge)
     else:
-        [ikle2, point2, inter_vel2, inter_height2] = load_hdf5_hyd_and_merge(hdf52, path2, merge)
+        [ikle2, point2, inter_vel2, inter_height2] = load_hdf5_hyd_and_merge(hdf52, path2, merge=merge)
 
     if len(ikle1) == 0 or len(ikle2) == 0:
         return
@@ -1515,12 +1517,14 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
     :param merge: If ture, the hdf5 file is a merge file with substrate data (usually True)
     """
 
+
     [ikle_all_t, point_all_t, vel_nodes, height_node, sub_pg_data, sub_dom_data] = load_hdf5_hyd_and_merge(name_hdf5,
                                                                                                            path_hdf5,
-                                                                                                           merge)
+                                                                                                           merge=merge)
     if ikle_all_t == [[-99]] or len(ikle_all_t) < 1:
         return
     sim_name = load_unit_name(name_hdf5, path_hdf5)
+
 
     # we needs the data by cells and not nodes
     # optmization possibility: save the data in the hdf5 and re-use it for the habitat calculation
