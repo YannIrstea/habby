@@ -80,6 +80,7 @@ class GroupPlot(QGroupBox):
         super().__init__()
         self.nb_plot = 0
         self.init_ui()
+        self.plot_production_stoped = False
         self.plot_process_list = MyProcessList(self.progress_bar)
 
     def init_ui(self):
@@ -145,6 +146,13 @@ class GroupPlot(QGroupBox):
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
         self.plot_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.types_plot_layout.addWidget(self.plot_button)
+
+        # stop plot_button
+        self.plot_stop_button = QPushButton(self.tr("stop"))
+        self.plot_stop_button.clicked.connect(self.stop_plot)
+        self.plot_stop_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
+        self.plot_stop_button.setEnabled(False)
+        self.types_plot_layout.addWidget(self.plot_stop_button)
 
         # progress bar
         self.progress_bar = QProgressBar()
@@ -389,10 +397,10 @@ class GroupPlot(QGroupBox):
         for i in range(len(selection)):
             units.append(selection[i].text())
             units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
-        # together = zip(units_index, units)
-        # sorted_together = sorted(together, reverse=True)
-        # units_index = [x[0] for x in sorted_together]
-        # units = [x[1] for x in sorted_together]
+        together = zip(units_index, units)
+        sorted_together = sorted(together)
+        units_index = [x[0] for x in sorted_together]
+        units = [x[1] for x in sorted_together]
 
         # type of plot
         types_plot = self.types_plot_QComboBox.currentText()
@@ -431,7 +439,24 @@ class GroupPlot(QGroupBox):
             self.parent().parent().parent().send_log.emit('Error: No variable selected.')
         if not units:
             self.parent().parent().parent().send_log.emit('Error: No units selected.')
+        # check if number of display plot are > 30
+        if types_plot in ("display", "both") and self.nb_plot > 30:
+            qm = QMessageBox
+            ret = qm.question(self, self.tr("Warning"),
+                              self.tr("Displaying a large number of plots may crash HABBY. "
+                                      "It is recommended not to exceed a total number of plots "
+                                      f"greater than 30 at a time. \n\nDo you still want to display {self.nb_plot} plots ?"
+                                      "\n\nNB : There is no limit for exports."), qm.Yes | qm.No)
+            if ret == qm.No:  # pas de plot
+                return
+        # Go plot
         if types_hdf5 and names_hdf5 and variables and units:
+            # disable
+            self.plot_button.setEnabled(False)
+            # active stop button
+            self.plot_stop_button.setEnabled(True)
+            self.plot_production_stoped = False
+
             # figure option
             fig_opt = output_fig_GUI.load_fig_option(self.parent().parent().parent().path_prj,
                                                      self.parent().parent().parent().name_prj)
@@ -442,7 +467,6 @@ class GroupPlot(QGroupBox):
 
             # path
             path_hdf5 = self.parent().parent().parent().path_prj + "/hdf5_files/"
-            show_info = False
             path_im = self.parent().parent().parent().path_prj + "/figures/"
 
             # check plot process done
@@ -451,186 +475,146 @@ class GroupPlot(QGroupBox):
             else:
                 self.plot_process_list.add_plots(self.nb_plot)
 
+            # progress bar
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
             QCoreApplication.processEvents()
 
-            # for all hdf5 file
+            # loop on all desired hdf5 file
             for name_hdf5 in names_hdf5:
-                # read hdf5 data (get all units)
-                if types_hdf5 == "hydraulic":  # load hydraulic data
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(
-                        name_hdf5,
-                        path_hdf5, units_index=units_index)
-                if types_hdf5 == "substrate":  # load substrate data
-                    [ikle_sub, point_all_sub, sub_pg, sub_dom] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
-                if types_hdf5 == "merge":  # load merge data
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
-                if types_hdf5 == "chronic":  # load chronic data
-                    [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
-                     substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
-                if types_hdf5 == "habitat":  # load habitat data
-                    variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
-                    fish_names = [variable for variable in variables if variable not in variables_to_remove]
-                    if fish_names:  # get all data (hydraulic and substrate and fish habiat)
-                        [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg, substrate_all_dom,
-                         fish_data, total_wetarea_all_t] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
-                    else:  # get only input data merge (hydraulic and substrate)
+                if not self.plot_production_stoped:  # stop loop with button
+
+                    # read hdf5 data (get desired units)
+                    if types_hdf5 == "hydraulic":  # load hydraulic data
+                        [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(
+                            name_hdf5,
+                            path_hdf5, units_index=units_index)
+                    if types_hdf5 == "substrate":  # load substrate data
+                        [ikle_sub, point_all_sub, sub_pg, sub_dom] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
+                    if types_hdf5 == "merge":  # load merge data
                         [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
                          substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
+                    if types_hdf5 == "chronic":  # load chronic data
+                        [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
+                         substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
+                    if types_hdf5 == "habitat":  # load habitat data
+                        variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
+                        fish_names = [variable for variable in variables if variable not in variables_to_remove]
+                        if fish_names:  # get all data (hydraulic and substrate and fish habiat)
+                            [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg, substrate_all_dom,
+                             fish_data, total_wetarea_all_t] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
+                        else:  # get only input data merge (hydraulic and substrate)
+                            [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, substrate_all_pg,
+                             substrate_all_dom] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, units_index=units_index, merge=True)
 
-                # check validity susbtrate
-                if types_hdf5 == "substrate":
-                    if len(sub_dom) == 0 or len(sub_pg) == 0:
-                        self.parent().parent().parent().send_log.emit('Error: No data found to plot.')
-                        return
-                    if not ikle_sub:
-                        self.parent().parent().parent().send_log.emit('Error: No connectivity table found. \n')
-                        return
-                    if len(point_all_sub) < 3:
-                        self.parent().parent().parent().send_log.emit('Error: Not enough point found to form a grid \n')
-                        return
-
-                # habitat data (HV and WUA)
-                if fish_names:
-                    state = Value("i", 0)  # process not finished
-                    # area_all, spu_all, name_fish, path_im, name_base, fig_opt
-                    plot_hab_fig_spu_process = Process(target=plot_hab.plot_fish_hv_wua,
-                                                       args=(state,
-                                                   total_wetarea_all_t,
-                                                   fish_data["total_WUA"],
-                                                   fish_names,
-                                                   path_im,
-                                                   name_hdf5,
-                                                   fig_opt,
-                                                   units))
-                    plot_hab_fig_spu_process.start()
-                    self.plot_process_list.append((plot_hab_fig_spu_process, state))
-
-                # for each desired units (timestep or discharge) ==> maps
-                for index, t in enumerate(units_index):  # self.fig_opt['time_step'] # range(0, len(vel_cell)):
-                    t = t + 1
-                    # input data
-                    if "height" in variables:  # height
-                        state = Value("i", 0)  # process not finished
-                        height_process = Process(target=plot_hab.plot_map_height,
-                                                 args=(state,
-                                                       point_all_t[index + 1],
-                                                       ikle_all_t[index + 1],
-                                                       fig_opt,
-                                                       name_hdf5,
-                                                       inter_h_all_t[index + 1],
-                                                       path_im, units[index]))
-                        height_process.start()
-                        self.plot_process_list.append((height_process, state))
-                    if "velocity" in variables:  # velocity
-                        state = Value("i", 0)  # process not finished
-                        velocity_process = Process(target=plot_hab.plot_map_velocity,
-                                                   args=(state,
-                                                      point_all_t[index + 1],
-                                                      ikle_all_t[index + 1],
-                                                      fig_opt, name_hdf5,
-                                                      inter_vel_all_t[index + 1],
-                                                      path_im,
-                                                      units[index]))
-                        velocity_process.start()
-                        self.plot_process_list.append((velocity_process, state))
-                    if "mesh" in variables:  # mesh
-                        state = Value("i", 0)  # process not finished
-                        mesh_process = Process(target=plot_hab.plot_map_mesh,
-                                               args=(state,
-                                                     point_all_t[index + 1],
-                                                     ikle_all_t[index + 1],
-                                                     fig_opt,
-                                                     name_hdf5,
-                                                     path_im,
-                                                     units[index]))
-                        mesh_process.start()
-                        self.plot_process_list.append((mesh_process, state))
-                    if "coarser_dominant" in variables:  # coarser_dominant
-                        state = Value("i", 0)  # process not finished
-                        if types_hdf5 == "substrate":
-                            susbtrat_process = Process(target=plot_hab.plot_map_substrate,
-                                                       args=(state,
-                                                             point_all_sub,
-                                                             ikle_sub,
-                                                             sub_pg,
-                                                             sub_dom,
-                                                             path_im,
-                                                             name_hdf5,
-                                                             fig_opt))
-                        else:
-                            susbtrat_process = Process(target=plot_hab.plot_map_substrate,
-                                                       args=(state,
-                                                             point_all_t[index + 1][0],
-                                                             ikle_all_t[index + 1][0],
-                                                             substrate_all_pg[index + 1][0],
-                                                             substrate_all_dom[index + 1][0],
-                                                             path_im,
-                                                             name_hdf5,
-                                                             fig_opt,
-                                                             units[index]))
-                        susbtrat_process.start()
-                        self.plot_process_list.append((susbtrat_process, state))
-
-                    # habitat data (maps)
+                    # for one or more desired units ==> habitat data (HV and WUA)
                     if fish_names:
-                        # map by fish
-                        for fish_index, fish_name in enumerate(fish_names):
-                            # plot map
-                            state = Value("i", 0)  # process not finished
-                            habitat_map_process = Process(target=plot_hab.plot_map_fish_habitat,
-                                                          args=(state,
-                                                                fish_name,
-                                                                point_all_t[index + 1][0],
-                                                                ikle_all_t[index + 1][0],
-                                                                fish_data["HV_data"][index + 1][fish_index + 1],
-                                                                name_hdf5,
-                                                                fig_opt,
-                                                                path_im,
-                                                                units[index]))
-                            habitat_map_process.start()
-                            self.plot_process_list.append((habitat_map_process, state))
+                        state = Value("i", 0)
+                        plot_hab_fig_spu_process = Process(target=plot_hab.plot_fish_hv_wua,
+                                                           args=(state,
+                                                       total_wetarea_all_t,
+                                                       fish_data["total_WUA"],
+                                                       fish_names,
+                                                       path_im,
+                                                       name_hdf5,
+                                                       fig_opt,
+                                                       units))
+                        self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
-                # show basic information
-                if show_info and len(ikle_all_t) > 0:
-                    self.parent().parent().parent().send_log.emit("# ------------------------------------------------")
-                    self.parent().parent().parent().send_log.emit(
-                        "# Information about the hydrological data from the model " + types_hdf5)
-                    self.parent().parent().parent().send_log.emit(
-                        "# - Number of time step: " + str(len(ikle_all_t) - 1))
-                    extx = 0
-                    exty = 0
-                    nb_node = 0
-                    hmean = 0
-                    vmean = 0
-                    for r in range(0, len(point_all_t[0])):
-                        extxr = max(point_all_t[0][r][:, 0]) - min(point_all_t[0][r][:, 0])
-                        extyr = max(point_all_t[0][r][:, 1]) - min(point_all_t[0][r][:, 1])
-                        nb_node += len(point_all_t[0][r])
-                        if extxr > extx:
-                            extx = extxr
-                        if extyr > exty:
-                            exty = extyr
-                        hmean += np.sum(inter_h_all_t[-1][r])
-                        vmean += np.sum(inter_vel_all_t[-1][r])
-                    hmean /= nb_node
-                    vmean /= nb_node
-                    self.parent().parent().parent().send_log.emit("# - Maximal number of nodes: " + str(nb_node))
-                    self.parent().parent().parent().send_log.emit(
-                        "# - Maximal geographical extend: " + str(round(extx, 3)) + 'm X ' +
-                        str(round(exty, 3)) + "m")
-                    self.parent().parent().parent().send_log.emit(
-                        "# - Mean water height at the last time step, not weighted by cell area: " +
-                        str(round(hmean, 3)) + 'm')
-                    self.parent().parent().parent().send_log.emit(
-                        "# - Mean velocity at the last time step, not weighted by cell area: " +
-                        str(round(vmean, 3)) + 'm/sec')
-                    self.parent().parent().parent().send_log.emit("# ------------------------------------------------")
+                    # for each desired units ==> maps
+                    for index, t in enumerate(units_index):
+                        # input data
+                        if "height" in variables:  # height
+                            state = Value("i", 0)
+                            height_process = Process(target=plot_hab.plot_map_height,
+                                                     args=(state,
+                                                           point_all_t[index + 1],
+                                                           ikle_all_t[index + 1],
+                                                           fig_opt,
+                                                           name_hdf5,
+                                                           inter_h_all_t[index + 1],
+                                                           path_im, units[index]))
+                            self.plot_process_list.append((height_process, state))
+                        if "velocity" in variables:  # velocity
+                            state = Value("i", 0)
+                            velocity_process = Process(target=plot_hab.plot_map_velocity,
+                                                       args=(state,
+                                                          point_all_t[index + 1],
+                                                          ikle_all_t[index + 1],
+                                                          fig_opt, name_hdf5,
+                                                          inter_vel_all_t[index + 1],
+                                                          path_im,
+                                                          units[index]))
+                            self.plot_process_list.append((velocity_process, state))
+                        if "mesh" in variables:  # mesh
+                            state = Value("i", 0)
+                            mesh_process = Process(target=plot_hab.plot_map_mesh,
+                                                   args=(state,
+                                                         point_all_t[index + 1],
+                                                         ikle_all_t[index + 1],
+                                                         fig_opt,
+                                                         name_hdf5,
+                                                         path_im,
+                                                         units[index]))
+                            self.plot_process_list.append((mesh_process, state))
+                        if "coarser_dominant" in variables:  # coarser_dominant
+                            if types_hdf5 == "substrate":  # from substrate
+                                state = Value("i", 0)
+                                susbtrat_process = Process(target=plot_hab.plot_map_substrate,
+                                                           args=(state,
+                                                                 point_all_sub,
+                                                                 ikle_sub,
+                                                                 sub_pg,
+                                                                 sub_dom,
+                                                                 path_im,
+                                                                 name_hdf5,
+                                                                 fig_opt))
+                                self.plot_process_list.append((susbtrat_process, state))
+                            else:  # from merge or habitat
+                                state = Value("i", 0)
+                                susbtrat_process = Process(target=plot_hab.plot_map_substrate,
+                                                           args=(state,
+                                                                 point_all_t[index + 1][0],
+                                                                 ikle_all_t[index + 1][0],
+                                                                 substrate_all_pg[index + 1][0],
+                                                                 substrate_all_dom[index + 1][0],
+                                                                 path_im,
+                                                                 name_hdf5,
+                                                                 fig_opt,
+                                                                 units[index]))
+                                self.plot_process_list.append((susbtrat_process, state))
+                        if fish_names:  # habitat data (maps)
+                            # map by fish
+                            for fish_index, fish_name in enumerate(fish_names):
+                                # plot map
+                                state = Value("i", 0)
+                                habitat_map_process = Process(target=plot_hab.plot_map_fish_habitat,
+                                                              args=(state,
+                                                                    fish_name,
+                                                                    point_all_t[index + 1][0],
+                                                                    ikle_all_t[index + 1][0],
+                                                                    fish_data["HV_data"][index + 1][fish_index + 1],
+                                                                    name_hdf5,
+                                                                    fig_opt,
+                                                                    path_im,
+                                                                    units[index]))
+                                self.plot_process_list.append((habitat_map_process, state))
 
-            if self.plot_process_list.add_plots_state:
+            # end of loop file
+            if self.plot_process_list.add_plots_state:  # if plot windows are open ==> add news to existing (don't close them)
                 self.plot_process_list[:] = self.plot_process_list[:] + self.plot_process_list.save_process[:]
+            # activate
+            self.plot_button.setEnabled(True)
+            # disable stop button
+            self.plot_stop_button.setEnabled(False)
+
+    def stop_plot(self):
+        # stop plot production
+        self.plot_production_stoped = True
+        # activate
+        self.plot_button.setEnabled(True)
+        # disable stop button
+        self.plot_stop_button.setEnabled(False)
 
 
 class MyProcessList(list):
@@ -666,6 +650,7 @@ class MyProcessList(list):
 
         :param args: tuple(process, state of process)
         """
+        args[0][0].start()
         self.extend(args)
         self.check_all_plot_produced()
 

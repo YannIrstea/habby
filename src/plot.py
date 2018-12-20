@@ -19,6 +19,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+import mplcursors
 import time
 import os
 from src_GUI import output_fig_GUI
@@ -127,6 +128,8 @@ def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_
         # output for plot_GUI
         state.value = 1  # process finished
         if types_plot == "display" or types_plot == "both":
+            fm = plt.get_current_fig_manager()
+            fm.window.showMinimized()
             plt.show()
         if types_plot == "export":
             plt.close()
@@ -233,6 +236,8 @@ def plot_map_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inte
         # output for plot_GUI
         state.value = 1  # process finished
         if types_plot == "display" or types_plot == "both":
+            fm = plt.get_current_fig_manager()
+            fm.window.showMinimized()
             plt.show()
         if types_plot == "export":
             plt.close()
@@ -340,6 +345,8 @@ def plot_map_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im=
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "display" or types_plot == "both":
+        fm = plt.get_current_fig_manager()
+        fm.window.showMinimized()
         plt.show()
     if types_plot == "export":
         plt.close()
@@ -542,6 +549,8 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "display" or types_plot == "both":
+        fm = plt.get_current_fig_manager()
+        fm.window.showMinimized()
         plt.show()
     if types_plot == "export":
         plt.close()
@@ -577,7 +586,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
     # preplot
     fig = plt.figure(filename)
     ax = plt.axes()
-    #fig, ax = plt.subplots(1)  # new figure
+    # fig, ax = plt.subplots(1)  # new figure
     norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
     # plot the habitat value
@@ -656,6 +665,8 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "display" or types_plot == "both":
+        fm = plt.get_current_fig_manager()
+        fm.window.showMinimized()
         plt.show()
     if types_plot == "export":
         plt.close()
@@ -704,7 +715,8 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
     if len(sim_name) == 1:
         plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Step : {sim_name[0]}"
     if len(sim_name) > 1:
-        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Steps : " + ", ".join(map(str, sim_name))
+        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Steps : " + ", ".join(
+            map(str, sim_name))
     fig = plt.figure(plot_window_title)
 
     if len(spu_all) != len(name_fish):
@@ -735,10 +747,10 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 fig = plt.figure()
             fig.add_subplot(211)
             if data_bar:
-                spu_string = '{:0.0f}'.format(data_bar[0])
+                #spu_string = '{:0.0f}'.format(data_bar[0])
                 data_bar2 = np.array(data_bar)
                 plt.bar(y_pos, data_bar2, 0.5)
-                plt.text(x=y_pos, y=data_bar2 / 2, s=spu_string + " m²", horizontalalignment='left')
+                #plt.text(x=y_pos, y=data_bar2 / 2, s=spu_string + " m²", horizontalalignment='left')
                 plt.xticks(y_pos + 0.25, name_fish)
             if fig_opt['language'] == 0:
                 plt.ylabel('WUA [m^2]')
@@ -748,19 +760,19 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 plt.ylabel('WUA [m^2]')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
             if fig_opt['language'] == 0:
-                plt.title('Weighted Usable Area for the Reach ' + str(r))
+                plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
             elif fig_opt['language'] == 1:
-                plt.title('Surface Ponderée Utile pour le Troncon: ' + str(r))
+                plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}')
             else:
-                plt.title('Weighted Usable Area for the Reach ' + str(r))
+                plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
             # VH
             fig.add_subplot(212)
             if data_bar:
                 area = area_all[-1][r]
                 vh = np.array(data_bar[0] / area)
-                vh_string = '{:0.2f}'.format(vh)
+                #vh_string = '{:0.2f}'.format(vh)
                 plt.bar(y_pos, vh, 0.5)
-                plt.text(x=y_pos, y=0.5, s=vh_string, horizontalalignment='left')
+                #plt.text(x=y_pos, y=0.5, s=vh_string, horizontalalignment='left')
                 plt.xticks(y_pos + 0.25, name_fish)
             if fig_opt['language'] == 0:
                 plt.ylabel('HV (WUA/A) []')
@@ -771,12 +783,14 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
             plt.ylim(0, 1)
             if fig_opt['language'] == 0:
-                plt.title('Habitat value for the Reach ' + str(r))
+                plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
             elif fig_opt['language'] == 1:
-                plt.title("Valeur d'Habitat:  " + str(r))
+                plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}")
             else:
-                plt.title('Habitat value for the Reach ' + str(r))
-
+                plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
+            # get data with mouse
+            mplcursors.cursor()
+            # export or not
             if types_plot == "export" or types_plot == "both":
                 if not erase_id:
                     name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -785,7 +799,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                     test = calcul_hab.remove_image(name, path_im, format1)
                     if not test:
                         return
-                plt.tight_layout()
+                #plt.tight_layout()
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
@@ -804,6 +818,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
             if r > 0:
                 fig = plt.figure("Habitat Value and Weighted Usable Area for the reach " + str(r))
             spu_ax = fig.add_subplot(211)
+            data_wua_list = []
             for s in range(0, len(spu_all)):
                 data_plot_spu = []
                 t_all = []
@@ -813,34 +828,35 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                         sum_data_spu[s][t] += spu_all[s][t][r]
                         t_all.append(t)
                 t_all_s = t_all
+                data_wua_list.append(data_plot_spu)
                 plt.plot(t_all, data_plot_spu, label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
-                #plt.xlabel('Computational step [ ]')
+                # plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m$^2$]')
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
-                #plt.xlabel('Pas de temps/débit [ ]')
+                # plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('SPU [m$^2$]')
                 plt.title('Surface Ponderée pour le troncon ' + str(r))
             else:
-                #plt.xlabel('Computational step [ ]')
+                # plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m$^2$]')
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
             plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
-            if sim_name:
-                if len(sim_name[0]) > 5:
-                    rot = 'vertical'
-                else:
-                    rot = 'horizontal'
-                if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
-                elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
-                else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+            # spu_ax.xaxis.set_ticklabels([])
+            if len(sim_name[0]) > 5:
+                rot = 'vertical'
+            else:
+                rot = 'horizontal'
+            if len(sim_name) < 25:
+                plt.xticks(t_all, [], rotation=rot)
+            elif len(sim_name) < 100:
+                plt.xticks(t_all[::3], [], rotation=rot)
+            else:
+                plt.xticks(t_all[::10], [], rotation=rot)
             # VH
             hv_ax = fig.add_subplot(212)
-            t_all = []
+            data_hv_list = []
             for s in range(0, len(spu_all)):
                 data_plot_hv = []
                 t_all = []
@@ -850,6 +866,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                         data_plot_hv.append(data_here)
                         sum_data_spu_div[s][t] += data_here
                         t_all.append(t)
+                data_hv_list.append(data_plot_hv)
                 plt.plot(t_all, data_plot_hv, label=name_fish[s], marker=mar)
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
@@ -865,7 +882,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 plt.title('Habitat Value for the Reach ' + str(r))
             plt.ylim(0, 1)
             # view data with mouse
-            cursorPT = SnaptoCursorPT(fig.canvas, spu_ax, hv_ax, (t_all, data_plot_spu, data_plot_hv))
+            cursorPT = SnaptoCursorPT(fig.canvas, spu_ax, hv_ax, t_all, data_wua_list, data_hv_list)
             fig.canvas.mpl_connect('motion_notify_event', cursorPT.mouse_move)
             # label
             if sim_name:
@@ -874,12 +891,12 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 else:
                     rot = 'horizontal'
                 if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
+                    plt.xticks(t_all, sim_name, rotation=45)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+                    plt.xticks(t_all[::3], sim_name[::3], rotation=45)
                 else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
-            #plt.tight_layout()
+                    plt.xticks(t_all[::10], sim_name[::10], rotation=45)
+            # plt.tight_layout()
             if types_plot == "export" or types_plot == "both":
                 if not erase_id:
                     name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -950,11 +967,11 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 else:
                     rot = 'horizontal'
                 if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
+                    plt.xticks(t_all, sim_name, rotation=45)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+                    plt.xticks(t_all[::3], sim_name[::3], rotation=45)
                 else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+                    plt.xticks(t_all[::10], sim_name[::10], rotation=45)
             if types_plot == "export" or types_plot == "both":
                 if not erase_id:
                     name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -973,6 +990,9 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "display" or types_plot == "both":
+        # mplcursors.cursor()
+        fm = plt.get_current_fig_manager()
+        fm.window.showMinimized()
         plt.show()
     if types_plot == "export":
         plt.close()
@@ -980,47 +1000,53 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
 
 class SnaptoCursorPT(object):
     """
-    Like Cursor but the crosshair snaps to the nearest x,y point
-    For simplicity, I'm assuming x is sorted
+    Display nearest data from x mouse position of matplotlib canvas.
     """
-    def __init__(self, mplCanvas2, ax_wua, ax_hv, data_xy):
-        self.mplCanvas2 = mplCanvas2
+
+    def __init__(self, mpl_canvas, ax_wua, ax_hv, x, y_wua_list, y_hv_list):
+        self.x_loc = None
+        self.mpl_canvas = mpl_canvas
         self.ax_wua = ax_wua
         self.ax_hv = ax_hv
-        self.x = data_xy[0]
-        self.y_wua = data_xy[1]
-        self.y_hv = data_xy[2]
-        self.text_wua = self.ax_wua.text(x=self.x[0], y=self.y_wua[0], s="2 m²", horizontalalignment='center')
-        self.text_wua.set_alpha(0)
-        self.text_hv = self.ax_hv.text(x=self.x[0], y=self.y_hv[0], s="2 m²", horizontalalignment='center')
-        self.text_hv.set_alpha(0)
+        self.x = x
+        self.y_wua_list = y_wua_list
+        self.y_hv_list = y_hv_list
+        self.text_wua_list_mpl = []
+        self.text_hv_list_mpl = []
+        # prep text object in list
+        for i in range(len(self.y_wua_list)):
+            self.text_wua_list_mpl.append(self.ax_wua.text(x=self.x[0],
+                                                           y=self.y_wua_list[i][0],
+                                                           s="2 m²", horizontalalignment='center'))
+            self.text_hv_list_mpl.append(self.ax_hv.text(x=self.x[0],
+                                                         y=self.y_hv_list[i][0],
+                                                         s="2 m²", horizontalalignment='center'))
+            self.text_wua_list_mpl[i].set_alpha(0)
+            self.text_hv_list_mpl[i].set_alpha(0)
 
     def mouse_move(self, event):
         if event.inaxes:
             # LOCATE
-            x = self.takeClosest(event.xdata, self.x)
-            # PLOT WUA
-            y_wua = self.y_wua[self.x.index(x)]
-            text_wua = '{:0.0f}'.format(y_wua)
-            self.text_wua.set_alpha(1)
-            self.text_wua.set_text(text_wua)
-            self.text_wua.set_position((x, y_wua))
-            # PLOT HV
-            y_hv = self.y_hv[self.x.index(x)]
-            text_hv = '{:0.2f}'.format(y_hv)
-            self.text_hv.set_alpha(1)
-            self.text_hv.set_text(text_hv)
-            self.text_hv.set_position((x, y_hv))
+            self.take_closest(event.xdata, self.x)
+            for i in range(len(self.y_wua_list)):
+                # PLOT WUA
+                y_wua = self.y_wua_list[i][self.x.index(self.x_loc)]
+                text_wua = '{:0.0f}'.format(y_wua) + " m²"
+                self.text_wua_list_mpl[i].set_alpha(1)
+                self.text_wua_list_mpl[i].set_text(text_wua)
+                self.text_wua_list_mpl[i].set_position((self.x_loc, y_wua))
+                # PLOT HV
+                y_hv = self.y_hv_list[i][self.x.index(self.x_loc)]
+                text_hv = '{:0.2f}'.format(y_hv)
+                self.text_hv_list_mpl[i].set_alpha(1)
+                self.text_hv_list_mpl[i].set_text(text_hv)
+                self.text_hv_list_mpl[i].set_position((self.x_loc, y_hv))
         if not event.inaxes:
             # HIDE
-            self.text_wua.set_alpha(0)
-            self.text_hv.set_alpha(0)
-        self.mplCanvas2.draw()
+            for i in range(len(self.y_wua_list)):
+                self.text_wua_list_mpl[i].set_alpha(0)
+                self.text_hv_list_mpl[i].set_alpha(0)
+        self.mpl_canvas.draw()
 
-    def takeClosest(self, num, collection):
-        return min(collection, key=lambda x: abs(x - num))
-
-        #return min(collection, key=lambda c: (c[0] - num[0]) ** 2 + (c[1] - num[1]) ** 2)
-
-
-
+    def take_closest(self, num, collection):
+        self.x_loc = min(collection, key=lambda x: abs(x - num))
