@@ -17,14 +17,12 @@ https://github.com/YannIrstea/habby
 import shapefile
 import os
 import numpy as np
-from scipy.spatial import Voronoi, voronoi_plot_2d
+from scipy.spatial import Voronoi
 from random import uniform
-import matplotlib.pyplot as plt
-import time
 import triangle
 from random import randrange
 from shapely.geometry.polygon import Polygon
-from shapely.geometry import Point
+from shapely.geometry import Point, MultiPoint
 from src import load_hdf5
 
 
@@ -88,7 +86,7 @@ def get_useful_attribute(attributes):
     """
 
     # all the different attribute names which can be accepted in the shape file
-    pg = ['PG', 'PLUS_GROS', 'COARSER', 'SUB_COARSER']
+    pg = ['PG', 'PLUS_GROS', 'COARSER', 'SUB_COARSER', 'SUB_PG']
     pg = pg + list(map(lambda x: x.lower(), pg))
     dom = ['DM', 'DOMINANT', 'DOM', 'SUB_DOM']
     dom = dom + list(map(lambda x: x.lower(), dom))
@@ -149,14 +147,16 @@ def get_useful_attribute(attributes):
     return attribute_type, attribute_name
 
 
-def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(path_prj, filename, path):
+def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
+    path_shp = path_prj + r"/input"
     # Read shapefile
-    file = os.path.join(path, filename)
+    file = os.path.join(path_file, filename)
     sf = shapefile.Reader(file)
     shapes = sf.shapes()
     records = sf.records()
     fields = sf.fields[1:]
-    prj = open(file[:-4] + ".prj", "r").read()
+    if os.path.isfile(file[:-4] + ".prj"):
+        prj = open(file[:-4] + ".prj", "r").read()
     # shapes[i].points[:] [(x0, y0), (x1, y1), (x2, y2), (x3, y3),(x0, y0) ] clockwise description
 
     # Extract list of points and segments from shp
@@ -224,12 +224,13 @@ def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(path_prj, filename, 
         # if center in polygon: get attributes
         for j in range(len(shapes)):  # for each polygon
             if Polygon(shapes[j].points[:-1]).contains(Point(polyg_center)):
+                #print("contain")
                 # polygon attributes
                 trianglesListRecords2.append(records[j])
 
-    # export new shapefile triangle
+    # export new shapefile triangle in path prj
     filenameOUT = filename[:-4] + "_trianglulated"  # "Substrat_simple_pr_triangle.shp" # #  #
-    fileOUT = os.path.join(path_prj, filenameOUT)
+    fileOUT = os.path.join(path_shp, filenameOUT)
     w = shapefile.Writer(shapeType_OUT)
     for field in fields:
         w.field(*field)
@@ -238,17 +239,18 @@ def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(path_prj, filename, 
         w.record(*trianglesListRecords2[i])
 
     w.save(fileOUT)
-    open(fileOUT + ".prj", "w").write(prj)
+    if os.path.isfile(file[:-4] + ".prj"):
+        open(fileOUT + ".prj", "w").write(prj)
 
     return True
 
 
-def load_sub_shp(filename, path, code_type, dominant_case=0):
+def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
     """
     A function to load the substrate in form of shapefile.
 
     :param filename: the name of the shapefile
-    :param path: the path where the shapefile is
+    :param path_prj: the path where the shapefile is
     :param code_type: the type of code used to define the substrate (string)
     :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
            maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
@@ -257,155 +259,161 @@ def load_sub_shp(filename, path, code_type, dominant_case=0):
             and an array with substrate type and a boolean which allows to get the case where we have tow dominant case
 
     """
-    # initialization
-    xy = []  # point
-    ikle = []  # connectivity table
-    sub_dom = []  # dominant substrate
-    sub_pg = []  # coarser substrate ("plus gros")
-    ind = 0
-    failload = [-99], [-99], [-99], [-99], True
 
-    # open shape file (think about zero or one to start! )
-    sf = open_shp(filename, path)
+    # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
+    if convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
+        # file name triangulated
+        filename = filename[:-4] + "_trianglulated.shp"
 
-    # get point coordinates and connectivity table in two lists
-    shapes = sf.shapes()
-    for i in range(0, len(shapes)):
-        p_all = shapes[i].points
-        ikle_i = []
-        for j in range(0, len(p_all) - 1):  # last point of sahpefile is the first point
-            try:
-                ikle_i.append(int(xy.index(p_all[j])))
-            except ValueError:
-                ikle_i.append(int(len(xy)))
-                xy.append(p_all[j])
-        ikle.append(ikle_i)
+        # initialization
+        xy = []  # point
+        ikle = []  # connectivity table
+        sub_dom = []  # dominant substrate
+        sub_pg = []  # coarser substrate ("plus gros")
+        ind = 0
+        failload = [-99], [-99], [-99], [-99], True
 
-    # get all the attributes in the shape file
-    fields = sf.fields
+        # open shape file (think about zero or one to start! )
+        sf = open_shp(filename, path_prj + "/input")
 
-    # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
-    [attribute_type, attribute_name] = get_useful_attribute(fields)
-    if attribute_type == -99:
-        return failload
-
-    # if percentage type
-    if attribute_type == 1:
-        record_all = []
-        # get the data and pass it int
-        for f in fields:
-            if f[0] in attribute_name:
-                record_here = sf.records()
-                record_here = np.array(record_here)
-                record_here = record_here[:, ind]
+        # get point coordinates and connectivity table in two lists
+        shapes = sf.shapes()
+        for i in range(0, len(shapes)):
+            p_all = shapes[i].points
+            ikle_i = []
+            for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
                 try:
-                    record_here = list(map(int, record_here))
+                    ikle_i.append(int(xy.index(p_all[j])))
                 except ValueError:
-                    print('Error: The substate code should be formed by an int.\n')
-                    return failload
-                record_all.append(record_here)
-                ind += 1
-        record_all = np.array(record_all).T
-        # get the domainant and coarser from the percentage
-        [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
-        if len(sub_dom) == 1:
-            if sub_dom[0] == -99:
-                return [-99], [-99], [-99], [-99], False
-        # transform to cemagref substrate form
-        if code_type == 'Cemagref':
-            if min(sub_dom) < 1 or min(sub_pg) < 1:
-                print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                return failload
-            elif max(sub_dom) > 8 or max(sub_pg) > 8:
-                print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                return failload
-        # code type edf - checked and transform
-        elif code_type == 'EDF':
-            if min(sub_dom) < 1 or min(sub_pg) < 1:
-                print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
-                return failload
-            elif max(sub_dom) > 8 or max(sub_pg) > 8:
-                print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
-                return failload
-            else:
-                sub_dom = edf_to_cemagref(sub_dom)
-                sub_pg = edf_to_cemagref(sub_pg)
-        # code type sandre
-        elif code_type == 'Sandre':
-            if min(sub_dom) < 1 or min(sub_pg) < 1:
-                print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                return failload
-            elif max(sub_dom) > 12 or max(sub_pg) > 12:
-                print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                return failload
-            else:
-                sub_dom = sandre_to_cemagref(sub_dom)
-                sub_pg = sandre_to_cemagref(sub_pg)
-        else:
-            print('Error: The substrate code is not recognized.\n')
+                    ikle_i.append(int(len(xy)))
+                    xy.append(p_all[j])
+            ikle.append(ikle_i)
+
+        # get all the attributes in the shape file
+        fields = sf.fields
+
+        # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
+        [attribute_type, attribute_name] = get_useful_attribute(fields)
+        if attribute_type == -99:
             return failload
 
-    # pg/coarser/accessory type
-    elif attribute_type == 0:
-        for f in fields:
-            if f[0] == attribute_name[0] or f[0] == attribute_name[1]:  # [0] coarser and [1] pg
-                # read for all code type
-                a = int('2')
-                record_here = sf.records()
-                record_here = np.array(record_here)
-                record_here = record_here[:, ind - 1]
-                try:
-                    record_here = list(map(float, record_here))  # int('2.000' ) throw an error
-                    record_here = list(map(int, record_here))
-                except ValueError:
-                    print('Error: The substrate code should be formed by an int.\n')
+        # if percentage type
+        if attribute_type == 1:
+            record_all = []
+            # get the data and pass it int
+            for f in fields:
+                if f[0] in attribute_name:
+                    record_here = sf.records()
+                    record_here = np.array(record_here)
+                    record_here = record_here[:, ind]
+                    try:
+                        record_here = list(map(int, record_here))
+                    except ValueError:
+                        print('Error: The substate code should be formed by an int.\n')
+                        return failload
+                    record_all.append(record_here)
+                    ind += 1
+            record_all = np.array(record_all).T
+            # get the domainant and coarser from the percentage
+            [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
+            if len(sub_dom) == 1:
+                if sub_dom[0] == -99:
+                    return [-99], [-99], [-99], [-99], False
+            # transform to cemagref substrate form
+            if code_type == 'Cemagref':
+                if min(sub_dom) < 1 or min(sub_pg) < 1:
+                    print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
                     return failload
-
-                # code type cemagref - checked
-                if code_type == 'Cemagref':
-                    if min(record_here) < 1:
-                        print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                        return failload
-                    elif max(record_here) > 8:
-                        print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                        return failload
-                # code type edf - checked and transform
-                elif code_type == 'EDF':
-                    if min(record_here) < 1:
-                        print('Error: The edf code should be formed by an int between 1 and 8. (2)')
-                        return [-99], [-99], [-99], [-99], True
-                    elif max(record_here) > 8:
-                        print('Error: The edf code should be formed by an int between 1 and 8. (3)')
-                        return [-99], [-99], [-99], [-99], True
-                    else:
-                        record_here = edf_to_cemagref(record_here)
-                # code type sandre
-                elif code_type == 'Sandre':
-                    if min(record_here) < 1:
-                        print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                        return failload
-                    elif max(record_here) > 12:
-                        print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                        return failload
-                    else:
-                        record_here = sandre_to_cemagref(record_here)
+                elif max(sub_dom) > 8 or max(sub_pg) > 8:
+                    print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
+                    return failload
+            # code type edf - checked and transform
+            elif code_type == 'EDF':
+                if min(sub_dom) < 1 or min(sub_pg) < 1:
+                    print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
+                    return failload
+                elif max(sub_dom) > 8 or max(sub_pg) > 8:
+                    print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
+                    return failload
                 else:
-                    print('Error: The substrate code is not recognized.\n')
+                    sub_dom = edf_to_cemagref(sub_dom)
+                    sub_pg = edf_to_cemagref(sub_pg)
+            # code type sandre
+            elif code_type == 'Sandre':
+                if min(sub_dom) < 1 or min(sub_pg) < 1:
+                    print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
                     return failload
+                elif max(sub_dom) > 12 or max(sub_pg) > 12:
+                    print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
+                    return failload
+                else:
+                    sub_dom = sandre_to_cemagref(sub_dom)
+                    sub_pg = sandre_to_cemagref(sub_pg)
+            else:
+                print('Error: The substrate code is not recognized.\n')
+                return failload
 
-                # now that we have checked and transform, give the data
-                if f[0] == attribute_name[0]:
-                    sub_pg = record_here
-                if f[0] == attribute_name[1]:
-                    sub_dom = record_here
-            ind += 1
+        # pg/coarser/accessory type
+        elif attribute_type == 0:
+            for f in fields:
+                if f[0] == attribute_name[0] or f[0] == attribute_name[1]:  # [0] coarser and [1] pg
+                    # read for all code type
+                    a = int('2')
+                    record_here = sf.records()
+                    record_here = np.array(record_here)
+                    record_here = record_here[:, ind - 1]
+                    try:
+                        record_here = list(map(float, record_here))  # int('2.000' ) throw an error
+                        record_here = list(map(int, record_here))
+                    except ValueError:
+                        print('Error: The substrate code should be formed by an int.\n')
+                        return failload
 
-    else:
-        print('Error: Type of attribute not recognized.\n')
-        return failload
+                    # code type cemagref - checked
+                    if code_type == 'Cemagref':
+                        if min(record_here) < 1:
+                            print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
+                            return failload
+                        elif max(record_here) > 8:
+                            print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
+                            return failload
+                    # code type edf - checked and transform
+                    elif code_type == 'EDF':
+                        if min(record_here) < 1:
+                            print('Error: The edf code should be formed by an int between 1 and 8. (2)')
+                            return [-99], [-99], [-99], [-99], True
+                        elif max(record_here) > 8:
+                            print('Error: The edf code should be formed by an int between 1 and 8. (3)')
+                            return [-99], [-99], [-99], [-99], True
+                        else:
+                            record_here = edf_to_cemagref(record_here)
+                    # code type sandre
+                    elif code_type == 'Sandre':
+                        if min(record_here) < 1:
+                            print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
+                            return failload
+                        elif max(record_here) > 12:
+                            print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
+                            return failload
+                        else:
+                            record_here = sandre_to_cemagref(record_here)
+                    else:
+                        print('Error: The substrate code is not recognized.\n')
+                        return failload
 
-    # having a convex subtrate grid is really practical
-    [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
+                    # now that we have checked and transform, give the data
+                    if f[0] == attribute_name[0]:
+                        sub_pg = record_here
+                    if f[0] == attribute_name[1]:
+                        sub_dom = record_here
+                ind += 1
+
+        else:
+            print('Error: Type of attribute not recognized.\n')
+            return failload
+
+        # having a convex subtrate grid is really practical
+        [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
 
     return xy, ikle, sub_dom, sub_pg, True
 
@@ -584,7 +592,6 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     :return: grid in form of list of coordinate and connectivity table (two list)
              and an array with substrate type and (x,y,sub) of the orginal data
     """
-
     failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99], [-99]
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
@@ -613,78 +620,56 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     except TypeError:
         print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
         return failload
-    # Voronoi
+
+    # Coord
     point_in = np.vstack((np.array(x), np.array(y))).T
-    # # translation ovtherwise numerical problems some voronoi cells may content several points
-    # min_x = min([pt[0] for pt in point_in])
-    # min_y = min([pt[1] for pt in point_in])
-    # for dataelement in point_in:
-    #     dataelement[0] = dataelement[0] - min_x
-    #     dataelement[1] = dataelement[1] - min_y
+
+    # translation ovtherwise numerical problems some voronoi cells may content several points
+    min_x = min([pt[0] for pt in point_in])
+    min_y = min([pt[1] for pt in point_in])
+    for dataelement in point_in:
+        dataelement[0] = dataelement[0] - min_x
+        dataelement[1] = dataelement[1] - min_y
+
     # voronoi
-    vor = Voronoi(point_in)
-    # plot
-    voronoi_plot_2d(vor)
-    plt.axis('scaled')
-    plt.show()
-    # get vertices
-    xy = vor.vertices
-    # # remove translation
-    # for dataelement in xy:
-    #     dataelement[0] = dataelement[0] + min_x
-    #     dataelement[1] = dataelement[1] + min_y
-    xy = np.reshape(xy, (len(xy), len(xy[0])))
-    ikle = vor.regions
-    ikle = [var for var in ikle if var]  # erase empy element
+    vor = Voronoi(point_in)  # , qhull_options="Qt"
 
-    # because Qhul from Vornoi has strange results
-    # it create element with a value -1. this is not the last point!
-    # so we take out all element with -1
-    ikle = [var for var in ikle if len(var) == len([i for i in var if i > 0])]
-    # in addition it creates cells which are areally far away for the center
-    ind_bad = []
-    maxxy = [max(x) * 2, max(y) * 2]
-    minxy = [min(x) / 2, min(y) / 2]
-    i = 0
-    for xyi in xy:
-        if xyi[0] > maxxy[0] or xyi[1] > maxxy[1]:
-            ind_bad.append(i)
-        if xyi[0] < minxy[0] or xyi[1] < minxy[1]:
-            ind_bad.append(i)
-        i += 1
-    ikle = [var for var in ikle if len(var) == len([i for i in var if i not in ind_bad])]
+    # remove translation
+    for dataelement in vor.vertices:
+        dataelement[0] = dataelement[0] + min_x
+        dataelement[1] = dataelement[1] + min_y
+    for dataelement in vor.points:
+        dataelement[0] = dataelement[0] + min_x
+        dataelement[1] = dataelement[1] + min_y
+    for dataelement in point_in:
+        dataelement[0] = dataelement[0] + min_x
+        dataelement[1] = dataelement[1] + min_y
 
-    # we only want triangle but voronoi might do polygon
-    # not necessary anymore
-    # xy_new = list(xy)
-    # ikle_new = []
-    # for c in ikle:
-    #     if len(c) > 3:
-    #         c_center = (1 / len(c)) * sum(xy[c])
-    #         xy_new.append(c_center)
-    #         for ind in range(0, len(c) - 1):
-    #             ikle_new.append([len(xy_new) - 1, c[ind], c[ind + 1]])
-    #         ikle_new.append([len(xy_new) - 1, c[ind + 1], c[0]])
-    #     else:
-    #         ikle_new.append(c)
-    # xy = np.array(xy_new)
-    xgrid = xy[:, 0]
-    ygrid = xy[:, 1]
-    # ikle = ikle_new
+    # voronoi_finite_polygons_2d (all points)
+    regions, vertices = voronoi_finite_polygons_2d(vor)
 
-    # voronoi_plot_2d(vor) # figure to debug
-    # plt.show()
+    # convex_hull buffer to cut polygons
+    list_points = [Point(i) for i in point_in]
+    convex_hull = MultiPoint(list_points).convex_hull.buffer(200)
 
-    # find one sub data by triangle ?
-    if len(ikle) == 0:
+    # for each polyg
+    list_polyg = []
+    for region in regions:
+        polygon = vertices[region]
+        shape = list(polygon.shape)
+        shape[0] += 1
+        list_polyg.append(Polygon(np.append(polygon, polygon[0]).reshape(*shape)).intersection(convex_hull))
+
+    # find one sub data by polyg
+    if len(list_polyg) == 0:
         print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
         return failload
-    sub_dom2 = np.zeros(len(ikle), )
-    sub_pg2 = np.zeros(len(ikle), )
-    for e in range(0, len(ikle)):
-        ikle_i = ikle[e]
-        centerx = np.mean(xgrid[ikle_i])
-        centery = np.mean(ygrid[ikle_i])
+    sub_dom2 = np.zeros(len(list_polyg), )
+    sub_pg2 = np.zeros(len(list_polyg), )
+    for e in range(0, len(list_polyg)):
+        polygon = list_polyg[e]
+        centerx = np.float64(polygon.centroid.x)
+        centery = np.float64(polygon.centroid.y)
         nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
         sub_dom2[e] = sub_dom[nearest_ind]
         sub_pg2[e] = sub_pg[nearest_ind]
@@ -726,28 +711,24 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     print('Warning: The area covered by the voronoi calculation might be larger and more irregular'
           ' than the one given by the orginal points. This does not affect the results usually. \n')
 
-    # export the substrate result in a shapefile
+    # export sub initial voronoi in a shapefile
     w = shapefile.Writer(shapefile.POLYGON)
     w.autoBalance = 1
-    for i in range(0, len(ikle)):
-        p = []
-        for j in range(0, len(ikle[i])):
-            pi = list(xy[ikle[i][j]])
-            p.append(pi)
-        p.append(list(xy[ikle[i][0]]))
-        w.poly(parts=[p])  # the double [[]] is important or it bugs, but why?
-    w.field('sub_dom', 'F', 10, 8)
-    w.field('sub_pg', 'F', 10, 8)
-    try:
-        for i in range(0, len(ikle)):
-            data_here = [sub_dom2[i], sub_pg2[i]]
-            w.record(*data_here)
-    except IndexError:
-        print('Error: Number of substrate entries and grid cells is not coherent \n')
-        return failload
-    w.save(os.path.join(path_shp, 'substrate_text' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'))
+    w.field('PG', 'F', 10, 8)
+    w.field('DM', 'F', 10, 8)
+    for i, polygon in enumerate(list_polyg):  # for each polygon
+        coord_list = list(polygon.exterior.coords)
+        w.poly(parts=[coord_list])  # the double [[]] is important or it bugs, but why?
+        data_here = [sub_dom2[i], sub_pg2[i]]
+        w.record(*data_here)
 
-    return xy, ikle, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg
+    # filename output
+    name, ext = os.path.splitext(filename)
+    sub_filename_voronoi_shp = name + '_voronoi' + '.shp'
+    sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
+    w.save(sub_filename_voronoi_shp_path)
+
+    return sub_filename_voronoi_shp  # xy, ikle, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg
 
 
 def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
@@ -981,6 +962,89 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
         data = np.hstack((np.array(point_new), np.array(data_sub_txt)))
         np.savetxt(os.path.join(path_out, new_name + '.txt'), data)
 
+
+def voronoi_finite_polygons_2d(vor, radius=None):
+    """
+    Reconstruct infinite voronoi regions in a 2D diagram to finite
+    regions.
+    source : https://stackoverflow.com/questions/20515554/colorize-voronoi-diagram/20678647#20678647
+    Parameters
+    ----------
+    vor : Voronoi
+        Input diagram
+    radius : float, optional
+        Distance to 'points at infinity'.
+
+    Returns
+    -------
+    regions : list of tuples
+        Indices of vertices in each revised Voronoi regions.
+    vertices : list of tuples
+        Coordinates for revised Voronoi vertices. Same as coordinates
+        of input vertices, with 'points at infinity' appended to the
+        end.
+
+    """
+
+    if vor.points.shape[1] != 2:
+        raise ValueError("Requires 2D input")
+
+    new_regions = []
+    new_vertices = vor.vertices.tolist()
+
+    center = vor.points.mean(axis=0)
+    if radius is None:
+        radius = vor.points.ptp().max()
+
+    # Construct a map containing all ridges for a given point
+    all_ridges = {}
+    for (p1, p2), (v1, v2) in zip(vor.ridge_points, vor.ridge_vertices):
+        all_ridges.setdefault(p1, []).append((p2, v1, v2))
+        all_ridges.setdefault(p2, []).append((p1, v1, v2))
+
+    # Reconstruct infinite regions
+    for p1, region in enumerate(vor.point_region):
+        vertices = vor.regions[region]
+
+        if all(v >= 0 for v in vertices):
+            # finite region
+            new_regions.append(vertices)
+            continue
+
+        # reconstruct a non-finite region
+        ridges = all_ridges[p1]
+        new_region = [v for v in vertices if v >= 0]
+
+        for p2, v1, v2 in ridges:
+            if v2 < 0:
+                v1, v2 = v2, v1
+            if v1 >= 0:
+                # finite ridge: already in the region
+                continue
+
+            # Compute the missing endpoint of an infinite ridge
+
+            t = vor.points[p2] - vor.points[p1] # tangent
+            t /= np.linalg.norm(t)
+            n = np.array([-t[1], t[0]])  # normal
+
+            midpoint = vor.points[[p1, p2]].mean(axis=0)
+            direction = np.sign(np.dot(midpoint - center, n)) * n
+            far_point = vor.vertices[v2] + direction * radius
+
+            new_region.append(len(new_vertices))
+            new_vertices.append(far_point.tolist())
+
+        # sort region counterclockwise
+        vs = np.asarray([new_vertices[v] for v in new_region])
+        c = vs.mean(axis=0)
+        angles = np.arctan2(vs[:,1] - c[1], vs[:,0] - c[0])
+        new_region = np.array(new_region)[np.argsort(angles)]
+
+        # finish
+        new_regions.append(new_region.tolist())
+
+    return new_regions, np.asarray(new_vertices)
 
 def main():
     """
