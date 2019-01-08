@@ -422,10 +422,11 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5
 
     # substrate coarser
     fig = plt.figure(name_hdf5[:-3])
-    sub1 = fig.add_subplot(211)
+    subs = fig.subplots(nrows=2, sharex=True, sharey=True)  #
+    plt.setp(subs.flat, aspect='equal')
+    sub1, sub2 = subs
     patches = []
     cmap = plt.get_cmap(fig_opt['color_map1'])
-    plt.axis('equal')
     colors_val = np.array(sub_pg)  # convert nfloors to colors that we can use later (cemagref)
     # Set norm to correspond to the data for which
     # the colorbar will be used.
@@ -443,13 +444,10 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5
     # collection.set_color(colors)
     collection.set_array(colors_val)
     sub1.autoscale_view()
-    # sub1.plot(xlist, ylist, c='b', linewidth=0.2)
-    # plt.xlabel('x coord []')
-    plt.ylabel('y coord []')
-    plt.title(title_pg)
+    sub1.set_ylabel('y coord []')
+    sub1.set_title(title_pg)
 
     # substrate dominant
-    sub2 = fig.add_subplot(212)
     patches = []
     colors_val = np.array(sub_dom)  # convert nfloors to colors that we can use later
     # Set norm to correspond to the data for which
@@ -466,14 +464,12 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5
     collection = PatchCollection(patches, linewidth=0.0, cmap=cmap, norm=norm)
     sub2.add_collection(collection)
     collection.set_array(colors_val)
-    sub2.autoscale_view()
-    plt.axis('equal')
     # cbar = plt.colorbar()
     # cbar.ax.set_ylabel('Substrate')
     # sub2.plot(xlist, ylist, c='b', linewidth=0.2)
-    plt.xlabel('x coord []')
-    plt.ylabel('y coord []')
-    plt.title(title_dom)
+    sub2.set_xlabel('x coord []')
+    sub2.set_ylabel('y coord []')
+    sub2.set_title(title_dom)
 
     # colorbar
     ax1 = fig.add_axes([0.92, 0.2, 0.015, 0.7])  # posistion x2, sizex2, 1= top of the figure
