@@ -165,11 +165,11 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 root = docxml.getroot()
             except IOError:
                 self.send_log.emit(
-                    "Warning: the xml project file does not exist \n")
+                    "Warning: the xml project file does not exist.")
                 return -99, -99, -99
         except ET.ParseError:
             self.send_log.emit(
-                "Warning: the xml project file is not well-formed.\n")
+                "Warning: the xml project file is not well-formed.")
             return -99, -99, -99
 
         return root, docxml, xmlfile
@@ -334,7 +334,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
             f.write(text)
 
         self.send_log.emit('A text file with the filenames was created.\
-         It is saved in the text_output folder. \n')
+         It is saved in the text_output folder.')
 
     def load_file(self, linetext):
         """
@@ -363,7 +363,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 data_dis = f.read()
         except IOError or UnicodeDecodeError:
             self.send_log.emit(
-                "Error: the discharge file could not be loaded.\n")
+                "Error: the discharge file could not be loaded.")
             return
         data_dis = data_dis.strip()
 
@@ -437,7 +437,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 data_dis = f.read()
         except IOError or UnicodeDecodeError:
             self.send_log.emit(
-                "Error: the discharge file could not be loaded.\n")
+                "Error: the discharge file could not be loaded.")
             return
         if len(data_dis) == 0:
             self.send_log.emit('Error: No data found in file')
@@ -471,7 +471,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
             if 'Q[' in headers[i] and ']' in headers[i]:  # Q
                 q_index = i
         if q_index is None:
-            self.send_log.emit('Error: No discharge header (Q[...]) found in file')
+            self.send_log.emit('Error: No discharge header (Q[...]) found in file.')
             return
 
         # get data
@@ -480,7 +480,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         for i in range(1, len(data_dis)):
             if date_index is not None and len(data_dis[i].split(c_separator)) == 1:
                 self.send_log.emit('Error: Column separators are not homogeneous for all lines\
-                                    (different at line ' + str(i + 1) + ')')
+                                    (different at line ' + str(i + 1) + ').')
                 return
             if date_index is not None:
                 date.append(data_dis[i].split(c_separator)[date_index])
@@ -512,7 +512,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         # save
         linetext.setText(dis_all)  # add text to QLineEdit
         self.save_discharge()  # save into the xml project file
-        self.send_log.emit('The discharge output file has been correctly read')  # log valid file
+        self.send_log.emit('The discharge output file has been correctly read.')  # log valid file
 
     def discharge_from_chosen_data(self):
         """
@@ -532,7 +532,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
             pathnamefile = os.path.join(path_hdf5, namefile)
             if not os.path.isfile(pathnamefile):
                 self.send_log.emit('Warning: A merge file was not found in\
-                the hdf5 folder. \n')
+                the hdf5 folder.')
             else:
                 timestep = load_hdf5.load_unit_name(namefile, path_hdf5)
                 for t in timestep:
@@ -575,7 +575,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                                  Discharges should be separated '
                                 'by a comma or in the format start:end:step\
                                  or LOG start:end:number points '
-                                '(1). \n')
+                                '(1).')
                             return [-99]
                         discharge = np.logspace(np.log10(startd),
                                                 np.log10(endd))
@@ -590,7 +590,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                                 'Error: Discharge format was not understood.\
                                  Discharges should be separated '
                                 'by a comma or in the format start:end:step\
-                                 or LOG start:end:number points (5). \n')
+                                 or LOG start:end:number points (5).')
                             return [-99]
                         discharge = np.logspace(np.log10(startd),
                                                 np.log10(endd), num=nbpoint)
@@ -600,7 +600,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                      understood. Discharges should be separated '
                                        'by a comma or in the format\
                                         start:end:step or '
-                                       'LOG start:end:number points (4). \n')
+                                       'LOG start:end:number points (4).')
                     return
 
             # start:end: step format
@@ -616,7 +616,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                                            'by a comma or in the format\
                                             start:end:step or\
                                              LOG start:end:number points '
-                                           '(1). \n')
+                                           '(1).')
                         return [-99]
                     discharge = range(startd, endd)
                 elif len(dstr) == 3:  # start:end:step
@@ -629,7 +629,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                             'Error: Discharge format was not understood.\
                              Discharges should be separated '
                             'by a comma or in the format start:end:step or\
-                             LOG start:end:number points (5). \n')
+                             LOG start:end:number points (5).')
                         return [-99]
                     discharge = range(startd, endd + step, step)
                 else:
@@ -637,7 +637,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                         'Error: Discharge format was not understood.\
                          Discharges should be separated '
                         'by a comma or in the format start:end:step or\
-                         LOG start:end:number points (2). \n')
+                         LOG start:end:number points (2).')
                     return [-99]
 
             # just one discharge ? Or an error
@@ -650,7 +650,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                      Discharges should be separated '
                         'by a comma or in the format\
                     start:end:step or LOG start:end:number points '
-                        ' (3). \n')
+                        ' (3).')
                     return [-99]
 
         # list of discharge format
@@ -662,7 +662,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 Discharge format was not understood.\
                  Discharges should be separated '
                                    'by a comma or in the format start:end:step\
-                                    or LOG start:end:number points (4). \n')
+                                    or LOG start:end:number points (4).')
                 return [-99]
 
         return discharge
@@ -705,13 +705,13 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         discharge_input = self.get_discharge(self.input)
         if len(discharge_input) < 2:
             self.send_log.emit('Error: Need at least two discharge input\
-                                separated by a comma\n')
+                                separated by a comma.')
             return
         # add discharge output to a list
         discharge_output = self.get_discharge(self.output)
         # check discharge
         if len(discharge_input) == 0 or len(discharge_output) == 0:
-            self.send_log.emit('Error: No discharge found')
+            self.send_log.emit('Error: No discharge found.')
             return
         if discharge_input[0] == -99 or discharge_output[0] == -99:
             return
@@ -747,7 +747,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         # add to the merge files in habitat calc
         self.drop_merge.emit()
         self.send_log.emit(self.tr("The created file is ready for habitat\
-         calculation and has been added to the 'Habitat Calc.' tab. (Chronic_") + merge_files[0] + ")\n")
+         calculation and has been added to the 'Habitat Calc.' tab. (Chronic_") + merge_files[0] + ").")
 
         # send log (with message on getting the data in habitat calc)
         self.send_log.emit(

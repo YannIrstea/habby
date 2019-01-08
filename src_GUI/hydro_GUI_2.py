@@ -458,9 +458,9 @@ class SubHydroW(QWidget):
 
         """
 
-        sys.stdout = self.mystdout = StringIO()
+        sys.stdout = self.mystdout = StringIO()  # out to GUI
         pathname_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
-        sys.stdout = sys.__stdout__
+        sys.stdout = sys.__stdout__  # reset to console
         self.send_err_log()
 
         if pathname_hdf5 is not None:
@@ -872,20 +872,34 @@ class SubHydroW(QWidget):
             self.running_time += 1  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
             self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-            # send the message
+            # send the message FRENCH
             if self.fig_opt['language'] == str(1):
-                if self.model_type == 'SUBSTRATE':
-                    self.send_log.emit(
-                        "Processus 'Fusion de Grille' fonctionne depuis " + str(self.running_time) + " sec")
+                # MERGE
+                if self.model_type == 'MERGE':
+                    self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis " + str(self.running_time) + " sec")
+                # SUBSTRATE
+                elif self.model_type == 'SUBSTRATE':
+                    self.send_log.emit("Processus 'substrat' fonctionne depuis " + str(self.running_time) + " sec")
+                # HYDRAULIC
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
                     self.send_log.emit("Processus 'Hydraulique' fonctionne depuis " + str(self.running_time) + " sec")
+                    self.load_b.setDisabled(True)  # hydraulic
+            # send the message ENGLISH
             else:
-                if self.model_type == 'SUBSTRATE':
+                # MERGE
+                if self.model_type == 'MERGE':
                     self.send_log.emit("Process 'Merge Grid' is alive and run since " + str(self.running_time) + " sec")
+                # SUBSTRATE
+                elif self.model_type == 'SUBSTRATE':
+                    self.send_log.emit("Process 'substrate' is alive and run since " + str(self.running_time) + " sec")
+                # HYDRAULIC
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
                     self.send_log.emit("Process 'Hydraulic' is alive and run since " + str(self.running_time) + " sec")
+
+
+                    self.load_b.setDisabled(True)  # hydraulic
 
         # when the loading is finished
         if not self.q.empty():
@@ -894,38 +908,45 @@ class SubHydroW(QWidget):
             self.mystdout = self.q.get()
             error = self.send_err_log(True)
 
-            # enable to loading of another model
-            self.load_b.setDisabled(False)
-
             # info
             if error:
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
-
-            if self.model_type == 'SUBSTRATE' or self.model_type == 'LAMMI':
-                self.send_log.emit(
-                    self.tr("Merging of substrate and hydraulic data finished (computation time = ") + str(
-                        self.running_time) + " s).\n")
-                self.send_log.emit(
-                    self.tr("Figures can be displayed/exported from graphics tab.\n"))
+            # MERGE
+            if self.model_type == 'MERGE' or self.model_type == 'LAMMI':
+                self.send_log.emit(self.tr("Merging of substrate and hydraulic grid finished (computation time = ") + str(self.running_time) + " s).")
                 self.drop_merge.emit()
                 # update last name
                 self.name_last_hdf5("hdf5_mergedata")
+                # unblock button merge
+                self.load_b2.setDisabled(False)  # merge
+            # SUBSTRATE
+            elif self.model_type == 'SUBSTRATE':
+                self.send_log.emit(self.tr("Loading of substrate data finished (computation time = ") + str(self.running_time) + " s).")
+                self.drop_merge.emit()
+                # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
+                self.update_sub_hdf5_name()
+                # update last name
+                self.name_last_hdf5("hdf5_substrate")
+                # unblock button substrate
+                self.load_substrate.setDisabled(False)  # substrate
+            # HYDRAULIC
             else:
-                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(
-                    self.running_time) + " s).")
-                self.send_log.emit(
-                    self.tr("Figures can be displayed/exported from graphics tab.\n"))
+                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(self.running_time) + " s).")
                 # send a signal to the substrate tab so it can account for the new info
                 self.drop_hydro.emit()
                 # update last name
                 self.name_last_hdf5(self.model_type)
+                # unblock button hydraulic
+                self.load_b.setDisabled(False)  # hydraulic
+            # general
+            self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
             self.send_log.emit("clear status bar")
             self.running_time = 0
 
+        # finish
         if not self.p.is_alive() and self.q.empty():
             self.timer.stop()
             self.send_log.emit("clear status bar")
-            self.load_b.setDisabled(False)
             self.running_time = 0
             # if grid creation fails
             # if self.interpo_choice >= 1:
@@ -3314,7 +3335,7 @@ class HabbyHdf5(SubHydroW):
         created by HABBY in the method save_hdf5 of the class SubHydroW.
         """
 
-        self.send_log.emit('# Loading: HABBY hdf5 file (hydraulic data only)...')
+        self.send_log.emit(self.tr('# Loading: HABBY hdf5 file (hydraulic data only)...'))
 
         # prep
         ikle_all_t = []
@@ -3373,7 +3394,7 @@ class HabbyHdf5(SubHydroW):
         created by HABBY in the method save_hdf5 of the class SubHydroW.
         """
 
-        self.send_log.emit('# Loading: HABBY hdf5 file (hydraulic and substrate data)...')
+        self.send_log.emit(self.tr('# Loading: HABBY hdf5 file (hydraulic and substrate data)...'))
 
         # prep
         self.ismerge = True
@@ -3464,7 +3485,7 @@ class HabbyHdf5(SubHydroW):
         :param merge: A boolean which say if we load an hydrological or a merge file
         """
 
-        self.send_log.emit('# Loading: Join two HABBY hdf5 file together ...')
+        self.send_log.emit(self.tr('# Loading: Join two HABBY hdf5 file together ...'))
         self.ismerge = merge
         path_hdf5 = self.find_path_hdf5()
 
@@ -3587,9 +3608,9 @@ class SubstrateW(SubHydroW):
         self.h2d_t2.setToolTip(self.pathfile[0])
 
         # FROMFILE the load button from file
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
-        self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_b.clicked.connect(self.load_sub_gui)
+        self.load_substrate = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_substrate.setStyleSheet("background-color: #47B5E6; color: black")
+        self.load_substrate.clicked.connect(self.load_sub_gui)
 
         # FROMFILE get the last file created
         last_sub_file_label = QLabel(self.tr('Last file created'))
@@ -3654,7 +3675,7 @@ class SubstrateW(SubHydroW):
         self.layout_file.addWidget(self.e2, 2, 1)
         self.layout_file.addWidget(lh, 4, 0)
         self.layout_file.addWidget(self.hname, 4, 1)
-        self.layout_file.addWidget(self.load_b, 4, 2)
+        self.layout_file.addWidget(self.load_substrate, 4, 2)
         self.layout_file.addWidget(last_sub_file_label, 5, 0)
         self.layout_file.addWidget(self.last_sub_file_name_label, 5, 1)
         self.file_part = QWidget()
@@ -3766,7 +3787,7 @@ class SubstrateW(SubHydroW):
         :param const_sub: If True, a constant substrate is being loaded. Usually it is set to False.
 
         """
-
+        self.model_type = 'SUBSTRATE'
         # if hdf5_filename_output empty: msg
         if const_sub:
             if not self.hname2.text():
@@ -3778,8 +3799,10 @@ class SubstrateW(SubHydroW):
                 return
 
         # info
-        self.send_log.emit(self.tr('# Loading: Substrate data...'))
-        self.load_b.setDisabled(True)
+        self.timer.start(1000)
+
+        # block button substrate
+        self.load_substrate.setDisabled(True)  # substrate
 
         # constante case
         if const_sub:
@@ -3795,15 +3818,15 @@ class SubstrateW(SubHydroW):
             else:
                 self.name_hdf5 = self.hname2.text() + '_' + str(data_sub)
             path_hdf5 = self.find_path_hdf5()
-            sys.stdout = self.mystdout = StringIO()
+            sys.stdout = self.mystdout = StringIO()  # out to GUI
             load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, [], [], [], [],
                                     self.name_hdf5, True, self.model_type)
-            sys.stdout = sys.__stdout__
+            sys.stdout = sys.__stdout__  # reset to console
             self.send_err_log()
             path_im = self.find_path_im()  # needed
 
             # log info
-            self.send_log.emit(self.tr('# Substrate data type: constant value'))
+            self.send_log.emit(self.tr('# Loading: Substrate data constant value ...'))
             self.send_log.emit("py    val_c=" + str(data_sub))
             self.send_log.emit(
                 "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], [], [], 're_run_const_sub'"
@@ -3811,7 +3834,8 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
             #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
-
+            # unblock button substrate
+            self.load_substrate.setDisabled(False)  # substrate
         # sub from txt or shp
         else:
             # save path and name substrate
@@ -3820,12 +3844,10 @@ class SubstrateW(SubHydroW):
             path_im = self.find_path_im()
             code_type = self.e2.currentText()
             self.name_hdf5 = self.hname.text()
-
             self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
 
             # if the substrate is in the shp form
             if ext == '.shp':
-
                 # check if we have all files
                 name1 = namebase + '.dbf'
                 name2 = namebase + '.shx'
@@ -3837,18 +3859,38 @@ class SubstrateW(SubHydroW):
                     self.send_log.emit(
                         'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
                         ' a .dbf file.')
-                    self.load_b.setDisabled(False)
+                    self.load_substrate.setDisabled(False)
                     return
 
-                # load substrate shp (and triangulation)
-                sys.stdout = self.mystdout = StringIO()
-                [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
-                    self.namefile[0], self.pathfile[0],
-                    self.path_prj, code_type)
-                # we have a case where two dominant substrate are "equally" dominant
-                # so we ask the user to solve this for us
-                dom_solve = 0
-                if not ok_dom:
+                # Check shape fields data validity
+                sys.stdout = self.mystdout = StringIO()  # out to GUI  # out to GUI
+                sub_validity, ok_dom = substrate.shp_validity(self.namefile[0],
+                                                              self.pathfile[0],
+                                                              code_type)
+
+                # if shape data not valid : stop
+                if not sub_validity:
+                    self.send_log.emit('Error: Substrate data not loaded')
+                    self.load_substrate.setDisabled(False)
+                    return
+
+                # if shape data valid : load and save
+                if sub_validity and ok_dom:
+                    # load substrate shp (and triangulation)
+                    self.q = Queue()
+                    self.p = Process(target=substrate.load_sub_shp,
+                                     args=(self.namefile[0],
+                                           self.pathfile[0],
+                                           self.path_prj,
+                                           self.name_prj,
+                                           self.name_hdf5,
+                                           code_type,
+                                           self.q))
+                    self.p.start()
+
+                # if shape data valid but case where two dominant substrate are "equally" dominant: inform user, load and save
+                if sub_validity and not ok_dom:
+                    dom_solve = 0
                     # in this case ask the user
                     self.msg2 = QMessageBox()
                     self.msg2.setWindowTitle(self.tr('Dominant substrate'))
@@ -3863,15 +3905,20 @@ class SubstrateW(SubHydroW):
                         dom_solve = 1
                     elif self.msg2.clickedButton() == b2:
                         dom_solve = -1
-                    [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
-                        self.namefile[0], self.pathfile[0], code_type, dom_solve)
-                sys.stdout = sys.__stdout__
+                    # load substrate shp (and triangulation)
+                    self.q = Queue()
+                    self.p = Process(target=substrate.load_sub_shp,
+                                     args=(self.namefile[0],
+                                           self.pathfile[0],
+                                           self.path_prj,
+                                           self.name_prj,
+                                           self.name_hdf5,
+                                           code_type,
+                                           self.q,
+                                           dom_solve))
+                    self.p.start()
+                sys.stdout = sys.__stdout__  # reset to console
                 self.send_err_log()
-
-                if self.ikle_sub == [-99]:
-                    self.send_log.emit('Error: Substrate data not loaded')
-                    self.load_b.setDisabled(False)
-                    return
 
                 # copy shape file (compsed of .shp, .shx and .dbf)
                 path_input = self.find_path_input()
@@ -3884,7 +3931,7 @@ class SubstrateW(SubHydroW):
                     load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
 
                 # log info
-                self.send_log.emit(self.tr('# Substrate data type: Shapefile'))
+                self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
                 self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
                 self.send_log.emit("py    path1=r'" + path_input + "'")
                 self.send_log.emit("py    type='" + code_type + "'")
@@ -3899,62 +3946,49 @@ class SubstrateW(SubHydroW):
                 path_shp = self.find_path_input()
 
                 # convert txt to voronoi shp
-                sys.stdout = self.mystdout = StringIO()
-                #[self.coord_p, self.ikle_sub, sub_dom, sub_pg, x, y, sub1, sub2] = \
+                sys.stdout = self.mystdout = StringIO()  # out to GUI
                 sub_filename_voronoi_shp = substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type, path_shp)
+                if sub_filename_voronoi_shp:
+                    # load substrate shp (and triangulation)
+                    self.q = Queue()
+                    self.p = Process(target=substrate.load_sub_shp,
+                                     args=(sub_filename_voronoi_shp,
+                                           path_shp,
+                                           self.path_prj,
+                                           self.name_prj,
+                                           self.name_hdf5,
+                                           code_type,
+                                           self.q))
+                    self.p.start()
+                    sys.stdout = sys.__stdout__  # reset to console
+                    self.send_err_log()
 
-                # voronoi shp to voronoi shp triangulated
-                [self.coord_p, self.ikle_sub, sub_dom, sub_pg, ok_dom] = substrate.load_sub_shp(
-                    sub_filename_voronoi_shp, path_shp,
-                    self.path_prj, code_type)
+                    # copy
+                    path_input = self.find_path_input()
+                    self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+                    self.p2.start()
 
-                sys.stdout = sys.__stdout__
-                self.send_err_log()
-
-                if self.ikle_sub == [-99]:
-                    self.send_log.emit('Error: Substrate data not loaded')
-                    self.load_b.setDisabled(False)
-                    return
-
-                # copy
-                path_input = self.find_path_input()
-                self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
-                self.p2.start()
-
-                # log info
-                self.send_log.emit(self.tr('# Substrate data type: text file'))
-                self.send_log.emit("py    file1='r" + self.namefile[0] + "'")
-                self.send_log.emit("py    path1=r'" + path_input + "'")
-                self.send_log.emit("py    type='" + code_type + "'")
-                self.send_log.emit(
-                    "py    [coord_pt, ikle_subt, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg] = substrate.load_sub_txt("
-                    "file1, path1, type)\n")
-                self.send_log.emit("restart LOAD_SUB_TXT")
-                self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-                self.send_log.emit("restart    code_type: " + code_type)
+                    # log info
+                    self.send_log.emit(self.tr('# Loading: Substrate data text file ...'))
+                    self.send_log.emit(
+                        self.tr('Warning: The area covered by the voronoi calculation might be larger and more irregular'
+                          ' than the one given by the orginal points. This does not affect the results usually. \n'))
+                    self.send_log.emit("py    file1='r" + self.namefile[0] + "'")
+                    self.send_log.emit("py    path1=r'" + path_input + "'")
+                    self.send_log.emit("py    type='" + code_type + "'")
+                    self.send_log.emit(
+                        "py    [coord_pt, ikle_subt, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg] = substrate.load_sub_txt("
+                        "file1, path1, type)\n")
+                    self.send_log.emit("restart LOAD_SUB_TXT")
+                    self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+                    self.send_log.emit("restart    code_type: " + code_type)
 
             # case unknown
             else:
                 self.send_log.emit("Error: Unknown extension for substrate data. The data was not loaded. Only file "
                                    "with .txt, .asc ,or .shp are accepted.")
-                self.load_b.setDisabled(False)
+                self.load_substrate.setDisabled(False)
                 return
-
-            # save shp and txt in the substrate hdf5
-            path_hdf5 = self.find_path_hdf5()
-            self.last_hdf5 = load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, sub_pg, sub_dom,
-                                                     self.ikle_sub,
-                                                     self.coord_p, [], [], self.name_hdf5, False, self.model_type, True)
-
-        # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
-        self.update_sub_hdf5_name()
-        # update last name
-        self.name_last_hdf5("hdf5_substrate")
-
-        self.load_b.setDisabled(False)
-
-        self.send_log.emit(self.tr("Loading of substrate data finished. \n"))
-        self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
 
     def recreate_image_sub(self, save_fig=False):
         """
@@ -4070,12 +4104,13 @@ class SubstrateW(SubHydroW):
 
         This function can be slow so it call on a second thread.
         """
+        self.model_type = 'MERGE'
         # if hdf5_filename_output empty: msg
         if not self.hdf5_merge_lineedit.text():
             self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
             return
 
-        self.send_log.emit('# Merging: substrate and hydraulic grid...')
+        self.send_log.emit(self.tr('# Merging: substrate and hydraulic grid...'))
 
         # get useful data
         default_data = self.e3.text()
@@ -4108,6 +4143,9 @@ class SubstrateW(SubHydroW):
             erase_id = True
         else:
             erase_id = False
+
+        # block button merge
+        self.load_b2.setDisabled(True)  # merge
 
         # for error management and figures
         self.timer.start(1000)

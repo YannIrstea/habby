@@ -486,8 +486,8 @@ class outputW(QScrollArea):
             erase1.text = str(fig_dict['erase_id'])
             doc.write(fname)
 
-        self.send_log.emit('The new options for the figures are saved. \n')
-        self.send_log.emit('# Modifications of figure options. \n')
+        self.send_log.emit('# The new options for the figures are saved.')
+        self.send_log.emit('# Modifications of figure options.')
         # self.send_log.emit('restart     SAVE_OPTION_FIG')
 
 

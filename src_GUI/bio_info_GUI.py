@@ -124,10 +124,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.xml'))
                 root = docxml.getroot()
             except IOError:
-                # self.send_log.emit("Warning: the xml p file does not exist \n")
+                # self.send_log.emit("Warning: the xml p file does not exist.")
                 return
         except ET.ParseError:
-            self.send_log.emit("Warning: the xml file is not well-formed.\n")
+            self.send_log.emit("Warning: the xml file is not well-formed.")
             return
         pathbio_child = root.find(".//Path_Bio")
         if pathbio_child is not None:
@@ -441,7 +441,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             inds = np.where(data_fish_here == cond.lower())[0]
             self.runhab.setEnabled(True)
         else:
-            self.send_log.emit(self.tr('Warning: No suitability curve found for the last selection. \n'))
+            self.send_log.emit(self.tr('Warning: No suitability curve found for the last selection.'))
             return
         # get the new selection
         for ind in inds:
@@ -468,10 +468,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 docxml = ET.parse(xmlfile)
                 root = docxml.getroot()
             except IOError:
-                self.send_log.emit("Warning: the xml project file does not exist \n")
+                self.send_log.emit("Warning: the xml project file does not exist.")
                 return
         except ET.ParseError:
-            self.send_log.emit("Warning: the xml project file is not well-formed.\n")
+            self.send_log.emit("Warning: the xml project file is not well-formed.")
             return
 
         self.m_all.clear()
@@ -500,7 +500,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     name = f.text
                     self.hdf5_merge.append(name)
                 else:
-                    self.send_log.emit("Warning: One merge hdf5 file was not found by calc_hab \n")
+                    self.send_log.emit("Warning: One merge hdf5 file was not found by calc_hab.")
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
 
@@ -512,7 +512,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
 
         if self.ind_current is None:
-            self.send_log.emit("Warning: No fish selected to create suitability curves \n")
+            self.send_log.emit("Warning: No fish selected to create suitability curves.")
             return
 
         # get the file
@@ -541,7 +541,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # disable the button
         self.runhab.setDisabled(True)
-        self.send_log.emit(" Calculating habitat value... \n")
+        self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
         # get the figure options and the type of output to be created
         fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
@@ -606,7 +606,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             hdf5_file = self.hdf5_merge[ind]
         else:
             self.runhab.setDisabled(False)
-            self.send_log.emit('Error: No merged hydraulic files available \n')
+            self.send_log.emit('Error: No merged hydraulic files available.')
             return
 
         # get the path where to save the different outputs (function in estimhab_GUI.py)
@@ -672,10 +672,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # send the message
             if fig_dict['language'] == str(1):
                 # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit("Processus 'Habitat' fonctionne depuis " + str(self.running_time) + " sec")
+                self.send_log.emit("Processus 'Habitat' fonctionne depuis " + str(self.running_time) + " sec.")
             else:
                 # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit("Process 'Habitat' is alive and run since " + str(self.running_time) + " sec")
+                self.send_log.emit("Process 'Habitat' is alive and run since " + str(self.running_time) + " sec.")
 
         # when the loading is finished
         if not self.q4.empty() or (self.keep_data is not None and self.plot_new):
@@ -733,6 +733,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # enable the button to call this function directly again to redo the figure
             self.butfig.setEnabled(True)
+
+            self.send_log.emit(self.tr('Habitat calculation is finished (computation time = ') + str(self.running_time) + " s).")
+            self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab."))
 
             # put the timer back to zero and clear status bar
             self.running_time = 0

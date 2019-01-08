@@ -634,6 +634,7 @@ class MainWindows(QMainWindow):
             # add the status bar
             self.statusBar()
 
+
             # add the title of the windows
             # let it here as it should be changes if language changes
             if self.name_prj != '':
@@ -997,13 +998,12 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_fig_and_drop()
         self.central_widget.connect_signal_log()
 
+        # update name
         self.central_widget.update_hydro_hdf5_name()
 
         # write log
-        if len(t) > 26:
-            # no need to write #log of habby started two times
-            # to break line habby use <br> there, should not be added again
-            self.central_widget.write_log(t[26:-4])
+        self.central_widget.tracking_journal_QTextEdit.clear()
+        self.central_widget.write_log('# Log of HABBY started.')
         self.central_widget.write_log('# Project saved or opened successfully.')
         self.central_widget.write_log("py    name_prj= r'" + self.name_prj + "'")
         self.central_widget.write_log("py    path_prj= r'" + self.path_prj + "'")
@@ -1692,11 +1692,11 @@ class CreateNewProject(QWidget):
         lg = QLabel(self.tr(" <b> Create a new project </b>"))
         l1 = QLabel(self.tr('Project Name: '))
         self.e1 = QLineEdit(self.default_name)
-        l2 = QLabel(self.tr('Main Folder: '))
+        l2 = QLabel(self.tr('Projects Folder: '))
         self.e2 = QLineEdit(self.default_fold)
-        button2 = QPushButton(self.tr('Set Folder'), self)
+        button2 = QPushButton(self.tr('Choose folder'), self)
         button2.clicked.connect(self.setfolder)
-        self.button3 = QPushButton(self.tr('Save project'))
+        self.button3 = QPushButton(self.tr('Create project'))
         self.button3.clicked.connect(self.save_project)  # is a PyQtSignal
         self.e1.returnPressed.connect(self.save_project)
         self.button3.setStyleSheet("background-color: #47B5E6; color: black")
@@ -1726,7 +1726,7 @@ class CreateNewProject(QWidget):
         # os.getenv('HOME')
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
-            self.send_log.emit('New folder selected for the project. \n')
+            self.send_log.emit('New folder selected for the project.')
 
 
 class CentralW(QWidget):
@@ -2042,19 +2042,18 @@ class CentralW(QWidget):
 
         :param text_log: the text which should be added to the log (a string)
 
-        *   if text_log start with # -> added it to self.l2 (QLabel) and the .log file (comments)
+        *   if text_log start with # -> added it to self.tracking_journal_QTextEdit (QTextEdit) and the .log file (comments)
         *   if text_log start with restart -> added it restart_nameproject.txt
-        *   if text_log start with WARNING -> added it to self.l2 (QLabel) and the .log file
-        *   if text_log start with ERROR -> added it to self.l2 (QLabel) and the .log file
+        *   if text_log start with WARNING -> added it to self.tracking_journal_QTextEdit (QTextEdit) and the .log file
+        *   if text_log start with ERROR -> added it to self.tracking_journal_QTextEdit (QTextEdit) and the .log file
         *   if text_log start with py -> added to the .log file (python command)
         *   if text_log starts with Process -> Text added to the StatusBar only
         *   if text_log == "clear status bar" -> the status bar is cleared
-        *   if text_log start with nothing -> just print to the Qlabel
-        *   if text_log out from stdout -> added it to self.l2 (QLabel) and the .log file (comments)
+        *   if text_log start with nothing -> just print to the QTextEdit
+        *   if text_log out from stdout -> added it to self.tracking_journal_QTextEdit (QTextEdit) and the .log file (comments)
 
         if logon = false, do not write in log.txt
         """
-
         if self.name_prj_c == '':
             return
         # read xml file to find the path to the log file
@@ -2086,8 +2085,10 @@ class CentralW(QWidget):
                     "found. no Log written. </br> <br>")
             return
 
-        # add comments to Qlabel and .log file
+        # add comments to QTextEdit and .log file
         if text_log[0] == '#':
+            # set text cursor to the end (in order to append text at the end)
+            self.scrolldown()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 text_log[1:] + '</br><br>')  # "<FONT COLOR='#000000'>" +
             self.write_log_file(text_log, pathname_logfile)
@@ -2098,11 +2099,13 @@ class CentralW(QWidget):
         elif text_log[:7] == 'restart':
             self.write_log_file(text_log[7:], pathname_restartfile)
         elif text_log[:5] == 'Error' or text_log[:6] == 'Erreur':
+            self.scrolldown()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
             self.write_log_file('# ' + text_log, pathname_logfile)
         # add warning
         elif text_log[:7] == 'Warning':
+            self.scrolldown()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
             self.write_log_file('# ' + text_log, pathname_logfile)
@@ -2113,6 +2116,7 @@ class CentralW(QWidget):
             self.parent().statusBar().clearMessage()
         # other case not accounted for
         else:
+            self.scrolldown()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 text_log + '</br><br>')  # "<FONT COLOR='#000000'>" +
 
@@ -2419,7 +2423,7 @@ class WelcomeW(QScrollArea):
         This function will be used to open a project example for HABBY, but the example is not prepared yet. NOT DONE
         AS IT IS COMPLICATED TO INSTALL A EXAMPLE PROJECT. WINDOWS SAVED PROGRAM IN FOLDER WITHOUT WRITE PERMISSIONS.
         """
-        self.send_log.emit('Warning: No example prepared yet')
+        self.send_log.emit('Warning: No example prepared yet.')
 
     def setfolder2(self):
         """
@@ -2431,7 +2435,7 @@ class WelcomeW(QScrollArea):
         dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
-            self.send_log.emit('New folder selected for the project. \n')
+            self.send_log.emit('New folder selected for the project.')
         else:
             return
 
@@ -2453,20 +2457,20 @@ class WelcomeW(QScrollArea):
                 try:
                     shutil.copytree(path_old, self.path_prj)
                 except shutil.Error:
-                    self.send_log.emit('Could not copy the project. Permission Error? \n')
+                    self.send_log.emit('Could not copy the project. Permission Error?')
                     return
-                self.send_log.emit(' The files in the project folder have been copied to the new location \n')
+                self.send_log.emit('The files in the project folder have been copied to the new location.')
                 try:
                     shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.xml'))
                 except shutil.Error:
-                    self.send_log.emit('Could not copy the project. Permission Error? \n')
+                    self.send_log.emit('Could not copy the project. Permission Error?')
                     return
                 doc.write(fname)
                 self.e2.setText(self.path_prj)
                 self.save_signal.emit()  # if not project folder, will create one
             else:
                 self.send_log.emit('Error: A project with the same name exists at the new location. '
-                                   'Project not saved \n')
+                                   'Project not saved.')
                 self.e2.setText(path_old)
                 return
         # if the project do not exist or has a different name than before, save a new project
@@ -2610,7 +2614,7 @@ class ShowImageW(QWidget):
         if self.path_im == '':
             return
         self.update_namefig()
-        self.send_log.emit('# New folder selected to save figures.\n')
+        self.send_log.emit('# New folder selected to save figures.')
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
@@ -2643,7 +2647,7 @@ class ShowImageW(QWidget):
             self.path_im = os.path.join(self.path_prj, self.name_prj)
         self.all_file = glob.glob(os.path.join(self.path_im, self.imtype))
         if not self.all_file:
-            self.send_log.emit('Warning: No figure was found at the path:' + self.path_im + '\n')
+            self.send_log.emit('Warning: No figure was found at the path:' + self.path_im)
             return
         self.all_file.sort(key=os.path.getmtime)  # the newest figure on the top
         if self.all_file[0] != 'Available figures':

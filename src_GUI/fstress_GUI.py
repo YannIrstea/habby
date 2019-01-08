@@ -186,7 +186,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # look in the xml project file if an Fstress model exist
         fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(fnamep):
-            self.send_log.emit("The project is not saved. Save the project in the Start tab before saving FStress data")
+            self.send_log.emit("The project is not saved. Save the project in the Start tab before saving FStress data.")
             return
 
         doc = ET.parse(fnamep)
@@ -252,7 +252,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.qhw[ind][0] = [float(self.eq1.text()), float(self.eh1.text()), float(self.ew1.text())]
             self.qhw[ind][1] = [float(self.eq2.text()), float(self.eh2.text()), float(self.ew2.text())]
         except ValueError:
-            self.send_log.emit("Error: The hydrological data cannot be converted to float")
+            self.send_log.emit("Error: The hydrological data cannot be converted to float.")
             self.save_ok = False
             return
         path_hdf5 = self.find_path_hdf5_est()
@@ -440,7 +440,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             return
 
         if len(self.riv_name) == 0:
-            self.send_log.emit('Warning: No river found in files')
+            self.send_log.emit('Warning: No river found in files.')
             return
 
         # update the list with the new river
@@ -577,7 +577,7 @@ class FstressW(estimhab_GUI.StatModUseful):
                 try:
                     data_deb = list(map(float, data_deb))
                 except ValueError:
-                    self.send_log.emit('Error: Data cannot be converted to float in deb.txt')
+                    self.send_log.emit('Error: Data cannot be converted to float in deb.txt.')
                     return
                 qmin = min(data_deb)
                 qmax = max(data_deb)
@@ -601,7 +601,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             try:
                 data_qhw = list(map(float, data_qhw))
             except ValueError:
-                self.send_log.emit('Error: Data cannot be concerted to float in qhw.txt')
+                self.send_log.emit('Error: Data cannot be concerted to float in qhw.txt.')
                 return
             if len(data_qhw) < 6:
                 self.send_log.emit('Error: FStress needs at least two discharge measurement.')
@@ -640,7 +640,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # see if we can use latin name instead of acronym
         filename_bio = os.path.join(self.path_bio, self.latin_filename)
         if not os.path.isfile(filename_bio):
-            self.send_log.emit('Warning: Latin name of invertebrate could not be read (1) \n')
+            self.send_log.emit('Warning: Latin name of invertebrate could not be read (1).')
             # show the fish name as acronym
             self.list_f.addItems(self.all_inv_name)
         else:
@@ -652,7 +652,7 @@ class FstressW(estimhab_GUI.StatModUseful):
                 data_name[d] = data_name[d].split('\t')
                 if len(data_name[d]) != 2:
                     self.list_f.addItems(self.all_inv_name)
-                    self.send_log.emit('Warning: Latin name of invertebrate could not be read (2) \n')
+                    self.send_log.emit('Warning: Latin name of invertebrate could not be read (2).')
                     return
             data_name = np.array(data_name)
             names_latin = []

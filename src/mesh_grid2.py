@@ -965,7 +965,7 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikl
                             empty_two = False
 
     # create the new substrate data
-    print('create the new substrate data')
+    #print('create the new substrate data')
     data_sub_dom_ok = np.zeros((len(sub_cell),))
     data_sub_pg_ok = np.zeros((len(sub_cell),))
     for i, s in enumerate(sub_cell):

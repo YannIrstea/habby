@@ -14,6 +14,8 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
+import sys
+from io import StringIO
 import shapefile
 import os
 import numpy as np
@@ -245,7 +247,137 @@ def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file,
     return True
 
 
-def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
+def shp_validity(filename, path_prj, code_type, dominant_case=0):
+    ind = 0
+
+    # open shape file (think about zero or one to start! )
+    sf = open_shp(filename, path_prj)
+
+    # get all the attributes in the shape file
+    fields = sf.fields
+
+    # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
+    [attribute_type, attribute_name] = get_useful_attribute(fields)
+    if attribute_type == -99:
+        return False, True
+
+    # if percentage type
+    if attribute_type == 1:
+        record_all = []
+        # get the data and pass it int
+        for f in fields:
+            if f[0] in attribute_name:
+                record_here = sf.records()
+                record_here = np.array(record_here)
+                record_here = record_here[:, ind]
+                try:
+                    record_here = list(map(int, record_here))
+                except ValueError:
+                    print('Error: The substate code should be formed by an int.\n')
+                    return False, True
+                record_all.append(record_here)
+                ind += 1
+        record_all = np.array(record_all).T
+        # get the domainant and coarser from the percentage
+        [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
+        if len(sub_dom) == 1:
+            if sub_dom[0] == -99:
+                return False, False
+        # transform to cemagref substrate form
+        if code_type == 'Cemagref':
+            if min(sub_dom) < 1 or min(sub_pg) < 1:
+                print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
+                return False, True
+            elif max(sub_dom) > 8 or max(sub_pg) > 8:
+                print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
+                return False, True
+        # code type edf - checked and transform
+        elif code_type == 'EDF':
+            if min(sub_dom) < 1 or min(sub_pg) < 1:
+                print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
+                return False, True
+            elif max(sub_dom) > 8 or max(sub_pg) > 8:
+                print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
+                return False, True
+            else:
+                sub_dom = edf_to_cemagref(sub_dom)
+                sub_pg = edf_to_cemagref(sub_pg)
+        # code type sandre
+        elif code_type == 'Sandre':
+            if min(sub_dom) < 1 or min(sub_pg) < 1:
+                print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
+                return False, True
+            elif max(sub_dom) > 12 or max(sub_pg) > 12:
+                print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
+                return False, True
+            else:
+                sub_dom = sandre_to_cemagref(sub_dom)
+                sub_pg = sandre_to_cemagref(sub_pg)
+        else:
+            print('Error: The substrate code is not recognized.\n')
+            return False, True
+
+    # pg/coarser/accessory type
+    elif attribute_type == 0:
+        for f in fields:
+            if f[0] == attribute_name[0] or f[0] == attribute_name[1]:  # [0] coarser and [1] pg
+                # read for all code type
+                a = int('2')
+                record_here = sf.records()
+                record_here = np.array(record_here)
+                record_here = record_here[:, ind - 1]
+                try:
+                    record_here = list(map(float, record_here))  # int('2.000' ) throw an error
+                    record_here = list(map(int, record_here))
+                except ValueError:
+                    print('Error: The substrate code should be formed by an int.\n')
+                    return False, True
+
+                # code type cemagref - checked
+                if code_type == 'Cemagref':
+                    if min(record_here) < 1:
+                        print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
+                        return False, True
+                    elif max(record_here) > 8:
+                        print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
+                        return False, True
+                # code type edf - checked and transform
+                elif code_type == 'EDF':
+                    if min(record_here) < 1:
+                        print('Error: The edf code should be formed by an int between 1 and 8. (2)')
+                        return False, True
+                    elif max(record_here) > 8:
+                        print('Error: The edf code should be formed by an int between 1 and 8. (3)')
+                        return False, True
+                    else:
+                        record_here = edf_to_cemagref(record_here)
+                # code type sandre
+                elif code_type == 'Sandre':
+                    if min(record_here) < 1:
+                        print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
+                        return False, True
+                    elif max(record_here) > 12:
+                        print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
+                        return False, True
+                    else:
+                        record_here = sandre_to_cemagref(record_here)
+                else:
+                    print('Error: The substrate code is not recognized.\n')
+                    return False, True
+
+                # now that we have checked and transform, give the data
+                if f[0] == attribute_name[0]:
+                    sub_pg = record_here
+                if f[0] == attribute_name[1]:
+                    sub_dom = record_here
+            ind += 1
+        return True, True
+    else:
+        print('Error: Attribute type not recognized.\n')
+        return False, True
+
+
+def load_sub_shp(filename, path_file, path_prj, name_prj, name_hdf5, code_type, queue, dominant_case=0):
     """
     A function to load the substrate in form of shapefile.
 
@@ -259,7 +391,7 @@ def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
             and an array with substrate type and a boolean which allows to get the case where we have tow dominant case
 
     """
-
+    sys.stdout = mystdout = StringIO()
     # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
     if convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
         # file name triangulated
@@ -271,7 +403,6 @@ def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
         sub_dom = []  # dominant substrate
         sub_pg = []  # coarser substrate ("plus gros")
         ind = 0
-        failload = [-99], [-99], [-99], [-99], True
 
         # open shape file (think about zero or one to start! )
         sf = open_shp(filename, path_prj + "/input")
@@ -294,8 +425,6 @@ def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
 
         # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
         [attribute_type, attribute_name] = get_useful_attribute(fields)
-        if attribute_type == -99:
-            return failload
 
         # if percentage type
         if attribute_type == 1:
@@ -306,52 +435,21 @@ def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
                     record_here = sf.records()
                     record_here = np.array(record_here)
                     record_here = record_here[:, ind]
-                    try:
-                        record_here = list(map(int, record_here))
-                    except ValueError:
-                        print('Error: The substate code should be formed by an int.\n')
-                        return failload
+                    record_here = list(map(int, record_here))
                     record_all.append(record_here)
                     ind += 1
             record_all = np.array(record_all).T
             # get the domainant and coarser from the percentage
             [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
-            if len(sub_dom) == 1:
-                if sub_dom[0] == -99:
-                    return [-99], [-99], [-99], [-99], False
-            # transform to cemagref substrate form
-            if code_type == 'Cemagref':
-                if min(sub_dom) < 1 or min(sub_pg) < 1:
-                    print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                    return failload
-                elif max(sub_dom) > 8 or max(sub_pg) > 8:
-                    print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                    return failload
+
             # code type edf - checked and transform
-            elif code_type == 'EDF':
-                if min(sub_dom) < 1 or min(sub_pg) < 1:
-                    print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
-                    return failload
-                elif max(sub_dom) > 8 or max(sub_pg) > 8:
-                    print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
-                    return failload
-                else:
-                    sub_dom = edf_to_cemagref(sub_dom)
-                    sub_pg = edf_to_cemagref(sub_pg)
+            if code_type == 'EDF':
+                sub_dom = edf_to_cemagref(sub_dom)
+                sub_pg = edf_to_cemagref(sub_pg)
             # code type sandre
             elif code_type == 'Sandre':
-                if min(sub_dom) < 1 or min(sub_pg) < 1:
-                    print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                    return failload
-                elif max(sub_dom) > 12 or max(sub_pg) > 12:
-                    print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                    return failload
-                else:
                     sub_dom = sandre_to_cemagref(sub_dom)
                     sub_pg = sandre_to_cemagref(sub_pg)
-            else:
-                print('Error: The substrate code is not recognized.\n')
-                return failload
 
         # pg/coarser/accessory type
         elif attribute_type == 0:
@@ -362,44 +460,14 @@ def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
                     record_here = sf.records()
                     record_here = np.array(record_here)
                     record_here = record_here[:, ind - 1]
-                    try:
-                        record_here = list(map(float, record_here))  # int('2.000' ) throw an error
-                        record_here = list(map(int, record_here))
-                    except ValueError:
-                        print('Error: The substrate code should be formed by an int.\n')
-                        return failload
+                    record_here = list(map(int, record_here))
 
-                    # code type cemagref - checked
-                    if code_type == 'Cemagref':
-                        if min(record_here) < 1:
-                            print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                            return failload
-                        elif max(record_here) > 8:
-                            print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                            return failload
                     # code type edf - checked and transform
-                    elif code_type == 'EDF':
-                        if min(record_here) < 1:
-                            print('Error: The edf code should be formed by an int between 1 and 8. (2)')
-                            return [-99], [-99], [-99], [-99], True
-                        elif max(record_here) > 8:
-                            print('Error: The edf code should be formed by an int between 1 and 8. (3)')
-                            return [-99], [-99], [-99], [-99], True
-                        else:
-                            record_here = edf_to_cemagref(record_here)
+                    if code_type == 'EDF':
+                        record_here = edf_to_cemagref(record_here)
                     # code type sandre
                     elif code_type == 'Sandre':
-                        if min(record_here) < 1:
-                            print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                            return failload
-                        elif max(record_here) > 12:
-                            print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                            return failload
-                        else:
-                            record_here = sandre_to_cemagref(record_here)
-                    else:
-                        print('Error: The substrate code is not recognized.\n')
-                        return failload
+                        record_here = sandre_to_cemagref(record_here)
 
                     # now that we have checked and transform, give the data
                     if f[0] == attribute_name[0]:
@@ -408,15 +476,24 @@ def load_sub_shp(filename, path_file, path_prj, code_type, dominant_case=0):
                         sub_dom = record_here
                 ind += 1
 
-        else:
-            print('Error: Type of attribute not recognized.\n')
-            return failload
-
         # having a convex subtrate grid is really practical
         [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
 
-    return xy, ikle, sub_dom, sub_pg, True
-
+        # save hdf5
+        load_hdf5.save_hdf5_sub(path_prj + "/hdf5_files",
+                                            path_prj,
+                                            name_prj,
+                                            sub_pg,
+                                            sub_dom,
+                                            ikle,
+                                            xy,
+                                            [],
+                                            [],
+                                            name_hdf5,
+                                            False,
+                                            "substrate",
+                                            True)
+        queue.put(mystdout)
 
 def edf_to_cemagref(records):
     """
@@ -592,11 +669,11 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     :return: grid in form of list of coordinate and connectivity table (two list)
              and an array with substrate type and (x,y,sub) of the orginal data
     """
-    failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+    #failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99], [-99]
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
         print("Error: The txt file " + filename + " does not exist.\n")
-        return failload
+        return False
     # read
     with open(file, 'rt') as f:
         data = f.read()
@@ -608,7 +685,7 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     data = data.split()
     if len(data) % 4 != 0:
         print('Error: the number of column in ' + filename + ' is not four. Check format.\n')
-        return failload
+        return False
     # get x,y (you might have alphanumeric data in the substrate column)
     x = [data[i] for i in np.arange(0, len(data), 4)]
     y = [data[i] for i in np.arange(1, len(data), 4)]
@@ -619,7 +696,7 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
         y = list(map(float, y))
     except TypeError:
         print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
-        return failload
+        return False
 
     # Coord
     point_in = np.vstack((np.array(x), np.array(y))).T
@@ -663,7 +740,7 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     # find one sub data by polyg
     if len(list_polyg) == 0:
         print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
-        return failload
+        return False
     sub_dom2 = np.zeros(len(list_polyg), )
     sub_pg2 = np.zeros(len(list_polyg), )
     for e in range(0, len(list_polyg)):
@@ -678,18 +755,18 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     if code_type == 'Cemagref':
         if min(sub_dom2) < 1 or min(sub_pg2) < 1:
             print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-            return failload
+            return False
         elif max(sub_dom2) > 8 or max(sub_pg2) > 8:
             print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-            return failload
+            return False
     # code type edf - checked and transform
     elif code_type == 'EDF':
         if min(sub_dom2) < 1 or min(sub_pg2) < 1:
             print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
-            return failload
+            return False
         elif max(sub_dom2) > 8 or max(sub_pg2) > 8:
             print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
-            return failload
+            return False
         else:
             sub_dom2 = edf_to_cemagref(sub_dom2)
             sub_pg2 = edf_to_cemagref(sub_pg2)
@@ -697,29 +774,26 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     elif code_type == 'Sandre':
         if min(sub_dom2) < 1 or min(sub_pg2) < 1:
             print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-            return failload
+            return False
         elif max(sub_dom2) > 12 or max(sub_pg2) > 12:
             print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-            return failload
+            return False
         else:
             sub_dom2 = sandre_to_cemagref(sub_dom2)
             sub_pg2 = sandre_to_cemagref(sub_pg2)
     else:
         print('Error: The substrate code is not recognized.\n')
-        return failload
-
-    print('Warning: The area covered by the voronoi calculation might be larger and more irregular'
-          ' than the one given by the orginal points. This does not affect the results usually. \n')
+        return False
 
     # export sub initial voronoi in a shapefile
     w = shapefile.Writer(shapefile.POLYGON)
     w.autoBalance = 1
-    w.field('PG', 'F', 10, 8)
-    w.field('DM', 'F', 10, 8)
+    w.field('coarser', 'F', 10, 8)
+    w.field('dom', 'F', 10, 8)
     for i, polygon in enumerate(list_polyg):  # for each polygon
         coord_list = list(polygon.exterior.coords)
         w.poly(parts=[coord_list])  # the double [[]] is important or it bugs, but why?
-        data_here = [sub_dom2[i], sub_pg2[i]]
+        data_here = [sub_pg2[i], sub_dom2[i]]
         w.record(*data_here)
 
     # filename output

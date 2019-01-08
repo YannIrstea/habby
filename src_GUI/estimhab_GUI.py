@@ -308,7 +308,7 @@ class StatModUseful(QScrollArea):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
-                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
+                self.send_log.emit(self.tr('Warning: too many information for the GUI.'))
 
     def check_all_q(self):
         """

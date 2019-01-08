@@ -627,7 +627,6 @@ class MyProcessList(list):
 
     def __init__(self, progress_bar):
         super().__init__()
-
         self.progress_bar = progress_bar
         self.nb_plot_total = 0
 

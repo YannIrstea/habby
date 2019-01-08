@@ -171,11 +171,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     # saving hdf5 data of the habitat value
     load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
 
-    print('Habitat calculation is finished.\n')
-    if not print_cmd:
-        print("Figures can be displayed/exported from graphics tab.\n")
-    else:
-        print("Figures can be displayed/exported from graphics tab.\n")
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
