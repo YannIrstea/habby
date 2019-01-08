@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 
 def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj,
-                        model_type,
+                        model_type, progress_value,
                         q=[], print_cmd=False, path_shp='', erase_id=False):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
@@ -52,9 +52,12 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
+    # progress
+    progress_value.value = 10
+
     # merge the grid
     [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
-        merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data)
+        merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value, default_data)
     if ikle_both == [-99]:
         print('Error: data not merged.\n')
         if q:
@@ -64,6 +67,9 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
         else:
             return
 
+    # progress
+    progress_value.value = 80
+
     # get time step name if they exists
     sim_name = load_hdf5.load_unit_name(hdf5_name_hyd, path_hdf5)
 
@@ -71,6 +77,9 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
                                       point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
                                       sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
                                       hydro_ini_name=hdf5_name_hyd, hdf5_type="merge")
+
+    # progress
+    progress_value.value = 90
 
     # save in a shapefile form
     if path_shp:
@@ -85,7 +94,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
         return
 
 
-def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1, path_prj=''):
+def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value, default_data=1, path_prj=''):
     """
     After the data for the substrate and the hydrological data are loaded, they are still in different grids.
     This functions will merge both grid together. This is done for all time step and all reaches. If a
@@ -183,8 +192,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
     # merge the grid for each time step (the time step 0 is the full profile)
     warn_inter = True
     no_inter = False
+    delta = 70 / len(ikle_all)
+    if len(ikle_all) == 1:
+        delta = 70 / 2
+    prog = 10
     for t in range(0, len(ikle_all)):  # len(ikle_all)
-
         ikle_all2 = []
         point_all2 = []
         data_sub2_pg = []
@@ -283,6 +295,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data=1
         sub_dom_all_t.append(data_sub2_dom)
         vel_all_both.append(vel2)
         height_all_both.append(height2)
+        # progress
+        prog += delta
+        progress_value.value = int(prog)
 
     return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both
 
