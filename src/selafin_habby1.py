@@ -28,6 +28,7 @@ from src import manage_grid_8
 
 
 def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5,
+                              progress_value,
                               units_index=None, q=[],
                               print_cmd=False, fig_opt={}):
     """
@@ -57,6 +58,9 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         fig_opt = output_fig_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
 
+    # progress
+    progress_value.value = 10
+
     # load data
     if not units_index:  # all timestep are selected
         [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
@@ -80,7 +84,16 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     point_c_all_t = [[coord_c]]
     inter_h_all_t = [[]]
     inter_vel_all_t = [[]]
+
+    # from 10 to 90
+    # from 0 to len(units_index)
+    delta = 80 / len(units_index)
+    if len(units_index) == 1:
+        delta = 80 / 2
+    prog = 10
     for t in units_index:
+        prog += delta
+        progress_value.value = int(prog)
         [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], minwh)
         point_all_t.append([point_all])  # only one reach
         ikle_all_t.append([ikle2])
@@ -88,11 +101,17 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         inter_vel_all_t.append([velocity])
         inter_h_all_t.append([water_height])
 
+    # progress
+    progress_value.value = 90
+
     # save data
     timestep_str = list(map(str, timestep))
     load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
                                       point_all_t, point_c_all_t,
                                       inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+
+    # progress
+    progress_value.value = 100
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

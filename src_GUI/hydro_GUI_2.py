@@ -28,8 +28,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QHBoxLayout
 from PyQt5.QtGui import QIcon
 import h5py
-from multiprocessing import Process, Queue
-# import time
+from multiprocessing import Process, Queue, Value
+from time import time
 from src import Hec_ras06
 from src import hec_ras2D
 from src import selafin_habby1
@@ -39,7 +39,6 @@ from src import river2d
 from src import sw2d
 from src import iber2d
 from src import mascaret
-from src import manage_grid_8
 from src import load_hdf5
 from src_GUI import output_fig_GUI
 from src import mesh_grid2
@@ -371,14 +370,14 @@ class SubHydroW(QWidget):
         self.name_hdf5 = ''
         self.manning_textname = ''
         self.hname = QLineEdit(' ')
-        self.p = None  # second process
+        self.p = Process(target=None)  # second process
         self.q = None
         self.fig_opt = []
         self.running_time = 0
         super().__init__()
 
-        # update error or show figure every second
-        self.timer.setInterval(1000)
+        # update error or show figure every second (1000ms)
+        #self.timer.setInterval(1000)  # ms
         self.timer.timeout.connect(self.send_data)
 
         # get the last file created
@@ -869,37 +868,36 @@ class SubHydroW(QWidget):
 
         # say in the status bar that the processus is alive
         if self.p.is_alive():
-            self.running_time += 1  # this is useful for GUI to update the running, should be logical with self.Timer()
+            self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
             self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
             # send the message FRENCH
             if self.fig_opt['language'] == str(1):
                 # MERGE
                 if self.model_type == 'MERGE':
-                    self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis " + str(self.running_time) + " sec")
+                    self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis " + str(round(self.running_time)) + " sec")
+                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
                 # SUBSTRATE
                 elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit("Processus 'substrat' fonctionne depuis " + str(self.running_time) + " sec")
+                    self.send_log.emit("Processus 'substrat' fonctionne depuis " + str(round(self.running_time)) + " sec")
                 # HYDRAULIC
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
-                    self.send_log.emit("Processus 'Hydraulique' fonctionne depuis " + str(self.running_time) + " sec")
-                    self.load_b.setDisabled(True)  # hydraulic
+                    self.send_log.emit("Processus 'Hydraulique' fonctionne depuis " + str(round(self.running_time)) + " sec")
             # send the message ENGLISH
             else:
                 # MERGE
                 if self.model_type == 'MERGE':
-                    self.send_log.emit("Process 'Merge Grid' is alive and run since " + str(self.running_time) + " sec")
+                    self.send_log.emit("Process 'Merge Grid' is alive and run since " + str(round(self.running_time)) + " sec")
+                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
                 # SUBSTRATE
                 elif self.model_type == 'SUBSTRATE':
-                    self.send_log.emit("Process 'substrate' is alive and run since " + str(self.running_time) + " sec")
+                    self.send_log.emit("Process 'substrate' is alive and run since " + str(round(self.running_time)) + " sec")
                 # HYDRAULIC
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
-                    self.send_log.emit("Process 'Hydraulic' is alive and run since " + str(self.running_time) + " sec")
-
-
-                    self.load_b.setDisabled(True)  # hydraulic
+                    self.send_log.emit("Process 'Hydraulic' is alive and run since " + str(round(self.running_time)) + " sec")
+                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
 
         # when the loading is finished
         if not self.q.empty():
@@ -913,7 +911,7 @@ class SubHydroW(QWidget):
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
             # MERGE
             if self.model_type == 'MERGE' or self.model_type == 'LAMMI':
-                self.send_log.emit(self.tr("Merging of substrate and hydraulic grid finished (computation time = ") + str(self.running_time) + " s).")
+                self.send_log.emit(self.tr("Merging of substrate and hydraulic grid finished (computation time = ") + str(round(self.running_time)) + " s).")
                 self.drop_merge.emit()
                 # update last name
                 self.name_last_hdf5("hdf5_mergedata")
@@ -921,7 +919,7 @@ class SubHydroW(QWidget):
                 self.load_b2.setDisabled(False)  # merge
             # SUBSTRATE
             elif self.model_type == 'SUBSTRATE':
-                self.send_log.emit(self.tr("Loading of substrate data finished (computation time = ") + str(self.running_time) + " s).")
+                self.send_log.emit(self.tr("Loading of substrate data finished (computation time = ") + str(round(self.running_time)) + " s).")
                 self.drop_merge.emit()
                 # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
                 self.update_sub_hdf5_name()
@@ -931,7 +929,7 @@ class SubHydroW(QWidget):
                 self.load_substrate.setDisabled(False)  # substrate
             # HYDRAULIC
             else:
-                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(self.running_time) + " s).")
+                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(round(self.running_time)) + " s).")
                 # send a signal to the substrate tab so it can account for the new info
                 self.drop_hydro.emit()
                 # update last name
@@ -939,6 +937,7 @@ class SubHydroW(QWidget):
                 # unblock button hydraulic
                 self.load_b.setDisabled(False)  # hydraulic
             # general
+            self.nativeParentWidget().progress_bar.setValue(100)
             self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
             self.send_log.emit("clear status bar")
             self.running_time = 0
@@ -2589,7 +2588,15 @@ class TELEMAC(SubHydroW):
             return
         else:
             # for error management and figures
-            self.timer.start(1000)
+            self.timer.start(100)
+
+            # show progressbar
+            self.nativeParentWidget().progress_bar.setRange(0, 100)
+            self.nativeParentWidget().progress_bar.setValue(0)
+            self.nativeParentWidget().progress_bar.setVisible(True)
+
+            # block button
+            self.load_b.setDisabled(True)  # hydraulic
 
             units = []
             units_index = []
@@ -2625,10 +2632,13 @@ class TELEMAC(SubHydroW):
 
             # load the telemac data
             self.q = Queue()
+            self.progress_value = Value("i", 0)
             self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
                                                                                     self.pathfile[0], self.name_prj,
                                                                                     self.path_prj, self.model_type,
-                                                                                    self.nb_dim, path_hdf5, units_index,
+                                                                                    self.nb_dim, path_hdf5,
+                                                                                    self.progress_value,
+                                                                                    units_index,
                                                                                     self.q,
                                                                                     False, self.fig_opt))
             self.p.start()
@@ -4110,6 +4120,11 @@ class SubstrateW(SubHydroW):
             self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
             return
 
+        # show progressbar
+        self.nativeParentWidget().progress_bar.setRange(0, 100)
+        self.nativeParentWidget().progress_bar.setValue(0)
+        self.nativeParentWidget().progress_bar.setVisible(True)  # show progressbar
+
         self.send_log.emit(self.tr('# Merging: substrate and hydraulic grid...'))
 
         # get useful data
@@ -4148,14 +4163,16 @@ class SubstrateW(SubHydroW):
         self.load_b2.setDisabled(True)  # merge
 
         # for error management and figures
-        self.timer.start(1000)
+        self.timer.start(100)
 
         # run the function
         self.q = Queue()
+        self.progress_value = Value("i", 0)
         self.p = Process(target=mesh_grid2.merge_grid_and_save,
                          args=(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
                                default_data, self.name_prj, self.path_prj,
-                               self.model_type, self.q, False, path_shp, erase_id))
+                               self.model_type, self.progress_value,
+                               self.q, False, path_shp, erase_id))
         self.p.start()
 
         # log

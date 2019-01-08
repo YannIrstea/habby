@@ -32,7 +32,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
     QMessageBox, QComboBox, QScrollArea, \
-    QSizePolicy, QInputDialog, QMenu, QToolBar, QFrame
+    QSizePolicy, QInputDialog, QMenu, QToolBar, QFrame, QProgressBar
 from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
 import qdarkgraystyle
 from webbrowser import open as wbopen
@@ -633,7 +633,10 @@ class MainWindows(QMainWindow):
 
             # add the status bar
             self.statusBar()
-
+            self.progress_bar = QProgressBar()
+            self.progress_bar.setValue(0)
+            self.statusBar().addPermanentWidget(self.progress_bar)
+            self.progress_bar.setVisible(False)
 
             # add the title of the windows
             # let it here as it should be changes if language changes
@@ -2114,6 +2117,7 @@ class CentralW(QWidget):
             self.parent().statusBar().showMessage(text_log)
         elif text_log == 'clear status bar':
             self.parent().statusBar().clearMessage()
+            self.parent().progress_bar.setVisible(False)  # hide progressbar
         # other case not accounted for
         else:
             self.scrolldown()
