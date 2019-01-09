@@ -226,12 +226,12 @@ def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file,
         # if center in polygon: get attributes
         for j in range(len(shapes)):  # for each polygon
             if Polygon(shapes[j].points[:-1]).contains(Point(polyg_center)):
-                #print("contain")
+                #print("triangle ", i, " contained by polygon ", j)
                 # polygon attributes
                 trianglesListRecords2.append(records[j])
 
     # export new shapefile triangle in path prj
-    filenameOUT = filename[:-4] + "_trianglulated"  # "Substrat_simple_pr_triangle.shp" # #  #
+    filenameOUT = filename[:-4] + "_triangulated"  # "Substrat_simple_pr_triangle.shp" # # #
     fileOUT = os.path.join(path_shp, filenameOUT)
     w = shapefile.Writer(shapeType_OUT)
     for field in fields:
@@ -395,7 +395,7 @@ def load_sub_shp(filename, path_file, path_prj, name_prj, name_hdf5, code_type, 
     # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
     if convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
         # file name triangulated
-        filename = filename[:-4] + "_trianglulated.shp"
+        filename = filename[:-4] + "_triangulated.shp"
 
         # initialization
         xy = []  # point
@@ -494,6 +494,7 @@ def load_sub_shp(filename, path_file, path_prj, name_prj, name_hdf5, code_type, 
                                             "substrate",
                                             True)
         queue.put(mystdout)
+
 
 def edf_to_cemagref(records):
     """
@@ -1119,6 +1120,7 @@ def voronoi_finite_polygons_2d(vor, radius=None):
         new_regions.append(new_region.tolist())
 
     return new_regions, np.asarray(new_vertices)
+
 
 def main():
     """

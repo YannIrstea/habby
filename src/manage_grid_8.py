@@ -1057,7 +1057,7 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
         return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
-def cut_2d_grid(ikle, point_all, water_height, velocity, min_height=0.001, get_ind_new=False):
+def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, min_height=0.001, get_ind_new=False):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
     with h>0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
@@ -1086,11 +1086,24 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, min_height=0.001, get_i
         if iklec[0] in ind_neg or iklec[1] in ind_neg or iklec[2] in ind_neg:
             c_dry.append(c)
 
+    # progress
+    prog = progress_value.value
+    if len(c_dry) == 0:
+        delta2 = delta
+    elif len(c_dry) == 1:
+        delta2 = delta / 2
+    else:
+        delta2 = delta / len(c_dry)
+
     # find the intersection point for cells particlally dry
     pc_all = []
     which_side = []
     double_neg = []
     for c in c_dry:
+        # progress
+        prog += delta2
+        progress_value.value = int(prog)
+
         pc_c = []
         which_side_c = []
         a = ikle[c, 0]

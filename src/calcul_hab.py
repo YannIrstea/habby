@@ -32,7 +32,7 @@ from src_GUI import output_fig_GUI
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fish, name_fish_sh, run_choice, path_bio,
-                        path_txt, path_shp, path_para, path_im, q=[], print_cmd=False, fig_opt={}, path_im_bio='',
+                        path_txt, path_shp, path_para, path_im, progress_value, q=[], print_cmd=False, fig_opt={}, path_im_bio='',
                         xmlfiles=[]):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
@@ -64,7 +64,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     by the cmd. If it is called by the GUI, we want the output to be redirected to the windows for the log under HABBY.
     If it is called by the cmd, we want the print function to be sent to the command line. We make the switch here.
     """
-
+    # progress
+    progress_value.value = 10
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
     if not fig_opt:
@@ -81,6 +82,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
             return
         else:
             return
+    # progress
+    progress_value.value = 50
 
     # to get which output must be created
     if fig_opt['text_output'] == 'True':  # from the xml, string only
@@ -116,6 +119,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         name_base = hdf5_file[:-3] + '_' + all_name
         name_base2 = hdf5_file[:-3]
 
+    # progress
+    progress_value.value = 60
+
     # get the time step name
     # get time step name if they exists
     sim_name = load_hdf5.load_unit_name(hdf5_file, path_hdf5)
@@ -127,6 +133,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
                      sim_name, erase_id)
     save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'], erase_id)
 
+    # progress
+    progress_value.value = 70
+
     # shape output
     if create_shape:
         if run_choice == 2:
@@ -135,6 +144,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
             perc = False
         save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
                        name_fish_sh, path_shp, name_base, sim_name, save_perc=perc, erase_id=erase_id)
+
+    # progress
+    progress_value.value = 80
 
     # paraview outputs
     if create_para:
@@ -170,6 +182,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
     # saving hdf5 data of the habitat value
     load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
+
+    # progress
+    progress_value.value = 90
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

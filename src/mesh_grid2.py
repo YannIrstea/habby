@@ -68,7 +68,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
             return
 
     # progress
-    progress_value.value = 80
+    progress_value.value = 90
 
     # get time step name if they exists
     sim_name = load_hdf5.load_unit_name(hdf5_name_hyd, path_hdf5)
@@ -79,7 +79,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
                                       hydro_ini_name=hdf5_name_hyd, hdf5_type="merge")
 
     # progress
-    progress_value.value = 90
+    progress_value.value = 95
 
     # save in a shapefile form
     if path_shp:
@@ -185,17 +185,14 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
         print('Error: the connectivity table of the substrate is badly formed.')
         return failload
 
-    # m1 = time.time()
-    # print('Time to load:')
-    # print(m1 - m)
+    # progress
+    delta = 80 / len(ikle_all)
+    if len(ikle_all) == 1:
+        delta = 80 / 2
 
     # merge the grid for each time step (the time step 0 is the full profile)
     warn_inter = True
     no_inter = False
-    delta = 70 / len(ikle_all)
-    if len(ikle_all) == 1:
-        delta = 70 / 2
-    prog = 10
     for t in range(0, len(ikle_all)):  # len(ikle_all)
         ikle_all2 = []
         point_all2 = []
@@ -203,7 +200,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
         data_sub2_dom = []
         vel2 = []
         height2 = []
-
         if len(ikle_all[t]) > 0:
             # print('Timestep: ' + str(t))
             for r in range(0, len(ikle_all[t])):
@@ -215,7 +211,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
                 else:
                     vel_before = []
                     height_before = []
-                a = time.time()
                 if len(ikle_before) < 1:
                     print('Warning: One time steps without grids found. \n')
                     data_sub2_pg.append([-99])
@@ -236,7 +231,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
                     # find intersection betweeen hydrology and substrate
                     [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom, data_crossing, sub_cell] = \
                         find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg,
-                                           data_sub_dom,
+                                           data_sub_dom, progress_value, delta,
                                            first_time)
 
                 # if no intersection found at t==0
@@ -265,12 +260,10 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
                 else:
 
                     # create the new grid based on intersection found
-                    b = time.time()
                     [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
                         create_merge_grid(ikle_before, point_before, data_sub_pg, data_sub_dom, vel_before,
                                           height_before,
                                           ikle_sub, default_data, data_crossing, sub_cell)
-                    c = time.time()
 
                     # check that each triangle of the grid is clock-wise (useful for shapefile)
                     ikle_here = check_clockwise(ikle_here, point_all_here)
@@ -284,25 +277,20 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
                     vel2.append(vel_new)
                     height2.append(height_new)
 
-                    # print('Time to find the intersection point')
-                    # print(b-a)
-                    # print('Time to find the merge grid')
-                    # print(c-b)
-
         ikle_both.append(ikle_all2)
         point_all_both.append(point_all2)
         sub_pg_all_t.append(data_sub2_pg)
         sub_dom_all_t.append(data_sub2_dom)
         vel_all_both.append(vel2)
         height_all_both.append(height2)
-        # progress
-        prog += delta
-        progress_value.value = int(prog)
+        # # progress
+        # prog += delta
+        # progress_value.value = int(prog)
 
     return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both
 
 
-def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_sub_dom, first_time=False):
+def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_sub_dom, progress_value, delta, first_time=False):
     """
     A function which find where the crossing points are. Crossing points are the points on the triangular side of the
     hydrological grid which cross with a side of the substrate grid. The algo based on finding if points of one elements
@@ -417,9 +405,17 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_s
     data_sub_pg = data_sub_pg[indmin]
     data_sub_dom = data_sub_dom[indmin]
 
+    # progress
+    prog = progress_value.value
+    delta2 = delta / nb_tri
+    if nb_tri == 1:
+        delta2 = delta / 2
+
     # for each hydrological cell
     for e in range(0, nb_tri):
-
+        # progress
+        prog += delta2
+        progress_value.value = int(prog)
         # find the first substrate cell with x > xmin (quick because ordered)
         xhyd = coord_hyd_x[ikle[e, 0]]
         yhyd = coord_hyd_y[ikle[e, 0]]

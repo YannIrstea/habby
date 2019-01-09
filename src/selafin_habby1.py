@@ -87,14 +87,13 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
 
     # from 10 to 90
     # from 0 to len(units_index)
+    # progress
     delta = 80 / len(units_index)
     if len(units_index) == 1:
-        delta = 80 / 2
-    prog = 10
+        delta = 80
+    sys.stdout = sys.__stdout__
     for t in units_index:
-        prog += delta
-        progress_value.value = int(prog)
-        [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], minwh)
+        [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], progress_value, delta, minwh)
         point_all_t.append([point_all])  # only one reach
         ikle_all_t.append([ikle2])
         point_c_all_t.append([[]])

@@ -371,7 +371,7 @@ class SubHydroW(QWidget):
         self.manning_textname = ''
         self.hname = QLineEdit(' ')
         self.p = Process(target=None)  # second process
-        self.q = None
+        self.q = Queue()
         self.fig_opt = []
         self.running_time = 0
         super().__init__()
@@ -880,10 +880,12 @@ class SubHydroW(QWidget):
                 # SUBSTRATE
                 elif self.model_type == 'SUBSTRATE':
                     self.send_log.emit("Processus 'substrat' fonctionne depuis " + str(round(self.running_time)) + " sec")
+                    self.nativeParentWidget().progress_bar.setValue(50)
                 # HYDRAULIC
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
                     self.send_log.emit("Processus 'Hydraulique' fonctionne depuis " + str(round(self.running_time)) + " sec")
+                    self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             # send the message ENGLISH
             else:
                 # MERGE
@@ -893,6 +895,7 @@ class SubHydroW(QWidget):
                 # SUBSTRATE
                 elif self.model_type == 'SUBSTRATE':
                     self.send_log.emit("Process 'substrate' is alive and run since " + str(round(self.running_time)) + " sec")
+                    self.nativeParentWidget().progress_bar.setValue(50)
                 # HYDRAULIC
                 else:
                     # it is necssary to start this string with Process to see it in the Statusbar
@@ -903,7 +906,12 @@ class SubHydroW(QWidget):
         if not self.q.empty():
             # manage error
             self.timer.stop()
-            self.mystdout = self.q.get()
+            queue_back = self.q.get()
+            if queue_back == "const_sub":  # sub cst case
+                const_sub = True
+            else:
+                self.mystdout = queue_back
+                const_sub = False
             error = self.send_err_log(True)
 
             # info
@@ -938,7 +946,8 @@ class SubHydroW(QWidget):
                 self.load_b.setDisabled(False)  # hydraulic
             # general
             self.nativeParentWidget().progress_bar.setValue(100)
-            self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
+            if not const_sub:
+                self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
             self.send_log.emit("clear status bar")
             self.running_time = 0
 
@@ -3809,7 +3818,12 @@ class SubstrateW(SubHydroW):
                 return
 
         # info
-        self.timer.start(1000)
+        self.timer.start(100)
+
+        # show progressbar
+        self.nativeParentWidget().progress_bar.setRange(0, 100)
+        self.nativeParentWidget().progress_bar.setValue(0)
+        self.nativeParentWidget().progress_bar.setVisible(True)
 
         # block button substrate
         self.load_substrate.setDisabled(True)  # substrate
@@ -3827,8 +3841,10 @@ class SubstrateW(SubHydroW):
                 self.name_hdf5 = self.hname2.text()[:-3] + '_' + str(data_sub)
             else:
                 self.name_hdf5 = self.hname2.text() + '_' + str(data_sub)
+
             path_hdf5 = self.find_path_hdf5()
             sys.stdout = self.mystdout = StringIO()  # out to GUI
+            self.q.put("const_sub")  #
             load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, [], [], [], [],
                                     self.name_hdf5, True, self.model_type)
             sys.stdout = sys.__stdout__  # reset to console
@@ -3846,6 +3862,7 @@ class SubstrateW(SubHydroW):
             #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
             # unblock button substrate
             self.load_substrate.setDisabled(False)  # substrate
+
         # sub from txt or shp
         else:
             # save path and name substrate
