@@ -671,47 +671,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # when the loading is finished
         if not self.q4.empty():
             self.timer.stop()
-            data_second = self.q4.get()
-            self.mystdout = data_second[0]
-            area_all = data_second[1]
-            spu_all = data_second[2]
-            name_fish = data_second[3]
-            name_base = data_second[4]
-            vh_all_t_sp = data_second[5]
+            self.mystdout = self.q4.get()
             self.send_err_log()
 
             # give the possibility of sending a new simulation
             self.runhab.setDisabled(False)
-
-            if len(name_fish) > 0:
-                if isinstance(name_fish[0], int):
-                    self.running_time = 0
-                    self.send_log.emit("clear status bar")
-                    return
-
-            # show one image (relatively quick to create)
-            # sys.stdout = self.mystdout = StringIO()
-            path_im = self.find_path_im_est()
-            fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-            sim_name = load_hdf5.load_unit_name(self.hdf5_file, self.path_hdf5)
-            if fig_dict['erase_id'] == 'True':
-                erase_id = True
-            else:
-                erase_id = False
-
-            for t in fig_dict['time_step']:
-                # if print last and first time step and one time step only, only print it once
-                if t == -1 and len(vh_all_t_sp[0]) == 2 and 1 in fig_dict['time_step']:
-                    pass
-                else:
-                    calcul_hab.save_vh_fig_2d(self.hdf5_file, self.path_hdf5, [vh_all_t_sp[0]],
-                                              path_im, name_fish, name_base, fig_dict, [t], save_fig=False)
-
-            # sys.stdout = sys.__stdout__ # reset normal print output
-            # self.send_err_log()
-
-            # show figure
-            self.show_fig.emit()
 
             self.send_log.emit(self.tr('Habitat calculation is finished (computation time = ') + str(round(self.running_time)) + " s).")
             self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab."))

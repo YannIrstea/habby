@@ -189,7 +189,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
-        q.put([mystdout, area_all, spu_all, name_fish, name_base, vh_all_t_sp])
+        q.put(mystdout)
         return
     else:
         return
