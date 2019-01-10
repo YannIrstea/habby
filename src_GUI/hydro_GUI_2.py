@@ -3909,6 +3909,7 @@ class SubstrateW(SubHydroW):
                                      args=(self.namefile[0],
                                            self.pathfile[0],
                                            self.path_prj,
+                                           self.path_prj + "/hdf5_files",
                                            self.name_prj,
                                            self.name_hdf5,
                                            code_type,
@@ -3938,6 +3939,7 @@ class SubstrateW(SubHydroW):
                                      args=(self.namefile[0],
                                            self.pathfile[0],
                                            self.path_prj,
+                                           self.path_prj + "/hdf5_files",
                                            self.name_prj,
                                            self.name_hdf5,
                                            code_type,
@@ -3983,6 +3985,7 @@ class SubstrateW(SubHydroW):
                                            path_shp,
                                            self.path_prj,
                                            self.name_prj,
+                                           self.path_prj + "/hdf5_files",
                                            self.name_hdf5,
                                            code_type,
                                            self.q))

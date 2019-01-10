@@ -81,18 +81,38 @@ def main():
             path_prj = os.path.join(os.path.abspath('output_cmd'), namedir)
             name_prj = 'DefaultProj'
             proj_def = True
+        # index to remove
+        path_prj_index = None
+        name_prj_index = None
+        path_bio_index = None
+
         for id, opt in enumerate(sys.argv):
             if len(opt) > 8:
                 if opt[:8] == 'path_prj':
                     path_prj = opt[9:]
-                    del sys.argv[id]
+                    path_prj_index = id
                     proj_def = False
                 if opt[:8] == 'name_prj':
                     name_prj = opt[9:]
-                    del sys.argv[id]
+                    name_prj_index = id
                 if opt[:8] == 'path_bio':
                     path_bio = opt[9:]
-                    del sys.argv[id]
+                    path_bio_index = id
+
+        # remove if arg
+        if path_prj_index and name_prj_index and path_bio_index:
+            sys.argv = [v for i,v in enumerate(sys.argv) if i not in [path_prj_index, name_prj_index, path_bio_index]]
+        elif path_prj_index and name_prj_index:
+            sys.argv = [v for i, v in enumerate(sys.argv) if i not in [path_prj_index, name_prj_index]]
+        elif path_prj_index and not name_prj_index and not path_bio_index:
+            del sys.argv[path_prj_index]
+        elif not path_prj_index and name_prj_index and not path_bio_index:
+            del sys.argv[name_prj_index]
+        elif not path_prj_index and not name_prj_index and path_bio_index:
+            del sys.argv[path_bio_index]
+        else:
+            pass
+
         if proj_def:
             print('Warning: Could not find a project path. Saved data in '
                   + path_prj
@@ -125,7 +145,7 @@ def main():
             all_arg = ['habby_cmd.py'] + sys.argv[2:]
             func_for_cmd.habby_on_all(all_arg, name_prj, path_prj, path_bio)
         else:
-            all_arg = sys.argv
+            all_arg = sys.argv[1:]
             func_for_cmd.all_command(all_arg, name_prj, path_prj, path_bio)
 
 

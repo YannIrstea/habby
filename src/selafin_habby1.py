@@ -67,7 +67,13 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         units_index = list(range(len(timestep)))
     if units_index:  # timestep selected by user are selected
         [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
-        timestep = timestep[units_index]
+        if len(timestep) != len(units_index):
+            print('Error: Index numbers do not match available units.')
+            print("Units in telemac file : ", timestep)
+            print("Index numbers specify : ", units_index)
+            return
+        else:
+            timestep = timestep[units_index]
 
     if isinstance(v, int) and v == [-99]:
         print('Error: Telemac data not loaded.')
