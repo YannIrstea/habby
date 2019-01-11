@@ -96,7 +96,6 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         return
 
     # ----------------------------------------------------------------------------------
-
     if all_arg[0] == 'LIST_COMMAND':
         print("Here are the available command for habby:")
         print('\n')
@@ -116,7 +115,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               "(output name)")
         print("LOAD_IBER2D: load the IBER2D dataD. Input: name of .dat file, name of input .rep files "
               "(output name)")
-        print("LOAD_TELEMAC: arguments to load the telemac data :")
+        print("LOAD_TELEMAC: load the telemac data in hdf5")
         print("\tinputfile: input file (telemac file absolute path with extension).")
         print("\tunits (optional): desired units index (0,1,2,3..). If not specify, all units all loaded.")
         print("\toutputfilename (optional): filename_output.h5. If not specify, automatic name from input name.")
@@ -124,10 +123,17 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
               "the name of the folder with the HydroSim result, (output name)")
 
         print('\n')
-        print('MERGE_GRID_SUB: merge the hydrological and substrate grid together. Input: the name of the hydrological'
-              ' hdf5, the name of the substrate hdf5, the default data for the substrate (in cemagref code),'
-              ' (output name)')
-        print('LOAD_SUB_SHP: arguments to load the substrate from a shapefile.')
+        print('MERGE_GRID_SUB: merge the hydrological and substrate grid together')
+        print("\thydrauhdf5: input file (shapefile absolute path with extension).")
+        print("\tcode_type: type of substrate (Cemagref or Sandre).")
+        print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
+              "If not specify, dominant_case as 1 or -1")
+        print("\toutputfilename (optional): filename_output.h5. If not specify, automatic name from input name.")
+
+        # Input: the name of the hydrological'
+        #       ' hdf5, the name of the substrate hdf5, the default data for the substrate (in cemagref code),'
+        #       ' (output name)')
+        print('LOAD_SUB_SHP: load the substrate from a shapefile in hdf5')
         print("\tinputfile: input file (shapefile absolute path with extension).")
         print("\tcode_type: type of substrate (Cemagref or Sandre).")
         print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
@@ -181,7 +187,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print('list of options which can be added after the command: (1) path_prj= path to project, (2) '
               'name_prj= name of the project, (3) path_bio: the path to the biological files')
 
-    # ------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_TELEMAC':
         # remove the first arg LOAD_TELEMAC
         all_arg = all_arg[1:]
@@ -252,7 +258,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         p.join()
         print("--- done ! ---")
 
-    # ------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_1D':
         if not 4 < len(all_arg) < 8:
             print('The function LOAD_HECRAS needs three to five inputs. Call LIST_COMMAND for more '
@@ -308,7 +314,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             Hec_ras06.open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'HECRAS1D', namefile,
                                                        pathfile, inter, '.', False, 5, [], True)
 
-    # --------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_2D':
         if not 2 < len(all_arg) < 5:
             print('The function LOAD_HECRAS_2D needs one or two inputs, the .res file name and the output name.')
@@ -331,7 +337,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         hec_ras2D.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
                                                path_hdf5, [], True)
 
-    # ------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_RUBAR_2D':
         if not 3 < len(all_arg) < 6:
             print('The function LOAD_RUBAR_2D needs two to three inputs. Call LIST_COMMAND for more '
@@ -360,7 +366,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         rubar.load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
                                            'RUBAR2D', 2, path_hdf5, [], False)
 
-    # ------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_SW2D':
         if not 3 < len(all_arg) < 6:
             print('The function LOAD_SW2D needs two to three inputs.\
@@ -390,7 +396,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                                        pathtps, '.', name_prj, path_prj,
                                        'SW2D', 2, path_hdf5, [], False)
 
-    # ------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_IBER2D':
         if not 6 < len(all_arg) < 9:
             print('The function LOAD_SW2D needs seven to eight inputs.\
@@ -428,7 +434,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                                            path_prj, 'IBER2D', 2, path_hdf5,
                                            [], False)
 
-    # ------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_MASCARET':
         if not 6 < len(all_arg) < 11:
             print('The function LOAD_MASCARET needs five to eight inputs. Call LIST_COMMAND for more '
@@ -507,7 +513,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         mascaret.load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'mascaret', namefile, pathfile,
                                                inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
 
-    # --------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_RIVER_2D':
         if not 2 < len(all_arg) < 5:
             print('The function LOAD_RIVER_2D needs one or two inputs. Call LIST_COMMAND for more '
@@ -542,7 +548,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         river2d.load_river2d_and_cut_grid(name_hdf5, filenames, paths, name_prj, path_prj, 'RIVER2D', 2,
                                           path_hdf5, [], True)
 
-    # -------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_RUBAR_1D':
         if not 5 < len(all_arg) < 10:
             print('The function LOAD_RUBAR_1D needs four to seven inputs. Call LIST_COMMAND for more '
@@ -618,7 +624,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         rubar.load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'RUBAR1D', namefile, pathfile,
                                            inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
 
-    # ----------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_LAMMI':
 
         if not 3 < len(all_arg) < 6:
@@ -644,7 +650,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         lammi.open_lammi_and_create_grid(facies_path, transect_path, path_prj, name_hdf5, name_prj, path_prj, path_hdf5,
                                          new_dir, [], False, 'Transect.txt', 'Facies.txt', True, [], 1, 'LAMMI')
 
-    # ----------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_ESTIMHAB':
         if not len(all_arg) == 12:
             print('RUN_ESTIMHAB needs 12 inputs. See LIST_COMMAND for more info.')
@@ -683,7 +689,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         estimhab.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True, {}, path_prj)
         # plt.show()  # should we let it? It stops the function butit shows the results
 
-    # --------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_STATHAB':
         if not 2 < len(all_arg) < 5:
             print('RUN_STATHAB needs one or two arguments: the path to the folder containing the input file and the '
@@ -789,7 +795,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         plt.show()
 
-    # -----------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_FSTRESS':
 
         if not 2 < len(all_arg) < 5:
@@ -828,7 +834,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         fstress.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
         # plt.show()
 
-    # --------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_SUB_SHP':
         # remove the first arg LOAD_SUB_SHP
         all_arg = all_arg[1:]
@@ -876,7 +882,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = outputfilename
             path_hdf5 = path_prj
         else:
-            name_hdf5 = 'Hydro_TELEMAC_' + os.path.splitext(filename)[0]
+            name_hdf5 = 'Sub_' + os.path.splitext(filename)[0]
             path_hdf5 = path_prj
 
         # Check shape fields data validity
@@ -898,18 +904,20 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                                    path,
                                    path_prj,
                                    name_prj,
-                                   name_hdf5,
                                    path_hdf5,
+                                   name_hdf5,
                                    code_type,
                                    q,
                                    dominant_case))
             p.start()
+            while p.is_alive():
+                print('Progress 50%\r', end="")
             p.join()
-
+            print("--- done ! ---")
 
         # --------------------------------------------------------------------
 
-    # --------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_SUB_TXT':
 
         if not 3 < len(all_arg) < 6:
@@ -929,7 +937,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, [], [], '', False,
                                 'SUBSTRATE')
 
-    # ----------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_SUB_CONST':
         if not 2 < len(all_arg) < 5:
             print('LOAD_SUB_CONST needs one input or two inputs. See LIST_COMMAND for more information. ')
@@ -968,25 +976,58 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], [], [], name_hdf5, True,
                                     'SUBSTRATE')
 
-    # ----------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'MERGE_GRID_SUB':
+        # remove the first arg MERGE_GRID_SUB
+        all_arg = all_arg[1:]
 
-        if not 4 < len(all_arg) < 7:
+        if not 3 < len(all_arg) < 5:
             print('MERGE_GRID_SUB needs between three and four inputs. See LIST_COMMAND for more information.')
             return
 
+        # optionnal args
+        outputfilename = None
+
+        # get args
+        for arg in all_arg:
+            # hdf5_name_hyd
+            if arg[:7] == 'hydrau=':
+                hdf5_name_hyd = os.path.basename(arg[7:])
+            # hdf5_name_sub
+            if arg[:4] == 'sub=':
+                hdf5_name_sub = arg[4:]
+            # defautvalue
+            if arg[:12] == 'defautvalue=':
+                defautvalue = arg[12:]
+                try:
+                    default_data = int(defautvalue)
+                except ValueError:
+                    print('Default data should be an int between 1 and 8 (1).')
+                    return
+                if not 0 < default_data < 9:
+                    print('Default data should be an int between 1 and 8 (2).')
+                    return
+            # outputfilename
+            if arg[:6] == 'merge=':
+                outputfilename = arg[6:]
+
+        if not outputfilename:
+            outputfilename = "MERGE_" + hdf5_name_hyd.split(".")[0] + "_" + hdf5_name_sub.split(".")[0]
+
         if not option_restart:
-            hdf5_name_hyd = os.path.basename(all_arg[2])
-            hdf5_name_sub = os.path.basename(all_arg[3])
-            path_hdf5_in = os.path.dirname(hdf5_name_hyd)
-            path_hdf5_in2 = os.path.dirname(hdf5_name_sub)
+            path_hdf5_in = path_prj
+            path_hdf5_in2 = path_prj
+            path_hdf5 = path_prj
+            path_shp = path_prj
         else:
             # if we are in restart, we need to find the name of the new hdf5 files
             # it should be the name name than before but with a new time stamp
-            hdf5_name_hyd_orr = os.path.basename(all_arg[2])
-            hdf5_name_sub_orr = os.path.basename(all_arg[3])
+            hdf5_name_hyd_orr = os.path.basename(hdf5_name_hyd)
+            hdf5_name_sub_orr = os.path.basename(hdf5_name_sub)
             path_hdf5_in = path_prj
             path_hdf5_in2 = path_prj
+            path_hdf5 = path_prj + "/hdf5_files"
+            path_shp = path_prj + "/shapefiles_output"
             # get all file in projet folder
             if os.path.isdir(path_prj):
                 filenames = load_hdf5.get_all_filename(path_prj, '.h5')
@@ -1023,41 +1064,47 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('Error: hydro and sub hdf5 should be in the same folder.')
             return
 
-        try:
-            default_data = int(all_arg[4])
-        except ValueError:
-            print('Default data should be an int between 1 and 8 (1).')
-            return
-        if not 0 < default_data < 9:
-            print('Default data should be an int between 1 and 8 (2).')
-            return
+        # run the function
+        q = Queue()
+        progress_value = Value("i", 0)
+        p = Process(target=mesh_grid2.merge_grid_and_save,
+                         args=(outputfilename,
+                               hdf5_name_hyd,
+                               hdf5_name_sub,
+                               path_hdf5,
+                               default_data,
+                               name_prj,
+                               path_prj,
+                               "MERGE",
+                               progress_value,
+                               q,
+                               False,
+                               path_shp,
+                               erase_id))
+        p.start()
+        while p.is_alive():
+            print('Progress %d%%\r' % progress_value.value, end="")
+        p.join()
+        print("--- done ! ---")
 
-        # hdf5
-        if len(all_arg) == 6:
-            namepath_hdf5 = all_arg[5]
-            name_hdf5 = os.path.basename(namepath_hdf5)
-            path_hdf5 = os.path.dirname(namepath_hdf5)
-        else:
-            name_hdf5 = 'MERGE_' + hdf5_name_hyd
-            path_hdf5 = path_prj
 
-        # in two function to be able to control the name
-        [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = \
-            mesh_grid2.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj)
+        # # in two function to be able to control the name
+        # [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = \
+        #     mesh_grid2.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj)
+        #
+        # if ikle_both == [-99]:
+        #     print('Error: data not merged.')
+        #     return
+        #
+        # load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
+        #                                   point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True,
+        #                                   sub_pg_all_both,
+        #                                   sub_dom_all_both, save_option=erase_id, hdf5_type="substrate")
+        #
+        # # create shpafile to control intput
+        # load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
 
-        if ikle_both == [-99]:
-            print('Error: data not merged.')
-            return
-
-        load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
-                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True,
-                                          sub_pg_all_both,
-                                          sub_dom_all_both, save_option=erase_id, hdf5_type="substrate")
-
-        # create shpafile to control intput
-        load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
-
-    # --------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'MERGE_GRID_RAND_SUB':
         # this merge an hydro hdf5 with a random substrate
 
@@ -1132,7 +1179,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # create shapefile to test input
         load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
 
-    # --------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HYDRO_HDF5':
         if len(all_arg) != 3:
             print('LOAD_HYDRO_HDF5 needs one input (the name of the hdf5 file).')
@@ -1146,7 +1193,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd,
                                                                                                      path_prj)
 
-    # ---------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_SUB_HDF5':
         if len(all_arg) != 3:
             print('LOAD_sub_HDF5 needs one input (the name of the hdf5 file).')
@@ -1160,7 +1207,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         [ikle_sub, point_all_sub, data_sub] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
 
-    # --------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HABITAT':
         if not 4 < len(all_arg) < 8:
             print('RUN_HAB_COARSE needs between four and five inputs. See LIST_COMMAND for more information.')
@@ -1241,7 +1288,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         calcul_hab.calc_hab_and_output(merge_name, path_merge, bio_names, stages, name_fish, name_fish, run_choice,
                                        path_bio, path_prj, path_prj, path_prj, path_prj, [], True, fig_opt)
 
-    # --------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_RAND_SUB':
 
         if not 2 < len(all_arg) < 5:
@@ -1258,7 +1305,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 300, path_prj)
 
-    # ------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'HYDRO_CHRONIC':
         if not len(all_arg) == 6:
             print('HYDRO_CHRONIC needs four inputs. See LIST_COMMAND for more information.')
@@ -1292,7 +1339,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_in, discharge_out, name_prj, path_prj, minh)
 
-    # ---------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_HYDRO_HDF5':
         if len(all_arg) < 4:
             print('ADD_HYDRO_HDF5 needs at least two arguments. See LIST_COMMAND for more information.')
@@ -1328,7 +1375,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                     pass
         # ---------------------------------------------------------------------------
 
-    # ---------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_MERGE_HDF5':
         if len(all_arg) < 4:
             print('ADD_MERGE_HDF5 needs at least two arguments. See LIST_COMMAND for more information.')
@@ -1364,7 +1411,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                         print('Error: File not found ' + os.path.join(path_prj, old_name + '.h5'))
                         pass
 
-    # ----------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'COMPARE_TEST':
         if len(all_arg) != 4:
             print('COMPARE_TEST needs two arguments, which are the two paths to the folders to be compared.')
@@ -1407,7 +1454,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('PROBLEMS WERE FOUND ON ' + str(num_wrong) + ' OUT OF ' + str(len(filenames_exp)) + ' FILES.')
         print('-----------------END TEST -------------------------')
 
-    # ---------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     else:
         #print(all_arg, name_prj, path_prj, path_bio)
         print('Command not recognized. Try LIST_COMMAND to see available commands.')
@@ -1502,14 +1549,14 @@ def habby_restart(file_comm, name_prj, path_prj, path_bio):
 def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     """
     This function is used to execute a command from habby_cmd on all files in a folder. The form of the command should
-    be something like "habby_cmd ALL COMMAND path_to_file/\*.ext arg2 ag3" with the arguments adated to the specific
+    be something like "habby_cmd ALL COMMAND path_to_file/\*.ext arg2 ag3" with the arguments adapted to the specific
     command.
 
     In other words, the command should be the usual command with the keyword ALL before and with the name of
     the input files remplace by \*.ext . where ext is the extension of the files.
     It is better to not add an output name. Indeed default name for output includes the input file name, which
     is practical if different files are given as input. If the default
-    is overided, the same name will be applied, only the time stamps will be different. To be sure to not overwrite a
+    is overided, the same name will be applied, only the units will be different. To be sure to not overwrite a
     file, this function waits one second between each command. Only the input argument should containts the string '\*'.
     Otherwise, other commands would be treated as input files.
 

@@ -4152,7 +4152,7 @@ class SubstrateW(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         path_shp = self.find_path_output("Path_Shape")
         if len(self.drop_hyd) > 1:
-            hdf5_name_hyd = path_hdf5 + "/" + self.drop_hyd.currentText()
+            hdf5_name_hyd = self.drop_hyd.currentText()  # path_hdf5 + "/" +
         elif len(self.drop_hyd) == 0:
             self.send_log.emit('Error: No hydrological file available \n')
             return

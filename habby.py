@@ -39,6 +39,9 @@ def main():
 
     # graphical user interface is called if no argument
     if len(sys.argv) == 1:
+        """
+        GUI
+        """
         # create app
         app = QApplication(sys.argv)
 
@@ -59,12 +62,12 @@ def main():
         # close
         sys.exit(app.exec_())
         # os._exit()
+
     # otherwise we use the command line
     else:
         """
         command line
         """
-
         # get path and project name
         namedir = 'result_cmd3'
         path_bio = './biology'
