@@ -124,7 +124,7 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
 
     # open hdf5 with check
     h5_filename_path = os.path.join(hdf5_path, hdf5_name)
-    h5file = load_hdf5.open_hdf5(h5_filename_path)
+    h5file = load_hdf5.open_hdf5_(h5_filename_path, "read")
     if h5file is None:
         print('Error: hdf5 file could not be open. \n')
         return failload

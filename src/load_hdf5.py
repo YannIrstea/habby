@@ -30,18 +30,25 @@ from src_GUI import output_fig_GUI
 VERSION = 0.25
 
 
-def open_hdf5(hdf5_name):
+def open_hdf5(hdf5_name, mode="read"):
     """
     This is a function which opens an hdf5 file and check that it exists. It does not load the data. It only opens the
     files.
     :param hdf5_name: the path and name of the hdf5 file (string)
+    :param mode: read or write
     """
+    # get mode
+    if mode == "read":
+        mode_hdf5 = 'r'
+    if mode == "write":
+        mode_hdf5 = 'r+'
+
     blob, ext = os.path.splitext(hdf5_name)
     if ext != '.h5':
         print('Warning: the file should be of hdf5 type. \n')
     if os.path.isfile(hdf5_name):
         try:
-            file = h5py.File(hdf5_name, 'r+')
+            file = h5py.File(hdf5_name, mode_hdf5)
         except OSError:
             print('Error: the hdf5 file could not be loaded.\n')
             return None
@@ -53,21 +60,22 @@ def open_hdf5(hdf5_name):
     return file
 
 
-def open_hdf5_(hdf5_name, path_hdf5):
+def open_hdf5_(hdf5_name, path_hdf5, mode):
     """
-    A function to load  hdf5 file.  If hdf5_name is an absolute path, the path_hdf5 is not used. If it is a relative path,
+    A function to load hdf5 file. If hdf5_name is an absolute path, the path_hdf5 is not used. If it is a relative path,
     the path is composed of the path to the 'hdf5' folder (path_hdf5/hdf5_name) composed with hdf5_name.
     return file object open, false or '', true if error occured
 
     :param hdf5_name: path and file name to the hdf5 file (string)
     :param path_hdf5: the path to the hdf5 file
+    :param mode: read or write
     """
     # open the file
     if os.path.isabs(hdf5_name):
-        file_ = open_hdf5(hdf5_name)
+        file_ = open_hdf5(hdf5_name, mode)
     else:
         if path_hdf5:
-            file_ = open_hdf5(os.path.join(path_hdf5, hdf5_name))
+            file_ = open_hdf5(os.path.join(path_hdf5, hdf5_name), mode)
         else:
             print('Error" No path to the project given although a relative path was provided')
             return "", True
@@ -553,7 +561,7 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
     if merge:
         failload = [[-99]], [[-99]], [[-99]], [[-99]], [[-99]], [[-99]]
 
-    file_hydro, bfailload = open_hdf5_(hdf5_name_hyd, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name_hyd, path_hdf5, "read")
     if bfailload:
         return failload
 
@@ -695,7 +703,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
     sub_dom = []
     failload = [[-99]], [[-99]], [[-99]], [[-99]]
 
-    file_sub, bfailload = open_hdf5_(hdf5_name_sub, path_hdf5)
+    file_sub, bfailload = open_hdf5_(hdf5_name_sub, path_hdf5, "read")
     if bfailload:
         return failload
 
@@ -752,7 +760,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
     :param spu_all: total SPU by reach
     :param fish_name: the name of the fish (with the stage in it)
     """
-    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5, "write")
     if bfailload:
         return
 
@@ -844,7 +852,7 @@ def load_hdf5_hab(hdf5_name, path_hdf5, fish_names, units_index):
     substrate_all_dom = []
     failload = [[-99]], [[-99]], [[-99]], [[-99]], [[-99]], [[-99]]
 
-    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5, "read")
 
     # load the number of time steps
     try:
@@ -1092,7 +1100,7 @@ def load_unit_name(hdf5_name, path_hdf5=''):
     """
     failload = []
 
-    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5, "read")
     if bfailload:
         return failload
 
@@ -1129,7 +1137,7 @@ def get_unit_number(hdf5_name, path_hdf5):  # ? a changer si on utilise attribut
 
     failload = -99
 
-    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5, "read")
     if bfailload:
         return failload
 
@@ -1158,7 +1166,7 @@ def load_sub_percent(hdf5_name_hyd, path_hdf5=''):
     failload = [-99]
     sub_per_all_t = []
 
-    file_hydro, bfailload = open_hdf5(hdf5_name_hyd, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name_hyd, path_hdf5, "read")
     if bfailload:
         return failload
 
@@ -1250,7 +1258,7 @@ def get_filename_by_type(type, path):
     filenames = []
     for file in os.listdir(dirname):
         if file.endswith(".h5"):
-            file_hydro, _ = open_hdf5_(file, dirname)
+            file_hydro, _ = open_hdf5_(file, dirname, "read")
             if file_hydro.attrs["hdf5_type"] == type:
                 if type == "substrate":
                     if file_hydro.attrs["source_type"] == "from_file":
@@ -1338,7 +1346,7 @@ def get_initial_files(path_hdf5, hdf5_name):
     :return: the name of the substrate and hydraulic file used to create the merge file
     """
 
-    file, bfailload = open_hdf5_(hdf5_name, path_hdf5)
+    file, bfailload = open_hdf5_(hdf5_name, path_hdf5, "read")
     if bfailload:
         return '', ''
 
@@ -1365,7 +1373,7 @@ def get_fish_names_habitat(hdf5_name, path_hdf5):
     """
     failload = []
 
-    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5)
+    file_hydro, bfailload = open_hdf5_(hdf5_name, path_hdf5, "read")
     if bfailload:
         return failload
 
