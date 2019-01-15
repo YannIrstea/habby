@@ -209,11 +209,11 @@ class GroupPlot(QGroupBox):
                     nb_plot_total = len(names_hdf5) * len(variables) * len(units)
                 if len(fish_names) == 1:
                     # one map by fish by unit
-                    nb_map = len(fish_names) * len(units)
+                    nb_map = len(names_hdf5) * len(fish_names) * len(units)
                     if len(units) == 1:
-                        nb_wua_hv = len(fish_names) * len(units)
+                        nb_wua_hv = len(names_hdf5) * len(fish_names) * len(units)
                     if len(units) > 1:
-                        nb_wua_hv = len(fish_names)
+                        nb_wua_hv = len(names_hdf5) * len(fish_names)
                     nb_plot_total = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + nb_wua_hv
                 if len(fish_names) > 1:
                     # one map by fish by unit
@@ -310,7 +310,8 @@ class GroupPlot(QGroupBox):
         selection = self.names_hdf5_QListWidget.selectedItems()
         self.units_QListWidget.clear()
         self.variable_QListWidget.clear()
-        if len(selection) == 1:  # one file selected
+        # one file selected
+        if len(selection) == 1:
             hdf5name = selection[0].text()
             self.units_QListWidget.clear()
             # hydraulic
@@ -339,7 +340,8 @@ class GroupPlot(QGroupBox):
                                                                                     self.parent().parent().parent().path_prj + "/hdf5_files/"))
                 self.units_QListWidget.addItems(
                     load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
-        if len(selection) > 1:  # more than one file selected
+        # more than one file selected
+        if len(selection) > 1:
             nb_file = len(selection)
             hdf5name = []
             units = []
@@ -347,7 +349,8 @@ class GroupPlot(QGroupBox):
                 hdf5name.append(selection[i].text())
                 units.append(load_hdf5.load_unit_name(selection[i].text(),
                                                          self.parent().parent().parent().path_prj + "/hdf5_files/"))
-            if not all(x == units[0] for x in units):  # units are diferrents
+            # units are diferrents
+            if not all(x == units[0] for x in units):
                 msg2 = QMessageBox(self)
                 msg2.setIcon(QMessageBox.Warning)
                 msg2.setWindowTitle(self.tr("Warning"))
@@ -366,11 +369,11 @@ class GroupPlot(QGroupBox):
                 self.units_QListWidget.clear()
                 self.variable_QListWidget.clear()
                 # hydraulic
-                if self.types_hdf5_QComboBox.currentIndex() == 1:  # hydraulic
+                if self.types_hdf5_QComboBox.currentIndex() == 1:
                     self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
                     self.units_QListWidget.addItems(units)
                 # substrat
-                if self.types_hdf5_QComboBox.currentIndex() == 2:  # substrat
+                if self.types_hdf5_QComboBox.currentIndex() == 2:
                     self.variable_QListWidget.addItems(["coarser_dominant"])
                     self.variable_QListWidget.item(0).setSelected(True)
                     self.units_QListWidget.addItems(["one unit"])
@@ -384,8 +387,10 @@ class GroupPlot(QGroupBox):
                 # habitat
                 if self.types_hdf5_QComboBox.currentIndex() == 5:
                     self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
-                    self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name[0], self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    #self.variable_QListWidget.selectAll()
                     self.units_QListWidget.addItems(units)        # update progress bar
+                    #self.units_QListWidget.selectAll()
         self.count_plot()
 
     def collect_data_from_gui(self):
