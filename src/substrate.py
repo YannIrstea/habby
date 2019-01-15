@@ -259,6 +259,7 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
     # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
     [attribute_type, attribute_name] = get_useful_attribute(fields)
     if attribute_type == -99:
+        print('Error: The substate data not recognized.\n')
         return False, True
 
     # if percentage type
@@ -291,6 +292,8 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
             elif max(sub_dom) > 8 or max(sub_pg) > 8:
                 print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
                 return False, True
+            else:
+                return True, True
         # code type edf - checked and transform
         elif code_type == 'EDF':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
@@ -302,6 +305,7 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
             else:
                 sub_dom = edf_to_cemagref(sub_dom)
                 sub_pg = edf_to_cemagref(sub_pg)
+                return True, True
         # code type sandre
         elif code_type == 'Sandre':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
@@ -313,6 +317,7 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
             else:
                 sub_dom = sandre_to_cemagref(sub_dom)
                 sub_pg = sandre_to_cemagref(sub_pg)
+                return True, True
         else:
             print('Error: The substrate code is not recognized.\n')
             return False, True
@@ -425,6 +430,10 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
 
         # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
         [attribute_type, attribute_name] = get_useful_attribute(fields)
+
+        if attribute_type == -99:
+            print('Error: The substate data not recognized.\n')
+            return
 
         # if percentage type
         if attribute_type == 1:
@@ -652,7 +661,7 @@ def percentage_to_domcoarse(sub_data, dominant_case):
     return sub_dom, sub_pg
 
 
-def load_sub_txt(filename, path, code_type, path_shp='.'):
+def load_sub_txt(filename, path, code_type, path_shp='.', queue=[], dominant_case=0):
     """
     A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
     coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
@@ -670,7 +679,7 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     :return: grid in form of list of coordinate and connectivity table (two list)
              and an array with substrate type and (x,y,sub) of the orginal data
     """
-    #failload = [-99], [-99], [-99], [-99], [-99], [-99], [-99], [-99]
+
     file = os.path.join(path, filename)
     if not os.path.isfile(file):
         print("Error: The txt file " + filename + " does not exist.\n")
@@ -682,22 +691,57 @@ def load_sub_txt(filename, path, code_type, path_shp='.'):
     ind1 = data.find('\n')
     if ind1 == -1:
         print('Error: Could not find more than one line in the substrate input file. Check format \n')
+    # header
+    header = data.split("\n")[0].split("\t")[2:]
+    fake_field = [None] * len(header)  # fake fields like shapefile
+    header = list(zip(header, fake_field))
+    [attribute_type, attribute_name] = get_useful_attribute(header)
+
+    if attribute_type == -99:
+        print('Error: The substate data not recognized.\n')
+        return
+
     data = data[ind1:]
     data = data.split()
-    if len(data) % 4 != 0:
-        print('Error: the number of column in ' + filename + ' is not four. Check format.\n')
-        return False
+    # if len(data) % 4 != 0:
+    #     print('Error: the number of column in ' + filename + ' is not four. Check format.\n')
+    #     return False
+
     # get x,y (you might have alphanumeric data in the substrate column)
-    x = [data[i] for i in np.arange(0, len(data), 4)]
-    y = [data[i] for i in np.arange(1, len(data), 4)]
-    sub_pg = [data[i] for i in np.arange(2, len(data), 4)]
-    sub_dom = [data[i] for i in np.arange(3, len(data), 4)]
+    x = [data[i] for i in np.arange(0, len(data), len(header) + 2)]
+    y = [data[i] for i in np.arange(1, len(data), len(header) + 2)]
     try:
         x = list(map(float, x))
         y = list(map(float, y))
     except TypeError:
         print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
         return False
+
+    if attribute_type == 1:  # percent to sub/dom
+        # transform to cemagref substrate form
+        if code_type == 'Cemagref':
+            if len(header) != 8:
+                print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
+                return False
+        # code type sandre
+        elif code_type == 'Sandre':
+            if len(header) != 12:
+                print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
+                return False
+
+        # get only sub data
+        data_by_feature = np.array([list(map(int, data[i+2:i+len(header) + 2])) for i in range(0, len(data), len(header) + 2)])
+        # get the domainant and coarser from the percentage
+        [sub_dom, sub_pg] = percentage_to_domcoarse(data_by_feature, dominant_case)
+
+        # code type sandre
+        if code_type == 'Sandre':
+            sub_dom = sandre_to_cemagref(sub_dom)
+            sub_pg = sandre_to_cemagref(sub_pg)
+
+    if attribute_type == 0:  # percent
+        sub_pg = [data[i] for i in np.arange(2, len(data), len(header) + 2)]
+        sub_dom = [data[i] for i in np.arange(3, len(data), len(header) + 2)]
 
     # Coord
     point_in = np.vstack((np.array(x), np.array(y))).T

@@ -3890,7 +3890,7 @@ class SubstrateW(SubHydroW):
                     return
 
                 # Check shape fields data validity
-                sys.stdout = self.mystdout = StringIO()  # out to GUI  # out to GUI
+                sys.stdout = self.mystdout = StringIO()  # out to GUI
                 sub_validity, ok_dom = substrate.shp_validity(self.namefile[0],
                                                               self.pathfile[0],
                                                               code_type)
@@ -3977,6 +3977,8 @@ class SubstrateW(SubHydroW):
                 # convert txt to voronoi shp
                 sys.stdout = self.mystdout = StringIO()  # out to GUI
                 sub_filename_voronoi_shp = substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type, path_shp)
+
+                # if shp ok
                 if sub_filename_voronoi_shp:
                     # load substrate shp (and triangulation)
                     self.q = Queue()
@@ -3984,13 +3986,12 @@ class SubstrateW(SubHydroW):
                                      args=(sub_filename_voronoi_shp,
                                            path_shp,
                                            self.path_prj,
-                                           self.name_prj,
                                            self.path_prj + "/hdf5_files",
+                                           self.name_prj,
                                            self.name_hdf5,
                                            code_type,
                                            self.q))
                     self.p.start()
-                    sys.stdout = sys.__stdout__  # reset to console
                     self.send_err_log()
 
                     # copy
@@ -4012,6 +4013,14 @@ class SubstrateW(SubHydroW):
                     self.send_log.emit("restart LOAD_SUB_TXT")
                     self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
                     self.send_log.emit("restart    code_type: " + code_type)
+
+                if not sub_filename_voronoi_shp:
+                    # block button substrate
+                    self.load_substrate.setDisabled(False)  # substrate
+
+                # all case
+                sys.stdout = sys.__stdout__  # reset to console
+                self.send_err_log()
 
             # case unknown
             else:
