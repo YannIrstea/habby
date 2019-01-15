@@ -377,7 +377,7 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
         return False, True
 
 
-def load_sub_shp(filename, path_file, path_prj, name_prj, path_hdf5, name_hdf5, code_type, queue=[], dominant_case=0):
+def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, code_type, queue=[], dominant_case=0):
     """
     A function to load the substrate in form of shapefile.
 
