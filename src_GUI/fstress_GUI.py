@@ -76,7 +76,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         l001 = QLabel(self.tr(' <b> Load Data From Files</br>'))
         self.loadtxt = QPushButton(self.tr('Text File: listriv.txt'))
         self.loadtxt.clicked.connect(self.load_txt)
-        self.loadh5 = QPushButton(self.tr('Hdf5 File (.h5)'))
+        self.loadh5 = QPushButton(self.tr('HABBY File (.hab)'))
         self.loadh5.clicked.connect(self.load_hdf5_fstress)
 
         # insist on white background color (for linux, mac)

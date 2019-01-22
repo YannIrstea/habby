@@ -357,13 +357,13 @@ class Stathab:
 
     def create_hdf5(self):
         """
-        A function to create an hdf5 file from the loaded txt. It creates "name_prj"_STATHAB.h5, an hdf5 file with the
+        A function to create an hdf5 file from the loaded txt. It creates "name_prj"_STATHAB.hab, an hdf5 file with the
         info from stathab
         """
         self.load_ok = False
 
         # create an empty hdf5 file using all default prop.
-        fname_no_path = self.name_prj + '_STATHAB' + '.h5'
+        fname_no_path = self.name_prj + '_STATHAB' + '.hab'
         path_hdf5 = self.find_path_hdf5_stat()
         fname = os.path.join(path_hdf5, fname_no_path)
         try:
@@ -438,7 +438,7 @@ class Stathab:
         :param no_hdf5: If True, no hdf5 file was created (usually because Stathab crashed at some points)
         """
 
-        fname_no_path = self.name_prj + '_STATHAB' + '.h5'
+        fname_no_path = self.name_prj + '_STATHAB' + '.hab'
         if no_hdf5:
             fname_no_path = ''
 
@@ -1258,7 +1258,7 @@ class Stathab:
         """
         A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py
         and in estimhab_GUI. By default,
-        path_hdf5 is in the project folder in the folder 'hdf5_files'.
+        path_hdf5 is in the project folder in the folder 'hab'.
         """
 
         path_hdf5 = 'no_path'

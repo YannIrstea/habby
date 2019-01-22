@@ -350,8 +350,8 @@ def main():
     Used to test this module
     """
 
-    merge_files = ['MERGE_Hydro_RIVER2D_test23.00.h5']
-    path_merges = [r'D:\Diane_work\dummy_folder\inter_test\hdf5_files']
+    merge_files = ['MERGE_Hydro_RIVER2D_test23.00.hab']
+    path_merges = [r'D:\Diane_work\dummy_folder\inter_test\hab']
     discharge_input = range(23, 85)
     np.savetxt('discharge_river2d.txt', discharge_input, delimiter='\n')
     discharge_output = np.arange(28, 32) + 0.5

@@ -25,7 +25,7 @@ def load_evha_and_create_grid(path, name_evha=''):
     """
     This function loads the evha data, disitrbute the velocity,
     create a 2d grid from this data and save it all in
-    an hdf5 format.  This function is called in a second thread by
+    an hab format.  This function is called in a second thread by
     the class Evha() in Hydro_grid_2().
 
     THIS IS NOT FUNCTIONNING YET. IT SHOULD BE FINISHED BEFORE USE!!!!!!!

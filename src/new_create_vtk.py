@@ -193,8 +193,8 @@ def main():
     """
     Used to test this module
     """
-    path_hdf5 = r'D:\Diane_work\dummy_folder\Projet1\hdf5_files'
-    name_hdf5 = r'MERGE_Hydro_RUBAR2D_BS15a621_03_2017_at_10_15_45.h5'
+    path_hdf5 = r'D:\Diane_work\dummy_folder\Projet1\hab'
+    name_hdf5 = r'MERGE_Hydro_RUBAR2D_BS15a621_03_2017_at_10_15_45.hab'
     blob = None
     path_vtk = r'D:\Diane_work\dummy_folder\res_vtk'
     fileName = os.path.join(path_vtk, 'test')

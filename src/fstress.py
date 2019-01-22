@@ -30,12 +30,12 @@ import matplotlib as mpl
 from src_GUI import output_fig_GUI
 
 
-def save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
+def save_fstress(path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
     """
-    This function saves the data related to the fstress model in an hdf5 file and write the name of this hdf5 file
+    This function saves the data related to the fstress model in an hab file and write the name of this hab file
     in the xml project file.
 
-    :param path_hdf5: the path where to sdave the hdf5-> string
+    :param path_hab: the path where to sdave the hab-> string
     :param path_prj: the path to the project-> string
     :param name_prj: the name of the project-> string
     :param name_bio: the name of the preference file-> string
@@ -47,8 +47,8 @@ def save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, da
     """
 
     # create the hdf5 file
-    fname_no_path = 'FStress_' + name_prj + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
-    fname = os.path.join(path_hdf5, fname_no_path)
+    fname_no_path = 'FStress_' + name_prj + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
+    fname = os.path.join(path_hab, fname_no_path)
     file = h5py.File(fname, 'w')
 
     # create general attribute
@@ -568,7 +568,7 @@ def main():
     path_bio = r'C:\Users\diane.von-gunten\HABBY\biology'
     name_bio = 'pref_fstress.txt'
     riv_name = ['riv1', 'riv2']
-    hdf5_name = r'FStress_DefaultProj_23_02_2017_at_13_31_08.h5'
+    hdf5_name = r'FStress_DefaultProj_23_02_2017_at_13_31_08.hab'
     hdf5_path = r'D:\Diane_work\dummy_folder\DefaultProj'
     path_rre = r'D:\Diane_work\model_stat\FSTRESSandtathab\fstress_stathab_C\FSTRESSDiane'
 

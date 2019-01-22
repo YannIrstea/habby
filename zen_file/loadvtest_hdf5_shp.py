@@ -196,7 +196,7 @@ class Example(QMainWindow):
         print('I export the data to the hdf5 format')
 
         #create an empty hdf5 file using all default prop.
-        file = h5py.File('dset.h5','w')
+        file = h5py.File('dset.hab','w')
         #create a data set into the group called file
         size_vel = self.velocity.shape
         dataset = file.create_dataset('dset', size_vel, data = self.velocity)

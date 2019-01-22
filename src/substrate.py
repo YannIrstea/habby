@@ -25,6 +25,7 @@ import triangle
 from random import randrange
 from shapely.geometry.polygon import Polygon
 from shapely.geometry import Point, MultiPoint
+from PyQt5.QtWidgets import QMessageBox
 from src import load_hdf5
 
 
@@ -104,7 +105,7 @@ def get_useful_attribute(attributes):
     found_per = False
     found_pg = False
     found_one_pg = 0  # if we found dominant and "plus gros", we get found_pg = True
-    attribute_type = -99  # -99 indicates a failed load.
+    sub_calssification_method = -99  # -99 indicates a failed load.
     attribute_name = ['-99', '-99', '-99']
     num_here = 0
 
@@ -112,21 +113,21 @@ def get_useful_attribute(attributes):
 
         if f[0] in pg:
             found_one_pg += 1
-            attribute_name[0] = f[0]
+            attribute_name[0] = "coarser"
         if f[0] in dom:
             found_one_pg += 1
-            attribute_name[1] = f[0]
+            attribute_name[1] = "dom"
         if f[0] in acc1:
-            attribute_name[2] = f[0]
+            attribute_name[2] = "acc"
 
         if found_one_pg == 2:
             found_pg = True
-            attribute_type = 0
+            sub_calssification_method = "Coarser-Dominant"
 
         if f[0] in per_all:
             num_here += 1
             found_per = True
-            attribute_type = 1
+            sub_calssification_method = "Percentage"
             if f[-1] == '1':
                 attribute_name[0] = f[0]
             if f[-1] == '2':
@@ -139,14 +140,14 @@ def get_useful_attribute(attributes):
         if found_per and found_pg:
             print('Error: The attributes of substrate shapefile cannot be understood: mixing betweeen percentage and'
                   'coarser/dominant attributes.\n')
-            attribute_type = -99
+            sub_calssification_method = -99
             return
 
     if not found_pg and not found_per:
         print('Error: The attribute names of the substrate could not be recognized.\n')
-        attribute_type = -99
+        sub_calssification_method = -99
 
-    return attribute_type, attribute_name
+    return sub_calssification_method, attribute_name
 
 
 def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
@@ -247,20 +248,101 @@ def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file,
     return True
 
 
-def shp_validity(filename, path_prj, code_type, dominant_case=0):
+def data_substrate_validity(header_list, sub_array, sub_map_method, sub_classification_code):
+    """
+    This function check if substrate data (from txt or shp) is coherent with code type.
+
+    :param header_list: List of headers
+    :param sub_array: List of data by columns (index in list correspond with header)
+    :param code_type: Code type of substrate
+    :return: True/False: if data is or not valid
+             sub_classification_name : type of substrate
+    """
+    # sub_description_system
+    sub_description_system = dict(sub_map_method=sub_map_method,
+                                  sub_classification_code=sub_classification_code,
+                                  sub_calssification_method=-99)
+
+    # header
+    fake_field = [None] * len(header_list)  # fake fields like shapefile
+    header2 = list(zip(header_list, fake_field))
+
+    # percent or coarserdom ?
+    [sub_calssification_method, attribute_name] = get_useful_attribute(header2)
+    sub_description_system["sub_calssification_method"] = sub_calssification_method
+
+    # get sub_classification_name
+    if sub_calssification_method == -99:
+        return False, sub_description_system
+
+    # coarserdom
+    if sub_calssification_method == "Coarser-Dominant":
+        # coarser dom
+        sub_pg = sub_array[header_list.index("coarser")]
+        sub_dom = sub_array[header_list.index("dom")]
+        # check min max if match code_type
+        if sub_classification_code == 'Cemagref':  # All value 1 < x < 8
+            if min(sub_dom) < 1 or min(sub_pg) < 1:
+                print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
+                return False, sub_description_system
+            elif max(sub_dom) > 8 or max(sub_pg) > 8:
+                print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
+                return False, sub_description_system
+            else:
+                return True, sub_description_system
+        elif sub_classification_code == 'Sandre':  # All value 1 < x < 12
+            if min(sub_dom) < 1 or min(sub_pg) < 1:
+                print('Error: The Sandre code should be formed by an int between 1 and 12. (2)\n')
+                return False, sub_description_system
+            elif max(sub_dom) > 12 or max(sub_pg) > 12:
+                print('Error: The Sandre code should be formed by an int between 1 and 12. (3)\n')
+                return False, sub_description_system
+            else:
+                return True, sub_description_system
+        else:
+            print('Error: The substrate code is not recognized.\n')
+            return False, sub_description_system
+
+    # if percentage type
+    if sub_calssification_method == "Coarser-Dominant":
+        # all case : sum == 100 % ?
+        sub_array = list(zip(*sub_array))  # retransforme data by features
+        for e in range(0, len(sub_array)):  # for all features
+            if sum(sub_array[e]) != 100:
+                print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
+                return False, sub_description_system
+        # code type Cemagref S1 ==> S8
+        if sub_classification_code == 'Cemagref':
+            if not "S8" in attribute_name:
+                print('Error: The Cemagref percentages should contain 8 classes of percent.\n')
+                return False, sub_description_system
+            else:
+                return True, sub_description_system
+        # code type sandre  S1 ==> S12
+        elif sub_classification_code == 'Sandre':
+            if not "S12" in attribute_name:
+                print('Error: The Sandre percentages should contain 12 classes of percent.\n')
+                return False, sub_description_system
+            else:
+                return True, sub_description_system
+        else:
+            print('Error: The substrate code is not recognized.\n')
+            return False, sub_description_system
+
+
+def shp_validity(filename, path_prj, code_type, dominant_case=1):
     ind = 0
 
     # open shape file (think about zero or one to start! )
     sf = open_shp(filename, path_prj)
 
-    # get all the attributes in the shape file
-    fields = sf.fields
+
 
     # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
     [attribute_type, attribute_name] = get_useful_attribute(fields)
     if attribute_type == -99:
         print('Error: The substate data not recognized.\n')
-        return False, True
+        return False, dominant_case
 
     # if percentage type
     if attribute_type == 1:
@@ -275,52 +357,72 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
                     record_here = list(map(int, record_here))
                 except ValueError:
                     print('Error: The substate code should be formed by an int.\n')
-                    return False, True
+                    return False, dominant_case
                 record_all.append(record_here)
                 ind += 1
         record_all = np.array(record_all).T
-        # get the domainant and coarser from the percentage
+
+        # get the dominant and coarser from the percentage
         [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
+
+        # dominant case unknown
         if len(sub_dom) == 1:
             if sub_dom[0] == -99:
-                return False, False
+                # in this case ask the user
+                msg2 = QMessageBox()
+                msg2.setWindowTitle('Dominant substrate')
+                msg2.setText('Our analysis found that the dominant substrate of certain substrate'
+                                          ' cells cannot be determined. Indeed, the maximum percentage of two or '
+                                          'more classes are equal. In these cases, should we take the larger or the'
+                                          ' smaller substrate class?')
+                b1 = msg2.addButton('Larger', QMessageBox.NoRole)
+                b2 = msg2.addButton('Smaller', QMessageBox.YesRole)
+                msg2.exec()
+                if msg2.clickedButton() == b1:
+                    dominant_case = 1
+                elif msg2.clickedButton() == b2:
+                    dominant_case = -1
+
+                # recompute
+                [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
+
         # transform to cemagref substrate form
         if code_type == 'Cemagref':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
                 print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                return False, True
+                return False, dominant_case
             elif max(sub_dom) > 8 or max(sub_pg) > 8:
                 print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                return False, True
+                return False, dominant_case
             else:
-                return True, True
-        # code type edf - checked and transform
-        elif code_type == 'EDF':
-            if min(sub_dom) < 1 or min(sub_pg) < 1:
-                print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
-                return False, True
-            elif max(sub_dom) > 8 or max(sub_pg) > 8:
-                print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
-                return False, True
-            else:
-                sub_dom = edf_to_cemagref(sub_dom)
-                sub_pg = edf_to_cemagref(sub_pg)
-                return True, True
+                return True, dominant_case
+        # # code type edf - checked and transform
+        # elif code_type == 'EDF':
+        #     if min(sub_dom) < 1 or min(sub_pg) < 1:
+        #         print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
+        #         return False, dominant_case
+        #     elif max(sub_dom) > 8 or max(sub_pg) > 8:
+        #         print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
+        #         return False, dominant_case
+        #     else:
+        #         sub_dom = edf_to_cemagref(sub_dom)
+        #         sub_pg = edf_to_cemagref(sub_pg)
+        #         return True, dominant_case
         # code type sandre
         elif code_type == 'Sandre':
             if min(sub_dom) < 1 or min(sub_pg) < 1:
                 print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                return False, True
+                return False, dominant_case
             elif max(sub_dom) > 12 or max(sub_pg) > 12:
                 print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                return False, True
+                return False, dominant_case
             else:
                 sub_dom = sandre_to_cemagref(sub_dom)
                 sub_pg = sandre_to_cemagref(sub_pg)
-                return True, True
+                return True, dominant_case
         else:
             print('Error: The substrate code is not recognized.\n')
-            return False, True
+            return False, dominant_case
 
     # pg/coarser/accessory type
     elif attribute_type == 0:
@@ -336,39 +438,39 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
                     record_here = list(map(int, record_here))
                 except ValueError:
                     print('Error: The substrate code should be formed by an int.\n')
-                    return False, True
+                    return False, dominant_case
 
                 # code type cemagref - checked
                 if code_type == 'Cemagref':
                     if min(record_here) < 1:
                         print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-                        return False, True
+                        return False, dominant_case
                     elif max(record_here) > 8:
                         print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-                        return False, True
+                        return False, dominant_case
                 # code type edf - checked and transform
                 elif code_type == 'EDF':
                     if min(record_here) < 1:
                         print('Error: The edf code should be formed by an int between 1 and 8. (2)')
-                        return False, True
+                        return False, dominant_case
                     elif max(record_here) > 8:
                         print('Error: The edf code should be formed by an int between 1 and 8. (3)')
-                        return False, True
+                        return False, dominant_case
                     else:
                         record_here = edf_to_cemagref(record_here)
                 # code type sandre
                 elif code_type == 'Sandre':
                     if min(record_here) < 1:
                         print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                        return False, True
+                        return False, dominant_case
                     elif max(record_here) > 12:
                         print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-                        return False, True
+                        return False, dominant_case
                     else:
                         record_here = sandre_to_cemagref(record_here)
                 else:
                     print('Error: The substrate code is not recognized.\n')
-                    return False, True
+                    return False, dominant_case
 
                 # now that we have checked and transform, give the data
                 if f[0] == attribute_name[0]:
@@ -376,19 +478,19 @@ def shp_validity(filename, path_prj, code_type, dominant_case=0):
                 if f[0] == attribute_name[1]:
                     sub_dom = record_here
             ind += 1
-        return True, True
+        return True, dominant_case
     else:
         print('Error: Attribute type not recognized.\n')
-        return False, True
+        return False, dominant_case
 
 
-def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, code_type, queue=[], dominant_case=0):
+def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, sub_classification_code, queue=[]):
     """
     A function to load the substrate in form of shapefile.
 
     :param filename: the name of the shapefile
     :param path_prj: the path where the shapefile is
-    :param code_type: the type of code used to define the substrate (string)
+    :param sub_classification_code: the type of code used to define the substrate (string)
     :param dominant_case: an int to manage the case where the transfomation form percentage to dominnat is unclear (two
            maxinimum percentage are equal from one element). if -1 take the smallest, if 1 take the biggest,
            if 0, we do not know.
@@ -397,112 +499,74 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
 
     """
     sys.stdout = mystdout = StringIO()
-    # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
-    if convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
-        # file name triangulated
-        filename = filename[:-4] + "_triangulated.shp"
 
-        # initialization
-        xy = []  # point
-        ikle = []  # connectivity table
-        sub_dom = []  # dominant substrate
-        sub_pg = []  # coarser substrate ("plus gros")
-        ind = 0
+    # open shape file
+    sf = open_shp(filename, path_file)
 
-        # open shape file (think about zero or one to start! )
-        sf = open_shp(filename, path_prj + "/input")
+    # get sub data in the shape file
+    fields = sf.fields
+    header_list = []
+    for i, field in enumerate(fields):
+        if i > 0:
+            header_list.append(field[0])
+    records = sf.records()
+    sub_array = list(zip(*records))
 
-        # get point coordinates and connectivity table in two lists
-        shapes = sf.shapes()
-        for i in range(0, len(shapes)):
-            p_all = shapes[i].points
-            ikle_i = []
-            for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
-                try:
-                    ikle_i.append(int(xy.index(p_all[j])))
-                except ValueError:
-                    ikle_i.append(int(len(xy)))
-                    xy.append(p_all[j])
-            ikle.append(ikle_i)
+    # sub_description_method
+    sub_description_method = "Delim"
 
-        # get all the attributes in the shape file
-        fields = sf.fields
+    # check data validity
+    data_validity, sub_description_system = data_substrate_validity(header_list,
+                                                                    sub_array,
+                                                                    sub_description_method,
+                                                                    sub_classification_code)
+    print("data_validated ? ", data_validity, ", sub_description_system : ", sub_description_system)
 
-        # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
-        [attribute_type, attribute_name] = get_useful_attribute(fields)
+    if data_validity:
+        # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
+        if convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
+            # file name triangulated
+            filename = filename[:-4] + "_triangulated.shp"
 
-        if attribute_type == -99:
-            print('Error: The substate data not recognized.\n')
-            return
+            # initialization
+            xy = []  # point
+            ikle = []  # connectivity table
+            ind = 0
 
-        # if percentage type
-        if attribute_type == 1:
-            record_all = []
-            # get the data and pass it int
-            for f in fields:
-                if f[0] in attribute_name:
-                    record_here = sf.records()
-                    record_here = np.array(record_here)
-                    record_here = record_here[:, ind]
-                    record_here = list(map(int, record_here))
-                    record_all.append(record_here)
-                    ind += 1
-            record_all = np.array(record_all).T
-            # get the domainant and coarser from the percentage
-            [sub_dom, sub_pg] = percentage_to_domcoarse(record_all, dominant_case)
+            # open shape file (think about zero or one to start! )
+            sf = open_shp(filename, path_prj + "/input")
 
-            # code type edf - checked and transform
-            if code_type == 'EDF':
-                sub_dom = edf_to_cemagref(sub_dom)
-                sub_pg = edf_to_cemagref(sub_pg)
-            # code type sandre
-            elif code_type == 'Sandre':
-                    sub_dom = sandre_to_cemagref(sub_dom)
-                    sub_pg = sandre_to_cemagref(sub_pg)
+            # get point coordinates and connectivity table in two lists
+            shapes = sf.shapes()
+            for i in range(0, len(shapes)):
+                p_all = shapes[i].points
+                ikle_i = []
+                for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
+                    try:
+                        ikle_i.append(int(xy.index(p_all[j])))
+                    except ValueError:
+                        ikle_i.append(int(len(xy)))
+                        xy.append(p_all[j])
+                ikle.append(ikle_i)
 
-        # pg/coarser/accessory type
-        elif attribute_type == 0:
-            for f in fields:
-                if f[0] == attribute_name[0] or f[0] == attribute_name[1]:  # [0] coarser and [1] pg
-                    # read for all code type
-                    a = int('2')
-                    record_here = sf.records()
-                    record_here = np.array(record_here)
-                    record_here = record_here[:, ind - 1]
-                    record_here = list(map(int, record_here))
+            # having a convex subtrate grid is really practical (not used because triangles are never concave
+            # [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
 
-                    # code type edf - checked and transform
-                    if code_type == 'EDF':
-                        record_here = edf_to_cemagref(record_here)
-                    # code type sandre
-                    elif code_type == 'Sandre':
-                        record_here = sandre_to_cemagref(record_here)
-
-                    # now that we have checked and transform, give the data
-                    if f[0] == attribute_name[0]:
-                        sub_pg = record_here
-                    if f[0] == attribute_name[1]:
-                        sub_dom = record_here
-                ind += 1
-
-        # having a convex subtrate grid is really practical
-        [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
-
-        # save hdf5
-        load_hdf5.save_hdf5_sub(path_hdf5,
-                                path_prj,
-                                name_prj,
-                                sub_pg,
-                                sub_dom,
-                                ikle,
-                                xy,
-                                [],
-                                [],
-                                name_hdf5,
-                                False,
-                                "substrate",
-                                True)
-        queue.put(mystdout)
+            # save hdf5
+            load_hdf5.save_hdf5_sub(path_hdf5,
+                                    path_prj,
+                                    name_prj,
+                                    sub_array,
+                                    sub_description_system,
+                                    ikle,
+                                    xy,
+                                    [],
+                                    [],
+                                    name_hdf5,
+                                    False,
+                                    "substrate",
+                                    True)
+    queue.put(mystdout)
 
 
 def edf_to_cemagref(records):
@@ -637,7 +701,6 @@ def percentage_to_domcoarse(sub_data, dominant_case):
             # if we have the same percentage for two dominant we send back the function to the GUI to ask the
             # user. It is called again with the arg dominant_case
             if dominant_case == 0:
-                print('Warning: no dominant case')
                 return [-99], [-99]
             elif dominant_case == 1:
                 sub_dom[e] = inds[-1] + 1
@@ -1185,15 +1248,15 @@ def main():
 
     # test merge grid
     path1 = r'D:\Diane_work\dummy_folder\DefaultProj'
-    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.h5')
-    hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.h5')
+    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.hab')
+    hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.hab')
     # [ikle_both, point_all_both, sub_data1, subdata2,  vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, -1)
     # fig_merge_grid(point_all_both[0], ikle_both[0], path1)
     # plt.show()
 
     # test create dummy substrate
     # path = r'D:\Diane_work\dummy_folder\DefaultProj'
-    # fileh5 = 'Hydro_RUBAR2D_BS15a607_02_2017_at_15_50_13.h5'
+    # fileh5 = 'Hydro_RUBAR2D_BS15a607_02_2017_at_15_50_13.hab'
     # create_dummy_substrate_from_hydro(fileh5, path, 'dummy_hydro_substrate2', 'Sandre', 0)
 
 

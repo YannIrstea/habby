@@ -604,8 +604,8 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit("Warning: No selected hdf5 file for stathab\n")
             return
         blob, ext = os.path.splitext(self.hdf5_name)
-        if ext != '.h5':
-            self.send_log.emit("Warning: The file should be of hdf5 type.\n")
+        if ext != '.hab':
+            self.send_log.emit("Warning: The file should be of habby type.\n")
 
         # save the directory in the project file
         filename_prj = os.path.join(self.path_prj, self.name_prj + '.xml')

@@ -651,7 +651,7 @@ class SubHydroW(QWidget):
     def find_path_hdf5(self):
         """
         A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
-        path_hdf5 is in the project folder in the folder 'hdf5_files'.
+        path_hdf5 is in the project folder in the folder 'hab'.
         """
 
         path_hdf5 = 'no_path'
@@ -662,7 +662,7 @@ class SubHydroW(QWidget):
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
-                path_hdf5 = os.path.join(self.path_prj, r'/hdf5_files')
+                path_hdf5 = os.path.join(self.path_prj, r'/hab')
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
@@ -988,7 +988,7 @@ class SubHydroW(QWidget):
         name_hdf5 = os.path.basename(load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj))
 
         # getting the data
-        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hdf5_files/")
+        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hab/")
 
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
@@ -1015,7 +1015,7 @@ class SubHydroW(QWidget):
         name_hdf5 = self.lm2.text()
 
         # getting the subtrate data
-        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hdf5_files/")
+        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hab/")
 
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
@@ -1156,7 +1156,7 @@ class HEC_RAS1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_ras_gui)
         self.butfig = QPushButton(self.tr("create figure"))
@@ -1386,7 +1386,7 @@ class Rubar2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar)
         self.spacer = QSpacerItem(1, 200)
@@ -1598,7 +1598,7 @@ class Mascaret(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_mascaret_gui)
         spacer = QSpacerItem(1, 30)
@@ -1854,7 +1854,7 @@ class River2D(SubHydroW):
         self.removeallfileb.clicked.connect(self.remove_all_file)
         self.addfileb = QPushButton(self.tr("Add file"))
         self.addfileb.clicked.connect(self.add_file_river2d)
-        self.load_b = QPushButton(self.tr("Load all files and create hdf5"))
+        self.load_b = QPushButton(self.tr("Load all files and create hab file"))
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_river2d_gui)
 
@@ -2158,7 +2158,7 @@ class Rubar1D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar1d)
         self.spacer1 = QSpacerItem(100, 100)
@@ -2376,7 +2376,7 @@ class HEC_RAS2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_hec_2d_gui)
         self.spacer = QSpacerItem(1, 200)
@@ -2538,7 +2538,7 @@ class TELEMAC(SubHydroW):
                 self.get_time_step()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -2734,7 +2734,7 @@ class LAMMI(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_lammi_gui)
         self.spacer = QSpacerItem(1, 150)
@@ -2939,7 +2939,7 @@ class SW2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_sw2d)
         self.spacer = QSpacerItem(1, 200)
@@ -3138,7 +3138,7 @@ class IBER2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_iber2d)
         self.spacer = QSpacerItem(1, 200)
@@ -3365,7 +3365,7 @@ class HabbyHdf5(SubHydroW):
 
         # select a file
         path_hdf5 = self.find_path_hdf5()
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
         if fname_h5 != '':  # cancel
             blob, ext = os.path.splitext(fname_h5)
         else:
@@ -3420,7 +3420,7 @@ class HabbyHdf5(SubHydroW):
 
         # select a file
         path_hdf5 = self.find_path_hdf5()
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
         if fname_h5 != '':  # cancel
             blob, ext = os.path.splitext(fname_h5)
         else:
@@ -3509,7 +3509,7 @@ class HabbyHdf5(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
 
         # select the first file
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
         if fname_h5 != '':  # cancel
             hdf51 = os.path.basename(fname_h5)
             path1 = os.path.dirname(fname_h5)
@@ -3525,7 +3525,7 @@ class HabbyHdf5(SubHydroW):
 
         if self.msg2.exec() == QMessageBox.Ok:
             # select the second file
-            fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.h5', '*.h5')[0]
+            fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
             if fname_h5 != '':  # cancel
                 hdf52 = os.path.basename(fname_h5)
                 path2 = os.path.dirname(fname_h5)
@@ -3627,7 +3627,7 @@ class SubstrateW(SubHydroW):
         self.h2d_t2.setToolTip(self.pathfile[0])
 
         # FROMFILE the load button from file
-        self.load_substrate = QPushButton(self.tr('Load data and create hdf5'), self)
+        self.load_substrate = QPushButton(self.tr('Load data and create hab file'), self)
         self.load_substrate.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_substrate.clicked.connect(self.load_sub_gui)
 
@@ -3645,7 +3645,7 @@ class SubstrateW(SubHydroW):
             self.gethdf5_name_gui()
 
         # CSTCASE the load button for constant substrate
-        self.load_const = QPushButton(self.tr('Load const. data and create hdf5'), self)
+        self.load_const = QPushButton(self.tr('Load const. data and create hab file'), self)
         self.load_const.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_const.clicked.connect(lambda: self.load_sub_gui(True))
 
@@ -3661,7 +3661,7 @@ class SubstrateW(SubHydroW):
         self.drop_hyd.currentIndexChanged.connect(self.create_hdf5_merge_name)
         self.drop_sub = QComboBox()
         self.drop_sub.currentIndexChanged.connect(self.create_hdf5_merge_name)
-        self.load_b2 = QPushButton(self.tr("Merge grid and create hdf5"), self)
+        self.load_b2 = QPushButton(self.tr("Merge grid and create hab file"), self)
         self.load_b2.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)
@@ -3837,7 +3837,7 @@ class SubstrateW(SubHydroW):
                 return
             if not 0 < data_sub < 9:
                 self.send_log.emit('The substrate data should be between 1 and 8')
-            if self.hname2.text()[-3:] == '.h5':
+            if self.hname2.text()[-3:] == '.hab':
                 self.name_hdf5 = self.hname2.text()[:-3] + '_' + str(data_sub)
             else:
                 self.name_hdf5 = self.hname2.text() + '_' + str(data_sub)
@@ -3845,7 +3845,7 @@ class SubstrateW(SubHydroW):
             path_hdf5 = self.find_path_hdf5()
             sys.stdout = self.mystdout = StringIO()  # out to GUI
             self.q.put("const_sub")  #
-            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, [], [], [], [],
+            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, "coarserdom-Cemagref", [], [], [], [],
                                     self.name_hdf5, True, self.model_type)
             sys.stdout = sys.__stdout__  # reset to console
             self.send_err_log()
@@ -3859,7 +3859,7 @@ class SubstrateW(SubHydroW):
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
-            #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.h5'))
+            #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.hab'))
             # unblock button substrate
             self.load_substrate.setDisabled(False)  # substrate
 
@@ -3891,61 +3891,35 @@ class SubstrateW(SubHydroW):
 
                 # Check shape fields data validity
                 sys.stdout = self.mystdout = StringIO()  # out to GUI
-                sub_validity, ok_dom = substrate.shp_validity(self.namefile[0],
-                                                              self.pathfile[0],
-                                                              code_type)
+                # sub_validity, dominant_case = substrate.shp_validity(self.namefile[0],
+                #                                               self.pathfile[0],
+                #                                               code_type)
+                #
+                # # if shape data not valid : stop
+                # if not sub_validity:
+                #     sys.stdout = sys.__stdout__  # reset to console
+                #     self.send_err_log()
+                #     self.send_log.emit('Error: Substrate data not loaded')
+                #     self.load_substrate.setDisabled(False)
+                #     return
+                #
+                # # if shape data valid : load and save
+                # if sub_validity:
+                # info
+                self.timer.start(100)
+                # load substrate shp (and triangulation)
+                self.q = Queue()
+                self.p = Process(target=substrate.load_sub_shp,
+                                 args=(self.namefile[0],
+                                       self.pathfile[0],
+                                       self.path_prj,
+                                       self.path_prj + "/hab",
+                                       self.name_prj,
+                                       self.name_hdf5,
+                                       code_type,
+                                       self.q))
+                self.p.start()
 
-                # if shape data not valid : stop
-                if not sub_validity:
-                    self.send_log.emit('Error: Substrate data not loaded')
-                    self.load_substrate.setDisabled(False)
-                    return
-
-                # if shape data valid : load and save
-                if sub_validity and ok_dom:
-                    # load substrate shp (and triangulation)
-                    self.q = Queue()
-                    self.p = Process(target=substrate.load_sub_shp,
-                                     args=(self.namefile[0],
-                                           self.pathfile[0],
-                                           self.path_prj,
-                                           self.path_prj + "/hdf5_files",
-                                           self.name_prj,
-                                           self.name_hdf5,
-                                           code_type,
-                                           self.q))
-                    self.p.start()
-
-                # if shape data valid but case where two dominant substrate are "equally" dominant: inform user, load and save
-                if sub_validity and not ok_dom:
-                    dom_solve = 0
-                    # in this case ask the user
-                    self.msg2 = QMessageBox()
-                    self.msg2.setWindowTitle(self.tr('Dominant substrate'))
-                    self.msg2.setText(self.tr('Our analysis found that the dominant substrate of certain substrate'
-                                              ' cells cannot be determined. Indeed, the maximum percentage of two or '
-                                              'more classes are equal. In these cases, should we take the larger or the'
-                                              ' smaller substrate class?'))
-                    b1 = self.msg2.addButton(self.tr('Larger'), QMessageBox.NoRole)
-                    b2 = self.msg2.addButton(self.tr('Smaller'), QMessageBox.YesRole)
-                    self.msg2.exec()
-                    if self.msg2.clickedButton() == b1:
-                        dom_solve = 1
-                    elif self.msg2.clickedButton() == b2:
-                        dom_solve = -1
-                    # load substrate shp (and triangulation)
-                    self.q = Queue()
-                    self.p = Process(target=substrate.load_sub_shp,
-                                     args=(self.namefile[0],
-                                           self.pathfile[0],
-                                           self.path_prj,
-                                           self.path_prj + "/hdf5_files",
-                                           self.name_prj,
-                                           self.name_hdf5,
-                                           code_type,
-                                           self.q,
-                                           dom_solve))
-                    self.p.start()
                 sys.stdout = sys.__stdout__  # reset to console
                 self.send_err_log()
 
@@ -3986,7 +3960,7 @@ class SubstrateW(SubHydroW):
                                      args=(sub_filename_voronoi_shp,
                                            path_shp,
                                            self.path_prj,
-                                           self.path_prj + "/hdf5_files",
+                                           self.path_prj + "/hab",
                                            self.name_prj,
                                            self.name_hdf5,
                                            code_type,
@@ -4176,7 +4150,7 @@ class SubstrateW(SubHydroW):
         name_hdf5merge = self.hdf5_merge_lineedit.text()
         # if file exist add number
         nb = 0
-        while os.path.isfile(path_hdf5 + "/" + name_hdf5merge + ".h5"):
+        while os.path.isfile(path_hdf5 + "/" + name_hdf5merge + ".hab"):
             nb = nb + 1
             name_hdf5merge = self.hdf5_merge_lineedit.text() + "_" + str(nb)
 

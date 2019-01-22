@@ -83,7 +83,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
 
     # save in a shapefile form
     if path_shp:
-        load_hdf5.create_shapfile_hydro(name_hdf5merge + '.h5', path_hdf5, path_shp, True, erase_id)
+        load_hdf5.create_shapfile_hydro(name_hdf5merge + '.hab', path_hdf5, path_shp, True, erase_id)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -1127,8 +1127,8 @@ def main():
 
     # test merge grid
     path1 = r'D:\Diane_work\dummy_folder\DefaultProj'
-    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.h5')
-    hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.h5')
+    hdf5_name_hyd = os.path.join(path1, r'Hydro_RUBAR2D_BS15a607_02_2017_at_15_52_59.hab')
+    hdf5_name_sub = os.path.join(path1, r'Substrate_dummy_hyd_shp06_03_2017_at_11_27_59.hab')
     [ikle_both, point_all_both, sub_data1, subdata2, vel, height] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
                                                                                          -1)
     fig_merge_grid(point_all_both[0], ikle_both[0], path1)
@@ -1136,7 +1136,7 @@ def main():
 
     # test create dummy substrate
     # path = r'D:\Diane_work\dummy_folder\DefaultProj'
-    # fileh5 = 'Hydro_RUBAR2D_BS15a607_02_2017_at_15_50_13.h5'
+    # fileh5 = 'Hydro_RUBAR2D_BS15a607_02_2017_at_15_50_13.hab'
     # create_dummy_substrate_from_hydro(fileh5, path, 'dummy_hydro_substrate2', 'Sandre', 0)
 
 

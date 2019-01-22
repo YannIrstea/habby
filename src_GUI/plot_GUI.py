@@ -246,7 +246,7 @@ class GroupPlot(QGroupBox):
         if index == 1:
             # get list of file name by type
             names = load_hdf5.get_filename_by_type("hydraulic",
-                                                   self.parent().parent().parent().path_prj + "/hdf5_files/")
+                                                   self.parent().parent().parent().path_prj + "/hab/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -258,7 +258,7 @@ class GroupPlot(QGroupBox):
         if index == 2:
             # get list of file name by type
             names = load_hdf5.get_filename_by_type("substrate",
-                                                   self.parent().parent().parent().path_prj + "/hdf5_files/")
+                                                   self.parent().parent().parent().path_prj + "/hab/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -269,7 +269,7 @@ class GroupPlot(QGroupBox):
         # merge
         if index == 3:
             # get list of file name by type
-            names = load_hdf5.get_filename_by_type("merge", self.parent().parent().parent().path_prj + "/hdf5_files/")
+            names = load_hdf5.get_filename_by_type("merge", self.parent().parent().parent().path_prj + "/hab/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -280,7 +280,7 @@ class GroupPlot(QGroupBox):
         # chronic
         if index == 4:
             # get list of file name by type
-            names = load_hdf5.get_filename_by_type("chronic", self.parent().parent().parent().path_prj + "/hdf5_files/")
+            names = load_hdf5.get_filename_by_type("chronic", self.parent().parent().parent().path_prj + "/hab/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -291,7 +291,7 @@ class GroupPlot(QGroupBox):
         # habitat
         if index == 5:
             # get list of file name by type
-            names = load_hdf5.get_filename_by_type("habitat", self.parent().parent().parent().path_prj + "/hdf5_files/")
+            names = load_hdf5.get_filename_by_type("habitat", self.parent().parent().parent().path_prj + "/hab/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -318,7 +318,7 @@ class GroupPlot(QGroupBox):
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hab/"))
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
                 self.variable_QListWidget.addItems(["coarser_dominant"])
@@ -329,7 +329,7 @@ class GroupPlot(QGroupBox):
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hab/"))
             # chronic
             if self.types_hdf5_QComboBox.currentIndex() == 4:
                 pass
@@ -337,9 +337,9 @@ class GroupPlot(QGroupBox):
             if self.types_hdf5_QComboBox.currentIndex() == 5:
                 self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
                 self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name,
-                                                                                    self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                                                                                    self.parent().parent().parent().path_prj + "/hab/"))
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hab/"))
         # more than one file selected
         if len(selection) > 1:
             nb_file = len(selection)
@@ -348,7 +348,7 @@ class GroupPlot(QGroupBox):
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
                 units.append(load_hdf5.load_unit_name(selection[i].text(),
-                                                         self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                                                         self.parent().parent().parent().path_prj + "/hab/"))
             # units are diferrents
             if not all(x == units[0] for x in units):
                 msg2 = QMessageBox(self)
@@ -387,7 +387,7 @@ class GroupPlot(QGroupBox):
                 # habitat
                 if self.types_hdf5_QComboBox.currentIndex() == 5:
                     self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
-                    self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name[0], self.parent().parent().parent().path_prj + "/hdf5_files/"))
+                    self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name[0], self.parent().parent().parent().path_prj + "/hab/"))
                     #self.variable_QListWidget.selectAll()
                     self.units_QListWidget.addItems(units)        # update progress bar
                     #self.units_QListWidget.selectAll()
@@ -488,7 +488,7 @@ class GroupPlot(QGroupBox):
             fish_names = []
 
             # path
-            path_hdf5 = self.parent().parent().parent().path_prj + "/hdf5_files/"
+            path_hdf5 = self.parent().parent().parent().path_prj + "/hab/"
             path_im = self.parent().parent().parent().path_prj + "/figures/"
 
             # check plot process done

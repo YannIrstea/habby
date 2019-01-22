@@ -182,7 +182,7 @@ class StatModUseful(QScrollArea):
     def find_path_hdf5_est(self):
         """
         A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py and in
-        stathab_c. By default, path_hdf5 is in the project folder in the folder 'hdf5_files'.
+        stathab_c. By default, path_hdf5 is in the project folder in the folder 'hab'.
         """
 
         path_hdf5 = 'no_path'
@@ -193,7 +193,7 @@ class StatModUseful(QScrollArea):
             root = doc.getroot()
             child = root.find(".//Path_Hdf5")
             if child is None:
-                path_hdf5 = os.path.join(self.path_prj, r'hdf5_files')
+                path_hdf5 = os.path.join(self.path_prj, r'hab')
             else:
                 path_hdf5 = os.path.join(self.path_prj, child.text)
         else:
@@ -209,7 +209,7 @@ class StatModUseful(QScrollArea):
     def find_path_text_est(self):
         """
         A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
-        path_hdf5 is in the project folder in the folder 'hdf5_files'.
+        path_hdf5 is in the project folder in the folder 'hab'.
         """
 
         path_text = 'no_path'

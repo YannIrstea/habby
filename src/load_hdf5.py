@@ -44,7 +44,7 @@ def open_hdf5(hdf5_name, mode="read"):
         mode_hdf5 = 'r+'
 
     blob, ext = os.path.splitext(hdf5_name)
-    if ext != '.h5':
+    if ext != '.hab':
         print('Warning: the file should be of hdf5 type. \n')
     if os.path.isfile(hdf5_name):
         try:
@@ -136,7 +136,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     created hdf5:
 
     *   Name of the file: name_hdf5. If we save all file even if the model is re-run we add a time stamp.
-        For example, test4_HEC-RAS_25_10_2016_12_23_23.h5.
+        For example, test4_HEC-RAS_25_10_2016_12_23_23.hab.
     *   Position of the file: in the folder  figure_habby currently (probably in a project folder in the final software)
     *   Format of the hdf5 file:
 
@@ -170,10 +170,10 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # create hdf5 name if we keep all files (need a time stamp)
     if not erase_idem:
-        h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+        h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
     else:
-        if name_hdf5[-3:] != '.h5':
-            h5name = name_hdf5 + '.h5'
+        if name_hdf5[-3:] != '.hab':
+            h5name = name_hdf5 + '.hab'
         else:
             h5name = name_hdf5
         if os.path.isfile(os.path.join(path_hdf5, h5name)):
@@ -361,7 +361,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     return
 
 
-def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], coord_p=[], units=[], reach=[],
+def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_name, ikle_sub=[], coord_p=[], units=[], reach=[],
                   name_hdf5='', constsub=False,
                   model_type='SUBSTRATE', return_name=False):
     """
@@ -372,8 +372,8 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
     :param path_hdf5: the path where the hdf5 file should be saved
     :param path_prj: the project path
     :param name_prj: the name of the project
-    :param sub_pg: the coarser part of the substrate (array with length of ikle if const_sub is False, a float otherwise)
-    :param sub_dom: the dominant part of the substrate (array with length of ikle if const_sub is False, a float otherwise)
+    :param sub_array: List of data by columns (index in list correspond with header)
+    :param sub_classification_name : type of substrate
     :param ikle_sub: the connectivity table for the substrate (only if constsub = False)
     :param coord_p: the point of the grid of the substrate (only if constsub = False)
     :param name_hdf5: the name of the substrate h5 file (without the timestamp). If not given, a default name is used.
@@ -390,23 +390,23 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
         erase_idem = False
     save_xml = True
 
-    if name_hdf5[-3:] == '.h5':
+    if name_hdf5[-3:] == '.hab':
         name_hdf5 = name_hdf5[:-3]
 
-    if constsub:  # constant value of substrate
-
+    # CONSTANT CASE
+    if constsub:
         # create hdf5 name if we keep all the files (need a time stamp)
         if not erase_idem:
             if name_hdf5:
-                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
             else:
-                h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+                h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
         # create hdf5 name if we erase identical files
         else:
             if name_hdf5:
-                h5name = name_hdf5 + '.h5'
+                h5name = name_hdf5 + '.hab'
             else:
-                h5name = 'Substrate_CONST.h5'
+                h5name = 'Substrate_CONST.hab'
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
                 try:
                     os.remove(os.path.join(path_hdf5, h5name))
@@ -414,11 +414,9 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
                     print("Could not save hdf5 substrate data. It might be used by another program \n")
                     return
                 save_xml = False
-
         # create a new hdf5
         fname = os.path.join(path_hdf5, h5name)
         file = h5py.File(fname, 'w')
-
         # create attributes
         file.attrs['software'] = 'HABBY'
         file.attrs['software_version'] = str(VERSION)
@@ -428,6 +426,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
         file.attrs['h5py_version'] = h5py.version.version
         file.attrs['hdf5_type'] = "substrate"
         file.attrs['source_type'] = "constant_value"
+        file.attrs['sub_classification_name'] = sub_classification_name
 
         # add the constant value of substrate
         # constant_sub_pg / sub_coarser
@@ -443,20 +442,20 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
 
         file.close()
 
-    else:  # grid
-
+    # TXT OR SHP
+    else:
         # create hdf5 name
         if not erase_idem:
             if name_hdf5:
-                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
             else:
-                h5name = 'Substrate_VAR_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.h5'
+                h5name = 'Substrate_VAR_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
         # create hdf5 name if we erase identical files
         else:
             if name_hdf5:
-                h5name = name_hdf5 + '.h5'
+                h5name = name_hdf5 + '.hab'
             else:
-                h5name = 'Substrate_VAR.h5'
+                h5name = 'Substrate_VAR.hab'
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
                 try:
                     os.remove(os.path.join(path_hdf5, h5name))
@@ -478,6 +477,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_pg, sub_dom, ikle_sub=[], c
         file.attrs['h5py_version'] = h5py.version.version
         file.attrs['hdf5_type'] = "substrate"
         file.attrs['source_type'] = "from_file"
+        file.attrs['sub_classification_name'] = sub_classification_name
 
         # save ikle, coordonate and data by timestep and reach
         data_2d = file.create_group('data_2d')
@@ -690,7 +690,7 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
     """
     A function to load the substrate data contained in the hdf5 file. It also manage
     the constant cases. If hdf5_name_sub is an absolute path, the path_prj is not used. If it is a relative path,
-    the path is composed of the path to the 'hdf5' folder (path_prj/hdf5_files) composed with hdf5_name_sub. it manages constant and
+    the path is composed of the path to the 'hdf5' folder (path_prj/hab) composed with hdf5_name_sub. it manages constant and
     vairable (based on a grid) cases. The code should be of cemagref type and the data is given as coarser and dominant.
     :param hdf5_name_sub: path and file name to the hdf5 file (string)
     :param path_prj: the path to the hdf5 file
@@ -1257,7 +1257,7 @@ def get_filename_by_type(type, path):
 
     filenames = []
     for file in os.listdir(dirname):
-        if file.endswith(".h5"):
+        if file.endswith(".hab"):
             file_hydro, _ = open_hdf5_(file, dirname, "read")
             if file_hydro.attrs["hdf5_type"] == type:
                 if type == "substrate":
@@ -1323,7 +1323,7 @@ def get_hdf5_name(model_name, name_prj, path_prj):
                     return
                 name_hdf5 = max(files, key=os.path.getmtime)
                 if len(name_hdf5) > 3:
-                    if name_hdf5[:-3] == '.h5':
+                    if name_hdf5[:-3] == '.hab':
                         name_hdf5 = name_hdf5[:-3]
                 return name_hdf5
             else:
@@ -1518,7 +1518,7 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
     function and the function in calcul_hab.py (save_hab_shape). It might be useful to change both function if
     corrections must be done.
 
-    :param name_hdf5: the name of the hdf5 file (with .h5 extension)
+    :param name_hdf5: the name of the hdf5 file (with .hab extension)
     :param path_hdf5: the path to the hdf5 file
     :param path_shp: The path where the shapefile will be created
     :param erase_id: Should we kept all shapefile or erase old files if they comes from the same model

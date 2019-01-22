@@ -272,11 +272,11 @@ class MainWindows(QMainWindow):
         if self.name_prj is not None:
 
             # open the text file
-            filename = os.path.join(os.path.join(self.path_prj, 'hdf5_files'), 'check_concurrency.txt')
+            filename = os.path.join(os.path.join(self.path_prj, 'hab'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
                 self.central_widget.write_log('Warning: Could not check if the project was open by '
                                               'another instance of HABBY (1) \n')
-                if os.path.isdir(os.path.join(self.path_prj, 'hdf5_files')):
+                if os.path.isdir(os.path.join(self.path_prj, 'hab')):
                     with open(filename, 'wt') as f:
                         f.write('open')
                 return
@@ -308,7 +308,7 @@ class MainWindows(QMainWindow):
         if self.name_prj is not None:
 
             # open the text file
-            filename = os.path.join(os.path.join(self.path_prj, 'hdf5_files'), 'check_concurrency.txt')
+            filename = os.path.join(os.path.join(self.path_prj, 'hab'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
                 self.central_widget.write_log('Warning: Could not check if the project was open by '
                                               'another instance of HABBY (3) \n')
@@ -860,9 +860,9 @@ class MainWindows(QMainWindow):
             path_im = os.path.join(self.path_prj, 'figures')
             pathbio_child = ET.SubElement(path_element, "Path_Figure")
             pathbio_child.text = 'figures'
-            path_hdf5 = os.path.join(self.path_prj, 'hdf5_files')
+            path_hdf5 = os.path.join(self.path_prj, 'hab')
             pathhdf5_child = ET.SubElement(path_element, "Path_Hdf5")
-            pathhdf5_child.text = 'hdf5_files'
+            pathhdf5_child.text = 'hab'
             path_input = os.path.join(self.path_prj, 'input')
             pathinput_child = ET.SubElement(path_element, "Path_Input")
             pathinput_child.text = 'input'
@@ -896,8 +896,8 @@ class MainWindows(QMainWindow):
                 os.makedirs(path_para)
 
             # create the concurency file
-            filenamec = os.path.join(os.path.join(self.path_prj, 'hdf5_files'), 'check_concurrency.txt')
-            if os.path.isdir(os.path.join(self.path_prj, 'hdf5_files')):
+            filenamec = os.path.join(os.path.join(self.path_prj, 'hab'), 'check_concurrency.txt')
+            if os.path.isdir(os.path.join(self.path_prj, 'hab')):
                 with open(filenamec, 'wt') as f:
                     f.write('open')
 
@@ -920,7 +920,7 @@ class MainWindows(QMainWindow):
             else:
                 pathim_text = pathim_child.text
             if pathdf5_child is None:
-                pathhdf5_text = 'hdf5_files'
+                pathhdf5_text = 'hab'
             else:
                 pathhdf5_text = pathdf5_child.text
             if pathtxt_child is None:
@@ -1442,7 +1442,7 @@ class MainWindows(QMainWindow):
             fish_list.append(fish_item_str)
 
         # create an empty hdf5 file using all default prop.
-        fname_no_path = self.name_prj + '_ESTIMHAB' + '.h5'
+        fname_no_path = self.name_prj + '_ESTIMHAB' + '.hab'
         fnamep = os.path.join(self.path_prj, self.name_prj + '.xml')
         if not os.path.isfile(fnamep):
             self.msg2.setIcon(QMessageBox.Warning)

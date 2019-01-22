@@ -118,7 +118,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print("LOAD_TELEMAC: load the telemac data in hdf5")
         print("\tinputfile: input file (telemac file absolute path with extension).")
         print("\tunits (optional): desired units index (0,1,2,3..). If not specify, all units all loaded.")
-        print("\toutputfilename (optional): filename_output.h5. If not specify, automatic name from input name.")
+        print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
         print("LOAD_LAMMI: load lammi data. Input: the name of the folder containing transect.txt and facies.txt and "
               "the name of the folder with the HydroSim result, (output name)")
 
@@ -128,7 +128,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print("\tcode_type: type of substrate (Cemagref or Sandre).")
         print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
               "If not specify, dominant_case as 1 or -1")
-        print("\toutputfilename (optional): filename_output.h5. If not specify, automatic name from input name.")
+        print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
 
         # Input: the name of the hydrological'
         #       ' hdf5, the name of the substrate hdf5, the default data for the substrate (in cemagref code),'
@@ -138,7 +138,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print("\tcode_type: type of substrate (Cemagref or Sandre).")
         print("\tdominant_case (optional): type of substrate (Cemagref or Sandre). "
               "If not specify, dominant_case as 1 or -1")
-        print("\toutputfilename (optional): filename_output.h5. If not specify, automatic name from input name.")
+        print("\toutputfilename (optional): filename_output.hab. If not specify, automatic name from input name.")
         print('LOAD_SUB_TXT: load the substrate from a text file. Input: filename of the texte file,'
               'code_type as Cemagref or Sandre')
         print('LOAD_SUB_CONST: Create and hdf5 with a constant substrate. Code_type Cemagref Input: value of the '
@@ -154,7 +154,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         print('RUN_HABITAT: Estimate the habitat value from an hdf5 merged files. It used the coarser substrate '
               'as the substrate layer if the parameter run_choice is 0. We can also choose to make the calculation'
               'on the dominant substrate (run_choice:1) or the substrate by percentage (run_choice:2). The chosen stage'
-              'mshould be separated by a comma.If the keyword all is given as the chosen stage, all available stage '
+              'should be separated by a comma. If the keyword all is given as the chosen stage, all available stage '
               'will be used. To get the calculation on more than one fish species, separate the names of '
               'the xml biological files by a comma without a space between the command and the filenames. '
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
@@ -256,7 +256,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         while p.is_alive():
             print('Progress %d%%\r' % progress_value.value, end="")
         p.join()
-        print("--- done ! ---")
+        #print("--- done ! ---")
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_1D':
@@ -845,7 +845,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         # optionnal args
-        dominant_case = -1
+        dominant_case = 0
         outputfilename = None
 
         # get args
@@ -886,9 +886,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_hdf5 = path_prj
 
         # Check shape fields data validity
-        sub_validity, ok_dom = substrate.shp_validity(filename,
+        sub_validity, dominant_case = substrate.shp_validity(filename,
                                                       path,
-                                                      code_type)
+                                                      code_type,
+                                                      dominant_case)
 
         # if shape data not valid : stop
         if not sub_validity:
@@ -896,15 +897,15 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         # if shape data valid : load and save
-        if sub_validity and ok_dom:
+        if sub_validity:
             # load substrate shp (and triangulation)
             q = Queue()
             p = Process(target=substrate.load_sub_shp,
                              args=(filename,
                                    path,
                                    path_prj,
-                                   name_prj,
                                    path_hdf5,
+                                   name_prj,
                                    name_hdf5,
                                    code_type,
                                    q,
@@ -913,7 +914,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             while p.is_alive():
                 print('Progress 50%\r', end="")
             p.join()
-            print("--- done ! ---")
+            #print("--- done ! ---")
 
         # --------------------------------------------------------------------
 
@@ -1026,11 +1027,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             hdf5_name_sub_orr = os.path.basename(hdf5_name_sub)
             path_hdf5_in = path_prj
             path_hdf5_in2 = path_prj
-            path_hdf5 = path_prj + "/hdf5_files"
+            path_hdf5 = path_prj + "/hab"
             path_shp = path_prj + "/shapefiles_output"
             # get all file in projet folder
             if os.path.isdir(path_prj):
-                filenames = load_hdf5.get_all_filename(path_prj, '.h5')
+                filenames = load_hdf5.get_all_filename(path_prj, '.hab')
             else:
                 print('the input directory does not exist.')
                 return
@@ -1085,7 +1086,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         while p.is_alive():
             print('Progress %d%%\r' % progress_value.value, end="")
         p.join()
-        print("--- done ! ---")
+        #print("--- done ! ---")
 
 
         # # in two function to be able to control the name
@@ -1209,39 +1210,35 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HABITAT':
-        if not 4 < len(all_arg) < 8:
-            print('RUN_HAB_COARSE needs between four and five inputs. See LIST_COMMAND for more information.')
+        # remove the first arg MERGE_GRID_SUB
+        all_arg = all_arg[1:]
+
+        if len(all_arg) != 4:
+            print('RUN_HABITAT needs between four and five inputs. See LIST_COMMAND for more information.')
             return
 
-        # merge hdf5 (with hydro and subtrate data)
-        if not option_restart:
-            merge_path_name = all_arg[2]
-            merge_name = os.path.basename(merge_path_name)
-            path_merge = os.path.dirname(merge_path_name)
-        else:
-            path_merge = path_prj
-            hdf5_name_merge_orr = os.path.basename(all_arg[2])
-            # get all file in projet folder
-            if os.path.isdir(path_input):
-                filenames = load_hdf5.get_all_filename(path_prj, '.h5')
-            else:
-                print('the input directory does not exist.')
-                return
-            # check if there is similar files
-            merge_name = hdf5_name_merge_orr
-            for f in filenames:
-                if hdf5_name_merge_orr[:-3] in f:
-                    merge_name = f
+        # get args
+        for arg in all_arg:
+            # merge_name
+            if arg[:6] == 'merge=':
+                merge_name = arg[6:]
+                path_merge = path_prj
+            # bio_names
+            if arg[:5] == 'pref=':
+                bio_names = arg[5:]
+            # stage_chosen
+            if arg[:6] == 'stage=':
+                stage_chosen = arg[6:]
+            # run_choice
+            if arg[:11] == 'run_choice=':
+                run_choice = arg[11:]
 
-        # the xml preference files
-        bio_names = all_arg[3]
+
+        # prep data bio_names
         bio_names = bio_names.split(',')
         for i in range(0, len(bio_names)):  # in case there is spaces
             bio_names[i] = bio_names[i].strip()
-
-        # create name_fish (the name of fish and stage to be calculated)
-        # addapt bionames and stage
-        stage_chosen = all_arg[4]
+        # prep data stage_chosen
         name_fish = []
         stage2 = []
         bio_name2 = []
@@ -1270,12 +1267,33 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                             bio_name2.extend([bio_names[l]])
         stages = stage2
         bio_names = bio_name2
-
+        # run_choice
         try:
-            run_choice = int(all_arg[5])
+            run_choice = int(run_choice)
         except ValueError:
             print('Error: the choice of run should be an int between 0, 1,2 (usually 0 is used)')
             return
+
+        # # merge hdf5 (with hydro and subtrate data)
+        # if not option_restart:
+        #     merge_path_name = all_arg[2]
+        #     merge_name = os.path.basename(merge_path_name)
+        #     path_merge = os.path.dirname(merge_path_name)
+        # else:
+        #     path_merge = path_prj
+        #     hdf5_name_merge_orr = os.path.basename(all_arg[2])
+        #     # get all file in projet folder
+        #     if os.path.isdir(path_input):
+        #         filenames = load_hdf5.get_all_filename(path_prj, '.hab')
+        #     else:
+        #         print('the input directory does not exist.')
+        #         return
+        #     # check if there is similar files
+        #     merge_name = hdf5_name_merge_orr
+        #     for f in filenames:
+        #         if hdf5_name_merge_orr[:-3] in f:
+        #             merge_name = f
+
 
         fig_opt = output_fig_GUI.create_default_figoption()
         fig_opt['text_output'] = 'True'
@@ -1284,9 +1302,28 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         fig_opt['erase_id'] = 'True'
 
         # run calculation
-        # we calculate hab on all the stage in xml preference files
-        calcul_hab.calc_hab_and_output(merge_name, path_merge, bio_names, stages, name_fish, name_fish, run_choice,
-                                       path_bio, path_prj, path_prj, path_prj, path_prj, [], True, fig_opt)
+        progress_value = Value("i", 0)
+        p = Process(target=calcul_hab.calc_hab_and_output, args=(merge_name,
+                                                                 path_merge,
+                                                                 bio_names,
+                                                                 stages,
+                                                                 name_fish,
+                                                                 name_fish,
+                                                                 run_choice,
+                                                                 path_bio,
+                                                                 path_prj,
+                                                                 path_prj,
+                                                                 path_prj,
+                                                                 path_prj,
+                                                                 progress_value,
+                                                                 [],
+                                                                 True,
+                                                                 fig_opt,
+                                                                 path_prj))
+        p.start()
+        while p.is_alive():
+            print('Progress %d%%\r' % progress_value.value, end="")
+        p.join()
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_RAND_SUB':
@@ -1366,12 +1403,12 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             model_type = 'Imported_hydro'
             new_name = load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
                                                False, True, True, 'ADD_HYDRO_CMD_LAST_' + hdf52[:-3])
-            filepath1 = os.path.join(path_prj, new_name + '.h5')
+            filepath1 = os.path.join(path_prj, new_name + '.hab')
             if 2 < i < len(all_arg) - 1:
                 try:
-                    os.remove(os.path.join(path_prj, old_name + '.h5'))
+                    os.remove(os.path.join(path_prj, old_name + '.hab'))
                 except FileNotFoundError:
-                    print('Error: File not found ' + os.path.join(path_prj, old_name + '.h5'))
+                    print('Error: File not found ' + os.path.join(path_prj, old_name + '.hab'))
                     pass
         # ---------------------------------------------------------------------------
 
@@ -1402,24 +1439,34 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             model_type = 'Imported_hydro'
             new_name = load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
                                                True, True, True, 'ADD_MERGE_CMD_LAST_' + hdf52[:-3])
-            filepath1 = os.path.join(path_prj, new_name + '.h5')
+            filepath1 = os.path.join(path_prj, new_name + '.hab')
             if 2 < i < len(all_arg) - 1:
                 if old_name != new_name:
                     try:
-                        os.remove(os.path.join(path_prj, old_name + '.h5'))
+                        os.remove(os.path.join(path_prj, old_name + '.hab'))
                     except FileNotFoundError:
-                        print('Error: File not found ' + os.path.join(path_prj, old_name + '.h5'))
+                        print('Error: File not found ' + os.path.join(path_prj, old_name + '.hab'))
                         pass
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'COMPARE_TEST':
-        if len(all_arg) != 4:
+        # remove the first arg MERGE_GRID_SUB
+        all_arg = all_arg[1:]
+
+        if len(all_arg) != 2:
             print('COMPARE_TEST needs two arguments, which are the two paths to the folders to be compared.')
             return
 
+        # get args
+        for arg in all_arg:
+            # ref_path
+            if arg[:9] == 'ref_path=':
+                folder1 = arg[9:]
+            # test_path
+            if arg[:10] == 'test_path=':
+                folder2 = arg[10:]
+
         # get folder name
-        folder1 = all_arg[2]
-        folder2 = all_arg[3]
         if not os.path.isdir(folder1):
             print('Error: the first folder is not found')
             return
@@ -1464,7 +1511,7 @@ def habby_restart(file_comm, name_prj, path_prj, path_bio):
     """
     This function reads a list of command from a text file called file_comm. It then calls all_command one each line
     which does contain the symbol ":" . If the lines contains the symbol ":", it considered as an input.
-    Careful, the intput should be in order!!!! The info on the left and sight of the symbol ":" are just there so
+    Careful, the intput should be in order!!!! The info on the left and right of the symbol ":" are just there so
     an human can read them more easily. Space does not matters here. We try to write the restart file created
     automatically by HABBY in a "nice" layout, but it just to  read it more easily.
 
@@ -1474,6 +1521,9 @@ def habby_restart(file_comm, name_prj, path_prj, path_bio):
     :param path_bio: the path to the project
 
     """
+    # get args
+    if file_comm[:12] == 'restartfile=':
+        file_comm = file_comm[12:]
 
     if not os.path.isfile(file_comm):
         print('Error: File for restart was not found. Check the name and path. \n')
@@ -1571,7 +1621,7 @@ def habby_on_all(all_arg, name_prj, path_prj, path_bio, option_restart=False):
     the matching is done using the function glob, so the shell-type wildcard can be used.
 
     As there are a lot of hdf5 intput, one should be careful to avoid mixing between the different type of hdf5 files.
-    For example, it is better to write 'MERGE\*.h5' as just '\*.h5' if the folder contains hydraulic and merge files.
+    For example, it is better to write 'MERGE\*.hab' as just '\*.hab' if the folder contains hydraulic and merge files.
 
     :param all_arg: the list of argument (sys.argv without the argument ALL so [sys.argv[0], sys.argv[2], sys.argv[n]])
     :param name_prj: the name of the project, created by default by the main()
