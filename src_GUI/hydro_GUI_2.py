@@ -369,7 +369,7 @@ class SubHydroW(QWidget):
         self.mystdout = None
         self.name_hdf5 = ''
         self.manning_textname = ''
-        self.hname = QLineEdit(' ')
+        self.polygon_hname = QLineEdit(' ')
         self.p = Process(target=None)  # second process
         self.q = Queue()
         self.fig_opt = []
@@ -382,7 +382,7 @@ class SubHydroW(QWidget):
 
         # get the last file created
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
-        self.last_hydraulic_file_name_label = QLabel(self.tr('No file'))
+        self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
 
     def was_model_loaded_before(self, i=0, many_file=False):
         """
@@ -474,7 +474,7 @@ class SubHydroW(QWidget):
         else:
             if len(self.name_hdf5) > 50:  # careful this number should be changed if the form of the hdf5 name change
                 self.name_hdf5 = self.name_hdf5[:-25]
-            self.hname.setText(self.name_hdf5)
+            self.polygon_hname.setText(self.name_hdf5)
 
     def show_dialog(self, i=0):
         """
@@ -553,7 +553,7 @@ class SubHydroW(QWidget):
                 else:
                     self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
 
-            self.hname.setText(self.name_hdf5)
+            self.polygon_hname.setText(self.name_hdf5)
 
     def dis_enable_nb_profile(self):
         """
@@ -2006,7 +2006,7 @@ class River2D(SubHydroW):
             else:
                 self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
 
-            # self.hname.setAlignment(Qt.AlignRight)
+            # self.polygon_hname.setAlignment(Qt.AlignRight)
             self.hname.setText(self.name_hdf5)
         else:
             self.send_log.emit('Warning: No .cdg file found in the selected directory \n')
@@ -3591,68 +3591,109 @@ class SubstrateW(SubHydroW):
         Used in the initialization by __init__().
         """
 
-        # choose between loading substrate by file or constant
-        l1 = QLabel(self.tr('<b> Type of Substrate Data </b>'))
-        self.rb1 = QRadioButton(self.tr('From Files (.txt, .shp)'))
-        self.rb2 = QRadioButton(self.tr('Constant Value'))
-        self.rb1.setChecked(True)
-        self.rb1.clicked.connect(lambda: self.btnstate(self.rb1, self.rb2))
-        self.rb1.clicked.connect(self.add_file_widgets)
-        self.rb2.clicked.connect(lambda: self.btnstate(self.rb2, self.rb1))
+        # choose between loading substrate by polygon, point or constant
+        l1 = QLabel(self.tr('Substrate mapping method'))
+        sub_spacer = QSpacerItem(1, 10)
+        self.rb0 = QRadioButton(self.tr('From polygons (.shp)'))
+        self.rb1 = QRadioButton(self.tr('From points (.txt, .shp)'))
+        self.rb2 = QRadioButton(self.tr('From constant values (.txt)'))
+        self.rb0.setChecked(True)
+        self.rb0.clicked.connect(lambda: self.btnstate(self.rb0, self.rb1, self.rb2))
+        self.rb0.clicked.connect(self.add_polygon_widgets)
+        self.rb1.clicked.connect(lambda: self.btnstate(self.rb1, self.rb0, self.rb2))
+        self.rb1.clicked.connect(self.add_point_widgets)
+        self.rb2.clicked.connect(lambda: self.btnstate(self.rb2, self.rb1, self.rb0))
         self.rb2.clicked.connect(self.add_const_widgets)
 
-        # FROMFILE to load substrate data
-        l00 = QLabel(self.tr('<b>Substrate from File </b>'))
-        l2 = QLabel(self.tr('File'))
-        lh = QLabel(self.tr('hdf5 file name'))
-        l3 = QLabel(self.tr('Code Substrate'))
-        self.e2 = QComboBox()
-        self.e2.addItems(self.all_code_type)
-        self.hname = QLineEdit('')  # hdf5 name
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
-            self.gethdf5_name_gui()
-
-        # FROMFILE choose file button
-        self.h2d_b = QPushButton(self.tr('Choose file (.txt, .shp)'), self)
-        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(
-            lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
-        self.h2d_b.clicked.connect(
-            lambda: self.h2d_t2.setText(self.namefile[0]))
-
-        # FROMFILE if there was substrate info before, update the label and attibutes
+        # POLYGON (first line)
+        filetitle_polygon_label = QLabel(self.tr('File'))
+        self.file_polygon_label = QLabel(self.namefile[0], self)
+        self.file_polygon_label.setToolTip(self.pathfile[0])
+        self.sub_choosefile_polygon = QPushButton(self.tr('Choose file (.shp)'), self)
+        self.sub_choosefile_polygon.clicked.connect(lambda: self.show_dialog(0))
+        self.sub_choosefile_polygon.clicked.connect(
+            lambda: self.file_polygon_label.setToolTip(self.pathfile[0]))
+        self.sub_choosefile_polygon.clicked.connect(
+            lambda: self.file_polygon_label.setText(self.namefile[0]))
         self.was_model_loaded_before()
         self.get_att_name()
-        self.h2d_t2 = QLabel(self.namefile[0], self)
-        self.h2d_t2.setToolTip(self.pathfile[0])
-
-        # FROMFILE the load button from file
-        self.load_substrate = QPushButton(self.tr('Load data and create hab file'), self)
-        self.load_substrate.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_substrate.clicked.connect(self.load_sub_gui)
-
-        # FROMFILE get the last file created
-        last_sub_file_label = QLabel(self.tr('Last file created'))
-        self.last_sub_file_name_label = QLabel(self.tr('No file'))
-
-        # CSTCASE to load constant substrate
-        self.l4 = QLabel(self.tr('<b> Load constant substrate </b>'))
-        l12 = QLabel(self.tr('Constant substrate value'))
-        self.e1 = QLineEdit('1')  # constant substrate value
-        l13 = QLabel(self.tr('(Code type: Cemagref)'))
-        lh2 = QLabel(self.tr('hdf5 file name'))
+        # POLYGON (second line)
+        classification_codetitle_polygon_label = QLabel(self.tr('Classification code'))
+        self.sub_classification_code_polygon_label = QLabel(self.tr('unknown'))
+        # POLYGON (third line)
+        epsgtitle_polygon_label = QLabel(self.tr('EPSG code'))
+        self.epsg_polygon_label = QLabel(self.tr('unknown'))
+        # POLYGON (fourth line)
+        hab_filenametitle_polygon_label = QLabel(self.tr('Hab file name'))
+        self.polygon_hname = QLineEdit('')  # hdf5 name
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
+        self.load_polygon_substrate = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_polygon_substrate.setStyleSheet("background-color: #47B5E6; color: black")
+        self.load_polygon_substrate.clicked.connect(self.load_sub_gui)
+        # POLYGON (fifth line)
+        last_sub_file_polygon_label = QLabel(self.tr('Last file created'))
+        self.last_sub_file_name_polygon_label = QLabel(self.tr('no file'))
 
-        # CSTCASE the load button for constant substrate
-        self.load_const = QPushButton(self.tr('Load const. data and create hab file'), self)
-        self.load_const.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_const.clicked.connect(lambda: self.load_sub_gui(True))
+        # POINT (first line)
+        filetitle_point_label = QLabel(self.tr('File'))
+        self.file_point_label = QLabel(self.namefile[0], self)
+        self.file_point_label.setToolTip(self.pathfile[0])
+        self.sub_choosefile_point = QPushButton(self.tr('Choose file (.shp, .txt)'), self)
+        self.sub_choosefile_point.clicked.connect(lambda: self.show_dialog(0))
+        self.sub_choosefile_point.clicked.connect(
+            lambda: self.file_point_label.setToolTip(self.pathfile[0]))
+        self.sub_choosefile_point.clicked.connect(
+            lambda: self.file_point_label.setText(self.namefile[0]))
+        self.was_model_loaded_before()
+        self.get_att_name()
+        # POINT (second line)
+        classification_codetitle_point_label = QLabel(self.tr('Classification code'))
+        self.sub_classification_code_point_label = QLabel(self.tr('unknown'))
+        # POINT (third line)
+        epsgtitle_point_label = QLabel(self.tr('EPSG code'))
+        self.epsg_point_label = QLabel(self.tr('unknown'))
+        # POINT (fourth line)
+        hab_filenametitle_point_label = QLabel(self.tr('Hab file name'))
+        self.point_hname = QLineEdit('')  # hdf5 name
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
+        self.load_point_substrate = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_point_substrate.setStyleSheet("background-color: #47B5E6; color: black")
+        self.load_point_substrate.clicked.connect(self.load_sub_gui)
+        # POINT (fifth line)
+        last_sub_file_point_label = QLabel(self.tr('Last file created'))
+        self.last_sub_file_name_point_label = QLabel(self.tr('no file'))
 
-        # CSTCASE get the last file created for constant substrate
-        last_subcst_file_label = QLabel(self.tr('Last file created'))
-        self.last_subcst_file_name_label = QLabel(self.tr('No file'))
-        self.name_last_hdf5(type="hdf5_substrate")  # find th
+        # CONSTANT
+        filetitle_constant_label = QLabel(self.tr('File'))
+        self.file_constant_label = QLabel(self.namefile[0], self)
+        self.file_constant_label.setToolTip(self.pathfile[0])
+        self.sub_choosefile_constant = QPushButton(self.tr('Choose file (.txt)'), self)
+        self.sub_choosefile_constant.clicked.connect(lambda: self.show_dialog(0))
+        self.sub_choosefile_constant.clicked.connect(
+            lambda: self.file_constant_label.setToolTip(self.pathfile[0]))
+        self.sub_choosefile_constant.clicked.connect(
+            lambda: self.file_constant_label.setText(self.namefile[0]))
+        self.was_model_loaded_before()
+        self.get_att_name()
+        # CONSTANT (second line)
+        classification_codetitle_constant_label = QLabel(self.tr('Classification code'))
+        self.sub_classification_code_constant_label = QLabel(self.tr('unknown'))
+        # CONSTANT (third line)
+        valuestitle_constant_label = QLabel(self.tr('Constant values'))
+        self.valuesdata_constant_label = QLabel(self.tr('unknown'))
+        # CONSTANT (fourth line)
+        hab_filenametitle_constant_label = QLabel(self.tr('Hab file name'))
+        self.constant_hname = QLineEdit('')  # hdf5 name
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.gethdf5_name_gui()
+        self.load_constant_substrate = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_constant_substrate.setStyleSheet("background-color: #47B5E6; color: black")
+        self.load_constant_substrate.clicked.connect(self.load_sub_gui)
+        # CONSTANT (fifth line)
+        last_sub_file_constant_label = QLabel(self.tr('Last file created'))
+        self.last_sub_file_name_constant_label = QLabel(self.tr('no file'))
 
         # MERGE label and button for the part to merge the grid
         l9 = QLabel(self.tr("Hydraulic data (hdf5)"))
@@ -3675,7 +3716,7 @@ class SubstrateW(SubHydroW):
         self.hdf5_merge_lineedit = QLineEdit('')  # default hdf5 merge name
         # get the last file created
         lm1 = QLabel(self.tr('Last file created'))
-        self.last_merge_file_name_label = QLabel(self.tr('No file'))
+        self.last_merge_file_name_label = QLabel(self.tr('no file'))
         self.name_last_hdf5(type="hdf5_mergedata")  # find the name of the last merge file and add it to self.lm2
 
         # insist on white background color (for linux, mac)
@@ -3684,66 +3725,106 @@ class SubstrateW(SubHydroW):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # layout for substrate from file
-        self.layout_file = QGridLayout()
-        self.layout_file.addWidget(l00, 0, 0)
-        self.layout_file.addWidget(l2, 1, 0)
-        self.layout_file.addWidget(self.h2d_t2, 1, 1)
-        self.layout_file.addWidget(self.h2d_b, 1, 2)
-        self.layout_file.addWidget(l3, 2, 0)
-        self.layout_file.addWidget(self.e2, 2, 1)
-        self.layout_file.addWidget(lh, 4, 0)
-        self.layout_file.addWidget(self.hname, 4, 1)
-        self.layout_file.addWidget(self.load_substrate, 4, 2)
-        self.layout_file.addWidget(last_sub_file_label, 5, 0)
-        self.layout_file.addWidget(self.last_sub_file_name_label, 5, 1)
-        self.file_part = QWidget()
-        self.file_part.setLayout(self.layout_file)
+        # POLYGON GROUP
+        self.layout_polygon = QGridLayout()  # 4 rows et 3 columns
+        self.layout_polygon.addWidget(filetitle_polygon_label, 0, 0)  # first line
+        self.layout_polygon.addWidget(self.file_polygon_label, 0, 1)  # first line
+        self.layout_polygon.addWidget(self.sub_choosefile_polygon, 0, 2)  # first line
+        self.layout_polygon.setRowMinimumHeight(0, 30)  # height 30 pix
+        self.layout_polygon.addWidget(classification_codetitle_polygon_label, 1, 0)  # second line
+        self.layout_polygon.addWidget(self.sub_classification_code_polygon_label, 1, 1)  # second line
+        self.layout_polygon.setRowMinimumHeight(1, 30)  # height 30 pix
+        self.layout_polygon.addWidget(epsgtitle_polygon_label, 2, 0)  # third line
+        self.layout_polygon.addWidget(self.epsg_polygon_label, 2, 1)  # third line
+        self.layout_polygon.setRowMinimumHeight(2, 30)  # height 30 pix
+        self.layout_polygon.addWidget(hab_filenametitle_polygon_label, 3, 0)  # fourth line
+        self.layout_polygon.addWidget(self.polygon_hname, 3, 1)  # fourth line
+        self.layout_polygon.addWidget(self.load_polygon_substrate, 3, 2)  # fourth line
+        self.layout_polygon.setRowMinimumHeight(3, 30)  # height 30 pix
+        self.layout_polygon.addWidget(last_sub_file_polygon_label, 4, 0)  # fifth line
+        self.layout_polygon.addWidget(self.last_sub_file_name_polygon_label, 4, 1)  # fifth line
+        self.layout_polygon.setRowMinimumHeight(4, 30)  # height 30 pix
+        self.polygon_group = QGroupBox(self.tr('Polygons'))
+        self.polygon_group.setLayout(self.layout_polygon)
 
-        # layout const
-        self.layout_const = QGridLayout()
-        self.layout_const.addWidget(self.l4, 0, 0)
-        self.layout_const.addWidget(l12, 1, 0)
-        self.layout_const.addWidget(self.e1, 1, 1)
-        self.layout_const.addWidget(l13, 1, 2)
-        self.layout_const.addWidget(lh2, 2, 0)
-        self.layout_const.addWidget(self.hname2, 2, 1)
-        self.layout_const.addWidget(self.load_const, 2, 2)
-        self.layout_const.addWidget(last_subcst_file_label, 3, 0)
-        self.layout_const.addWidget(self.last_subcst_file_name_label, 3, 1)
-        self.const_part = QWidget()
-        self.const_part.setLayout(self.layout_const)
+        # POINT GROUP
+        self.layout_point = QGridLayout()  # 4 rows et 3 columns
+        self.layout_point.addWidget(filetitle_point_label, 0, 0)  # first line
+        self.layout_point.addWidget(self.file_point_label, 0, 1)  # first line
+        self.layout_point.addWidget(self.sub_choosefile_point, 0, 2)  # first line
+        self.layout_point.setRowMinimumHeight(0, 30)  # height 30 pix
+        self.layout_point.addWidget(classification_codetitle_point_label, 1, 0)  # second line
+        self.layout_point.addWidget(self.sub_classification_code_point_label, 1, 1)  # second line
+        self.layout_point.setRowMinimumHeight(1, 30)  # height 30 pix
+        self.layout_point.addWidget(epsgtitle_point_label, 2, 0)  # third line
+        self.layout_point.addWidget(self.epsg_point_label, 2, 1)  # third line
+        self.layout_point.setRowMinimumHeight(2, 30)  # height 30 pix
+        self.layout_point.addWidget(hab_filenametitle_point_label, 3, 0)  # fourth line
+        self.layout_point.addWidget(self.point_hname, 3, 1)  # fourth line
+        self.layout_point.addWidget(self.load_point_substrate, 3, 2)  # fourth line
+        self.layout_point.setRowMinimumHeight(3, 30)  # height 30 pix
+        self.layout_point.addWidget(last_sub_file_point_label, 4, 0)  # fifth line
+        self.layout_point.addWidget(self.last_sub_file_name_point_label, 4, 1)  # fifth line
+        self.layout_point.setRowMinimumHeight(4, 30)  # height 30 pix
+        self.point_group = QGroupBox(self.tr('Points'))
+        self.point_group.setLayout(self.layout_point)
 
-        # layout susbtrate
-        self.layout_sub = QGridLayout()
+        # CONSTANT GROUP
+        self.layout_constant = QGridLayout()  # 4 rows et 3 columns
+        self.layout_constant.addWidget(filetitle_constant_label, 0, 0)  # first line
+        self.layout_constant.addWidget(self.file_constant_label, 0, 1)  # first line
+        self.layout_constant.addWidget(self.sub_choosefile_constant, 0, 2)  # first line
+        self.layout_constant.setRowMinimumHeight(0, 30)  # height 30 pix
+        self.layout_constant.addWidget(classification_codetitle_constant_label, 1, 0)  # second line
+        self.layout_constant.addWidget(self.sub_classification_code_constant_label, 1, 1)  # second line
+        self.layout_constant.setRowMinimumHeight(1, 30)  # height 30 pix
+        self.layout_constant.addWidget(valuestitle_constant_label, 2, 0)  # third line
+        self.layout_constant.addWidget(self.valuesdata_constant_label, 2, 1)  # third line
+        self.layout_constant.setRowMinimumHeight(2, 30)  # height 30 pix
+        self.layout_constant.addWidget(hab_filenametitle_constant_label, 3, 0)  # fourth line
+        self.layout_constant.addWidget(self.constant_hname, 3, 1)  # fourth line
+        self.layout_constant.addWidget(self.load_constant_substrate, 3, 2)  # fourth line
+        self.layout_constant.setRowMinimumHeight(3, 30)  # height 30 pix
+        self.layout_constant.addWidget(last_sub_file_constant_label, 4, 0)  # fifth line
+        self.layout_constant.addWidget(self.last_sub_file_name_constant_label, 4, 1)  # fifth line
+        self.layout_constant.setRowMinimumHeight(4, 30)  # height 30 pix
+        self.constant_group = QGroupBox(self.tr('Constant values'))
+        self.constant_group.setLayout(self.layout_constant)
+
+        # SUBSTRATE GROUP
+        self.layout_sub = QGridLayout()  # 4 rows et 4 columns
         self.layout_sub.addWidget(l1, 0, 0)
-        self.layout_sub.addWidget(self.rb1, 1, 0)
-        self.layout_sub.addWidget(self.rb2, 1, 1)
-        self.layout_sub.addWidget(self.file_part, 2, 0, 3, 4)
-        self.layout_sub.addWidget(self.const_part, 2, 0, 3, 4)
-        self.const_part.hide()  # by default we show the load from file
-        # group substrate
+        self.layout_sub.addWidget(self.rb0, 0, 1)
+        self.layout_sub.addWidget(self.rb1, 0, 2)
+        self.layout_sub.addWidget(self.rb2, 0, 3)
+        self.layout_sub.addItem(sub_spacer, 1, 0)
+        self.layout_sub.addWidget(self.polygon_group, 2, 0, 2, 4) #, 4, 4
+        self.layout_sub.addWidget(self.point_group, 3, 0, 3, 4)
+        self.layout_sub.addWidget(self.constant_group, 4, 0, 4, 4)
+        #self.layout_sub.addItem(sub_spacer, 5, 0)
+        #self.layout_sub.addWidget(last_sub_file_label, 6, 0)
+        #self.layout_sub.addWidget(self.last_sub_file_name_label, 6, 1)
+        self.point_group.hide()
+        self.constant_group.hide()
         susbtrate_group = QGroupBox(self.tr('Substrate'))
         susbtrate_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         susbtrate_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
         susbtrate_group.setLayout(self.layout_sub)
 
-        # layout merge
-        self.layout_merge = QGridLayout()
-        self.layout_merge.addWidget(l9, 11, 0)
-        self.layout_merge.addWidget(self.drop_hyd, 11, 1)
-        self.layout_merge.addWidget(l10, 12, 0)
-        self.layout_merge.addWidget(self.drop_sub, 12, 1)
-        self.layout_merge.addWidget(self.load_b2, 14, 2)
-        self.layout_merge.addWidget(l11, 13, 0)
-        self.layout_merge.addWidget(self.e3, 13, 1)
-        self.layout_merge.addWidget(l112, 13, 2)
-        self.layout_merge.addWidget(hdf5_merge_label, 14, 0)
-        self.layout_merge.addWidget(self.hdf5_merge_lineedit, 14, 1)
-        self.layout_merge.addWidget(lm1, 15, 0)
-        self.layout_merge.addWidget(self.last_merge_file_name_label, 15, 1)
-        self.layout_merge.addItem(self.spacer2, 11, 1)
-        # group merge
+        # MERGE GROUP
+        self.layout_merge = QGridLayout()  # 5 rows et 3 columns
+        self.layout_merge.addWidget(l9, 0, 0)
+        self.layout_merge.addWidget(self.drop_hyd, 0, 1)
+        self.layout_merge.addWidget(l10, 1, 0)
+        self.layout_merge.addWidget(self.drop_sub, 1, 1)
+        self.layout_merge.addWidget(l11, 2, 0)
+        self.layout_merge.addWidget(self.e3, 2, 1)
+        self.layout_merge.addWidget(l112, 2, 2)
+        self.layout_merge.addWidget(hdf5_merge_label, 3, 0)
+        self.layout_merge.addWidget(self.hdf5_merge_lineedit, 3, 1)
+        self.layout_merge.addWidget(self.load_b2, 3, 2)
+        self.layout_merge.addWidget(lm1, 4, 0)
+        self.layout_merge.addWidget(self.last_merge_file_name_label, 4, 1)
         merge_group = QGroupBox(self.tr('Merging of hydraulic and substrate grids'))
         merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
@@ -3758,8 +3839,6 @@ class SubstrateW(SubHydroW):
         self.layout_sub_tab.addWidget(merge_group)
         verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.layout_sub_tab.addItem(verticalSpacer)
-
-        # self.setLayout(self.layout_sub)
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidgetResizable(True)
         self.scrollarea.setFrameShape(QFrame.Shape.NoFrame)
@@ -3769,28 +3848,40 @@ class SubstrateW(SubHydroW):
         self.layoutscroll.addWidget(self.scrollarea)
         self.setLayout(self.layoutscroll)
 
-    def btnstate(self, rb_sel, rb_del):
+    def btnstate(self, rb_sel, rb_del, rb_del2):
         """
         This function is used to select and deslect radiobutton
         :param rb_sel: the radio button which was just selected
         :param rb_del: the radio button which should be deselected
+        :param rb_del2: the radio button which should be deselected
         """
         rb_sel.setChecked(True)
         rb_del.setChecked(False)
+        rb_del2.setChecked(False)
+
+    def add_polygon_widgets(self):
+        """
+         This functions shows the widgets
+        """
+        self.polygon_group.show()
+        self.point_group.hide()
+        self.constant_group.hide()
+
+    def add_point_widgets(self):
+        """
+         This functions shows the widgets
+        """
+        self.polygon_group.hide()
+        self.point_group.show()
+        self.constant_group.hide()
 
     def add_const_widgets(self):
         """
         This function shows the widgets realted to the loading of constatns subtrate
         """
-        self.file_part.hide()
-        self.const_part.show()
-
-    def add_file_widgets(self):
-        """
-         This functions shows the widgets
-        """
-        self.const_part.hide()
-        self.file_part.show()
+        self.polygon_group.hide()
+        self.point_group.hide()
+        self.constant_group.show()
 
     def load_sub_gui(self, const_sub=False):
         """
@@ -3813,7 +3904,7 @@ class SubstrateW(SubHydroW):
                 self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
                 return
         if not const_sub:
-            if not self.hname.text():
+            if not self.polygon_hname.text():
                 self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
                 return
 
@@ -3826,7 +3917,7 @@ class SubstrateW(SubHydroW):
         self.nativeParentWidget().progress_bar.setVisible(True)
 
         # block button substrate
-        self.load_substrate.setDisabled(True)  # substrate
+        self.load_polygon_substrate.setDisabled(True)  # substrate
 
         # constante case
         if const_sub:
@@ -3861,7 +3952,7 @@ class SubstrateW(SubHydroW):
             self.send_log.emit("restart    val_c: " + str(data_sub))
             #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.hab'))
             # unblock button substrate
-            self.load_substrate.setDisabled(False)  # substrate
+            self.load_polygon_substrate.setDisabled(False)  # substrate
 
         # sub from txt or shp
         else:
@@ -3870,7 +3961,7 @@ class SubstrateW(SubHydroW):
             namebase, ext = os.path.splitext(self.namefile[0])
             path_im = self.find_path_im()
             code_type = self.e2.currentText()
-            self.name_hdf5 = self.hname.text()
+            self.name_hdf5 = self.polygon_hname.text()
             self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
 
             # if the substrate is in the shp form
@@ -3886,7 +3977,7 @@ class SubstrateW(SubHydroW):
                     self.send_log.emit(
                         'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
                         ' a .dbf file.')
-                    self.load_substrate.setDisabled(False)
+                    self.load_polygon_substrate.setDisabled(False)
                     return
 
                 # Check shape fields data validity
@@ -3900,7 +3991,7 @@ class SubstrateW(SubHydroW):
                 #     sys.stdout = sys.__stdout__  # reset to console
                 #     self.send_err_log()
                 #     self.send_log.emit('Error: Substrate data not loaded')
-                #     self.load_substrate.setDisabled(False)
+                #     self.load_polygon_substrate.setDisabled(False)
                 #     return
                 #
                 # # if shape data valid : load and save
@@ -3990,7 +4081,7 @@ class SubstrateW(SubHydroW):
 
                 if not sub_filename_voronoi_shp:
                     # block button substrate
-                    self.load_substrate.setDisabled(False)  # substrate
+                    self.load_polygon_substrate.setDisabled(False)  # substrate
 
                 # all case
                 sys.stdout = sys.__stdout__  # reset to console
@@ -4000,7 +4091,7 @@ class SubstrateW(SubHydroW):
             else:
                 self.send_log.emit("Error: Unknown extension for substrate data. The data was not loaded. Only file "
                                    "with .txt, .asc ,or .shp are accepted.")
-                self.load_substrate.setDisabled(False)
+                self.load_polygon_substrate.setDisabled(False)
                 return
 
     def recreate_image_sub(self, save_fig=False):
