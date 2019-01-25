@@ -149,7 +149,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
 
         # self.setLayout(self.layout4)
         self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
     def open_xml(self):

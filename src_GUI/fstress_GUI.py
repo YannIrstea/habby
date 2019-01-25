@@ -174,7 +174,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # add layout
         # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
     def was_loaded_before(self):

@@ -273,7 +273,7 @@ class outputW(QScrollArea):
         [self.layout.setRowMinimumHeight(i, 30) for i in range(self.layout.rowCount())]
         self.layout.setAlignment(Qt.AlignTop)
         self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
     def check_uncheck(self, main_checkbox, other_checkbox):
