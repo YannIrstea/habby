@@ -19,17 +19,18 @@ import numpy as np
 import sys
 import shutil
 from io import StringIO
-from PyQt5.QtCore import QTranslator, pyqtSignal, QTimer, Qt
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
-    QLabel, QGridLayout, QAction, qApp, \
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, QListWidget, \
-    QListWidgetItem, QComboBox, QMessageBox, QGroupBox, \
-    QStackedWidget, QRadioButton, QCheckBox, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
+from PyQt5.QtCore import pyqtSignal, QTimer, Qt
+from PyQt5.QtWidgets import QWidget, QPushButton, \
+    QLabel, QGridLayout, \
+    QLineEdit, QFileDialog, QSpacerItem, QListWidget, \
+    QComboBox, QMessageBox, QGroupBox, \
+    QStackedWidget, QRadioButton, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
 from PyQt5.QtGui import QIcon
 import h5py
 from multiprocessing import Process, Queue, Value
-from time import time
+import pyproj
+from sridentify import Sridentify
 from src import Hec_ras06
 from src import hec_ras2D
 from src import selafin_habby1
@@ -488,7 +489,7 @@ class SubHydroW(QWidget):
 
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
-            filter2 = "Model File ("
+            filter2 = "File ("
             for e in self.extension[i]:
                 filter2 += '*' + e + ' '
             filter2 = filter2[:-1]
@@ -496,13 +497,17 @@ class SubHydroW(QWidget):
         else:
             filter2 = ''
         # find the filename based on user choice
-        if len(self.pathfile) == 0:  # case where no file was open before
-            filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.path_prj, filter2)[0]
-        elif i >= len(self.pathfile):
-            filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[0], filter2)[0]
-        else:
-            # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
-            filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[i], filter2)[0]
+        filename_path = QFileDialog.getOpenFileName(self,
+                                                    self.tr("Select file"),
+                                                    self.nativeParentWidget().central_widget.path_last_file_loaded_c,
+                                                    filter2)[0]
+        # if len(self.pathfile) == 0:  # case where no file was open before
+        #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.path_prj, filter2)[0]
+        # elif i >= len(self.pathfile):
+        #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[0], filter2)[0]
+        # else:
+        #     # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
+        #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[i], filter2)[0]
         # exeption: you should be able to clik on "cancel"
         if not filename_path:
             return
@@ -549,11 +554,13 @@ class SubHydroW(QWidget):
                     self.name_hdf5 = 'Sub_' + filename2 + '_' + ext
             else:
                 if len(filename) > 9:
-                    self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
+                    self.name_hdf5 = filename2 + ".hyd"
                 else:
-                    self.name_hdf5 = 'Hydro_' + self.model_type + '_' + filename2
+                    self.name_hdf5 = filename2 + ".hyd"
 
-            self.polygon_hname.setText(self.name_hdf5)
+            self.hname.setText(self.name_hdf5)
+            self.nativeParentWidget().central_widget.path_last_file_loaded_c = os.path.dirname(filename_path)
+            print("hydrau : ", self.nativeParentWidget().central_widget.path_last_file_loaded_c)
 
     def dis_enable_nb_profile(self):
         """
@@ -651,7 +658,7 @@ class SubHydroW(QWidget):
     def find_path_hdf5(self):
         """
         A function to find the path where to save the hdf5 file. Careful a simialar one is in estimhab_GUI.py. By default,
-        path_hdf5 is in the project folder in the folder 'hab'.
+        path_hdf5 is in the project folder in the folder 'hdf5'.
         """
 
         path_hdf5 = 'no_path'
@@ -2509,8 +2516,7 @@ class TELEMAC(SubHydroW):
         l1 = QLabel(self.tr('Geometry and output data'))
         self.h2d_b = QPushButton(self.tr('Choose file (.slf, .srf, .res)'), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(
-            lambda: self.h2d_t2.setText(self.namefile[0]))
+        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
         self.h2d_b.clicked.connect(lambda: self.get_time_step())
 
         l2 = QLabel(self.tr('Number of time steps'))
@@ -2529,7 +2535,7 @@ class TELEMAC(SubHydroW):
         l2D2 = QLabel(self.tr('2D MODEL - No new grid needed.'))
 
         # hdf5 name
-        lh = QLabel(self.tr('hdf5 file name'))
+        lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
         self.hname.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
@@ -2538,7 +2544,7 @@ class TELEMAC(SubHydroW):
                 self.get_time_step()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Load data and create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_telemac_gui)
         self.spacer = QSpacerItem(1, 180)
@@ -3365,7 +3371,7 @@ class HabbyHdf5(SubHydroW):
 
         # select a file
         path_hdf5 = self.find_path_hdf5()
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
+        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hyd', '*.hyd')[0]
         if fname_h5 != '':  # cancel
             blob, ext = os.path.splitext(fname_h5)
         else:
@@ -3508,8 +3514,20 @@ class HabbyHdf5(SubHydroW):
         self.ismerge = merge
         path_hdf5 = self.find_path_hdf5()
 
-        # select the first file
-        fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
+        if merge:
+            # select the first file
+            fname_h5 = QFileDialog.getOpenFileName(self,
+                                                   'QFileDialog.getOpenFileName()',
+                                                   path_hdf5,
+                                                   '*.hab',
+                                                   '*.hab')[0]
+        if not merge:
+            # select the first file
+            fname_h5 = QFileDialog.getOpenFileName(self,
+                                                   'QFileDialog.getOpenFileName()',
+                                                   path_hdf5,
+                                                   '*.hyd',
+                                                   '*.hyd')[0]
         if fname_h5 != '':  # cancel
             hdf51 = os.path.basename(fname_h5)
             path1 = os.path.dirname(fname_h5)
@@ -3525,7 +3543,19 @@ class HabbyHdf5(SubHydroW):
 
         if self.msg2.exec() == QMessageBox.Ok:
             # select the second file
-            fname_h5 = QFileDialog.getOpenFileName(self, 'QFileDialog.getOpenFileName()', path_hdf5, '*.hab', '*.hab')[0]
+            if merge:
+                fname_h5 = \
+                QFileDialog.getOpenFileName(self,
+                                            'QFileDialog.getOpenFileName()',
+                                            path_hdf5,
+                                            '*.hab',
+                                            '*.hab')[0]
+            if not merge:
+                fname_h5 = QFileDialog.getOpenFileName(self,
+                                                       'QFileDialog.getOpenFileName()',
+                                                       path_hdf5,
+                                                       '*.hyd',
+                                                       '*.hyd')[0]
             if fname_h5 != '':  # cancel
                 hdf52 = os.path.basename(fname_h5)
                 path2 = os.path.dirname(fname_h5)
@@ -3568,7 +3598,6 @@ class SubstrateW(SubHydroW):
         # update attribute
         self.attributexml = ['substrate_data', 'att_name']
         self.model_type = 'SUBSTRATE'
-        self.extension = [['.txt', '.shp', '.asc']]
         self.name_att = ''
         self.coord_p = []
         self.ikle_sub = []
@@ -3581,7 +3610,8 @@ class SubstrateW(SubHydroW):
         # order and name matters here!
         # change with caution!
         # roughness height if ok with George
-        self.all_code_type = ['Cemagref', 'Sandre']
+        self.substrate_classification_codes = ['Cemagref', 'Sandre']
+        self.pathfile_polygon = ''
         self.lasf_hdf5 = ''
 
         self.init_iu()
@@ -3608,13 +3638,9 @@ class SubstrateW(SubHydroW):
         # POLYGON (first line)
         filetitle_polygon_label = QLabel(self.tr('File'))
         self.file_polygon_label = QLabel(self.namefile[0], self)
-        self.file_polygon_label.setToolTip(self.pathfile[0])
+        self.file_polygon_label.setToolTip(self.pathfile_polygon)
         self.sub_choosefile_polygon = QPushButton(self.tr('Choose file (.shp)'), self)
-        self.sub_choosefile_polygon.clicked.connect(lambda: self.show_dialog(0))
-        self.sub_choosefile_polygon.clicked.connect(
-            lambda: self.file_polygon_label.setToolTip(self.pathfile[0]))
-        self.sub_choosefile_polygon.clicked.connect(
-            lambda: self.file_polygon_label.setText(self.namefile[0]))
+        self.sub_choosefile_polygon.clicked.connect(self.show_dialog_polygon)
         self.was_model_loaded_before()
         self.get_att_name()
         # POLYGON (second line)
@@ -3624,13 +3650,13 @@ class SubstrateW(SubHydroW):
         epsgtitle_polygon_label = QLabel(self.tr('EPSG code'))
         self.epsg_polygon_label = QLabel(self.tr('unknown'))
         # POLYGON (fourth line)
-        hab_filenametitle_polygon_label = QLabel(self.tr('Hab file name'))
+        hab_filenametitle_polygon_label = QLabel(self.tr('.sub file name'))
         self.polygon_hname = QLineEdit('')  # hdf5 name
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
-            self.gethdf5_name_gui()
-        self.load_polygon_substrate = QPushButton(self.tr('Load data and create hab file'), self)
+        # if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+        #     self.gethdf5_name_gui()
+        self.load_polygon_substrate = QPushButton(self.tr('Load data and create .sub file'), self)
         self.load_polygon_substrate.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_polygon_substrate.clicked.connect(self.load_sub_gui)
+        self.load_polygon_substrate.clicked.connect(lambda: self.load_sub_gui('polygon'))
         # POLYGON (fifth line)
         last_sub_file_polygon_label = QLabel(self.tr('Last file created'))
         self.last_sub_file_name_polygon_label = QLabel(self.tr('no file'))
@@ -3640,11 +3666,9 @@ class SubstrateW(SubHydroW):
         self.file_point_label = QLabel(self.namefile[0], self)
         self.file_point_label.setToolTip(self.pathfile[0])
         self.sub_choosefile_point = QPushButton(self.tr('Choose file (.shp, .txt)'), self)
-        self.sub_choosefile_point.clicked.connect(lambda: self.show_dialog(0))
-        self.sub_choosefile_point.clicked.connect(
-            lambda: self.file_point_label.setToolTip(self.pathfile[0]))
-        self.sub_choosefile_point.clicked.connect(
-            lambda: self.file_point_label.setText(self.namefile[0]))
+        self.sub_choosefile_point.clicked.connect(lambda: self.show_dialog(1))
+        self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setToolTip(self.pathfile[0]))
+        self.sub_choosefile_point.clicked.connect(lambda: self.file_point_label.setText(self.namefile[0]))
         self.was_model_loaded_before()
         self.get_att_name()
         # POINT (second line)
@@ -3654,27 +3678,25 @@ class SubstrateW(SubHydroW):
         epsgtitle_point_label = QLabel(self.tr('EPSG code'))
         self.epsg_point_label = QLabel(self.tr('unknown'))
         # POINT (fourth line)
-        hab_filenametitle_point_label = QLabel(self.tr('Hab file name'))
+        hab_filenametitle_point_label = QLabel(self.tr('.sub file name'))
         self.point_hname = QLineEdit('')  # hdf5 name
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
-        self.load_point_substrate = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_point_substrate = QPushButton(self.tr('Load data and create .sub file'), self)
         self.load_point_substrate.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_point_substrate.clicked.connect(self.load_sub_gui)
+        self.load_point_substrate.clicked.connect(lambda: self.load_sub_gui('point'))
         # POINT (fifth line)
         last_sub_file_point_label = QLabel(self.tr('Last file created'))
         self.last_sub_file_name_point_label = QLabel(self.tr('no file'))
 
-        # CONSTANT
+        # CONSTANT (first line)
         filetitle_constant_label = QLabel(self.tr('File'))
         self.file_constant_label = QLabel(self.namefile[0], self)
         self.file_constant_label.setToolTip(self.pathfile[0])
         self.sub_choosefile_constant = QPushButton(self.tr('Choose file (.txt)'), self)
-        self.sub_choosefile_constant.clicked.connect(lambda: self.show_dialog(0))
-        self.sub_choosefile_constant.clicked.connect(
-            lambda: self.file_constant_label.setToolTip(self.pathfile[0]))
-        self.sub_choosefile_constant.clicked.connect(
-            lambda: self.file_constant_label.setText(self.namefile[0]))
+        self.sub_choosefile_constant.clicked.connect(lambda: self.show_dialog(2))
+        self.sub_choosefile_constant.clicked.connect(lambda: self.file_constant_label.setToolTip(self.pathfile[0]))
+        self.sub_choosefile_constant.clicked.connect(lambda: self.file_constant_label.setText(self.namefile[0]))
         self.was_model_loaded_before()
         self.get_att_name()
         # CONSTANT (second line)
@@ -3684,25 +3706,25 @@ class SubstrateW(SubHydroW):
         valuestitle_constant_label = QLabel(self.tr('Constant values'))
         self.valuesdata_constant_label = QLabel(self.tr('unknown'))
         # CONSTANT (fourth line)
-        hab_filenametitle_constant_label = QLabel(self.tr('Hab file name'))
+        hab_filenametitle_constant_label = QLabel(self.tr('.sub file name'))
         self.constant_hname = QLineEdit('')  # hdf5 name
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.gethdf5_name_gui()
-        self.load_constant_substrate = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_constant_substrate = QPushButton(self.tr('Load data and create .sub file'), self)
         self.load_constant_substrate.setStyleSheet("background-color: #47B5E6; color: black")
-        self.load_constant_substrate.clicked.connect(self.load_sub_gui)
+        self.load_constant_substrate.clicked.connect(lambda: self.load_sub_gui('constant'))
         # CONSTANT (fifth line)
         last_sub_file_constant_label = QLabel(self.tr('Last file created'))
         self.last_sub_file_name_constant_label = QLabel(self.tr('no file'))
 
         # MERGE label and button for the part to merge the grid
-        l9 = QLabel(self.tr("Hydraulic data (hdf5)"))
-        l10 = QLabel(self.tr("Substrate data (hdf5)"))
+        l9 = QLabel(self.tr("Hydraulic data (.hyd)"))
+        l10 = QLabel(self.tr("Substrate data (.sub)"))
         self.drop_hyd = QComboBox()
         self.drop_hyd.currentIndexChanged.connect(self.create_hdf5_merge_name)
         self.drop_sub = QComboBox()
         self.drop_sub.currentIndexChanged.connect(self.create_hdf5_merge_name)
-        self.load_b2 = QPushButton(self.tr("Merge grid and create hab file"), self)
+        self.load_b2 = QPushButton(self.tr("Merge grid and create .hab file"), self)
         self.load_b2.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b2.clicked.connect(self.send_merge_grid)
         self.spacer2 = QSpacerItem(1, 10)
@@ -3730,20 +3752,16 @@ class SubstrateW(SubHydroW):
         self.layout_polygon.addWidget(filetitle_polygon_label, 0, 0)  # first line
         self.layout_polygon.addWidget(self.file_polygon_label, 0, 1)  # first line
         self.layout_polygon.addWidget(self.sub_choosefile_polygon, 0, 2)  # first line
-        self.layout_polygon.setRowMinimumHeight(0, 30)  # height 30 pix
         self.layout_polygon.addWidget(classification_codetitle_polygon_label, 1, 0)  # second line
         self.layout_polygon.addWidget(self.sub_classification_code_polygon_label, 1, 1)  # second line
-        self.layout_polygon.setRowMinimumHeight(1, 30)  # height 30 pix
         self.layout_polygon.addWidget(epsgtitle_polygon_label, 2, 0)  # third line
         self.layout_polygon.addWidget(self.epsg_polygon_label, 2, 1)  # third line
-        self.layout_polygon.setRowMinimumHeight(2, 30)  # height 30 pix
         self.layout_polygon.addWidget(hab_filenametitle_polygon_label, 3, 0)  # fourth line
         self.layout_polygon.addWidget(self.polygon_hname, 3, 1)  # fourth line
         self.layout_polygon.addWidget(self.load_polygon_substrate, 3, 2)  # fourth line
-        self.layout_polygon.setRowMinimumHeight(3, 30)  # height 30 pix
         self.layout_polygon.addWidget(last_sub_file_polygon_label, 4, 0)  # fifth line
         self.layout_polygon.addWidget(self.last_sub_file_name_polygon_label, 4, 1)  # fifth line
-        self.layout_polygon.setRowMinimumHeight(4, 30)  # height 30 pix
+        [self.layout_polygon.setRowMinimumHeight(i, 30) for i in range(self.layout_polygon.rowCount())]
         self.polygon_group = QGroupBox(self.tr('Polygons'))
         self.polygon_group.setLayout(self.layout_polygon)
 
@@ -3752,20 +3770,16 @@ class SubstrateW(SubHydroW):
         self.layout_point.addWidget(filetitle_point_label, 0, 0)  # first line
         self.layout_point.addWidget(self.file_point_label, 0, 1)  # first line
         self.layout_point.addWidget(self.sub_choosefile_point, 0, 2)  # first line
-        self.layout_point.setRowMinimumHeight(0, 30)  # height 30 pix
         self.layout_point.addWidget(classification_codetitle_point_label, 1, 0)  # second line
         self.layout_point.addWidget(self.sub_classification_code_point_label, 1, 1)  # second line
-        self.layout_point.setRowMinimumHeight(1, 30)  # height 30 pix
         self.layout_point.addWidget(epsgtitle_point_label, 2, 0)  # third line
         self.layout_point.addWidget(self.epsg_point_label, 2, 1)  # third line
-        self.layout_point.setRowMinimumHeight(2, 30)  # height 30 pix
         self.layout_point.addWidget(hab_filenametitle_point_label, 3, 0)  # fourth line
         self.layout_point.addWidget(self.point_hname, 3, 1)  # fourth line
         self.layout_point.addWidget(self.load_point_substrate, 3, 2)  # fourth line
-        self.layout_point.setRowMinimumHeight(3, 30)  # height 30 pix
         self.layout_point.addWidget(last_sub_file_point_label, 4, 0)  # fifth line
         self.layout_point.addWidget(self.last_sub_file_name_point_label, 4, 1)  # fifth line
-        self.layout_point.setRowMinimumHeight(4, 30)  # height 30 pix
+        [self.layout_point.setRowMinimumHeight(i, 30) for i in range(self.layout_point.rowCount())]
         self.point_group = QGroupBox(self.tr('Points'))
         self.point_group.setLayout(self.layout_point)
 
@@ -3774,20 +3788,16 @@ class SubstrateW(SubHydroW):
         self.layout_constant.addWidget(filetitle_constant_label, 0, 0)  # first line
         self.layout_constant.addWidget(self.file_constant_label, 0, 1)  # first line
         self.layout_constant.addWidget(self.sub_choosefile_constant, 0, 2)  # first line
-        self.layout_constant.setRowMinimumHeight(0, 30)  # height 30 pix
         self.layout_constant.addWidget(classification_codetitle_constant_label, 1, 0)  # second line
         self.layout_constant.addWidget(self.sub_classification_code_constant_label, 1, 1)  # second line
-        self.layout_constant.setRowMinimumHeight(1, 30)  # height 30 pix
         self.layout_constant.addWidget(valuestitle_constant_label, 2, 0)  # third line
         self.layout_constant.addWidget(self.valuesdata_constant_label, 2, 1)  # third line
-        self.layout_constant.setRowMinimumHeight(2, 30)  # height 30 pix
         self.layout_constant.addWidget(hab_filenametitle_constant_label, 3, 0)  # fourth line
         self.layout_constant.addWidget(self.constant_hname, 3, 1)  # fourth line
         self.layout_constant.addWidget(self.load_constant_substrate, 3, 2)  # fourth line
-        self.layout_constant.setRowMinimumHeight(3, 30)  # height 30 pix
         self.layout_constant.addWidget(last_sub_file_constant_label, 4, 0)  # fifth line
         self.layout_constant.addWidget(self.last_sub_file_name_constant_label, 4, 1)  # fifth line
-        self.layout_constant.setRowMinimumHeight(4, 30)  # height 30 pix
+        [self.layout_constant.setRowMinimumHeight(i, 30) for i in range(self.layout_constant.rowCount())]
         self.constant_group = QGroupBox(self.tr('Constant values'))
         self.constant_group.setLayout(self.layout_constant)
 
@@ -3801,9 +3811,6 @@ class SubstrateW(SubHydroW):
         self.layout_sub.addWidget(self.polygon_group, 2, 0, 2, 4) #, 4, 4
         self.layout_sub.addWidget(self.point_group, 3, 0, 3, 4)
         self.layout_sub.addWidget(self.constant_group, 4, 0, 4, 4)
-        #self.layout_sub.addItem(sub_spacer, 5, 0)
-        #self.layout_sub.addWidget(last_sub_file_label, 6, 0)
-        #self.layout_sub.addWidget(self.last_sub_file_name_label, 6, 1)
         self.point_group.hide()
         self.constant_group.hide()
         susbtrate_group = QGroupBox(self.tr('Substrate'))
@@ -3825,6 +3832,7 @@ class SubstrateW(SubHydroW):
         self.layout_merge.addWidget(self.load_b2, 3, 2)
         self.layout_merge.addWidget(lm1, 4, 0)
         self.layout_merge.addWidget(self.last_merge_file_name_label, 4, 1)
+        [self.layout_merge.setRowMinimumHeight(i, 30) for i in range(self.layout_merge.rowCount())]
         merge_group = QGroupBox(self.tr('Merging of hydraulic and substrate grids'))
         merge_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         merge_group.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Maximum)
@@ -3883,7 +3891,94 @@ class SubstrateW(SubHydroW):
         self.point_group.hide()
         self.constant_group.show()
 
-    def load_sub_gui(self, const_sub=False):
+    def show_dialog_polygon(self):
+        """
+        Selecting shapefile by user and verify integrity of .txt and .prj files.
+        Add informations to GUI
+        """
+        # prepare the filter to show only useful files
+        extensions = [".shp"]
+        filter = "File ("
+        for ext in extensions:
+            filter += '*' + ext + ' '
+        filter += ')' + ";; All File (*.*)"
+
+        # find the filename based on user choice
+        print("polyg : ", self.nativeParentWidget().central_widget.path_last_file_loaded_c)
+        filename_path = QFileDialog.getOpenFileName(self,
+                                                    self.tr("Select file"),
+                                                    self.nativeParentWidget().central_widget.path_last_file_loaded_c,
+                                                    filter)[0]
+
+
+        # exeption: you should be able to clik on "cancel"
+        if filename_path:
+            dirname = os.path.dirname(filename_path)
+            filename = os.path.basename(filename_path)
+            blob, ext = os.path.splitext(filename)
+            if any(e in ext for e in extensions):  # extension known
+                pass
+            else:
+                if ext == '':  # no extension
+                    self.msg2.setIcon(QMessageBox.Warning)
+                    self.msg2.setWindowTitle(self.tr("File type"))
+                    self.msg2.setText(self.tr("The selected file has no extension. If you know this file, change its "
+                                              "extension manually to " + " or ".join(extensions)))
+                    self.msg2.setStandardButtons(QMessageBox.Ok)
+                    self.msg2.show()
+                else:  # no extension known (if not any(e in ext for e in extension_i))
+                    self.msg2.setIcon(QMessageBox.Warning)
+                    self.msg2.setWindowTitle(self.tr("File type"))
+                    self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extensions)))
+                    self.msg2.setStandardButtons(QMessageBox.Ok)
+                    self.msg2.show()
+
+            # check classification code in .txt
+            if not os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                self.send_log.emit("Error: The selected shapefile is not accompanied by its habby .txt file.")
+                return
+            if os.path.isfile(os.path.join(dirname, blob + ".txt")):
+                with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
+                    data = f.read()
+                    if "\n" in data:  # more than one line
+                        self.send_log.emit("Error: The .txt file accompanying the shapefile "
+                                           "contains more than one line.")
+                        return
+                    else:
+                        if "substrate_classification_code=" in data:
+                            substrate_classification_code = data.split("substrate_classification_code=")[1].strip()
+                            if substrate_classification_code not in self.substrate_classification_codes:
+                                self.send_log.emit("Error: The classification code in .txt file is not recognized : "
+                                                   + substrate_classification_code)
+                                return
+                        else:
+                            self.send_log.emit("Error: The name 'substrate_classification_code=' is not found in"
+                                               " .txt file.")
+                            return
+
+            # check EPSG code in .prj
+            if not os.path.isfile(os.path.join(dirname, blob + ".prj")):
+                self.send_log.emit("Error: The selected shapefile is not accompanied by its .prj file.\n")
+                return
+            if os.path.isfile(os.path.join(dirname, blob + ".prj")):
+                ident = Sridentify()
+                ident.from_file(os.path.join(dirname, blob + ".prj"))
+                epsg_code = ident.get_epsg()
+
+            # save to attributes
+            self.pathfile_polygon = dirname
+            self.namefile_polygon = filename
+            self.name_hdf5_polygon = blob + ".sub"
+            self.nativeParentWidget().central_widget.path_last_file_loaded_c = dirname
+
+            # save to GUI
+            self.file_polygon_label.setText(filename)
+            self.file_polygon_label.setToolTip(self.pathfile_polygon)
+            self.sub_classification_code_polygon_label.setText(substrate_classification_code)
+            self.epsg_polygon_label.setText(str(epsg_code))
+            self.polygon_hname.setText(self.name_hdf5_polygon)
+
+    def load_sub_gui(self, sub_mapping_method):
         """
         This function is used to load the substrate data. The substrate data can be in three forms: a) in the form of a shp
         file form ArGIS (or another GIS-program). b) in the form of a text file (x,y, substrate data line by line),
@@ -3899,13 +3994,17 @@ class SubstrateW(SubHydroW):
         """
         self.model_type = 'SUBSTRATE'
         # if hdf5_filename_output empty: msg
-        if const_sub:
-            if not self.hname2.text():
-                self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
+        if sub_mapping_method == 'constant':
+            if not self.constant_hname.text():
+                self.send_log.emit(self.tr('Warning: filename output is empty. Please specify it.'))
                 return
-        if not const_sub:
+        if sub_mapping_method == 'point':
+            if not self.point_hname.text():
+                self.send_log.emit(self.tr('Warning: filename output is empty. Please specify it.'))
+                return
+        if sub_mapping_method == 'polygon':
             if not self.polygon_hname.text():
-                self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
+                self.send_log.emit(self.tr('Warning: filename output is empty. Please specify it.'))
                 return
 
         # info
@@ -3916,11 +4015,98 @@ class SubstrateW(SubHydroW):
         self.nativeParentWidget().progress_bar.setValue(0)
         self.nativeParentWidget().progress_bar.setVisible(True)
 
-        # block button substrate
-        self.load_polygon_substrate.setDisabled(True)  # substrate
+        # polygon case
+        if sub_mapping_method == 'polygon':
+            # block button substrate
+            self.load_polygon_substrate.setDisabled(True)  # substrate
+            # save path and name substrate
+            self.save_xml(0)
+            filename = self.file_polygon_label.text()
+            namebase, ext = os.path.splitext(filename)
+            path_im = self.find_path_im()
+            sub_classification_code = self.sub_classification_code_polygon_label.text()
+            sub_epsg_code = self.epsg_polygon_label.text()
+            self.name_hdf5 = self.polygon_hname.text()
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
+            # check if we have all files
+            name1 = namebase + '.dbf'
+            name2 = namebase + '.shx'
+            name3 = namebase + '.prj'  # it is ok if it does not exists
+            pathname1 = os.path.join(self.pathfile_polygon, name1)
+            pathname2 = os.path.join(self.pathfile_polygon, name2)
+            pathname3 = os.path.join(self.pathfile_polygon, name3)
+            if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
+                self.send_log.emit(
+                    'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
+                    ' a .dbf file.')
+                self.load_polygon_substrate.setDisabled(False)
+                return
+
+            # Check shape fields data validity
+            sys.stdout = self.mystdout = StringIO()  # out to GUI
+            # sub_validity, dominant_case = substrate.shp_validity(self.namefile[0],
+            #                                               self.pathfile[0],
+            #                                               sub_classification_code)
+            #
+            # # if shape data not valid : stop
+            # if not sub_validity:
+            #     sys.stdout = sys.__stdout__  # reset to console
+            #     self.send_err_log()
+            #     self.send_log.emit('Error: Substrate data not loaded')
+            #     self.load_polygon_substrate.setDisabled(False)
+            #     return
+            #
+            # # if shape data valid : load and save
+            # if sub_validity:
+            # info
+            #self.timer.start(100)
+            # load substrate shp (and triangulation)
+            self.q = Queue()
+            self.p = Process(target=substrate.load_sub_shp,
+                             args=(filename,
+                                   self.pathfile_polygon,
+                                   self.path_prj,
+                                   self.path_prj + "/hab",
+                                   self.name_prj,
+                                   self.name_hdf5,
+                                   sub_classification_code,
+                                   self.q))
+            self.p.start()
+
+            sys.stdout = sys.__stdout__  # reset to console
+            self.send_err_log()
+
+            # copy shape file (compsed of .shp, .shx and .dbf)
+            path_input = self.find_path_input()
+            name_all = [self.namefile[0], name1, name2]
+            path_all = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
+            self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
+            self.p2.start()
+            # we might have an addition projection file to copy (short)
+            if os.path.isfile(pathname3):
+                load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
+
+            # log info
+            self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
+            self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+            self.send_log.emit("py    path1=r'" + path_input + "'")
+            self.send_log.emit("py    type='" + sub_classification_code + "'")
+            self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
+                               "(file1, path1, type)\n")
+            self.send_log.emit("restart LOAD_SUB_SHP")
+            self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+            self.send_log.emit("restart    sub_classification_code: " + sub_classification_code)
+
+
+
+
+        # point case
+        if sub_mapping_method == 'point':
+            aa = 1
 
         # constante case
-        if const_sub:
+        if sub_mapping_method == 'constant':
             try:
                 data_sub = int(self.e1.text())
             except ValueError:
@@ -3928,7 +4114,7 @@ class SubstrateW(SubHydroW):
                 return
             if not 0 < data_sub < 9:
                 self.send_log.emit('The substrate data should be between 1 and 8')
-            if self.hname2.text()[-3:] == '.hab':
+            if self.hname2.text()[-3:] == '.sub':
                 self.name_hdf5 = self.hname2.text()[:-3] + '_' + str(data_sub)
             else:
                 self.name_hdf5 = self.hname2.text() + '_' + str(data_sub)
@@ -3950,149 +4136,151 @@ class SubstrateW(SubHydroW):
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
             self.send_log.emit("restart    val_c: " + str(data_sub))
-            #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.hab'))
+            #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.sub'))
             # unblock button substrate
             self.load_polygon_substrate.setDisabled(False)  # substrate
 
-        # sub from txt or shp
-        else:
-            # save path and name substrate
-            self.save_xml(0)
-            namebase, ext = os.path.splitext(self.namefile[0])
-            path_im = self.find_path_im()
-            code_type = self.e2.currentText()
-            self.name_hdf5 = self.polygon_hname.text()
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
 
-            # if the substrate is in the shp form
-            if ext == '.shp':
-                # check if we have all files
-                name1 = namebase + '.dbf'
-                name2 = namebase + '.shx'
-                name3 = namebase + '.prj'  # it is ok if it does not exists
-                pathname1 = os.path.join(self.pathfile[0], name1)
-                pathname2 = os.path.join(self.pathfile[0], name2)
-                pathname3 = os.path.join(self.pathfile[0], name3)
-                if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
-                    self.send_log.emit(
-                        'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
-                        ' a .dbf file.')
-                    self.load_polygon_substrate.setDisabled(False)
-                    return
 
-                # Check shape fields data validity
-                sys.stdout = self.mystdout = StringIO()  # out to GUI
-                # sub_validity, dominant_case = substrate.shp_validity(self.namefile[0],
-                #                                               self.pathfile[0],
-                #                                               code_type)
-                #
-                # # if shape data not valid : stop
-                # if not sub_validity:
-                #     sys.stdout = sys.__stdout__  # reset to console
-                #     self.send_err_log()
-                #     self.send_log.emit('Error: Substrate data not loaded')
-                #     self.load_polygon_substrate.setDisabled(False)
-                #     return
-                #
-                # # if shape data valid : load and save
-                # if sub_validity:
-                # info
-                self.timer.start(100)
-                # load substrate shp (and triangulation)
-                self.q = Queue()
-                self.p = Process(target=substrate.load_sub_shp,
-                                 args=(self.namefile[0],
-                                       self.pathfile[0],
-                                       self.path_prj,
-                                       self.path_prj + "/hab",
-                                       self.name_prj,
-                                       self.name_hdf5,
-                                       code_type,
-                                       self.q))
-                self.p.start()
-
-                sys.stdout = sys.__stdout__  # reset to console
-                self.send_err_log()
-
-                # copy shape file (compsed of .shp, .shx and .dbf)
-                path_input = self.find_path_input()
-                name_all = [self.namefile[0], name1, name2]
-                path_all = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
-                self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
-                self.p2.start()
-                # we might have an addition projection file to copy (short)
-                if os.path.isfile(pathname3):
-                    load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
-
-                # log info
-                self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
-                self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-                self.send_log.emit("py    path1=r'" + path_input + "'")
-                self.send_log.emit("py    type='" + code_type + "'")
-                self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
-                                   "(file1, path1, type)\n")
-                self.send_log.emit("restart LOAD_SUB_SHP")
-                self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-                self.send_log.emit("restart    code_type: " + code_type)
-
-            # if the substrate data is a text form
-            elif ext == '.txt' or ext == ".asc":
-                path_shp = self.find_path_input()
-
-                # convert txt to voronoi shp
-                sys.stdout = self.mystdout = StringIO()  # out to GUI
-                sub_filename_voronoi_shp = substrate.load_sub_txt(self.namefile[0], self.pathfile[0], code_type, path_shp)
-
-                # if shp ok
-                if sub_filename_voronoi_shp:
-                    # load substrate shp (and triangulation)
-                    self.q = Queue()
-                    self.p = Process(target=substrate.load_sub_shp,
-                                     args=(sub_filename_voronoi_shp,
-                                           path_shp,
-                                           self.path_prj,
-                                           self.path_prj + "/hab",
-                                           self.name_prj,
-                                           self.name_hdf5,
-                                           code_type,
-                                           self.q))
-                    self.p.start()
-                    self.send_err_log()
-
-                    # copy
-                    path_input = self.find_path_input()
-                    self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
-                    self.p2.start()
-
-                    # log info
-                    self.send_log.emit(self.tr('# Loading: Substrate data text file ...'))
-                    self.send_log.emit(
-                        self.tr('Warning: The area covered by the voronoi calculation might be larger and more irregular'
-                          ' than the one given by the orginal points. This does not affect the results usually. \n'))
-                    self.send_log.emit("py    file1='r" + self.namefile[0] + "'")
-                    self.send_log.emit("py    path1=r'" + path_input + "'")
-                    self.send_log.emit("py    type='" + code_type + "'")
-                    self.send_log.emit(
-                        "py    [coord_pt, ikle_subt, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg] = substrate.load_sub_txt("
-                        "file1, path1, type)\n")
-                    self.send_log.emit("restart LOAD_SUB_TXT")
-                    self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
-                    self.send_log.emit("restart    code_type: " + code_type)
-
-                if not sub_filename_voronoi_shp:
-                    # block button substrate
-                    self.load_polygon_substrate.setDisabled(False)  # substrate
-
-                # all case
-                sys.stdout = sys.__stdout__  # reset to console
-                self.send_err_log()
-
-            # case unknown
-            else:
-                self.send_log.emit("Error: Unknown extension for substrate data. The data was not loaded. Only file "
-                                   "with .txt, .asc ,or .shp are accepted.")
-                self.load_polygon_substrate.setDisabled(False)
-                return
+        # # sub from txt or shp
+        # else:
+        #     # save path and name substrate
+        #     self.save_xml(0)
+        #     namebase, ext = os.path.splitext(self.namefile[0])
+        #     path_im = self.find_path_im()
+        #     sub_classification_code = self.e2.currentText()
+        #     self.name_hdf5 = self.polygon_hname.text()
+        #     self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        #
+        #     # if the substrate is in the shp form
+        #     if ext == '.shp':
+        #         # check if we have all files
+        #         name1 = namebase + '.dbf'
+        #         name2 = namebase + '.shx'
+        #         name3 = namebase + '.prj'  # it is ok if it does not exists
+        #         pathname1 = os.path.join(self.pathfile[0], name1)
+        #         pathname2 = os.path.join(self.pathfile[0], name2)
+        #         pathname3 = os.path.join(self.pathfile[0], name3)
+        #         if not os.path.isfile(pathname1) or not os.path.isfile(pathname2):
+        #             self.send_log.emit(
+        #                 'Error: A shapefile is composed of three file at leasts: a .shp file, a .shx file, and'
+        #                 ' a .dbf file.')
+        #             self.load_polygon_substrate.setDisabled(False)
+        #             return
+        #
+        #         # Check shape fields data validity
+        #         sys.stdout = self.mystdout = StringIO()  # out to GUI
+        #         # sub_validity, dominant_case = substrate.shp_validity(self.namefile[0],
+        #         #                                               self.pathfile[0],
+        #         #                                               sub_classification_code)
+        #         #
+        #         # # if shape data not valid : stop
+        #         # if not sub_validity:
+        #         #     sys.stdout = sys.__stdout__  # reset to console
+        #         #     self.send_err_log()
+        #         #     self.send_log.emit('Error: Substrate data not loaded')
+        #         #     self.load_polygon_substrate.setDisabled(False)
+        #         #     return
+        #         #
+        #         # # if shape data valid : load and save
+        #         # if sub_validity:
+        #         # info
+        #         #self.timer.start(100)
+        #         # load substrate shp (and triangulation)
+        #         self.q = Queue()
+        #         self.p = Process(target=substrate.load_sub_shp,
+        #                          args=(self.namefile[0],
+        #                                self.pathfile[0],
+        #                                self.path_prj,
+        #                                self.path_prj + "/hab",
+        #                                self.name_prj,
+        #                                self.name_hdf5,
+        #                                sub_classification_code,
+        #                                self.q))
+        #         self.p.start()
+        #
+        #         sys.stdout = sys.__stdout__  # reset to console
+        #         self.send_err_log()
+        #
+        #         # copy shape file (compsed of .shp, .shx and .dbf)
+        #         path_input = self.find_path_input()
+        #         name_all = [self.namefile[0], name1, name2]
+        #         path_all = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
+        #         self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
+        #         self.p2.start()
+        #         # we might have an addition projection file to copy (short)
+        #         if os.path.isfile(pathname3):
+        #             load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
+        #
+        #         # log info
+        #         self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
+        #         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        #         self.send_log.emit("py    path1=r'" + path_input + "'")
+        #         self.send_log.emit("py    type='" + sub_classification_code + "'")
+        #         self.send_log.emit("py    [coord_p, ikle_sub, sub_dm, sub_pg, ok_dom] = substrate.load_sub_shp"
+        #                            "(file1, path1, type)\n")
+        #         self.send_log.emit("restart LOAD_SUB_SHP")
+        #         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        #         self.send_log.emit("restart    sub_classification_code: " + sub_classification_code)
+        #
+        #     # if the substrate data is a text form
+        #     elif ext == '.txt' or ext == ".asc":
+        #         path_shp = self.find_path_input()
+        #
+        #         # convert txt to voronoi shp
+        #         sys.stdout = self.mystdout = StringIO()  # out to GUI
+        #         sub_filename_voronoi_shp = substrate.load_sub_txt(self.namefile[0], self.pathfile[0], sub_classification_code, path_shp)
+        #
+        #         # if shp ok
+        #         if sub_filename_voronoi_shp:
+        #             # load substrate shp (and triangulation)
+        #             self.q = Queue()
+        #             self.p = Process(target=substrate.load_sub_shp,
+        #                              args=(sub_filename_voronoi_shp,
+        #                                    path_shp,
+        #                                    self.path_prj,
+        #                                    self.path_prj + "/hab",
+        #                                    self.name_prj,
+        #                                    self.name_hdf5,
+        #                                    sub_classification_code,
+        #                                    self.q))
+        #             self.p.start()
+        #             self.send_err_log()
+        #
+        #             # copy
+        #             path_input = self.find_path_input()
+        #             self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        #             self.p2.start()
+        #
+        #             # log info
+        #             self.send_log.emit(self.tr('# Loading: Substrate data text file ...'))
+        #             self.send_log.emit(
+        #                 self.tr('Warning: The area covered by the voronoi calculation might be larger and more irregular'
+        #                   ' than the one given by the orginal points. This does not affect the results usually. \n'))
+        #             self.send_log.emit("py    file1='r" + self.namefile[0] + "'")
+        #             self.send_log.emit("py    path1=r'" + path_input + "'")
+        #             self.send_log.emit("py    type='" + sub_classification_code + "'")
+        #             self.send_log.emit(
+        #                 "py    [coord_pt, ikle_subt, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg] = substrate.load_sub_txt("
+        #                 "file1, path1, type)\n")
+        #             self.send_log.emit("restart LOAD_SUB_TXT")
+        #             self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        #             self.send_log.emit("restart    sub_classification_code: " + sub_classification_code)
+        #
+        #         if not sub_filename_voronoi_shp:
+        #             # block button substrate
+        #             self.load_polygon_substrate.setDisabled(False)  # substrate
+        #
+        #         # all case
+        #         sys.stdout = sys.__stdout__  # reset to console
+        #         self.send_err_log()
+        #
+        #     # case unknown
+        #     else:
+        #         self.send_log.emit("Error: Unknown extension for substrate data. The data was not loaded. Only file "
+        #                            "with .txt, .asc ,or .shp are accepted.")
+        #         self.load_polygon_substrate.setDisabled(False)
+        #         return
 
     def recreate_image_sub(self, save_fig=False):
         """

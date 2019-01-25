@@ -1027,11 +1027,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             hdf5_name_sub_orr = os.path.basename(hdf5_name_sub)
             path_hdf5_in = path_prj
             path_hdf5_in2 = path_prj
-            path_hdf5 = path_prj + "/hab"
-            path_shp = path_prj + "/shapefiles_output"
+            path_hdf5 = path_prj + "/hdf5"
+            path_shp = path_prj + "r'/output/shapefiles"
             # get all file in projet folder
             if os.path.isdir(path_prj):
-                filenames = load_hdf5.get_all_filename(path_prj, '.hab')
+                filenames = load_hdf5.get_all_filename(path_prj, '.hdf5')
             else:
                 print('the input directory does not exist.')
                 return

@@ -246,7 +246,7 @@ class GroupPlot(QGroupBox):
         if index == 1:
             # get list of file name by type
             names = load_hdf5.get_filename_by_type("hydraulic",
-                                                   self.parent().parent().parent().path_prj + "/hab/")
+                                                   self.parent().parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -258,7 +258,7 @@ class GroupPlot(QGroupBox):
         if index == 2:
             # get list of file name by type
             names = load_hdf5.get_filename_by_type("substrate",
-                                                   self.parent().parent().parent().path_prj + "/hab/")
+                                                   self.parent().parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -269,7 +269,7 @@ class GroupPlot(QGroupBox):
         # merge
         if index == 3:
             # get list of file name by type
-            names = load_hdf5.get_filename_by_type("merge", self.parent().parent().parent().path_prj + "/hab/")
+            names = load_hdf5.get_filename_by_type("merge", self.parent().parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -280,7 +280,7 @@ class GroupPlot(QGroupBox):
         # chronic
         if index == 4:
             # get list of file name by type
-            names = load_hdf5.get_filename_by_type("chronic", self.parent().parent().parent().path_prj + "/hab/")
+            names = load_hdf5.get_filename_by_type("chronic", self.parent().parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -291,7 +291,7 @@ class GroupPlot(QGroupBox):
         # habitat
         if index == 5:
             # get list of file name by type
-            names = load_hdf5.get_filename_by_type("habitat", self.parent().parent().parent().path_prj + "/hab/")
+            names = load_hdf5.get_filename_by_type("habitat", self.parent().parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:

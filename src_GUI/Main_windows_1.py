@@ -247,6 +247,16 @@ class MainWindows(QMainWindow):
         """
         self.end_concurrency()
 
+        # save path_last_file_loaded
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        doc = ET.parse(filename_path_pro)
+        root = doc.getroot()
+        tree = ET.ElementTree(root)
+        path_last_file_loaded_child = root.find(".//Path_last_file_loaded")
+        path_last_file_loaded_child.text = self.central_widget.path_last_file_loaded_c
+        print("quit habby :", self.central_widget.path_last_file_loaded_c)
+        tree.write(filename_path_pro)
+
         # close all process plot
         self.central_widget.closefig()
 
@@ -272,11 +282,11 @@ class MainWindows(QMainWindow):
         if self.name_prj is not None:
 
             # open the text file
-            filename = os.path.join(os.path.join(self.path_prj, 'hab'), 'check_concurrency.txt')
+            filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
                 self.central_widget.write_log('Warning: Could not check if the project was open by '
                                               'another instance of HABBY (1) \n')
-                if os.path.isdir(os.path.join(self.path_prj, 'hab')):
+                if os.path.isdir(os.path.join(self.path_prj, 'hdf5')):
                     with open(filename, 'wt') as f:
                         f.write('open')
                 return
@@ -308,7 +318,7 @@ class MainWindows(QMainWindow):
         if self.name_prj is not None:
 
             # open the text file
-            filename = os.path.join(os.path.join(self.path_prj, 'hab'), 'check_concurrency.txt')
+            filename = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
             if not os.path.isfile(filename):
                 self.central_widget.write_log('Warning: Could not check if the project was open by '
                                               'another instance of HABBY (3) \n')
@@ -826,6 +836,8 @@ class MainWindows(QMainWindow):
             child.text = self.name_prj
             path_child = ET.SubElement(general_element, "Path_Projet")
             path_child.text = self.path_prj
+            path_last_file_loaded_child = ET.SubElement(general_element, "Path_last_file_loaded")
+            path_last_file_loaded_child.text = self.path_prj
             # log
             log_element = ET.SubElement(general_element, "Log_Info")
             pathlog_child = ET.SubElement(log_element, "File_Log")
@@ -853,28 +865,42 @@ class MainWindows(QMainWindow):
             ver_child = ET.SubElement(general_element, 'Version_HABBY')
             ver_child.text = str(self.version)
 
-            # path
+            # general paths
             path_element = ET.SubElement(general_element, "Paths")
+
+            # path bio
             pathbio_child = ET.SubElement(path_element, "Path_Bio")
             pathbio_child.text = self.path_bio_default
-            path_im = os.path.join(self.path_prj, 'figures')
-            pathbio_child = ET.SubElement(path_element, "Path_Figure")
-            pathbio_child.text = 'figures'
-            path_hdf5 = os.path.join(self.path_prj, 'hab')
-            pathhdf5_child = ET.SubElement(path_element, "Path_Hdf5")
-            pathhdf5_child.text = 'hab'
+
+            # path input
             path_input = os.path.join(self.path_prj, 'input')
             pathinput_child = ET.SubElement(path_element, "Path_Input")
             pathinput_child.text = 'input'
-            path_text = os.path.join(self.path_prj, 'text_output')
+
+            # path hdf5
+            path_hdf5 = os.path.join(self.path_prj, 'hdf5')
+            pathhdf5_child = ET.SubElement(path_element, "Path_Hdf5")
+            pathhdf5_child.text = 'hdf5'
+
+            # path figures
+            path_im = os.path.join(self.path_prj, r'output/figures')
+            pathbio_child = ET.SubElement(path_element, "Path_Figure")
+            pathbio_child.text = r'output/figures'
+
+            # path text output
+            path_text = os.path.join(self.path_prj, r'output/text')
             pathtext_child = ET.SubElement(path_element, "Path_Text")
-            pathtext_child.text = 'text_output'
-            path_other = os.path.join(self.path_prj, 'shapefiles_output')
+            pathtext_child.text = r'output/text'
+
+            # path shapefile
+            path_shapefile = os.path.join(self.path_prj, r'output/shapefiles')
             pathother_child = ET.SubElement(path_element, "Path_Shape")
-            pathother_child.text = 'shapefiles_output'
-            path_para = os.path.join(self.path_prj, 'visualisation_output')
+            pathother_child.text = r'output/shapefiles'
+
+            # path visualisation
+            path_para = os.path.join(self.path_prj, r'output/visualisation')
             pathpara_child = ET.SubElement(path_element, "Path_Paraview")
-            pathpara_child.text = 'visualisation_output'
+            pathpara_child.text = r'output/visualisation'
 
             # save new xml file
             if self.name_prj != '':
@@ -882,22 +908,24 @@ class MainWindows(QMainWindow):
                 tree.write(fname)
 
             # create a default directory for the figures and the hdf5
-            if not os.path.exists(path_im):
-                os.makedirs(path_im)
-            if not os.path.exists(path_hdf5):
-                os.makedirs(path_hdf5)
             if not os.path.exists(path_input):
                 os.makedirs(path_input)
+            if not os.path.exists(path_hdf5):
+                os.makedirs(path_hdf5)
+            if not os.path.exists(os.path.join(self.path_prj, r'output')):
+                os.makedirs(os.path.join(self.path_prj, r'output'))
+            if not os.path.exists(path_im):
+                os.makedirs(path_im)
             if not os.path.exists(path_text):
                 os.makedirs(path_text)
-            if not os.path.exists(path_other):
-                os.makedirs(path_other)
+            if not os.path.exists(path_shapefile):
+                os.makedirs(path_shapefile)
             if not os.path.exists(path_para):
                 os.makedirs(path_para)
 
-            # create the concurency file
-            filenamec = os.path.join(os.path.join(self.path_prj, 'hab'), 'check_concurrency.txt')
-            if os.path.isdir(os.path.join(self.path_prj, 'hab')):
+            # create the concurrency file
+            filenamec = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
+            if os.path.isdir(os.path.join(self.path_prj, 'hdf5')):
                 with open(filenamec, 'wt') as f:
                     f.write('open')
 
@@ -907,34 +935,52 @@ class MainWindows(QMainWindow):
             root = doc.getroot()
             child = root.find(".//Project_Name")
             path_child = root.find(".//Path_Projet")
+            path_last_file_loaded_child = root.find(".//Path_last_file_loaded")
             user_child = root.find(".//User_Name")
             des_child = root.find(".//Description")
-            pathim_child = root.find(".//Path_Figure")
-            pathdf5_child = root.find(".//Path_Hdf5")
             pathbio_child = root.find(".//Path_Bio")
-            pathtxt_child = root.find(".//Path_Text")
             pathin_child = root.find(".//Path_Input")
-            pathout_child = root.find(".//Path_Output")
-            if pathim_child is None:
-                pathim_text = 'figures'
-            else:
-                pathim_text = pathim_child.text
-            if pathdf5_child is None:
-                pathhdf5_text = 'hab'
-            else:
-                pathhdf5_text = pathdf5_child.text
-            if pathtxt_child is None:
-                pathtxt_text = 'text_output'
-            else:
-                pathtxt_text = pathtxt_child.text
+            pathdf5_child = root.find(".//Path_Hdf5")
+            pathim_child = root.find(".//Path_Figure")
+            pathtxt_child = root.find(".//Path_Text")
+            pathshapefile_child = root.find(".//Path_Shape")
+            pathpara_child = root.find(".//Path_Paraview")
+
+            # path input
             if pathin_child is None:
                 pathin_text = 'input'
             else:
                 pathin_text = pathin_child.text
-            if pathout_child is None:
-                pathout_text = 'other_output'
+
+            # path hdf5
+            if pathdf5_child is None:
+                pathhdf5_text = 'hdf5'
             else:
-                pathout_text = pathin_child.text
+                pathhdf5_text = pathdf5_child.text
+
+            # path figures
+            if pathim_child is None:
+                pathim_text = r'output/figures'
+            else:
+                pathim_text = pathim_child.text
+
+            # path text output
+            if pathtxt_child is None:
+                pathtxt_text = r'output/text'
+            else:
+                pathtxt_text = pathtxt_child.text
+
+            # path shapefile
+            if pathshapefile_child is None:
+                pathshapefile_text = r'output/shapefiles'
+            else:
+                pathshapefile_text = pathin_child.text
+
+            # path visualisation
+            if pathpara_child is None:
+                pathpara_text = r'output/visualisation'
+            else:
+                pathpara_text = pathin_child.text
 
             child.text = self.name_prj
             path_child.text = self.path_prj
@@ -945,22 +991,27 @@ class MainWindows(QMainWindow):
             doc.write(fname)
 
             # create needed folder if not there yet
-            path_im = os.path.join(self.path_prj, pathim_text)
-            path_h5 = os.path.join(self.path_prj, pathhdf5_text)
-            path_text = os.path.join(self.path_prj, pathtxt_text)
-            path_output = os.path.join(self.path_prj, pathout_text)
             pathin_text = os.path.join(self.path_prj, pathin_text)
+            path_h5 = os.path.join(self.path_prj, pathhdf5_text)
+            path_im = os.path.join(self.path_prj, pathim_text)
+            path_text = os.path.join(self.path_prj, pathtxt_text)
+            path_shapefile_text = os.path.join(self.path_prj, pathshapefile_text)
+            path_para_text = os.path.join(self.path_prj, pathpara_text)
             try:
-                if not os.path.exists(path_im):
-                    os.makedirs(path_im)
-                if not os.path.exists(path_h5):
-                    os.makedirs(path_h5)
-                if not os.path.exists(path_text):
-                    os.makedirs(path_text)
                 if not os.path.exists(pathin_text):
                     os.makedirs(pathin_text)
-                if not os.path.exists(path_output):
-                    os.makedirs(path_output)
+                if not os.path.exists(path_h5):
+                    os.makedirs(path_h5)
+                if not os.path.exists(os.path.join(self.path_prj, r'output')):
+                    os.makedirs(os.path.join(self.path_prj, r'output'))
+                if not os.path.exists(path_im):
+                    os.makedirs(path_im)
+                if not os.path.exists(path_text):
+                    os.makedirs(path_text)
+                if not os.path.exists(path_shapefile_text):
+                    os.makedirs(path_shapefile_text)
+                if not os.path.exists(path_para_text):
+                    os.makedirs(path_para_text)
             except PermissionError:
                 self.central_widget.write_log('Error: Could not create directory, Permission Error \n')
                 return
@@ -968,6 +1019,7 @@ class MainWindows(QMainWindow):
         # update central widget
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
+        self.central_widget.path_last_file_loaded_c = path_last_file_loaded_child.text
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
 
@@ -1064,6 +1116,7 @@ class MainWindows(QMainWindow):
         # the text in the Qwidget will be used to save the project
         self.name_prj = root2.find(".//Project_Name").text
         self.path_prj = root2.find(".//Path_Projet").text
+        self.central_widget.path_last_file_loaded_c = root2.find(".//Path_last_file_loaded").text
 
         if self.name_prj is None or self.path_prj is None:
             self.central_widget.write_log('Error: Project xml file is not understood \n')
@@ -1281,9 +1334,9 @@ class MainWindows(QMainWindow):
         child1 = root.find('.//Path_Figure')
         if child1 is None:
             child1 = ET.SubElement(root, 'Path_Figure')
-            child1.text = 'figures'
+            child1.text = r'output/figures'
         else:
-            child1.text = 'figures'
+            child1.text = r'output/figures'
         doc.write(fname)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
@@ -1852,6 +1905,8 @@ class CentralW(QWidget):
             logon_child = root.find(".//Save_Log")
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
+            self.path_last_file_loaded_c = root.find(".//Path_last_file_loaded").text
+            print("load : ", self.path_last_file_loaded_c)
 
         # add the widgets to the list of tab if a project exists
         self.add_all_tab()

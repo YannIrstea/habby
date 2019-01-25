@@ -632,7 +632,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # log
         self.send_log.emit("py    file1='" + hdf5_file + "'")
-        self.send_log.emit("py    path1= os.path.join(path_prj, 'hab')")
+        self.send_log.emit("py    path1= os.path.join(path_prj, 'hdf5')")
         self.send_log.emit("py    pref_list= ['" + "', '".join(pref_list) + "']")
         self.send_log.emit("py    stages= ['" + "', '".join(stages_chosen) + "']")
         self.send_log.emit("py    type=" + str(run_choice))

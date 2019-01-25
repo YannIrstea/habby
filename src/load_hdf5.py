@@ -44,8 +44,8 @@ def open_hdf5(hdf5_name, mode="read"):
         mode_hdf5 = 'r+'
 
     blob, ext = os.path.splitext(hdf5_name)
-    if ext != '.hab':
-        print('Warning: the file should be of hdf5 type. \n')
+    if ext != ('.hyd', '.sub', '.hab'):
+        print("Warning: the file should be of hdf5 type ('.hyd', '.sub', '.hab').")
     if os.path.isfile(hdf5_name):
         try:
             file = h5py.File(hdf5_name, mode_hdf5)
@@ -157,6 +157,12 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     Hdf5 file do not support unicode. It is necessary to encode string to write them.
 
     """
+    if merge:
+        extensionhdf5 = '.hab'
+    if not merge:
+        extensionhdf5 = '.hyd'
+
+
     # to know if we have to save a new hdf5
 
     if save_option is None:
@@ -170,10 +176,10 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # create hdf5 name if we keep all files (need a time stamp)
     if not erase_idem:
-        h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
+        h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + extensionhdf5
     else:
-        if name_hdf5[-3:] != '.hab':
-            h5name = name_hdf5 + '.hab'
+        if name_hdf5[-4:] != extensionhdf5:
+            h5name = name_hdf5 + extensionhdf5
         else:
             h5name = name_hdf5
         if os.path.isfile(os.path.join(path_hdf5, h5name)):
@@ -390,7 +396,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_n
         erase_idem = False
     save_xml = True
 
-    if name_hdf5[-3:] == '.hab':
+    if name_hdf5[-3:] == '.sub':
         name_hdf5 = name_hdf5[:-3]
 
     # CONSTANT CASE
@@ -398,15 +404,15 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_n
         # create hdf5 name if we keep all the files (need a time stamp)
         if not erase_idem:
             if name_hdf5:
-                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
+                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.sub'
             else:
-                h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
+                h5name = 'Substrate_CONST_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.sub'
         # create hdf5 name if we erase identical files
         else:
             if name_hdf5:
-                h5name = name_hdf5 + '.hab'
+                h5name = name_hdf5 + '.sub'
             else:
-                h5name = 'Substrate_CONST.hab'
+                h5name = 'Substrate_CONST.sub'
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
                 try:
                     os.remove(os.path.join(path_hdf5, h5name))
@@ -447,15 +453,15 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_n
         # create hdf5 name
         if not erase_idem:
             if name_hdf5:
-                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
+                h5name = name_hdf5 + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.sub'
             else:
-                h5name = 'Substrate_VAR_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
+                h5name = 'Substrate_VAR_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.sub'
         # create hdf5 name if we erase identical files
         else:
             if name_hdf5:
-                h5name = name_hdf5 + '.hab'
+                h5name = name_hdf5 + '.sub'
             else:
-                h5name = 'Substrate_VAR.hab'
+                h5name = 'Substrate_VAR.sub'
             if os.path.isfile(os.path.join(path_hdf5, h5name)):
                 try:
                     os.remove(os.path.join(path_hdf5, h5name))
@@ -1257,7 +1263,7 @@ def get_filename_by_type(type, path):
 
     filenames = []
     for file in os.listdir(dirname):
-        if file.endswith(".hab"):
+        if file.endswith((".hyd", ".sub", ".hab")):
             file_hydro, _ = open_hdf5_(file, dirname, "read")
             if file_hydro.attrs["hdf5_type"] == type:
                 if type == "substrate":
@@ -1323,7 +1329,11 @@ def get_hdf5_name(model_name, name_prj, path_prj):
                     return
                 name_hdf5 = max(files, key=os.path.getmtime)
                 if len(name_hdf5) > 3:
-                    if name_hdf5[:-3] == '.hab':
+                    if model_name == 'MERGE':
+                        extensionhdf5 = '.hab'  # merge data is in the subtrate tag in the xml files
+                    else:
+                        extensionhdf5 = '.hyd'
+                    if name_hdf5[:-3] == extensionhdf5:
                         name_hdf5 = name_hdf5[:-3]
                 return name_hdf5
             else:
