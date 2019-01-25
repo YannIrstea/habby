@@ -2474,7 +2474,7 @@ class WelcomeW(QScrollArea):
 
         # self.setLayout(layout2)
         self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
     def open_example(self):
