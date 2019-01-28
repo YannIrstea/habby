@@ -205,7 +205,7 @@ class Hydro2W(QScrollArea):
         self.layout.addItem(verticalSpacer)
 
         self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
     def selectionchange(self, i):
@@ -3849,7 +3849,7 @@ class SubstrateW(SubHydroW):
         self.layout_sub_tab.addItem(verticalSpacer)
         self.scrollarea = QScrollArea()
         self.scrollarea.setWidgetResizable(True)
-        self.scrollarea.setFrameShape(QFrame.Shape.NoFrame)
+        self.scrollarea.setFrameShape(QFrame.NoFrame)
         self.scrollarea.setWidget(content_widget)
         self.layoutscroll = QVBoxLayout()
         self.layoutscroll.setContentsMargins(0, 0, 0, 0)

@@ -67,7 +67,7 @@ class PlotTab(QScrollArea):
 
         # add layout
         self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
 

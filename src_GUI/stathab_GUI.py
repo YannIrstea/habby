@@ -262,7 +262,7 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.Shape.NoFrame)
+        self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
     def select_dir(self):
