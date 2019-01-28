@@ -367,9 +367,8 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     return
 
 
-def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_name, ikle_sub=[], coord_p=[], units=[], reach=[],
-                  name_hdf5='', constsub=False,
-                  model_type='SUBSTRATE', return_name=False):
+def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_system, sub_epsg_code, ikle_sub=[], coord_p=[], units=[], reach=[],
+                  name_hdf5='', model_type='substrate', return_name=False):
     """
     This function creates an hdf5 with the substrate data. This hdf5 does not have the same form than the hdf5 file used
     to store hydrological or merge data. This hdf5 store the substrate data alone before it is merged with the
@@ -379,7 +378,8 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_n
     :param path_prj: the project path
     :param name_prj: the name of the project
     :param sub_array: List of data by columns (index in list correspond with header)
-    :param sub_classification_name : type of substrate
+    :param sub_description_system: type of substrate
+    :param sub_epsg_code : code EPSG
     :param ikle_sub: the connectivity table for the substrate (only if constsub = False)
     :param coord_p: the point of the grid of the substrate (only if constsub = False)
     :param name_hdf5: the name of the substrate h5 file (without the timestamp). If not given, a default name is used.
@@ -396,11 +396,11 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_n
         erase_idem = False
     save_xml = True
 
-    if name_hdf5[-3:] == '.sub':
-        name_hdf5 = name_hdf5[:-3]
-
+    if name_hdf5[-4:] == '.sub':
+        name_hdf5 = name_hdf5[:-4]
+    aa = 1
     # CONSTANT CASE
-    if constsub:
+    if sub_description_system["sub_mapping_method"] == "constant":
         # create hdf5 name if we keep all the files (need a time stamp)
         if not erase_idem:
             if name_hdf5:
@@ -449,7 +449,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_n
         file.close()
 
     # TXT OR SHP
-    else:
+    sub_description_system["sub_mapping_method"] == "polygon":
         # create hdf5 name
         if not erase_idem:
             if name_hdf5:
@@ -482,7 +482,13 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_classification_n
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
         file.attrs['h5py_version'] = h5py.version.version
         file.attrs['hdf5_type'] = "substrate"
-        file.attrs['source_type'] = "from_file"
+
+
+        file.attrs['sub mapping method'] = sub_description_system["sub_mapping_method"]
+        file.attrs['sub classification code'] = "substrate"
+        file.attrs['sub classification_method'] = "substrate"
+
+sub_description_system
         file.attrs['sub_classification_name'] = sub_classification_name
 
         # save ikle, coordonate and data by timestep and reach

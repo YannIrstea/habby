@@ -248,7 +248,7 @@ def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file,
     return True
 
 
-def data_substrate_validity(header_list, sub_array, sub_map_method, sub_classification_code):
+def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_classification_code):
     """
     This function check if substrate data (from txt or shp) is coherent with code type.
 
@@ -259,9 +259,9 @@ def data_substrate_validity(header_list, sub_array, sub_map_method, sub_classifi
              sub_classification_name : type of substrate
     """
     # sub_description_system
-    sub_description_system = dict(sub_map_method=sub_map_method,
+    sub_description_system = dict(sub_mapping_method=sub_mapping_method,
                                   sub_classification_code=sub_classification_code,
-                                  sub_calssification_method=-99)
+                                  sub_classification_method=-99)
 
     # header
     fake_field = [None] * len(header_list)  # fake fields like shapefile
@@ -335,8 +335,6 @@ def shp_validity(filename, path_prj, code_type, dominant_case=1):
 
     # open shape file (think about zero or one to start! )
     sf = open_shp(filename, path_prj)
-
-
 
     # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
     [attribute_type, attribute_name] = get_useful_attribute(fields)
@@ -484,7 +482,8 @@ def shp_validity(filename, path_prj, code_type, dominant_case=1):
         return False, dominant_case
 
 
-def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, sub_classification_code, queue=[]):
+def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, sub_mapping_method,
+                 sub_classification_code, sub_epsg_code, queue=[]):
     """
     A function to load the substrate in form of shapefile.
 
@@ -512,15 +511,11 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
     records = sf.records()
     sub_array = list(zip(*records))
 
-    # sub_description_method
-    sub_description_method = "Delim"
-
     # check data validity
     data_validity, sub_description_system = data_substrate_validity(header_list,
                                                                     sub_array,
-                                                                    sub_description_method,
+                                                                    sub_mapping_method,
                                                                     sub_classification_code)
-    print("data_validated ? ", data_validity, ", sub_description_system : ", sub_description_system)
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
@@ -558,12 +553,11 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                                     name_prj,
                                     sub_array,
                                     sub_description_system,
+                                    sub_epsg_code,
                                     ikle,
                                     xy,
                                     [],
                                     [],
-                                    name_hdf5,
-                                    False,
                                     "substrate",
                                     True)
     queue.put(mystdout)

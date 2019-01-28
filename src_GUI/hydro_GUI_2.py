@@ -4070,7 +4070,9 @@ class SubstrateW(SubHydroW):
                                    self.path_prj + "/hab",
                                    self.name_prj,
                                    self.name_hdf5,
+                                   sub_mapping_method,
                                    sub_classification_code,
+                                   sub_epsg_code,
                                    self.q))
             self.p.start()
 
@@ -4079,13 +4081,14 @@ class SubstrateW(SubHydroW):
 
             # copy shape file (compsed of .shp, .shx and .dbf)
             path_input = self.find_path_input()
-            name_all = [self.namefile[0], name1, name2]
-            path_all = [self.pathfile[0], self.pathfile[0], self.pathfile[0]]
+            name_all = [filename, name1, name2]
+            path_all = [self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon]
+            # we might have an addition projection file to copy
+            if os.path.isfile(pathname3):
+                name_all = [filename, name1, name2, name3]
+                path_all = [self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon]
             self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
             self.p2.start()
-            # we might have an addition projection file to copy (short)
-            if os.path.isfile(pathname3):
-                load_hdf5.copy_files([name3], [self.pathfile[0]], path_input)
 
             # log info
             self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
