@@ -1206,7 +1206,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_sub = os.path.basename(all_arg[2])
             hdf5_name_sub = os.path.join(path_input, name_sub)
 
-        [ikle_sub, point_all_sub, data_sub] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
+        [ikle_sub, point_all_sub, data_sub, sub_description_system] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HABITAT':

@@ -105,7 +105,7 @@ def get_useful_attribute(attributes):
     found_per = False
     found_pg = False
     found_one_pg = 0  # if we found dominant and "plus gros", we get found_pg = True
-    sub_calssification_method = -99  # -99 indicates a failed load.
+    sub_classification_method = -99  # -99 indicates a failed load.
     attribute_name = ['-99', '-99', '-99']
     num_here = 0
 
@@ -122,12 +122,12 @@ def get_useful_attribute(attributes):
 
         if found_one_pg == 2:
             found_pg = True
-            sub_calssification_method = "Coarser-Dominant"
+            sub_classification_method = "coarser-dominant"
 
         if f[0] in per_all:
             num_here += 1
             found_per = True
-            sub_calssification_method = "Percentage"
+            sub_classification_method = "percentage"
             if f[-1] == '1':
                 attribute_name[0] = f[0]
             if f[-1] == '2':
@@ -140,14 +140,14 @@ def get_useful_attribute(attributes):
         if found_per and found_pg:
             print('Error: The attributes of substrate shapefile cannot be understood: mixing betweeen percentage and'
                   'coarser/dominant attributes.\n')
-            sub_calssification_method = -99
+            sub_classification_method = -99
             return
 
     if not found_pg and not found_per:
         print('Error: The attribute names of the substrate could not be recognized.\n')
-        sub_calssification_method = -99
+        sub_classification_method = -99
 
-    return sub_calssification_method, attribute_name
+    return sub_classification_method, attribute_name
 
 
 def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
@@ -268,15 +268,15 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
     header2 = list(zip(header_list, fake_field))
 
     # percent or coarserdom ?
-    [sub_calssification_method, attribute_name] = get_useful_attribute(header2)
-    sub_description_system["sub_calssification_method"] = sub_calssification_method
+    [sub_classification_method, attribute_name] = get_useful_attribute(header2)
+    sub_description_system["sub_classification_method"] = sub_classification_method
 
     # get sub_classification_name
-    if sub_calssification_method == -99:
+    if sub_classification_method == -99:
         return False, sub_description_system
 
     # coarserdom
-    if sub_calssification_method == "Coarser-Dominant":
+    if sub_classification_method == "coarser-dominant":
         # coarser dom
         sub_pg = sub_array[header_list.index("coarser")]
         sub_dom = sub_array[header_list.index("dom")]
@@ -304,11 +304,11 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
             return False, sub_description_system
 
     # if percentage type
-    if sub_calssification_method == "Coarser-Dominant":
+    if sub_classification_method == "percentage":
         # all case : sum == 100 % ?
-        sub_array = list(zip(*sub_array))  # retransforme data by features
-        for e in range(0, len(sub_array)):  # for all features
-            if sum(sub_array[e]) != 100:
+        sub_array2 = list(zip(*sub_array))  # retransforme data by features
+        for e in range(0, len(sub_array2)):  # for all features
+            if sum(sub_array2[e]) != 100:
                 print('Warning: Substrate data is given in percentage. However, it does not sum to 100% \n')
                 return False, sub_description_system
         # code type Cemagref S1 ==> S8
@@ -483,7 +483,7 @@ def shp_validity(filename, path_prj, code_type, dominant_case=1):
 
 
 def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, sub_mapping_method,
-                 sub_classification_code, sub_epsg_code, queue=[]):
+                 sub_classification_code, sub_epsg_code, default_values, queue=[]):
     """
     A function to load the substrate in form of shapefile.
 
@@ -516,6 +516,9 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                                                                     sub_array,
                                                                     sub_mapping_method,
                                                                     sub_classification_code)
+    sub_description_system["sub_epsg_code"] = sub_epsg_code
+    sub_description_system["sub_filename_source"] = filename
+    sub_description_system["sub_default_values"] = default_values
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
@@ -544,6 +547,10 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                         xy.append(p_all[j])
                 ikle.append(ikle_i)
 
+            # get data
+            records = sf.records()
+            sub_array = list(zip(*records))
+
             # having a convex subtrate grid is really practical (not used because triangles are never concave
             # [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
 
@@ -553,13 +560,13 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                                     name_prj,
                                     sub_array,
                                     sub_description_system,
-                                    sub_epsg_code,
                                     ikle,
                                     xy,
                                     [],
                                     [],
-                                    "substrate",
-                                    True)
+                                    name_hdf5,
+                                    "SUBSTRATE",
+                                    False)
     queue.put(mystdout)
 
 
@@ -718,7 +725,8 @@ def percentage_to_domcoarse(sub_data, dominant_case):
     return sub_dom, sub_pg
 
 
-def load_sub_txt(filename, path, code_type, path_shp='.', queue=[], dominant_case=0):
+def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, sub_classification_method, sub_epsg_code,
+                 path_shp='.', queue=[], dominant_case=0):
     """
     A function to load the substrate in form of a text file. The text file must have 4 columns x,y coordinate and
     coarser substrate type, dominant substrate type. It is transform to a grid using a voronoi
@@ -731,7 +739,7 @@ def load_sub_txt(filename, path, code_type, path_shp='.', queue=[], dominant_cas
 
     :param filename: the name of the shapefile
     :param path: the path where the shapefile is
-    :param code_type: the type of code used to define the substrate (string)
+    :param sub_classification_code: the type of code used to define the substrate (string)
     :param path_shp: the path where to save the shapefile (usually the input folder)
     :return: grid in form of list of coordinate and connectivity table (two list)
              and an array with substrate type and (x,y,sub) of the orginal data
@@ -744,61 +752,57 @@ def load_sub_txt(filename, path, code_type, path_shp='.', queue=[], dominant_cas
     # read
     with open(file, 'rt') as f:
         data = f.read()
+
     # neglect the first line as it is the header
     ind1 = data.find('\n')
     if ind1 == -1:
         print('Error: Could not find more than one line in the substrate input file. Check format \n')
+
+    sub_end_info_habby_index = 4
+    sub_header_index = 5
+
     # header
-    header = data.split("\n")[0].split("\t")[2:]
+    header = data.split("\n")[sub_end_info_habby_index].split("\t")[2:]
     fake_field = [None] * len(header)  # fake fields like shapefile
     header = list(zip(header, fake_field))
     [attribute_type, attribute_name] = get_useful_attribute(header)
+
+    data = data.split("\n")[sub_header_index:]
 
     if attribute_type == -99:
         print('Error: The substate data not recognized.\n')
         return
 
-    data = data[ind1:]
-    data = data.split()
-    # if len(data) % 4 != 0:
-    #     print('Error: the number of column in ' + filename + ' is not four. Check format.\n')
-    #     return False
+    if not attribute_type == sub_classification_method:
+        print("Error: The sub classification code don't match headers.\n")
+        return
 
-    # get x,y (you might have alphanumeric data in the substrate column)
-    x = [data[i] for i in np.arange(0, len(data), len(header) + 2)]
-    y = [data[i] for i in np.arange(1, len(data), len(header) + 2)]
-    try:
-        x = list(map(float, x))
-        y = list(map(float, y))
-    except TypeError:
-        print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
-        return False
+    if sub_classification_method == 'coarser-dominant':
+        sub_nb_class = 2
+    if sub_classification_method == 'percentage' and sub_classification_code == "Cemagref":
+        sub_nb_class = 8
+    if sub_classification_method == 'percentage' and sub_classification_code == "Sandre":
+        sub_nb_class = 12
 
-    if attribute_type == 1:  # percent to sub/dom
-        # transform to cemagref substrate form
-        if code_type == 'Cemagref':
-            if len(header) != 8:
-                print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
+    x = []
+    y = []
+    sub_array = [[] for i in range(sub_nb_class)]
+
+    for line in data:
+        try:
+            line_list = line.split()
+            x.append(float(line_list[0]))
+            y.append(float(line_list[1]))
+        except TypeError:
+            print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
+            return False
+        for i in range(sub_nb_class):
+            index = i + 2
+            try:
+                sub_array[i].append(int(line_list[index]))
+            except TypeError:
+                print("Error: Substrate data could not be read as integer. Check format of the file " + filename + '.\n')
                 return False
-        # code type sandre
-        elif code_type == 'Sandre':
-            if len(header) != 12:
-                print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-                return False
-
-        # get only sub data
-        data_by_feature = np.array([list(map(int, data[i+2:i+len(header) + 2])) for i in range(0, len(data), len(header) + 2)])
-        # get the domainant and coarser from the percentage
-        [sub_dom, sub_pg] = percentage_to_domcoarse(data_by_feature, dominant_case)
-
-        # code type sandre
-        if code_type == 'Sandre':
-            sub_dom = sandre_to_cemagref(sub_dom)
-            sub_pg = sandre_to_cemagref(sub_pg)
-
-    if attribute_type == 0:  # percent
-        sub_pg = [data[i] for i in np.arange(2, len(data), len(header) + 2)]
-        sub_dom = [data[i] for i in np.arange(3, len(data), len(header) + 2)]
 
     # Coord
     point_in = np.vstack((np.array(x), np.array(y))).T
@@ -843,59 +847,32 @@ def load_sub_txt(filename, path, code_type, path_shp='.', queue=[], dominant_cas
     if len(list_polyg) == 0:
         print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
         return False
-    sub_dom2 = np.zeros(len(list_polyg), )
-    sub_pg2 = np.zeros(len(list_polyg), )
+
+    sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_nb_class)]
+
     for e in range(0, len(list_polyg)):
         polygon = list_polyg[e]
         centerx = np.float64(polygon.centroid.x)
         centery = np.float64(polygon.centroid.y)
         nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
-        sub_dom2[e] = sub_dom[nearest_ind]
-        sub_pg2[e] = sub_pg[nearest_ind]
-
-    # transform code for text case
-    if code_type == 'Cemagref':
-        if min(sub_dom2) < 1 or min(sub_pg2) < 1:
-            print('Error: The Cemagref code should be formed by an int between 1 and 8. (2)\n')
-            return False
-        elif max(sub_dom2) > 8 or max(sub_pg2) > 8:
-            print('Error: The Cemagref code should be formed by an int between 1 and 8. (3)\n')
-            return False
-    # code type edf - checked and transform
-    elif code_type == 'EDF':
-        if min(sub_dom2) < 1 or min(sub_pg2) < 1:
-            print('Error: The edf code should be formed by an int between 1 and 8. (2)\n')
-            return False
-        elif max(sub_dom2) > 8 or max(sub_pg2) > 8:
-            print('Error: The edf code should be formed by an int between 1 and 8. (3)\n')
-            return False
-        else:
-            sub_dom2 = edf_to_cemagref(sub_dom2)
-            sub_pg2 = edf_to_cemagref(sub_pg2)
-    # code type sandre
-    elif code_type == 'Sandre':
-        if min(sub_dom2) < 1 or min(sub_pg2) < 1:
-            print('Error: The sandre code should be formed by an int between 1 and 12. (2)\n')
-            return False
-        elif max(sub_dom2) > 12 or max(sub_pg2) > 12:
-            print('Error: The sandre code should be formed by an int between 1 and 12. (3)\n')
-            return False
-        else:
-            sub_dom2 = sandre_to_cemagref(sub_dom2)
-            sub_pg2 = sandre_to_cemagref(sub_pg2)
-    else:
-        print('Error: The substrate code is not recognized.\n')
-        return False
+        for i in range(sub_nb_class):
+            sub_array2[i][e] = sub_array[i][nearest_ind]
 
     # export sub initial voronoi in a shapefile
     w = shapefile.Writer(shapefile.POLYGON)
     w.autoBalance = 1
-    w.field('coarser', 'F', 10, 8)
-    w.field('dom', 'F', 10, 8)
+
+    if sub_classification_method == 'coarser-dominant':
+        w.field('coarser', 'N', 10, 0)
+        w.field('dom', 'N', 10, 0)
+    if sub_classification_method == 'percentage':
+        for i in range(sub_nb_class):
+            w.field('S' + str(i + 1), 'N', 10, 0)
+
     for i, polygon in enumerate(list_polyg):  # for each polygon
         coord_list = list(polygon.exterior.coords)
         w.poly(parts=[coord_list])  # the double [[]] is important or it bugs, but why?
-        data_here = [sub_pg2[i], sub_dom2[i]]
+        data_here = [item[i] for item in sub_array2]
         w.record(*data_here)
 
     # filename output

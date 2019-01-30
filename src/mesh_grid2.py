@@ -25,7 +25,7 @@ import triangle
 import matplotlib.pyplot as plt
 
 
-def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, name_prj, path_prj,
+def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path_prj,
                         model_type, progress_value,
                         q=[], print_cmd=False, path_shp='', erase_id=False):
     """
@@ -39,7 +39,6 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     :param hdf5_name_hyd: the name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the name of the hdf5 with the substrate data
     :param path_hdf5: the path to the hdf5 data
-    :param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
     :param name_prj: the name of the project
     :param path_prj: the path to the project
     :param model_type: the type of the "model". In this case, it is just 'SUBSTRATE'
@@ -56,8 +55,9 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 10
 
     # merge the grid
-    [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both, inter_h_all_both] = \
-        merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value, default_data)
+    [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both,
+     inter_h_all_both, sub_description_system] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
+                                                                      path_hdf5, progress_value)
     if ikle_both == [-99]:
         print('Error: data not merged.\n')
         if q:
@@ -74,16 +74,17 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     sim_name = load_hdf5.load_unit_name(hdf5_name_hyd, path_hdf5)
 
     load_hdf5.save_hdf5_hyd_and_merge(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
-                                      point_all_both, [], inter_vel_all_both, inter_h_all_both, [], [], [], [], True,
+                                      point_all_both, [], inter_vel_all_both, inter_h_all_both, sub_description_system,
+                                      [], [], [], [], True,
                                       sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
-                                      hydro_ini_name=hdf5_name_hyd, hdf5_type="merge")
+                                      hydro_ini_name=hdf5_name_hyd, hdf5_type="habitat")
 
     # progress
     progress_value.value = 95
 
     # save in a shapefile form
     if path_shp:
-        load_hdf5.create_shapfile_hydro(name_hdf5merge + '.hab', path_hdf5, path_shp, True, erase_id)
+        load_hdf5.create_shapfile_hydro(name_hdf5merge, path_hdf5, path_shp, True, erase_id)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -94,7 +95,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
         return
 
 
-def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value, default_data=1, path_prj=''):
+def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value, path_prj=''):
     """
     After the data for the substrate and the hydrological data are loaded, they are still in different grids.
     This functions will merge both grid together. This is done for all time step and all reaches. If a
@@ -103,7 +104,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
     :param hdf5_name_hyd: the name of the hdf5 file with the hydrological data
     :param hdf5_name_sub: the name of the hdf5 with the substrate data
     :param path_hdf5: the path to the hdf5 data
-    :param default_data: The substrate data given in the region of the hydrological grid where no substrate is given
     :param path_prj: the path to the project
     :return: the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
 
@@ -116,178 +116,179 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
     vel_all_both = []
     height_all_both = []
 
-    try:
-        default_data = float(default_data)
-    except ValueError:
-        print('Error: Default data should be a float. (1)\n')
-        return failload
-    if default_data > 8 or default_data < 1:
-        print('The default data should be in the Cemagref code (between 1 and 8).')
-        return failload
-
     # load hdf5 hydro
     [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5)
 
     # load hdf5 sub
-    [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
+    [ikle_sub, point_all_sub, sub_array, sub_description_system] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
 
-    # simple test case to debug( two triangle separated by an horizontal line)
-    # point_all = [[np.array([[0.5, 0.55], [0.3, 0.55], [0.5, 0.3], [0.3, 0.3]])]]
-    # ikle_all = [[np.array([[0, 1, 3], [0, 2, 3]])]]
-    # ikle_sub = np.array([[0, 1, 2]])
-    # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35], [1, 1]])
 
-    # special cases and checks
-    if len(ikle_all) == 1 and ikle_all[0] == [-99]:
-        print('Error: hydrological data could not be loaded.')
-        return failload
-    elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
-        print('Error: Substrate data could not be loaded.')
-        return failload
-    elif len(point_all_sub) == 0 and ikle_sub == []:
-        # if constant substrate, the hydrological grid is used
-        # the default value is not really used
-        print('Warning: Constant substrate.')
-        for t in range(0, len(ikle_all)):
-            sub_data_all_pg = []
-            sub_data_all_dom = []
+
+
+    if sub_description_system["sub_classification_method"] == "coarser-dominant":
+        # coarser-dom data
+        data_sub_pg, data_sub_dom = [list(tup) for tup in zip(*sub_array)]
+        # default data (list of two integer)
+        default_data_raw = sub_description_system["sub_default_values"]
+        default_data = list(map(int, default_data_raw.split(", ")))
+
+        # simple test case to debug( two triangle separated by an horizontal line)
+        # point_all = [[np.array([[0.5, 0.55], [0.3, 0.55], [0.5, 0.3], [0.3, 0.3]])]]
+        # ikle_all = [[np.array([[0, 1, 3], [0, 2, 3]])]]
+        # ikle_sub = np.array([[0, 1, 2]])
+        # point_all_sub = np.array([[0.4, 0.45], [0.48, 0.45], [0.32, 0.35], [1, 1]])
+
+        # special cases and checks
+        if len(ikle_all) == 1 and ikle_all[0] == [-99]:
+            print('Error: hydrological data could not be loaded.')
+            return failload
+        elif len(ikle_sub) == 1 and ikle_sub[0][0] == -99:
+            print('Error: Substrate data could not be loaded.')
+            return failload
+        elif len(point_all_sub) == 0 and ikle_sub == []:
+            # if constant substrate, the hydrological grid is used
+            # the default value is not really used
+            print('Warning: Constant substrate.')
+            for t in range(0, len(ikle_all)):
+                sub_data_all_pg = []
+                sub_data_all_dom = []
+                if len(ikle_all[t]) > 0:
+                    for r in range(0, len(ikle_all[t])):
+                        try:
+                            sub_data_pg = np.zeros(len(ikle_all[t][r]), ) + float(data_sub_dom[0])
+                            sub_data_dom = np.zeros(len(ikle_all[t][r]), ) + float(data_sub_pg[0])
+                        except ValueError or TypeError:
+                            print('Error: no int in substrate. (only float or int accepted for now). \n')
+                            return failload
+                        sub_data_all_pg.append(sub_data_dom)
+                        sub_data_all_dom.append(sub_data_pg)
+
+                        # check that each triangle of the grid is clock-wise (useful for shapefile)
+                        if len(ikle_all[t][r]) > 3:
+                            ikle_all[t][r] = check_clockwise(ikle_all[t][r], point_all[t][r])
+
+                elif t > 0:
+                    for r in range(0, len(ikle_all[t])):
+                        sub_data_all_pg.append([-99])
+                        sub_data_all_dom.append([-99])
+
+                sub_dom_all_t.append(sub_data_all_dom)
+                sub_pg_all_t.append(sub_data_all_pg)
+
+            return ikle_all, point_all, sub_pg_all_t, sub_dom_all_t, inter_vel_all, inter_height_all
+        elif ikle_sub == [] and len(point_all_sub) != 0:
+            print('no connectivity table found for the substrate. Check the format of the hdf5 file. \n')
+            return failload
+        elif ikle_all == []:
+            print('no connectivity table found for the hydrology. Check the format of the hdf5 file. \n')
+            return failload
+        elif len(ikle_sub[0]) < 3:
+            print('Error: the connectivity table of the substrate is badly formed.')
+            return failload
+
+        # progress
+        delta = 80 / len(ikle_all)
+        if len(ikle_all) == 1:
+            delta = 80 / 2
+
+        # merge the grid for each time step (the time step 0 is the full profile)
+        warn_inter = True
+        no_inter = False
+        for t in range(0, len(ikle_all)):  # len(ikle_all)
+            ikle_all2 = []
+            point_all2 = []
+            data_sub2_pg = []
+            data_sub2_dom = []
+            vel2 = []
+            height2 = []
             if len(ikle_all[t]) > 0:
+                # print('Timestep: ' + str(t))
                 for r in range(0, len(ikle_all[t])):
-                    try:
-                        sub_data_pg = np.zeros(len(ikle_all[t][r]), ) + float(data_sub_dom[0])
-                        sub_data_dom = np.zeros(len(ikle_all[t][r]), ) + float(data_sub_pg[0])
-                    except ValueError or TypeError:
-                        print('Error: no int in substrate. (only float or int accepted for now). \n')
-                        return failload
-                    sub_data_all_pg.append(sub_data_dom)
-                    sub_data_all_dom.append(sub_data_pg)
-
-                    # check that each triangle of the grid is clock-wise (useful for shapefile)
-                    if len(ikle_all[t][r]) > 3:
-                        ikle_all[t][r] = check_clockwise(ikle_all[t][r], point_all[t][r])
-
-            elif t > 0:
-                for r in range(0, len(ikle_all[t])):
-                    sub_data_all_pg.append([-99])
-                    sub_data_all_dom.append([-99])
-
-            sub_dom_all_t.append(sub_data_all_dom)
-            sub_pg_all_t.append(sub_data_all_pg)
-
-        return ikle_all, point_all, sub_pg_all_t, sub_dom_all_t, inter_vel_all, inter_height_all
-    elif ikle_sub == [] and len(point_all_sub) != 0:
-        print('no connectivity table found for the substrate. Check the format of the hdf5 file. \n')
-        return failload
-    elif ikle_all == []:
-        print('no connectivity table found for the hydrology. Check the format of the hdf5 file. \n')
-        return failload
-    elif len(ikle_sub[0]) < 3:
-        print('Error: the connectivity table of the substrate is badly formed.')
-        return failload
-
-    # progress
-    delta = 80 / len(ikle_all)
-    if len(ikle_all) == 1:
-        delta = 80 / 2
-
-    # merge the grid for each time step (the time step 0 is the full profile)
-    warn_inter = True
-    no_inter = False
-    for t in range(0, len(ikle_all)):  # len(ikle_all)
-        ikle_all2 = []
-        point_all2 = []
-        data_sub2_pg = []
-        data_sub2_dom = []
-        vel2 = []
-        height2 = []
-        if len(ikle_all[t]) > 0:
-            # print('Timestep: ' + str(t))
-            for r in range(0, len(ikle_all[t])):
-                point_before = np.array(point_all[t][r])
-                ikle_before = np.array(ikle_all[t][r])
-                if t > 0:
-                    vel_before = inter_vel_all[t][r]
-                    height_before = inter_height_all[t][r]
-                else:
-                    vel_before = []
-                    height_before = []
-                if len(ikle_before) < 1:
-                    print('Warning: One time steps without grids found. \n')
-                    data_sub2_pg.append([-99])
-                    data_sub2_dom.append([-99])
-                    vel2.append([-99])
-                    height2.append([-99])
-                    ikle_all2.append([[-99, -99]])
-                    point_all2.append([[[-99, -99]]])
-                    break
-
-                if not no_inter:  # in case that is possible to have intersection
-
-                    if t == 0:  # should we adapt the subtrate grid? Only necessary once
-                        first_time = True
+                    point_before = np.array(point_all[t][r])
+                    ikle_before = np.array(ikle_all[t][r])
+                    if t > 0:
+                        vel_before = inter_vel_all[t][r]
+                        height_before = inter_height_all[t][r]
                     else:
-                        first_time = False
+                        vel_before = []
+                        height_before = []
+                    if len(ikle_before) < 1:
+                        print('Warning: One time steps without grids found. \n')
+                        data_sub2_pg.append([-99])
+                        data_sub2_dom.append([-99])
+                        vel2.append([-99])
+                        height2.append([-99])
+                        ikle_all2.append([[-99, -99]])
+                        point_all2.append([[[-99, -99]]])
+                        break
 
-                    # find intersection betweeen hydrology and substrate
-                    [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom, data_crossing, sub_cell] = \
-                        find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg,
-                                           data_sub_dom, progress_value, delta,
-                                           first_time)
+                    if not no_inter:  # in case that is possible to have intersection
 
-                # if no intersection found at t==0
-                if len(data_crossing[0]) < 1 or no_inter:
-                    if warn_inter:
-                        print('Warning: No intersection between the grid and the substrate for one reach for'
-                              ' one or more time steps.\n')
-                        warn_inter = False
-                    try:
-                        sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
-                    except ValueError:
-                        print('Error: no float in substrate. (only float accepted for now).\n')
-                        return failload
-                    data_sub2_pg.append(sub_data_here)
-                    data_sub2_dom.append(sub_data_here)
-                    vel2.append(vel_before)
-                    height2.append(height_before)
-                    ikle_all2.append(ikle_before)
-                    point_all2.append(point_before)
+                        if t == 0:  # should we adapt the subtrate grid? Only necessary once
+                            first_time = True
+                        else:
+                            first_time = False
 
-                    # if it is t==0, we have no interestction possible as the grid can only be smaller than the full
-                    # dry profile
-                    if t == 0:
-                        no_inter = True
+                        # find intersection betweeen hydrology and substrate
+                        [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom, data_crossing, sub_cell] = \
+                            find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg,
+                                               data_sub_dom, progress_value, delta,
+                                               first_time)
 
-                else:
+                    # if no intersection found at t==0
+                    if len(data_crossing[0]) < 1 or no_inter:
+                        if warn_inter:
+                            print('Warning: No intersection between the grid and the substrate for one reach for'
+                                  ' one or more time steps.\n')
+                            warn_inter = False
+                        try:
+                            sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
+                        except ValueError:
+                            print('Error: no float in substrate. (only float accepted for now).\n')
+                            return failload
+                        data_sub2_pg.append(sub_data_here)
+                        data_sub2_dom.append(sub_data_here)
+                        vel2.append(vel_before)
+                        height2.append(height_before)
+                        ikle_all2.append(ikle_before)
+                        point_all2.append(point_before)
 
-                    # create the new grid based on intersection found
-                    [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
-                        create_merge_grid(ikle_before, point_before, data_sub_pg, data_sub_dom, vel_before,
-                                          height_before,
-                                          ikle_sub, default_data, data_crossing, sub_cell)
+                        # if it is t==0, we have no interestction possible as the grid can only be smaller than the full
+                        # dry profile
+                        if t == 0:
+                            no_inter = True
 
-                    # check that each triangle of the grid is clock-wise (useful for shapefile)
-                    ikle_here = check_clockwise(ikle_here, point_all_here)
+                    else:
 
-                    # print('TIME NEW GRID')
-                    # print(c - b)
-                    ikle_all2.append(np.array(ikle_here))
-                    point_all2.append(np.array(point_all_here))
-                    data_sub2_pg.append(new_data_sub_pg)
-                    data_sub2_dom.append(new_data_sub_dom)
-                    vel2.append(vel_new)
-                    height2.append(height_new)
+                        # create the new grid based on intersection found
+                        [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
+                            create_merge_grid(ikle_before, point_before, data_sub_pg, data_sub_dom, vel_before,
+                                              height_before,
+                                              ikle_sub, default_data, data_crossing, sub_cell)
 
-        ikle_both.append(ikle_all2)
-        point_all_both.append(point_all2)
-        sub_pg_all_t.append(data_sub2_pg)
-        sub_dom_all_t.append(data_sub2_dom)
-        vel_all_both.append(vel2)
-        height_all_both.append(height2)
-        # # progress
-        # prog += delta
-        # progress_value.value = int(prog)
+                        # check that each triangle of the grid is clock-wise (useful for shapefile)
+                        ikle_here = check_clockwise(ikle_here, point_all_here)
 
-    return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both
+                        # print('TIME NEW GRID')
+                        # print(c - b)
+                        ikle_all2.append(np.array(ikle_here))
+                        point_all2.append(np.array(point_all_here))
+                        data_sub2_pg.append(new_data_sub_pg)
+                        data_sub2_dom.append(new_data_sub_dom)
+                        vel2.append(vel_new)
+                        height2.append(height_new)
+
+            ikle_both.append(ikle_all2)
+            point_all_both.append(point_all2)
+            sub_pg_all_t.append(data_sub2_pg)
+            sub_dom_all_t.append(data_sub2_dom)
+            vel_all_both.append(vel2)
+            height_all_both.append(height2)
+            # # progress
+            # prog += delta
+            # progress_value.value = int(prog)
+
+    return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both, sub_description_system
 
 
 def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_sub_dom, progress_value, delta, first_time=False):
@@ -981,8 +982,9 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikl
     data_sub_pg_ok = np.zeros((len(sub_cell),))
     for i, s in enumerate(sub_cell):
         if s == -99 or s == -1:
-            data_sub_dom_ok[i] = default_data
-            data_sub_pg_ok[i] = default_data
+            #print(i, s)
+            data_sub_dom_ok[i] = default_data[0]
+            data_sub_pg_ok[i] = default_data[1]
         else:
             data_sub_dom_ok[i] = data_sub_dom[int(s)]
             data_sub_pg_ok[i] = data_sub_pg[int(s)]

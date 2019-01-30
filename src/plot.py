@@ -352,7 +352,7 @@ def plot_map_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im=
         plt.close()
 
 
-def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99],
+def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_system, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99],
                        ytxt=[-99], subtxt=[-99],
                        reach_num=-99):
     """
@@ -430,7 +430,10 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5
     colors_val = np.array(sub_pg)  # convert nfloors to colors that we can use later (cemagref)
     # Set norm to correspond to the data for which
     # the colorbar will be used.
-    norm = mpl.colors.Normalize(vmin=1, vmax=8)
+    if sub_description_system["sub_classification_code"] == "Cemagref":
+        norm = mpl.colors.Normalize(vmin=1, vmax=8)
+    if sub_description_system["sub_classification_code"] == "Sandre":
+        norm = mpl.colors.Normalize(vmin=1, vmax=12)
     n = len(sub_pg)
     for i in range(0, n):
         verts = []
@@ -452,7 +455,6 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5
     colors_val = np.array(sub_dom)  # convert nfloors to colors that we can use later
     # Set norm to correspond to the data for which
     # the colorbar will be used.
-    norm = mpl.colors.Normalize(vmin=1, vmax=8)
     n = len(sub_dom)
     for i in range(0, n):
         verts = []
@@ -479,7 +481,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, path_im, name_hdf5
     # following gives a basic continuous colorbar with ticks
     # and labels.
     cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-    cb1.set_label('Code Cemagref')
+    cb1.set_label(sub_description_system["sub_classification_code"])
     # plt.tight_layout()
 
     # save the figure
