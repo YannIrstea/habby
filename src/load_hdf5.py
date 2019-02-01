@@ -30,6 +30,213 @@ from src_GUI import output_fig_GUI
 VERSION = 0.25
 
 
+class Hdf5Management:
+    def __init__(self, name_prj, path_prj, hdf5_filename):
+        # hdf5 version attributes
+        self.h5py_version = h5py.version.version
+        self.hdf5_version = h5py.version.hdf5_version
+        # project attributes
+        self.path_prj = path_prj  # relative path to project
+        self.name_prj = name_prj  # name of project
+        self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.xml')
+        # hdf5 attributes fix
+        self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
+        # hdf5 file attributes
+        self.path = os.path.join(path_prj, "hdf5")  # relative path
+        self.filename = hdf5_filename  # filename with extension
+        self.absolute_path_file = os.path.join(self.path, self.filename)  # absolute path of filename with extension
+        self.basename = hdf5_filename[:-4]  # filename without extension
+        self.extension = hdf5_filename[-4:]  # extension of filename
+        self.file_object = None  # file object
+        if self.extension == ".hyd":
+            self.type = "hdf5_hydrodata"  # hyd
+        if self.extension == ".sub":
+            self.type = "hdf5_substrate"  # sub
+        if self.extension == ".hab":
+            self.type = "hdf5_habitat"  # hab
+        # hyd attributes
+        self.hyd_model_type = None  # for type == hydraulic : TELEMAC, hec ras, ...
+
+    def open_hdf5_file(self, new):
+        # get mode
+        if not new:
+            mode_file = 'r+'  # Readonly, file must exist
+        if new:
+            mode_file = 'w'  # Read/write, file must exist
+
+        # extension check
+        if self.extension not in self.extensions:
+            print(f"Warning: the extension file should be : {self.extensions}.")
+
+        # file presence check
+        try:
+            self.file_object = h5py.File(self.absolute_path_file, mode_file)
+            if new:
+                self.file_object.attrs['hdf5_version'] = self.h5py_version
+                self.file_object.attrs['h5py_version'] = self.hdf5_version
+                self.file_object.attrs['software'] = 'HABBY'
+                self.file_object.attrs['software_version'] = str(VERSION)
+                self.file_object.attrs['path_projet'] = self.path_prj
+                self.file_object.attrs['name_projet'] = self.name_prj
+        except OSError:
+            print('Error: the hdf5 file could not be loaded.')
+            self.file_object = None
+
+    def save_xml(self, model_type):
+        if not os.path.isfile(self.absolute_path_prj_xml):
+            print('Error: No project saved. Please create a project first in the General tab.')
+            return
+        else:
+            doc = ET.parse(self.absolute_path_prj_xml)
+            root = doc.getroot()
+            child = root.find(".//" + model_type)
+            # if the xml attribute do not exist yet, xml name should be saved
+            if child is None:
+                here_element = ET.SubElement(root, model_type)
+                hdf5file = ET.SubElement(here_element, self.type)
+                hdf5file.text = self.filename
+            else:
+                child2s = root.findall(".//" + model_type + "/" + self.type)
+                if child2s is not None:
+                    found_att_text = False
+                    for i, c in enumerate(child2s):
+                        if c.text == self.filename:     # if same : remove/recreate at the end
+                                                        # (for the last file create labels)
+                            found_att_text = True
+                            index_origin = i
+                    if found_att_text:
+                        # existing element
+                        element = child2s[index_origin]
+                        # remove existing
+                        child.remove(element)
+                        # add existing to the end
+                        hdf5file = ET.SubElement(child, self.type)
+                        hdf5file.text = self.filename
+                    if not found_att_text:
+                        hdf5file = ET.SubElement(child, self.type)
+                        hdf5file.text = self.filename
+                else:
+                    hdf5file = ET.SubElement(child, self.type)
+                    hdf5file.text = self.filename
+            # write xml
+            doc.write(self.absolute_path_prj_xml)
+
+    def create_hdf5_hyd(self, model_type, nb_dim, sim_name, hyd_filename_source,
+                        ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t):
+
+        # create a new hdf5
+        self.open_hdf5_file(new=True)
+
+        # create attributes
+        self.file_object.attrs['hdf5_type'] = "hydraulic"
+        self.file_object.attrs['hyd_filename_source'] = hyd_filename_source
+        self.file_object.attrs['hyd_model_type'] = model_type
+
+        # save the name of the units and reach description
+        if sim_name:
+            # units
+            unit_ascii_str = [n.strip().encode("ascii", "ignore") for n in sim_name]  # unicode is not ok with hdf5
+            unit_name_dataset = self.file_object.create_dataset("description_unit", (len(sim_name),), data=unit_ascii_str)
+            unit_name_dataset.attrs['nb'] = len(ikle_all_t) - 1
+            unit_name_dataset.attrs['type'] = "timestep"  # TODO : change by discharge if units are discharges
+            # reachs
+            reach_nb = len(ikle_all_t[0])
+            reach_ascii_str = [f"reach_{i}".strip().encode("ascii", "ignore") for i in
+                               range(reach_nb)]  # unicode is not ok with hdf5
+            reach_name_dataset = self.file_object.create_dataset("description_reach", (reach_nb,), data=reach_ascii_str)
+            reach_name_dataset.attrs['nb'] = reach_nb
+
+        # data by type of model (1D)
+        if nb_dim == 1:
+            Data_group = self.file_object.create_group('data_1d')
+            xhzv_datag = Data_group.create_group('xhzv_data')
+            xhzv_datag.create_dataset('xhzv_data', data=xhzv_data)
+
+        # data by type of model (1.5D)
+        if nb_dim < 2:
+            Data_group = self.file_object.create_group('data_15d')
+            adict = dict()
+            for p in range(0, len(coord_pro)):
+                ns = 'p' + str(p)
+                adict[ns] = coord_pro[p]
+            coord_prog = Data_group.create_group('coord_pro')
+            for k, v in adict.items():
+                coord_prog.create_dataset(k, data=v)
+                # coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
+            for t in range(0, len(vh_pro)):
+                there = Data_group.create_group('unit_' + str(t))
+                adict = dict()
+                for p in range(0, len(vh_pro[t])):
+                    ns = 'p' + str(p)
+                    adict[ns] = vh_pro[t][p]
+                for k, v in adict.items():
+                    there.create_dataset(k, data=v)
+            nbproreachg = Data_group.create_group('Number_profile_by_reach')
+            nb_pro_reach2 = list(map(float, nb_pro_reach))
+            nbproreachg.create_dataset('Number_profile_by_reach', [len(nb_pro_reach2), 1], data=nb_pro_reach2)
+
+        # data by type of model (2D)
+        if nb_dim <= 2:
+            warn_dry = True
+            Data_group = self.file_object.create_group('data_2d')
+            for t in range(0, len(ikle_all_t)):
+                if t == 0:  # whole_profile
+                    there = Data_group.create_group('whole_profile')
+                else:  # all units
+                    there = Data_group.create_group('unit_' + str(t - 1))
+                # for all units
+                for r in range(0, len(ikle_all_t[t])):
+                    # REACH GROUP
+                    rhere = there.create_group('reach_' + str(r))
+
+                    # NODE GROUP
+                    node_group = rhere.create_group('node')
+                    # coordinates (point_all / XY)
+                    node_group.create_dataset("xy", [len(point_all_t[t][r]), 2], data=point_all_t[t][r])
+                    # velocity (inter_vel_all / V)
+                    if len(inter_vel_all_t) > 0:
+                        if len(inter_vel_all_t[t]) > 0 and not isinstance(inter_vel_all_t[t][0], float):
+                            node_group.create_dataset("v", [len(inter_vel_all_t[t][r]), 1],
+                                                      data=inter_vel_all_t[t][r])
+                    # height (inter_h_all / H)
+                    if len(inter_h_all_t) > 0:
+                        if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
+                            node_group.create_dataset("h", [len(inter_h_all_t[t][r]), 1],
+                                                      data=inter_h_all_t[t][r])
+
+                    # MESH GROUP
+                    mesh_group = rhere.create_group('mesh')
+                    # connectivity table (ikle / tin)
+                    if len(ikle_all_t[t][r]) > 0:
+                        mesh_group.create_dataset("tin", [len(ikle_all_t[t][r]), len(ikle_all_t[t][r][0])],
+                                                  data=ikle_all_t[t][r])
+                    else:
+                        if warn_dry:
+                            print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
+                            warn_dry = False
+                        mesh_group.create_dataset("tin", [len(ikle_all_t[t][r])], data=ikle_all_t[t][r])
+                    # coordinates center (point_c_all / xy_center)
+                    if len(point_c_all_t) > 0:
+                        if len(point_c_all_t[t]) > 0 and not isinstance(point_c_all_t[t][0], float):
+                            if t == 0:  # whole_profile
+                                mesh_group.create_dataset("xy_center", [len(point_c_all_t[t][r]), 2],
+                                                          data=point_c_all_t[t][r])
+
+        # close file
+        self.file_object.close()
+
+        # save XML
+        self.save_xml(model_type)
+
+
+
+
+
+
+
+
+
+
 def open_hdf5(hdf5_name, mode="read"):
     """
     This is a function which opens an hdf5 file and check that it exists. It does not load the data. It only opens the
@@ -85,13 +292,11 @@ def open_hdf5_(hdf5_name, path_hdf5, mode):
     return file_, False
 
 
-def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t, point_all_t,
-                            point_c_all_t,
-                            inter_vel_all_t, inter_h_all_t, sub_description_system, xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[],
-                            merge=False,
-                            sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[], sub_ini_name='',
-                            hydro_ini_name='',
-                            save_option=None, hdf5_type=None):
+def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5,
+                            ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t,
+                            sub_description_system=[], xhzv_data=[], coord_pro=[], vh_pro=[], nb_pro_reach=[],
+                            merge=False, sub_pg_all_t=[], sub_dom_all_t=[], sub_per_all_t=[], sim_name=[],
+                            hyd_filename_source='', sub_ini_name='', hydro_ini_name='', save_option=None, hdf5_type=None):
     """
     This function save the hydrological data in the hdf5 format.
 
@@ -115,6 +320,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     :param sub_dom_all_t: the data of the dominant substrate given on the merged grid by cells. Only used if merge is True.
     :param sub_per_all_t: the data of the substreate by percentage. Only used with lammi (mostly)
     :param sim_name: the name of the simulation or the names of the time steps if the names are not [0,1,2,3, etc.]
+    :param hyd_filename_source: The name of the substrate file used to create the hdf5 hyd
     :param sub_ini_name: The name of the substrate hdf5 file from which the data originates
     :param hydro_ini_name: the name of the hydraulic hdf5 file from which the data originates
     :param save_option: If save_option is not none, the variable erase_idem which is usually given in the figure option
@@ -162,9 +368,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     if not merge:
         extensionhdf5 = '.hyd'
 
-
     # to know if we have to save a new hdf5
-
     if save_option is None:
         save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
         if save_opt['erase_id'] == 'True':  # xml is all in string
@@ -200,15 +404,20 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     file.attrs['name_projet'] = name_prj
     file.attrs['hdf5_version'] = h5py.version.hdf5_version
     file.attrs['h5py_version'] = h5py.version.version
-    file.attrs['sub_ini_name'] = sub_ini_name
-    file.attrs['hydro_ini_name'] = hydro_ini_name
     file.attrs['hdf5_type'] = hdf5_type
-    file.attrs['sub_mapping_method'] = sub_description_system["sub_mapping_method"]
-    file.attrs['sub_classification_code'] = sub_description_system["sub_classification_code"]
-    file.attrs['sub_classification_method'] = sub_description_system["sub_classification_method"]
-    file.attrs['sub_epsg_code'] = sub_description_system["sub_epsg_code"]
-    file.attrs['sub_filename_source'] = sub_description_system["sub_filename_source"]
-    file.attrs['sub_default_values'] = sub_description_system["sub_default_values"]
+    if hyd_filename_source != '':
+        file.attrs['hyd_filename_source'] = hyd_filename_source
+    if merge:
+        file.attrs['hyd_ini_name'] = os.path.basename(hydro_ini_name)
+        file.attrs['sub_ini_name'] = sub_ini_name
+        file.attrs['sub_mapping_method'] = sub_description_system["sub_mapping_method"]
+        file.attrs['sub_classification_code'] = sub_description_system["sub_classification_code"]
+        file.attrs['sub_classification_method'] = sub_description_system["sub_classification_method"]
+        file.attrs['sub_filename_source'] = sub_description_system["sub_filename_source"]
+        if sub_description_system["sub_mapping_method"] != "constant":
+            file.attrs['sub_epsg_code'] = sub_description_system["sub_epsg_code"]
+            file.attrs['sub_default_values'] = sub_description_system["sub_default_values"]
+
 
     # save the name of the units and reach description
     if sim_name:
@@ -304,18 +513,24 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
                     # dominant (data_substrate_dom / sub_dominant)
                     if len(sub_dom_all_t) > 0:
                         if len(sub_dom_all_t[t]) > 0 and not isinstance(sub_dom_all_t[t][0], float):
-                            mesh_group.create_dataset("sub_dom", [len(sub_dom_all_t[t][r]), 1],
-                                                      data=sub_dom_all_t[t][r])
-                    # coarser (data_substrate_pg / sub_coarser)
-                    if len(sub_pg_all_t) > 0:
-                        if len(sub_pg_all_t[t]) > 0 and not isinstance(sub_pg_all_t[t][0], float):
-                            mesh_group.create_dataset("sub_coarser", [len(sub_pg_all_t[t][r]), 1],
-                                                      data=sub_pg_all_t[t][r])
-                    # percent (data_substrate_percentage / sub_percent)
-                    if sub_per_all_t:
-                        if len(sub_per_all_t[t]) > 0:
-                            mesh_group.create_dataset("sub_percent", [len(sub_per_all_t[t][r]), 8],
-                                                      data=sub_per_all_t[t][r])
+                            data_sub_ziped = list(zip(sub_pg_all_t[t][r], sub_dom_all_t[t][r]))
+                            mesh_group.create_dataset(name="sub", shape=[len(sub_dom_all_t[t][r]), 2],
+                                                      data=data_sub_ziped, dtype='i8')
+                    # # dominant (data_substrate_dom / sub_dominant)
+                    # if len(sub_dom_all_t) > 0:
+                    #     if len(sub_dom_all_t[t]) > 0 and not isinstance(sub_dom_all_t[t][0], float):
+                    #         mesh_group.create_dataset("sub_dom", [len(sub_dom_all_t[t][r]), 1],
+                    #                                   data=sub_dom_all_t[t][r])
+                    # # coarser (data_substrate_pg / sub_coarser)
+                    # if len(sub_pg_all_t) > 0:
+                    #     if len(sub_pg_all_t[t]) > 0 and not isinstance(sub_pg_all_t[t][0], float):
+                    #         mesh_group.create_dataset("sub_coarser", [len(sub_pg_all_t[t][r]), 1],
+                    #                                   data=sub_pg_all_t[t][r])
+                    # # percent (data_substrate_percentage / sub_percent)
+                    # if sub_per_all_t:
+                    #     if len(sub_per_all_t[t]) > 0:
+                    #         mesh_group.create_dataset("sub_percent", [len(sub_per_all_t[t][r]), 8],
+                    #                                   data=sub_per_all_t[t][r])
 
     # close file
     file.close()
@@ -373,8 +588,8 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     return
 
 
-def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_system, ikle_sub=[], coord_p=[], units=[], reach=[],
-                  name_hdf5='', model_type='SUBSTRATE', return_name=False):
+def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_system, ikle_sub=[], coord_p=[],
+                  units=[], reach=[], name_hdf5='', model_type='SUBSTRATE', return_name=False):
     """
     This function creates an hdf5 with the substrate data. This hdf5 does not have the same form than the hdf5 file used
     to store hydrological or merge data. This hdf5 store the substrate data alone before it is merged with the
@@ -384,7 +599,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
     :param path_prj: the project path
     :param name_prj: the name of the project
     :param sub_array: List of data by columns (index in list correspond with header)
-    :param sub_description_system: type of substrate
+    :param sub_description_system: info of substrate
     :param sub_epsg_code : code EPSG
     :param ikle_sub: the connectivity table for the substrate (only if constsub = False)
     :param coord_p: the point of the grid of the substrate (only if constsub = False)
@@ -488,9 +703,11 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
                     print("Could not save hdf5 substrate data. It might be used by another program \n")
                     return
                 save_xml = True
+
         # create a new hdf5
         fname = os.path.join(path_hdf5, h5name)
         file = h5py.File(fname, 'w')
+
         # create attributes
         file.attrs['software'] = 'HABBY'
         file.attrs['software_version'] = str(VERSION)
@@ -499,28 +716,15 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
         file.attrs['h5py_version'] = h5py.version.version
         file.attrs['hdf5_type'] = "substrate"
-        file.attrs['source_type'] = "constant_value"
         file.attrs['sub_mapping_method'] = sub_description_system["sub_mapping_method"]
         file.attrs['sub_classification_code'] = sub_description_system["sub_classification_code"]
         file.attrs['sub_classification_method'] = sub_description_system["sub_classification_method"]
-        file.attrs['sub_epsg_code'] = sub_description_system["sub_epsg_code"]
         file.attrs['sub_filename_source'] = sub_description_system["sub_filename_source"]
-        file.attrs['sub_default_values'] = sub_description_system["default_values"]
 
         # add the constant value of substrate
-        # constant_sub_pg / sub_coarser
-        if isinstance(sub_pg, float) or isinstance(sub_pg, int):
-            file.create_dataset("sub_coarser", [1, 1], data=sub_pg)
-        else:
-            print('Error: Constant substrate not recognized. (1) \n')
-        # constant_sub_dom / sub_dom
-        if isinstance(sub_dom, float) or isinstance(sub_dom, int):
-            file.create_dataset("sub_dom", [1, 1], data=sub_dom)
-        else:
-            print('Error: Constant substrate not recognized. (2) \n')
+        file.create_dataset("sub", [1, len(sub_array)], data=sub_array)
 
         file.close()
-
 
     # save the file to the xml of the project
     filename_prj = os.path.join(path_prj, name_prj + '.xml')
@@ -569,8 +773,9 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
     point_all = []
     inter_vel_all = []
     inter_height_all = []
-    substrate_all_pg = []
-    substrate_all_dom = []
+    # substrate_all_pg = []
+    # substrate_all_dom = []
+    substrate_all = []
     failload = [[-99]], [[-99]], [[-99]], [[-99]]
     if merge:
         failload = [[-99]], [[-99]], [[-99]], [[-99]], [[-99]], [[-99]]
@@ -578,6 +783,17 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
     file_hydro, bfailload = open_hdf5_(hdf5_name_hyd, path_hdf5, "read")
     if bfailload:
         return failload
+
+    if merge:
+        sub_description_system = dict()
+        sub_description_system["sub_mapping_method"] = file_hydro.attrs['sub_mapping_method']
+        sub_description_system["sub_classification_code"] = file_hydro.attrs['sub_classification_code']
+        sub_description_system["sub_classification_method"] = file_hydro.attrs['sub_classification_method']
+        sub_description_system["sub_filename_source"] = file_hydro.attrs['sub_filename_source']
+        if sub_description_system["sub_mapping_method"] != "constant":
+            sub_description_system["sub_epsg_code"] = file_hydro.attrs['sub_epsg_code']
+            sub_description_system["sub_default_values"] = file_hydro.attrs['sub_default_values']
+
 
     if units_index == "all":
         # load the number of time steps
@@ -596,6 +812,15 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
     except KeyError:
         print(
             'Error: the number of reaches is missing from the hdf5 file. \n')
+        file_hydro.close()
+        return failload
+
+    # load the hyd_filename_source
+    try:
+        hyd_filename_source = file_hydro.attrs['hyd_filename_source']
+    except KeyError:
+        print(
+            'Error: the hyd_filename_source is missing from the hdf5 file. \n')
         file_hydro.close()
         return failload
 
@@ -631,8 +856,9 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
     inter_vel_all.append([])  # no data for the whole profile case
     inter_height_all.append([])
     if merge:
-        substrate_all_pg.append([])
-        substrate_all_dom.append([])
+        # substrate_all_pg.append([])
+        # substrate_all_dom.append([])
+        substrate_all.append([])
     # for all unit
     for t in units_index:
         tin_all = []
@@ -640,14 +866,16 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
         h_all = []
         v_all = []
         if merge:
-            pg_all = []
-            dom_all = []
+            # pg_all = []
+            # dom_all = []
+            sub_all = []
         # for all reach
         for r in range(0, nb_r):
             tin_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/tin"
             if merge:
-                pg_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/sub_coarser"
-                dom_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/sub_dom"
+                # pg_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/sub_coarser"
+                # dom_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/sub_dom"
+                sub_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/mesh/sub"
             xy_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/node/xy"
             h_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/node/h"
             v_path = basename1 + "/unit_" + str(t) + "/reach_" + str(r) + "/node/v"
@@ -655,8 +883,9 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
             try:
                 tin_dataset = file_hydro[tin_path]
                 if merge:
-                    pg_dataset = file_hydro[pg_path]
-                    dom_dataset = file_hydro[dom_path]
+                    # pg_dataset = file_hydro[pg_path]
+                    # dom_dataset = file_hydro[dom_path]
+                    sub_dataset = file_hydro[sub_path]
                 xy_dataset = file_hydro[xy_path]
                 h_dataset = file_hydro[h_path]
                 v_dataset = file_hydro[v_path]
@@ -671,8 +900,9 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
                 h_data = h_dataset[:].flatten()
                 v_data = v_dataset[:].flatten()
                 if merge:
-                    pg_data = pg_dataset[:].flatten()
-                    dom_data = dom_dataset[:].flatten()
+                    # pg_data = pg_dataset[:].flatten()
+                    # dom_data = dom_dataset[:].flatten()
+                    sub_data = sub_dataset[:]
             except IndexError:
                 print('Error: the dataset for tin or xy (4) is missing from the hdf5 file for one time step. \n')
                 file_hydro.close()
@@ -682,22 +912,23 @@ def load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5, units_index="all", merge=F
             h_all.append(h_data)
             v_all.append(v_data)
             if merge:
-                pg_all.append(pg_data)
-                dom_all.append(dom_data)
+                # pg_all.append(pg_data)
+                # dom_all.append(dom_data)
+                sub_all.append(sub_data)
         ikle_all_t.append(tin_all)
         point_all.append(xy_all)
         inter_height_all.append(h_all)
         inter_vel_all.append(v_all)
         if merge:
-            substrate_all_pg.append(pg_all)
-            substrate_all_dom.append(dom_all)
-
+            # substrate_all_pg.append(pg_all)
+            # substrate_all_dom.append(dom_all)
+            substrate_all.append(sub_all)
     file_hydro.close()
 
+    if merge:
+        return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all, sub_description_system
     if not merge:
-        return ikle_all_t, point_all, inter_vel_all, inter_height_all
-    else:
-        return ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom
+        return ikle_all_t, point_all, inter_vel_all, inter_height_all, hyd_filename_source
 
 
 def load_hdf5_sub(hdf5_name_sub, path_hdf5):
@@ -724,28 +955,34 @@ def load_hdf5_sub(hdf5_name_sub, path_hdf5):
     sub_description_system["sub_mapping_method"] = file_sub.attrs['sub_mapping_method']
     sub_description_system["sub_classification_code"] = file_sub.attrs['sub_classification_code']
     sub_description_system["sub_classification_method"] = file_sub.attrs['sub_classification_method']
-    sub_description_system["sub_epsg_code"] = file_sub.attrs['sub_epsg_code']
     sub_description_system["sub_filename_source"] = file_sub.attrs['sub_filename_source']
-    sub_description_system["sub_default_values"] = file_sub.attrs['sub_default_values']
+    if sub_description_system["sub_mapping_method"] != "constant":
+        sub_description_system["sub_epsg_code"] = file_sub.attrs['sub_epsg_code']
+        sub_description_system["sub_default_values"] = file_sub.attrs['sub_default_values']
 
-    # DATA 2D GROUP
-    data_2d = file_sub['data_2d']
-    for t in range(0, len(list(data_2d.keys()))):
-        # UNIT GROUP
-        unit_group = data_2d['unit_' + str(t)]
-        for r in range(0, len(list(unit_group.keys()))):
-            # REACH GROUP
-            reach_group = unit_group['reach_' + str(r)]
-            # NODE AND MESH GROUP
-            node_group = reach_group['node']
-            mesh_group = reach_group['mesh']
-            # GET DATA FROM GROUPS
-            point_all_sub.append(node_group["xy"][:])  # coords (coord_p_sub / xy)
-            ikle_sub.append(mesh_group["tin"][:].tolist())  # connectivity table (ikle / tin)
-            sub_array.append(mesh_group["sub"][:].tolist())
-    ikle_sub = ikle_sub[0]
-    point_all_sub = point_all_sub[0]
-    sub_array = sub_array[0]
+    if not sub_description_system["sub_mapping_method"] == "constant":
+        # DATA 2D GROUP
+        data_2d = file_sub['data_2d']
+        for t in range(0, len(list(data_2d.keys()))):
+            # UNIT GROUP
+            unit_group = data_2d['unit_' + str(t)]
+            for r in range(0, len(list(unit_group.keys()))):
+                # REACH GROUP
+                reach_group = unit_group['reach_' + str(r)]
+                # NODE AND MESH GROUP
+                node_group = reach_group['node']
+                mesh_group = reach_group['mesh']
+                # GET DATA FROM GROUPS
+                point_all_sub.append(node_group["xy"][:])  # coords (coord_p_sub / xy)
+                ikle_sub.append(mesh_group["tin"][:].tolist())  # connectivity table (ikle / tin)
+                sub_array.append(mesh_group["sub"][:].tolist())
+        ikle_sub = ikle_sub[0]
+        point_all_sub = point_all_sub[0]
+        sub_array = sub_array[0]
+
+    if sub_description_system["sub_mapping_method"] == "constant":
+        sub_array = file_sub["sub"][:].tolist()[0]
+
     file_sub.close()
 
     return ikle_sub, point_all_sub, sub_array, sub_description_system
@@ -1544,10 +1781,16 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
     :param merge: If ture, the hdf5 file is a merge file with substrate data (usually True)
     """
 
+    if not merge:
+        [ikle_all_t, point_all_t, vel_nodes, height_node, hyd_filename_source] = load_hdf5_hyd_and_merge(name_hdf5,
+                                                                                               path_hdf5,
+                                                                                               merge=merge)
+    if merge:
+        [ikle_all_t, point_all_t, vel_nodes, height_node, sub_array, sub_description_system] = load_hdf5_hyd_and_merge(name_hdf5,
+                                                                                               path_hdf5,
+                                                                                               merge=merge)
 
-    [ikle_all_t, point_all_t, vel_nodes, height_node, sub_pg_data, sub_dom_data] = load_hdf5_hyd_and_merge(name_hdf5,
-                                                                                                           path_hdf5,
-                                                                                                           merge=merge)
+    #sub_dom_data
     if ikle_all_t == [[-99]] or len(ikle_all_t) < 1:
         return
     sim_name = load_unit_name(name_hdf5, path_hdf5)
@@ -1617,20 +1860,32 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
                 w.field('water heig', 'F', 50, 8)
                 w.field('conveyance', 'F', 50, 8)
                 if merge:
-                    w.field('sub_coarser', 'F', 50, 8)
-                    w.field('sub_dom', 'F', 50, 8)
+                    if sub_description_system["sub_classification_method"] == 'coarser-dominant':
+                        w.field('coarser', 'N', 10, 0)
+                        w.field('dom', 'N', 10, 0)
+                    if sub_description_system["sub_classification_method"] == 'percentage':
+                        if sub_description_system["sub_classification_code"] == "Cemagref":
+                            sub_nb_class = 8
+                        if sub_description_system["sub_classification_code"] == "Sandre":
+                            sub_nb_class = 12
+                        for i in range(sub_nb_class):
+                            w.field('S' + str(i + 1), 'N', 10, 0)
 
                 # fill attribute
                 for r in range(0, nb_reach):
                     vel = vel_data[t][r]
                     height = height_data[t][r]
-                    sub_pg = sub_pg_data[t][r]
-                    sub_dom = sub_dom_data[t][r]
+                    # sub_pg = sub_pg_data[t][r]
+                    # sub_dom = sub_dom_data[t][r]
+                    sub = sub_array[t][r]
                     ikle_r = ikle_all_t[t][r]
                     for i in range(0, len(ikle_r)):
                         data_here = ()
                         if merge:
-                            data_here += vel[i], height[i], vel[i] * height[i], sub_pg[i], sub_dom[i]
+                            #data_here += vel[i], height[i], vel[i] * height[i], sub_pg[i], sub_dom[i]
+                            data_sub_to_attribute = [item for item in sub[i]]
+                            data_here += (vel[i], height[i], vel[i] * height[i], *data_sub_to_attribute)
+                            aa = 1
                         else:
                             data_here += vel[i], height[i], vel[i] * height[i]
                         # the * pass tuple to function argument

@@ -612,7 +612,7 @@ class SubHydroW(QWidget):
         else:
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
-            # geo data
+
             child1 = root.find(".//" + self.model_type)
             if child1 is None:
                 child1 = ET.SubElement(root, self.model_type)
@@ -889,7 +889,7 @@ class SubHydroW(QWidget):
             # send the message FRENCH
             if self.fig_opt['language'] == str(1):
                 # MERGE
-                if self.model_type == 'MERGE':
+                if self.model_type == 'HABITAT':
                     self.send_log.emit("Processus 'Fusion de Grille' fonctionne depuis " + str(round(self.running_time)) + " sec")
                     self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
                 # SUBSTRATE
@@ -904,7 +904,7 @@ class SubHydroW(QWidget):
             # send the message ENGLISH
             else:
                 # MERGE
-                if self.model_type == 'MERGE':
+                if self.model_type == 'HABITAT':
                     self.send_log.emit("Process 'Merge Grid' is alive and run since " + str(round(self.running_time)) + " sec")
                     self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
                 # SUBSTRATE
@@ -933,7 +933,7 @@ class SubHydroW(QWidget):
             if error:
                 self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
             # MERGE
-            if self.model_type == 'MERGE' or self.model_type == 'LAMMI':
+            if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
                 self.send_log.emit(self.tr("Merging of substrate and hydraulic grid finished (computation time = ") + str(round(self.running_time)) + " s).")
                 self.drop_merge.emit()
                 # update last name
@@ -1125,6 +1125,7 @@ class HEC_RAS1D(SubHydroW):
 
         # update attibute for hec-ras 1d
         self.attributexml = ['geodata', 'resdata']
+        self.data_type = "HYDRAULIC"
         self.model_type = 'HECRAS1D'
         self.extension = [['.g01', '.g02', '.g03', '.g04', '.g05 ', '.g06', '.g07', '.g08',
                            '.g09', '.g10', '.g11', '.G01', '.G02'], ['.xml', '.rep', '.sdf']]
@@ -1365,6 +1366,7 @@ class Rubar2D(SubHydroW):
         # update attibute for rubar 2d
         self.attributexml = ['rubar_geodata', 'tpsdata']
         self.model_type = 'RUBAR2D'
+        self.data_type = "HYDRAULIC"
         self.extension = [['.mai', '.dat'], ['.tps']]  # list of list in case there is more than one possible ext.
         self.nb_dim = 2
 
@@ -1553,6 +1555,7 @@ class Mascaret(SubHydroW):
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
         self.pathfile = ['.', '.', '.', '.']
         self.model_type = 'MASCARET'
+        self.data_type = "HYDRAULIC"
         self.extension = [['.xcas'], ['.geo'], ['.opt', '.rub']]
         self.nb_dim = 1
 
@@ -1844,6 +1847,7 @@ class River2D(SubHydroW):
         # update attibute for rubbar 2d
         self.attributexml = ['river2d_data']
         self.model_type = 'RIVER2D'
+        self.data_type = "HYDRAULIC"
         self.namefile = []
         self.pathfile = []
         self.extension = [['.cdg'], ['.cdg']]  # list of list in case there is more than one possible ext.
@@ -2117,6 +2121,7 @@ class Rubar1D(SubHydroW):
         self.namefile = ['unknown file', 'unknown file', 'unknown file', 'unknown file']
         self.pathfile = ['.', '.', '.', '.']
         self.model_type = 'RUBAR1D'
+        self.data_type = "HYDRAULIC"
         # no useful extension in this case, rbe is assumed
         # the function propose_next_file() uses the fact that .rbe is 4 char
         self.extension = [[''], ['']]
@@ -2361,6 +2366,7 @@ class HEC_RAS2D(SubHydroW):
         # update attibutes
         self.attributexml = ['data2D']
         self.model_type = 'HECRAS2D'
+        self.data_type = "HYDRAULIC"
         self.extension = [['.hdf']]
         self.nb_dim = 2
 
@@ -2513,6 +2519,7 @@ class TELEMAC(SubHydroW):
         # update the attibutes
         self.attributexml = ['telemac_path']
         self.model_type = 'TELEMAC'
+        self.data_type = "HYDRAULIC"
         self.extension = [['.res', '.slf', '.srf']]
         self.nb_dim = 2
 
@@ -2708,6 +2715,7 @@ class LAMMI(SubHydroW):
         self.file_entree = ['Facies.txt', 'Transect.txt']
         self.attributexml = ['lammi_facies', 'lammi_transect', 'lammi_output']
         self.model_type = 'LAMMI'
+        self.data_type = "HYDRAULIC"
         self.extension = [['.txt'], ['.txt']]
         self.nb_dim = 1.5
         self.init_iu()
@@ -2918,6 +2926,7 @@ class SW2D(SubHydroW):
         self.attributexml = ['sw2d_geodata', 'sw2d_result']
         self.model_type = 'SW2D'
         self.extension = [['.geo'], ['.res']]  # list of list in case there is more than one possible ext.
+        self.data_type = "HYDRAULIC"
         self.nb_dim = 2
 
         # if there is the project file with sw2d geo info, update the label and attibutes
@@ -3093,6 +3102,7 @@ class IBER2D(SubHydroW):
                              'iber2d_result2', 'iber2d_result3',
                              'iber2d_result4']
         self.model_type = 'IBER2D'
+        self.data_type = "HYDRAULIC"
         # list of list in case there is more than one possible ext.
         self.extension = ['.dat', '.rep', '.rep', '.rep', '.rep']
         self.nb_dim = 2
@@ -3325,6 +3335,7 @@ class HabbyHdf5(SubHydroW):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.model_type = 'Imported_hydro'
+        self.data_type = "HYDRAULIC"
         self.new_name = 'no name'  # the name of the new hdf5 file
         self.ismerge = False
         self.init_iu()
@@ -3608,6 +3619,7 @@ class SubstrateW(SubHydroW):
         # update attribute
         self.attributexml = ['substrate_path', 'att_name']
         self.model_type = 'SUBSTRATE'
+        self.data_type = "SUBSTRATE"
         self.name_att = ''
         self.coord_p = []
         self.ikle_sub = []
@@ -4179,6 +4191,7 @@ class SubstrateW(SubHydroW):
 
         """
         self.model_type = 'SUBSTRATE'
+        self.data_type = "SUBSTRATE"
         # if hdf5_filename_output empty: msg
         if sub_mapping_method == 'polygon':
             if not self.polygon_hname.text():
@@ -4338,38 +4351,66 @@ class SubstrateW(SubHydroW):
 
         # constante case
         if sub_mapping_method == 'constant':
-            try:
-                data_sub = int(self.e1.text())
-            except ValueError:
-                self.send_log.emit('The substrate data should be between 1 and 8')
-                return
-            if not 0 < data_sub < 9:
-                self.send_log.emit('The substrate data should be between 1 and 8')
-            if self.hname2.text()[-4:] == '.sub':
-                self.name_hdf5 = self.hname2.text()[:-4] + '_' + str(data_sub)
-            else:
-                self.name_hdf5 = self.hname2.text() + '_' + str(data_sub)
-
+            # block button substrate
+            self.load_constant_substrate.setDisabled(True)  # substrate
+            # save path and name substrate
+            self.save_xml(0)  # txt filename in xml
+            filename = self.file_constant_label.text()
+            namebase, ext = os.path.splitext(filename)
+            path_im = self.find_path_im()
+            path_shp = self.find_path_input()
             path_hdf5 = self.find_path_hdf5()
+            sub_classification_code = self.sub_classification_code_constant_label.text()
+            sub_classification_method = self.sub_classification_method_constant_label.text()
+            sub_constant_values = self.valuesdata_constant_label.text()
+            self.name_hdf5 = self.constant_hname.text()
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
+            sub_description_system = dict(sub_mapping_method=sub_mapping_method,
+                                          sub_classification_code=sub_classification_code,
+                                          sub_classification_method=sub_classification_method,
+                                          sub_filename_source=filename,
+                                          sub_constant_values=sub_constant_values)
+
+
+            constant_values_list = sub_constant_values.split(",")
+            sub_array = [[] for i in range(len(constant_values_list))]
+            for i, value in enumerate(constant_values_list):
+                sub_array[i] = int(value.strip())
+
             sys.stdout = self.mystdout = StringIO()  # out to GUI
-            self.q.put("const_sub")  #
-            load_hdf5.save_hdf5_sub(path_hdf5, self.path_prj, self.name_prj, data_sub, data_sub, "coarserdom-Cemagref", [], [], [], [],
-                                    self.name_hdf5, True, self.model_type)
+            self.q = Queue()
+            self.q.put("const_sub")
+            self.p = Process(target=load_hdf5.save_hdf5_sub,
+                             args=(path_hdf5,
+                                    self.path_prj,
+                                    self.name_prj,
+                                    sub_array,
+                                    sub_description_system,
+                                    [],
+                                    [],
+                                    [],
+                                    [],
+                                    self.name_hdf5,
+                                    "SUBSTRATE",
+                                    False))
+            self.p.start()
+
             sys.stdout = sys.__stdout__  # reset to console
             self.send_err_log()
             path_im = self.find_path_im()  # needed
 
             # log info
             self.send_log.emit(self.tr('# Loading: Substrate data constant value ...'))
-            self.send_log.emit("py    val_c=" + str(data_sub))
+            self.send_log.emit("py    val_c=" + sub_constant_values)
             self.send_log.emit(
                 "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], [], [], 're_run_const_sub'"
                 ", True, 'SUBSTRATE') \n")
             self.send_log.emit("restart LOAD_SUB_CONST")
-            self.send_log.emit("restart    val_c: " + str(data_sub))
+            self.send_log.emit("restart    val_c: " + sub_constant_values)
             #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.sub'))
             # unblock button substrate
-            self.load_polygon_substrate.setDisabled(False)  # substrate
+            self.load_constant_substrate.setDisabled(False)  # substrate
 
     def recreate_image_sub(self, save_fig=False):
         """
@@ -4483,7 +4524,8 @@ class SubstrateW(SubHydroW):
 
         This function can be slow so it call on a second thread.
         """
-        self.model_type = 'MERGE'
+        self.model_type = 'HABITAT'
+        self.data_type = "HABITAT"
         # if hdf5_filename_output empty: msg
         if not self.hdf5_merge_lineedit.text():
             self.send_log.emit(self.tr('Warning: hdf5 filename output is empty. Please specify it.'))
@@ -4537,10 +4579,18 @@ class SubstrateW(SubHydroW):
         self.q = Queue()
         self.progress_value = Value("i", 0)
         self.p = Process(target=mesh_grid2.merge_grid_and_save,
-                         args=(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
-                               self.name_prj, self.path_prj,
-                               self.model_type, self.progress_value,
-                               self.q, False, path_shp, erase_id))
+                         args=(name_hdf5merge,
+                               hdf5_name_hyd,
+                               hdf5_name_sub,
+                               path_hdf5,
+                               self.name_prj,
+                               self.path_prj,
+                               self.model_type,
+                               self.progress_value,
+                               self.q,
+                               False,
+                               path_shp,
+                               erase_id))
         self.p.start()
 
         # log

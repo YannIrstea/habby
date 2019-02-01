@@ -56,7 +56,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
 
     # merge the grid
     [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both,
-     inter_h_all_both, sub_description_system] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
+     inter_h_all_both, sub_description_system, hyd_filename_source] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
                                                                       path_hdf5, progress_value)
     if ikle_both == [-99]:
         print('Error: data not merged.\n')
@@ -76,7 +76,8 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     load_hdf5.save_hdf5_hyd_and_merge(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
                                       point_all_both, [], inter_vel_all_both, inter_h_all_both, sub_description_system,
                                       [], [], [], [], True,
-                                      sub_pg_all_t, sub_dom_all_t, sim_name=sim_name, sub_ini_name=hdf5_name_sub,
+                                      sub_pg_all_t, sub_dom_all_t, hyd_filename_source=hyd_filename_source,
+                                      sim_name=sim_name, sub_ini_name=hdf5_name_sub,
                                       hydro_ini_name=hdf5_name_hyd, hdf5_type="habitat")
 
     # progress
@@ -117,20 +118,23 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
     height_all_both = []
 
     # load hdf5 hydro
-    [ikle_all, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5)
+    [ikle_all, point_all, inter_vel_all, inter_height_all, hyd_filename_source] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5)
 
     # load hdf5 sub
     [ikle_sub, point_all_sub, sub_array, sub_description_system] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
 
-
-
-
     if sub_description_system["sub_classification_method"] == "coarser-dominant":
-        # coarser-dom data
-        data_sub_pg, data_sub_dom = [list(tup) for tup in zip(*sub_array)]
-        # default data (list of two integer)
-        default_data_raw = sub_description_system["sub_default_values"]
-        default_data = list(map(int, default_data_raw.split(", ")))
+        if sub_description_system["sub_mapping_method"] == "constant":
+            # coarser-dom data
+            data_sub_pg = [sub_array[0] for i in range(len(ikle_all[0][0]))]
+            data_sub_dom = [sub_array[1] for i in range(len(ikle_all[0][0]))]
+            default_data = sub_array
+        else:
+            # coarser-dom data
+            data_sub_pg, data_sub_dom = [list(tup) for tup in zip(*sub_array)]
+            # default data (list of two integer)
+            default_data_raw = sub_description_system["sub_default_values"]
+            default_data = list(map(int, default_data_raw.split(", ")))
 
         # simple test case to debug( two triangle separated by an horizontal line)
         # point_all = [[np.array([[0.5, 0.55], [0.3, 0.55], [0.5, 0.3], [0.3, 0.3]])]]
@@ -175,7 +179,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
                 sub_dom_all_t.append(sub_data_all_dom)
                 sub_pg_all_t.append(sub_data_all_pg)
 
-            return ikle_all, point_all, sub_pg_all_t, sub_dom_all_t, inter_vel_all, inter_height_all
+            return ikle_all, point_all, sub_pg_all_t, sub_dom_all_t, inter_vel_all, inter_height_all, \
+                    sub_description_system, hyd_filename_source
         elif ikle_sub == [] and len(point_all_sub) != 0:
             print('no connectivity table found for the substrate. Check the format of the hdf5 file. \n')
             return failload
@@ -288,7 +293,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, progress_value
             # prog += delta
             # progress_value.value = int(prog)
 
-    return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both, sub_description_system
+    return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both, \
+           sub_description_system, hyd_filename_source
 
 
 def find_sub_and_cross(ikle_sub, coord_p_sub, ikle, coord_p, data_sub_pg, data_sub_dom, progress_value, delta, first_time=False):

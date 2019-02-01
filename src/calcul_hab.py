@@ -229,12 +229,14 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
 
     # load merge
     # test if file exists in load_hdf5_hyd
-    [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] = \
+    [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all, sub_description_system] = \
         load_hdf5.load_hdf5_hyd_and_merge(merge_name, path_merge, merge=True)
     if ikle_all_t == [[-99]]:
         return failload
 
-    a = time.time()
+    if sub_description_system["sub_classification_method"] == "coarser-dominant":
+        substrate_all_pg = substrate_all[0]
+        substrate_all_dom = substrate_all[1]
 
     for idx, bio_name in enumerate(bio_names):
 

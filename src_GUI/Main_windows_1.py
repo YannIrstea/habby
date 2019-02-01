@@ -779,8 +779,8 @@ class MainWindows(QMainWindow):
         """
 
         # saved path
-        e2here = self.central_widget.welcome_tab.e2
-        if not os.path.isdir(e2here.text()):  # if the directoy do not exist
+        path_prj = os.path.normpath(self.central_widget.welcome_tab.e2.text())
+        if not os.path.isdir(path_prj):  # if the directoy do not exist
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Path to project"))
             self.msg2.setText(
@@ -791,7 +791,7 @@ class MainWindows(QMainWindow):
             return
         else:
             path_prj_before = self.path_prj
-            self.path_prj = e2here.text()
+            self.path_prj = path_prj
         # name
         e1here = self.central_widget.welcome_tab.e1
         self.name_prj = e1here.text()
@@ -1779,6 +1779,7 @@ class CreateNewProject(QWidget):
         """
         dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.default_fold,
                                                     )  # check for invalid null parameter on Linux git
+        dir_name = os.path.normpath(dir_name)
         # os.getenv('HOME')
         if dir_name != '':  # cancel case
             self.e2.setText(dir_name)
