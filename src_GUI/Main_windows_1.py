@@ -247,15 +247,15 @@ class MainWindows(QMainWindow):
         """
         self.end_concurrency()
 
-        # save path_last_file_loaded
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        doc = ET.parse(filename_path_pro)
-        root = doc.getroot()
-        tree = ET.ElementTree(root)
-        path_last_file_loaded_child = root.find(".//Path_last_file_loaded")
-        path_last_file_loaded_child.text = self.central_widget.path_last_file_loaded_c
-        print("quit habby :", self.central_widget.path_last_file_loaded_c)
-        tree.write(filename_path_pro)
+        # # save path_last_file_loaded
+        # filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        # doc = ET.parse(filename_path_pro)
+        # root = doc.getroot()
+        # tree = ET.ElementTree(root)
+        # path_last_file_loaded_child = root.find(".//Path_last_file_loaded")
+        # path_last_file_loaded_child.text = self.central_widget.path_last_file_loaded_c
+        # print("quit habby :", self.central_widget.path_last_file_loaded_c)
+        # tree.write(filename_path_pro)
 
         # close all process plot
         self.central_widget.closefig()
@@ -1907,7 +1907,6 @@ class CentralW(QWidget):
             if logon_child == 'False' or logon_child == 'false':
                 self.logon = False  # is True by default
             self.path_last_file_loaded_c = root.find(".//Path_last_file_loaded").text
-            print("load : ", self.path_last_file_loaded_c)
 
         # add the widgets to the list of tab if a project exists
         self.add_all_tab()

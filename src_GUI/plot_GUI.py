@@ -465,7 +465,7 @@ class GroupPlot(QGroupBox):
 
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
-                        [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t] = load_hdf5.load_hdf5_hyd_and_merge(
+                        [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, hyd_filename_source] = load_hdf5.load_hdf5_hyd_and_merge(
                             name_hdf5,
                             path_hdf5, units_index=units_index)
                     if types_hdf5 == "substrate":  # load substrate data

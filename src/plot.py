@@ -47,14 +47,14 @@ def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_
 
     # title and filename
     if fig_opt['language'] == 0:
-        title = name_hdf5[:-3] + " : " + 'Water depth - Time Step: ' + str(time_step)
-        filename = name_hdf5[:-3] + "_height_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Water depth - Unit ' + str(time_step)
+        filename = name_hdf5[:-4] + "_height_" + str(time_step)
     elif fig_opt['language'] == 1:
-        title = name_hdf5[:-3] + " : " + "Hauteur d'eau - Pas de Temps: " + str(time_step)
-        filename = name_hdf5[:-3] + "_hauteur_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step)
+        filename = name_hdf5[:-4] + "_hauteur_" + str(time_step)
     else:
-        title = name_hdf5[:-3] + " : " + "Hauteur d'eau - Pas de Temps: " + str(time_step)
-        filename = name_hdf5[:-3] + "_height_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step)
+        filename = name_hdf5[:-4] + "_height_" + str(time_step)
 
     # plot the interpolated height
     if len(inter_h_all) > 0:  # 0
@@ -93,7 +93,7 @@ def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_
                     else:
                         cbar.ax.set_ylabel('Water depth [m]')
             else:
-                print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
+                print('Warning: The river is dry for one unit. The figure created will be empty.\n\n')
 
         # save figure
         plt.tight_layout()  # remove margin out of plot
@@ -112,7 +112,7 @@ def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=fig_opt['resolution'], transparent=True)
             else:
-                test = calcul_hab.remove_image(name_hdf5[:-3] + "_height", path_im, format1)
+                test = calcul_hab.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
@@ -156,14 +156,14 @@ def plot_map_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inte
 
     # title and filename
     if fig_opt['language'] == 0:
-        title = name_hdf5[:-3] + " : " + 'Velocity - Time Step: ' + str(time_step)
-        filename = name_hdf5[:-3] + "_velocity_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step)
+        filename = name_hdf5[:-4] + "_velocity_" + str(time_step)
     elif fig_opt['language'] == 1:
-        title = name_hdf5[:-3] + " : " + 'Vitesse - Pas de Temps: ' + str(time_step)
-        filename = name_hdf5[:-3] + "_vitesse_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Vitesse - Unité: ' + str(time_step)
+        filename = name_hdf5[:-4] + "_vitesse_" + str(time_step)
     else:
-        title = name_hdf5[:-3] + " : " + 'Velocity - Time Step: ' + str(time_step)
-        filename = name_hdf5[:-3] + "_velocity_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step)
+        filename = name_hdf5[:-4] + "_velocity_" + str(time_step)
 
     # plot
     if len(inter_vel_all) > 0:  # 0
@@ -202,7 +202,7 @@ def plot_map_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inte
                     else:
                         cbar.ax.set_ylabel('Velocity [m/sec]')
             else:
-                print('Warning: The river is dry for one time step. The figure created will be empty.\n\n')
+                print('Warning: The river is dry for one unit. The figure created will be empty.\n\n')
 
         # save figure
         plt.tight_layout()  # remove margin out of plot
@@ -266,14 +266,14 @@ def plot_map_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im=
 
     # title and filename
     if fig_opt['language'] == 0:
-        title = name_hdf5[:-3] + " : " + 'Computational Grid - Time Step ' + str(time_step)
-        filename = name_hdf5[:-3] + "_mesh_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
+        filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
     elif fig_opt['language'] == 1:
-        title = name_hdf5[:-3] + " : " + 'Maillage - Pas de Temps: ' + str(time_step)
-        filename = name_hdf5[:-3] + "_maillage_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Maillage - Unité: ' + str(time_step)
+        filename = name_hdf5[:-4] + "_maillage_" + str(time_step)
     else:
-        title = name_hdf5[:-3] + " : " + 'Computational Grid - Time Step ' + str(time_step)
-        filename = name_hdf5[:-3] + "_mesh_" + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
+        filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
 
     # plot
     plt.figure(filename)
@@ -386,17 +386,17 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
         erase1 = False
 
     if fig_opt['language'] == 0:
-        title_pg = 'Substrate Grid - Coarser Data - Time Step ' + str(time_step)
-        title_dom = 'Substrate Grid - Dominant - Time Step ' + str(time_step)
-        filename_pg_dm = name_hdf5[:-3] + "_substrate_" + str(time_step)
+        title_pg = 'Substrate Grid - Coarser Data - Unit ' + str(time_step)
+        title_dom = 'Substrate Grid - Dominant - Unit ' + str(time_step)
+        filename_pg_dm = name_hdf5[:-4] + "_substrate_" + str(time_step)
     elif fig_opt['language'] == 1:
-        title_pg = 'Maillaige substrat - Plus Gros - Time Step ' + str(time_step)
-        title_dom = 'Maillaige substrat - Dominant - Time Step ' + str(time_step)
-        filename_pg_dm = name_hdf5[:-3] + "_substrate_" + str(time_step)
+        title_pg = 'Maillaige substrat - Plus Gros - Unit ' + str(time_step)
+        title_dom = 'Maillaige substrat - Dominant - Unit ' + str(time_step)
+        filename_pg_dm = name_hdf5[:-4] + "_substrate_" + str(time_step)
     else:
-        title_pg = 'Substrate Grid - Coarser Data - Time Step ' + str(time_step)
-        title_dom = 'Substrate Grid - Dominant - Time Step ' + str(time_step)
-        filename_pg_dm = name_hdf5[:-3] + "_substrate_" + str(time_step)
+        title_pg = 'Substrate Grid - Coarser Data - Unit ' + str(time_step)
+        title_dom = 'Substrate Grid - Dominant - Unit ' + str(time_step)
+        filename_pg_dm = name_hdf5[:-4] + "_substrate_" + str(time_step)
 
     # prepare grid (to optimize)
     xlist = []
@@ -421,7 +421,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
         ylist.append(None)
 
     # substrate coarser
-    fig = plt.figure(name_hdf5[:-3])
+    fig = plt.figure(name_hdf5[:-4])
     subs = fig.subplots(nrows=2, sharex=True, sharey=True)  #
     plt.setp(subs.flat, aspect='equal')
     sub1, sub2 = subs
@@ -572,14 +572,14 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
 
     # title and filename
     if fig_opt['language'] == 0:
-        title = 'Habitat Value of ' + fish_name + ' - Computational Step: ' + time_step
-        filename = name_hdf5[:-3] + '_HSI_' + fish_name + '_' + str(time_step)
+        title = 'Habitat Value of ' + fish_name + ' - Unit ' + time_step
+        filename = name_hdf5[:-4] + '_HSI_' + fish_name + '_' + str(time_step)
     elif fig_opt['language'] == 1:
-        title = "Valeur d'Habitat pour " + fish_name + '- Pas de temps/débit: ' + time_step
-        filename = name_hdf5[:-3] + "_VH_" + fish_name + '_' + str(time_step)
+        title = "Valeur d'Habitat pour " + fish_name + '- Unité/débit: ' + time_step
+        filename = name_hdf5[:-4] + "_VH_" + fish_name + '_' + str(time_step)
     else:
         title = 'Habitat Value of ' + fish_name + '- Computational Step: ' + time_step
-        filename = name_hdf5[:-3] + '_HSI_' + fish_name + '_' + str(time_step)
+        filename = name_hdf5[:-4] + '_HSI_' + fish_name + '_' + str(time_step)
 
     # preplot
     fig = plt.figure(filename)
@@ -707,7 +707,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
         erase_id = False
 
     # prep data
-    name_base = name_base[:-3]
+    name_base = name_base[:-4]
 
     # plot
     if len(sim_name) == 1:
@@ -833,7 +833,6 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 plt.ylabel('WUA [m$^2$]')
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
-                # plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('SPU [m$^2$]')
                 plt.title('Surface Ponderée pour le troncon ' + str(r))
             else:
@@ -871,7 +870,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value for the Reach ' + str(r))
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps/débit [ ]')
+                plt.xlabel('Unité [ ]')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeur d'habitat pour le troncon " + str(r))
             else:
@@ -922,7 +921,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 plt.ylabel('WUA [m^2]')
                 plt.title('Weighted Usable Area for All Reaches')
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps/débit')
+                plt.xlabel('Unité')
                 plt.ylabel('SPU [m^2]')
                 plt.title('Surface Ponderée pour tous les Troncons')
             else:
@@ -950,7 +949,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value For All Reaches')
             elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps/débit')
+                plt.xlabel('Unité')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
             else:

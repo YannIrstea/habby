@@ -515,9 +515,8 @@ class SubHydroW(QWidget):
         #     # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
         #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[i], filter2)[0]
         # exeption: you should be able to clik on "cancel"
-        if not filename_path:
-            return
-        else:
+        print("filename_path : ", filename_path)
+        if filename_path:
             filename = os.path.basename(filename_path)
             # check extension
             extension_i = self.extension[i]
@@ -565,8 +564,8 @@ class SubHydroW(QWidget):
                     self.name_hdf5 = filename2 + ".hyd"
 
             self.hname.setText(self.name_hdf5)
-            self.nativeParentWidget().central_widget.path_last_file_loaded_c = os.path.dirname(filename_path)
-            print("hydrau : ", self.nativeParentWidget().central_widget.path_last_file_loaded_c)
+            # self.nativeParentWidget().central_widget.path_last_file_loaded_c = os.path.dirname(filename_path)
+            # print("hydrau : ", self.nativeParentWidget().central_widget.path_last_file_loaded_c)
 
     def dis_enable_nb_profile(self):
         """
@@ -2520,7 +2519,7 @@ class TELEMAC(SubHydroW):
         self.attributexml = ['telemac_path']
         self.model_type = 'TELEMAC'
         self.data_type = "HYDRAULIC"
-        self.extension = [['.res', '.slf', '.srf']]
+        self.extension = [['.res', '.slf', '.srf', '.txt']]
         self.nb_dim = 2
 
         # if there is the project file with telemac info, update
@@ -2531,12 +2530,12 @@ class TELEMAC(SubHydroW):
 
         # geometry and output data
         l1 = QLabel(self.tr('Geometry and output data'))
-        self.h2d_b = QPushButton(self.tr('Choose file (.slf, .srf, .res)'), self)
-        self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
-        self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
-        self.h2d_b.clicked.connect(lambda: self.get_time_step())
+        self.h2d_b = QPushButton(self.tr('Choose file (.slf, .srf, .res, .txt)'), self)
+        self.h2d_b.clicked.connect(lambda: self.show_dialog_telemac(0))
+        # self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
+        # self.h2d_b.clicked.connect(lambda: self.get_time_step())
 
-        l2 = QLabel(self.tr('Number of time steps'))
+        l2 = QLabel(self.tr('Number of units'))
         self.number_timstep_label = QLabel(self.tr('-'), self)
         self.units_QListWidget = QListWidget()
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -2590,6 +2589,145 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.last_hydraulic_file_label, 6, 0)
         self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 6, 1)
         self.setLayout(self.layout_hec2)
+
+    def show_dialog_telemac(self, i=0):
+        """
+        A function to obtain the name of the file chosen by the user. This method open a dialog so that the user select
+        a file. This file is NOT loaded here. The name and path to this file is saved in an attribute. This attribute
+        is then used to loaded the file in other function, which are different for each children class. Based on the
+        name of the chosen file, a name is proposed for the hdf5 file.
+
+        :param i: an int for the case where there is more than one file to load
+        """
+
+        # prepare the filter to show only useful files
+        if len(self.extension[i]) <= 4:
+            filter2 = "File ("
+            for e in self.extension[i]:
+                filter2 += '*' + e + ' '
+            filter2 = filter2[:-1]
+            filter2 += ')' + ";; All File (*.*)"
+        else:
+            filter2 = ''
+
+        # get last path substrate_path xml
+        model_path = self.read_attribute_xml(self.attributexml[0])
+        if model_path == 'no_data':
+            model_path = self.path_prj
+
+        # find the filename based on user choice
+        filename_path = QFileDialog.getOpenFileName(self,
+                                                    self.tr("Select file(s)"),
+                                                    model_path,
+                                                    filter2)[0]
+
+        if filename_path:
+            filename_path = os.path.normpath(filename_path)
+            filename = os.path.basename(filename_path)
+            blob, ext = os.path.splitext(filename)
+            # chronique
+            if ext == ".txt":
+                print("chronique")
+                filenames_list = []
+                units_list = []
+                with open(filename_path, 'rt') as f:
+                    dataraw = f.read()
+                for line in dataraw.split("\n"):
+                    filee, unit = line.split("\t")
+                    filenames_list.append(filee)
+                    units_list.append(unit)
+                # numerical value test
+                try:
+                    units_list_num = list(map(float, units_list))
+                except:
+                    self.send_log.emit(self.tr("Error: Units in txt file can't be converted to numerical value."))
+
+                if units_list_num:
+                    # keep the name in an attribute until we save it
+                    if i >= len(self.pathfile) or len(self.pathfile) == 0:
+                        self.pathfile.append(os.path.dirname(filename_path))
+                        self.namefile.append(filename)
+                    else:
+                        self.pathfile[i] = os.path.dirname(filename_path)
+                        self.namefile[i] = filename
+
+                    # add the default name of the hdf5 file to the QLineEdit
+                    filename2 = filename.split('.')[0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
+                    if len(filename) > 9:
+                        self.name_hdf5 = filename2 + ".hyd"
+                    else:
+                        self.name_hdf5 = filename2 + ".hyd"
+
+                    self.hname.setText(self.name_hdf5)
+
+                    # telemac
+                    self.h2d_t2.setText(self.namefile[0])
+
+                    # number units
+                    self.number_timstep_label.setText(str(len(units_list)))
+
+                    # items
+                    items_list = [a + " : " + b for a, b in list(zip(filenames_list, units_list))]
+
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(items_list)
+                    for i in range(len(items_list)):
+                        self.units_QListWidget.item(i).setSelected(True)
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+
+            # one file
+            if ext != ".txt":
+                print("one file")
+                # check extension
+                extension_i = self.extension[i]
+                if any(e in ext for e in extension_i):  # extension known
+                    pass
+                else:
+                    if ext == '':  # no extension
+                        self.msg2.setIcon(QMessageBox.Warning)
+                        self.msg2.setWindowTitle(self.tr("File type"))
+                        self.msg2.setText(self.tr(
+                            "The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(
+                                extension_i)))
+                        self.msg2.setStandardButtons(QMessageBox.Ok)
+                        self.msg2.show()
+                    else:  # no extension known (if not any(e in ext for e in extension_i))
+                        self.msg2.setIcon(QMessageBox.Warning)
+                        self.msg2.setWindowTitle(self.tr("File type"))
+                        self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
+                        self.msg2.setStandardButtons(QMessageBox.Ok)
+                        self.msg2.show()
+                    return
+
+                # keep the name in an attribute until we save it
+                if i >= len(self.pathfile) or len(self.pathfile) == 0:
+                    self.pathfile.append(os.path.dirname(filename_path))
+                    self.namefile.append(filename)
+                else:
+                    self.pathfile[i] = os.path.dirname(filename_path)
+                    self.namefile[i] = filename
+
+                # add the default name of the hdf5 file to the QLineEdit
+                filename2 = filename.split('.')[0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
+                ext = filename.split('.')[-1]
+                if ext == filename2:
+                    ext = ''
+                if self.model_type == 'SUBSTRATE':
+                    if len(filename) > 6:
+                        self.name_hdf5 = 'Sub_' + filename2 + '_' + ext
+                    else:
+                        self.name_hdf5 = 'Sub_' + filename2 + '_' + ext
+                else:
+                    if len(filename) > 9:
+                        self.name_hdf5 = filename2 + ".hyd"
+                    else:
+                        self.name_hdf5 = filename2 + ".hyd"
+
+                self.hname.setText(self.name_hdf5)
+
+                # telemac
+                self.h2d_t2.setText(self.namefile[0])
+                self.get_time_step()
 
     def get_time_step(self):
         """

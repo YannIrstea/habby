@@ -61,65 +61,115 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     # progress
     progress_value.value = 10
 
-    # load data
-    if not units_index:  # all timestep are selected
-        [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
-        units_index = list(range(len(timestep)))
-    if units_index:  # timestep selected by user are selected
-        [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
-        if len(timestep) != len(units_index):
-            print('Error: Index numbers do not match available units.')
-            print("Units in telemac file : ", timestep)
-            print("Index numbers specify : ", units_index)
-            return
-        else:
-            timestep = timestep[units_index]
+    # input filename
+    input_filename, ext = os.path.splitext(namefilet)
 
-    if isinstance(v, int) and v == [-99]:
-        print('Error: Telemac data not loaded.')
-        if q:
+    full_path = os.path.join(pathfilet, namefilet)
+
+    # chronique
+    if ext == ".txt":
+        # get link between file and unit with txt file
+        filenames_list = []
+        units_list = []
+        with open(full_path, 'rt') as f:
+            dataraw = f.read()
+        for line in dataraw.split("\n"):
+            filee, unit = line.split("\t")
+            filenames_list.append(filee)
+            units_list.append(unit)
+        units_index = [0]
+
+        # progress
+        delta = 80 / len(units_list)
+        if len(units_list) == 1:
+            delta = 80
+
+        # ok
+        [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(filenames_list[-1], pathfilet)
+
+        # cut the grid to have the precise wet area and put data in new form
+        point_all_t = [[coord_p]]
+        ikle_all_t = [[ikle]]
+        point_c_all_t = [[coord_c]]
+        inter_h_all_t = [[]]
+        inter_vel_all_t = [[]]
+        for i in range(len(units_list)):
+            # get data from each file
+            [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(filenames_list[i], pathfilet)
             sys.stdout = sys.__stdout__
-            q.put(mystdout)
-            return
-        else:
-            return
+            for t in units_index:
+                [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], progress_value, delta, minwh)
+                point_all_t.append([point_all])  # only one reach
+                ikle_all_t.append([ikle2])
+                point_c_all_t.append([[]])
+                inter_vel_all_t.append([velocity])
+                inter_h_all_t.append([water_height])
 
-    # cut the grid to have the precise wet area and put data in new form
-    point_all_t = [[coord_p]]
-    ikle_all_t = [[ikle]]
-    point_c_all_t = [[coord_c]]
-    inter_h_all_t = [[]]
-    inter_vel_all_t = [[]]
+        hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
+        hdf5_management.create_hdf5_hyd(model_type, nb_dim, units_list, namefilet,
+                                        ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t)
 
-    # from 10 to 90
-    # from 0 to len(units_index)
-    # progress
-    delta = 80 / len(units_index)
-    if len(units_index) == 1:
-        delta = 80
-    sys.stdout = sys.__stdout__
-    for t in units_index:
-        [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], progress_value, delta, minwh)
-        point_all_t.append([point_all])  # only one reach
-        ikle_all_t.append([ikle2])
-        point_c_all_t.append([[]])
-        inter_vel_all_t.append([velocity])
-        inter_h_all_t.append([water_height])
+    # one file
+    if ext != ".txt":
+        # load data
+        if not units_index:  # all timestep are selected
+            [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
+            units_index = list(range(len(timestep)))
+        if units_index:  # timestep selected by user are selected
+            [v, h, coord_p, ikle, coord_c, timestep] = load_telemac(namefilet, pathfilet)
+            if len(timestep) != len(units_index):
+                print('Error: Index numbers do not match available units.')
+                print("Units in telemac file : ", timestep)
+                print("Index numbers specify : ", units_index)
+                return
+            else:
+                timestep = timestep[units_index]
 
-    # progress
-    progress_value.value = 90
+        if isinstance(v, int) and v == [-99]:
+            print('Error: Telemac data not loaded.')
+            if q:
+                sys.stdout = sys.__stdout__
+                q.put(mystdout)
+                return
+            else:
+                return
 
-    # save data
-    timestep_str = list(map(str, timestep))
-    # load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-    #                                   point_all_t, point_c_all_t,
-    #                                   inter_vel_all_t, inter_h_all_t,
-    #                                   hyd_filename_source=namefilet,
-    #                                   sim_name=timestep_str, hdf5_type="hydraulic")
+        # cut the grid to have the precise wet area and put data in new form
+        point_all_t = [[coord_p]]
+        ikle_all_t = [[ikle]]
+        point_c_all_t = [[coord_c]]
+        inter_h_all_t = [[]]
+        inter_vel_all_t = [[]]
 
-    hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
-    hdf5_management.create_hdf5_hyd(model_type, nb_dim, timestep_str, namefilet,
-                                    ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t)
+        # from 10 to 90
+        # from 0 to len(units_index)
+        # progress
+        delta = 80 / len(units_index)
+        if len(units_index) == 1:
+            delta = 80
+        sys.stdout = sys.__stdout__
+        for t in units_index:
+            [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle, coord_p, h[t], v[t], progress_value, delta, minwh)
+            point_all_t.append([point_all])  # only one reach
+            ikle_all_t.append([ikle2])
+            point_c_all_t.append([[]])
+            inter_vel_all_t.append([velocity])
+            inter_h_all_t.append([water_height])
+
+        # progress
+        progress_value.value = 90
+
+        # save data
+        timestep_str = list(map(str, timestep))
+        # load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+        #                                   point_all_t, point_c_all_t,
+        #                                   inter_vel_all_t, inter_h_all_t,
+        #                                   hyd_filename_source=namefilet,
+        #                                   sim_name=timestep_str, hdf5_type="hydraulic")
+
+        hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
+        hdf5_management.create_hdf5_hyd(model_type, nb_dim, timestep_str, namefilet,
+                                        ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t)
 
 
     # progress

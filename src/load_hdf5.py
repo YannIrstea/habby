@@ -228,14 +228,7 @@ class Hdf5Management:
         # save XML
         self.save_xml(model_type)
 
-
-
-
-
-
-
-
-
+#################################################################
 
 def open_hdf5(hdf5_name, mode="read"):
     """
