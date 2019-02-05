@@ -236,8 +236,8 @@ def plot_map_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inte
         # output for plot_GUI
         state.value = 1  # process finished
         if types_plot == "display" or types_plot == "both":
-            # fm = plt.get_current_fig_manager()
-            # fm.window.showMinimized()
+            fm = plt.get_current_fig_manager()
+            fm.window.showMinimized()
             plt.show()
         if types_plot == "export":
             plt.close()

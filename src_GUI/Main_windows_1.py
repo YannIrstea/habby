@@ -517,14 +517,11 @@ class MainWindows(QMainWindow):
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
         optim.triggered.connect(self.central_widget.optfig)
 
-        rech = QAction(self.tr("Show Research Options"), self)
+        rech = QAction(self.tr("Show hide Research Options"), self)
         rech.setShortcut('Ctrl+R')
-        rech.setStatusTip(self.tr('Add untested research options'))
-        rech.triggered.connect(self.open_rech)
-        rechc = QAction(self.tr("Hide Research Options"), self)
-        rechc.setShortcut('Ctrl+H')
-        rechc.setStatusTip(self.tr('Hide untested research options'))
-        rechc.triggered.connect(self.close_rech)
+        rech.setStatusTip(self.tr('Add hide untested research options'))
+        rech.triggered.connect(self.open_close_rech)
+
 
         # Menu to choose the language
         lAction1 = QAction(self.tr('&English'), self)
@@ -576,7 +573,6 @@ class MainWindows(QMainWindow):
         im_all.addAction(optim)
         re_all = fileMenu4.addMenu(self.tr('Research options'))
         re_all.addAction(rech)
-        re_all.addAction(rechc)
         fileMenu2.addAction(lAction1)
         fileMenu2.addAction(lAction2)
         fileMenu2.addAction(lAction3)
@@ -1591,7 +1587,7 @@ class MainWindows(QMainWindow):
 
         return var
 
-    def open_rech(self):
+    def open_close_rech(self):
         """
         Open the additional research tab, which can be used to create Tab with more experimental contents.
 
@@ -1599,19 +1595,14 @@ class MainWindows(QMainWindow):
         The plan is that these options are less tested than other mainstream options. It is not clear yet what
         will be added to these options, but the tabs are already there when it will be needed.
         """
-        self.rechmain = True
-        self.central_widget.tab_widget.addTab(self.central_widget.other_tab, self.tr("Research 1"))
-        self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
-
-    def close_rech(self):
-        """
-            Close the additional research menu (see open_rech for more information). For the moment, ONLY works with
-            two research tabs. Modify this function if a different number of tab is needed.
-        """
         if self.rechmain:
             for i in range(self.central_widget.tab_widget.count(), self.central_widget.tab_widget.count() - 3, -1):
                 self.central_widget.tab_widget.removeTab(i)
-        self.rechmain = False
+            self.rechmain = False
+        elif not self.rechmain:
+            self.central_widget.tab_widget.addTab(self.central_widget.other_tab, self.tr("Research 1"))
+            self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
+            self.rechmain = True
 
     def clear_log(self):
         """
