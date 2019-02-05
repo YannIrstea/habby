@@ -27,13 +27,13 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, \
-    pyqtRemoveInputHook, QObject, QEvent
+    pyqtRemoveInputHook, QObject, QEvent, pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
-    QLabel, QGridLayout, QAction, \
+    QLabel, QGridLayout, QAction, QDialog, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
     QMessageBox, QComboBox, QScrollArea, \
-    QSizePolicy, QInputDialog, QMenu, QToolBar, QFrame, QProgressBar
-from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
+    QSizePolicy, QInputDialog, QMenu, QToolBar, QFrame, QProgressBar, QShortcut
+from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor, QKeySequence
 import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
@@ -92,12 +92,7 @@ class MainWindows(QMainWindow):
         self.version = version
 
         # operating system
-        if operatingsystem() == 'Linux':
-            self.operatingsystemactual = 'Linux'
-        if operatingsystem() == 'Windows':
-            self.operatingsystemactual = 'Windows'
-        if operatingsystem() == 'Darwin':
-            self.operatingsystemactual = 'Darwin'
+        self.operatingsystemactual = operatingsystem()
 
         # load user setting
         self.settings = QSettings('irstea', 'HABBY' + str(self.version))
@@ -167,6 +162,7 @@ class MainWindows(QMainWindow):
         self.does_it_work = True
         self.actual_theme = "classic"
 
+
         # the path to the biological data by default (HABBY force the user to use this path)
         self.path_bio_default = "biology"
 
@@ -177,7 +173,15 @@ class MainWindows(QMainWindow):
             lang_bio = 'French'
         else:
             lang_bio = 'English'
-        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj, lang_bio)
+
+        # set geometry
+        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
+
+        model_tab_state = "both"  # physical or statistical
+        if self.settings.value('model_chosen'):
+            model_tab_state = self.settings.value('model_chosen')
+
+        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj, lang_bio, model_tab_state)
         self.msg2 = QMessageBox()
 
         # call the normal constructor of QWidget
@@ -193,6 +197,20 @@ class MainWindows(QMainWindow):
         # set window icon
         name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
         self.setWindowIcon(QIcon(name_icon))
+
+        # position theme
+        if not self.settings.value('wind_position'):
+            self.setGeometry(50, 75, 950, 720)
+        if self.settings.value('wind_position'):
+            windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(
+                map(int, self.settings.value('wind_position').split(",")))
+            self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
+        # set theme
+        if self.settings.value('theme') == "dark":
+            self.setthemedark()
+        else:
+            self.setthemeclassic()
+        del self.settings
 
         # create the menu bar
         self.my_menu_bar()
@@ -216,22 +234,15 @@ class MainWindows(QMainWindow):
         self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
 
-        # set geometry
-        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
-        if not self.settings.value('wind_position'):
-            self.setGeometry(50, 75, 950, 720)
-        if self.settings.value('wind_position'):
-            windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(
-                map(int, self.settings.value('wind_position').split(",")))
-            self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
-        # set theme
-        if self.settings.value('theme') == "dark":
-            self.setthemedark()
-        del self.settings
-
         self.setCentralWidget(self.central_widget)
 
+        # preferences
         output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        self.output_fig_gui = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+        self.dialog_preferences = QMainWindow()
+        self.dialog_preferences.setWindowTitle(self.tr("Preferences"))
+        self.dialog_preferences.setCentralWidget(self.output_fig_gui)
+        self.dialog_preferences.setWindowIcon(QIcon(name_icon))
 
         self.check_concurrency()
         self.show()
@@ -266,6 +277,7 @@ class MainWindows(QMainWindow):
             [str(self.geometry().x()), str(self.geometry().y()), str(self.geometry().width()),
              str(self.geometry().height())]))
         self.settings.setValue('theme', self.actual_theme)
+        self.settings.setValue('model_chosen', self.central_widget.model_chosen)
         del self.settings
 
         os._exit(1)
@@ -374,7 +386,7 @@ class MainWindows(QMainWindow):
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+            #self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
 
             # pass the info to the bio info tab
@@ -403,9 +415,6 @@ class MainWindows(QMainWindow):
 
         # create the new menu
         self.my_menu_bar()
-        if self.actual_theme == "dark":
-            self.darkthemeaction.setChecked(True)
-            self.classicthemeaction.setChecked(False)
 
         # create the new toolbar
         self.my_toolbar()
@@ -451,7 +460,7 @@ class MainWindows(QMainWindow):
                of the screen.
         """
 
-        if right_menu:
+        if right_menu:  # right clic
             self.menu_right = QMenu()
             self.menu_right.clear()
         else:
@@ -517,11 +526,13 @@ class MainWindows(QMainWindow):
         optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
         optim.triggered.connect(self.central_widget.optfig)
 
-        rech = QAction(self.tr("Show hide Research Options"), self)
-        rech.setShortcut('Ctrl+R')
-        rech.setStatusTip(self.tr('Add hide untested research options'))
-        rech.triggered.connect(self.open_close_rech)
+        researchShortcut = QAction(self.tr("Hide/Show research tabs"), self)
+        researchShortcut.setShortcut('Ctrl+R')
+        researchShortcut.setStatusTip(self.tr('Hide/Show research tabs'))
+        researchShortcut.triggered.connect(self.open_close_rech)
 
+        # researchShortcut = QShortcut(QKeySequence('Ctrl+R'), self, None, self.open_close_rech) # don't work, why ?
+        # #self.researchShortcut.setContext(Qt.WidgetShortcut)
 
         # Menu to choose the language
         lAction1 = QAction(self.tr('&English'), self)
@@ -539,17 +550,57 @@ class MainWindows(QMainWindow):
         helpm.setStatusTip(self.tr('Get help to use the programme'))
         helpm.triggered.connect(self.open_help)
 
+        # preferences
+        preferences_action = QAction(self.tr('Preferences'), self)
+        preferences_action.triggered.connect(self.open_preferences)
+
+        # physical
+        self.physicalmodelaction = QAction(self.tr('Physical models'), self, checkable=True)
+        self.physicalmodelaction.triggered.connect(self.setmodelstab)
+
+        # statistic
+        self.statisticmodelaction = QAction(self.tr('Statistical models'), self, checkable=True)
+        self.statisticmodelaction.triggered.connect(self.setmodelstab)
+
+        if self.central_widget.model_chosen == "both":
+            self.physicalmodelaction.setChecked(True)
+            self.statisticmodelaction.setChecked(True)
+        if self.central_widget.model_chosen == "statistical":
+            self.physicalmodelaction.setChecked(False)
+            self.statisticmodelaction.setChecked(True)
+        if self.central_widget.model_chosen == "physical":
+            self.physicalmodelaction.setChecked(True)
+            self.statisticmodelaction.setChecked(False)
+
+        # classic them
+        self.classicthemeaction = QAction(self.tr('classic'), self, checkable=True)
+        self.classicthemeaction.triggered.connect(self.setthemeclassic)
+
+        # dark them
+        self.darkthemeaction = QAction(self.tr('dark'), self, checkable=True)
+        self.darkthemeaction.triggered.connect(self.setthemedark)
+
+        # print("right_menu : ", right_menu)
+        # print("self.actual_theme : ", self.actual_theme)
+        if self.actual_theme == "classic":
+            self.classicthemeaction.setChecked(True)
+            self.darkthemeaction.setChecked(False)
+        if self.actual_theme == "dark":
+            self.classicthemeaction.setChecked(False)
+            self.darkthemeaction.setChecked(True)
+
         # add all first level menu
         if right_menu:
             self.menu_right = QMenu()
-            fileMenu = self.menu_right.addMenu(self.tr('&File'))
-            fileMenu4 = self.menu_right.addMenu(self.tr('Options'))
+            fileMenu = self.menu_right.addMenu(self.tr('Project'))
+            fileMenu4 = self.menu_right.addMenu(self.tr('Settings'))
             fileMenu2 = self.menu_right.addMenu(self.tr('Language'))
+            ViewMenu = self.menu_right.addMenu(self.tr('View'))
             fileMenu3 = self.menu_right.addMenu(self.tr('Help'))
         else:
             self.menubar = self.menuBar()
-            fileMenu = self.menubar.addMenu(self.tr('&File'))
-            fileMenu4 = self.menubar.addMenu(self.tr('Options'))
+            fileMenu = self.menubar.addMenu(self.tr('Project'))
+            fileMenu4 = self.menubar.addMenu(self.tr('Settings'))
             fileMenu2 = self.menubar.addMenu(self.tr('Language'))
             ViewMenu = self.menubar.addMenu(self.tr('View'))
             fileMenu3 = self.menubar.addMenu(self.tr('Help'))
@@ -567,77 +618,24 @@ class MainWindows(QMainWindow):
         log_all.addAction(logn)
         log_all.addAction(logy)
         im_all = fileMenu4.addMenu(self.tr('Image options'))
-        # im_all.addAction(showim)
         im_all.addAction(savi)
         im_all.addAction(closeim)
         im_all.addAction(optim)
-        re_all = fileMenu4.addMenu(self.tr('Research options'))
-        re_all.addAction(rech)
+        model_all = ViewMenu.addMenu(self.tr("Models"))
+        model_all.addAction(self.physicalmodelaction)
+        model_all.addAction(self.statisticmodelaction)
+        theme_all = ViewMenu.addMenu(self.tr("Themes"))
+        theme_all.addAction(self.classicthemeaction)
+        theme_all.addAction(self.darkthemeaction)
+        ViewMenu.addAction(researchShortcut)
+        fileMenu4.addAction(preferences_action)
         fileMenu2.addAction(lAction1)
         fileMenu2.addAction(lAction2)
         fileMenu2.addAction(lAction3)
         fileMenu3.addAction(helpm)
 
         if not right_menu:
-
-            # physical
-            physicalmodelaction = QAction('Physical models', self.menubar, checkable=True)
-
-            def manage_tab_physical():
-                """ Prints selected menu labels. """
-                if not physicalmodelaction.isChecked():
-                    self.central_widget.tab_widget.setTabEnabled(1, False)
-                    self.central_widget.tab_widget.setTabEnabled(2, False)
-                    self.central_widget.tab_widget.setTabEnabled(3, False)
-                    self.central_widget.tab_widget.setTabEnabled(4, False)
-                    self.central_widget.tab_widget.setStyleSheet(
-                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
-                if physicalmodelaction.isChecked():
-                    self.central_widget.tab_widget.setTabEnabled(1, True)
-                    self.central_widget.tab_widget.setTabEnabled(2, True)
-                    self.central_widget.tab_widget.setTabEnabled(3, True)
-                    self.central_widget.tab_widget.setTabEnabled(4, True)
-                    self.central_widget.tab_widget.setStyleSheet(
-                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
-
-            physicalmodelaction.triggered.connect(manage_tab_physical)
-            ViewMenu.addAction(physicalmodelaction)
-            physicalmodelaction.setChecked(True)
-
-            # statistic
-            statisticmodelaction = QAction('Statistical models', self.menubar, checkable=True)
-
-            def manage_tab_statistics():
-                """ Prints selected menu labels. """
-                if not statisticmodelaction.isChecked():
-                    self.central_widget.tab_widget.setTabEnabled(5, False)
-                    self.central_widget.tab_widget.setTabEnabled(6, False)
-                    self.central_widget.tab_widget.setTabEnabled(7, False)
-                    self.central_widget.tab_widget.setStyleSheet(
-                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
-                if statisticmodelaction.isChecked():
-                    self.central_widget.tab_widget.setTabEnabled(5, True)
-                    self.central_widget.tab_widget.setTabEnabled(6, True)
-                    self.central_widget.tab_widget.setTabEnabled(7, True)
-                    self.central_widget.tab_widget.setStyleSheet(
-                        "QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
-
-            statisticmodelaction.triggered.connect(manage_tab_statistics)
-            ViewMenu.addAction(statisticmodelaction)
-            statisticmodelaction.setChecked(True)
-
-            # theme sub menu
-            themesub = ViewMenu.addMenu("Themes")
-            self.classicthemeaction = QAction('classic', themesub, checkable=True)
-            self.classicthemeaction.setChecked(True)
-            themesub.addAction(self.classicthemeaction)
-            self.darkthemeaction = QAction('dark', themesub, checkable=True)
-            self.darkthemeaction.setChecked(False)
-            themesub.addAction(self.darkthemeaction)
-            self.classicthemeaction.triggered.connect(self.setthemeclassic)
-            self.darkthemeaction.triggered.connect(self.setthemedark)
-
-            # add the status bar
+            # add the status and progress bar
             self.statusBar()
             self.progress_bar = QProgressBar()
             self.progress_bar.setValue(0)
@@ -654,20 +652,41 @@ class MainWindows(QMainWindow):
             # in case we need a tool bar
             # self.toolbar = self.addToolBar('')
 
+    def setmodelstab(self):
+        # check
+        if self.physicalmodelaction.isChecked() and not self.statisticmodelaction.isChecked():
+            self.central_widget.model_chosen = "statistical"
+        if not self.physicalmodelaction.isChecked() and self.statisticmodelaction.isChecked():
+            self.central_widget.model_chosen = "physical"
+        if not self.physicalmodelaction.isChecked() and not self.statisticmodelaction.isChecked():
+            self.central_widget.model_chosen = "both"
+
+        # remove all tab
+        nb_tabs = self.central_widget.tab_widget.count()
+        for index_tab in range(nb_tabs):
+            self.central_widget.tab_widget.removeTab(0)
+
+        # add tabs
+        self.central_widget.add_all_tab()
+
+        # refresh menu
+        self.my_menu_bar()
+        self.my_menu_bar(True)
+
     def setthemeclassic(self):
-        self.darkthemeaction.setChecked(False)
-        self.classicthemeaction.setChecked(True)
         self.app.setStyleSheet("")
         self.actual_theme = "classic"
+        self.my_menu_bar()
+        self.my_menu_bar(True)
 
     def setthemedark(self):
-        self.darkthemeaction.setChecked(True)
-        self.classicthemeaction.setChecked(False)
         self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
         self.actual_theme = "dark"
         # other
         self.central_widget.welcome_tab.pic.setPixmap(
             QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
+        self.my_menu_bar()
+        self.my_menu_bar(True)
 
     def create_menu_right(self):
         """
@@ -736,6 +755,13 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(newAction)
         self.toolbar.addAction(seeAction)
         self.toolbar.addAction(closeAction)
+
+    def open_preferences(self):
+        # get size
+        height_pref = self.dialog_preferences.centralWidget().viewportSizeHint().height()
+        width_pref = self.dialog_preferences.centralWidget().viewportSizeHint().width()
+        self.dialog_preferences.resize(width_pref, height_pref)
+        self.dialog_preferences.show()
 
     def save_project(self):
         """
@@ -1274,7 +1300,7 @@ class MainWindows(QMainWindow):
             self.central_widget.tab_widget.removeTab(i)
 
         # add the welcome Widget
-        self.central_widget.tab_widget.addTab(self.central_widget.welcome_tab, self.tr("Start"))
+        self.central_widget.tab_widget.addTab(self.central_widget.welcome_tab, self.tr("Project"))
         self.central_widget.welcome_tab.lowpart.setEnabled(False)
 
         self.end_concurrency()
@@ -1826,13 +1852,14 @@ class CentralW(QWidget):
     The write_log() and write_log_file() method are explained in the section about the log.
     """
 
-    def __init__(self, rech, path_prj, name_prj, lang_bio):
+    def __init__(self, rech, path_prj, name_prj, lang_bio, model_chosen):
 
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
+        self.model_chosen = model_chosen
 
         self.welcome_tab = WelcomeW(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
@@ -1840,7 +1867,7 @@ class CentralW(QWidget):
             self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
             self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
-            self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
+            #self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
             self.plot_tab = plot_GUI.PlotTab(path_prj, name_prj)
             self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
@@ -1935,23 +1962,25 @@ class CentralW(QWidget):
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(fname) and self.name_prj_c != '':
             # order matters here
-            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
-            self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
-            self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-            self.tab_widget.addTab(self.chronicle_tab, self.tr("Chronicles"))
-            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))
-            self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
-            self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
-            self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
-            self.tab_widget.addTab(self.output_tab, self.tr("Options"))
-            self.tab_widget.addTab(self.plot_tab, self.tr("Graphics"))
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Project"))
+            if self.model_chosen == "physical" or self.model_chosen == "both":
+                self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
+                self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
+                #self.tab_widget.addTab(self.chronicle_tab, self.tr("Chronicles"))
+                self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))
+            if self.model_chosen == "statistical" or self.model_chosen == "both":
+                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
+                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
+                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
+            #self.tab_widget.addTab(self.output_tab, self.tr("Options"))
+            self.tab_widget.addTab(self.plot_tab, self.tr("Data viewer"))
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
             self.welcome_tab.lowpart.setEnabled(True)
         # if the project do not exist, do not add new tab
         else:
-            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Project"))
             self.welcome_tab.lowpart.setEnabled(False)
 
     def showfig(self):
@@ -2033,7 +2062,7 @@ class CentralW(QWidget):
             self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
             self.hydro_tab.mascar.send_log.connect(self.write_log)
             self.child_win.send_log.connect(self.write_log)
-            self.output_tab.send_log.connect(self.write_log)
+            #self.output_tab.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
             self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
             self.hydro_tab.lammi.send_log.connect(self.write_log)
@@ -2299,11 +2328,11 @@ class CentralW(QWidget):
         Careful, the order of the tab is important here.
         """
 
-        if self.old_ind_tab == 0:
-            self.save_info_projet()
-        elif self.old_ind_tab == self.opttab:
-            self.output_tab.save_option_fig()
-        self.old_ind_tab = self.tab_widget.currentIndex()
+        # if self.old_ind_tab == 0:
+        #     self.save_info_projet()
+        # elif self.old_ind_tab == self.opttab:
+        #     #self.output_tab.save_option_fig()
+        # self.old_ind_tab = self.tab_widget.currentIndex()
 
     def update_merge_for_chronicle(self):
         """

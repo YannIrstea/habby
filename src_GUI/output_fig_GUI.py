@@ -212,8 +212,11 @@ class outputW(QScrollArea):
             self.out5b.setChecked(True)
 
         # save
-        self.saveb = QPushButton(self.tr('Save options'))
+        self.saveb = QPushButton(self.tr('OK'))
         self.saveb.clicked.connect(self.save_option_fig)
+
+        self.closeb = QPushButton(self.tr('Cancel'))
+        self.closeb.clicked.connect(self.close_option_fig)
 
         # empty frame scrolable
         content_widget = QFrame()
@@ -269,7 +272,8 @@ class outputW(QScrollArea):
         self.layout.addWidget(self.out4, 7, 3)
         self.layout.addWidget(self.out4a, 7, 4)
         self.layout.addWidget(self.out4b, 7, 5)
-        self.layout.addWidget(self.saveb, 13, 4, 1, 2)
+        self.layout.addWidget(self.saveb, 13, 4, 1, 1)
+        self.layout.addWidget(self.closeb, 13, 5, 1, 1)
         [self.layout.setRowMinimumHeight(i, 30) for i in range(self.layout.rowCount())]
         self.layout.setAlignment(Qt.AlignTop)
         self.setWidgetResizable(True)
@@ -489,7 +493,18 @@ class outputW(QScrollArea):
         self.send_log.emit('# The new options for the figures are saved.')
         self.send_log.emit('# Modifications of figure options.')
         # self.send_log.emit('restart     SAVE_OPTION_FIG')
+        #close window if opened
+        try:
+            self.parent().close()
+        except:
+            print("bug")
 
+    def close_option_fig(self):
+        #close window if opened
+        try:
+            self.parent().close()
+        except:
+            print("bug")
 
 def set_lang_fig(nb_lang, path_prj, name_prj):
     """
