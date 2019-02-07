@@ -465,9 +465,10 @@ class GroupPlot(QGroupBox):
 
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
-                        [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, hyd_filename_source] = load_hdf5.load_hdf5_hyd_and_merge(
-                            name_hdf5,
-                            path_hdf5, units_index=units_index)
+                        hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().parent().name_prj,
+                                                                   self.parent().parent().parent().path_prj,
+                                                                   name_hdf5)
+                        data_2d, hyd_filename_source = hdf5_management.load_hdf5_hyd(units_index=units_index)
                     if types_hdf5 == "substrate":  # load substrate data
                         [ikle_sub, point_all_sub, sub_array, sub_description_system] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
                         if sub_description_system["sub_classification_method"] == "percentage":
@@ -507,22 +508,23 @@ class GroupPlot(QGroupBox):
                             state = Value("i", 0)
                             height_process = Process(target=plot_hab.plot_map_height,
                                                      args=(state,
-                                                           point_all_t[index + 1],
-                                                           ikle_all_t[index + 1],
+                                                           data_2d["xy"][index],
+                                                           data_2d["tin"][index],
                                                            fig_opt,
                                                            name_hdf5,
-                                                           inter_h_all_t[index + 1],
-                                                           path_im, units[index]))
+                                                           data_2d["h"][index],
+                                                           path_im,
+                                                           units[index]))
                             self.plot_process_list.append((height_process, state))
                         if "velocity" in variables:  # velocity
                             state = Value("i", 0)
                             velocity_process = Process(target=plot_hab.plot_map_velocity,
                                                        args=(state,
-                                                             point_all_t[index + 1],
-                                                             ikle_all_t[index + 1],
+                                                             data_2d["xy"][index],
+                                                             data_2d["tin"][index],
                                                              fig_opt,
                                                              name_hdf5,
-                                                             inter_vel_all_t[index + 1],
+                                                             data_2d["v"][index],
                                                              path_im,
                                                              units[index]))
                             self.plot_process_list.append((velocity_process, state))
@@ -530,8 +532,8 @@ class GroupPlot(QGroupBox):
                             state = Value("i", 0)
                             mesh_process = Process(target=plot_hab.plot_map_mesh,
                                                    args=(state,
-                                                         point_all_t[index + 1],
-                                                         ikle_all_t[index + 1],
+                                                         data_2d["xy"][index],
+                                                         data_2d["tin"][index],
                                                          fig_opt,
                                                          name_hdf5,
                                                          path_im,

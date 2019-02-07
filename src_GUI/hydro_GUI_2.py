@@ -2535,6 +2535,9 @@ class TELEMAC(SubHydroW):
         # self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
         # self.h2d_b.clicked.connect(lambda: self.get_time_step())
 
+        units_name_title_label = QLabel(self.tr('Kind of units'))
+        self.units_name_label = QLabel(self.tr('Unknown'))
+
         l2 = QLabel(self.tr('Number of units'))
         self.number_timstep_label = QLabel(self.tr('-'), self)
         self.units_QListWidget = QListWidget()
@@ -2577,10 +2580,12 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(l1, 0, 0)
         self.layout_hec2.addWidget(self.h2d_t2, 0, 1)
         self.layout_hec2.addWidget(self.h2d_b, 0, 2)
-        self.layout_hec2.addWidget(l2, 1, 0)
-        self.layout_hec2.addWidget(self.number_timstep_label, 1, 1)
-        self.layout_hec2.addWidget(l_selecttimestep, 2, 0)
-        self.layout_hec2.addWidget(self.units_QListWidget, 2, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_hec2.addWidget(units_name_title_label, 1, 0)
+        self.layout_hec2.addWidget(self.units_name_label, 1, 1)
+        self.layout_hec2.addWidget(l2, 2, 0)
+        self.layout_hec2.addWidget(self.number_timstep_label, 2, 1)
+        self.layout_hec2.addWidget(l_selecttimestep, 3, 0)
+        self.layout_hec2.addWidget(self.units_QListWidget, 3, 1, 1, 1)  # from row, from column, nb row, nb column
         self.layout_hec2.addWidget(l2D1, 4, 0)
         self.layout_hec2.addWidget(l2D2, 4, 1)
         self.layout_hec2.addWidget(lh, 5, 0)
@@ -2588,6 +2593,7 @@ class TELEMAC(SubHydroW):
         self.layout_hec2.addWidget(self.load_b, 5, 2)
         self.layout_hec2.addWidget(self.last_hydraulic_file_label, 6, 0)
         self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 6, 1)
+        [self.layout_hec2.setRowMinimumHeight(i, 30) for i in range(self.layout_hec2.rowCount())]
         self.setLayout(self.layout_hec2)
 
     def show_dialog_telemac(self, i=0):
@@ -2617,7 +2623,7 @@ class TELEMAC(SubHydroW):
 
         # find the filename based on user choice
         filename_path = QFileDialog.getOpenFileName(self,
-                                                    self.tr("Select file(s)"),
+                                                    self.tr("Select file"),
                                                     model_path,
                                                     filter2)[0]
 
@@ -2632,10 +2638,29 @@ class TELEMAC(SubHydroW):
                 units_list = []
                 with open(filename_path, 'rt') as f:
                     dataraw = f.read()
-                for line in dataraw.split("\n"):
-                    filee, unit = line.split("\t")
+                headers = dataraw.split("\n")[0]
+                nb_column = len(headers.split("\t"))
+                if nb_column == 2:
+                    print("several permanent flow files")
+                elif nb_column > 2:
+                    print("several raw permanent flow files")
+                    timestep_list = []
+                else:
+                    print("kind of telemac data not recognized")
+                    return
+                unit_name = headers.split("\t")[1]
+                dataraw_list = dataraw.split("\n")[1:]
+                for line in dataraw_list:
+                    # read line
+                    if nb_column > 2:
+                        filee, unit, timestep = line.split("\t")
+                    if nb_column == 2:
+                        filee, unit = line.split("\t")
+                    # append data to list
                     filenames_list.append(filee)
                     units_list.append(unit)
+                    if nb_column > 2:
+                        timestep_list.append(timestep)
                 # numerical value test
                 try:
                     units_list_num = list(map(float, units_list))
@@ -2643,6 +2668,16 @@ class TELEMAC(SubHydroW):
                     self.send_log.emit(self.tr("Error: Units in txt file can't be converted to numerical value."))
 
                 if units_list_num:
+                    # sorted in ascending order
+                    together = zip(units_list_num, filenames_list)
+                    if nb_column > 2:
+                        together = zip(units_list_num, filenames_list, timestep_list)
+                    sorted_together = sorted(together)
+                    units_list_num = [x[0] for x in sorted_together]
+                    units_list = list(map(str, units_list_num))
+                    filenames_list = [x[1] for x in sorted_together]
+                    if nb_column > 2:
+                        timestep_list = [x[2] for x in sorted_together]
                     # keep the name in an attribute until we save it
                     if i >= len(self.pathfile) or len(self.pathfile) == 0:
                         self.pathfile.append(os.path.dirname(filename_path))
@@ -2663,11 +2698,16 @@ class TELEMAC(SubHydroW):
                     # telemac
                     self.h2d_t2.setText(self.namefile[0])
 
+                    # kind of unit
+                    self.units_name_label.setText(self.tr("Discharge, ") + unit_name)
+
                     # number units
                     self.number_timstep_label.setText(str(len(units_list)))
 
                     # items
                     items_list = [a + " : " + b for a, b in list(zip(filenames_list, units_list))]
+                    if nb_column > 2:
+                        items_list = [a + " : Q" + b + " : t" + c for a, b, c in list(zip(filenames_list, units_list, timestep_list))]
 
                     self.units_QListWidget.clear()
                     self.units_QListWidget.addItems(items_list)

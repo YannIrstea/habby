@@ -122,7 +122,8 @@ class Hdf5Management:
             doc.write(self.absolute_path_prj_xml)
 
     def create_hdf5_hyd(self, model_type, nb_dim, sim_name, hyd_filename_source,
-                        ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t):
+                        data_2d_whole_profile,
+                        data_2d):
 
         # create a new hdf5
         self.open_hdf5_file(new=True)
@@ -137,10 +138,10 @@ class Hdf5Management:
             # units
             unit_ascii_str = [n.strip().encode("ascii", "ignore") for n in sim_name]  # unicode is not ok with hdf5
             unit_name_dataset = self.file_object.create_dataset("description_unit", (len(sim_name),), data=unit_ascii_str)
-            unit_name_dataset.attrs['nb'] = len(ikle_all_t) - 1
+            unit_name_dataset.attrs['nb'] = len(sim_name)
             unit_name_dataset.attrs['type'] = "timestep"  # TODO : change by discharge if units are discharges
             # reachs
-            reach_nb = len(ikle_all_t[0])
+            reach_nb = data_2d["nb_reach"]
             reach_ascii_str = [f"reach_{i}".strip().encode("ascii", "ignore") for i in
                                range(reach_nb)]  # unicode is not ok with hdf5
             reach_name_dataset = self.file_object.create_dataset("description_reach", (reach_nb,), data=reach_ascii_str)
@@ -148,85 +149,195 @@ class Hdf5Management:
 
         # data by type of model (1D)
         if nb_dim == 1:
-            Data_group = self.file_object.create_group('data_1d')
-            xhzv_datag = Data_group.create_group('xhzv_data')
+            data_group = self.file_object.create_group('data_1d')
+            xhzv_datag = data_group.create_group('xhzv_data')
             xhzv_datag.create_dataset('xhzv_data', data=xhzv_data)
 
         # data by type of model (1.5D)
         if nb_dim < 2:
-            Data_group = self.file_object.create_group('data_15d')
+            data_group = self.file_object.create_group('data_15d')
             adict = dict()
             for p in range(0, len(coord_pro)):
                 ns = 'p' + str(p)
                 adict[ns] = coord_pro[p]
-            coord_prog = Data_group.create_group('coord_pro')
+            coord_prog = data_group.create_group('coord_pro')
             for k, v in adict.items():
                 coord_prog.create_dataset(k, data=v)
                 # coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
             for t in range(0, len(vh_pro)):
-                there = Data_group.create_group('unit_' + str(t))
+                there = data_group.create_group('unit_' + str(t))
                 adict = dict()
                 for p in range(0, len(vh_pro[t])):
                     ns = 'p' + str(p)
                     adict[ns] = vh_pro[t][p]
                 for k, v in adict.items():
                     there.create_dataset(k, data=v)
-            nbproreachg = Data_group.create_group('Number_profile_by_reach')
+            nbproreachg = data_group.create_group('Number_profile_by_reach')
             nb_pro_reach2 = list(map(float, nb_pro_reach))
             nbproreachg.create_dataset('Number_profile_by_reach', [len(nb_pro_reach2), 1], data=nb_pro_reach2)
 
         # data by type of model (2D)
         if nb_dim <= 2:
             warn_dry = True
-            Data_group = self.file_object.create_group('data_2d')
-            for t in range(0, len(ikle_all_t)):
-                if t == 0:  # whole_profile
-                    there = Data_group.create_group('whole_profile')
-                else:  # all units
-                    there = Data_group.create_group('unit_' + str(t - 1))
-                # for all units
-                for r in range(0, len(ikle_all_t[t])):
-                    # REACH GROUP
-                    rhere = there.create_group('reach_' + str(r))
-
-                    # NODE GROUP
-                    node_group = rhere.create_group('node')
-                    # coordinates (point_all / XY)
-                    node_group.create_dataset("xy", [len(point_all_t[t][r]), 2], data=point_all_t[t][r])
-                    # velocity (inter_vel_all / V)
-                    if len(inter_vel_all_t) > 0:
-                        if len(inter_vel_all_t[t]) > 0 and not isinstance(inter_vel_all_t[t][0], float):
-                            node_group.create_dataset("v", [len(inter_vel_all_t[t][r]), 1],
-                                                      data=inter_vel_all_t[t][r])
-                    # height (inter_h_all / H)
-                    if len(inter_h_all_t) > 0:
-                        if len(inter_h_all_t[t]) > 0 and not isinstance(inter_h_all_t[t][0], float):
-                            node_group.create_dataset("h", [len(inter_h_all_t[t][r]), 1],
-                                                      data=inter_h_all_t[t][r])
-
+            # data_2D_whole_profile profile
+            data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
+            # REACH GROUP
+            for reach_num in range(data_2d["nb_reach"]):
+                reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
+                # UNIT GROUP
+                if data_2d_whole_profile["unit_correspondences"] == "all":  # one whole profile for all units
+                    nb_whole_profil = 1
+                if data_2d_whole_profile["unit_correspondences"] != "all":  # one whole profile by units
+                    nb_whole_profil = data_2d["nb_unit"]
+                for unit_num in range(nb_whole_profil):
+                    if data_2d_whole_profile["unit_correspondences"] == "all":  # one whole profile for all units
+                        unit_group = reach_group.create_group('unit_all')
+                    if data_2d_whole_profile["unit_correspondences"] != "all":  # one whole profile by units
+                        unit_group = reach_group.create_group('unit_' + str(unit_num))
                     # MESH GROUP
-                    mesh_group = rhere.create_group('mesh')
-                    # connectivity table (ikle / tin)
-                    if len(ikle_all_t[t][r]) > 0:
-                        mesh_group.create_dataset("tin", [len(ikle_all_t[t][r]), len(ikle_all_t[t][r][0])],
-                                                  data=ikle_all_t[t][r])
-                    else:
-                        if warn_dry:
-                            print('Warning: Reach number ' + str(r) + ' has an empty grid. It might be entierely dry.')
-                            warn_dry = False
-                        mesh_group.create_dataset("tin", [len(ikle_all_t[t][r])], data=ikle_all_t[t][r])
-                    # coordinates center (point_c_all / xy_center)
-                    if len(point_c_all_t) > 0:
-                        if len(point_c_all_t[t]) > 0 and not isinstance(point_c_all_t[t][0], float):
-                            if t == 0:  # whole_profile
-                                mesh_group.create_dataset("xy_center", [len(point_c_all_t[t][r]), 2],
-                                                          data=point_c_all_t[t][r])
+                    mesh_group = unit_group.create_group('mesh')
+                    mesh_group.create_dataset(name="tin",
+                                              shape=[len(data_2d_whole_profile["tin"][unit_num]), 3],
+                                              data=data_2d_whole_profile["tin"][unit_num])
+                    mesh_group.create_dataset(name="xy_center",
+                                              shape=[len(data_2d_whole_profile["coord_c"][unit_num]), 2],
+                                              data=data_2d_whole_profile["coord_c"][unit_num])
+                    # NODE GROUP
+                    node_group = unit_group.create_group('node')
+                    node_group.create_dataset(name="xy",
+                                              shape=[len(data_2d_whole_profile["coord_p"][unit_num]), 2],
+                                              data=data_2d_whole_profile["coord_p"][unit_num])
+
+            # data_2D
+            data_group = self.file_object.create_group('data_2D')
+            # REACH GROUP
+            for reach_num in range(data_2d["nb_reach"]):
+                reach_group = data_group.create_group('reach_' + str(reach_num))
+                # UNIT GROUP
+                for unit_num in range(data_2d["nb_unit"]):
+                    unit_group = reach_group.create_group('unit_' + str(unit_num))
+                    # MESH GROUP
+                    mesh_group = unit_group.create_group('mesh')
+                    mesh_group.create_dataset(name="tin",
+                                              shape=[len(data_2d["tin"][unit_num]), 3],
+                                              data=data_2d["tin"][unit_num])
+                    # NODE GROUP
+                    node_group = unit_group.create_group('node')
+                    node_group.create_dataset(name="h",
+                                              shape=[len(data_2d["h"][unit_num]), 1],
+                                              data=data_2d["h"][unit_num])
+                    node_group.create_dataset(name="v",
+                                              shape=[len(data_2d["v"][unit_num]), 1],
+                                              data=data_2d["v"][unit_num])
+                    node_group.create_dataset(name="xy",
+                                              shape=[len(data_2d["xy"][unit_num]), 2],
+                                              data=data_2d["xy"][unit_num])
 
         # close file
         self.file_object.close()
 
         # save XML
         self.save_xml(model_type)
+
+    def load_hdf5_hyd(self, units_index="all", whole_profil=False):
+        # open an hdf5
+        self.open_hdf5_file(new=False)
+
+        if units_index == "all":
+            # load the number of time steps
+            try:
+                nb_t = self.file_object["description_unit"].attrs["nb"]
+                units_index = list(range(nb_t))
+            except KeyError:
+                print(
+                    'Error: the number of reaches is missing from the hdf5 file. \n')
+                self.file_object.close()
+                return
+
+        # load the number of reach
+        try:
+            nb_r = self.file_object["description_reach"].attrs["nb"]
+        except KeyError:
+            print('Error: the number of reaches is missing from the hdf5 file. \n')
+            self.file_object.close()
+            return
+
+        # load the hyd_filename_source
+        try:
+            hyd_filename_source = self.file_object.attrs['hyd_filename_source']
+        except KeyError:
+            print(
+                'Error: the hyd_filename_source is missing from the hdf5 file. \n')
+            self.file_object.close()
+            return
+
+        # data_2d
+        basename1 = 'data_2D_whole_profile'
+
+        # WHOLE PROFIL
+        if whole_profil:
+            tin_whole_all = []
+            xy_whole_all = []
+            for r in range(0, nb_r):
+                tin_path = basename1 + "/whole_profile/reach_" + str(r) + "/mesh/tin"
+                xy_path = basename1 + "/whole_profile/reach_" + str(r) + "/node/xy"
+                try:
+                    tin_dataset = self.file_object[tin_path]
+                    xy_dataset = self.file_object[xy_path]
+                except KeyError:
+                    print('Error: the dataset for tin or xy (1) is missing from the hdf5 file. \n')
+                    self.file_object.close()
+                    return failload
+                try:
+                    tin_whole = tin_dataset[:]
+                    xy_whole = xy_dataset[:]
+                except IndexError:
+                    print('Error: the dataset for tin or xy (2) is missing from the hdf5 file. \n')
+                    self.file_object.close()
+                    return failload
+                tin_whole_all.append(tin_whole)
+                xy_whole_all.append(xy_whole)
+            ikle_all_t.append(tin_whole_all)
+            point_all.append(xy_whole_all)
+
+        # UNITS
+        data_2d = dict()
+        data_2d["tin"] = []
+        data_2d["xy"] = []
+        data_2d["h"] = []
+        data_2d["v"] = []
+        data_2d["nb_unit"] = len(units_index)
+        data_2d["nb_reach"] = 1
+        data_group = 'data_2D'
+        # for all reach
+        for r in range(0, nb_r):
+            reach_group = data_group + "/reach_" + str(r)
+            # for all unit
+            tin_list = []
+            xy_list = []
+            h_list = []
+            v_list = []
+            for t in units_index:
+                unit_group = reach_group + "/unit_" + str(t)
+                mesh_group = unit_group + "/mesh"
+                node_group = unit_group + "/node"
+                try:
+                    tin_list.append(self.file_object[mesh_group + "/tin"][:])
+                    xy_list.append(self.file_object[node_group + "/xy"][:])
+                    h_list.append(self.file_object[node_group + "/h"][:].flatten())
+                    v_list.append(self.file_object[node_group + "/v"][:].flatten())
+                except KeyError:
+                    print('Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
+                    self.file_object.close()
+                    return
+            data_2d["tin"].append(tin_list)
+            data_2d["xy"].append(xy_list)
+            data_2d["h"].append(h_list)
+            data_2d["v"].append(v_list)
+        self.file_object.close()
+
+        return data_2d, hyd_filename_source
+
 
 #################################################################
 
