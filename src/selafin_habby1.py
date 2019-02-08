@@ -115,14 +115,14 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         data_2d_whole_profile["xy"] = []
         data_2d_whole_profile["unit_correspondences"] = []
         for i, file in enumerate(filenames_list):
-            _, _, coord_p, tin, coord_c, _ = load_telemac(file, pathfilet)
+            _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
             data_2d_whole_profile["tin"].append(tin)
-            data_2d_whole_profile["xy_center"].append(coord_c)
-            data_2d_whole_profile["xy"].append(coord_p)
+            data_2d_whole_profile["xy_center"].append(xy_center)
+            data_2d_whole_profile["xy"].append(xy)
             data_2d_whole_profile["unit_correspondences"].append(str(i))
 
         # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
-        temp_list = data_2d_whole_profile["coord_c"]
+        temp_list = data_2d_whole_profile["xy_center"]
         for i in range(len(temp_list)):
             temp_list[i].sort(axis=0)
         # TODO: sort function may be unadapted to check TIN equality between units
@@ -201,11 +201,11 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
                 return
 
         # get data_2d for cut grid and data_2d_whole_profile
-        v, h, coord_p, tin, coord_c, _ = load_telemac(namefilet, pathfilet)
+        v, h, xy, tin, xy_center, _ = load_telemac(namefilet, pathfilet)
         data_2d_whole_profile = dict()
         data_2d_whole_profile["tin"] = [tin]
-        data_2d_whole_profile["coord_c"] = [coord_c]
-        data_2d_whole_profile["coord_p"] = [coord_p]
+        data_2d_whole_profile["xy_center"] = [xy_center]
+        data_2d_whole_profile["xy"] = [xy]
         data_2d_whole_profile["unit_correspondences"] = "all"
 
         # progress from 10 to 90 : from 0 to len(units_index)
@@ -225,7 +225,7 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
 
         for t in units_index:
             [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(tin,
-                                                                            coord_p,
+                                                                            xy,
                                                                             h[t],
                                                                             v[t],
                                                                             progress_value,

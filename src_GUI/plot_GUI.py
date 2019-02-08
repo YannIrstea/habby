@@ -18,7 +18,7 @@ import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, \
     QComboBox, QMessageBox, QFrame, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit
 from src import load_hdf5
 from src import plot as plot_hab
 from src import substrate
@@ -57,22 +57,22 @@ class PlotTab(QScrollArea):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # empty frame scrolable
-        content_widget = QFrame()
+        # # empty frame scrolable
+        # content_widget = QFrame()
 
-        # add widgets to layout
-        self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
-        self.plot_layout.setAlignment(Qt.AlignTop)
-        self.plot_layout.addWidget(self.group_plot)
-        self.group_plot.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        # # add widgets to layout
+        # self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
+        # self.plot_layout.setAlignment(Qt.AlignTop)
+        # self.plot_layout.addWidget(self.group_plot)
+        # self.group_plot.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         # add layout
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
-        self.setWidget(content_widget)
+        self.setWidget(self.group_plot)
 
 
-class GroupPlot(QGroupBox):
+class GroupPlot(QFrame):
     """
     This class is a subclass of class QGroupBox.
     """
@@ -86,11 +86,11 @@ class GroupPlot(QGroupBox):
 
     def init_ui(self):
         # title
-        self.setTitle(self.tr('Graphic production'))
-        self.setStyleSheet('QGroupBox {font-weight: bold;}')
+        #self.setTitle(self.tr('HABBY data explorer'))
+        #self.setStyleSheet('QGroupBox {font-weight: bold;}')
 
         # types_hdf5_QComboBox
-        self.types_hdf5_QLabel = QLabel(self.tr('hdf5 types :'))
+        self.types_hdf5_QLabel = QLabel(self.tr('file types'))
         self.types_hdf5_QComboBox = QComboBox()
         self.types_hdf5_list = ["", "hydraulic", "substrate", "habitat"]
         self.types_hdf5_QComboBox.addItems(self.types_hdf5_list)
@@ -101,7 +101,7 @@ class GroupPlot(QGroupBox):
         self.types_hdf5_layout.addWidget(self.types_hdf5_QComboBox)
 
         # names_hdf5_QListWidget
-        self.names_hdf5_QLabel = QLabel(self.tr('hdf5 files :'))
+        self.names_hdf5_QLabel = QLabel(self.tr('filenames'))
         self.names_hdf5_QListWidget = QListWidget()
         self.names_hdf5_QListWidget.setMinimumWidth(250)
         self.names_hdf5_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -112,7 +112,7 @@ class GroupPlot(QGroupBox):
         self.names_hdf5_layout.addWidget(self.names_hdf5_QListWidget)
 
         # variable_QListWidget
-        self.variable_hdf5_QLabel = QLabel(self.tr('variables :'))
+        self.variable_hdf5_QLabel = QLabel(self.tr('variables'))
         self.variable_QListWidget = QListWidget()
         self.variable_QListWidget.setMinimumWidth(130)
         self.variable_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -123,7 +123,7 @@ class GroupPlot(QGroupBox):
         self.variable_hdf5_layout.addWidget(self.variable_QListWidget)
 
         # units_QListWidget
-        self.units_QLabel = QLabel(self.tr('units :'))
+        self.units_QLabel = QLabel(self.tr('units'))
         self.units_QListWidget = QListWidget()
         self.units_QListWidget.setMinimumWidth(50)
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -134,9 +134,9 @@ class GroupPlot(QGroupBox):
         self.units_layout.addWidget(self.units_QListWidget)
 
         # types_plot_QComboBox
-        self.types_plot_QLabel = QLabel(self.tr('type of graphics :'))
+        self.types_plot_QLabel = QLabel(self.tr('type of graphic'))
         self.types_plot_QComboBox = QComboBox()
-        self.types_plot_QComboBox.addItems(["display", "export", "both"])
+        self.types_plot_QComboBox.addItems(["interactive", "image export", "both"])
         self.types_plot_layout = QVBoxLayout()
         self.types_plot_layout.setAlignment(Qt.AlignTop)
         self.types_plot_layout.addWidget(self.types_plot_QLabel)
@@ -160,20 +160,57 @@ class GroupPlot(QGroupBox):
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
-        # create layout and add widgets
-        self.hbox_layout = QHBoxLayout()
-        self.hbox_layout.addLayout(self.types_hdf5_layout)
-        self.hbox_layout.addLayout(self.names_hdf5_layout)
-        self.hbox_layout.addLayout(self.variable_hdf5_layout)
-        self.hbox_layout.addLayout(self.units_layout)
-        self.hbox_layout.addLayout(self.types_plot_layout)
-        self.vbox_layout = QVBoxLayout()
-        self.vbox_layout.addLayout(self.hbox_layout)
-        self.vbox_layout.addWidget(self.progress_bar)
+        # attributes hdf5
+        self.hdf5_attributes_QTextEdit = QTextEdit(self)
+        self.hdf5_attributes_QTextEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # SELECTION FILE
+        selectionfile_layout = QHBoxLayout()
+        selectionfile_layout.addLayout(self.types_hdf5_layout)
+        selectionfile_layout.addLayout(self.names_hdf5_layout)
+        selectionfile_group = QGroupBox(self.tr("File selection"))
+        selectionfile_group.setLayout(selectionfile_layout)
+
+        # PLOT GROUP
+        plot_layout = QHBoxLayout()
+        plot_layout.addLayout(self.variable_hdf5_layout)
+        plot_layout.addLayout(self.units_layout)
+        plot_layout.addLayout(self.types_plot_layout)
+        plot_layout2 = QVBoxLayout()
+        plot_layout2.addLayout(plot_layout)
+        plot_layout2.addWidget(self.progress_bar)
+        plot_group = QGroupBox(self.tr("Graphic producer"))
+        plot_group.setLayout(plot_layout2)
+
+        # ATTRIBUTE GROUP
+        attributes_layout = QVBoxLayout()
+        attributes_layout.addWidget(self.hdf5_attributes_QTextEdit)
+        attributes_group = QGroupBox(self.tr("file informations"))
+        attributes_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        attributes_group.setLayout(attributes_layout)
+
+        # first line layout (selection + graphic)
+        hbox_layout = QHBoxLayout()
+        hbox_layout.addWidget(selectionfile_group)
+        hbox_layout.addWidget(plot_group)
+
+        # second line layout (attribute)
+        vbox_layout = QVBoxLayout()
+        vbox_layout.addWidget(attributes_group)
+
+        # global layout
+        global_layout = QVBoxLayout(self)
+        global_layout.addLayout(hbox_layout)
+        global_layout.addLayout(vbox_layout)
 
         # add layout to group
-        self.setLayout(self.vbox_layout)
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        #self.setLayout(global_layout)
+        self.setFrameShape(QFrame.NoFrame)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+
+        # content_widget = QFrame()
+        # self.layout = QVBoxLayout(content_widget)
 
     def resize_width_lists(self):
         # names
@@ -247,7 +284,7 @@ class GroupPlot(QGroupBox):
         if index == 1:
             # get list of file name by type
             names = load_hdf5.get_filename_by_type("hydraulic",
-                                                   self.parent().parent().parent().path_prj + r"/hdf5/")
+                                                   self.parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -257,7 +294,7 @@ class GroupPlot(QGroupBox):
         if index == 2:
             # get list of file name by type
             names = load_hdf5.get_filename_by_type("substrate",
-                                                   self.parent().parent().parent().path_prj + r"/hdf5/")
+                                                   self.parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -266,7 +303,7 @@ class GroupPlot(QGroupBox):
         # merge hab
         if index == 3:
             # get list of file name by type
-            names = load_hdf5.get_filename_by_type("habitat", self.parent().parent().parent().path_prj + r"/hdf5/")
+            names = load_hdf5.get_filename_by_type("habitat", self.parent().parent().path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -290,7 +327,7 @@ class GroupPlot(QGroupBox):
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
                 self.units_QListWidget.addItems(
-                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5/"))
+                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().path_prj + "/hdf5/"))
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
                 self.variable_QListWidget.addItems(["coarser_dominant"])
@@ -300,20 +337,27 @@ class GroupPlot(QGroupBox):
             # merge hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
-                fish_list = load_hdf5.get_fish_names_habitat(hdf5name, self.parent().parent().parent().path_prj + "/hdf5/")
+                fish_list = load_hdf5.get_fish_names_habitat(hdf5name, self.parent().parent().path_prj + "/hdf5/")
                 if fish_list:
                     self.variable_QListWidget.addItems(fish_list)
-                self.units_QListWidget.addItems(load_hdf5.load_unit_name(hdf5name, self.parent().parent().parent().path_prj + "/hdf5/"))
-
+                self.units_QListWidget.addItems(load_hdf5.load_unit_name(hdf5name, self.parent().parent().path_prj + "/hdf5/"))
+            # display hdf5 attributes
+            hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().name_prj,
+                                                       self.parent().parent().path_prj,
+                                                       hdf5name)
+            hdf5_attributes_text = hdf5_management.get_hdf5_attributes()
+            self.hdf5_attributes_QTextEdit.setText(hdf5_attributes_text)
         # more than one file selected
-        if len(selection) > 1:
+        elif len(selection) > 1:
+            # clear attributes hdf5_attributes_QTextEdit
+            self.hdf5_attributes_QTextEdit.clear()
             nb_file = len(selection)
             hdf5name = []
             units = []
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
                 units.append(load_hdf5.load_unit_name(selection[i].text(),
-                                                         self.parent().parent().parent().path_prj + "/hdf5/"))
+                                                         self.parent().parent().path_prj + "/hdf5/"))
             # units are diferrents
             if not all(x == units[0] for x in units):
                 msg2 = QMessageBox(self)
@@ -346,8 +390,11 @@ class GroupPlot(QGroupBox):
                 # merge hab
                 if self.types_hdf5_QComboBox.currentIndex() == 3:  # merge hab
                     self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
-                    self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name[0], self.parent().parent().parent().path_prj + "/hdf5/"))
+                    self.variable_QListWidget.addItems(load_hdf5.get_fish_names_habitat(hdf5name[0], self.parent().parent().path_prj + "/hdf5/"))
                     self.units_QListWidget.addItems(units)        # update progress bar
+        else:
+            self.hdf5_attributes_QTextEdit.clear()
+        # count plot
         self.count_plot()
 
     def collect_data_from_gui(self):
@@ -411,13 +458,13 @@ class GroupPlot(QGroupBox):
         # print("units_index : ", units_index)
         # print("types_plot : ", types_plot)
         if not types_hdf5:
-            self.parent().parent().parent().send_log.emit('Error: No hdf5 type selected.')
+            self.parent().parent().send_log.emit('Error: No hdf5 type selected.')
         if not names_hdf5:
-            self.parent().parent().parent().send_log.emit('Error: No hdf5 file selected.')
+            self.parent().parent().send_log.emit('Error: No hdf5 file selected.')
         if not variables:
-            self.parent().parent().parent().send_log.emit('Error: No variable selected.')
+            self.parent().parent().send_log.emit('Error: No variable selected.')
         if not units:
-            self.parent().parent().parent().send_log.emit('Error: No units selected.')
+            self.parent().parent().send_log.emit('Error: No units selected.')
         # check if number of display plot are > 30
         if types_plot in ("display", "both") and self.nb_plot > 30:
             qm = QMessageBox
@@ -437,16 +484,16 @@ class GroupPlot(QGroupBox):
             self.plot_production_stoped = False
 
             # figure option
-            fig_opt = output_fig_GUI.load_fig_option(self.parent().parent().parent().path_prj,
-                                                     self.parent().parent().parent().name_prj)
+            fig_opt = output_fig_GUI.load_fig_option(self.parent().parent().path_prj,
+                                                     self.parent().parent().name_prj)
             fig_opt['type_plot'] = types_plot  # "display", "export", "both"
 
             # init
             fish_names = []
 
             # path
-            path_hdf5 = self.parent().parent().parent().path_prj + r"/hdf5/"
-            path_im = self.parent().parent().parent().path_prj + r"/output/figures/"
+            path_hdf5 = self.parent().parent().path_prj + r"/hdf5/"
+            path_im = self.parent().parent().path_prj + r"/output/figures/"
 
             # check plot process done
             if self.plot_process_list.check_all_plot_closed():
@@ -463,8 +510,8 @@ class GroupPlot(QGroupBox):
             for name_hdf5 in names_hdf5:
                 if not self.plot_production_stoped:  # stop loop with button
                     # create hdf5 class by file
-                    hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().parent().name_prj,
-                                                               self.parent().parent().parent().path_prj,
+                    hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().name_prj,
+                                                               self.parent().parent().path_prj,
                                                                name_hdf5)
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data

@@ -1973,7 +1973,7 @@ class CentralW(QWidget):
                 self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
                 self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
             #self.tab_widget.addTab(self.output_tab, self.tr("Options"))
-            self.tab_widget.addTab(self.plot_tab, self.tr("Data viewer"))
+            self.tab_widget.addTab(self.plot_tab, self.tr("Data explorer"))
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))

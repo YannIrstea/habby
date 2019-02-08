@@ -87,7 +87,7 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], pat
 
         # save figure
         plt.tight_layout()  # remove margin out of plot
-        if types_plot == "export" or types_plot == "both":
+        if types_plot == "image export" or types_plot == "both":
             if not erase1:
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -117,11 +117,11 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], pat
 
         # output for plot_GUI
         state.value = 1  # process finished
-        if types_plot == "display" or types_plot == "both":
+        if types_plot == "interactive" or types_plot == "both":
             fm = plt.get_current_fig_manager()
             fm.window.showMinimized()
             plt.show()
-        if types_plot == "export":
+        if types_plot == "image export":
             plt.close()
 
 
@@ -185,7 +185,7 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, name_hdf5, data_v=[], p
 
         # save figure
         plt.tight_layout()  # remove margin out of plot
-        if types_plot == "export" or types_plot == "both":
+        if types_plot == "image export" or types_plot == "both":
             if not erase1:
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -214,11 +214,11 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, name_hdf5, data_v=[], p
                                 transparent=True)
         # output for plot_GUI
         state.value = 1  # process finished
-        if types_plot == "display" or types_plot == "both":
+        if types_plot == "interactive" or types_plot == "both":
             fm = plt.get_current_fig_manager()
             fm.window.showMinimized()
             plt.show()
-        if types_plot == "export":
+        if types_plot == "image export":
             plt.close()
 
 
@@ -299,7 +299,7 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time
 
     # save figures
     plt.tight_layout()  # remove margin out of plot
-    if types_plot == "export" or types_plot == "both":
+    if types_plot == "image export" or types_plot == "both":
         if not erase1:
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
@@ -323,11 +323,11 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time
 
     # output for plot_GUI
     state.value = 1  # process finished
-    if types_plot == "display" or types_plot == "both":
+    if types_plot == "interactive" or types_plot == "both":
         fm = plt.get_current_fig_manager()
         fm.window.showMinimized()
         plt.show()
-    if types_plot == "export":
+    if types_plot == "image export":
         plt.close()
 
 
@@ -464,7 +464,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
     # plt.tight_layout()
 
     # save the figure
-    if types_plot == "export" or types_plot == "both":
+    if types_plot == "image export" or types_plot == "both":
         if not erase1:
             if format == 0 or format == 1:
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
@@ -510,7 +510,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
             plt.title('Données Substrat Original (x,y)')
         else:
             plt.title('Original Substrate Data (x,y)')
-        if types_plot == "export" or types_plot == "both":
+        if types_plot == "image export" or types_plot == "both":
             if not erase1:
                 plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
                             fig_opt['resolution'], transparent=True)
@@ -525,11 +525,11 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
 
     # output for plot_GUI
     state.value = 1  # process finished
-    if types_plot == "display" or types_plot == "both":
+    if types_plot == "interactive" or types_plot == "both":
         fm = plt.get_current_fig_manager()
         fm.window.showMinimized()
         plt.show()
-    if types_plot == "export":
+    if types_plot == "image export":
         plt.close()
 
 
@@ -611,7 +611,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
         cb1.set_label('HV []')
 
     # save figure
-    if types_plot == "export" or types_plot == "both":
+    if types_plot == "image export" or types_plot == "both":
         if not erase1:
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
@@ -641,11 +641,11 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
 
     # output for plot_GUI
     state.value = 1  # process finished
-    if types_plot == "display" or types_plot == "both":
+    if types_plot == "interactive" or types_plot == "both":
         fm = plt.get_current_fig_manager()
         fm.window.showMinimized()
         plt.show()
-    if types_plot == "export":
+    if types_plot == "image export":
         plt.close()
 
 
@@ -768,7 +768,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
             # get data with mouse
             mplcursors.cursor()
             # export or not
-            if types_plot == "export" or types_plot == "both":
+            if types_plot == "image export" or types_plot == "both":
                 if not erase_id:
                     name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
@@ -873,7 +873,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=45)
             # plt.tight_layout()
-            if types_plot == "export" or types_plot == "both":
+            if types_plot == "image export" or types_plot == "both":
                 if not erase_id:
                     name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
@@ -948,7 +948,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                     plt.xticks(t_all[::3], sim_name[::3], rotation=45)
                 else:
                     plt.xticks(t_all[::10], sim_name[::10], rotation=45)
-            if types_plot == "export" or types_plot == "both":
+            if types_plot == "image export" or types_plot == "both":
                 if not erase_id:
                     name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
@@ -965,12 +965,12 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
 
     # output for plot_GUI
     state.value = 1  # process finished
-    if types_plot == "display" or types_plot == "both":
+    if types_plot == "interactive" or types_plot == "both":
         # mplcursors.cursor()
         fm = plt.get_current_fig_manager()
         fm.window.showMinimized()
         plt.show()
-    if types_plot == "export":
+    if types_plot == "image export":
         plt.close()
 
 

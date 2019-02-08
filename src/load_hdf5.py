@@ -129,6 +129,9 @@ class Hdf5Management:
         self.file_object.attrs['hdf5_type'] = "hydraulic"
         self.file_object.attrs['hyd_filename_source'] = hyd_filename_source
         self.file_object.attrs['hyd_model_type'] = model_type
+        self.file_object.attrs['hyd_nb_reach'] = str(data_2d['nb_reach'])
+        self.file_object.attrs['hyd_nb_unit'] = str(data_2d['nb_unit'])
+        self.file_object.attrs['hyd_unit_list'] = ", ".join(sim_name)
 
         # save the name of the units and reach description
         if sim_name:
@@ -198,13 +201,13 @@ class Hdf5Management:
                                               shape=[len(data_2d_whole_profile["tin"][unit_num]), 3],
                                               data=data_2d_whole_profile["tin"][unit_num])
                     mesh_group.create_dataset(name="xy_center",
-                                              shape=[len(data_2d_whole_profile["coord_c"][unit_num]), 2],
-                                              data=data_2d_whole_profile["coord_c"][unit_num])
+                                              shape=[len(data_2d_whole_profile["xy_center"][unit_num]), 2],
+                                              data=data_2d_whole_profile["xy_center"][unit_num])
                     # NODE GROUP
                     node_group = unit_group.create_group('node')
                     node_group.create_dataset(name="xy",
-                                              shape=[len(data_2d_whole_profile["coord_p"][unit_num]), 2],
-                                              data=data_2d_whole_profile["coord_p"][unit_num])
+                                              shape=[len(data_2d_whole_profile["xy"][unit_num]), 2],
+                                              data=data_2d_whole_profile["xy"][unit_num])
 
             # data_2D
             data_group = self.file_object.create_group('data_2D')
@@ -336,6 +339,16 @@ class Hdf5Management:
             data_2d["v"].append(v_list)
         self.file_object.close()
         return data_2d, hyd_filename_source
+
+    def get_hdf5_attributes(self):
+        # open an hdf5
+        self.open_hdf5_file(new=False)
+        hdf5_attributes = list(self.file_object.attrs.items())
+        hdf5_attributes_text = ""
+        for attribute_name, attribute_data in hdf5_attributes:
+            hdf5_attributes_text += attribute_name + " : " + attribute_data + "\n"
+
+        return hdf5_attributes_text
 
 
 #################################################################
