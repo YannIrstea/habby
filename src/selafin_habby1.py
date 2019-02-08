@@ -111,14 +111,14 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         # get data_2d_whole_profile
         data_2d_whole_profile = dict()
         data_2d_whole_profile["tin"] = []
-        data_2d_whole_profile["coord_c"] = []
-        data_2d_whole_profile["coord_p"] = []
+        data_2d_whole_profile["xy_center"] = []
+        data_2d_whole_profile["xy"] = []
         data_2d_whole_profile["unit_correspondences"] = []
         for i, file in enumerate(filenames_list):
             _, _, coord_p, tin, coord_c, _ = load_telemac(file, pathfilet)
             data_2d_whole_profile["tin"].append(tin)
-            data_2d_whole_profile["coord_c"].append(coord_c)
-            data_2d_whole_profile["coord_p"].append(coord_p)
+            data_2d_whole_profile["xy_center"].append(coord_c)
+            data_2d_whole_profile["xy"].append(coord_p)
             data_2d_whole_profile["unit_correspondences"].append(str(i))
 
         # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
@@ -140,8 +140,8 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
         if "diff" not in whole_profil_egual_index:  # one tin for each unit
             print("one tin for each unit")
             data_2d_whole_profile["tin"] = [data_2d_whole_profile["tin"][0]]
-            data_2d_whole_profile["coord_c"] = [data_2d_whole_profile["coord_c"][0]]
-            data_2d_whole_profile["coord_p"] = [data_2d_whole_profile["coord_p"][0]]
+            data_2d_whole_profile["xy_center"] = [data_2d_whole_profile["xy_center"][0]]
+            data_2d_whole_profile["xy"] = [data_2d_whole_profile["xy"][0]]
             data_2d_whole_profile["unit_correspondences"] = "all"
 
         # cut the grid to have the precise wet area and put data in new form

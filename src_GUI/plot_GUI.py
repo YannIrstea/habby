@@ -462,12 +462,12 @@ class GroupPlot(QGroupBox):
             # loop on all desired hdf5 file
             for name_hdf5 in names_hdf5:
                 if not self.plot_production_stoped:  # stop loop with button
-
+                    # create hdf5 class by file
+                    hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().parent().name_prj,
+                                                               self.parent().parent().parent().path_prj,
+                                                               name_hdf5)
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
-                        hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().parent().name_prj,
-                                                                   self.parent().parent().parent().path_prj,
-                                                                   name_hdf5)
                         data_2d, hyd_filename_source = hdf5_management.load_hdf5_hyd(units_index=units_index)
                     if types_hdf5 == "substrate":  # load substrate data
                         [ikle_sub, point_all_sub, sub_array, sub_description_system] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
@@ -500,88 +500,89 @@ class GroupPlot(QGroupBox):
                                                                  fig_opt,
                                                                  units))
                         self.plot_process_list.append((plot_hab_fig_spu_process, state))
-
-                    # for each desired units ==> maps
-                    for index, t in enumerate(units_index):
-                        # input data
-                        if "height" in variables:  # height
-                            state = Value("i", 0)
-                            height_process = Process(target=plot_hab.plot_map_height,
-                                                     args=(state,
-                                                           data_2d["xy"][index],
-                                                           data_2d["tin"][index],
-                                                           fig_opt,
-                                                           name_hdf5,
-                                                           data_2d["h"][index],
-                                                           path_im,
-                                                           units[index]))
-                            self.plot_process_list.append((height_process, state))
-                        if "velocity" in variables:  # velocity
-                            state = Value("i", 0)
-                            velocity_process = Process(target=plot_hab.plot_map_velocity,
+                    # for each reach
+                    for reach_num in range(data_2d["nb_reach"]):
+                        # for each desired units ==> maps
+                        for index, t in enumerate(units_index):
+                            # input data
+                            if "height" in variables:  # height
+                                state = Value("i", 0)
+                                height_process = Process(target=plot_hab.plot_map_height,
+                                                         args=(state,
+                                                               data_2d["xy"][reach_num][index],
+                                                               data_2d["tin"][reach_num][index],
+                                                               fig_opt,
+                                                               name_hdf5,
+                                                               data_2d["h"][reach_num][index],
+                                                               path_im,
+                                                               units[index]))
+                                self.plot_process_list.append((height_process, state))
+                            if "velocity" in variables:  # velocity
+                                state = Value("i", 0)
+                                velocity_process = Process(target=plot_hab.plot_map_velocity,
+                                                           args=(state,
+                                                                 data_2d["xy"][reach_num][index],
+                                                                 data_2d["tin"][reach_num][index],
+                                                                 fig_opt,
+                                                                 name_hdf5,
+                                                                 data_2d["v"][reach_num][index],
+                                                                 path_im,
+                                                                 units[index]))
+                                self.plot_process_list.append((velocity_process, state))
+                            if "mesh" in variables:  # mesh
+                                state = Value("i", 0)
+                                mesh_process = Process(target=plot_hab.plot_map_mesh,
                                                        args=(state,
-                                                             data_2d["xy"][index],
-                                                             data_2d["tin"][index],
+                                                             data_2d["xy"][reach_num][index],
+                                                             data_2d["tin"][reach_num][index],
                                                              fig_opt,
                                                              name_hdf5,
-                                                             data_2d["v"][index],
                                                              path_im,
                                                              units[index]))
-                            self.plot_process_list.append((velocity_process, state))
-                        if "mesh" in variables:  # mesh
-                            state = Value("i", 0)
-                            mesh_process = Process(target=plot_hab.plot_map_mesh,
-                                                   args=(state,
-                                                         data_2d["xy"][index],
-                                                         data_2d["tin"][index],
-                                                         fig_opt,
-                                                         name_hdf5,
-                                                         path_im,
-                                                         units[index]))
-                            self.plot_process_list.append((mesh_process, state))
-                        if "coarser_dominant" in variables:  # coarser_dominant
-                            if types_hdf5 == "substrate":  # from substrate
-                                state = Value("i", 0)
-                                susbtrat_process = Process(target=plot_hab.plot_map_substrate,
-                                                           args=(state,
-                                                                 point_all_sub,
-                                                                 ikle_sub,
-                                                                 sub_coarser,
-                                                                 sub_dominant,
-                                                                 sub_description_system,
-                                                                 path_im,
-                                                                 name_hdf5,
-                                                                 fig_opt))
-                                self.plot_process_list.append((susbtrat_process, state))
-                            else:  # from habitat
-                                state = Value("i", 0)
-                                susbtrat_process = Process(target=plot_hab.plot_map_substrate,
-                                                           args=(state,
-                                                                 point_all_t[index + 1][0],
-                                                                 ikle_all_t[index + 1][0],
-                                                                 substrate_all_pg[index + 1][0],
-                                                                 substrate_all_dom[index + 1][0],
-                                                                 path_im,
-                                                                 name_hdf5,
-                                                                 fig_opt,
-                                                                 units[index]))
-                                self.plot_process_list.append((susbtrat_process, state))
-                        if fish_names:  # habitat data (maps)
-                            # map by fish
-                            for fish_index, fish_name in enumerate(fish_names):
-                                # plot map
-                                state = Value("i", 0)
-                                habitat_map_process = Process(target=plot_hab.plot_map_fish_habitat,
-                                                              args=(state,
-                                                                    fish_name,
-                                                                    point_all_t[index + 1][0],
-                                                                    ikle_all_t[index + 1][0],
-                                                                    fish_data["HV_data"][index + 1][fish_index + 1],
-                                                                    name_hdf5,
-                                                                    fig_opt,
-                                                                    path_im,
-                                                                    units[index]))
-                                self.plot_process_list.append((habitat_map_process, state))
+                                self.plot_process_list.append((mesh_process, state))
+                            if "coarser_dominant" in variables:  # coarser_dominant
+                                if types_hdf5 == "substrate":  # from substrate
+                                    state = Value("i", 0)
+                                    susbtrat_process = Process(target=plot_hab.plot_map_substrate,
+                                                               args=(state,
+                                                                     point_all_sub,
+                                                                     ikle_sub,
+                                                                     sub_coarser,
+                                                                     sub_dominant,
+                                                                     sub_description_system,
+                                                                     path_im,
+                                                                     name_hdf5,
+                                                                     fig_opt))
+                                    self.plot_process_list.append((susbtrat_process, state))
+                                else:  # from habitat
+                                    state = Value("i", 0)
+                                    susbtrat_process = Process(target=plot_hab.plot_map_substrate,
+                                                               args=(state,
+                                                                     point_all_t[index + 1][0],
+                                                                     ikle_all_t[index + 1][0],
+                                                                     substrate_all_pg[index + 1][0],
+                                                                     substrate_all_dom[index + 1][0],
+                                                                     path_im,
+                                                                     name_hdf5,
+                                                                     fig_opt,
+                                                                     units[index]))
+                                    self.plot_process_list.append((susbtrat_process, state))
+                            if fish_names:  # habitat data (maps)
+                                # map by fish
+                                for fish_index, fish_name in enumerate(fish_names):
+                                    # plot map
+                                    state = Value("i", 0)
+                                    habitat_map_process = Process(target=plot_hab.plot_map_fish_habitat,
+                                                                  args=(state,
+                                                                        fish_name,
+                                                                        point_all_t[index + 1][0],
+                                                                        ikle_all_t[index + 1][0],
+                                                                        fish_data["HV_data"][index + 1][fish_index + 1],
+                                                                        name_hdf5,
+                                                                        fig_opt,
+                                                                        path_im,
+                                                                        units[index]))
+                                    self.plot_process_list.append((habitat_map_process, state))
 
             # end of loop file
             if self.plot_process_list.add_plots_state:  # if plot windows are open ==> add news to existing (don't close them)

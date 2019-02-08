@@ -121,10 +121,7 @@ class Hdf5Management:
             # write xml
             doc.write(self.absolute_path_prj_xml)
 
-    def create_hdf5_hyd(self, model_type, nb_dim, sim_name, hyd_filename_source,
-                        data_2d_whole_profile,
-                        data_2d):
-
+    def create_hdf5_hyd(self, model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d):
         # create a new hdf5
         self.open_hdf5_file(new=True)
 
@@ -147,38 +144,39 @@ class Hdf5Management:
             reach_name_dataset = self.file_object.create_dataset("description_reach", (reach_nb,), data=reach_ascii_str)
             reach_name_dataset.attrs['nb'] = reach_nb
 
-        # data by type of model (1D)
-        if nb_dim == 1:
-            data_group = self.file_object.create_group('data_1d')
-            xhzv_datag = data_group.create_group('xhzv_data')
-            xhzv_datag.create_dataset('xhzv_data', data=xhzv_data)
-
-        # data by type of model (1.5D)
-        if nb_dim < 2:
-            data_group = self.file_object.create_group('data_15d')
-            adict = dict()
-            for p in range(0, len(coord_pro)):
-                ns = 'p' + str(p)
-                adict[ns] = coord_pro[p]
-            coord_prog = data_group.create_group('coord_pro')
-            for k, v in adict.items():
-                coord_prog.create_dataset(k, data=v)
-                # coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
-            for t in range(0, len(vh_pro)):
-                there = data_group.create_group('unit_' + str(t))
-                adict = dict()
-                for p in range(0, len(vh_pro[t])):
-                    ns = 'p' + str(p)
-                    adict[ns] = vh_pro[t][p]
-                for k, v in adict.items():
-                    there.create_dataset(k, data=v)
-            nbproreachg = data_group.create_group('Number_profile_by_reach')
-            nb_pro_reach2 = list(map(float, nb_pro_reach))
-            nbproreachg.create_dataset('Number_profile_by_reach', [len(nb_pro_reach2), 1], data=nb_pro_reach2)
+        # # data by type of model (1D)
+        # if nb_dim == 1:
+        #     data_group = self.file_object.create_group('data_1d')
+        #     xhzv_datag = data_group.create_group('xhzv_data')
+        #     xhzv_datag.create_dataset('xhzv_data', data=xhzv_data)
+        # 
+        # # data by type of model (1.5D)
+        # if nb_dim < 2:
+        #     data_group = self.file_object.create_group('data_15d')
+        #     adict = dict()
+        #     for p in range(0, len(coord_pro)):
+        #         ns = 'p' + str(p)
+        #         adict[ns] = coord_pro[p]
+        #     coord_prog = data_group.create_group('coord_pro')
+        #     for k, v in adict.items():
+        #         coord_prog.create_dataset(k, data=v)
+        #         # coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
+        #     for t in range(0, len(vh_pro)):
+        #         there = data_group.create_group('unit_' + str(t))
+        #         adict = dict()
+        #         for p in range(0, len(vh_pro[t])):
+        #             ns = 'p' + str(p)
+        #             adict[ns] = vh_pro[t][p]
+        #         for k, v in adict.items():
+        #             there.create_dataset(k, data=v)
+        #     nbproreachg = data_group.create_group('Number_profile_by_reach')
+        #     nb_pro_reach2 = list(map(float, nb_pro_reach))
+        #     nbproreachg.create_dataset('Number_profile_by_reach', [len(nb_pro_reach2), 1], data=nb_pro_reach2)
 
         # data by type of model (2D)
         if nb_dim <= 2:
             warn_dry = True
+
             # data_2D_whole_profile profile
             data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
             # REACH GROUP
@@ -271,36 +269,38 @@ class Hdf5Management:
             self.file_object.close()
             return
 
-        # data_2d
-        basename1 = 'data_2D_whole_profile'
-
-        # WHOLE PROFIL
+        # DATA 2D WHOLE PROFIL
         if whole_profil:
-            tin_whole_all = []
-            xy_whole_all = []
+            data_2D_whole_profile = dict()
+            data_2D_whole_profile["tin"] = []
+            data_2D_whole_profile["xy_center"] = []
+            data_2D_whole_profile["xy"] = []
+            data_group = 'data_2D_whole_profile'
+            # for all reach
             for r in range(0, nb_r):
-                tin_path = basename1 + "/whole_profile/reach_" + str(r) + "/mesh/tin"
-                xy_path = basename1 + "/whole_profile/reach_" + str(r) + "/node/xy"
-                try:
-                    tin_dataset = self.file_object[tin_path]
-                    xy_dataset = self.file_object[xy_path]
-                except KeyError:
-                    print('Error: the dataset for tin or xy (1) is missing from the hdf5 file. \n')
-                    self.file_object.close()
-                    return failload
-                try:
-                    tin_whole = tin_dataset[:]
-                    xy_whole = xy_dataset[:]
-                except IndexError:
-                    print('Error: the dataset for tin or xy (2) is missing from the hdf5 file. \n')
-                    self.file_object.close()
-                    return failload
-                tin_whole_all.append(tin_whole)
-                xy_whole_all.append(xy_whole)
-            ikle_all_t.append(tin_whole_all)
-            point_all.append(xy_whole_all)
+                reach_group = data_group + "/reach_" + str(r)
+                # for all unit
+                tin_list = []
+                xy_center_list = []
+                xy_list = []
+                for t in units_index:
+                    unit_group = reach_group + "/unit_" + str(t)
+                    mesh_group = unit_group + "/mesh"
+                    node_group = unit_group + "/node"
+                    try:
+                        tin_list.append(self.file_object[mesh_group + "/tin"][:])
+                        xy_center_list.append(self.file_object[mesh_group + "/xy_center"][:])
+                        xy_list.append(self.file_object[node_group + "/xy"][:])
+                    except KeyError:
+                        print(
+                            'Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
+                        self.file_object.close()
+                        return
+                data_2D_whole_profile["tin"].append(tin_list)
+                data_2D_whole_profile["xy_center"].append(xy_center_list)
+                data_2D_whole_profile["xy"].append(xy_list)
 
-        # UNITS
+        # DATA 2D
         data_2d = dict()
         data_2d["tin"] = []
         data_2d["xy"] = []
@@ -335,7 +335,6 @@ class Hdf5Management:
             data_2d["h"].append(h_list)
             data_2d["v"].append(v_list)
         self.file_object.close()
-
         return data_2d, hyd_filename_source
 
 

@@ -26,7 +26,7 @@ from src_GUI import output_fig_GUI
 from src import calcul_hab
 
 
-def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_h_all=[], path_im=[], time_step=0):
+def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], path_im=[], time_step=0):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -56,8 +56,8 @@ def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_
         title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step)
         filename = name_hdf5[:-4] + "_height_" + str(time_step)
 
-    # plot the interpolated height
-    if len(inter_h_all) > 0:  # 0
+    # plot the height
+    if len(data_h) > 0:  # 0
         # plt.subplot(2, 1, 2) # nb_fig, nb_fig, position
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
@@ -68,32 +68,22 @@ def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_
         # color map (the same for al reach)
         mvc = 0.001
         cm = plt.cm.get_cmap(fig_opt['color_map2'])
-        for r in range(0, len(inter_h_all)):
-            inter_h = inter_h_all[r]
-            if len(inter_h) > 0:
-                mv = max(inter_h)
-                # mv = np.mean(inter_h[inter_h >= 0]) * 2
-                if mv > mvc:
-                    mvc = mv
+        mv = max(data_h)
+        if mv > mvc:
+            mvc = mv
         bounds = np.linspace(0, mvc, 15)
-        for r in range(0, len(inter_h_all)):
-            point_here = np.array(point_all_reach[r])
-            inter_h = inter_h_all[r]
-            if len(point_here) == len(inter_h) and len(ikle_all[r]) > 2:
-                inter_h[inter_h < 0] = 0
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1], ikle_all[r], inter_h, cmap=cm,
-                                     vmin=0, vmax=mvc, levels=bounds,
-                                     extend='both')
-                if r == len(inter_h_all) - 1:  # end of loop
-                    cbar = plt.colorbar(sc)
-                    if fig_opt['language'] == 0:
-                        cbar.ax.set_ylabel('Water depth [m]')
-                    elif fig_opt['language'] == 1:
-                        cbar.ax.set_ylabel("Hauteur d'eau [m]")
-                    else:
-                        cbar.ax.set_ylabel('Water depth [m]')
-            else:
-                print('Warning: The river is dry for one unit. The figure created will be empty.\n\n')
+        # negative value ?
+        data_h[data_h < 0] = 0
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h, cmap=cm,
+                             vmin=0, vmax=mvc, levels=bounds,
+                             extend='both')
+        cbar = plt.colorbar(sc)
+        if fig_opt['language'] == 0:
+            cbar.ax.set_ylabel('Water depth [m]')
+        elif fig_opt['language'] == 1:
+            cbar.ax.set_ylabel("Hauteur d'eau [m]")
+        else:
+            cbar.ax.set_ylabel('Water depth [m]')
 
         # save figure
         plt.tight_layout()  # remove margin out of plot
@@ -135,7 +125,7 @@ def plot_map_height(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_
             plt.close()
 
 
-def plot_map_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inter_vel_all=[], path_im=[], time_step=0):
+def plot_map_velocity(state, data_xy, data_tin, fig_opt, name_hdf5, data_v=[], path_im=[], time_step=0):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -166,43 +156,32 @@ def plot_map_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inte
         filename = name_hdf5[:-4] + "_velocity_" + str(time_step)
 
     # plot
-    if len(inter_vel_all) > 0:  # 0
+    if len(data_v) > 0:  # 0
         plt.figure(filename)
         plt.ticklabel_format(useOffset=False)
         plt.axis('equal')
         plt.xlabel('x coord []')
         plt.ylabel('y coord []')
         plt.title(title)
-        # plt.subplot(2, 1, 1)
         # get colormap limit
-        cm = plt.cm.get_cmap(fig_opt['color_map1'])
         mvc = 0.001
-        for r in range(0, len(inter_vel_all)):
-            inter_vel = inter_vel_all[r]
-            if len(inter_vel) > 0:
-                mv = max(inter_vel)
-                if mv > mvc:
-                    mvc = mv
+        cm = plt.cm.get_cmap(fig_opt['color_map2'])
+        mv = max(data_v)
+        if mv > mvc:
+            mvc = mv
         bounds = np.linspace(0, mvc, 15)
-        # do the figure for all reach
-        for r in range(0, len(inter_vel_all)):
-            point_here = np.array(point_all_reach[r])
-            inter_vel = inter_vel_all[r]
-            if len(point_here[:, 1]) == len(inter_vel) and len(ikle_all[r]) > 2:
-                sc = plt.tricontourf(point_here[:, 0], point_here[:, 1],
-                                     ikle_all[r], inter_vel, cmap=cm,
-                                     levels=bounds, extend='both')
-                if r == len(inter_vel_all) - 1:
-                    # plt.clim(0, np.nanmax(inter_vel))
-                    cbar = plt.colorbar(sc)
-                    if fig_opt['language'] == 0:
-                        cbar.ax.set_ylabel('Velocity [m/sec]')
-                    elif fig_opt['language'] == 1:
-                        cbar.ax.set_ylabel('Vitesse [m/sec]')
-                    else:
-                        cbar.ax.set_ylabel('Velocity [m/sec]')
-            else:
-                print('Warning: The river is dry for one unit. The figure created will be empty.\n\n')
+
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_v,
+                             cmap=cm, levels=bounds, extend='both')
+        
+        # plt.clim(0, np.nanmax(inter_vel))
+        cbar = plt.colorbar(sc)
+        if fig_opt['language'] == 0:
+            cbar.ax.set_ylabel('Velocity [m/sec]')
+        elif fig_opt['language'] == 1:
+            cbar.ax.set_ylabel('Vitesse [m/sec]')
+        else:
+            cbar.ax.set_ylabel('Velocity [m/sec]')
 
         # save figure
         plt.tight_layout()  # remove margin out of plot
@@ -243,7 +222,7 @@ def plot_map_velocity(state, point_all_reach, ikle_all, fig_opt, name_hdf5, inte
             plt.close()
 
 
-def plot_map_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im=[], time_step=0):
+def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time_step=0):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -282,41 +261,41 @@ def plot_map_mesh(state, point_all_reach, ikle_all, fig_opt, name_hdf5, path_im=
     plt.ylabel('y coord []')
     plt.title(title)
     plt.axis('equal')
-    for r in range(0, len(ikle_all)):
-        # get data for this reach
-        ikle = ikle_all[r]
-        coord_p = point_all_reach[r]
+    # for r in range(0, len(data_tin)):
+    #     # get data for this reach
+    #     ikle = data_tin[r]
+    #     coord_p = data_xy[r]
 
-        # prepare the grid
-        if ikle is not None:  # case empty grid
-            xlist = []
-            ylist = []
-            for i in range(0, len(ikle)):
-                pi = 0
-                ikle_i = ikle[i]
-                if len(ikle_i) == 3:
-                    while pi < 2:  # we have all sort of xells, max eight sides
-                        # The conditions should be tested in this order to avoid to go out of the array
-                        p = ikle_i[pi]  # we start at 0 in python, careful about -1 or not
-                        p2 = ikle_i[pi + 1]
-                        xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
-                        xlist.append(None)
-                        ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
-                        ylist.append(None)
-                        pi += 1
-
-                    p = ikle_i[pi]
-                    p2 = ikle_i[0]
-                    xlist.extend([coord_p[p, 0], coord_p[p2, 0]])
+    # prepare the grid
+    if data_tin is not None:  # case empty grid
+        xlist = []
+        ylist = []
+        for i in range(0, len(data_tin)):
+            pi = 0
+            tin_i = data_tin[i]
+            if len(tin_i) == 3:
+                while pi < 2:  # we have all sort of xells, max eight sides
+                    # The conditions should be tested in this order to avoid to go out of the array
+                    p = tin_i[pi]  # we start at 0 in python, careful about -1 or not
+                    p2 = tin_i[pi + 1]
+                    xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
                     xlist.append(None)
-                    ylist.extend([coord_p[p, 1], coord_p[p2, 1]])
+                    ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
                     ylist.append(None)
+                    pi += 1
 
-            plt.plot(xlist, ylist, '-b', linewidth=0.1)
-            plt.ticklabel_format(useOffset=False)
-            # to add water value on grid point (usualy to debug)
-            # for idx, c in enumerate(coord_p):
-            #     plt.annotate(str(inter_h_all[r][idx]),c)
+                p = tin_i[pi]
+                p2 = tin_i[0]
+                xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
+                xlist.append(None)
+                ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
+                ylist.append(None)
+
+        plt.plot(xlist, ylist, '-b', linewidth=0.1)
+        plt.ticklabel_format(useOffset=False)
+        # to add water value on grid point (usualy to debug)
+        # for idx, c in enumerate(coord_p):
+        #     plt.annotate(str(inter_h_all[r][idx]),c)
 
     # save figures
     plt.tight_layout()  # remove margin out of plot
