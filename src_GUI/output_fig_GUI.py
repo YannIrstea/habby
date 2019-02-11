@@ -494,17 +494,22 @@ class outputW(QScrollArea):
         self.send_log.emit('# Modifications of figure options.')
         # self.send_log.emit('restart     SAVE_OPTION_FIG')
         #close window if opened
+        # try:
+        #     self.parent().close()
+        # except:
+        #     print("bug")
+        print("pref saved")
+        if self.parent():
+            self.close_option_fig()
+
+    def close_option_fig(self):
+        #close window if opened
+        print("close_option_fig")
         try:
             self.parent().close()
         except:
             print("bug")
 
-    def close_option_fig(self):
-        #close window if opened
-        try:
-            self.parent().close()
-        except:
-            print("bug")
 
 def set_lang_fig(nb_lang, path_prj, name_prj):
     """
