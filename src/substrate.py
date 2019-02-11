@@ -524,6 +524,8 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
     sub_description_system["sub_epsg_code"] = sub_epsg_code
     sub_description_system["sub_filename_source"] = filename
     sub_description_system["sub_default_values"] = default_values
+    sub_description_system["sub_nb_class"] = str(len(sub_array))
+
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
@@ -533,7 +535,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
 
             # initialization
             xy = []  # point
-            ikle = []  # connectivity table
+            tin = []  # connectivity table
             ind = 0
 
             # open shape file (think about zero or one to start! )
@@ -543,35 +545,30 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
             shapes = sf.shapes()
             for i in range(0, len(shapes)):
                 p_all = shapes[i].points
-                ikle_i = []
+                tin_i = []
                 for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
                     try:
-                        ikle_i.append(int(xy.index(p_all[j])))
+                        tin_i.append(int(xy.index(p_all[j])))
                     except ValueError:
-                        ikle_i.append(int(len(xy)))
+                        tin_i.append(int(len(xy)))
                         xy.append(p_all[j])
-                ikle.append(ikle_i)
+                tin.append(tin_i)
 
             # get data
             records = sf.records()
             sub_array = list(zip(*records))
 
-            # having a convex subtrate grid is really practical (not used because triangles are never concave
-            # [ikle, xy, sub_pg, sub_dom] = modify_grid_if_concave(ikle, xy, sub_pg, sub_dom)
+            data_2d = dict()
+            data_2d["tin"] = [tin]
+            data_2d["xy"] = [xy]
+            data_2d["sub"] = [sub_array]
+            data_2d["nb_unit"] = 1
+            data_2d["nb_reach"] = 1
 
             # save hdf5
-            load_hdf5.save_hdf5_sub(path_hdf5,
-                                    path_prj,
-                                    name_prj,
-                                    sub_array,
-                                    sub_description_system,
-                                    ikle,
-                                    xy,
-                                    [],
-                                    [],
-                                    name_hdf5,
-                                    "SUBSTRATE",
-                                    False)
+            hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
+            hdf5_management.create_hdf5_sub(sub_description_system, data_2d)
+
     queue.put(mystdout)
 
 

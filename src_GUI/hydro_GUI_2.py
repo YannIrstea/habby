@@ -966,6 +966,10 @@ class SubHydroW(QWidget):
             if not const_sub:
                 self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
             self.send_log.emit("clear status bar")
+            # refresh plot gui list file
+            index = self.nativeParentWidget().central_widget.plot_tab.group_plot.types_hdf5_QComboBox.currentIndex()
+            self.nativeParentWidget().central_widget.plot_tab.group_plot.types_hdf5_QComboBox.setCurrentIndex(0)
+            self.nativeParentWidget().central_widget.plot_tab.group_plot.types_hdf5_QComboBox.setCurrentIndex(index)
             self.running_time = 0
 
         # finish
@@ -973,6 +977,7 @@ class SubHydroW(QWidget):
             self.timer.stop()
             self.send_log.emit("clear status bar")
             self.running_time = 0
+
             # if grid creation fails
             # if self.interpo_choice >= 1:
             #     self.send_log.emit(
@@ -4544,34 +4549,43 @@ class SubstrateW(SubHydroW):
             self.name_hdf5 = self.constant_hname.text()
             self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
 
-            sub_description_system = dict(sub_mapping_method=sub_mapping_method,
-                                          sub_classification_code=sub_classification_code,
-                                          sub_classification_method=sub_classification_method,
-                                          sub_filename_source=filename,
-                                          sub_constant_values=sub_constant_values)
-
-
             constant_values_list = sub_constant_values.split(",")
             sub_array = [[] for i in range(len(constant_values_list))]
             for i, value in enumerate(constant_values_list):
                 sub_array[i] = int(value.strip())
 
+            sub_description_system = dict(sub_mapping_method=sub_mapping_method,
+                                          sub_classification_code=sub_classification_code,
+                                          sub_classification_method=sub_classification_method,
+                                          sub_filename_source=filename,
+                                          sub_constant_values=sub_constant_values,
+                                          sub_nb_class=str(len(sub_array)))
+            data = dict(sub=[sub_array],
+                        nb_unit=1,
+                        nb_reach=1)
+
             sys.stdout = self.mystdout = StringIO()  # out to GUI
             self.q = Queue()
             self.q.put("const_sub")
-            self.p = Process(target=load_hdf5.save_hdf5_sub,
-                             args=(path_hdf5,
-                                    self.path_prj,
-                                    self.name_prj,
-                                    sub_array,
-                                    sub_description_system,
-                                    [],
-                                    [],
-                                    [],
-                                    [],
-                                    self.name_hdf5,
-                                    "SUBSTRATE",
-                                    False))
+            # self.p = Process(target=load_hdf5.save_hdf5_sub,
+            #                  args=(path_hdf5,
+            #                         self.path_prj,
+            #                         self.name_prj,
+            #                         sub_array,
+            #                         sub_description_system,
+            #                         [],
+            #                         [],
+            #                         [],
+            #                         [],
+            #                         self.name_hdf5,
+            #                         "SUBSTRATE",
+            #                         False))
+
+
+            # save hdf5
+            hdf5_management = load_hdf5.Hdf5Management(self.name_prj, self.path_prj, self.name_hdf5)
+            self.p = Process(target=hdf5_management.create_hdf5_sub,
+                             args=(sub_description_system, data))
             self.p.start()
 
             sys.stdout = sys.__stdout__  # reset to console

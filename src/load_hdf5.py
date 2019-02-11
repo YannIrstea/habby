@@ -178,8 +178,6 @@ class Hdf5Management:
 
         # data by type of model (2D)
         if nb_dim <= 2:
-            warn_dry = True
-
             # data_2D_whole_profile profile
             data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
             # REACH GROUP
@@ -339,6 +337,69 @@ class Hdf5Management:
             data_2d["v"].append(v_list)
         self.file_object.close()
         return data_2d, hyd_filename_source
+
+    def create_hdf5_sub(self, sub_description_system, data_2d):
+        # create a new hdf5
+        self.open_hdf5_file(new=True)
+
+        # create general attributes
+        self.file_object.attrs['software'] = 'HABBY'
+        self.file_object.attrs['software_version'] = str(VERSION)
+        self.file_object.attrs['path_projet'] = self.path_prj
+        self.file_object.attrs['name_projet'] = self.name_prj
+        self.file_object.attrs['HDF5_version'] = h5py.version.hdf5_version
+        self.file_object.attrs['h5py_version'] = h5py.version.version
+        self.file_object.attrs['hdf5_type'] = "substrate"
+        self.file_object.attrs['sub_mapping_method'] = sub_description_system["sub_mapping_method"]
+        self.file_object.attrs['sub_classification_code'] = sub_description_system["sub_classification_code"]
+        self.file_object.attrs['sub_classification_method'] = sub_description_system["sub_classification_method"]
+        self.file_object.attrs['sub_filename_source'] = sub_description_system["sub_filename_source"]
+        self.file_object.attrs['sub_nb_class'] = sub_description_system["sub_nb_class"]
+
+        # POLYGON or POINT
+        if sub_description_system["sub_mapping_method"] in ("polygon", "point"):
+            # create specific attributes
+            self.file_object.attrs['sub_default_values'] = sub_description_system["sub_default_values"]
+            self.file_object.attrs['sub_epsg_code'] = sub_description_system["sub_epsg_code"]
+
+            # data_2D
+            data_group = self.file_object.create_group('data_2D')
+            # REACH GROUP
+            for reach_num in range(data_2d["nb_reach"]):
+                reach_group = data_group.create_group('reach_' + str(reach_num))
+                # UNIT GROUP
+                for unit_num in range(data_2d["nb_unit"]):
+                    unit_group = reach_group.create_group('unit_' + str(unit_num))
+                    # MESH GROUP
+                    mesh_group = unit_group.create_group('mesh')
+                    mesh_group.create_dataset(name="sub",
+                                              shape=[len(data_2d["sub"][unit_num][0]),
+                                                     int(sub_description_system["sub_nb_class"])],
+                                              data=list(zip(*data_2d["sub"][unit_num])))
+                    mesh_group.create_dataset(name="tin",
+                                              shape=[len(data_2d["tin"][unit_num]), 3],
+                                              data=data_2d["tin"][unit_num])
+                    # NODE GROUP
+                    node_group = unit_group.create_group('node')
+                    node_group.create_dataset(name="xy",
+                                              shape=[len(data_2d["xy"][unit_num]), 2],
+                                              data=data_2d["xy"][unit_num])
+
+        # CONSTANT
+        if sub_description_system["sub_mapping_method"] == "constant":
+            # create attributes
+            self.file_object.attrs['sub_constant_values'] = sub_description_system["sub_constant_values"]
+
+            # add the constant value of substrate
+            self.file_object.create_dataset(name="sub",
+                                            shape=[1, int(sub_description_system["sub_nb_class"])],
+                                            data=data_2d["sub"][0])
+
+        # close file
+        self.file_object.close()
+
+        # save XML
+        self.save_xml("SUBSTRATE")
 
     def get_hdf5_attributes(self):
         # open an hdf5

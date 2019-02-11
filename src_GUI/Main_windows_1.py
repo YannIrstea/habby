@@ -2108,7 +2108,7 @@ class CentralW(QWidget):
             self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
 
             # connect signal to update the merge file
-            self.bioinfo_tab.get_list_merge.connect(self.update_merge_for_chronicle)
+            #self.bioinfo_tab.get_list_merge.connect(self.update_merge_for_chronicle)
 #            self.chronicle_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
