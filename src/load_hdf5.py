@@ -126,7 +126,7 @@ class Hdf5Management:
         self.open_hdf5_file(new=True)
 
         # create attributes
-        self.file_object.attrs['hdf5_type'] = "hydraulic"
+        self.file_object.attrs['hdf5_type'] = "hydraulic (.hyd)"
         self.file_object.attrs['hyd_filename_source'] = hyd_filename_source
         self.file_object.attrs['hyd_model_type'] = model_type
         self.file_object.attrs['hyd_nb_reach'] = str(data_2d['nb_reach'])
@@ -152,7 +152,7 @@ class Hdf5Management:
         #     data_group = self.file_object.create_group('data_1d')
         #     xhzv_datag = data_group.create_group('xhzv_data')
         #     xhzv_datag.create_dataset('xhzv_data', data=xhzv_data)
-        # 
+        #
         # # data by type of model (1.5D)
         # if nb_dim < 2:
         #     data_group = self.file_object.create_group('data_15d')
@@ -346,7 +346,7 @@ class Hdf5Management:
         hdf5_attributes = list(self.file_object.attrs.items())
         hdf5_attributes_text = ""
         for attribute_name, attribute_data in hdf5_attributes:
-            hdf5_attributes_text += attribute_name + " : " + attribute_data + "\n"
+            hdf5_attributes_text += attribute_name.replace("_", " ") + " : " + attribute_data + "\n"
 
         return hdf5_attributes_text
 
