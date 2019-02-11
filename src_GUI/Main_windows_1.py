@@ -381,7 +381,7 @@ class MainWindows(QMainWindow):
             if ind_hydrau_tab != 0:
                 self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
             self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
-            self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+            #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
@@ -432,8 +432,8 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_log()
 
         self.central_widget.update_hydro_hdf5_name()
-        if hasattr(self.central_widget, 'chronicle_tab') == True:
-            self.central_widget.update_merge_for_chronicle()
+        # if hasattr(self.central_widget, 'chronicle_tab') == True:
+        #     self.central_widget.update_merge_for_chronicle()
 
         self.central_widget.l1.setText(self.tr('Habby says:'))
 
@@ -1064,7 +1064,7 @@ class MainWindows(QMainWindow):
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
             self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
-            self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+            #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
         else:
             print('Error: Could not find the project saved just now. \n')
             return
@@ -1186,7 +1186,7 @@ class MainWindows(QMainWindow):
         # recreate new widget
         self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
         self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
-        self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
+        #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
         self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
         self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
         self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
@@ -1871,8 +1871,8 @@ class CentralW(QWidget):
             self.plot_tab = plot_GUI.PlotTab(path_prj, name_prj)
             self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
-            self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
-            self.update_merge_for_chronicle()
+            #self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
+            #self.update_merge_for_chronicle()
 
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
@@ -2067,7 +2067,7 @@ class CentralW(QWidget):
             self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
             self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
-            self.chronicle_tab.send_log.connect(self.write_log)
+            #self.chronicle_tab.send_log.connect(self.write_log)
             self.plot_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
@@ -2109,7 +2109,7 @@ class CentralW(QWidget):
 
             # connect signal to update the merge file
             self.bioinfo_tab.get_list_merge.connect(self.update_merge_for_chronicle)
-            self.chronicle_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+#            self.chronicle_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.habbyhdf5.drop_merge.connect(self.bioinfo_tab.update_merge_list)
