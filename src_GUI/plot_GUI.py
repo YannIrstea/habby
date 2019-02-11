@@ -208,10 +208,6 @@ class GroupPlot(QFrame):
         self.setFrameShape(QFrame.NoFrame)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-
-        # content_widget = QFrame()
-        # self.layout = QVBoxLayout(content_widget)
-
     def resize_width_lists(self):
         # names
         if self.names_hdf5_QListWidget.count() != 0:
