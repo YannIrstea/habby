@@ -118,8 +118,8 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], pat
         # output for plot_GUI
         state.value = 1  # process finished
         if types_plot == "interactive" or types_plot == "both":
-            fm = plt.get_current_fig_manager()
-            fm.window.showMinimized()
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
             plt.show()
         if types_plot == "image export":
             plt.close()
@@ -215,8 +215,8 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, name_hdf5, data_v=[], p
         # output for plot_GUI
         state.value = 1  # process finished
         if types_plot == "interactive" or types_plot == "both":
-            fm = plt.get_current_fig_manager()
-            fm.window.showMinimized()
+            # fm = plt.get_current_fig_manager()
+            # fm.window.showMinimized()
             plt.show()
         if types_plot == "image export":
             plt.close()
@@ -324,8 +324,8 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "interactive" or types_plot == "both":
-        fm = plt.get_current_fig_manager()
-        fm.window.showMinimized()
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
         plt.show()
     if types_plot == "image export":
         plt.close()
@@ -526,8 +526,8 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "interactive" or types_plot == "both":
-        fm = plt.get_current_fig_manager()
-        fm.window.showMinimized()
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
         plt.show()
     if types_plot == "image export":
         plt.close()
@@ -642,8 +642,8 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "interactive" or types_plot == "both":
-        fm = plt.get_current_fig_manager()
-        fm.window.showMinimized()
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
         plt.show()
     if types_plot == "image export":
         plt.close()
@@ -967,8 +967,8 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
     state.value = 1  # process finished
     if types_plot == "interactive" or types_plot == "both":
         # mplcursors.cursor()
-        fm = plt.get_current_fig_manager()
-        fm.window.showMinimized()
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
         plt.show()
     if types_plot == "image export":
         plt.close()
