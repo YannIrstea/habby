@@ -20,6 +20,7 @@ import numpy as np
 import time
 import shutil
 import shapefile
+from src import substrate
 
 try:
     import xml.etree.cElementTree as ET
@@ -49,13 +50,11 @@ class Hdf5Management:
         self.extension = hdf5_filename[-4:]  # extension of filename
         self.file_object = None  # file object
         if self.extension == ".hyd":
-            self.type = "hdf5_hydrodata"  # hyd
+            self.type_for_xml = "hdf5_hydrodata"  # for save xml
         if self.extension == ".sub":
-            self.type = "hdf5_substrate"  # sub
+            self.type_for_xml = "hdf5_substrate"  # for save xml
         if self.extension == ".hab":
-            self.type = "hdf5_habitat"  # hab
-        # hyd attributes
-        self.hyd_model_type = None  # for type == hydraulic : TELEMAC, hec ras, ...
+            self.type_for_xml = "hdf5_habitat"  # for save xml
 
     def open_hdf5_file(self, new):
         # get mode
@@ -70,14 +69,18 @@ class Hdf5Management:
 
         # file presence check
         try:
+            # write or open hdf5 file
             self.file_object = h5py.File(self.absolute_path_file, mode_file)
-            if new:
+            if new:  # write
                 self.file_object.attrs['hdf5_version'] = self.h5py_version
                 self.file_object.attrs['h5py_version'] = self.hdf5_version
                 self.file_object.attrs['software'] = 'HABBY'
                 self.file_object.attrs['software_version'] = str(VERSION)
                 self.file_object.attrs['path_projet'] = self.path_prj
                 self.file_object.attrs['name_projet'] = self.name_prj
+                self.file_object.attrs['extension'] = self.extension
+            if not new:
+                self.type = self.file_object.attrs['hdf5_type']
         except OSError:
             print('Error: the hdf5 file could not be loaded.')
             self.file_object = None
@@ -93,10 +96,10 @@ class Hdf5Management:
             # if the xml attribute do not exist yet, xml name should be saved
             if child is None:
                 here_element = ET.SubElement(root, model_type)
-                hdf5file = ET.SubElement(here_element, self.type)
+                hdf5file = ET.SubElement(here_element, self.type_for_xml)
                 hdf5file.text = self.filename
             else:
-                child2s = root.findall(".//" + model_type + "/" + self.type)
+                child2s = root.findall(".//" + model_type + "/" + self.type_for_xml)
                 if child2s is not None:
                     found_att_text = False
                     for i, c in enumerate(child2s):
@@ -110,42 +113,115 @@ class Hdf5Management:
                         # remove existing
                         child.remove(element)
                         # add existing to the end
-                        hdf5file = ET.SubElement(child, self.type)
+                        hdf5file = ET.SubElement(child, self.type_for_xml)
                         hdf5file.text = self.filename
                     if not found_att_text:
-                        hdf5file = ET.SubElement(child, self.type)
+                        hdf5file = ET.SubElement(child, self.type_for_xml)
                         hdf5file.text = self.filename
                 else:
-                    hdf5file = ET.SubElement(child, self.type)
+                    hdf5file = ET.SubElement(child, self.type_for_xml)
                     hdf5file.text = self.filename
             # write xml
             doc.write(self.absolute_path_prj_xml)
 
+    # GET HDF5 INFORMATION
+    def get_hdf5_attributes(self):
+        # open an hdf5
+        self.open_hdf5_file(new=False)
+        # get attributes
+        hdf5_attributes = list(self.file_object.attrs.items())
+        hdf5_attributes_text = ""
+        # format attributes
+        for attribute_name, attribute_data in hdf5_attributes:
+            hdf5_attributes_text += attribute_name.replace("_", " ") + " : " + attribute_data + "\n"
+
+        return hdf5_attributes_text
+
+    def get_hdf5_variables(self):
+        # open an hdf5
+        self.open_hdf5_file(new=False)
+
+        # substrate constant ==> nothing to plot
+        if self.type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
+            return [False]
+
+        # hydraulic substrate and habitat variables
+        else:
+            data_group = list(self.file_object.keys())[0]
+            # mesh_group for first reach and first unit
+            mesh_group = data_group + "/reach_0/unit_0/mesh"
+            variables_mesh = list(self.file_object[mesh_group].keys())
+            # change tin by mesh
+            if "tin" in variables_mesh:
+                variables_mesh[variables_mesh.index("tin")] = "mesh"
+            # change sub by coarser_dominant
+            if "sub" in variables_mesh:
+                variables_mesh[variables_mesh.index("sub")] = "coarser_dominant"
+            # node_group for first reach and first unit
+            node_group = data_group + "/reach_0/unit_0/node"
+            variables_node = list(self.file_object[node_group].keys())
+            # change name for h and v for GUI
+            if "h" in variables_node:
+                variables_node[variables_node.index("h")] = "height"
+            if "v" in variables_node:
+                variables_node[variables_node.index("v")] = "velocity"
+            # remove xy (not variable)
+            if "xy" in variables_node:
+                variables_node.remove("xy")
+            # merge two variables list
+            if variables_mesh and variables_node:
+                variables = variables_mesh + variables_node
+            if not variables_mesh and variables_node:
+                variables = variables_node
+            if variables_mesh and not variables_node:
+                variables = variables_mesh
+            return variables
+
+    def get_hdf5_units_name(self):
+        """
+        This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
+        of the time steps, it returns them. If not, it return an empty list.
+        :return: the name of the time step if they exist. Otherwise, an empty list
+        """
+        # open hdf5 file
+        self.open_hdf5_file(new=False)
+        # units name
+        units_name = []
+        # get unit_list
+        hdf5_attributes = list(self.file_object.attrs.items())
+        for attribute_name, attribute_data in hdf5_attributes:
+            if "unit_list" in attribute_name:
+                units_name = attribute_data.split(", ")
+        # close hdf5 file
+        self.file_object.close()
+        return units_name
+
+    def get_hdf5_units_number(self):  # ? a changer si on utilise attributs
+        # open hdf5 file
+        self.open_hdf5_file(new=False)
+        # get nb_unit
+        hdf5_attributes = list(self.file_object.attrs.items())
+        for attribute_name, attribute_data in hdf5_attributes:
+            if "nb_unit" in attribute_name:
+                nb_unit = int(attribute_data)
+        # close hdf5 file
+        self.file_object.close()
+        return nb_unit
+
+    # HYDRO
     def create_hdf5_hyd(self, model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d):
         # create a new hdf5
         self.open_hdf5_file(new=True)
 
-        # create attributes
-        self.file_object.attrs['hdf5_type'] = "hydraulic (.hyd)"
+        # create hyd attributes
+        self.file_object.attrs['hdf5_type'] = "hydraulic"
         self.file_object.attrs['hyd_filename_source'] = hyd_filename_source
         self.file_object.attrs['hyd_model_type'] = model_type
         self.file_object.attrs['hyd_nb_reach'] = str(data_2d['nb_reach'])
         self.file_object.attrs['hyd_nb_unit'] = str(data_2d['nb_unit'])
         self.file_object.attrs['hyd_unit_list'] = ", ".join(sim_name)
-
-        # save the name of the units and reach description
-        if sim_name:
-            # units
-            unit_ascii_str = [n.strip().encode("ascii", "ignore") for n in sim_name]  # unicode is not ok with hdf5
-            unit_name_dataset = self.file_object.create_dataset("description_unit", (len(sim_name),), data=unit_ascii_str)
-            unit_name_dataset.attrs['nb'] = len(sim_name)
-            unit_name_dataset.attrs['type'] = "timestep"  # TODO : change by discharge if units are discharges
-            # reachs
-            reach_nb = data_2d["nb_reach"]
-            reach_ascii_str = [f"reach_{i}".strip().encode("ascii", "ignore") for i in
-                               range(reach_nb)]  # unicode is not ok with hdf5
-            reach_name_dataset = self.file_object.create_dataset("description_reach", (reach_nb,), data=reach_ascii_str)
-            reach_name_dataset.attrs['nb'] = reach_nb
+        self.file_object.attrs['hyd_unit_type'] = "timestep"  # TODO : change by discharge if units are discharges
+        self.file_object.attrs['hyd_wholeprofile_unit_correspondences'] = data_2d_whole_profile["unit_correspondences"]
 
         # # data by type of model (1D)
         # if nb_dim == 1:
@@ -242,33 +318,20 @@ class Hdf5Management:
         # open an hdf5
         self.open_hdf5_file(new=False)
 
+        # attributes
         if units_index == "all":
             # load the number of time steps
-            try:
-                nb_t = self.file_object["description_unit"].attrs["nb"]
-                units_index = list(range(nb_t))
-            except KeyError:
-                print(
-                    'Error: the number of reaches is missing from the hdf5 file. \n')
-                self.file_object.close()
-                return
+            nb_t = int(self.file_object.attrs['hyd_nb_unit'])
+            units_index = list(range(nb_t))
 
-        # load the number of reach
-        try:
-            nb_r = self.file_object["description_reach"].attrs["nb"]
-        except KeyError:
-            print('Error: the number of reaches is missing from the hdf5 file. \n')
-            self.file_object.close()
-            return
-
-        # load the hyd_filename_source
-        try:
-            hyd_filename_source = self.file_object.attrs['hyd_filename_source']
-        except KeyError:
-            print(
-                'Error: the hyd_filename_source is missing from the hdf5 file. \n')
-            self.file_object.close()
-            return
+        # get sub attributes
+        hyd_description = dict()
+        hyd_description["hyd_filename_source"] = self.file_object.attrs['hyd_filename_source']
+        hyd_description['hyd_nb_reach'] = self.file_object.attrs['hyd_nb_reach']
+        hyd_description['hyd_nb_unit'] = self.file_object.attrs['hyd_nb_unit']
+        hyd_description['hyd_unit_list'] = self.file_object.attrs['hyd_unit_list']
+        hyd_description['hyd_unit_type'] = self.file_object.attrs['hyd_unit_type']
+        hyd_description['hyd_wholeprofile_unit_correspondences'] = self.file_object.attrs['hyd_wholeprofile_unit_correspondences']
 
         # DATA 2D WHOLE PROFIL
         if whole_profil:
@@ -278,19 +341,24 @@ class Hdf5Management:
             data_2D_whole_profile["xy"] = []
             data_group = 'data_2D_whole_profile'
             # for all reach
-            for r in range(0, nb_r):
+            for r in range(0, int(self.file_object.attrs['hyd_nb_reach'])):
                 reach_group = data_group + "/reach_" + str(r)
                 # for all unit
                 tin_list = []
                 xy_center_list = []
                 xy_list = []
                 for t in units_index:
-                    unit_group = reach_group + "/unit_" + str(t)
+                    if hyd_description['hyd_wholeprofile_unit_correspondences'] == "all":
+                        unit_group = reach_group + "/unit_all"
+                    else:
+                        unit_group = reach_group + "/unit_" + str(t)
                     mesh_group = unit_group + "/mesh"
                     node_group = unit_group + "/node"
                     try:
+                        # mesh
                         tin_list.append(self.file_object[mesh_group + "/tin"][:])
                         xy_center_list.append(self.file_object[mesh_group + "/xy_center"][:])
+                        # node
                         xy_list.append(self.file_object[node_group + "/xy"][:])
                     except KeyError:
                         print(
@@ -311,7 +379,7 @@ class Hdf5Management:
         data_2d["nb_reach"] = 1
         data_group = 'data_2D'
         # for all reach
-        for r in range(0, nb_r):
+        for r in range(0, int(self.file_object.attrs['hyd_nb_reach'])):
             reach_group = data_group + "/reach_" + str(r)
             # for all unit
             tin_list = []
@@ -335,26 +403,32 @@ class Hdf5Management:
             data_2d["xy"].append(xy_list)
             data_2d["h"].append(h_list)
             data_2d["v"].append(v_list)
-        self.file_object.close()
-        return data_2d, hyd_filename_source
 
+        # close file
+        self.file_object.close()
+
+        # return
+        if whole_profil:
+            return data_2d, data_2D_whole_profile, hyd_description
+        if not whole_profil:
+            return data_2d, hyd_description
+
+    # SUBSTRATE
     def create_hdf5_sub(self, sub_description_system, data_2d):
         # create a new hdf5
         self.open_hdf5_file(new=True)
 
-        # create general attributes
-        self.file_object.attrs['software'] = 'HABBY'
-        self.file_object.attrs['software_version'] = str(VERSION)
-        self.file_object.attrs['path_projet'] = self.path_prj
-        self.file_object.attrs['name_projet'] = self.name_prj
-        self.file_object.attrs['HDF5_version'] = h5py.version.hdf5_version
-        self.file_object.attrs['h5py_version'] = h5py.version.version
+        # create sub attributes
         self.file_object.attrs['hdf5_type'] = "substrate"
         self.file_object.attrs['sub_mapping_method'] = sub_description_system["sub_mapping_method"]
         self.file_object.attrs['sub_classification_code'] = sub_description_system["sub_classification_code"]
         self.file_object.attrs['sub_classification_method'] = sub_description_system["sub_classification_method"]
         self.file_object.attrs['sub_filename_source'] = sub_description_system["sub_filename_source"]
         self.file_object.attrs['sub_nb_class'] = sub_description_system["sub_nb_class"]
+        self.file_object.attrs['sub_nb_reach'] = str(data_2d["nb_reach"])
+        self.file_object.attrs['sub_nb_unit'] = str(data_2d["nb_unit"])
+        self.file_object.attrs['sub_unit_list'] = "0.0"
+        self.file_object.attrs['sub_unit_type'] = "unknown"  # TODO : change by discharge if units are discharges
 
         # POLYGON or POINT
         if sub_description_system["sub_mapping_method"] in ("polygon", "point"):
@@ -401,15 +475,199 @@ class Hdf5Management:
         # save XML
         self.save_xml("SUBSTRATE")
 
-    def get_hdf5_attributes(self):
+    def load_hdf5_sub(self, convert_to_coarser_dom=False):
         # open an hdf5
         self.open_hdf5_file(new=False)
-        hdf5_attributes = list(self.file_object.attrs.items())
-        hdf5_attributes_text = ""
-        for attribute_name, attribute_data in hdf5_attributes:
-            hdf5_attributes_text += attribute_name.replace("_", " ") + " : " + attribute_data + "\n"
 
-        return hdf5_attributes_text
+        # get sub attributes
+        sub_description_system = dict()
+        sub_description_system["sub_mapping_method"] = self.file_object.attrs['sub_mapping_method']
+        sub_description_system["sub_classification_code"] = self.file_object.attrs['sub_classification_code']
+        sub_description_system["sub_classification_method"] = self.file_object.attrs['sub_classification_method']
+        sub_description_system["sub_filename_source"] = self.file_object.attrs['sub_filename_source']
+        sub_description_system['sub_nb_class'] = self.file_object.attrs['sub_nb_class']
+        sub_description_system['sub_nb_reach'] = self.file_object.attrs['sub_nb_reach']
+        sub_description_system['sub_nb_unit'] = self.file_object.attrs['sub_nb_unit']
+        sub_description_system['sub_unit_list'] = self.file_object.attrs['sub_unit_list']
+        sub_description_system['sub_unit_type'] = self.file_object.attrs['sub_unit_type']
+        if sub_description_system["sub_mapping_method"] == "constant":
+            sub_description_system["sub_constant_values"] = self.file_object.attrs['sub_constant_values']
+        if sub_description_system["sub_mapping_method"] != "constant":
+            sub_description_system["sub_epsg_code"] = self.file_object.attrs['sub_epsg_code']
+            sub_description_system["sub_default_values"] = self.file_object.attrs['sub_default_values']
+
+        # get data
+        data_2d = dict()
+        if sub_description_system["sub_mapping_method"] == "constant":
+            data_2d["sub"] = self.file_object["sub"][:].tolist()[0]
+        if sub_description_system["sub_mapping_method"] != "constant":
+            data_2d["tin"] = []
+            data_2d["xy"] = []
+            data_2d["sub"] = []
+            data_2d["nb_unit"] = int(self.file_object.attrs['sub_nb_unit'])
+            data_2d["nb_reach"] = int(self.file_object.attrs['sub_nb_reach'])
+            data_group = 'data_2D'
+            # for all reach
+            for r in range(0, data_2d["nb_reach"]):
+                reach_group = data_group + "/reach_" + str(r)
+                # for all unit
+                tin_list = []
+                xy_list = []
+                sub_array_list = []
+                for t in range(0, data_2d["nb_unit"]):
+                    unit_group = reach_group + "/unit_" + str(t)
+                    mesh_group = unit_group + "/mesh"
+                    node_group = unit_group + "/node"
+                    try:
+                        # mesh
+                        tin_list.append(self.file_object[mesh_group + "/tin"][:])
+                        # if convert_to_coarser_dom == True (for plot only)
+                        if convert_to_coarser_dom and sub_description_system["sub_classification_method"] != "coarser-dominant":
+                            sub_array = self.file_object[mesh_group + "/sub"][:]
+                            # dominant case = 1 ==> biggest substrate for plot
+                            sub_dominant, sub_coarser = substrate.percentage_to_domcoarse(sub_array, dominant_case=1)
+                            sub_array_coarser_dom = np.array(list(zip(sub_coarser, sub_dominant)))
+                            sub_array_list.append(sub_array_coarser_dom)
+                        else:
+                            sub_array_list.append(self.file_object[mesh_group + "/sub"][:])
+                        # node
+                        xy_list.append(self.file_object[node_group + "/xy"][:])
+                    except KeyError:
+                        print('Warning: the dataset for tin or xy or sub is missing '
+                              'from the hdf5 file for one time step. \n')
+                        self.file_object.close()
+                        return
+                data_2d["tin"].append(tin_list)
+                data_2d["xy"].append(xy_list)
+                data_2d["sub"].append(sub_array_list)
+
+        self.file_object.close()
+        return data_2d, sub_description_system
+
+    # HABITAT
+    def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description):
+        # model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d
+
+        # create a new hdf5
+        self.open_hdf5_file(new=True)
+
+        # create hyd attributes
+        self.file_object.attrs['hdf5_type'] = "habitat"
+        # hydraulic
+        self.file_object.attrs['hyd_filename_source'] = merge_description["hyd_filename_source"]
+        self.file_object.attrs['hyd_model_type'] = merge_description["hyd_filename_source"]
+        self.file_object.attrs['hyd_nb_reach'] = merge_description["hyd_filename_source"]
+        self.file_object.attrs['hyd_nb_unit'] = merge_description["hyd_filename_source"]
+        self.file_object.attrs['hyd_unit_list'] = merge_description["hyd_filename_source"]
+        self.file_object.attrs['hyd_unit_type'] = merge_description["hyd_filename_source"]
+        self.file_object.attrs['hyd_wholeprofile_unit_correspondences'] = merge_description["hyd_filename_source"]
+        # substrate
+        self.file_object.attrs["sub_mapping_method"] = merge_description["sub_mapping_method"]
+        self.file_object.attrs["sub_classification_code"] = merge_description["sub_classification_code"]
+        self.file_object.attrs["sub_classification_method"] = merge_description["sub_classification_method"]
+        self.file_object.attrs["sub_filename_source"] = merge_description["sub_filename_source"]
+        self.file_object.attrs["sub_nb_class"] = merge_description['sub_nb_class']
+        self.file_object.attrs["sub_nb_reach"] = merge_description['sub_nb_reach']
+        self.file_object.attrs["sub_nb_unit"] = merge_description['sub_nb_unit']
+        self.file_object.attrs["sub_unit_list"] = merge_description['sub_unit_list']
+        self.file_object.attrs["sub_unit_type"] = merge_description['sub_unit_type']
+        self.file_object.attrs["sub_constant_values"] = merge_description["sub_constant_values"]
+
+
+        # # data by type of model (1D)
+        # if nb_dim == 1:
+        #     data_group = self.file_object.create_group('data_1d')
+        #     xhzv_datag = data_group.create_group('xhzv_data')
+        #     xhzv_datag.create_dataset('xhzv_data', data=xhzv_data)
+        #
+        # # data by type of model (1.5D)
+        # if nb_dim < 2:
+        #     data_group = self.file_object.create_group('data_15d')
+        #     adict = dict()
+        #     for p in range(0, len(coord_pro)):
+        #         ns = 'p' + str(p)
+        #         adict[ns] = coord_pro[p]
+        #     coord_prog = data_group.create_group('coord_pro')
+        #     for k, v in adict.items():
+        #         coord_prog.create_dataset(k, data=v)
+        #         # coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
+        #     for t in range(0, len(vh_pro)):
+        #         there = data_group.create_group('unit_' + str(t))
+        #         adict = dict()
+        #         for p in range(0, len(vh_pro[t])):
+        #             ns = 'p' + str(p)
+        #             adict[ns] = vh_pro[t][p]
+        #         for k, v in adict.items():
+        #             there.create_dataset(k, data=v)
+        #     nbproreachg = data_group.create_group('Number_profile_by_reach')
+        #     nb_pro_reach2 = list(map(float, nb_pro_reach))
+        #     nbproreachg.create_dataset('Number_profile_by_reach', [len(nb_pro_reach2), 1], data=nb_pro_reach2)
+
+        # data by type of model (2D)
+        # data_2D_whole_profile profile
+        print(merge_description["hyd_wholeprofile_unit_correspondences"])
+        data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
+        # REACH GROUP
+        for reach_num in range(data_2d["nb_reach"]):
+            reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
+            # UNIT GROUP
+            if merge_description["hyd_wholeprofile_unit_correspondences"] == "all":  # one whole profile for all units
+                nb_whole_profil = 1
+            if merge_description["hyd_wholeprofile_unit_correspondences"] != "all":  # one whole profile by units
+                nb_whole_profil = data_2d["nb_unit"]
+            for unit_num in range(nb_whole_profil):
+                if merge_description["hyd_wholeprofile_unit_correspondences"] == "all":  # one whole profile for all units
+                    unit_group = reach_group.create_group('unit_all')
+                if merge_description["hyd_wholeprofile_unit_correspondences"] != "all":  # one whole profile by units
+                    unit_group = reach_group.create_group('unit_' + str(unit_num))
+                # MESH GROUP
+                mesh_group = unit_group.create_group('mesh')
+                mesh_group.create_dataset(name="tin",
+                                          shape=[len(data_2d_whole_profile["tin"][reach_num][unit_num]), 3],
+                                          data=data_2d_whole_profile["tin"][reach_num][unit_num])
+                mesh_group.create_dataset(name="xy_center",
+                                          shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]), 2],
+                                          data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
+                # NODE GROUP
+                node_group = unit_group.create_group('node')
+                node_group.create_dataset(name="xy",
+                                          shape=[len(data_2d_whole_profile["xy"][reach_num][unit_num]), 2],
+                                          data=data_2d_whole_profile["xy"][reach_num][unit_num])
+
+        # data_2D
+        data_group = self.file_object.create_group('data_2D')
+        # REACH GROUP
+        for reach_num in range(data_2d["nb_reach"]):
+            reach_group = data_group.create_group('reach_' + str(reach_num))
+            # UNIT GROUP
+            for unit_num in range(data_2d["nb_unit"]):
+                unit_group = reach_group.create_group('unit_' + str(unit_num))
+                # MESH GROUP
+                mesh_group = unit_group.create_group('mesh')
+                mesh_group.create_dataset(name="tin",
+                                          shape=[len(data_2d["tin"][reach_num][unit_num]), 3],
+                                          data=data_2d["tin"][reach_num][unit_num])
+                mesh_group.create_dataset(name="sub",
+                                          shape=[len(data_2d["sub"][reach_num][unit_num]),
+                                                 len(data_2d["sub"][reach_num][unit_num][0])],
+                                          data=data_2d["sub"][reach_num][unit_num])
+                # NODE GROUP
+                node_group = unit_group.create_group('node')
+                node_group.create_dataset(name="h",
+                                          shape=[len(data_2d["h"][reach_num][unit_num]), 1],
+                                          data=data_2d["h"][reach_num][unit_num])
+                node_group.create_dataset(name="v",
+                                          shape=[len(data_2d["v"][reach_num][unit_num]), 1],
+                                          data=data_2d["v"][reach_num][unit_num])
+                node_group.create_dataset(name="xy",
+                                          shape=[len(data_2d["xy"][reach_num][unit_num]), 2],
+                                          data=data_2d["xy"][reach_num][unit_num])
+
+        # close file
+        self.file_object.close()
+
+        # save XML
+        self.save_xml("Habitat")
 
 
 #################################################################

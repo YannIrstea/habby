@@ -4590,7 +4590,6 @@ class SubstrateW(SubHydroW):
 
             sys.stdout = sys.__stdout__  # reset to console
             self.send_err_log()
-            path_im = self.find_path_im()  # needed
 
             # log info
             self.send_log.emit(self.tr('# Loading: Substrate data constant value ...'))

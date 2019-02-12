@@ -315,21 +315,32 @@ class GroupPlot(QFrame):
         selection = self.names_hdf5_QListWidget.selectedItems()
         self.units_QListWidget.clear()
         self.variable_QListWidget.clear()
+
         # one file selected
         if len(selection) == 1:
             hdf5name = selection[0].text()
             self.units_QListWidget.clear()
+
+            # create hdf5 class
+            hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().name_prj,
+                                                       self.parent().parent().path_prj,
+                                                       hdf5name)
+            variables = hdf5_management.get_hdf5_variables()
+            units_name = hdf5_management.get_hdf5_units_name()
+
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
-                self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
-                self.units_QListWidget.addItems(
-                    load_hdf5.load_unit_name(hdf5name, self.parent().parent().path_prj + "/hdf5/"))
+                self.variable_QListWidget.addItems(variables)
+                if units_name:
+                    self.units_QListWidget.addItems(units_name)
+
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
-                self.variable_QListWidget.addItems(["coarser_dominant"])
-                self.variable_QListWidget.item(0).setSelected(True)
-                self.units_QListWidget.addItems(["one unit"])
-                self.units_QListWidget.item(0).setSelected(True)
+                if variables[0]:  # if not False (from constant substrate) add items else nothing
+                    self.variable_QListWidget.addItems(variables)
+                    if units_name:
+                        self.units_QListWidget.addItems(units_name)
+
             # merge hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
@@ -337,12 +348,11 @@ class GroupPlot(QFrame):
                 if fish_list:
                     self.variable_QListWidget.addItems(fish_list)
                 self.units_QListWidget.addItems(load_hdf5.load_unit_name(hdf5name, self.parent().parent().path_prj + "/hdf5/"))
+
             # display hdf5 attributes
-            hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().name_prj,
-                                                       self.parent().parent().path_prj,
-                                                       hdf5name)
             hdf5_attributes_text = hdf5_management.get_hdf5_attributes()
             self.hdf5_attributes_QTextEdit.setText(hdf5_attributes_text)
+
         # more than one file selected
         elif len(selection) > 1:
             # clear attributes hdf5_attributes_QTextEdit
@@ -350,12 +360,22 @@ class GroupPlot(QFrame):
             nb_file = len(selection)
             hdf5name = []
             units = []
+            variables = []
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
-                units.append(load_hdf5.load_unit_name(selection[i].text(),
-                                                         self.parent().parent().path_prj + "/hdf5/"))
-            # units are diferrents
-            if not all(x == units[0] for x in units):
+                # create hdf5 class
+                hdf5_management = load_hdf5.Hdf5Management(self.parent().parent().name_prj,
+                                                           self.parent().parent().path_prj,
+                                                           selection[i].text())
+                units.append(hdf5_management.get_hdf5_units_name())
+                variables.append(hdf5_management.get_hdf5_variables())
+
+            # variables or units are differents
+            if not all(x == units[0] for x in units) or not all(x == variables[0] for x in variables):
+                # clean
+                self.names_hdf5_QListWidget.clearSelection()
+                self.units_QListWidget.clear()
+                # message to user
                 msg2 = QMessageBox(self)
                 msg2.setIcon(QMessageBox.Warning)
                 msg2.setWindowTitle(self.tr("Warning"))
@@ -363,13 +383,10 @@ class GroupPlot(QFrame):
                     self.tr("The selected files don't have same units !"))
                 msg2.setStandardButtons(QMessageBox.Ok)
                 msg2.show()
-                # clean
-                self.names_hdf5_QListWidget.clearSelection()
-                self.units_QListWidget.clear()
 
             # same units
-            if all(x == units[0] for x in units):  # OK
-                if not self.types_hdf5_QComboBox.currentIndex() == 2:
+            if all(x == units[0] for x in units) and all(x == variables[0] for x in variables):  # OK
+                if not self.types_hdf5_QComboBox.currentIndex() == 2:  # hab ?
                     units = [x[0] for x in set([tuple(x) for x in units])]
                 self.units_QListWidget.clear()
                 self.variable_QListWidget.clear()
@@ -379,10 +396,11 @@ class GroupPlot(QFrame):
                     self.units_QListWidget.addItems(units)
                 # substrat
                 if self.types_hdf5_QComboBox.currentIndex() == 2:
-                    self.variable_QListWidget.addItems(["coarser_dominant"])
-                    self.variable_QListWidget.item(0).setSelected(True)
-                    self.units_QListWidget.addItems(["one unit"])
-                    self.units_QListWidget.item(0).setSelected(True)                # merge
+                    variables_without_duplicate = [x for i, x in enumerate(variables) if i == variables.index(x)][0]
+                    if not False in variables_without_duplicate:  # if not False (from constant substrate) add items else nothing
+                        self.variable_QListWidget.addItems(variables_without_duplicate)
+                        units_without_duplicate = [x for i, x in enumerate(units) if i == units.index(x)][0]
+                        self.units_QListWidget.addItems(units_without_duplicate)
                 # merge hab
                 if self.types_hdf5_QComboBox.currentIndex() == 3:  # merge hab
                     self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
@@ -511,24 +529,19 @@ class GroupPlot(QFrame):
                                                                name_hdf5)
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
-                        data_2d, hyd_filename_source = hdf5_management.load_hdf5_hyd(units_index=units_index)
+                        data_2d, hyd_description = hdf5_management.load_hdf5_hyd(units_index=units_index)
                     if types_hdf5 == "substrate":  # load substrate data
-                        [ikle_sub, point_all_sub, sub_array, sub_description_system] = load_hdf5.load_hdf5_sub(name_hdf5, path_hdf5)
-                        if sub_description_system["sub_classification_method"] == "percentage":
-                            # dominant case = 1 ==> biggest substrate for plot
-                            [sub_dominant, sub_coarser] = substrate.percentage_to_domcoarse(sub_array, dominant_case=1)
-                        else:
-                            sub_coarser, sub_dominant = [list(tup) for tup in zip(*sub_array)]
+                        data_2d, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=True)
                     if types_hdf5 == "habitat":  # load habitat data
                         variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
                         fish_names = [variable for variable in variables if variable not in variables_to_remove]
                         [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, sub_array,
                          fish_data, total_wetarea_all_t, sub_description_system] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
-                        if sub_description_system["sub_classification_method"] == "percentage":
-                            # dominant case = 1 ==> biggest substrate for plot
-                            [sub_dominant, sub_coarser] = substrate.percentage_to_domcoarse(sub_array, dominant_case=1)
-                        else:
-                            sub_coarser, sub_dominant = [list(tup) for tup in zip(*sub_array)]
+                        # if sub_description_system["sub_classification_method"] == "percentage":
+                        #     # dominant case = 1 ==> biggest substrate for plot
+                        #     [sub_dominant, sub_coarser] = substrate.percentage_to_domcoarse(sub_array, dominant_case=1)
+                        # else:
+                        #     sub_coarser, sub_dominant = [list(tup) for tup in zip(*sub_array)]
 
                     # for one or more desired units ==> habitat data (HV and WUA)
                     if fish_names:
@@ -543,55 +556,55 @@ class GroupPlot(QFrame):
                                                                  fig_opt,
                                                                  units))
                         self.plot_process_list.append((plot_hab_fig_spu_process, state))
+
                     # for each reach
                     for reach_num in range(data_2d["nb_reach"]):
                         # for each desired units ==> maps
-                        for index, t in enumerate(units_index):
+                        for unit_num, t in enumerate(units_index):
                             # input data
                             if "height" in variables:  # height
                                 state = Value("i", 0)
                                 height_process = Process(target=plot_hab.plot_map_height,
                                                          args=(state,
-                                                               data_2d["xy"][reach_num][index],
-                                                               data_2d["tin"][reach_num][index],
+                                                               data_2d["xy"][reach_num][unit_num],
+                                                               data_2d["tin"][reach_num][unit_num],
                                                                fig_opt,
                                                                name_hdf5,
-                                                               data_2d["h"][reach_num][index],
+                                                               data_2d["h"][reach_num][unit_num],
                                                                path_im,
-                                                               units[index]))
+                                                               units[unit_num]))
                                 self.plot_process_list.append((height_process, state))
                             if "velocity" in variables:  # velocity
                                 state = Value("i", 0)
                                 velocity_process = Process(target=plot_hab.plot_map_velocity,
                                                            args=(state,
-                                                                 data_2d["xy"][reach_num][index],
-                                                                 data_2d["tin"][reach_num][index],
+                                                                 data_2d["xy"][reach_num][unit_num],
+                                                                 data_2d["tin"][reach_num][unit_num],
                                                                  fig_opt,
                                                                  name_hdf5,
-                                                                 data_2d["v"][reach_num][index],
+                                                                 data_2d["v"][reach_num][unit_num],
                                                                  path_im,
-                                                                 units[index]))
+                                                                 units[unit_num]))
                                 self.plot_process_list.append((velocity_process, state))
                             if "mesh" in variables:  # mesh
                                 state = Value("i", 0)
                                 mesh_process = Process(target=plot_hab.plot_map_mesh,
                                                        args=(state,
-                                                             data_2d["xy"][reach_num][index],
-                                                             data_2d["tin"][reach_num][index],
+                                                             data_2d["xy"][reach_num][unit_num],
+                                                             data_2d["tin"][reach_num][unit_num],
                                                              fig_opt,
                                                              name_hdf5,
                                                              path_im,
-                                                             units[index]))
+                                                             units[unit_num]))
                                 self.plot_process_list.append((mesh_process, state))
                             if "coarser_dominant" in variables:  # coarser_dominant
                                 if types_hdf5 == "substrate":  # from substrate
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_hab.plot_map_substrate,
                                                                args=(state,
-                                                                     point_all_sub,
-                                                                     ikle_sub,
-                                                                     sub_coarser,
-                                                                     sub_dominant,
+                                                                     data_2d["xy"][reach_num][unit_num],
+                                                                     data_2d["tin"][reach_num][unit_num],
+                                                                     data_2d["sub"][reach_num][unit_num],
                                                                      sub_description_system,
                                                                      path_im,
                                                                      name_hdf5,
@@ -601,14 +614,14 @@ class GroupPlot(QFrame):
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_hab.plot_map_substrate,
                                                                args=(state,
-                                                                     point_all_t[index + 1][0],
-                                                                     ikle_all_t[index + 1][0],
-                                                                     substrate_all_pg[index + 1][0],
-                                                                     substrate_all_dom[index + 1][0],
+                                                                     point_all_t[unit_num + 1][0],
+                                                                     ikle_all_t[unit_num + 1][0],
+                                                                     substrate_all_pg[unit_num + 1][0],
+                                                                     substrate_all_dom[unit_num + 1][0],
                                                                      path_im,
                                                                      name_hdf5,
                                                                      fig_opt,
-                                                                     units[index]))
+                                                                     units[unit_num]))
                                     self.plot_process_list.append((susbtrat_process, state))
                             if fish_names:  # habitat data (maps)
                                 # map by fish
@@ -624,7 +637,7 @@ class GroupPlot(QFrame):
                                                                         name_hdf5,
                                                                         fig_opt,
                                                                         path_im,
-                                                                        units[index]))
+                                                                        units[unit_num]))
                                     self.plot_process_list.append((habitat_map_process, state))
 
             # end of loop file

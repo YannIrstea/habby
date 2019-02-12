@@ -331,7 +331,7 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time
         plt.close()
 
 
-def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_system, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99],
+def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99],
                        ytxt=[-99], subtxt=[-99],
                        reach_num=-99):
     """
@@ -377,6 +377,11 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
         title_dom = 'Substrate Grid - Dominant - Unit ' + str(time_step)
         filename_pg_dm = name_hdf5[:-4] + "_substrate_" + str(time_step)
 
+    # prepare data
+    unziped = list(zip(*sub_array))
+    sub_pg = unziped[0]
+    sub_dom = unziped[1]
+
     # prepare grid (to optimize)
     xlist = []
     ylist = []
@@ -410,8 +415,10 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
     # Set norm to correspond to the data for which
     # the colorbar will be used.
     if sub_description_system["sub_classification_code"] == "Cemagref":
+        max_class = 8
         norm = mpl.colors.Normalize(vmin=1, vmax=8)
     if sub_description_system["sub_classification_code"] == "Sandre":
+        max_class = 12
         norm = mpl.colors.Normalize(vmin=1, vmax=12)
     n = len(sub_pg)
     for i in range(0, n):
@@ -459,7 +466,12 @@ def plot_map_substrate(state, coord_p, ikle, sub_pg, sub_dom, sub_description_sy
     # standalone colorbar.  There are many more kwargs, but the
     # following gives a basic continuous colorbar with ticks
     # and labels.
-    cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
+    listcathegories = list(range(0, max_class + 1))
+    cb1 = mpl.colorbar.ColorbarBase(ax1,
+                                    cmap=cmap,
+                                    norm=norm,
+                                    boundaries=listcathegories,
+                                    orientation='vertical')
     cb1.set_label(sub_description_system["sub_classification_code"])
     # plt.tight_layout()
 
