@@ -326,6 +326,13 @@ class GroupPlot(QFrame):
                                                        self.parent().parent().path_prj,
                                                        hdf5name)
             variables = hdf5_management.get_hdf5_variables()
+            if "z" in variables:
+                variables.remove("z")
+                variables.insert(1, "points elevation")
+            if "mesh" in variables:
+                variables.insert(1, "mesh and points")
+
+
             units_name = hdf5_management.get_hdf5_units_name()
 
             # hydraulic
@@ -530,6 +537,8 @@ class GroupPlot(QFrame):
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
                         data_2d, hyd_description = hdf5_management.load_hdf5_hyd(units_index=units_index)
+                        data_description = dict(reach_number=hyd_description["hyd_reach_number"],
+                                                unit_number=hyd_description["hyd_unit_number"])
                     if types_hdf5 == "substrate":  # load substrate data
                         data_2d, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=True)
                     if types_hdf5 == "habitat":  # load habitat data
@@ -558,10 +567,45 @@ class GroupPlot(QFrame):
                         self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
                     # for each reach
-                    for reach_num in range(data_2d["nb_reach"]):
+                    for reach_num in range(int(data_description["reach_number"])):
                         # for each desired units ==> maps
                         for unit_num, t in enumerate(units_index):
                             # input data
+                            if "mesh" in variables:  # mesh
+                                state = Value("i", 0)
+                                mesh_process = Process(target=plot_hab.plot_map_mesh,
+                                                       args=(state,
+                                                             data_2d["xy"][reach_num][unit_num],
+                                                             data_2d["tin"][reach_num][unit_num],
+                                                             fig_opt,
+                                                             name_hdf5,
+                                                             path_im,
+                                                             units[unit_num],
+                                                             False))
+                                self.plot_process_list.append((mesh_process, state))
+                            if "mesh and points" in variables:  # mesh
+                                state = Value("i", 0)
+                                mesh_process = Process(target=plot_hab.plot_map_mesh,
+                                                       args=(state,
+                                                             data_2d["xy"][reach_num][unit_num],
+                                                             data_2d["tin"][reach_num][unit_num],
+                                                             fig_opt,
+                                                             name_hdf5,
+                                                             path_im,
+                                                             units[unit_num],
+                                                             True))
+                                self.plot_process_list.append((mesh_process, state))
+                            if "points elevation" in variables:  # mesh
+                                state = Value("i", 0)
+                                mesh_process = Process(target=plot_hab.plot_map_elevation,
+                                                       args=(state,
+                                                             data_2d["xy"][reach_num][unit_num],
+                                                             data_2d["z"][reach_num][unit_num],
+                                                             fig_opt,
+                                                             name_hdf5,
+                                                             path_im,
+                                                             units[unit_num]))
+                                self.plot_process_list.append((mesh_process, state))
                             if "height" in variables:  # height
                                 state = Value("i", 0)
                                 height_process = Process(target=plot_hab.plot_map_height,
@@ -586,17 +630,6 @@ class GroupPlot(QFrame):
                                                                  path_im,
                                                                  units[unit_num]))
                                 self.plot_process_list.append((velocity_process, state))
-                            if "mesh" in variables:  # mesh
-                                state = Value("i", 0)
-                                mesh_process = Process(target=plot_hab.plot_map_mesh,
-                                                       args=(state,
-                                                             data_2d["xy"][reach_num][unit_num],
-                                                             data_2d["tin"][reach_num][unit_num],
-                                                             fig_opt,
-                                                             name_hdf5,
-                                                             path_im,
-                                                             units[unit_num]))
-                                self.plot_process_list.append((mesh_process, state))
                             if "coarser_dominant" in variables:  # coarser_dominant
                                 if types_hdf5 == "substrate":  # from substrate
                                     state = Value("i", 0)

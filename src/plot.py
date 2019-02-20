@@ -26,6 +26,212 @@ from src_GUI import output_fig_GUI
 from src import calcul_hab
 
 
+def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time_step=0, points=False):
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+
+    # plot the grid
+    plt.rcParams[
+        'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = fig_opt['erase_id']
+    types_plot = fig_opt['type_plot']
+    if erase1 == 'True':  # xml in text
+        erase1 = True
+    else:
+        erase1 = False
+
+    # title and filename
+    if fig_opt['language'] == 0:
+        if not points:
+            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
+            filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
+        if points:
+            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step)
+            filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
+    elif fig_opt['language'] == 1:
+        if not points:
+            title = name_hdf5[:-4] + " : " + 'Maillage - Unité: ' + str(time_step)
+            filename = name_hdf5[:-4] + "_maillage_" + str(time_step)
+        if points:
+            title = name_hdf5[:-4] + " : " + 'Maillage et points - Unité: ' + str(time_step)
+            filename = name_hdf5[:-4] + "_maillage_points_" + str(time_step)
+    else:
+        if not points:
+            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
+            filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
+        if points:
+            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step)
+            filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
+
+    # plot
+    plt.figure(filename)
+    # the grid
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    plt.title(title)
+    plt.axis('equal')
+    # for r in range(0, len(data_tin)):
+    #     # get data for this reach
+    #     ikle = data_tin[r]
+    #     coord_p = data_xy[r]
+
+    # prepare the grid
+    if data_tin is not None:  # case empty grid
+        xlist = []
+        ylist = []
+        for i in range(0, len(data_tin)):
+            pi = 0
+            tin_i = data_tin[i]
+            if len(tin_i) == 3:
+                while pi < 2:  # we have all sort of xells, max eight sides
+                    # The conditions should be tested in this order to avoid to go out of the array
+                    p = tin_i[pi]  # we start at 0 in python, careful about -1 or not
+                    p2 = tin_i[pi + 1]
+                    xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
+                    xlist.append(None)
+                    ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
+                    ylist.append(None)
+                    pi += 1
+
+                p = tin_i[pi]
+                p2 = tin_i[0]
+                xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
+                xlist.append(None)
+                ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
+                ylist.append(None)
+
+        plt.plot(xlist, ylist, '-b', linewidth=0.1, color='blue')
+        plt.ticklabel_format(useOffset=False)
+        # to add water value on grid point (usualy to debug)
+        # for idx, c in enumerate(coord_p):
+        #     plt.annotate(str(inter_h_all[r][idx]),c)
+
+    if points:
+        # plot
+        plt.scatter(x=data_xy[:, 0], y=data_xy[:, 1], s=5, color='black')
+        plt.ticklabel_format(useOffset=False)
+
+    # save figures
+    plt.tight_layout()  # remove margin out of plot
+    if types_plot == "image export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image(filename, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "interactive" or types_plot == "both":
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
+        plt.show()
+    if types_plot == "image export":
+        plt.close()
+
+
+def plot_map_elevation(state, data_xy, data_z, fig_opt, name_hdf5, path_im=[], time_step=0):
+    if not fig_opt:
+        fig_opt = output_fig_GUI.create_default_figoption()
+
+    # plot the grid
+    plt.rcParams[
+        'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
+    mpl.rcParams['pdf.fonttype'] = 42
+    erase1 = fig_opt['erase_id']
+    types_plot = fig_opt['type_plot']
+    if erase1 == 'True':  # xml in text
+        erase1 = True
+    else:
+        erase1 = False
+
+    # title and filename
+    if fig_opt['language'] == 0:
+        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step)
+        filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
+    elif fig_opt['language'] == 1:
+        title = name_hdf5[:-4] + " : " + 'Elevation - Unité: ' + str(time_step)
+        filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
+    else:
+        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step)
+        filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
+
+    # plot
+    plt.figure(filename)
+    # the grid
+    plt.xlabel('x coord []')
+    plt.ylabel('y coord []')
+    plt.title(title)
+    plt.axis('equal')
+
+    # plot
+    plt.scatter(x=data_xy[:, 0], y=data_xy[:, 1], c=data_z, s=5, cmap="rainbow")
+    cbar = plt.colorbar()
+    cbar.set_label("elevation")
+    plt.ticklabel_format(useOffset=False)
+
+    # save figures
+    plt.tight_layout()  # remove margin out of plot
+    if types_plot == "image export" or types_plot == "both":
+        if not erase1:
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
+                            dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
+                            dpi=fig_opt['resolution'], transparent=True)
+        else:
+            test = calcul_hab.remove_image(filename, path_im, format1)
+            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
+                return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    if types_plot == "interactive" or types_plot == "both":
+        # fm = plt.get_current_fig_manager()
+        # fm.window.showMinimized()
+        plt.show()
+    if types_plot == "image export":
+        plt.close()
+
+
 def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], path_im=[], time_step=0):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
@@ -74,9 +280,9 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], pat
         bounds = np.linspace(0, mvc, 15)
         # negative value ?
         data_h[data_h < 0] = 0
-        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h, cmap=cm,
-                             vmin=0, vmax=mvc, levels=bounds,
-                             extend='both')
+
+        sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h,
+                             cmap=cm, vmin=0, vmax=mvc, levels=bounds, extend='both')
         cbar = plt.colorbar(sc)
         if fig_opt['language'] == 0:
             cbar.ax.set_ylabel('Water depth [m]')
@@ -220,115 +426,6 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, name_hdf5, data_v=[], p
             plt.show()
         if types_plot == "image export":
             plt.close()
-
-
-def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time_step=0):
-    if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
-
-    # plot the grid
-    plt.rcParams[
-        'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
-    # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
-    mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = fig_opt['erase_id']
-    types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
-
-    # title and filename
-    if fig_opt['language'] == 0:
-        title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
-        filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
-    elif fig_opt['language'] == 1:
-        title = name_hdf5[:-4] + " : " + 'Maillage - Unité: ' + str(time_step)
-        filename = name_hdf5[:-4] + "_maillage_" + str(time_step)
-    else:
-        title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
-        filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
-
-    # plot
-    plt.figure(filename)
-    # the grid
-    plt.xlabel('x coord []')
-    plt.ylabel('y coord []')
-    plt.title(title)
-    plt.axis('equal')
-    # for r in range(0, len(data_tin)):
-    #     # get data for this reach
-    #     ikle = data_tin[r]
-    #     coord_p = data_xy[r]
-
-    # prepare the grid
-    if data_tin is not None:  # case empty grid
-        xlist = []
-        ylist = []
-        for i in range(0, len(data_tin)):
-            pi = 0
-            tin_i = data_tin[i]
-            if len(tin_i) == 3:
-                while pi < 2:  # we have all sort of xells, max eight sides
-                    # The conditions should be tested in this order to avoid to go out of the array
-                    p = tin_i[pi]  # we start at 0 in python, careful about -1 or not
-                    p2 = tin_i[pi + 1]
-                    xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
-                    xlist.append(None)
-                    ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
-                    ylist.append(None)
-                    pi += 1
-
-                p = tin_i[pi]
-                p2 = tin_i[0]
-                xlist.extend([data_xy[p, 0], data_xy[p2, 0]])
-                xlist.append(None)
-                ylist.extend([data_xy[p, 1], data_xy[p2, 1]])
-                ylist.append(None)
-
-        plt.plot(xlist, ylist, '-b', linewidth=0.1)
-        plt.ticklabel_format(useOffset=False)
-        # to add water value on grid point (usualy to debug)
-        # for idx, c in enumerate(coord_p):
-        #     plt.annotate(str(inter_h_all[r][idx]),c)
-
-    # save figures
-    plt.tight_layout()  # remove margin out of plot
-    if types_plot == "image export" or types_plot == "both":
-        if not erase1:
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=fig_opt['resolution'], transparent=True)
-        else:
-            test = calcul_hab.remove_image(filename, path_im, format1)
-            if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
-                return
-            if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
-            if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
-
-    # output for plot_GUI
-    state.value = 1  # process finished
-    if types_plot == "interactive" or types_plot == "both":
-        # fm = plt.get_current_fig_manager()
-        # fm.window.showMinimized()
-        plt.show()
-    if types_plot == "image export":
-        plt.close()
 
 
 def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99],
