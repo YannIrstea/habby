@@ -1221,16 +1221,32 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     velocity[water_height < 0] = 0
 
     # erease the old cells
-    ikle = np.delete(ikle, c_dry, axis=0)
+    ikle2 = np.delete(ikle, c_dry, axis=0)
+
+    # erase points and variables outside the wet area and refresh ikle
+    ikle_onelist = ikle2.flatten()  # get one ikle list
+    ikle_onelist.sort()  # sort
+    ikle_onelist_sorted_set = np.unique(ikle_onelist)
+    liste_na_noeud = np.array([-999999] * len(point_all))
+    for i, point_index in enumerate(ikle_onelist_sorted_set):
+        liste_na_noeud[point_index] = i
+    for i, (p1_index, p2_index, p3_index) in enumerate(ikle2):
+        ikle2[i][0] = liste_na_noeud[ikle2[i][0]]
+        ikle2[i][1] = liste_na_noeud[ikle2[i][1]]
+        ikle2[i][2] = liste_na_noeud[ikle2[i][2]]
+    index_to_remove = np.where(liste_na_noeud == -999999)
+    point_all = np.delete(point_all, index_to_remove, axis=0)
+    water_height = np.delete(water_height, index_to_remove, axis=0)
+    velocity = np.delete(velocity, index_to_remove, axis=0)
 
     if get_ind_new:
         ind_new = np.array(ind_new)
         ind_new = np.delete(ind_new, c_dry, axis=0)
 
     if get_ind_new:
-        return ikle, point_all, water_height, velocity, ind_new
+        return ikle2, point_all, water_height, velocity, ind_new
     else:
-        return ikle, point_all, water_height, velocity
+        return ikle2, point_all, water_height, velocity
 
 
 def linear_h_cross(p1, p2, h1, h2, minwh=0.0):
