@@ -2513,6 +2513,7 @@ class TELEMAC(SubHydroW):
     def __init__(self, path_prj, name_prj):
 
         super().__init__(path_prj, name_prj)
+        self.telemac_case = "unknown"
         self.init_iu()
 
     def init_iu(self):
@@ -2534,21 +2535,20 @@ class TELEMAC(SubHydroW):
         self.h2d_t2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
         # geometry and output data
-        l1 = QLabel(self.tr('Geometry and output data'))
-        self.h2d_b = QPushButton(self.tr('Choose file (.slf, .srf, .res, .txt)'), self)
+        l1 = QLabel(self.tr('TELEMAC result file(s)'))
+        self.h2d_b = QPushButton(self.tr('Choose file(s) (.slf, .srf, .res, .txt)'), self)
         self.h2d_b.clicked.connect(lambda: self.show_dialog_telemac(0))
         # self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
         # self.h2d_b.clicked.connect(lambda: self.get_time_step())
-
-        units_name_title_label = QLabel(self.tr('Kind of units'))
+        units_name_title_label = QLabel(self.tr('Unit(s) type'))
         self.units_name_label = QLabel(self.tr('Unknown'))
 
-        l2 = QLabel(self.tr('Number of units'))
+        l2 = QLabel(self.tr('Unit(s) number'))
         self.number_timstep_label = QLabel(self.tr('-'), self)
         self.units_QListWidget = QListWidget()
         self.units_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.units_QListWidget.setMinimumHeight(100)
-        l_selecttimestep = QLabel(self.tr('Select the desired unit(s)'))
+        l_selecttimestep = QLabel(self.tr('Unit(s) selected'))
         # ToolTip to indicated in which folder are the files
         self.h2d_t2.setToolTip(self.pathfile[0])
         self.h2d_b.clicked.connect(
@@ -2610,7 +2610,7 @@ class TELEMAC(SubHydroW):
 
         :param i: an int for the case where there is more than one file to load
         """
-
+        print(i)
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
             filter2 = "File ("
@@ -2627,152 +2627,515 @@ class TELEMAC(SubHydroW):
             model_path = self.path_prj
 
         # find the filename based on user choice
-        filename_path = QFileDialog.getOpenFileName(self,
-                                                    self.tr("Select file"),
-                                                    model_path,
-                                                    filter2)[0]
+        more_than_one_file_selected_by_user = False
+        filename_list = QFileDialog.getOpenFileNames(self, self.tr("Select file"), model_path, filter2)
 
-        if filename_path:
-            filename_path = os.path.normpath(filename_path)
-            filename = os.path.basename(filename_path)
-            blob, ext = os.path.splitext(filename)
-            # chronique
-            if ext == ".txt":
-                print("chronique")
-                filenames_list = []
-                units_list = []
-                with open(filename_path, 'rt') as f:
-                    dataraw = f.read()
-                headers = dataraw.split("\n")[0]
-                nb_column = len(headers.split("\t"))
-                if nb_column == 2:
-                    print("several permanent flow files")
-                elif nb_column > 2:
-                    print("several raw permanent flow files")
-                    timestep_list = []
-                else:
-                    print("kind of telemac data not recognized")
-                    return
-                unit_name = headers.split("\t")[1]
-                dataraw_list = dataraw.split("\n")[1:]
-                for line in dataraw_list:
-                    # read line
-                    if nb_column > 2:
-                        filee, unit, timestep = line.split("\t")
-                    if nb_column == 2:
-                        filee, unit = line.split("\t")
-                    # append data to list
-                    filenames_list.append(filee)
-                    units_list.append(unit)
-                    if nb_column > 2:
-                        timestep_list.append(timestep)
-                # numerical value test
-                try:
-                    units_list_num = list(map(float, units_list))
-                except:
-                    self.send_log.emit(self.tr("Error: Units in txt file can't be converted to numerical value."))
+        # if file has been selected
+        if filename_list[0]:
+            if len(filename_list[0]) == 1:  # more than one file selected
+                more_than_one_file_selected_by_user = False  # several files to read
+                filename_path = os.path.normpath(filename_list[0][0])
+                folder_path = os.path.dirname(filename_path)
+                filename = os.path.basename(filename_path)
+                blob, ext = os.path.splitext(filename)
+            if len(filename_list[0]) > 1:  # more than one file selected
+                more_than_one_file_selected_by_user = True  # several files to read
+                filename_path = filename_list[0]
+                folder_path = os.path.dirname(filename_path[0])
+                filename = [os.path.basename(file) for file in filename_path]
+                blob = [os.path.splitext(file)[0] for file in filename]
+                ext = [os.path.splitext(file)[1] for file in filename]
 
-                if units_list_num:
-                    # sorted in ascending order
-                    together = zip(units_list_num, filenames_list)
-                    if nb_column > 2:
-                        together = zip(units_list_num, filenames_list, timestep_list)
-                    sorted_together = sorted(together)
-                    units_list_num = [x[0] for x in sorted_together]
-                    units_list = list(map(str, units_list_num))
-                    filenames_list = [x[1] for x in sorted_together]
-                    if nb_column > 2:
-                        timestep_list = [x[2] for x in sorted_together]
-                    # keep the name in an attribute until we save it
-                    if i >= len(self.pathfile) or len(self.pathfile) == 0:
-                        self.pathfile.append(os.path.dirname(filename_path))
-                        self.namefile.append(filename)
-                    else:
-                        self.pathfile[i] = os.path.dirname(filename_path)
-                        self.namefile[i] = filename
-
-                    # add the default name of the hdf5 file to the QLineEdit
-                    filename2 = filename.split('.')[0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
-                    if len(filename) > 9:
-                        self.name_hdf5 = filename2 + ".hyd"
-                    else:
-                        self.name_hdf5 = filename2 + ".hyd"
-
-                    self.hname.setText(self.name_hdf5)
-
-                    # telemac
-                    self.h2d_t2.setText(self.namefile[0])
-
-                    # kind of unit
-                    self.units_name_label.setText(self.tr("Discharge, ") + unit_name)
-
-                    # number units
-                    self.number_timstep_label.setText(str(len(units_list)))
-
-                    # items
-                    items_list = [a + " : " + b for a, b in list(zip(filenames_list, units_list))]
-                    if nb_column > 2:
-                        items_list = [a + " : Q" + b + " : t" + c for a, b, c in list(zip(filenames_list, units_list, timestep_list))]
-
-                    self.units_QListWidget.clear()
-                    self.units_QListWidget.addItems(items_list)
-                    for i in range(len(items_list)):
-                        self.units_QListWidget.item(i).setSelected(True)
-                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
-
-            # one file
+            # TELEMAC file(s) selected (not txt)
             if ext != ".txt":
-                print("one file")
-                # check extension
-                extension_i = self.extension[i]
-                if any(e in ext for e in extension_i):  # extension known
-                    pass
-                else:
-                    if ext == '':  # no extension
-                        self.msg2.setIcon(QMessageBox.Warning)
-                        self.msg2.setWindowTitle(self.tr("File type"))
-                        self.msg2.setText(self.tr(
-                            "The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(
-                                extension_i)))
-                        self.msg2.setStandardButtons(QMessageBox.Ok)
-                        self.msg2.show()
-                    else:  # no extension known (if not any(e in ext for e in extension_i))
-                        self.msg2.setIcon(QMessageBox.Warning)
-                        self.msg2.setWindowTitle(self.tr("File type"))
-                        self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
-                        self.msg2.setStandardButtons(QMessageBox.Ok)
-                        self.msg2.show()
+                # indexTELEMAC paths
+                filename_path_index = os.path.join(folder_path, "indexTELEMAC.txt")
+                # check if indexTELEMAC.txt is associated to selected file
+                if not os.path.isfile(filename_path_index):
+                    print("-------------------------------------------------------------------")
+                    print("indexTELEMAC.txt don't exist")
+                    # TODO : create indexTELEMAC.txt from user choices
                     return
+                if os.path.isfile(filename_path_index):
+                    # init variables
+                    indextelemac_presence = True
+                    discharge_presence = False  # "Q[" in headers
+                    time_presence = False  # "T[" in headers
+                    reach_presence = False  # "reachname" in headers
+                    more_than_one_row = False  # several files to read
+                    selectedfiles_textfiles_matching = False
 
-                # keep the name in an attribute until we save it
-                if i >= len(self.pathfile) or len(self.pathfile) == 0:
-                    self.pathfile.append(os.path.dirname(filename_path))
-                    self.namefile.append(filename)
-                else:
-                    self.pathfile[i] = os.path.dirname(filename_path)
-                    self.namefile[i] = filename
+                    # read text file
+                    with open(filename_path_index, 'rt') as f:
+                        dataraw = f.read()
+                    # read headers and nb row
+                    headers = dataraw.split("\n")[0].split("\t")
+                    nb_column = len(headers)
+                    nb_row = len(dataraw.split("\n"))
+                    # create one dict for all column
+                    data_index_telemac = dict((key, []) for key in headers)
+                    data_row_list = dataraw.split("\n")[1:]
+                    for line in data_row_list:
+                        for index, column_name in enumerate(headers):
+                            data_index_telemac[column_name].append(line.split("\t")[index])
+                    # selectedfiles textfiles matching
+                    selectedfiles_textfiles_match = [False] * len(filename_list[0])
+                    for i, file_path in enumerate(filename_list[0]):
+                        if os.path.basename(file_path) in data_index_telemac["filename"]:
+                            selectedfiles_textfiles_match[i] = True
 
-                # add the default name of the hdf5 file to the QLineEdit
-                filename2 = filename.split('.')[0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
-                ext = filename.split('.')[-1]
-                if ext == filename2:
-                    ext = ''
-                if self.model_type == 'SUBSTRATE':
-                    if len(filename) > 6:
-                        self.name_hdf5 = 'Sub_' + filename2 + '_' + ext
-                    else:
-                        self.name_hdf5 = 'Sub_' + filename2 + '_' + ext
-                else:
-                    if len(filename) > 9:
-                        self.name_hdf5 = filename2 + ".hyd"
-                    else:
-                        self.name_hdf5 = filename2 + ".hyd"
+                    # check conditions
+                    if all(selectedfiles_textfiles_match):
+                        selectedfiles_textfiles_matching = True
+                    if any("Q[" in s for s in headers):
+                        discharge_presence = True  # "Q[" in headers
+                        discharge_index = [i for i, s in enumerate(headers) if 'Q[' in s][0]
+                        start = headers[discharge_index].find('Q[') + len('Q[')
+                        end = headers[discharge_index].find(']', start)
+                        discharge_unit = headers[discharge_index][start:end]
+                    if any("T[" in s for s in headers):
+                        time_presence = True  # "T[" in headers
+                        time_index = [i for i, s in enumerate(headers) if 'T[' in s][0]
+                        start = headers[time_index].find('T[') + len('T[')
+                        end = headers[time_index].find(']', start)
+                        time_unit = headers[time_index][start:end]
+                    if any("reachname" in s for s in headers):
+                        reach_presence = True  # "reachname" in headers
+                        reach_index = [i for i, s in enumerate(headers) if 'reachname' in s][0]
+                    if nb_row > 2:
+                        more_than_one_row = True
 
-                self.hname.setText(self.name_hdf5)
+                    # prints
+                    print("-------------------------------------------------------------------")
+                    print("indextelemac_presence ? ", indextelemac_presence)
+                    print("more_than_one_file_selected_by_user ? ", more_than_one_file_selected_by_user)
+                    print("more_than_one_row ? ", more_than_one_row)
+                    print("selectedfiles_textfiles_matching ?", selectedfiles_textfiles_matching)
+                    print("discharge_presence ? ", discharge_presence)
+                    print("time_presence ? ", time_presence)
+                    print("reach_presence ? ", reach_presence)
+                    print("nb_column = ", nb_column)
+                    print("nb_row = ", nb_row)
 
-                # telemac
-                self.h2d_t2.setText(self.namefile[0])
-                self.get_time_step()
+                    """ CHECK CASE """
+                    if not more_than_one_file_selected_by_user and discharge_presence and not time_presence:
+                        self.telemac_case = "1.a"
+                    if not more_than_one_file_selected_by_user and discharge_presence and time_presence:
+                        self.telemac_case = "1.b"
+                    if more_than_one_file_selected_by_user and discharge_presence and not time_presence:
+                        self.telemac_case = "2.a"
+                    if more_than_one_file_selected_by_user and discharge_presence and time_presence:
+                        self.telemac_case = "2.b"
+                    if not more_than_one_file_selected_by_user and not discharge_presence and time_presence:
+                        if data_index_telemac[headers[time_index]][0] == "all":
+                            self.telemac_case = "3.a"
+                        if data_index_telemac[headers[time_index]][0] != "all":
+                            self.telemac_case = "3.b"
+                    if more_than_one_file_selected_by_user and not discharge_presence and time_presence:
+                        if data_index_telemac[headers[time_index]][0] == "all":
+                            self.telemac_case = "4.a"
+                        if data_index_telemac[headers[time_index]][0] != "all":
+                            self.telemac_case = "4.b"
+                    if reach_presence:
+                        self.telemac_case = "5." + self.telemac_case
+                    print("telemac_case : ", self.telemac_case)
+
+                    """ ALL CASE """
+                    # hdf5 name and source filenames
+                    if not more_than_one_file_selected_by_user:
+                        # add the default name of the hdf5 file to the QLineEdit
+                        self.pathfile[0] = folder_path  # source file path
+                        self.namefile[0] = filename  # source file name
+                        self.name_hdf5 = filename.split('.')[0] + ".hyd"
+                    if more_than_one_file_selected_by_user:
+                        # add the default name of the hdf5 file to the QLineEdit
+                        self.pathfile[0] = folder_path  # source file path
+                        self.namefile[0] = ", ".join(filename)  # source file name
+                        self.name_hdf5 = "_".join(blob) + ".hyd"
+
+                    # telemac_description
+                    self.telemac_description = dict(path_prj=self.path_prj,
+                                                    name_prj=self.name_prj,
+                                                    telemac_case=self.telemac_case,
+                                                    filename_source=self.namefile[0],
+                                                    path_filename_source=self.pathfile[0],
+                                                    hdf5_name=self.name_hdf5,
+                                                    model_type=self.model_type,
+                                                    model_dimension=str(self.nb_dim))
+
+                    """ CASE 1.a """
+                    if self.telemac_case == "1.a":
+                        # get units name from TELEMAC file
+                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(data_index_telemac["filename"][0], folder_path)
+                        # get units name from indexTELEMAC.txt file
+                        unit_name_from_indextelemac_file = data_index_telemac[headers[discharge_index]]
+                        # check if lenght of two loading units
+                        if len(unit_name_from_telemac_file) == len(unit_name_from_indextelemac_file):
+                            print("same length of units :",
+                                  unit_name_from_telemac_file[0],
+                                  "s became",
+                                  unit_name_from_indextelemac_file[0], discharge_unit)
+                        else:
+                            print("units length from indexTELEMAC and from TELEMAC file are different")
+                            return
+
+                        # items
+                        items_list = [a + " (" + b + ")" for a, b in list(zip(
+                            data_index_telemac[headers[discharge_index]],
+                            data_index_telemac[headers[0]]
+                        ))]
+
+                        # telemac_description
+                        self.telemac_description["filename_source"] = ", ".join(data_index_telemac[headers[0]])
+                        self.telemac_description["unit_list"] = ", ".join(data_index_telemac[headers[discharge_index]])
+                        self.telemac_description["unit_number"] = str(1)
+                        self.telemac_description["unit_type"] = "discharge [" + discharge_unit + "]"
+
+                        # to GUI
+                        self.h2d_t2.setText(self.namefile[0])  # source filename
+                        self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
+                        self.number_timstep_label.setText(self.telemac_description["unit_number"])  # number units
+                        self.units_QListWidget.clear()
+                        self.units_QListWidget.addItems(items_list)
+                        for i in range(len(items_list)):
+                            self.units_QListWidget.item(i).setSelected(True)
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                        self.hname.setText(self.name_hdf5)  # hdf5 name
+
+                    """ CASE 1.b """
+                    if self.telemac_case == "1.b":
+                        # get units name from TELEMAC file
+                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(
+                            data_index_telemac["filename"][0], folder_path)
+                        # get units name from indexTELEMAC.txt file
+                        unit_name_from_indextelemac_file = data_index_telemac[headers[time_index]][0]
+                        # check if lenght of two loading units
+                        if unit_name_from_indextelemac_file in unit_name_from_telemac_file:
+                            print(unit_name_from_indextelemac_file, "exist in telemax file")
+                        else:
+                            print(unit_name_from_indextelemac_file, "don't exist in telemax file")
+                            return
+
+                        # items
+                        items_list = [a + " (" + b + " at " + c + "s)" for a, b, c in list(zip(
+                            data_index_telemac[headers[discharge_index]],
+                            data_index_telemac[headers[0]],
+                            data_index_telemac[headers[time_index]]
+                        ))]
+
+                        # telemac_description
+                        self.telemac_description["filename_source"] = ", ".join(data_index_telemac[headers[0]])
+                        self.telemac_description["unit_list"] = ", ".join(data_index_telemac[headers[discharge_index]])
+                        self.telemac_description["unit_number"] = str(1)
+                        self.telemac_description["unit_type"] = "discharge [" + discharge_unit + "]"
+
+                        # to GUI
+                        self.h2d_t2.setText(self.namefile[0])  # source filename
+                        self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
+                        self.number_timstep_label.setText(self.telemac_description["unit_number"])  # number units
+                        self.units_QListWidget.clear()
+                        self.units_QListWidget.addItems(items_list)
+                        for i in range(len(items_list)):
+                            self.units_QListWidget.item(i).setSelected(True)
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                        self.hname.setText(self.name_hdf5)  # hdf5 name
+
+                    """ CASE 2.a """
+                    if self.telemac_case == "2.a":
+                        # get units name from TELEMAC files (must have only one time step by file)
+                        for file in data_index_telemac["filename"]:
+                            nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                            if unit_name_from_telemac_file == ["0.0"] and nbtimes == 1:
+                                pass
+                            else:
+                                if nbtimes > 1:
+                                    print("file " + file + " contain more than one time step (timesteps :" + str(
+                                        unit_name_from_telemac_file) + ")")
+                                return
+
+                        # selected files same than indexTELEMAC file
+                        if not selectedfiles_textfiles_matching:
+                            print("selected files are different from indexTELEMAC files")
+                            return
+
+                        # items
+                        items_list = [a + " (" + b + ")" for a, b in list(zip(
+                            data_index_telemac[headers[discharge_index]],
+                            data_index_telemac[headers[0]]
+                        ))]
+
+                        # telemac_description
+                        self.telemac_description["filename_source"] = ", ".join(data_index_telemac[headers[0]])
+                        self.telemac_description["unit_list"] = ", ".join(data_index_telemac[headers[discharge_index]])
+                        self.telemac_description["unit_number"] = str(len(data_index_telemac[headers[discharge_index]]))
+                        self.telemac_description["unit_type"] = "discharge [" + discharge_unit + "]"
+
+                        # to GUI
+                        self.h2d_t2.setText(self.namefile[0])  # source filename
+                        self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
+                        self.number_timstep_label.setText(self.telemac_description["unit_number"])  # number units
+                        self.units_QListWidget.clear()
+                        self.units_QListWidget.addItems(items_list)
+                        for i in range(len(items_list)):
+                            self.units_QListWidget.item(i).setSelected(True)
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                        self.hname.setText(self.name_hdf5)  # hdf5 name
+
+                    """ CASE 2.b """
+                    if self.telemac_case == "2.b":
+                        for rowindex, file in enumerate(data_index_telemac["filename"]):
+                            # get units name from TELEMAC file
+                            nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                            # get units name from indexTELEMAC.txt file
+                            unit_name_from_indextelemac_file = data_index_telemac[headers[time_index]][rowindex]
+                            # check if lenght of two loading units
+                            if unit_name_from_indextelemac_file in unit_name_from_telemac_file:
+                                print(unit_name_from_indextelemac_file, "exist in telemax file")
+                            else:
+                                print(unit_name_from_indextelemac_file, "don't exist in", file)
+                                return
+
+                        # selected files same than indexTELEMAC file
+                        if not selectedfiles_textfiles_matching:
+                            print("selected files are different from indexTELEMAC files")
+                            return
+
+                        # items
+                        items_list = [a + " (" + b + " at " + c + "s)" for a, b, c in list(zip(
+                            data_index_telemac[headers[discharge_index]],
+                            data_index_telemac[headers[0]],
+                            data_index_telemac[headers[time_index]]
+                        ))]
+
+                        # telemac_description
+                        self.telemac_description["filename_source"] = ", ".join(data_index_telemac[headers[0]])
+                        self.telemac_description["unit_list"] = ", ".join(data_index_telemac[headers[discharge_index]])
+                        self.telemac_description["unit_number"] = str(len(data_index_telemac[headers[discharge_index]]))
+                        self.telemac_description["unit_type"] = "discharge [" + discharge_unit + "]"
+
+                        # to GUI
+                        self.h2d_t2.setText(self.namefile[0])  # source filename
+                        self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
+                        self.number_timstep_label.setText(self.telemac_description["unit_number"])  # number units
+                        self.units_QListWidget.clear()
+                        self.units_QListWidget.addItems(items_list)
+                        for i in range(len(items_list)):
+                            self.units_QListWidget.item(i).setSelected(True)
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                        self.hname.setText(self.name_hdf5)  # hdf5 name
+
+            #         #
+            #         # filenames_list = []
+            #         # units_list = []
+            #         # unit_name = headers.split("\t")[1]
+            #         # dataraw_list = dataraw.split("\n")[1:]
+            #         # for line in dataraw_list:
+            #         #     # read line
+            #         #     if nb_column > 2:
+            #         #         filee, unit, timestep = line.split("\t")
+            #         #     if nb_column == 2:
+            #         #         filee, unit = line.split("\t")
+            #         #     # append data to list
+            #         #     filenames_list.append(filee)
+            #         #     units_list.append(unit)
+            #         #     if nb_column > 2:
+            #         #         timestep_list.append(timestep)
+            #         # # numerical value test
+            #         # try:
+            #         #     units_list_num = list(map(float, units_list))
+            #         # except:
+            #         #     self.send_log.emit(self.tr("Error: Units in txt file can't be converted to numerical value."))
+            #         #
+            #         # if units_list_num:
+            #         #     # sorted in ascending order
+            #         #     together = zip(units_list_num, filenames_list)
+            #         #     if nb_column > 2:
+            #         #         together = zip(units_list_num, filenames_list, timestep_list)
+            #         #     sorted_together = sorted(together)
+            #         #     units_list_num = [x[0] for x in sorted_together]
+            #         #     units_list = list(map(str, units_list_num))
+            #         #     filenames_list = [x[1] for x in sorted_together]
+            #         #     if nb_column > 2:
+            #         #         timestep_list = [x[2] for x in sorted_together]
+            #         #     # keep the name in an attribute until we save it
+            #         #     if i >= len(self.pathfile) or len(self.pathfile) == 0:
+            #         #         self.pathfile.append(os.path.dirname(filename_path))
+            #         #         self.namefile.append(filename)
+            #         #     else:
+            #         #         self.pathfile[i] = os.path.dirname(filename_path)
+            #         #         self.namefile[i] = filename
+            #         #
+            #         #     # add the default name of the hdf5 file to the QLineEdit
+            #         #     filename2 = filename.split('.')[
+            #         #         0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
+            #         #     if len(filename) > 9:
+            #         #         self.name_hdf5 = filename2 + ".hyd"
+            #         #     else:
+            #         #         self.name_hdf5 = filename2 + ".hyd"
+            #         #
+            #         #     self.hname.setText(self.name_hdf5)
+            #         #
+            #         #     # telemac
+            #         #     self.h2d_t2.setText(self.namefile[0])
+            #         #
+            #         #     # kind of unit
+            #         #     self.units_name_label.setText(self.tr("Discharge, ") + unit_name)
+            #         #
+            #         #     # number units
+            #         #     self.number_timstep_label.setText(str(len(units_list)))
+            #         #
+            #         #     # items
+            #         #     items_list = [a + " : " + b for a, b in list(zip(filenames_list, units_list))]
+            #         #     if nb_column > 2:
+            #         #         items_list = [a + " : Q" + b + " : t" + c for a, b, c in
+            #         #                       list(zip(filenames_list, units_list, timestep_list))]
+            #         #
+            #         #     self.units_QListWidget.clear()
+            #         #     self.units_QListWidget.addItems(items_list)
+            #         #     for i in range(len(items_list)):
+            #         #         self.units_QListWidget.item(i).setSelected(True)
+            #         #         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+            #
+            #
+            #
+            # # one file
+            # if ext != ".txt":
+            #     print("one file")
+            #     # check extension
+            #     extension_i = self.extension[i]
+            #     if any(e in ext for e in extension_i):  # extension known
+            #         pass
+            #     else:
+            #         if ext == '':  # no extension
+            #             self.msg2.setIcon(QMessageBox.Warning)
+            #             self.msg2.setWindowTitle(self.tr("File type"))
+            #             self.msg2.setText(self.tr(
+            #                 "The selected file has no extension. If you know this file, change its extension manually to " + " or ".join(
+            #                     extension_i)))
+            #             self.msg2.setStandardButtons(QMessageBox.Ok)
+            #             self.msg2.show()
+            #         else:  # no extension known (if not any(e in ext for e in extension_i))
+            #             self.msg2.setIcon(QMessageBox.Warning)
+            #             self.msg2.setWindowTitle(self.tr("File type"))
+            #             self.msg2.setText(self.tr("Needed type for the file to be loaded: " + ' ,'.join(extension_i)))
+            #             self.msg2.setStandardButtons(QMessageBox.Ok)
+            #             self.msg2.show()
+            #         return
+            #
+            #     # keep the name in an attribute until we save it
+            #     if i >= len(self.pathfile) or len(self.pathfile) == 0:
+            #         self.pathfile.append(os.path.dirname(filename_path))
+            #         self.namefile.append(filename)
+            #     else:
+            #         self.pathfile[i] = os.path.dirname(filename_path)
+            #         self.namefile[i] = filename
+            #
+            #     # add the default name of the hdf5 file to the QLineEdit
+            #     filename2 = filename.split('.')[0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
+            #     ext = filename.split('.')[-1]
+            #     if ext == filename2:
+            #         ext = ''
+            #     if self.model_type == 'SUBSTRATE':
+            #         if len(filename) > 6:
+            #             self.name_hdf5 = 'Sub_' + filename2 + '_' + ext
+            #         else:
+            #             self.name_hdf5 = 'Sub_' + filename2 + '_' + ext
+            #     else:
+            #         if len(filename) > 9:
+            #             self.name_hdf5 = filename2 + ".hyd"
+            #         else:
+            #             self.name_hdf5 = filename2 + ".hyd"
+            #
+            #     self.hname.setText(self.name_hdf5)
+            #
+            #     # telemac
+            #     self.h2d_t2.setText(self.namefile[0])
+            #     self.get_time_step()
+            #
+            #
+            # # chronique
+            # if ext == ".txt":
+            #     print("chronique")
+            #     filenames_list = []
+            #     units_list = []
+            #     with open(filename_path, 'rt') as f:
+            #         dataraw = f.read()
+            #     headers = dataraw.split("\n")[0]
+            #     nb_column = len(headers.split("\t"))
+            #     if nb_column == 2:
+            #         print("several permanent flow files")
+            #     elif nb_column > 2:
+            #         print("several raw permanent flow files")
+            #         timestep_list = []
+            #     else:
+            #         print("kind of telemac data not recognized")
+            #         return
+            #     unit_name = headers.split("\t")[1]
+            #     dataraw_list = dataraw.split("\n")[1:]
+            #     for line in dataraw_list:
+            #         # read line
+            #         if nb_column > 2:
+            #             filee, unit, timestep = line.split("\t")
+            #         if nb_column == 2:
+            #             filee, unit = line.split("\t")
+            #         # append data to list
+            #         filenames_list.append(filee)
+            #         units_list.append(unit)
+            #         if nb_column > 2:
+            #             timestep_list.append(timestep)
+            #     # numerical value test
+            #     try:
+            #         units_list_num = list(map(float, units_list))
+            #     except:
+            #         self.send_log.emit(self.tr("Error: Units in txt file can't be converted to numerical value."))
+            #
+            #     if units_list_num:
+            #         # sorted in ascending order
+            #         together = zip(units_list_num, filenames_list)
+            #         if nb_column > 2:
+            #             together = zip(units_list_num, filenames_list, timestep_list)
+            #         sorted_together = sorted(together)
+            #         units_list_num = [x[0] for x in sorted_together]
+            #         units_list = list(map(str, units_list_num))
+            #         filenames_list = [x[1] for x in sorted_together]
+            #         if nb_column > 2:
+            #             timestep_list = [x[2] for x in sorted_together]
+            #         # keep the name in an attribute until we save it
+            #         if i >= len(self.pathfile) or len(self.pathfile) == 0:
+            #             self.pathfile.append(os.path.dirname(filename_path))
+            #             self.namefile.append(filename)
+            #         else:
+            #             self.pathfile[i] = os.path.dirname(filename_path)
+            #             self.namefile[i] = filename
+            #
+            #         # add the default name of the hdf5 file to the QLineEdit
+            #         filename2 = filename.split('.')[0]  # os.path.splitext is not a good idea for name.001.xml (hec-ras)
+            #         if len(filename) > 9:
+            #             self.name_hdf5 = filename2 + ".hyd"
+            #         else:
+            #             self.name_hdf5 = filename2 + ".hyd"
+            #
+            #         self.hname.setText(self.name_hdf5)
+            #
+            #         # telemac
+            #         self.h2d_t2.setText(self.namefile[0])
+            #
+            #         # kind of unit
+            #         self.units_name_label.setText(self.tr("Discharge, ") + unit_name)
+            #
+            #         # number units
+            #         self.number_timstep_label.setText(str(len(units_list)))
+            #
+            #         # items
+            #         items_list = [a + " : " + b for a, b in list(zip(filenames_list, units_list))]
+            #         if nb_column > 2:
+            #             items_list = [a + " : Q" + b + " : t" + c for a, b, c in list(zip(filenames_list, units_list, timestep_list))]
+            #
+            #         self.units_QListWidget.clear()
+            #         self.units_QListWidget.addItems(items_list)
+            #         for i in range(len(items_list)):
+            #             self.units_QListWidget.item(i).setSelected(True)
+            #             self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
 
     def get_time_step(self):
         """
@@ -2810,14 +3173,25 @@ class TELEMAC(SubHydroW):
             self.nativeParentWidget().progress_bar.setValue(0)
             self.nativeParentWidget().progress_bar.setVisible(True)
 
+            # the path where to save the hdf5
+            path_hdf5 = self.find_path_hdf5()
+            self.name_hdf5 = self.hname.text()
+
+            # get minimum water height as we might neglect very low water height
+            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
             # block button
             self.load_b.setDisabled(True)  # hydraulic
 
-            units = []
-            units_index = []
-            for i in range(len(selection)):
-                units.append(selection[i].text())
-                units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
+            # # get GUI info
+            # filename_source = self.h2d_t2.text()
+            # unit_type = self.units_name_label.text()
+            # unit_number = self.number_timstep_label.text()
+            # unit_list = []
+            # units_index = []
+            # for i in range(len(selection)):
+            #     unit_list.append(selection[i].text())
+            #     units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
 
             # test the availability of files
             fileNOK = True
@@ -2838,24 +3212,22 @@ class TELEMAC(SubHydroW):
             # write the new file name in the project file
             self.save_xml(0)
 
-            # the path where to save the hdf5
-            path_hdf5 = self.find_path_hdf5()
-            self.name_hdf5 = self.hname.text()
-
-            # get minimum water height as we might neglect very low water height
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-
             # load the telemac data
             self.q = Queue()
             self.progress_value = Value("i", 0)
-            self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
-                                                                                    self.pathfile[0], self.name_prj,
-                                                                                    self.path_prj, self.model_type,
-                                                                                    self.nb_dim, path_hdf5,
+            # self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
+            #                                                                         self.pathfile[0], self.name_prj,
+            #                                                                         self.path_prj, self.model_type,
+            #                                                                         self.nb_dim, path_hdf5,
+            #                                                                         self.progress_value,
+            #                                                                         units_index,
+            #                                                                         self.q,
+            #                                                                         False, self.fig_opt))
+            self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(self.telemac_description,
                                                                                     self.progress_value,
-                                                                                    units_index,
                                                                                     self.q,
                                                                                     False, self.fig_opt))
+
             self.p.start()
 
             # path input

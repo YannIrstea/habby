@@ -88,7 +88,8 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
 
     # save in a shapefile form
     if path_shp:
-        load_hdf5.create_shapfile_hydro(name_hdf5merge, path_hdf5, path_shp, True, erase_id)
+        #load_hdf5.create_shapefile(name_hdf5merge, path_hdf5, path_shp, True, erase_id)
+        hdf5_management.create_shapefile(type="habitat")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -140,23 +141,30 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
         # new dict
         merge_description = dict()
         # copy attributes hydraulic
-        merge_description["hyd_filename_source"] = hyd_description['hyd_filename_source']
-        merge_description['hyd_nb_reach'] = hyd_description['hyd_nb_reach']
-        merge_description['hyd_nb_unit'] = hyd_description['hyd_nb_unit']
-        merge_description['hyd_unit_list'] = hyd_description['hyd_unit_list']
-        merge_description['hyd_unit_type'] = hyd_description['hyd_unit_type']
-        merge_description['hyd_wholeprofile_unit_correspondences'] = hyd_description['hyd_wholeprofile_unit_correspondences']
+        for attribute_name, attribute_value in list(hyd_description.items()):
+            merge_description[attribute_name] = attribute_value
+
         # copy attributes substrate
-        merge_description["sub_mapping_method"] = sub_description_system["sub_mapping_method"]
-        merge_description["sub_classification_code"] = sub_description_system["sub_classification_code"]
-        merge_description["sub_classification_method"] = sub_description_system["sub_classification_method"]
-        merge_description["sub_filename_source"] = sub_description_system["sub_filename_source"]
-        merge_description["sub_nb_class"] = sub_description_system['sub_nb_class']
-        merge_description["sub_nb_reach"] = sub_description_system['sub_nb_reach']
-        merge_description["sub_nb_unit"] = sub_description_system['sub_nb_unit']
-        merge_description["sub_unit_list"] = sub_description_system['sub_unit_list']
-        merge_description["sub_unit_type"] = sub_description_system['sub_unit_type']
-        merge_description["sub_constant_values"] = sub_description_system["sub_constant_values"]
+        for attribute_name, attribute_value in list(sub_description_system.items()):
+            merge_description[attribute_name] = attribute_value
+
+        # merge_description["hyd_filename_source"] = hyd_description['hyd_filename_source']
+        # merge_description['hyd_nb_reach'] = hyd_description['hyd_nb_reach']
+        # merge_description['hyd_nb_unit'] = hyd_description['hyd_nb_unit']
+        # merge_description['hyd_unit_list'] = hyd_description['hyd_unit_list']
+        # merge_description['hyd_unit_type'] = hyd_description['hyd_unit_type']
+        # merge_description['hyd_wholeprofile_unit_correspondences'] = hyd_description['hyd_wholeprofile_unit_correspondences']
+        # # copy attributes substrate
+        # merge_description["sub_mapping_method"] = sub_description_system["sub_mapping_method"]
+        # merge_description["sub_classification_code"] = sub_description_system["sub_classification_code"]
+        # merge_description["sub_classification_method"] = sub_description_system["sub_classification_method"]
+        # merge_description["sub_filename_source"] = sub_description_system["sub_filename_source"]
+        # merge_description["sub_nb_class"] = sub_description_system['sub_nb_class']
+        # merge_description["sub_nb_reach"] = sub_description_system['sub_nb_reach']
+        # merge_description["sub_nb_unit"] = sub_description_system['sub_nb_unit']
+        # merge_description["sub_unit_list"] = sub_description_system['sub_unit_list']
+        # merge_description["sub_unit_type"] = sub_description_system['sub_unit_type']
+        # merge_description["sub_constant_values"] = sub_description_system["sub_constant_values"]
         # copy data from hyd
         data_2d_merge = data_2d_hyd
         # for each reach

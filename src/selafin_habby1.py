@@ -26,11 +26,11 @@ from src import load_hdf5
 from src_GUI import output_fig_GUI
 from src import manage_grid_8
 
-
-def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5,
-                              progress_value,
-                              units_index=None, q=[],
-                              print_cmd=False, fig_opt={}):
+def load_telemac_and_cut_grid(hyd_description, progress_value, q=[], print_cmd=False, fig_opt={}):
+# def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5,
+#                               progress_value,
+#                               units_index=None, q=[],
+#                               print_cmd=False, fig_opt={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
     was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
@@ -62,190 +62,216 @@ def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_pr
     progress_value.value = 10
 
     # input filename
-    input_filename, ext = os.path.splitext(namefilet)
+    input_filename, ext = os.path.splitext(hyd_description["filename_source"])
 
-    full_path = os.path.join(pathfilet, namefilet)
+    full_path = os.path.join(hyd_description["path_filename_source"], hyd_description["filename_source"])
 
-    # chronique
-    if ext == ".txt":
-        # read text file
-        filenames_list = []
-        units_list = []
-        with open(full_path, 'rt') as f:
-            dataraw = f.read()
-        headers = dataraw.split("\n")[0]
-        nb_column = len(headers.split("\t"))
-        if nb_column == 2:
-            print("several permanent flow files")
-            units_index = [0]
-        elif nb_column > 2:
-            print("several raw permanent flow files")
-            timestep_list = []
-            units_index = []
-        else:
-            print("kind of telemac data not recognized")
-        unit_name = headers.split("\t")[1]
-        dataraw_list = dataraw.split("\n")[1:]
-        for line in dataraw_list:
-            # read line
-            if nb_column > 2:
-                filee, unit, timestep = line.split("\t")
-            if nb_column == 2:
-                filee, unit = line.split("\t")
-            # append data to list
-            filenames_list.append(filee)
-            units_list.append(unit)
-            if nb_column > 2:
-                timestep_list.append(timestep)
+    #
+    # # chronique
+    # if ext == ".txt":
+    #     # read text file
+    #     filenames_list = []
+    #     units_list = []
+    #     with open(full_path, 'rt') as f:
+    #         dataraw = f.read()
+    #     headers = dataraw.split("\n")[0]
+    #     nb_column = len(headers.split("\t"))
+    #     if nb_column == 2:
+    #         print("several permanent flow files")
+    #         units_index = [0]
+    #     elif nb_column > 2:
+    #         print("several raw permanent flow files")
+    #         timestep_list = []
+    #         units_index = []
+    #     else:
+    #         print("kind of telemac data not recognized")
+    #     unit_name = headers.split("\t")[1]
+    #     dataraw_list = dataraw.split("\n")[1:]
+    #     for line in dataraw_list:
+    #         # read line
+    #         if nb_column > 2:
+    #             filee, unit, timestep = line.split("\t")
+    #         if nb_column == 2:
+    #             filee, unit = line.split("\t")
+    #         # append data to list
+    #         filenames_list.append(filee)
+    #         units_list.append(unit)
+    #         if nb_column > 2:
+    #             timestep_list.append(timestep)
+    #
+    #     # get index of timestep selected in all raw files
+    #     if nb_column > 2:
+    #         for i, filename in enumerate(filenames_list):
+    #             nb_timestep, timestep_list_fromfile = get_time_step(filename, pathfilet)
+    #             if timestep_list[i] in timestep_list_fromfile:
+    #                 units_index.append(timestep_list_fromfile.index(timestep_list[i]))
+    #
+    #     # progress
+    #     delta = 80 / len(units_list)
+    #
+    #     # get data_2d_whole_profile
+    #     data_2d_whole_profile = dict()
+    #     data_2d_whole_profile["tin"] = []
+    #     data_2d_whole_profile["xy_center"] = []
+    #     data_2d_whole_profile["xy"] = []
+    #     data_2d_whole_profile["unit_correspondence"] = []
+    #     for i, file in enumerate(filenames_list):
+    #         # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
+    #         data_2d_telemac, telemac_description = load_telemac(file, pathfilet)
+    #         data_2d_whole_profile["tin"].append(data_2d_telemac["tin"])
+    #         data_2d_whole_profile["xy_center"].append(data_2d_telemac["xy_center"])
+    #         if bool(telemac_description["hyd_equal_z_values_for_all_time_steps"]):
+    #             data_2d_whole_profile["xyz"].append(data_2d_telemac["xyz"])
+    #         if not bool(telemac_description["hyd_equal_z_values_for_all_time_steps"]):
+    #             data_2d_whole_profile["xy"].append(data_2d_telemac["xy"])
+    #         data_2d_whole_profile["unit_correspondence"].append(str(i))
+    #
+    #     # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
+    #     temp_list = data_2d_whole_profile["xy_center"]
+    #     for i in range(len(temp_list)):
+    #         temp_list[i].sort(axis=0)
+    #     # TODO: sort function may be unadapted to check TIN equality between units
+    #     whole_profil_egual_index = []
+    #     for i in range(len(temp_list)):
+    #         if i == 0:
+    #             whole_profil_egual_index.append(i)
+    #         if i > 0:
+    #             if np.array_equal(temp_list[i], temp_list[0]):
+    #                 whole_profil_egual_index.append(i)
+    #             else:
+    #                 whole_profil_egual_index.append("diff")
+    #     if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
+    #         print("all tin are different (one tin by unit)")
+    #     if "diff" not in whole_profil_egual_index:  # one tin for each unit
+    #         print("one tin for each unit")
+    #         data_2d_whole_profile["tin"] = [data_2d_whole_profile["tin"][0]]
+    #         data_2d_whole_profile["xy_center"] = [data_2d_whole_profile["xy_center"][0]]
+    #         data_2d_whole_profile["xy"] = [data_2d_whole_profile["xy"][0]]
+    #         data_2d_whole_profile["unit_correspondence"] = "all"
+    #
+    #     # cut the grid to have the precise wet area and put data in new form
+    #     data_2d = dict()
+    #     data_2d["tin"] = []
+    #     data_2d["xy"] = []
+    #     data_2d["h"] = []
+    #     data_2d["v"] = []
+    #     data_2d["nb_unit"] = len(filenames_list)
+    #     data_2d["nb_reach"] = 1
+    #     for i, file in enumerate(filenames_list):
+    #         # get data from each file
+    #         [v, h, coord_p, ikle, _, timestep] = load_telemac(file, pathfilet)
+    #
+    #         sys.stdout = sys.__stdout__
+    #         for t in units_index:
+    #             [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(ikle,
+    #                                                                             coord_p,
+    #                                                                             h[t],
+    #                                                                             v[t],
+    #                                                                             progress_value,
+    #                                                                             delta,
+    #                                                                             minwh) # ,get_ind_new=True
+    #             data_2d["tin"].append(tin_data)
+    #             data_2d["xy"].append(xy_data)
+    #             data_2d["h"].append(h_data)
+    #             data_2d["v"].append(v_data)
+    #
+    # # one file
+    # if ext != ".txt":  # one reach, multi time step
+    #     try:
+    #         # get time step
+    #         if not units_index:  # all timestep are selected
+    #             nb_timestep, timestep = get_time_step(namefilet, pathfilet)
+    #             units_index = list(range(len(timestep)))
+    #         if units_index:  # timestep selected by user are selected
+    #             nb_timestep, timestep = get_time_step(namefilet, pathfilet)
+    #             if nb_timestep != len(units_index):
+    #                 print('Error: Index numbers do not match available units.')
+    #                 print("Units in telemac file : ", timestep)
+    #                 print("Index numbers specify : ", units_index)
+    #                 return
+    #             else:
+    #                 timestep = np.array(timestep)
+    #                 timestep = timestep[units_index]
+    #     except:
+    #         print('Error: Telemac data not loaded.')
+    #         if q:
+    #             sys.stdout = sys.__stdout__
+    #             q.put(mystdout)
+    #             return
+    #         else:
+    #             return
 
-        # get index of timestep selected in all raw files
-        if nb_column > 2:
-            for i, filename in enumerate(filenames_list):
-                nb_timestep, timestep_list_fromfile = get_time_step(filename, pathfilet)
-                if timestep_list[i] in timestep_list_fromfile:
-                    units_index.append(timestep_list_fromfile.index(timestep_list[i]))
+    # read data from file
 
-        # progress
-        delta = 80 / len(units_list)
+    data_2d_telemac, telemac_description = load_telemac(hyd_description["filename_source"],
+                                                        hyd_description["path_filename_source"])  # get data_2d for cut grid and data_2d_whole_profile
 
-        # get data_2d_whole_profile
-        data_2d_whole_profile = dict()
-        data_2d_whole_profile["tin"] = []
-        data_2d_whole_profile["xy_center"] = []
-        data_2d_whole_profile["xy"] = []
-        data_2d_whole_profile["unit_correspondences"] = []
-        for i, file in enumerate(filenames_list):
-            _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
-            data_2d_whole_profile["tin"].append(tin)
-            data_2d_whole_profile["xy_center"].append(xy_center)
-            data_2d_whole_profile["xy"].append(xy)
-            data_2d_whole_profile["unit_correspondences"].append(str(i))
+    # REACH GROUP
+    # for reach_num in range(int(hyd_description["reach_number"])):
+    #     for unit_num in range(int(hyd_description["reach_number"])):
 
-        # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
-        temp_list = data_2d_whole_profile["xy_center"]
-        for i in range(len(temp_list)):
-            temp_list[i].sort(axis=0)
-        # TODO: sort function may be unadapted to check TIN equality between units
-        whole_profil_egual_index = []
-        for i in range(len(temp_list)):
-            if i == 0:
-                whole_profil_egual_index.append(i)
-            if i > 0:
-                if np.array_equal(temp_list[i], temp_list[0]):
-                    whole_profil_egual_index.append(i)
-                else:
-                    whole_profil_egual_index.append("diff")
-        if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
-            print("all tin are different (one tin by unit)")
-        if "diff" not in whole_profil_egual_index:  # one tin for each unit
-            print("one tin for each unit")
-            data_2d_whole_profile["tin"] = [data_2d_whole_profile["tin"][0]]
-            data_2d_whole_profile["xy_center"] = [data_2d_whole_profile["xy_center"][0]]
-            data_2d_whole_profile["xy"] = [data_2d_whole_profile["xy"][0]]
-            data_2d_whole_profile["unit_correspondences"] = "all"
+    # whole profile
+    data_2d_whole_profile = dict()
+    data_2d_whole_profile["tin"] = [[data_2d_telemac["tin"]]]
+    data_2d_whole_profile["xy_center"] = [[data_2d_telemac["xy_center"]]]
+    data_2d_whole_profile["xy"] = [[data_2d_telemac["xy"]]]
+    if bool(telemac_description["hyd_equal_z_values_for_all_time_steps"]):
+        data_2d_whole_profile["z"] = [[data_2d_telemac["z"]]]
+    data_2d_whole_profile_unit_correspondence = "all"
 
-        # cut the grid to have the precise wet area and put data in new form
-        data_2d = dict()
-        data_2d["tin"] = []
-        data_2d["xy"] = []
-        data_2d["h"] = []
-        data_2d["v"] = []
-        data_2d["nb_unit"] = len(filenames_list)
-        data_2d["nb_reach"] = 1
-        for i, file in enumerate(filenames_list):
-            # get data from each file
-            [v, h, coord_p, ikle, _, timestep] = load_telemac(file, pathfilet)
-            sys.stdout = sys.__stdout__
-            for t in units_index:
-                [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(ikle,
-                                                                                coord_p,
-                                                                                h[t],
-                                                                                v[t],
-                                                                                progress_value,
-                                                                                delta,
-                                                                                minwh)
-                data_2d["tin"].append(tin_data)
-                data_2d["xy"].append(xy_data)
-                data_2d["h"].append(h_data)
-                data_2d["v"].append(v_data)
+    # progress from 10 to 90 : from 0 to len(units_index)
+    delta = 80 / len(units_index)
+    if len(units_index) == 1:
+        delta = 80
+    sys.stdout = sys.__stdout__
 
-        hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
-        hdf5_management.create_hdf5_hyd(model_type, nb_dim, units_list, namefilet,
-                                        data_2d_whole_profile,
-                                        data_2d)
+    # cut the grid to have the precise wet area and put data in new form
+    data_2d = dict()
+    data_2d["tin"] = [[]]  # first list for reach
+    data_2d["xy"] = [[]]
+    data_2d["h"] = [[]]
+    data_2d["v"] = [[]]
+    data_2d["z"] = [[]]
 
-    # one file
-    if ext != ".txt":
-        try:
-            # get time step
-            if not units_index:  # all timestep are selected
-                nb_timestep, timestep = get_time_step(namefilet, pathfilet)
-                units_index = list(range(len(timestep)))
-            if units_index:  # timestep selected by user are selected
-                nb_timestep, timestep = get_time_step(namefilet, pathfilet)
-                if nb_timestep != len(units_index):
-                    print('Error: Index numbers do not match available units.')
-                    print("Units in telemac file : ", timestep)
-                    print("Index numbers specify : ", units_index)
-                    return
-                else:
-                    timestep = np.array(timestep)
-                    timestep = timestep[units_index]
-        except:
-            print('Error: Telemac data not loaded.')
-            if q:
-                sys.stdout = sys.__stdout__
-                q.put(mystdout)
-                return
-            else:
-                return
+    # conca xy with z value to facilitate the cutting of the grid (interpolation)
+    xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"], axis=1) # Insert values before column 2
 
-        # get data_2d for cut grid and data_2d_whole_profile
-        v, h, xy, tin, xy_center, _ = load_telemac(namefilet, pathfilet)
-        data_2d_whole_profile = dict()
-        data_2d_whole_profile["tin"] = [tin]
-        data_2d_whole_profile["xy_center"] = [xy_center]
-        data_2d_whole_profile["xy"] = [xy]
-        data_2d_whole_profile["unit_correspondences"] = "all"
+    for t in units_index:
+        [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(data_2d_telemac["tin"],
+                                                                        xy,  # with z value (facilitate)
+                                                                        data_2d_telemac["h"][t],
+                                                                        data_2d_telemac["v"][t],
+                                                                        progress_value,
+                                                                        delta,
+                                                                        minwh)
+        data_2d["tin"][0].append(tin_data)
+        data_2d["xy"][0].append(xy_data[:, :2])
+        data_2d["h"][0].append(h_data)
+        data_2d["v"][0].append(v_data)
+        data_2d["z"][0].append(xy_data[:, 2])
 
-        # progress from 10 to 90 : from 0 to len(units_index)
-        delta = 80 / len(units_index)
-        if len(units_index) == 1:
-            delta = 80
-        sys.stdout = sys.__stdout__
+    # ALL CASE SAVE TO HDF5
+    progress_value.value = 90  # progress
 
-        # cut the grid to have the precise wet area and put data in new form
-        data_2d = dict()
-        data_2d["tin"] = []
-        data_2d["xy"] = []
-        data_2d["h"] = []
-        data_2d["v"] = []
-        data_2d["nb_unit"] = nb_timestep
-        data_2d["nb_reach"] = 1
+    # hyd description
+    hyd_description = dict()
+    hyd_description["hyd_filename_source"] = namefilet
+    hyd_description["hyd_model_type"] = model_type
+    hyd_description["hyd_model_dimension"] = str(nb_dim)
+    hyd_description["hyd_variables_list"] = "h, v, z"
+    hyd_description["hyd_reach_list"] = str(list(range(len(data_2d["tin"]))))
+    hyd_description["hyd_reach_number"] = str(len(data_2d["tin"]))
+    hyd_description["hyd_reach_type"] = "river"
+    hyd_description["hyd_unit_list"] = ", ".join(timestep)
+    hyd_description["hyd_unit_number"] = str(len(timestep))
+    hyd_description["hyd_unit_type"] = "timestep"
+    hyd_description["hyd_unit_wholeprofile_correspondence"] = str(data_2d_whole_profile_unit_correspondence)
+    hyd_description["hyd_equal_z_values_for_all_time_steps"] = telemac_description["hyd_equal_z_values_for_all_time_steps"]
 
-        for t in units_index:
-            [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(tin,
-                                                                            xy,
-                                                                            h[t],
-                                                                            v[t],
-                                                                            progress_value,
-                                                                            delta,
-                                                                            minwh)
-            data_2d["tin"].append(tin_data)
-            data_2d["xy"].append(xy_data)
-            data_2d["h"].append(h_data)
-            data_2d["v"].append(v_data)
+    # create hdf5
+    hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
+    hdf5_management.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
 
-        # progress
-        progress_value.value = 90
-
-        # save data
-        timestep_str = list(map(str, timestep))
-
-        hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
-        hdf5_management.create_hdf5_hyd(model_type, nb_dim, timestep_str, namefilet,
-                                        data_2d_whole_profile,
-                                        data_2d)
     # progress
     progress_value.value = 100
 
@@ -289,12 +315,14 @@ def load_telemac(namefilet, pathfilet):
     # put the velocity and height data in the array and list
     v = []
     h = []
+    z = []
     for t in range(0, nbtimes):
         foundu = foundv = False
         val_all = telemac_data.getvalues(t)
         vt = []
         ht = []
-
+        zt = []
+        bt = []
         # load variable based on their name (english or french)
         for id, n in enumerate(telemac_data.varnames):
             n = n.decode('utf-8')
@@ -322,6 +350,13 @@ def load_telemac(namefilet, pathfilet):
             return faiload
         v.append(vt)
         h.append(ht)
+        z.append(bt)
+    if all(z[0] == z[nbtimes - 1]):  # first == last
+        print("all z are equal for each time step")
+        all_z_equal = True
+        #coord_p = np.array([telemac_data.meshx, telemac_data.meshy, z[0]])
+    else:
+        all_z_equal = False
     coord_p = np.array([telemac_data.meshx, telemac_data.meshy])
     coord_p = coord_p.T
     ikle = telemac_data.ikle2
@@ -335,8 +370,28 @@ def load_telemac(namefilet, pathfilet):
     coord_c_y = 1.0 / 3.0 * (p1[:, 1] + p2[:, 1] + p3[:, 1])
     coord_c = np.array([coord_c_x, coord_c_y]).T
 
+    # description telemac data dict
+    telemac_description = dict()
+    telemac_description["hyd_filename_source"] = namefilet
+    telemac_description["hyd_model_type"] = "TELEMAC"
+    telemac_description["hyd_model_dimension"] = str(2)
+    telemac_description["hyd_unit_list"] = str(list(map(str, timestep)))
+    telemac_description["hyd_unit_number"] = str(len(timestep))
+    telemac_description["hyd_unit_type"] = "timestep"
+    telemac_description["hyd_equal_z_values_for_all_time_steps"] = str(all_z_equal)
+
+    # data 2d dict
+    data_2d = dict()
+    data_2d["h"] = h
+    data_2d["v"] = v
+    data_2d["xy"] = coord_p
+    data_2d["z"] = z
+    data_2d["tin"] = ikle
+    data_2d["xy_center"] = coord_c
+
     del telemac_data
-    return v, h, coord_p, ikle, coord_c, timestep
+    #     return v, h, coord_p, ikle, coord_c, timestep
+    return data_2d, telemac_description
 
 
 def get_time_step(namefilet, pathfilet):
