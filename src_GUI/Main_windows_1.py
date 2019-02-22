@@ -381,12 +381,10 @@ class MainWindows(QMainWindow):
             if ind_hydrau_tab != 0:
                 self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
             self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
-            #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            #self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
 
             # pass the info to the bio info tab
@@ -1055,15 +1053,16 @@ class MainWindows(QMainWindow):
 
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
-            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+            self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
+            self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
             self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.output_tab.save_option_fig()
             self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
-            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-            self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
             #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
         else:
             print('Error: Could not find the project saved just now. \n')
