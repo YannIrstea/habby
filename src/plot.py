@@ -26,7 +26,7 @@ from src_GUI import output_fig_GUI
 from src import calcul_hab
 
 
-def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time_step=0, points=False):
+def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[], time_step=0, points=False):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -47,27 +47,30 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time
     else:
         erase1 = False
 
+    name_hdf5 = data_description["name_hdf5"]
+    unit = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
     # title and filename
     if fig_opt['language'] == 0:
         if not points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
+            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
         if points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step)
+            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
     elif fig_opt['language'] == 1:
         if not points:
-            title = name_hdf5[:-4] + " : " + 'Maillage - Unité: ' + str(time_step)
+            title = name_hdf5[:-4] + " : " + 'Maillage - Unité: ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_maillage_" + str(time_step)
         if points:
-            title = name_hdf5[:-4] + " : " + 'Maillage et points - Unité: ' + str(time_step)
+            title = name_hdf5[:-4] + " : " + 'Maillage et points - Unité: ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_maillage_points_" + str(time_step)
     else:
         if not points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step)
+            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
         if points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step)
+            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
 
     # plot
@@ -152,7 +155,7 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, name_hdf5, path_im=[], time
         plt.close()
 
 
-def plot_map_elevation(state, data_xy, data_z, fig_opt, name_hdf5, path_im=[], time_step=0):
+def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_im=[], time_step=0):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -173,15 +176,19 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, name_hdf5, path_im=[], t
     else:
         erase1 = False
 
+    name_hdf5 = data_description["name_hdf5"]
+    unit = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
     # title and filename
     if fig_opt['language'] == 0:
-        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
     elif fig_opt['language'] == 1:
-        title = name_hdf5[:-4] + " : " + 'Elevation - Unité: ' + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Elevation - Unité: ' + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
     else:
-        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
 
     # plot
@@ -232,7 +239,7 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, name_hdf5, path_im=[], t
         plt.close()
 
 
-def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], path_im=[], time_step=0):
+def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=[], path_im=[], time_step=0):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -251,15 +258,19 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], pat
     else:
         erase1 = False
 
+    name_hdf5 = data_description["name_hdf5"]
+    unit = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
     # title and filename
     if fig_opt['language'] == 0:
-        title = name_hdf5[:-4] + " : " + 'Water depth - Unit ' + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Water depth - Unit ' + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_height_" + str(time_step)
     elif fig_opt['language'] == 1:
-        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step)
+        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_hauteur_" + str(time_step)
     else:
-        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step)
+        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_height_" + str(time_step)
 
     # plot the height
@@ -331,7 +342,7 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, name_hdf5, data_h=[], pat
             plt.close()
 
 
-def plot_map_velocity(state, data_xy, data_tin, fig_opt, name_hdf5, data_v=[], path_im=[], time_step=0):
+def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_v=[], path_im=[], time_step=0):
     if not fig_opt:
         fig_opt = output_fig_GUI.create_default_figoption()
 
@@ -350,15 +361,19 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, name_hdf5, data_v=[], p
     else:
         erase1 = False
 
+    name_hdf5 = data_description["name_hdf5"]
+    unit = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
     # title and filename
     if fig_opt['language'] == 0:
-        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_velocity_" + str(time_step)
     elif fig_opt['language'] == 1:
-        title = name_hdf5[:-4] + " : " + 'Vitesse - Unité: ' + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Vitesse - Unité: ' + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_vitesse_" + str(time_step)
     else:
-        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step)
+        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step) + " " + unit
         filename = name_hdf5[:-4] + "_velocity_" + str(time_step)
 
     # plot

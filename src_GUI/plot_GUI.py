@@ -375,7 +375,14 @@ class GroupPlot(QFrame):
                                                            self.parent().parent().path_prj,
                                                            selection[i].text())
                 units.append(hdf5_management.get_hdf5_units_name())
-                variables.append(hdf5_management.get_hdf5_variables())
+                variables_a = hdf5_management.get_hdf5_variables()
+                if "z" in variables_a:
+                    variables_a.remove("z")
+                    variables_a.insert(1, "points elevation")
+                if "mesh" in variables_a:
+                    variables_a.insert(1, "mesh and points")
+                variables.append(variables_a)
+
 
             # variables or units are differents
             if not all(x == units[0] for x in units) or not all(x == variables[0] for x in variables):
@@ -393,13 +400,13 @@ class GroupPlot(QFrame):
 
             # same units
             if all(x == units[0] for x in units) and all(x == variables[0] for x in variables):  # OK
-                if not self.types_hdf5_QComboBox.currentIndex() == 2:  # hab ?
-                    units = [x[0] for x in set([tuple(x) for x in units])]
+                units = units[0]
+                variables = variables[0]
                 self.units_QListWidget.clear()
                 self.variable_QListWidget.clear()
                 # hydraulic
                 if self.types_hdf5_QComboBox.currentIndex() == 1:
-                    self.variable_QListWidget.addItems(["height", "velocity", "mesh"])
+                    self.variable_QListWidget.addItems(variables)
                     self.units_QListWidget.addItems(units)
                 # substrat
                 if self.types_hdf5_QComboBox.currentIndex() == 2:
@@ -538,7 +545,9 @@ class GroupPlot(QFrame):
                     if types_hdf5 == "hydraulic":  # load hydraulic data
                         data_2d, hyd_description = hdf5_management.load_hdf5_hyd(units_index=units_index)
                         data_description = dict(reach_number=hyd_description["hyd_reach_number"],
-                                                unit_number=hyd_description["hyd_unit_number"])
+                                                unit_number=hyd_description["hyd_unit_number"],
+                                                unit_type=hyd_description["hyd_unit_type"],
+                                                name_hdf5=hyd_description["hyd_filename"])
                     if types_hdf5 == "substrate":  # load substrate data
                         data_2d, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=True)
                     if types_hdf5 == "habitat":  # load habitat data
@@ -546,11 +555,6 @@ class GroupPlot(QFrame):
                         fish_names = [variable for variable in variables if variable not in variables_to_remove]
                         [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, sub_array,
                          fish_data, total_wetarea_all_t, sub_description_system] = load_hdf5.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
-                        # if sub_description_system["sub_classification_method"] == "percentage":
-                        #     # dominant case = 1 ==> biggest substrate for plot
-                        #     [sub_dominant, sub_coarser] = substrate.percentage_to_domcoarse(sub_array, dominant_case=1)
-                        # else:
-                        #     sub_coarser, sub_dominant = [list(tup) for tup in zip(*sub_array)]
 
                     # for one or more desired units ==> habitat data (HV and WUA)
                     if fish_names:
@@ -578,7 +582,7 @@ class GroupPlot(QFrame):
                                                              data_2d["xy"][reach_num][unit_num],
                                                              data_2d["tin"][reach_num][unit_num],
                                                              fig_opt,
-                                                             name_hdf5,
+                                                             data_description,
                                                              path_im,
                                                              units[unit_num],
                                                              False))
@@ -590,7 +594,7 @@ class GroupPlot(QFrame):
                                                              data_2d["xy"][reach_num][unit_num],
                                                              data_2d["tin"][reach_num][unit_num],
                                                              fig_opt,
-                                                             name_hdf5,
+                                                             data_description,
                                                              path_im,
                                                              units[unit_num],
                                                              True))
@@ -602,7 +606,7 @@ class GroupPlot(QFrame):
                                                              data_2d["xy"][reach_num][unit_num],
                                                              data_2d["z"][reach_num][unit_num],
                                                              fig_opt,
-                                                             name_hdf5,
+                                                             data_description,
                                                              path_im,
                                                              units[unit_num]))
                                 self.plot_process_list.append((mesh_process, state))
@@ -613,7 +617,7 @@ class GroupPlot(QFrame):
                                                                data_2d["xy"][reach_num][unit_num],
                                                                data_2d["tin"][reach_num][unit_num],
                                                                fig_opt,
-                                                               name_hdf5,
+                                                               data_description,
                                                                data_2d["h"][reach_num][unit_num],
                                                                path_im,
                                                                units[unit_num]))
@@ -625,7 +629,7 @@ class GroupPlot(QFrame):
                                                                  data_2d["xy"][reach_num][unit_num],
                                                                  data_2d["tin"][reach_num][unit_num],
                                                                  fig_opt,
-                                                                 name_hdf5,
+                                                                 data_description,
                                                                  data_2d["v"][reach_num][unit_num],
                                                                  path_im,
                                                                  units[unit_num]))
