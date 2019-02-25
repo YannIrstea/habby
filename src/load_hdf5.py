@@ -560,7 +560,7 @@ class Hdf5Management:
         #     if merge_description["sub_epsg_code"] == merge_description["hyd_epsg_code"]:
         #         self.file_object.attrs['hab_epsg_code'] = merge_description["sub_epsg_code"]
         #     else:
-        #         self.file_object.attrs['hab_epsg_code'] = "Unknown"
+        #         self.file_object.attrs['hab_epsg_code'] = "unknown"
         # # if merge_description["sub_mapping_method"] == "constant":
         # #     self.file_object.attrs['hab_epsg_code'] = merge_description["hyd_epsg_code"]
         # # hydraulic
