@@ -360,10 +360,13 @@ class MainWindows(QMainWindow):
         # get the old tab
         ind_tab = self.central_widget.tab_widget.currentIndex()
         # get hydraulic type open
-        ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
+        ind_hydrau_tab = 0
+        if self.central_widget.tab_widget.count() != 1:
+            ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
         # if plot process are open, close them
-        if hasattr(self.central_widget.plot_tab.group_plot, 'plot_process_list'):
-            self.central_widget.plot_tab.group_plot.plot_process_list.close_all_plot_process()
+        if hasattr(self.central_widget, "plot_tab"):
+            if hasattr(self.central_widget.plot_tab.group_plot, 'plot_process_list'):
+                self.central_widget.plot_tab.group_plot.plot_process_list.close_all_plot_process()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
