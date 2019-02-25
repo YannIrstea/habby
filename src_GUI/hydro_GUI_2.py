@@ -2682,7 +2682,7 @@ class HEC_RAS2D(SubHydroW):
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
 
-class TELEMAC(SubHydroW, QGroupBox):
+class TELEMAC(SubHydroW):  # QGroupBox
     """
     The class Telemac is there to manage the link between the graphical
     interface and the functions in src/selafin_habby1.py
