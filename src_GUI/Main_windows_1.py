@@ -47,7 +47,6 @@ from src_GUI import output_fig_GUI
 from src_GUI import plot_GUI
 from src_GUI import bio_info_GUI
 from src_GUI import fstress_GUI
-from src_GUI import chronicle_GUI
 
 
 class MainWindows(QMainWindow):
@@ -402,11 +401,10 @@ class MainWindows(QMainWindow):
             output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # set the central widget
-        for i in range(self.central_widget.tab_widget.count(), 0, -1):
+        for i in range(self.central_widget.tab_widget.count(), -1, -1):
             self.central_widget.tab_widget.removeTab(i)
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
-        self.central_widget.tab_widget.removeTab(0)
         self.central_widget.add_all_tab()
         self.central_widget.welcome_tab.name_prj = self.name_prj
         self.central_widget.welcome_tab.path_prj = self.path_prj
@@ -658,11 +656,6 @@ class MainWindows(QMainWindow):
             self.central_widget.model_chosen = "physical"
         if not self.physicalmodelaction.isChecked() and not self.statisticmodelaction.isChecked():
             self.central_widget.model_chosen = "both"
-
-        # remove all tab
-        nb_tabs = self.central_widget.tab_widget.count()
-        for index_tab in range(nb_tabs):
-            self.central_widget.tab_widget.removeTab(0)
 
         # add tabs
         self.central_widget.add_all_tab()
@@ -1063,7 +1056,6 @@ class MainWindows(QMainWindow):
             self.central_widget.output_tab.save_option_fig()
             self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
-            #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
         else:
             print('Error: Could not find the project saved just now. \n')
             return
@@ -1098,6 +1090,14 @@ class MainWindows(QMainWindow):
             self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
         else:
             self.setWindowTitle(self.tr('HABBY ') + str(self.version))
+
+        # reconnect method to button
+        self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
+        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
     def open_project(self):
         """
@@ -1960,19 +1960,16 @@ class CentralW(QWidget):
         """
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(fname) and self.name_prj_c != '':
-            # order matters here
-            self.tab_widget.addTab(self.welcome_tab, self.tr("Project"))
-            if self.model_chosen == "physical" or self.model_chosen == "both":
-                self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))
-                self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))
-                #self.tab_widget.addTab(self.chronicle_tab, self.tr("Chronicles"))
-                self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))
-            if self.model_chosen == "statistical" or self.model_chosen == "both":
-                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))
-                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))
-                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))
-            #self.tab_widget.addTab(self.output_tab, self.tr("Options"))
-            self.tab_widget.addTab(self.plot_tab, self.tr("Data explorer"))
+            # add all tabs
+            self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))  # 0
+            self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))  # 1
+            self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))  # 2
+            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
+            self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 4
+            self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 5
+            self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 6
+            self.tab_widget.addTab(self.plot_tab, self.tr("Data explorer"))  # 7
+
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
@@ -1981,6 +1978,17 @@ class CentralW(QWidget):
         else:
             self.tab_widget.addTab(self.welcome_tab, self.tr("Project"))
             self.welcome_tab.lowpart.setEnabled(False)
+
+        # remove useless tabs
+        if self.model_chosen == "physical" or self.model_chosen == "both":
+            self.tab_widget.removeTab(6)
+            self.tab_widget.removeTab(5)
+            self.tab_widget.removeTab(4)
+        if self.model_chosen == "statistical" or self.model_chosen == "both":
+            self.tab_widget.removeTab(3)
+            self.tab_widget.removeTab(2)
+            self.tab_widget.removeTab(1)
+        #self.tab_widget.setStyleSheet("QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
 
     def showfig(self):
         """
