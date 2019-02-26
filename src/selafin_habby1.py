@@ -405,9 +405,9 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
         nb_row = len(filename_column)
 
         if telemac_case == "1.a" or telemac_case == "1.b":
-            # if description_from_indextelemac_file[0]["reach_list"] == "unknown":
-            #     pass
-            #
+            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+                pass
+
 
             unit_type = description_from_indextelemac_file[0]["unit_type"]
             start = unit_type.find('[')
