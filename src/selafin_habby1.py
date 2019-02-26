@@ -162,7 +162,6 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                 data_2d_whole_profile["xy"][0] = [data_2d_whole_profile["xy"][0][0]]
                 data_2d_whole_profile["unit_correspondence"] = "all"
 
-
             # progress from 10 to 90 : from 0 to len(units_index)
             delta = int(80 / int(description_from_indextelemac_file[hyd_file]["unit_number"]))
 
@@ -268,6 +267,9 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
 
         # progress
         progress_value.value = 100
+
+    # create_indextelemac_text_file
+    create_indextelemac_text_file(description_from_indextelemac_file)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -386,6 +388,57 @@ def load_telemac(namefilet, pathfilet):
     del telemac_data
     #     return v, h, coord_p, ikle, coord_c, timestep
     return data_2d, description_from_telemac_file
+
+
+def create_indextelemac_text_file(description_from_indextelemac_file):
+    sys.stdout = sys.__stdout__
+    # one case (one hdf5 produced)
+    if len(description_from_indextelemac_file) == 1:
+        filename_path = os.path.join(description_from_indextelemac_file[0]["path_prj"], "input", "indexTELEMAC.txt")
+        # telemac case
+        telemac_case = description_from_indextelemac_file[0]["telemac_case"]
+
+        # column filename
+        filename_column = description_from_indextelemac_file[0]["filename_source"].split(", ")
+
+        # nb_row
+        nb_row = len(filename_column)
+
+        if telemac_case == "1.a" or telemac_case == "1.b":
+            # if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+            #     pass
+            #
+
+            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            start = unit_type.find('[')
+            end = unit_type.find(']')
+            discharge_unit = unit_type[start + 1:end]
+            # headers
+            headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
+            # first line
+            linetowrite = filename_column[0] + "\t" + str(description_from_indextelemac_file[0]["unit_list"].split(", ")[0])
+            # text
+            text = headers + "\n" + linetowrite
+
+        if telemac_case == "1.b":
+            # headers
+            headers = headers + "\t" + "T[s]"
+            # first line
+            linetowrite = linetowrite + "\t" + description_from_indextelemac_file[0]["unit_list_full"]
+            # text
+            text = headers + "\n" + linetowrite
+
+        # write text file
+        with open(filename_path, 'wt') as f:
+            f.write(text)
+
+    # multi case (several hdf5 produced)
+    if len(description_from_indextelemac_file) > 1:
+        aa = 1
+
+
+
+
 
 
 def get_time_step(namefilet, pathfilet):
