@@ -3522,6 +3522,18 @@ class TELEMAC(SubHydroW):  # QGroupBox
         else:
             self.telemac_description["unit_list"] = ", ".join(unit_list)
             self.telemac_description["unit_list_full"] = unit_list_full
+
+        selected_list = []
+        for i in range(total):
+            unit_list.append(self.units_QListWidget.item(i).text())
+            selected_list.append(self.units_QListWidget.item(i).isSelected())
+        # save multi
+        if self.telemac_case == '4.a' or self.telemac_case == '4.b':
+            self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list
+            self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
+        # save one
+        else:
+            self.telemac_description["unit_list_full"] = unit_list
             self.telemac_description["unit_list_tf"] = selected_list
 
         # set text
