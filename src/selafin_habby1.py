@@ -27,10 +27,6 @@ from src_GUI import output_fig_GUI
 from src import manage_grid_8
 
 def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, fig_opt={}):
-# def load_telemac_and_cut_grid(name_hdf5, namefilet, pathfilet, name_prj, path_prj, model_type, nb_dim, path_hdf5,
-#                               progress_value,
-#                               units_index=None, q=[],
-#                               print_cmd=False, fig_opt={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
     was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
@@ -69,201 +65,152 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         file_number = len(description_from_indextelemac_file)
 
     for hyd_file in range(0, file_number):
-        telemax_case = description_from_indextelemac_file[hyd_file]["telemac_case"]
-        # check if filename_source are multiple (multipermanent flow from multi file)
-        # if "timestep_list" in description_from_indextelemac_file[hyd_file].keys():  # case 1.b and 2.b
-        #     filename_source = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
-        #     # get data_2d_whole_profile
-        #     data_2d_whole_profile = dict()
-        #     data_2d_whole_profile["tin"] = []
-        #     data_2d_whole_profile["xy_center"] = []
-        #     data_2d_whole_profile["xy"] = []
-        #     if bool(description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]):
-        #         data_2d_whole_profile["z"] = []
-        #     data_2d_whole_profile["unit_correspondence"] = []
-        #     for i, file in enumerate(filename_source):
-        #         # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
-        #         data_2d_telemac, description_from_telemac_file = load_telemac(file,
-        #                                                                       description_from_indextelemac_file[
-        #                                                                           hyd_file]["path_filename_source"])
-        #         data_2d_whole_profile["tin"].append(data_2d_telemac["tin"])
-        #         data_2d_whole_profile["xy_center"].append(data_2d_telemac["xy_center"])
-        #         data_2d_whole_profile["xy"].append(data_2d_telemac["xy"])
-        #         if bool(description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]):
-        #             data_2d_whole_profile["z"].append(data_2d_telemac["z"])
-        #         data_2d_whole_profile["unit_correspondence"].append(str(i))
-        #
-        #     # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
-        #     temp_list = data_2d_whole_profile["xy_center"]
-        #     for i in range(len(temp_list)):
-        #         temp_list[i].sort(axis=0)
-        #     # TODO: sort function may be unadapted to check TIN equality between units
-        #     whole_profil_egual_index = []
-        #     for i in range(len(temp_list)):
-        #         if i == 0:
-        #             whole_profil_egual_index.append(i)
-        #         if i > 0:
-        #             if np.array_equal(temp_list[i], temp_list[0]):
-        #                 whole_profil_egual_index.append(i)
-        #             else:
-        #                 whole_profil_egual_index.append("diff")
-        #     if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
-        #         print("all tin are different (one tin by unit)")
-        #     if "diff" not in whole_profil_egual_index:  # one tin for each unit
-        #         print("one tin for each unit")
-        #         data_2d_whole_profile["tin"] = [data_2d_whole_profile["tin"][0]]
-        #         data_2d_whole_profile["xy_center"] = [data_2d_whole_profile["xy_center"][0]]
-        #         data_2d_whole_profile["xy"] = [data_2d_whole_profile["xy"][0]]
-        #     data_2d_whole_profile["unit_correspondence"] = "all"
+        filename_source = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
+        # get data_2d_whole_profile
+        data_2d_whole_profile = dict()
+        data_2d_whole_profile["tin"] = [[]]  # always one reach
+        data_2d_whole_profile["xy_center"] = [[]]  # always one reach
+        data_2d_whole_profile["xy"] = [[]]  # always one reach
+        data_2d_whole_profile["z"] = [[]]  # always one reach
+        data_2d_whole_profile["unit_correspondence"] = [[]]  # always one reach
+        for i, file in enumerate(filename_source):
+            # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
+            data_2d_telemac, description_from_telemac_file = load_telemac(file,
+                                                                          description_from_indextelemac_file[
+                                                                              hyd_file]["path_filename_source"])
+            data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
+            data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
+            data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
+            if bool(description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]):
+                data_2d_whole_profile["z"][0].append(data_2d_telemac["z"])
+            data_2d_whole_profile["unit_correspondence"][0].append(str(i))
 
-        # CASES
-        if telemax_case in ("1.a", "1.b", "2.a", "2.b", "3.a", "3.b", "4.a", "4.b"):
-            filename_source = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
-            # get data_2d_whole_profile
-            data_2d_whole_profile = dict()
-            data_2d_whole_profile["tin"] = [[]]  # always one reach
-            data_2d_whole_profile["xy_center"] = [[]]  # always one reach
-            data_2d_whole_profile["xy"] = [[]]  # always one reach
-            data_2d_whole_profile["z"] = [[]]  # always one reach
-            data_2d_whole_profile["unit_correspondence"] = [[]]  # always one reach
-            for i, file in enumerate(filename_source):
-                # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
-                data_2d_telemac, description_from_telemac_file = load_telemac(file,
+        # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
+        temp_list = data_2d_whole_profile["xy_center"][0]
+        for i in range(len(temp_list)):
+            temp_list[i].sort(axis=0)
+        # TODO: sort function may be unadapted to check TIN equality between units
+        whole_profil_egual_index = []
+        for i in range(len(temp_list)):
+            if i == 0:
+                whole_profil_egual_index.append(i)
+            if i > 0:
+                if np.array_equal(temp_list[i], temp_list[0]):
+                    whole_profil_egual_index.append(i)
+                else:
+                    whole_profil_egual_index.append("diff")
+        if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
+            #print("all tin are different (one tin by unit)")
+            data_2d_whole_profile["unit_correspondence"] = whole_profil_egual_index
+        if "diff" not in whole_profil_egual_index:  # one tin for each unit
+            #print("one tin for each unit")
+            data_2d_whole_profile["tin"][0] = [data_2d_whole_profile["tin"][0][0]]
+            data_2d_whole_profile["xy_center"][0] = [data_2d_whole_profile["xy_center"][0][0]]
+            data_2d_whole_profile["xy"][0] = [data_2d_whole_profile["xy"][0][0]]
+            data_2d_whole_profile["unit_correspondence"] = "all"
+
+        # progress from 10 to 90 : from 0 to len(units_index)
+        delta = int(80 / int(description_from_indextelemac_file[hyd_file]["unit_number"]))
+
+        # cut the grid to have the precise wet area and put data in new form
+        data_2d = dict()
+        data_2d["tin"] = [[]]  # always one reach
+        data_2d["xy"] = [[]]  # always one reach
+        data_2d["h"] = [[]]  # always one reach
+        data_2d["v"] = [[]]  # always one reach
+        data_2d["z"] = [[]]  # always one reach
+        # get unit list from telemac file
+        file_list = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
+        if len(file_list) > 1:
+            unit_number_list = []
+            unit_list_from_telemac_file_list = []
+            for file_indextelemac in file_list:
+                unit_number, unit_list_from_telemac_file = get_time_step(
+                    file_indextelemac,
+                    description_from_indextelemac_file[hyd_file]["path_filename_source"])
+                unit_number_list.append(unit_number)
+                unit_list_from_telemac_file_list.append(unit_list_from_telemac_file)
+        if len(file_list) == 1:
+            unit_number, unit_list_from_telemac_file = get_time_step(
+                description_from_indextelemac_file[hyd_file]["filename_source"],
+                description_from_indextelemac_file[hyd_file]["path_filename_source"])
+        # get unit list from indexTELEMAC file
+        if "timestep_list" in description_from_indextelemac_file[hyd_file].keys():
+            unit_list_from_indextelemac_file = description_from_indextelemac_file[hyd_file]["timestep_list"].split(", ")
+        else:
+            unit_list_from_indextelemac_file = description_from_indextelemac_file[hyd_file]["unit_list"].split(", ")
+        # get unit index to load
+        if len(unit_list_from_telemac_file) == 1 and len(unit_list_from_indextelemac_file) == 1:
+            unit_index_list = [0]
+        else:
+            if len(file_list) > 1:
+                if list(set(unit_number_list))[0] == 1:  # one time step by file
+                    unit_index_list = [0] * len(file_list)
+                if list(set(unit_number_list))[0] > 1:  # several time step by file
+                    unit_index_list = []
+                    for i, time_step in enumerate(unit_list_from_indextelemac_file):
+                        if time_step in unit_list_from_telemac_file_list[i]:
+                            unit_index_list.append(unit_list_from_telemac_file_list[i].index(time_step))
+            else:
+                unit_index_list = []  # for all cases with specific timestep indicate
+                for unit_wish in unit_list_from_indextelemac_file:
+                    if unit_wish in unit_list_from_telemac_file:
+                        unit_index_list.append(unit_list_from_telemac_file.index(unit_wish))
+
+        if data_2d_whole_profile["unit_correspondence"] == "all":
+            # conca xy with z value to facilitate the cutting of the grid (interpolation)
+            xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"],
+                           axis=1)  # Insert values before column 2
+        else:
+            data_2d_telemac, description_from_telemac_file = load_telemac(file,
+                                                                          description_from_indextelemac_file[
+                                                                              hyd_file]["path_filename_source"])
+
+
+        for i, unit_index in enumerate(unit_index_list):
+            if len(file_list) > 1:
+                data_2d_telemac, description_from_telemac_file = load_telemac(file_list[i],
                                                                               description_from_indextelemac_file[
                                                                                   hyd_file]["path_filename_source"])
-                data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
-                data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
-                data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
-                if bool(description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]):
-                    data_2d_whole_profile["z"][0].append(data_2d_telemac["z"])
-                data_2d_whole_profile["unit_correspondence"][0].append(str(i))
-
-            # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
-            temp_list = data_2d_whole_profile["xy_center"][0]
-            for i in range(len(temp_list)):
-                temp_list[i].sort(axis=0)
-            # TODO: sort function may be unadapted to check TIN equality between units
-            whole_profil_egual_index = []
-            for i in range(len(temp_list)):
-                if i == 0:
-                    whole_profil_egual_index.append(i)
-                if i > 0:
-                    if np.array_equal(temp_list[i], temp_list[0]):
-                        whole_profil_egual_index.append(i)
-                    else:
-                        whole_profil_egual_index.append("diff")
-            if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
-                print("all tin are different (one tin by unit)")
-                data_2d_whole_profile["unit_correspondence"] = whole_profil_egual_index
-            if "diff" not in whole_profil_egual_index:  # one tin for each unit
-                print("one tin for each unit")
-                data_2d_whole_profile["tin"][0] = [data_2d_whole_profile["tin"][0][0]]
-                data_2d_whole_profile["xy_center"][0] = [data_2d_whole_profile["xy_center"][0][0]]
-                data_2d_whole_profile["xy"][0] = [data_2d_whole_profile["xy"][0][0]]
-                data_2d_whole_profile["unit_correspondence"] = "all"
-
-            # progress from 10 to 90 : from 0 to len(units_index)
-            delta = int(80 / int(description_from_indextelemac_file[hyd_file]["unit_number"]))
-
-            # cut the grid to have the precise wet area and put data in new form
-            data_2d = dict()
-            data_2d["tin"] = [[]]  # always one reach
-            data_2d["xy"] = [[]]  # always one reach
-            data_2d["h"] = [[]]  # always one reach
-            data_2d["v"] = [[]]  # always one reach
-            data_2d["z"] = [[]]  # always one reach
-            # get unit list from telemac file
-            file_list = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
-            if len(file_list) > 1:
-                unit_number_list = []
-                unit_list_from_telemac_file_list = []
-                for file_indextelemac in file_list:
-                    unit_number, unit_list_from_telemac_file = get_time_step(
-                        file_indextelemac,
-                        description_from_indextelemac_file[hyd_file]["path_filename_source"])
-                    unit_number_list.append(unit_number)
-                    unit_list_from_telemac_file_list.append(unit_list_from_telemac_file)
-            if len(file_list) == 1:
-                unit_number, unit_list_from_telemac_file = get_time_step(
-                    description_from_indextelemac_file[hyd_file]["filename_source"],
-                    description_from_indextelemac_file[hyd_file]["path_filename_source"])
-            # get unit list from indexTELEMAC file
-            if "timestep_list" in description_from_indextelemac_file[hyd_file].keys():
-                unit_list_from_indextelemac_file = description_from_indextelemac_file[hyd_file]["timestep_list"].split(", ")
-            else:
-                unit_list_from_indextelemac_file = description_from_indextelemac_file[hyd_file]["unit_list"].split(", ")
-            # get unit index to load
-            if len(unit_list_from_telemac_file) == 1 and len(unit_list_from_indextelemac_file) == 1:
-                unit_index_list = [0]
-            else:
-                if len(file_list) > 1:
-                    if list(set(unit_number_list))[0] == 1:  # one time step by file
-                        unit_index_list = [0] * len(file_list)
-                    if list(set(unit_number_list))[0] > 1:  # several time step by file
-                        unit_index_list = []
-                        for i, time_step in enumerate(unit_list_from_indextelemac_file):
-                            if time_step in unit_list_from_telemac_file_list[i]:
-                                unit_index_list.append(unit_list_from_telemac_file_list[i].index(time_step))
-                else:
-                    unit_index_list = []  # for all cases with specific timestep indicate
-                    for unit_wish in unit_list_from_indextelemac_file:
-                        if unit_wish in unit_list_from_telemac_file:
-                            unit_index_list.append(unit_list_from_telemac_file.index(unit_wish))
-
-            if data_2d_whole_profile["unit_correspondence"] == "all":
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"],
                                axis=1)  # Insert values before column 2
-            else:
-                data_2d_telemac, description_from_telemac_file = load_telemac(file,
-                                                                              description_from_indextelemac_file[
-                                                                                  hyd_file]["path_filename_source"])
+            [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(data_2d_telemac["tin"],
+                                                                            xy,  # with z value (facilitate)
+                                                                            data_2d_telemac["h"][unit_index],
+                                                                            data_2d_telemac["v"][unit_index],
+                                                                            progress_value,
+                                                                            delta,
+                                                                            minwh)
+            data_2d["tin"][0].append(tin_data)
+            data_2d["xy"][0].append(xy_data[:, :2])
+            data_2d["h"][0].append(h_data)
+            data_2d["v"][0].append(v_data)
+            data_2d["z"][0].append(xy_data[:, 2])
 
+        # ALL CASE SAVE TO HDF5
+        progress_value.value = 90  # progress
 
-            for i, unit_index in enumerate(unit_index_list):
-                if len(file_list) > 1:
-                    data_2d_telemac, description_from_telemac_file = load_telemac(file_list[i],
-                                                                                  description_from_indextelemac_file[
-                                                                                      hyd_file]["path_filename_source"])
-                    # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                    xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"],
-                                   axis=1)  # Insert values before column 2
-                [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(data_2d_telemac["tin"],
-                                                                                xy,  # with z value (facilitate)
-                                                                                data_2d_telemac["h"][unit_index],
-                                                                                data_2d_telemac["v"][unit_index],
-                                                                                progress_value,
-                                                                                delta,
-                                                                                minwh)
-                data_2d["tin"][0].append(tin_data)
-                data_2d["xy"][0].append(xy_data[:, :2])
-                data_2d["h"][0].append(h_data)
-                data_2d["v"][0].append(v_data)
-                data_2d["z"][0].append(xy_data[:, 2])
+        # hyd description
+        hyd_description = dict()
+        hyd_description["hyd_filename_source"] = description_from_indextelemac_file[hyd_file]["filename_source"]
+        hyd_description["hyd_model_type"] = description_from_indextelemac_file[hyd_file]["model_type"]
+        hyd_description["hyd_model_dimension"] = description_from_indextelemac_file[hyd_file]["model_dimension"]
+        hyd_description["hyd_variables_list"] = "h, v, z"
+        hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
+        hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
+        hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
+        hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
+        hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
+        hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
+        hyd_description["hyd_unit_wholeprofile_correspondence"] = str(data_2d_whole_profile["unit_correspondence"])
+        hyd_description["hyd_equal_z_values_for_all_time_steps"] = description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]
 
-            # ALL CASE SAVE TO HDF5
-            progress_value.value = 90  # progress
-
-            # hyd description
-            hyd_description = dict()
-            hyd_description["hyd_filename_source"] = description_from_indextelemac_file[hyd_file]["filename_source"]
-            hyd_description["hyd_model_type"] = description_from_indextelemac_file[hyd_file]["model_type"]
-            hyd_description["hyd_model_dimension"] = description_from_indextelemac_file[hyd_file]["model_dimension"]
-            hyd_description["hyd_variables_list"] = "h, v, z"
-            hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
-            hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
-            hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
-            hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
-            hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
-            hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
-            hyd_description["hyd_unit_wholeprofile_correspondence"] = str(data_2d_whole_profile["unit_correspondence"])
-            hyd_description["hyd_equal_z_values_for_all_time_steps"] = description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]
-
-            # create hdf5
-            hdf5_management = load_hdf5.Hdf5Management(description_from_indextelemac_file[hyd_file]["name_prj"],
-                                                       description_from_indextelemac_file[hyd_file]["path_prj"],
-                                                       description_from_indextelemac_file[hyd_file]["hdf5_name"])
-            hdf5_management.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
+        # create hdf5
+        hdf5_management = load_hdf5.Hdf5Management(description_from_indextelemac_file[hyd_file]["name_prj"],
+                                                   description_from_indextelemac_file[hyd_file]["path_prj"],
+                                                   description_from_indextelemac_file[hyd_file]["hdf5_name"])
+        hdf5_management.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
 
         # progress
         progress_value.value = 100
@@ -391,7 +338,7 @@ def load_telemac(namefilet, pathfilet):
 
 
 def create_indextelemac_text_file(description_from_indextelemac_file):
-    sys.stdout = sys.__stdout__
+    """ ONE HDF5 """
     # one case (one hdf5 produced)
     if len(description_from_indextelemac_file) == 1:
         filename_path = os.path.join(description_from_indextelemac_file[0]["path_prj"], "input", "indexTELEMAC.txt")
@@ -404,10 +351,52 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
         # nb_row
         nb_row = len(filename_column)
 
-        if telemac_case == "1.a" or telemac_case == "1.b":
-            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
-                pass
+        """ CASE unknown """
+        if telemac_case == "unknown":
+            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            start = unit_type.find('[')
+            end = unit_type.find(']')
+            time_unit = unit_type[start + 1:end]
+            # headers
+            headers = "filename" + "\t" + "T[" + time_unit + "]"
 
+            # first line
+            if description_from_indextelemac_file[0]["unit_list"].split(", ") == \
+                    description_from_indextelemac_file[0]["unit_list_full"]:
+                unit_data = "all"
+            else:
+                index = [i for i, item in enumerate(description_from_indextelemac_file[0]["unit_list_full"]) if
+                         item in description_from_indextelemac_file[0]["unit_list"].split(", ")]
+                my_sequences = []
+                for idx, item in enumerate(index):
+                    if not idx or item - 1 != my_sequences[-1][-1]:
+                        my_sequences.append([item])
+                    else:
+                        my_sequences[-1].append(item)
+                from_to_string_list = []
+                for sequence in my_sequences:
+                    start = min(sequence)
+                    start_string = description_from_indextelemac_file[0]["unit_list_full"][start]
+                    end = max(sequence)
+                    end_string = description_from_indextelemac_file[0]["unit_list_full"][end]
+                    if start == end:
+                        start_end_string = start_string
+                    if start != end:
+                        start_end_string = start_string + "/" + end_string
+                    from_to_string_list.append(start_end_string)
+                unit_data = ";".join(from_to_string_list)
+            linetowrite = filename_column[0] + "\t" + unit_data
+
+            # text
+            text = headers + "\n" + linetowrite
+
+        """ CASE 1.a """
+        if telemac_case == "1.a":
+            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+                reach_column_presence = False
+            else:
+                reach_column_presence = True
+                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
 
             unit_type = description_from_indextelemac_file[0]["unit_type"]
             start = unit_type.find('[')
@@ -415,16 +404,145 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             discharge_unit = unit_type[start + 1:end]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
+            if reach_column_presence:
+                headers = headers + "\t" + "reachname"
             # first line
             linetowrite = filename_column[0] + "\t" + str(description_from_indextelemac_file[0]["unit_list"].split(", ")[0])
+            if reach_column_presence:
+                linetowrite = linetowrite + "\t" + reach_column
+
             # text
             text = headers + "\n" + linetowrite
 
+        """ CASE 1.b """
         if telemac_case == "1.b":
+            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+                reach_column_presence = False
+            else:
+                reach_column_presence = True
+                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+
+            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            start = unit_type.find('[')
+            end = unit_type.find(']')
+            discharge_unit = unit_type[start + 1:end]
             # headers
-            headers = headers + "\t" + "T[s]"
+            headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
+            if reach_column_presence:
+                headers = headers + "\t" + "reachname"
             # first line
+            linetowrite = filename_column[0] + "\t" + str(description_from_indextelemac_file[0]["unit_list"].split(", ")[0])
             linetowrite = linetowrite + "\t" + description_from_indextelemac_file[0]["unit_list_full"]
+            if reach_column_presence:
+                linetowrite = linetowrite + "\t" + reach_column
+            # text
+            text = headers + "\n" + linetowrite
+
+        """ CASE 2.a """
+        if telemac_case == "2.a":
+            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+                reach_column_presence = False
+            else:
+                reach_column_presence = True
+                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+
+            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            start = unit_type.find('[')
+            end = unit_type.find(']')
+            discharge_unit = unit_type[start + 1:end]
+            # headers
+            headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
+            if reach_column_presence:
+                headers = headers + "\t" + "reachname"
+            # lines
+            linetowrite = ""
+            for row in range(nb_row):
+                linetowrite += filename_column[row] + "\t" + str(description_from_indextelemac_file[0]["unit_list"].split(", ")[row])
+                if reach_column_presence:
+                    linetowrite = linetowrite + "\t" + reach_column + "\n"
+                else:
+                    linetowrite = linetowrite + "\n"
+            # remove last "\n"
+            linetowrite = linetowrite[:-1]
+
+            # text
+            text = headers + "\n" + linetowrite
+
+        """ CASE 2.b """
+        if telemac_case == "2.b":
+            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+                reach_column_presence = False
+            else:
+                reach_column_presence = True
+                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+
+            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            start = unit_type.find('[')
+            end = unit_type.find(']')
+            discharge_unit = unit_type[start + 1:end]
+            # headers
+            headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
+            if reach_column_presence:
+                headers = headers + "\t" + "reachname"
+            # lines
+            linetowrite = ""
+            for row in range(nb_row):
+                linetowrite += filename_column[row] + "\t" + str(
+                    description_from_indextelemac_file[0]["unit_list"].split(", ")[row]) + "\t" + description_from_indextelemac_file[0]["timestep_list"].split(", ")[row]
+                if reach_column_presence:
+                    linetowrite = linetowrite + "\t" + reach_column + "\n"
+                else:
+                    linetowrite = linetowrite + "\n"
+            # remove last "\n"
+            linetowrite = linetowrite[:-1]
+
+            # text
+            text = headers + "\n" + linetowrite
+
+        """ CASE 3.a 3.b """
+        if telemac_case == "3.a" or telemac_case == "3.b":
+            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+                reach_column_presence = False
+            else:
+                reach_column_presence = True
+                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+
+            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            start = unit_type.find('[')
+            end = unit_type.find(']')
+            time_unit = unit_type[start + 1:end]
+            # headers
+            headers = "filename" + "\t" + "T[" + time_unit + "]"
+            if reach_column_presence:
+                headers = headers + "\t" + "reachname"
+
+            # first line
+            if description_from_indextelemac_file[0]["unit_list"].split(", ") == description_from_indextelemac_file[0]["unit_list_full"]:
+                unit_data = "all"
+            else:
+                index = [i for i, item in enumerate(description_from_indextelemac_file[0]["unit_list_full"]) if item in description_from_indextelemac_file[0]["unit_list"].split(", ")]
+                my_sequences = []
+                for idx, item in enumerate(index):
+                    if not idx or item - 1 != my_sequences[-1][-1]:
+                        my_sequences.append([item])
+                    else:
+                        my_sequences[-1].append(item)
+                from_to_string_list = []
+                for sequence in my_sequences:
+                    start = min(sequence)
+                    start_string = description_from_indextelemac_file[0]["unit_list_full"][start]
+                    end = max(sequence)
+                    end_string = description_from_indextelemac_file[0]["unit_list_full"][end]
+                    if start == end:
+                        start_end_string = start_string
+                    if start != end:
+                        start_end_string = start_string + "/" + end_string
+                    from_to_string_list.append(start_end_string)
+
+                unit_data = ";".join(from_to_string_list)
+            linetowrite = filename_column[0] + "\t" + unit_data
+            if reach_column_presence:
+                linetowrite = linetowrite + "\t" + reach_column
             # text
             text = headers + "\n" + linetowrite
 
@@ -432,13 +550,75 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
         with open(filename_path, 'wt') as f:
             f.write(text)
 
+    """ MULTI HDF5 """
     # multi case (several hdf5 produced)
     if len(description_from_indextelemac_file) > 1:
-        aa = 1
+        if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+            reach_column_presence = False
+        else:
+            reach_column_presence = True
+            reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
 
+        unit_type = description_from_indextelemac_file[0]["unit_type"]
+        start = unit_type.find('[')
+        end = unit_type.find(']')
+        time_unit = unit_type[start + 1:end]
+        # headers
+        headers = "filename" + "\t" + "T[" + time_unit + "]"
+        if reach_column_presence:
+            headers = headers + "\t" + "reachname"
 
+        # text
+        text = headers
 
+        for i_hdf5, hdf5_file in enumerate(range(len(description_from_indextelemac_file))):
+            filename_path = os.path.join(description_from_indextelemac_file[i_hdf5]["path_prj"], "input", "indexTELEMAC.txt")
+            # telemac case
+            telemac_case = description_from_indextelemac_file[i_hdf5]["telemac_case"]
 
+            # column filename
+            filename_column = description_from_indextelemac_file[i_hdf5]["filename_source"].split(", ")
+
+            if telemac_case == "4.a" or telemac_case == "4.b" or telemac_case == "unknown":
+                if description_from_indextelemac_file[i_hdf5]["reach_list"] == "unknown":
+                    reach_column_presence = False
+                else:
+                    reach_column_presence = True
+                    reach_column = description_from_indextelemac_file[i_hdf5]["reach_list"].split(", ")[0]
+
+                # first line
+                if description_from_indextelemac_file[i_hdf5]["unit_list"].split(", ") == description_from_indextelemac_file[i_hdf5]["unit_list_full"]:
+                    unit_data = "all"
+                else:
+                    index = [i for i, item in enumerate(description_from_indextelemac_file[i_hdf5]["unit_list_full"]) if item in description_from_indextelemac_file[i_hdf5]["unit_list"].split(", ")]
+                    my_sequences = []
+                    for idx, item in enumerate(index):
+                        if not idx or item - 1 != my_sequences[-1][-1]:
+                            my_sequences.append([item])
+                        else:
+                            my_sequences[-1].append(item)
+                    from_to_string_list = []
+                    for sequence in my_sequences:
+                        start = min(sequence)
+                        start_string = description_from_indextelemac_file[i_hdf5]["unit_list_full"][start]
+                        end = max(sequence)
+                        end_string = description_from_indextelemac_file[i_hdf5]["unit_list_full"][end]
+                        if start == end:
+                            start_end_string = start_string
+                        if start != end:
+                            start_end_string = start_string + "/" + end_string
+                        from_to_string_list.append(start_end_string)
+
+                    unit_data = ";".join(from_to_string_list)
+                linetowrite = filename_column[0] + "\t" + unit_data
+                if reach_column_presence:
+                    linetowrite = linetowrite + "\t" + reach_column
+
+                text = text + "\n" + linetowrite
+
+        # write text file
+        with open(filename_path, 'wt') as f:
+            f.write(text)
 
 
 def get_time_step(namefilet, pathfilet):

@@ -697,7 +697,6 @@ class SubHydroW(QWidget):
         #     # why [0] : getOpenFilename return a tuple [0,1,2], we need only the filename
         #     filename_path = QFileDialog.getOpenFileName(self, self.tr("Select file"), self.pathfile[i], filter2)[0]
         # exeption: you should be able to clik on "cancel"
-        print("filename_path : ", filename_path)
         if filename_path:
             filename = os.path.basename(filename_path)
             # check extension
@@ -2697,6 +2696,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         super().__init__(path_prj, name_prj)
         self.last_path_input_data = None
         self.telemac_case = "unknown"
+        self.multi_hdf5 = False
         self.init_iu()
 
     def init_iu(self):
@@ -2799,7 +2799,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
         :param i: an int for the case where there is more than one file to load
         """
-        print("-------------------------------------------------------------------")
         # disconnect function for multiple file cases
         try:
             self.h2d_t2.disconnect()
@@ -2810,7 +2809,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
             self.units_QListWidget.disconnect()
         except:
             pass
-
 
         # prepare the filter to show only useful files
         if len(self.extension[i]) <= 4:
@@ -2825,20 +2823,23 @@ class TELEMAC(SubHydroW):  # QGroupBox
         # get last path substrate_path xml
         if self.last_path_input_data:
             model_path = self.last_path_input_data
-            print("self.last_path_input_data : ", model_path)
-        elif not self.last_path_input_data:
+        if not self.last_path_input_data:
             model_path = self.read_attribute_xml(self.attributexml[0])
-            print("!= 'no_data' ", model_path)
-        elif self.read_attribute_xml(self.attributexml[0]) == 'no_data':
+        if not self.last_path_input_data and self.read_attribute_xml(self.attributexml[0]) == 'no_data':
             model_path = self.path_prj
-            print("else self.path_prj", model_path)
 
         # find the filename based on user choice
         more_than_one_file_selected_by_user = False
         filename_list = QFileDialog.getOpenFileNames(self,
-                                                     self.tr("Select file"),
+                                                     self.tr("Select file(s)"),
                                                      model_path,
                                                      filter2)
+
+        # init
+        self.telemac_case = "unknown"
+        self.multi_hdf5 = False
+        self.indextelemac_presence = False
+
         # if file has been selected
         if filename_list[0]:
             if len(filename_list[0]) == 1:  # one file selected
@@ -2861,14 +2862,111 @@ class TELEMAC(SubHydroW):  # QGroupBox
             filename_path_index = os.path.join(folder_path, "indexTELEMAC.txt")
             # check if indexTELEMAC.txt is associated to selected file
             if not os.path.isfile(filename_path_index):
-                print("indexTELEMAC.txt don't exist")
-                self.indextelemac_creation_button.setEnabled(True)
-                # TODO : create indexTELEMAC.txt from user choices
+                self.send_log.emit("Warning: indexTELEMAC.txt doesn't exist. It will be created in the 'input' directory after the creation of the .hyd file. The latter will be filled in according to your choices.")
                 self.clean_gui()
-                return
+                self.indextelemac_presence = False
+
+                if more_than_one_file_selected_by_user:
+                    self.multi_hdf5 = True
+                    # telemac_description for several file
+                    self.telemac_description_multiple = []
+
+                    for i, file in enumerate(filename):
+                        # get units name from TELEMAC file
+                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                        unit_index_from_telemac_file = [True] * nbtimes
+                        # hdf5 filename
+                        blob2, ext = os.path.splitext(file)
+                        name_hdf5 = blob2 + ".hyd"
+
+                        # multi description
+                        self.telemac_description_multiple.append(dict(path_prj=self.path_prj,
+                                                                      name_prj=self.name_prj,
+                                                                      telemac_case=self.telemac_case,
+                                                                      filename_source=file,
+                                                                      path_filename_source=folder_path,
+                                                                      hdf5_name=name_hdf5,
+                                                                      model_type=self.model_type,
+                                                                      model_dimension=str(self.nb_dim),
+                                                                      unit_list=", ".join(
+                                                                          unit_name_from_telemac_file),
+                                                                      unit_list_full=unit_name_from_telemac_file,
+                                                                      unit_list_tf=unit_index_from_telemac_file,
+                                                                      unit_number=str(nbtimes),
+                                                                      unit_type="time [s]",
+                                                                      reach_list="unknown",
+                                                                      reach_number=str(1),
+                                                                      reach_type="river",
+                                                                      flow_type="unknwon"))  # continuous flow
+
+                    # set actual telemac_description
+                    self.telemac_description = self.telemac_description_multiple[0]
+
+                    # first to GUI
+                    self.h2d_t2.clear()
+                    self.h2d_t2.addItems(filename)
+                    self.reach_name_label.setText(self.telemac_description["reach_list"])
+                    self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(self.telemac_description["unit_list_full"])
+                    for i in range(len(self.telemac_description["unit_list_full"])):
+                        self.units_QListWidget.item(i).setSelected(self.telemac_description["unit_list_tf"][i])
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.units_QListWidget.setEnabled(True)
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
+                    self.h2d_t2.currentIndexChanged.connect(self.change_telemac_gui_when_combobox_name)
+                    self.load_b.setText(
+                        "Load data and create " + str(len(filename_list[0])) + " .hyd files")
+                    self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                    self.unit_counter()
+
+                if not more_than_one_file_selected_by_user:
+                    self.multi_hdf5 = False
+                    # get units name from TELEMAC file
+                    nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(filename,
+                                                                                        folder_path)
+                    # names
+                    self.pathfile[0] = folder_path  # source file path
+                    self.namefile[0] = filename  # source file name
+                    self.name_hdf5 = filename.split('.')[0] + ".hyd"
+
+                    self.telemac_description = dict(path_prj=self.path_prj,
+                                                    name_prj=self.name_prj,
+                                                    telemac_case=self.telemac_case,
+                                                    filename_source=filename,
+                                                    path_filename_source=folder_path,
+                                                    hdf5_name=self.name_hdf5,
+                                                    model_type=self.model_type,
+                                                    model_dimension=str(self.nb_dim))
+                    # telemac_description
+                    self.telemac_description["unit_list"] = ", ".join(unit_name_from_telemac_file)
+                    self.telemac_description["unit_list_full"] = unit_name_from_telemac_file
+                    self.telemac_description["unit_number"] = str(nbtimes)
+                    self.telemac_description["unit_type"] = "time [s]"
+                    self.telemac_description["reach_list"] = "unknown"
+                    self.telemac_description["reach_number"] = str(1)
+                    self.telemac_description["reach_type"] = "river"
+                    self.telemac_description["flow_type"] = "unknown"
+
+                    # to GUI
+                    self.h2d_t2.clear()
+                    self.h2d_t2.addItems([filename])
+                    self.reach_name_label.setText("unknown")
+                    self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
+                    self.number_timstep_label.setText(self.telemac_description["unit_number"])  # number units
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(unit_name_from_telemac_file)
+                    for i in range(len(unit_name_from_telemac_file)):
+                        self.units_QListWidget.item(i).setSelected(True)
+                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.load_b.setText("Load data and create one .hyd file")
+                    self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
+                    self.unit_counter()
+
             if os.path.isfile(filename_path_index):
                 # init variables
-                indextelemac_presence = True
+                self.indextelemac_presence = True
                 discharge_presence = False  # "Q[" in headers
                 time_presence = False  # "T[" in headers
                 reach_presence = False  # "reachname" in headers
@@ -2905,7 +3003,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         if os.path.isfile(os.path.join(folder_path, file_from_indextelemac)):
                             selectedfiles_textfiles_match[i] = True
                         else:
-                            print(file_from_indextelemac, "does not exist in", folder_path)
+                            self.send_log.emit("Error: " + file_from_indextelemac + " doesn't exist in " + folder_path)
                             self.clean_gui()
                             return
 
@@ -2930,8 +3028,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 if nb_row > 2:
                     more_than_one_row = True
 
-                # prints
-                # print("indextelemac_presence ? ", indextelemac_presence)
+                # # prints
+                # print("self.indextelemac_presence ? ", self.indextelemac_presence)
                 # print("more_than_one_file_selected_by_user ? ", more_than_one_file_selected_by_user)
                 # print("more_than_one_row ? ", more_than_one_row)
                 # print("selectedfiles_textfiles_matching ?", selectedfiles_textfiles_matching)
@@ -2999,7 +3097,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     unit_name_from_indextelemac_file = data_index_telemac[headers[discharge_index]]
                     # check if lenght of two loading units
                     if len(unit_name_from_telemac_file) != len(unit_name_from_indextelemac_file):
-                        print("units length from indexTELEMAC and from TELEMAC file are different")
+                        self.send_log.emit("Error: units number from indexTELEMAC and from TELEMAC file are different")
                         self.clean_gui()
                         return
 
@@ -3050,7 +3148,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                     # check if lenght of two loading units
                     if unit_name_from_indextelemac_file not in unit_name_from_telemac_file:
-                        print(unit_name_from_indextelemac_file, "don't exist in telemax file")
+                        self.send_log.emit("Error: " + unit_name_from_indextelemac_file + " doesn't exist in telemac file")
                         self.clean_gui()
                         return
 
@@ -3102,14 +3200,16 @@ class TELEMAC(SubHydroW):  # QGroupBox
                             pass
                         else:
                             if nbtimes > 1:
-                                print("file " + file + " contain more than one time step (timesteps :" + str(
+                                self.send_log.emit(
+                                    "Error: file " + file + " contain more than one time step (timestep :" + str(
                                     unit_name_from_telemac_file) + ")")
+
                             self.clean_gui()
                             return
 
                     # selected files same than indexTELEMAC file
                     if not selectedfiles_textfiles_matching:
-                        print("selected files are different from indexTELEMAC files")
+                        self.send_log.emit("Error: selected files are different from indexTELEMAC files")
                         self.clean_gui()
                         return
 
@@ -3149,7 +3249,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.units_QListWidget.setEnabled(False)
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
-                    print("folder : ", self.telemac_description["path_filename_source"])
 
                 """ CASE 2.b """
                 if self.telemac_case == "2.b":
@@ -3160,13 +3259,13 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         unit_name_from_indextelemac_file = data_index_telemac[headers[time_index]][rowindex]
                         # check if lenght of two loading units
                         if unit_name_from_indextelemac_file not in unit_name_from_telemac_file:
-                            print(unit_name_from_indextelemac_file, "don't exist in", file)
+                            self.send_log.emit("Error: " + unit_name_from_indextelemac_file, "don't exist in", file)
                             self.clean_gui()
                             return
 
                     # selected files same than indexTELEMAC file
                     if not selectedfiles_textfiles_matching:
-                        print("selected files are different from indexTELEMAC files")
+                        self.send_log.emit("Error: selected files are different from indexTELEMAC files")
                         self.clean_gui()
                         return
 
@@ -3216,7 +3315,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                     # selected files same than indexTELEMAC file
                     if not selectedfiles_textfiles_matching:
-                        print("selected files are different from indexTELEMAC files")
+                        self.send_log.emit("Error: selected files are different from indexTELEMAC files")
                         self.clean_gui()
                         return
 
@@ -3273,7 +3372,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                 unit_name_from_indextelemac_file2 = unit_name_from_indextelemac_file2 + \
                                                                     unit_name_from_telemac_file[from_unit_index:to_unit_index + 1]
                             except ValueError:
-                                print("can't found time step : " + from_unit + " or " + to_unit + " in " + data_index_telemac[headers[0]][0])
+                                self.send_log.emit("Error: can't found time step : " + from_unit + " or " + to_unit + " in " + data_index_telemac[headers[0]][0])
                                 self.clean_gui()
                                 return
                         else:
@@ -3287,7 +3386,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                     # selected files same than indexTELEMAC file
                     if not selectedfiles_textfiles_matching:
-                        print("selected files are different from indexTELEMAC files")
+                        self.send_log.emit("Error: selected files are different from indexTELEMAC files")
                         self.clean_gui()
                         return
 
@@ -3314,7 +3413,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.reach_name_label.setText(reach_name)
                     self.units_QListWidget.clear()
                     self.units_QListWidget.addItems(unit_name_from_telemac_file)
-                    for i in range(len(unit_name_from_indextelemac_file2)):
+                    for i in range(len(unit_name_from_telemac_file)):
                         self.units_QListWidget.item(i).setSelected(timestep_to_select[i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
@@ -3325,12 +3424,12 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                 """ CASE 4.a """
                 if self.telemac_case == "4.a":
+                    self.multi_hdf5 = True
                     # selected files same than indexTELEMAC file
                     if not selectedfiles_textfiles_matching:
-                        print("selected files are different from indexTELEMAC files")
+                        self.send_log.emit("Error: selected files are different from indexTELEMAC files")
                         self.clean_gui()
                         return
-
                     # telemac_description for several file
                     self.telemac_description_multiple = []
 
@@ -3388,9 +3487,10 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                 """ CASE 4.b """
                 if self.telemac_case == "4.b":
+                    self.multi_hdf5 = True
                     # selected files same than indexTELEMAC file
                     if not selectedfiles_textfiles_matching:
-                        print("selected files are different from indexTELEMAC files")
+                        self.send_log.emit("Error: selected files are different from indexTELEMAC files")
                         self.clean_gui()
                         return
 
@@ -3413,7 +3513,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                                                         unit_name_from_telemac_file[
                                                                         from_unit_index:to_unit_index + 1]
                                 except ValueError:
-                                    print("can't found time step : " + from_unit + " or " + to_unit + " in " +
+                                    self.send_log.emit("Error: can't found time step : " + from_unit + " or " + to_unit + " in " +
                                           data_index_telemac[headers[0]][i])
                                     self.clean_gui()
                                     return
@@ -3514,27 +3614,17 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 unit_list.append(self.units_QListWidget.item(i).text())
 
         # save multi
-        if self.telemac_case == '4.a' or self.telemac_case == '4.b':
+        if self.telemac_case == '4.a' or self.telemac_case == '4.b' or (self.telemac_case == 'unknown' and self.multi_hdf5):
             self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = ", ".join(unit_list)
             self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
             self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
+            self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
         # save one
         else:
             self.telemac_description["unit_list"] = ", ".join(unit_list)
             self.telemac_description["unit_list_full"] = unit_list_full
-
-        selected_list = []
-        for i in range(total):
-            unit_list.append(self.units_QListWidget.item(i).text())
-            selected_list.append(self.units_QListWidget.item(i).isSelected())
-        # save multi
-        if self.telemac_case == '4.a' or self.telemac_case == '4.b':
-            self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list
-            self.telemac_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
-        # save one
-        else:
-            self.telemac_description["unit_list_full"] = unit_list
             self.telemac_description["unit_list_tf"] = selected_list
+            self.telemac_description["unit_number"] = str(selected)
 
         # set text
         text = str(selected) + "/" + str(total)
@@ -3552,6 +3642,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
             pass
 
         self.h2d_t2.clear()
+        self.h2d_t2.addItems(["unknown file"])
         self.reach_name_label.setText("unknown")
         self.units_name_label.setText("unknown")  # kind of unit
         self.number_timstep_label.setText("unknown")  # number units
@@ -3583,70 +3674,84 @@ class TELEMAC(SubHydroW):  # QGroupBox
          save the name of files in the project file
         """
         # get timestep selected
-        selection = self.units_QListWidget.selectedItems()
-        if not selection:
-            self.send_log.emit("Error: No units selected. \n")
-            return
+        if self.multi_hdf5:
+            for i in range(len(self.telemac_description_multiple)):
+                if not any(self.telemac_description_multiple[i]["unit_list_tf"]):
+                    self.send_log.emit("Error: No units selected for : " + self.telemac_description_multiple[i]["filename_source"] + "\n")
+                    return
+        if not self.multi_hdf5:
+            selection = self.units_QListWidget.selectedItems()
+            if not selection:
+                self.send_log.emit("Error: No units selected. \n")
+                return
+
+        # for error management and figures
+        self.timer.start(100)
+
+        # show progressbar
+        self.nativeParentWidget().progress_bar.setRange(0, 100)
+        self.nativeParentWidget().progress_bar.setValue(0)
+        self.nativeParentWidget().progress_bar.setVisible(True)
+
+        # the path where to save the hdf5
+        path_hdf5 = self.find_path_hdf5()
+        self.name_hdf5 = self.hname.text()
+
+        # get minimum water height as we might neglect very low water height
+        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+
+        # block button
+        self.load_b.setDisabled(True)  # hydraulic
+
+        # write the new file name in the project file
+        self.save_xml(0)
+
+        # path input
+        path_input = self.find_path_input()
+
+        # load the telemac data
+        self.q = Queue()
+        self.progress_value = Value("i", 0)
+
+        # check telemac cases
+        if self.telemac_case == '4.a' or self.telemac_case == '4.b' or (self.telemac_case == 'unknown' and self.multi_hdf5):
+            # refresh units selection
+            self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid,
+                             args=(self.telemac_description_multiple,
+                                   self.progress_value,
+                                   self.q,
+                                   False,
+                                   self.fig_opt))
         else:
-            # for error management and figures
-            self.timer.start(100)
+            self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid,
+                             args=(self.telemac_description,
+                                   self.progress_value,
+                                   self.q,
+                                   False,
+                                   self.fig_opt))
+        self.p.start()
 
-            # show progressbar
-            self.nativeParentWidget().progress_bar.setRange(0, 100)
-            self.nativeParentWidget().progress_bar.setValue(0)
-            self.nativeParentWidget().progress_bar.setVisible(True)
+        # copy input files
+        nb_files = len(self.namefile[0].split(", "))
+        files_list = self.namefile[0].split(", ")
+        path_file_list = [self.pathfile[0]] * nb_files
+        if nb_files > 1:
+            self.p2 = Process(target=load_hdf5.copy_files, args=(files_list, path_file_list, path_input))
+            self.p2.start()
+        if nb_files == 1:
+            self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2.start()
 
-            # the path where to save the hdf5
-            path_hdf5 = self.find_path_hdf5()
-            self.name_hdf5 = self.hname.text()
-
-            # get minimum water height as we might neglect very low water height
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-
-            # block button
-            self.load_b.setDisabled(True)  # hydraulic
-
-            # write the new file name in the project file
-            self.save_xml(0)
-
-            # load the telemac data
-            self.q = Queue()
-            self.progress_value = Value("i", 0)
-
-            # check telemac cases
-            if self.telemac_case == '4.a' or self.telemac_case == '4.b':
-                # refresh units selection
-                self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid,
-                                 args=(self.telemac_description_multiple,
-                                       self.progress_value,
-                                       self.q,
-                                       False,
-                                       self.fig_opt))
-            else:
-                self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid,
-                                 args=(self.telemac_description,
-                                       self.progress_value,
-                                       self.q,
-                                       False,
-                                       self.fig_opt))
-
-            self.p.start()
-
-            # # path input
-            path_input = self.find_path_input()
-            # self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
-            # self.p2.start()
-
-            # log info
-            self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
-            self.send_err_log()
-            self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
-            self.send_log.emit("py    path1=r'" + path_input + "'")
-            self.send_log.emit(
-                "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
-                "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
-            self.send_log.emit("restart LOAD_TELEMAC")
-            self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
+        # log info
+        self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
+        self.send_err_log()
+        self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
+        self.send_log.emit("py    path1=r'" + path_input + "'")
+        self.send_log.emit(
+            "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
+            "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
+        self.send_log.emit("restart LOAD_TELEMAC")
+        self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
 
 class LAMMI(SubHydroW):
