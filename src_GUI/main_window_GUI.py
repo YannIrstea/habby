@@ -362,9 +362,9 @@ class MainWindows(QMainWindow):
         if self.central_widget.tab_widget.count() != 1:
             ind_hydrau_tab = self.central_widget.hydro_tab.mod.currentIndex()
         # if plot process are open, close them
-        if hasattr(self.central_widget, "plot_tab"):
-            if hasattr(self.central_widget.plot_tab.group_plot, 'plot_process_list'):
-                self.central_widget.plot_tab.group_plot.plot_process_list.close_all_plot_process()
+        if hasattr(self.central_widget, "data_explorer_tab"):
+            if hasattr(self.central_widget.data_explorer_tab.data_explorer_frame, 'plot_process_list'):
+                self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list.close_all_plot_process()
         # get a new translator
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
@@ -385,7 +385,7 @@ class MainWindows(QMainWindow):
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            self.central_widget.plot_tab = data_explorer_GUI.PlotTab(self.path_prj, self.name_prj)
+            self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
 
             # pass the info to the bio info tab
             # to be modified if a new language is added !
@@ -1055,7 +1055,7 @@ class MainWindows(QMainWindow):
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.output_tab.save_option_fig()
-            self.central_widget.plot_tab = data_explorer_GUI.PlotTab(self.path_prj, self.name_prj)
+            self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
         else:
             print('Error: Could not find the project saved just now. \n')
@@ -1192,7 +1192,7 @@ class MainWindows(QMainWindow):
         self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
         self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
         self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
-        self.central_widget.plot_tab = data_explorer_GUI.PlotTab(self.path_prj, self.name_prj)
+        self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
@@ -1868,7 +1868,7 @@ class CentralW(QWidget):
             self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             #self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
-            self.plot_tab = data_explorer_GUI.PlotTab(path_prj, name_prj)
+            self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
             #self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
@@ -1969,7 +1969,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 4
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 5
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 6
-            self.tab_widget.addTab(self.plot_tab, self.tr("Data explorer"))  # 7
+            self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 7
 
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
@@ -2038,9 +2038,9 @@ class CentralW(QWidget):
         """
         A small function to close the images open in HABBY and managed by matplotlib
         """
-        if hasattr(self, 'plot_tab'):
-            if hasattr(self.plot_tab.group_plot, 'plot_process_list'):
-                self.plot_tab.group_plot.plot_process_list.close_all_plot_process()
+        if hasattr(self, 'data_explorer_tab'):
+            if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_process_list'):
+                self.data_explorer_tab.data_explorer_frame.plot_process_list.close_all_plot_process()
 
     def optfig(self):
         """
@@ -2076,7 +2076,7 @@ class CentralW(QWidget):
             self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
             #self.chronicle_tab.send_log.connect(self.write_log)
-            self.plot_tab.send_log.connect(self.write_log)
+            self.data_explorer_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
@@ -2356,7 +2356,7 @@ class CentralW(QWidget):
 
     def update_plot_items_in_plot_tab(self):
         if self.tab_widget.currentIndex() == 9:
-            self.plot_tab.group_plot.types_hdf5_change()
+            self.data_explorer_tab.data_explorer_frame.types_hdf5_change()
 
 
 class WelcomeW(QScrollArea):

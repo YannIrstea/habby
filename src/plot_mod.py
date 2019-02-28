@@ -53,10 +53,10 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
     # title and filename
     if fig_opt['language'] == 0:
         if not points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step) + " " + unit
+            title = name_hdf5[:-4] + " : " + 'Mesh - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
         if points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step) + " " + unit
+            title = name_hdf5[:-4] + " : " + 'Mesh and points - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
     elif fig_opt['language'] == 1:
         if not points:
@@ -67,10 +67,10 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
             filename = name_hdf5[:-4] + "_maillage_points_" + str(time_step)
     else:
         if not points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid - Unit ' + str(time_step) + " " + unit
+            title = name_hdf5[:-4] + " : " + 'Mesh - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
         if points:
-            title = name_hdf5[:-4] + " : " + 'Computational Grid and points - Unit ' + str(time_step) + " " + unit
+            title = name_hdf5[:-4] + " : " + 'Mesh and points - Unit ' + str(time_step) + " " + unit
             filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
 
     # plot

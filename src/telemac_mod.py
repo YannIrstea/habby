@@ -25,6 +25,7 @@ from src import hdf5_mod
 from src_GUI import preferences_GUI
 from src import manage_grid_mod
 
+
 def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, fig_opt={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function

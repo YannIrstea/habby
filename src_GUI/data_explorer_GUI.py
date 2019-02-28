@@ -21,9 +21,10 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
 from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import plot_mod
+from multiprocessing import Process, Queue, Value
 
 
-class PlotTab(QScrollArea):
+class DataExplorerTab(QScrollArea):
     """
     This class contains the tab with Graphic production biological information (the curves of preference).
     """
@@ -45,8 +46,8 @@ class PlotTab(QScrollArea):
         self.init_iu()
 
     def init_iu(self):
-        # GroupPlot
-        self.group_plot = GroupPlot()
+        # DataExplorerFrame
+        self.data_explorer_frame = DataExplorerFrame()
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -60,16 +61,16 @@ class PlotTab(QScrollArea):
         # # add widgets to layout
         # self.plot_layout = QVBoxLayout(content_widget)  # vetical layout
         # self.plot_layout.setAlignment(Qt.AlignTop)
-        # self.plot_layout.addWidget(self.group_plot)
-        # self.group_plot.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        # self.plot_layout.addWidget(self.data_explorer_frame)
+        # self.data_explorer_frame.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
 
         # add layout
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
-        self.setWidget(self.group_plot)
+        self.setWidget(self.data_explorer_frame)
 
 
-class GroupPlot(QFrame):
+class DataExplorerFrame(QFrame):
     """
     This class is a subclass of class QGroupBox.
     """
@@ -233,7 +234,7 @@ class GroupPlot(QFrame):
         types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_from_gui()
         if types_hdf5 and names_hdf5 and variables and units:
             if types_hdf5 == "habitat":
-                variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
+                variables_to_remove = ["height", "velocity", "mesh", "mesh and points", "coarser_dominant"]
                 fish_names = [variable for variable in variables if variable not in variables_to_remove]
                 variables_other = [variable for variable in variables if variable not in fish_names]
                 if len(fish_names) == 0:
@@ -329,7 +330,6 @@ class GroupPlot(QFrame):
             if "mesh" in variables:
                 variables.insert(1, "mesh and points")
 
-
             units_name = hdf5_management.get_hdf5_units_name()
 
             # hydraulic
@@ -347,11 +347,13 @@ class GroupPlot(QFrame):
 
             # merge hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
-                self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
+                #self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
+                self.variable_QListWidget.addItems(variables)
                 fish_list = hdf5_mod.get_fish_names_habitat(hdf5name, self.parent().parent().path_prj + "/hdf5/")
                 if fish_list:
                     self.variable_QListWidget.addItems(fish_list)
-                self.units_QListWidget.addItems(hdf5_mod.load_unit_name(hdf5name, self.parent().parent().path_prj + "/hdf5/"))
+                if units_name:
+                    self.units_QListWidget.addItems(units_name)
 
             # display hdf5 attributes
             hdf5_attributes_text = hdf5_management.get_hdf5_attributes()
@@ -547,12 +549,22 @@ class GroupPlot(QFrame):
                                                 name_hdf5=hyd_description["hyd_filename"])
                     if types_hdf5 == "substrate":  # load substrate data
                         data_2d, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=True)
+                        data_description = dict(reach_number=sub_description_system["sub_reach_number"],
+                                                unit_number=sub_description_system["sub_unit_number"],
+                                                unit_type=sub_description_system["sub_unit_type"],
+                                                name_hdf5=sub_description_system["sub_filename"])
                     if types_hdf5 == "habitat":  # load habitat data
-                        variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
-                        fish_names = [variable for variable in variables if variable not in variables_to_remove]
-                        [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, sub_array,
-                         fish_data, total_wetarea_all_t, sub_description_system] = hdf5_mod.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
-
+                        # variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
+                        # fish_names = [variable for variable in variables if variable not in variables_to_remove]
+                        # [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, sub_array,
+                        #  fish_data, total_wetarea_all_t, sub_description_system] = hdf5_mod.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
+                        data_2d, hab_description = hdf5_management.load_hdf5_hab(units_index=units_index,
+                                                                                 whole_profil=False,
+                                                                                 convert_to_coarser_dom=True)
+                        data_description = dict(reach_number=hab_description["hyd_reach_number"],
+                                                unit_number=hab_description["hyd_unit_number"],
+                                                unit_type=hab_description["hyd_unit_type"],
+                                                name_hdf5=hab_description["hyd_filename"])
                     # for one or more desired units ==> habitat data (HV and WUA)
                     if fish_names:
                         state = Value("i", 0)
@@ -648,10 +660,10 @@ class GroupPlot(QFrame):
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate,
                                                                args=(state,
-                                                                     point_all_t[unit_num + 1][0],
-                                                                     ikle_all_t[unit_num + 1][0],
-                                                                     substrate_all_pg[unit_num + 1][0],
-                                                                     substrate_all_dom[unit_num + 1][0],
+                                                                     data_2d["xy"][reach_num][unit_num],
+                                                                     data_2d["tin"][reach_num][unit_num],
+                                                                     data_2d["sub"][reach_num][unit_num],
+                                                                     hab_description,
                                                                      path_im,
                                                                      name_hdf5,
                                                                      fig_opt,
@@ -696,7 +708,7 @@ class MyProcessList(list):
     This class is a subclass of class list created in order to analyze the status of the processes and the refresh of the progress bar in real time.
 
     :param nb_plot_total: integer value representing the total number of graphs to be produced.
-    :param progress_bar: Qprogressbar of GroupPlot to be refreshed
+    :param progress_bar: Qprogressbar of DataExplorerFrame to be refreshed
     """
 
     def __init__(self, progress_bar):

@@ -169,11 +169,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
         data_2d_merge = data_2d_hyd
         # for each reach
         sub_array_by_reach = []
-        for reach_num in range(0, data_2d_hyd["nb_reach"]):
+        for reach_num in range(0, int(hyd_description["hyd_reach_number"])):
             sub_array_by_unit = []
             # sub_data_all_pg = []
             # sub_data_all_dom = []
-            for unit_num in range(0, data_2d_hyd["nb_unit"]):
+            for unit_num in range(0, int(hyd_description["hyd_unit_number"])):
                 try:
                     # sub_data_pg = np.zeros(len(ikle_all[t][r]), ) + float(data_sub_dom[0])
                     # sub_data_dom = np.zeros(len(ikle_all[t][r]), ) + float(data_sub_pg[0])

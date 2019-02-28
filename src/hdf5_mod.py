@@ -310,7 +310,7 @@ class Hdf5Management:
             nb_t = int(self.file_object.attrs['hyd_unit_number'])
             units_index = list(range(nb_t))
 
-        # get sub attributes
+        # get attributes
         hyd_description = dict()
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
             hyd_description[attribute_name] = attribute_value
@@ -413,16 +413,20 @@ class Hdf5Management:
         self.open_hdf5_file(new=True)
 
         # create sub attributes
-        self.file_object.attrs['hdf5_type'] = "substrate"
-        self.file_object.attrs['sub_mapping_method'] = sub_description_system["sub_mapping_method"]
-        self.file_object.attrs['sub_classification_code'] = sub_description_system["sub_classification_code"]
-        self.file_object.attrs['sub_classification_method'] = sub_description_system["sub_classification_method"]
-        self.file_object.attrs['sub_filename_source'] = sub_description_system["sub_filename_source"]
-        self.file_object.attrs['sub_nb_class'] = sub_description_system["sub_nb_class"]
-        self.file_object.attrs['sub_nb_reach'] = str(data_2d["nb_reach"])
-        self.file_object.attrs['sub_nb_unit'] = str(data_2d["nb_unit"])
-        self.file_object.attrs['sub_unit_list'] = "0.0"
-        self.file_object.attrs['sub_unit_type'] = "unknown"  # TODO : change by discharge if units are discharges
+        for attribute_name, attribute_value in list(sub_description_system.items()):
+            self.file_object.attrs[attribute_name] = attribute_value
+
+        # # create sub attributes
+        # self.file_object.attrs['hdf5_type'] = "substrate"
+        # self.file_object.attrs['sub_mapping_method'] = sub_description_system["sub_mapping_method"]
+        # self.file_object.attrs['sub_classification_code'] = sub_description_system["sub_classification_code"]
+        # self.file_object.attrs['sub_classification_method'] = sub_description_system["sub_classification_method"]
+        # self.file_object.attrs['sub_filename_source'] = sub_description_system["sub_filename_source"]
+        # self.file_object.attrs['sub_class_number'] = sub_description_system["sub_class_number"]
+        # self.file_object.attrs['sub_reach_number'] = str(data_2d["nb_reach"])
+        # self.file_object.attrs['sub_unit_number'] = str(data_2d["nb_unit"])
+        # self.file_object.attrs['sub_unit_list'] = "0.0"
+        # self.file_object.attrs['sub_unit_type'] = "unknown"  # TODO : change by discharge if units are discharges
 
         # POLYGON or POINT
         if sub_description_system["sub_mapping_method"] in ("polygon", "point"):
@@ -442,7 +446,7 @@ class Hdf5Management:
                     mesh_group = unit_group.create_group('mesh')
                     mesh_group.create_dataset(name="sub",
                                               shape=[len(data_2d["sub"][unit_num][0]),
-                                                     int(sub_description_system["sub_nb_class"])],
+                                                     int(sub_description_system["sub_class_number"])],
                                               data=list(zip(*data_2d["sub"][unit_num])))
                     mesh_group.create_dataset(name="tin",
                                               shape=[len(data_2d["tin"][unit_num]), 3],
@@ -460,7 +464,7 @@ class Hdf5Management:
 
             # add the constant value of substrate
             self.file_object.create_dataset(name="sub",
-                                            shape=[1, int(sub_description_system["sub_nb_class"])],
+                                            shape=[1, int(sub_description_system["sub_class_number"])],
                                             data=data_2d["sub"][0])
 
         # close file
@@ -473,22 +477,27 @@ class Hdf5Management:
         # open an hdf5
         self.open_hdf5_file(new=False)
 
-        # get sub attributes
+        # get attributes
         sub_description_system = dict()
-        sub_description_system["sub_mapping_method"] = self.file_object.attrs['sub_mapping_method']
-        sub_description_system["sub_classification_code"] = self.file_object.attrs['sub_classification_code']
-        sub_description_system["sub_classification_method"] = self.file_object.attrs['sub_classification_method']
-        sub_description_system["sub_filename_source"] = self.file_object.attrs['sub_filename_source']
-        sub_description_system['sub_nb_class'] = self.file_object.attrs['sub_nb_class']
-        sub_description_system['sub_nb_reach'] = self.file_object.attrs['sub_nb_reach']
-        sub_description_system['sub_nb_unit'] = self.file_object.attrs['sub_nb_unit']
-        sub_description_system['sub_unit_list'] = self.file_object.attrs['sub_unit_list']
-        sub_description_system['sub_unit_type'] = self.file_object.attrs['sub_unit_type']
-        if sub_description_system["sub_mapping_method"] == "constant":
-            sub_description_system["sub_constant_values"] = self.file_object.attrs['sub_constant_values']
-        if sub_description_system["sub_mapping_method"] != "constant":
-            sub_description_system["sub_epsg_code"] = self.file_object.attrs['sub_epsg_code']
-            sub_description_system["sub_default_values"] = self.file_object.attrs['sub_default_values']
+        for attribute_name, attribute_value in list(self.file_object.attrs.items()):
+            sub_description_system[attribute_name] = attribute_value
+
+        # # get sub attributes
+        # sub_description_system = dict()
+        # sub_description_system["sub_mapping_method"] = self.file_object.attrs['sub_mapping_method']
+        # sub_description_system["sub_classification_code"] = self.file_object.attrs['sub_classification_code']
+        # sub_description_system["sub_classification_method"] = self.file_object.attrs['sub_classification_method']
+        # sub_description_system["sub_filename_source"] = self.file_object.attrs['sub_filename_source']
+        # sub_description_system['sub_class_number'] = self.file_object.attrs['sub_class_number']
+        # sub_description_system['sub_reach_number'] = self.file_object.attrs['sub_reach_number']
+        # sub_description_system['sub_unit_number'] = self.file_object.attrs['sub_unit_number']
+        # sub_description_system['sub_unit_list'] = self.file_object.attrs['sub_unit_list']
+        # sub_description_system['sub_unit_type'] = self.file_object.attrs['sub_unit_type']
+        # if sub_description_system["sub_mapping_method"] == "constant":
+        #     sub_description_system["sub_constant_values"] = self.file_object.attrs['sub_constant_values']
+        # if sub_description_system["sub_mapping_method"] != "constant":
+        #     sub_description_system["sub_epsg_code"] = self.file_object.attrs['sub_epsg_code']
+        #     sub_description_system["sub_default_values"] = self.file_object.attrs['sub_default_values']
 
         # get data
         data_2d = dict()
@@ -498,8 +507,8 @@ class Hdf5Management:
             data_2d["tin"] = []
             data_2d["xy"] = []
             data_2d["sub"] = []
-            data_2d["nb_unit"] = int(self.file_object.attrs['sub_nb_unit'])
-            data_2d["nb_reach"] = int(self.file_object.attrs['sub_nb_reach'])
+            data_2d["nb_unit"] = int(self.file_object.attrs['sub_unit_number'])
+            data_2d["nb_reach"] = int(self.file_object.attrs['sub_reach_number'])
             data_group = 'data_2D'
             # for all reach
             for r in range(0, data_2d["nb_reach"]):
@@ -546,9 +555,12 @@ class Hdf5Management:
         self.open_hdf5_file(new=True)
 
         # create hyd attributes
-        self.file_object.attrs['hdf5_type'] = "habitat"
         for attribute_name, attribute_value in list(merge_description.items()):
-            self.file_object.attrs[attribute_name] = attribute_value
+            if attribute_name in ("sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type"):
+                pass
+            else:
+                self.file_object.attrs[attribute_name] = attribute_value
+        self.file_object.attrs['hdf5_type'] = "habitat"
         # habitat
         # self.file_object.attrs['hab_filename_source'] = merge_description["hyd_filename_source"]
         # self.file_object.attrs['hab_reach_number'] = merge_description["hyd_reach_number"]
@@ -570,7 +582,7 @@ class Hdf5Management:
         # self.file_object.attrs["sub_classification_code"] = merge_description["sub_classification_code"]
         # self.file_object.attrs["sub_classification_method"] = merge_description["sub_classification_method"]
         # self.file_object.attrs["sub_filename_source"] = merge_description["sub_filename_source"]
-        # self.file_object.attrs["sub_nb_class"] = merge_description['sub_nb_class']
+        # self.file_object.attrs["sub_class_number"] = merge_description['sub_class_number']
         # if merge_description["sub_mapping_method"] != "constant":
         #     self.file_object.attrs['sub_default_values'] = merge_description["sub_default_values"]
         # if merge_description["sub_mapping_method"] == "constant":
@@ -609,7 +621,7 @@ class Hdf5Management:
         # data_2D_whole_profile profile
         data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
         # REACH GROUP
-        for reach_num in range(data_2d["nb_reach"]):
+        for reach_num in range(int(merge_description["hyd_reach_number"])):
             reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
             # UNIT GROUP
             if merge_description["hyd_unit_wholeprofile_correspondence"] == "all":  # one whole profile for all units
@@ -631,18 +643,18 @@ class Hdf5Management:
                                           data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
-                node_group.create_dataset(name="xyz",
-                                          shape=[len(data_2d_whole_profile["xyz"][reach_num][unit_num]),
-                                                 len(data_2d_whole_profile["xyz"][reach_num][unit_num][0])],
-                                          data=data_2d_whole_profile["xyz"][reach_num][unit_num])
+                node_group.create_dataset(name="xy",
+                                          shape=[len(data_2d_whole_profile["xy"][reach_num][unit_num]),
+                                                 len(data_2d_whole_profile["xy"][reach_num][unit_num][0])],
+                                          data=data_2d_whole_profile["xy"][reach_num][unit_num])
 
         # data_2D
         data_group = self.file_object.create_group('data_2D')
         # REACH GROUP
-        for reach_num in range(data_2d["nb_reach"]):
+        for reach_num in range(int(merge_description["hyd_reach_number"])):
             reach_group = data_group.create_group('reach_' + str(reach_num))
             # UNIT GROUP
-            for unit_num in range(data_2d["nb_unit"]):
+            for unit_num in range(int(merge_description["hyd_unit_number"])):
                 unit_group = reach_group.create_group('unit_' + str(unit_num))
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
@@ -661,10 +673,10 @@ class Hdf5Management:
                 node_group.create_dataset(name="v",
                                           shape=[len(data_2d["v"][reach_num][unit_num]), 1],
                                           data=data_2d["v"][reach_num][unit_num])
-                node_group.create_dataset(name="xyz",
-                                          shape=[len(data_2d["xyz"][reach_num][unit_num]),
-                                                 len(data_2d["xyz"][reach_num][unit_num][0])],
-                                          data=data_2d["xyz"][reach_num][unit_num])
+                node_group.create_dataset(name="xy",
+                                          shape=[len(data_2d["xy"][reach_num][unit_num]),
+                                                 len(data_2d["xy"][reach_num][unit_num][0])],
+                                          data=data_2d["xy"][reach_num][unit_num])
 
         # close file
         self.file_object.close()
@@ -713,7 +725,7 @@ class Hdf5Management:
                         tin_list.append(self.file_object[mesh_group + "/tin"][:])
                         xy_center_list.append(self.file_object[mesh_group + "/xy_center"][:])
                         # node
-                        xy_list.append(self.file_object[node_group + "/xyz"][:])
+                        xy_list.append(self.file_object[node_group + "/xy"][:])
                     except KeyError:
                         print(
                             'Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
@@ -727,7 +739,7 @@ class Hdf5Management:
         data_2d = dict()
         data_2d["tin"] = []
         data_2d["sub"] = []
-        data_2d["xyz"] = []
+        data_2d["xy"] = []
         data_2d["h"] = []
         data_2d["v"] = []
         data_2d["nb_unit"] = len(units_index)
@@ -749,7 +761,6 @@ class Hdf5Management:
                 try:
                     # mesh
                     tin_list.append(self.file_object[mesh_group + "/tin"][:])
-                    # if convert_to_coarser_dom == True (for plot only)
                     if convert_to_coarser_dom and hab_description["sub_classification_method"] != "coarser-dominant":
                         sub_array = self.file_object[mesh_group + "/sub"][:]
                         # dominant case = 1 ==> biggest substrate for plot
@@ -759,7 +770,7 @@ class Hdf5Management:
                     else:
                         sub_array_list.append(self.file_object[mesh_group + "/sub"][:])
                     # node
-                    xy_list.append(self.file_object[node_group + "/xyz"][:])
+                    xy_list.append(self.file_object[node_group + "/xy"][:])
                     h_list.append(self.file_object[node_group + "/h"][:].flatten())
                     v_list.append(self.file_object[node_group + "/v"][:].flatten())
                 except KeyError:
@@ -768,7 +779,7 @@ class Hdf5Management:
                     return
             data_2d["tin"].append(tin_list)
             data_2d["sub"].append(sub_array_list)
-            data_2d["xyz"].append(xy_list)
+            data_2d["xy"].append(xy_list)
             data_2d["h"].append(h_list)
             data_2d["v"].append(v_list)
 
@@ -795,7 +806,7 @@ class Hdf5Management:
             #                                                    merge=merge)
             data_2d, data_2D_whole_profile, hab_description = self.load_hdf5_hab(units_index="all", whole_profil=True)
 
-        sim_name = [hab_description["hyd_unit_list"]]
+        sim_name = hab_description["hyd_unit_list"].split(", ")
 
         # we needs the data by cells and not nodes
         # optmization possibility: save the data in the hdf5 and re-use it for the habitat calculation (but big file size)
@@ -817,10 +828,10 @@ class Hdf5Management:
                         w.field('dom', 'N', 10, 0)
                     if hab_description["sub_classification_method"] == 'percentage':
                         if hab_description["sub_classification_code"] == "Cemagref":
-                            sub_nb_class = 8
+                            sub_class_number = 8
                         if hab_description["sub_classification_code"] == "Sandre":
-                            sub_nb_class = 12
-                        for i in range(sub_nb_class):
+                            sub_class_number = 12
+                        for i in range(sub_class_number):
                             w.field('S' + str(i + 1), 'N', 10, 0)
                 for mesh_num in range(0, len(data_2d["tin"][reach_num][unit_num])):
                     node1 = data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
@@ -837,9 +848,9 @@ class Hdf5Management:
                     h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
 
                     # data geom (get the triangle coordinates)
-                    p1 = list(data_2d["xyz"][reach_num][unit_num][node1])
-                    p2 = list(data_2d["xyz"][reach_num][unit_num][node2])
-                    p3 = list(data_2d["xyz"][reach_num][unit_num][node3])
+                    p1 = list(data_2d["xy"][reach_num][unit_num][node1])
+                    p2 = list(data_2d["xy"][reach_num][unit_num][node2])
+                    p3 = list(data_2d["xy"][reach_num][unit_num][node3])
                     w.poly(parts=[[p1, p2, p3, p1]])  # the double [[]] is important or it bugs, but why?
                     if type == "habitat":
                         sub = data_2d["sub"][reach_num][unit_num][mesh_num]
@@ -2499,10 +2510,10 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
                         w.field('dom', 'N', 10, 0)
                     if sub_description_system["sub_classification_method"] == 'percentage':
                         if sub_description_system["sub_classification_code"] == "Cemagref":
-                            sub_nb_class = 8
+                            sub_class_number = 8
                         if sub_description_system["sub_classification_code"] == "Sandre":
-                            sub_nb_class = 12
-                        for i in range(sub_nb_class):
+                            sub_class_number = 12
+                        for i in range(sub_class_number):
                             w.field('S' + str(i + 1), 'N', 10, 0)
 
                 # fill attribute

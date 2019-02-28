@@ -29,11 +29,6 @@ from PyQt5.QtWidgets import QMessageBox
 from src import hdf5_mod
 
 
-
-
-
-
-
 def open_shp(filename, path):
     """
     This function open a ArcGIS shpaefile.
@@ -521,11 +516,15 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
                                                                     sub_array,
                                                                     sub_mapping_method,
                                                                     sub_classification_code)
-    sub_description_system["sub_epsg_code"] = sub_epsg_code
-    sub_description_system["sub_filename_source"] = filename
-    sub_description_system["sub_default_values"] = default_values
-    sub_description_system["sub_nb_class"] = str(len(sub_array))
 
+    sub_description_system["sub_filename_source"] = filename
+    sub_description_system["sub_class_number"] = str(len(sub_array))
+    sub_description_system["sub_default_values"] = default_values
+    sub_description_system["sub_reach_number"] = "1"
+    sub_description_system["sub_unit_number"] = "1"
+    sub_description_system["sub_unit_list"] = "0.0"
+    sub_description_system["sub_unit_type"] = "unknown"
+    sub_description_system["sub_epsg_code"] = sub_epsg_code
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
@@ -780,15 +779,15 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         return
 
     if sub_classification_method == 'coarser-dominant':
-        sub_nb_class = 2
+        sub_class_number = 2
     if sub_classification_method == 'percentage' and sub_classification_code == "Cemagref":
-        sub_nb_class = 8
+        sub_class_number = 8
     if sub_classification_method == 'percentage' and sub_classification_code == "Sandre":
-        sub_nb_class = 12
+        sub_class_number = 12
 
     x = []
     y = []
-    sub_array = [[] for i in range(sub_nb_class)]
+    sub_array = [[] for i in range(sub_class_number)]
 
     for line in data:
         try:
@@ -798,7 +797,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         except TypeError:
             print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
             return False
-        for i in range(sub_nb_class):
+        for i in range(sub_class_number):
             index = i + 2
             try:
                 sub_array[i].append(int(line_list[index]))
@@ -850,14 +849,14 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
         return False
 
-    sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_nb_class)]
+    sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_class_number)]
 
     for e in range(0, len(list_polyg)):
         polygon = list_polyg[e]
         centerx = np.float64(polygon.centroid.x)
         centery = np.float64(polygon.centroid.y)
         nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
-        for i in range(sub_nb_class):
+        for i in range(sub_class_number):
             sub_array2[i][e] = sub_array[i][nearest_ind]
 
     # export sub initial voronoi in a shapefile
@@ -868,7 +867,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         w.field('coarser', 'N', 10, 0)
         w.field('dom', 'N', 10, 0)
     if sub_classification_method == 'percentage':
-        for i in range(sub_nb_class):
+        for i in range(sub_class_number):
             w.field('S' + str(i + 1), 'N', 10, 0)
 
     for i, polygon in enumerate(list_polyg):  # for each polygon

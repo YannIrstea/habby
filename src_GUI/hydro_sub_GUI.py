@@ -1146,11 +1146,13 @@ class SubHydroW(QWidget):
             self.nativeParentWidget().progress_bar.setValue(100)
             if not const_sub:
                 self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
+            if const_sub:
+                self.update_sub_hdf5_name()
             self.send_log.emit("clear status bar")
             # refresh plot gui list file
-            index = self.nativeParentWidget().central_widget.plot_tab.group_plot.types_hdf5_QComboBox.currentIndex()
-            self.nativeParentWidget().central_widget.plot_tab.group_plot.types_hdf5_QComboBox.setCurrentIndex(0)
-            self.nativeParentWidget().central_widget.plot_tab.group_plot.types_hdf5_QComboBox.setCurrentIndex(index)
+            index = self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.types_hdf5_QComboBox.currentIndex()
+            self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(0)
+            self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(index)
             self.running_time = 0
 
         # finish
@@ -1204,7 +1206,7 @@ class SubHydroW(QWidget):
             units = units_raw
             units_index = [0]
         types_plot = "display"
-        self.nativeParentWidget().central_widget.plot_tab.group_plot.plot(types_hdf5, names_hdf5, variables, units,
+        self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.plot(types_hdf5, names_hdf5, variables, units,
                                                                          units_index, types_plot)
 
     def create_image_merge(self, save_fig=True, show_info=False):
@@ -1231,7 +1233,7 @@ class SubHydroW(QWidget):
             units = units_raw
             units_index = [0]
         types_plot = "display"
-        self.nativeParentWidget().central_widget.plot_tab.group_plot.plot(types_hdf5, names_hdf5, variables, units,
+        self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.plot(types_hdf5, names_hdf5, variables, units,
                                                                          units_index, types_plot)
 
     def name_last_hdf5(self, type):
@@ -5438,7 +5440,12 @@ class SubstrateW(SubHydroW):
                                           sub_classification_method=sub_classification_method,
                                           sub_filename_source=filename,
                                           sub_constant_values=sub_constant_values,
-                                          sub_nb_class=str(len(sub_array)))
+                                          sub_class_number=str(len(sub_array)),
+                                          sub_reach_number="1",
+                                          sub_unit_number="1",
+                                          sub_unit_list="0.0",
+                                          sub_unit_type="unknown")
+
             data = dict(sub=[sub_array],
                         nb_unit=1,
                         nb_reach=1)
@@ -5446,20 +5453,6 @@ class SubstrateW(SubHydroW):
             sys.stdout = self.mystdout = StringIO()  # out to GUI
             self.q = Queue()
             self.q.put("const_sub")
-            # self.p = Process(target=load_hdf5.save_hdf5_sub,
-            #                  args=(path_hdf5,
-            #                         self.path_prj,
-            #                         self.name_prj,
-            #                         sub_array,
-            #                         sub_description_system,
-            #                         [],
-            #                         [],
-            #                         [],
-            #                         [],
-            #                         self.name_hdf5,
-            #                         "SUBSTRATE",
-            #                         False))
-
 
             # save hdf5
             hdf5_management = hdf5_mod.Hdf5Management(self.name_prj, self.path_prj, self.name_hdf5)
@@ -5467,7 +5460,6 @@ class SubstrateW(SubHydroW):
                              args=(sub_description_system, data))
             self.p.start()
 
-            sys.stdout = sys.__stdout__  # reset to console
             self.send_err_log()
 
             # log info
@@ -5481,6 +5473,7 @@ class SubstrateW(SubHydroW):
             #self.send_log.emit("restart    hdf5_namefile: " + os.path.join(path_hdf5, self.name_hdf5 +'.sub'))
             # unblock button substrate
             self.load_constant_substrate.setDisabled(False)  # substrate
+            self.p.join()
 
     def recreate_image_sub(self, save_fig=False):
         """
@@ -5504,7 +5497,7 @@ class SubstrateW(SubHydroW):
         units = ["no unit"]
         units_index = [0]
         types_plot = "display"
-        self.nativeParentWidget().central_widget.plot_tab.group_plot.plot(types_hdf5, names_hdf5, variables, units,
+        self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.plot(types_hdf5, names_hdf5, variables, units,
                                                                          units_index, types_plot)
 
     def update_sub_hdf5_name(self):
