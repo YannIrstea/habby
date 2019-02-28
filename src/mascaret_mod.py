@@ -23,11 +23,11 @@ import matplotlib.pyplot as plt
 import time
 from struct import unpack
 from struct import error as errstruct
-from src import Hec_ras06
-from src import manage_grid_8
-from src import load_hdf5
-from src import dist_vistess2
-from src_GUI import output_fig_GUI
+from src import hec_ras1D_mod
+from src import manage_grid_mod
+from src import hdf5_mod
+from src import dist_vistess_mod
+from src_GUI import preferences_GUI
 import matplotlib as mpl
 
 
@@ -81,7 +81,7 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, mode
 
     # image if necessary
     if show_fig_1D:
-        fig_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+        fig_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
         pro = [0, 1, 2]
         reach = [0]
         if fig_opt['time_step'][0] == -99:
@@ -94,20 +94,20 @@ def load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, mode
                         pro, tfig, reach)
 
     # distribute the velocity
-    vh_pro = dist_vistess2.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile)
+    vh_pro = dist_vistess_mod.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data, on_profile)
 
     # create the grid
     [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \
-        = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
+        = manage_grid_mod.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
 
     # save the hdf5 file
     for idx, t in enumerate(timestep):
         timestep[idx] = str(t)
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
-                                      point_all_t,
-                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
-                                      nb_pro_reach,
-                                      sim_name=timestep, hdf5_type="hydraulic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
+                                     point_all_t,
+                                     point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
+                                     nb_pro_reach,
+                                     sim_name=timestep, hdf5_type="hydraulic")
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
@@ -199,7 +199,7 @@ def get_geo_name_from_xcas(file_gen, path_gen):
     """
 
     # load the xml file
-    root = Hec_ras06.load_xml(file_gen, path_gen)
+    root = hec_ras1D_mod.load_xml(file_gen, path_gen)
     if root == [-99]:  # if error arised
         print("Error: the .xcas file could not be read.\n")
         return
@@ -412,7 +412,7 @@ def river_coord_non_georef_from_xcas(file_gen, path_gen, abcisse, nb_pro_reach):
     print("Warning: Data is not georeferenced. HYP: straight reaches.\n")
 
     # load .xcas file
-    root = Hec_ras06.load_xml(file_gen, path_gen)
+    root = hec_ras1D_mod.load_xml(file_gen, path_gen)
     if root == [-99]:  # if error arised
         print("Error: the .xcas file could not be read.\n")
         return failload

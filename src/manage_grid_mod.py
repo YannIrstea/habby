@@ -27,8 +27,8 @@ import copy
 import os
 import bisect
 import sys
-from src_GUI import output_fig_GUI
-from src import calcul_hab
+from src_GUI import preferences_GUI
+from src import calcul_hab_mod
 
 
 # np.set_printoptions(threshold=np.inf)
@@ -50,9 +50,9 @@ def grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add=1)
 
     Here are the list of the interpolation choice:
 
-    * 0 Use the function create_grid_only_1_profile() from manage_grid_8.py for all time steps.
-    * 1 Use the function create_grid() from manage_grid_8.py for all time steps followed by a linear interpolation
-    * 2 Use the function create_grid() from manage_grid_8.py for all time steps followed by a nearest neighbour interpolation
+    * 0 Use the function create_grid_only_1_profile() from manage_grid_mod.py for all time steps.
+    * 1 Use the function create_grid() from manage_grid_mod.py for all time steps followed by a linear interpolation
+    * 2 Use the function create_grid() from manage_grid_mod.py for all time steps followed by a nearest neighbour interpolation
     * 3 Use create_grid() for the whole profile, make a linear inteporlation on this grid for all time step
         and use the cut_2d_grid to get a grid with only the wet profile for all time step (This part was only started.
         It was not finished.)
@@ -2263,7 +2263,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
     """
     # print(mesh, velocity, height, time_step)
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # plot the grid, the velcoity and the water height
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
@@ -2347,7 +2347,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                     "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=fig_opt['resolution'], transparent=True)
         else:
-            test = calcul_hab.remove_image(suffix, path_im, format1)
+            test = calcul_hab_mod.remove_image(suffix, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
@@ -2442,7 +2442,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=fig_opt['resolution'], transparent=True)
             else:
-                test = calcul_hab.remove_image(suffix, path_im, format1)
+                test = calcul_hab_mod.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
@@ -2526,7 +2526,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=fig_opt['resolution'], transparent=True)
             else:
-                test = calcul_hab.remove_image(suffix, path_im, format1)
+                test = calcul_hab_mod.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
@@ -2782,9 +2782,9 @@ def main():
     path_im = r'D:\Diane_work\version\file_test\fig_test'
     # coord_sub = [[0.5, 0.2], [0.6, 0.6], [0.0, 0.6]]
     # ikle_sub = [[0, 1, 2]]
-    from src import Hec_ras06
+    from src import hec_ras1D_mod
 
-    [coord_pro, vh_pro, nb_pro_reach] = Hec_ras06.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
+    [coord_pro, vh_pro, nb_pro_reach] = hec_ras1D_mod.open_hecras(name_geo, name_xml, path_test, path_test, path_im, False)
     print(len(vh_pro))
 
     [point_all_reach, ikle_all, lim_by_reach, hole_all, overlap, coord_pro2, point_c_all] = create_grid(

@@ -26,26 +26,26 @@ from copy import deepcopy
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue
-from src import selafin_habby1
-from src import mascaret
-from src import Hec_ras06
-from src import rubar
-from src import sw2d
-from src import iber2d
-from src import river2d
-from src import load_hdf5
+from src import telemac_mod
+from src import mascaret_mod
+from src import hec_ras1D_mod
+from src import rubar1d2d_mod
+from src import sw2d_mod
+from src import iber2d_mod
+from src import river2d_mod
+from src import hdf5_mod
 from shutil import copyfile
-from src import hec_ras2D
-from src import estimhab
-from src import stathab_c
-from src import substrate
-from src import fstress
-from src import calcul_hab
-from src import bio_info
-from src import mesh_grid2
-from src import lammi
-from src import hydraulic_chronic
-from src_GUI import output_fig_GUI
+from src import hec_ras2D_mod
+from src import estimhab_mod
+from src import stathab_mod
+from src import substrate_mod
+from src import fstress_mod
+from src import calcul_hab_mod
+from src import bio_info_mod
+from src import mesh_management_mod
+from src import lammi_mod
+from src import hydraulic_chronic_mod
+from src_GUI import preferences_GUI
 
 
 def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, erase_id=True):
@@ -239,19 +239,19 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # run process
         progress_value = Value("i", 0)
-        p = Process(target=selafin_habby1.load_telemac_and_cut_grid, args=(name_hdf5,
-                                                                           namefilet,
-                                                                           pathfilet,
-                                                                           name_prj,
-                                                                           path_prj,
+        p = Process(target=telemac_mod.load_telemac_and_cut_grid, args=(name_hdf5,
+                                                                        namefilet,
+                                                                        pathfilet,
+                                                                        name_prj,
+                                                                        path_prj,
                                                                            'TELEMAC',
-                                                                           2,
-                                                                           path_hdf5,
-                                                                           progress_value,
-                                                                           units,
-                                                                           [],
-                                                                           True,
-                                                                           {}))
+                                                                        2,
+                                                                        path_hdf5,
+                                                                        progress_value,
+                                                                        units,
+                                                                        [],
+                                                                        True,
+                                                                        {}))
         p.start()
         while p.is_alive():
             print('Progress %d%%\r' % progress_value.value, end="")
@@ -308,11 +308,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         if pro_add_is_here:
-            Hec_ras06.open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'HECRAS1D', namefile,
-                                                       pathfile, inter, '.', False, pro_add, [], True)
+            hec_ras1D_mod.open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'HECRAS1D', namefile,
+                                                           pathfile, inter, '.', False, pro_add, [], True)
         else:
-            Hec_ras06.open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'HECRAS1D', namefile,
-                                                       pathfile, inter, '.', False, 5, [], True)
+            hec_ras1D_mod.open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'HECRAS1D', namefile,
+                                                           pathfile, inter, '.', False, 5, [], True)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HECRAS_2D':
@@ -334,8 +334,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         else:
             name_hdf5 = 'Hydro_HECRAS2D_' + os.path.splitext(namefile)[0]
             path_hdf5 = path_prj
-        hec_ras2D.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
-                                               path_hdf5, [], True)
+        hec_ras2D_mod.load_hec_ras_2d_and_cut_grid(name_hdf5, filename, pathfile, name_prj, path_prj, 'HECRAS2D', 2,
+                                                   path_hdf5, [], True)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_RUBAR_2D':
@@ -363,7 +363,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
 
-        rubar.load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
+        rubar1d2d_mod.load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, '.', name_prj, path_prj,
                                            'RUBAR2D', 2, path_hdf5, [], False)
 
     # ----------------------------------------------------------------------------------
@@ -392,8 +392,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
 
-        sw2d.load_sw2d_and_modify_grid(name_hdf5, geofile, tpsfile, pathgeo,
-                                       pathtps, '.', name_prj, path_prj,
+        sw2d_mod.load_sw2d_and_modify_grid(name_hdf5, geofile, tpsfile, pathgeo,
+                                           pathtps, '.', name_prj, path_prj,
                                        'SW2D', 2, path_hdf5, [], False)
 
     # ----------------------------------------------------------------------------------
@@ -428,11 +428,11 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
 
-        iber2d.load_iber2d_and_modify_grid(name_hdf5, geofile, tpsfile1,
-                                           tpsfile2, tpsfile3, tpsfile4,
-                                           pathgeo, pathtps, '.', name_prj,
-                                           path_prj, 'IBER2D', 2, path_hdf5,
-                                           [], False)
+        iber2d_mod.load_iber2d_and_modify_grid(name_hdf5, geofile, tpsfile1,
+                                               tpsfile2, tpsfile3, tpsfile4,
+                                               pathgeo, pathtps, '.', name_prj,
+                                               path_prj, 'IBER2D', 2, path_hdf5,
+                                               [], False)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_MASCARET':
@@ -510,8 +510,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_hdf5 = os.path.dirname(namepath_hdf5)
 
         # load mascaret
-        mascaret.load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'mascaret', namefile, pathfile,
-                                               inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
+        mascaret_mod.load_mascaret_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'mascaret', namefile, pathfile,
+                                                   inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_RIVER_2D':
@@ -522,13 +522,13 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         if not input_file:
             if os.path.isdir(all_arg[2]):
-                filenames = load_hdf5.get_all_filename(all_arg[2], '.cdg')
+                filenames = hdf5_mod.get_all_filename(all_arg[2], '.cdg')
             else:
                 print('the input directory does not exist.')
                 return
         else:
             if os.path.isdir(path_input):
-                filenames = load_hdf5.get_all_filename(path_input, '.cdg')
+                filenames = hdf5_mod.get_all_filename(path_input, '.cdg')
             else:
                 print('the input directory does not exist.')
                 return
@@ -545,8 +545,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = os.path.basename(namepath_hdf5)
             path_hdf5 = os.path.dirname(namepath_hdf5)
 
-        river2d.load_river2d_and_cut_grid(name_hdf5, filenames, paths, name_prj, path_prj, 'RIVER2D', 2,
-                                          path_hdf5, [], True)
+        river2d_mod.load_river2d_and_cut_grid(name_hdf5, filenames, paths, name_prj, path_prj, 'RIVER2D', 2,
+                                              path_hdf5, [], True)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_RUBAR_1D':
@@ -621,8 +621,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         # load rubar
-        rubar.load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'RUBAR1D', namefile, pathfile,
-                                           inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
+        rubar1d2d_mod.load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, 'RUBAR1D', namefile, pathfile,
+                                                   inter, manning_data, nb_point_vel, False, pro_add, [], path_hdf5, True)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_LAMMI':
@@ -647,8 +647,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('Error: Wrong number of intput')
             return
 
-        lammi.open_lammi_and_create_grid(facies_path, transect_path, path_prj, name_hdf5, name_prj, path_prj, path_hdf5,
-                                         new_dir, [], False, 'Transect.txt', 'Facies.txt', True, [], 1, 'LAMMI')
+        lammi_mod.open_lammi_and_create_grid(facies_path, transect_path, path_prj, name_hdf5, name_prj, path_prj, path_hdf5,
+                                             new_dir, [], False, 'Transect.txt', 'Facies.txt', True, [], 1, 'LAMMI')
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_ESTIMHAB':
@@ -686,7 +686,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         if not fish_list:
             print('Error: no fish found for estimhab')
             return
-        estimhab.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True, {}, path_prj)
+        estimhab_mod.estimhab(q, w, h, q50, qrange, sub, path_bio2, fish_list, path_prj, True, {}, path_prj)
         # plt.show()  # should we let it? It stops the function butit shows the results
 
     # ----------------------------------------------------------------------------------
@@ -757,22 +757,22 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # load the txt data
         path_bio2 = os.path.join(path_bio, 'stathab')
-        mystathab = stathab_c.Stathab(name_prj, path_prj)
+        mystathab = stathab_mod.Stathab(name_prj, path_prj)
         mystathab.load_stathab_from_txt('listriv', end_file_reach, name_file_allreach, path_files)
         mystathab.path_im = path_prj
 
         # get fish name and run stathab
         if riv_int == 0:
-            [mystathab.fish_chosen, coeff_all] = stathab_c.load_pref('Pref_latin.txt', path_bio2)
+            [mystathab.fish_chosen, coeff_all] = stathab_mod.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
-            fig_opt = output_fig_GUI.create_default_figoption()
+            fig_opt = preferences_GUI.create_default_figoption()
             fig_opt['erase_id'] = 'True'
             mystathab.fig_opt = fig_opt
             mystathab.savetxt_stathab()
             mystathab.savefig_stahab()
         elif riv_int == 1:
             name_fish = []
-            filenames = load_hdf5.get_all_filename(path_bio2, '.csv')
+            filenames = hdf5_mod.get_all_filename(path_bio2, '.csv')
             for f in filenames:
                 if 'uni' in f and f[-7:-4] not in name_fish:
                     name_fish.append(f[-7:-4])
@@ -783,7 +783,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             mystathab.savefig_stahab(False)
         elif riv_int == 2:
             name_fish = []
-            filenames = load_hdf5.get_all_filename(path_bio2, '.csv')
+            filenames = hdf5_mod.get_all_filename(path_bio2, '.csv')
             for f in filenames:
                 if 'biv' in f:
                     name_fish.append(f[-7:-4])
@@ -817,21 +817,21 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         # get the preferences curve, all invertebrate are selected by default
-        [pref_inver, inv_name] = fstress.read_pref(path_bio, name_bio)
+        [pref_inver, inv_name] = fstress_mod.read_pref(path_bio, name_bio)
 
         # save input data in hdf5
-        fstress.save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, qhw, qrange, inv_name)
+        fstress_mod.save_fstress(path_hdf5, path_prj, name_prj, name_bio, path_bio, riv_name, qhw, qrange, inv_name)
 
         # run fstress
-        [vh_all, qmod_all, inv_name] = fstress.run_fstress(qhw, qrange, riv_name, inv_name, pref_inver, inv_name,
-                                                           name_prj, path_prj)
+        [vh_all, qmod_all, inv_name] = fstress_mod.run_fstress(qhw, qrange, riv_name, inv_name, pref_inver, inv_name,
+                                                               name_prj, path_prj)
 
         # write output in txt
         # no timestamp
-        fstress.write_txt(qmod_all, vh_all, inv_name, path_prj, riv_name, False)
+        fstress_mod.write_txt(qmod_all, vh_all, inv_name, path_prj, riv_name, False)
 
         # plot output in txt
-        fstress.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
+        fstress_mod.figure_fstress(qmod_all, vh_all, inv_name, path_prj, riv_name)
         # plt.show()
 
     # ----------------------------------------------------------------------------------
@@ -886,10 +886,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_hdf5 = path_prj
 
         # Check shape fields data validity
-        sub_validity, dominant_case = substrate.shp_validity(filename,
-                                                      path,
-                                                      code_type,
-                                                      dominant_case)
+        sub_validity, dominant_case = substrate_mod.shp_validity(filename,
+                                                                 path,
+                                                                 code_type,
+                                                                 dominant_case)
 
         # if shape data not valid : stop
         if not sub_validity:
@@ -900,8 +900,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         if sub_validity:
             # load substrate shp (and triangulation)
             q = Queue()
-            p = Process(target=substrate.load_sub_shp,
-                             args=(filename,
+            p = Process(target=substrate_mod.load_sub_shp,
+                        args=(filename,
                                    path,
                                    path_prj,
                                    path_hdf5,
@@ -932,10 +932,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path = path_input
         code_type = all_arg[3]
 
-        [xy, ikle, sub_dom2, sub_pg2, x, y, blob, blob] = substrate.load_sub_txt(filename, path, code_type)
+        [xy, ikle, sub_dom2, sub_pg2, x, y, blob, blob] = substrate_mod.load_sub_txt(filename, path, code_type)
         if ikle == [-99]:
             return
-        load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, [], [], '', False,
+        hdf5_mod.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg2, sub_dom2, ikle, xy, [], [], '', False,
                                 'SUBSTRATE')
 
     # ----------------------------------------------------------------------------------
@@ -963,7 +963,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                     name_hdf5 = 'Sub_CONST_' + str(i + 1)
                     path_hdf5 = path_prj
 
-                load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, i + 1, sub_val, [], [], [], [], name_hdf5, True,
+                hdf5_mod.save_hdf5_sub(path_hdf5, path_prj, name_prj, i + 1, sub_val, [], [], [], [], name_hdf5, True,
                                         'SUBSTRATE')
         else:
             if len(all_arg) == 4:
@@ -974,7 +974,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                 name_hdf5 = 'Sub_CONST_' + str(sub_val)
                 path_hdf5 = path_prj
 
-            load_hdf5.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], [], [], name_hdf5, True,
+            hdf5_mod.save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_val, sub_val, [], [], [], [], name_hdf5, True,
                                     'SUBSTRATE')
 
     # ----------------------------------------------------------------------------------
@@ -1031,7 +1031,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_shp = path_prj + "r'/output/shapefiles"
             # get all file in projet folder
             if os.path.isdir(path_prj):
-                filenames = load_hdf5.get_all_filename(path_prj, '.hdf5')
+                filenames = hdf5_mod.get_all_filename(path_prj, '.hdf5')
             else:
                 print('the input directory does not exist.')
                 return
@@ -1068,8 +1068,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # run the function
         q = Queue()
         progress_value = Value("i", 0)
-        p = Process(target=mesh_grid2.merge_grid_and_save,
-                         args=(outputfilename,
+        p = Process(target=mesh_management_mod.merge_grid_and_save,
+                    args=(outputfilename,
                                hdf5_name_hyd,
                                hdf5_name_sub,
                                path_hdf5,
@@ -1130,18 +1130,18 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         # create a random substrate in a shp form
         h5name = os.path.basename(hdf5_name_hyd)
         path_h5 = os.path.dirname(hdf5_name_hyd)
-        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Const_cemagref', 0, 100, path_prj)
+        substrate_mod.create_dummy_substrate_from_hydro(h5name, path_h5, 'random_sub', 'Const_cemagref', 0, 100, path_prj)
 
         # save it in hdf5 form
         filename_shp = 'random_sub.shp'
-        [xy, ikle, sub_dom, sub_pg, blob] = substrate.load_sub_shp(filename_shp, path_prj, 'Cemagref', -1)
+        [xy, ikle, sub_dom, sub_pg, blob] = substrate_mod.load_sub_shp(filename_shp, path_prj, 'Cemagref', -1)
         if ikle == [-99]:
             return
 
         # path_im2 = r'C:\Users\diane.von-gunten\HABBY\output_cmd\result_cmd2'
         # substrate.fig_substrate(xy, ikle, sub_pg, sub_dom, path_im2)
 
-        hdf5_name_sub = load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy, [], [],
+        hdf5_name_sub = hdf5_mod.save_hdf5_sub(path_prj, path_prj, name_prj, sub_pg, sub_dom, ikle, xy, [], [],
                                                 '', False, 'SUBSTRATE', True)
 
         # delete the random shapefile (so we can create a new one without problem)
@@ -1160,25 +1160,25 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # merge data
         [ikle_both, point_all_both, sub_pg_all_both, sub_dom_all_both, vel_all_both, height_all_both] = \
-            mesh_grid2.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj)
+            mesh_management_mod.merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, default_data, path_prj)
         if ikle_both == [-99]:
             print('Error: data not merged.')
             return
 
         # plot last time step
         if len(hdf5_name_hyd) > 33:
-            mesh_grid2.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_prj, h5name[6:-26])
+            mesh_management_mod.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_prj, h5name[6:-26])
         else:
-            mesh_grid2.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_prj, h5name)
+            mesh_management_mod.fig_merge_grid(point_all_both[-1], ikle_both[-1], path_prj, h5name)
 
         # save it
-        load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
-                                          point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True,
-                                          sub_pg_all_both,
-                                          sub_dom_all_both, hdf5_type="substrate")
+        hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, 'SUBSTRATE', 2, path_hdf5, ikle_both,
+                                         point_all_both, [], vel_all_both, height_all_both, [], [], [], [], True,
+                                         sub_pg_all_both,
+                                         sub_dom_all_both, hdf5_type="substrate")
 
         # create shapefile to test input
-        load_hdf5.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
+        hdf5_mod.create_shapfile_hydro(name_hdf5, path_hdf5, path_prj, True, erase_id)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_HYDRO_HDF5':
@@ -1191,8 +1191,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         else:
             name_hyd = os.path.basename(all_arg[2])
             hdf5_name_hyd = os.path.join(path_input, name_hyd)
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd,
-                                                                                                     path_prj)
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = hdf5_mod.load_hdf5_hyd_and_merge(hdf5_name_hyd,
+                                                                                                    path_prj)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_SUB_HDF5':
@@ -1206,7 +1206,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_sub = os.path.basename(all_arg[2])
             hdf5_name_sub = os.path.join(path_input, name_sub)
 
-        [ikle_sub, point_all_sub, data_sub, sub_description_system] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_prj)
+        [ikle_sub, point_all_sub, data_sub, sub_description_system] = hdf5_mod.load_hdf5_sub(hdf5_name_sub, path_prj)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HABITAT':
@@ -1242,7 +1242,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         name_fish = []
         stage2 = []
         bio_name2 = []
-        [latin_name, stages_all] = bio_info.get_stage(bio_names, path_bio)
+        [latin_name, stages_all] = bio_info_mod.get_stage(bio_names, path_bio)
         latin_name = list(set(latin_name))
         if stage_chosen == 'all':
             for l in range(0, len(latin_name)):
@@ -1295,7 +1295,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         #             merge_name = f
 
 
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
         fig_opt['text_output'] = 'True'
         fig_opt['shape_output'] = 'True'
         fig_opt['paraview'] = 'True'
@@ -1303,23 +1303,23 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # run calculation
         progress_value = Value("i", 0)
-        p = Process(target=calcul_hab.calc_hab_and_output, args=(merge_name,
-                                                                 path_merge,
-                                                                 bio_names,
-                                                                 stages,
-                                                                 name_fish,
-                                                                 name_fish,
-                                                                 run_choice,
-                                                                 path_bio,
-                                                                 path_prj,
-                                                                 path_prj,
-                                                                 path_prj,
-                                                                 path_prj,
-                                                                 progress_value,
-                                                                 [],
-                                                                 True,
-                                                                 fig_opt,
-                                                                 path_prj))
+        p = Process(target=calcul_hab_mod.calc_hab_and_output, args=(merge_name,
+                                                                     path_merge,
+                                                                     bio_names,
+                                                                     stages,
+                                                                     name_fish,
+                                                                     name_fish,
+                                                                     run_choice,
+                                                                     path_bio,
+                                                                     path_prj,
+                                                                     path_prj,
+                                                                     path_prj,
+                                                                     path_prj,
+                                                                     progress_value,
+                                                                     [],
+                                                                     True,
+                                                                     fig_opt,
+                                                                     path_prj))
         p.start()
         while p.is_alive():
             print('Progress %d%%\r' % progress_value.value, end="")
@@ -1340,7 +1340,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         else:
             new_name = 'rand_sub_' + h5name[:-3]
 
-        substrate.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 300, path_prj)
+        substrate_mod.create_dummy_substrate_from_hydro(h5name, path_h5, new_name, 'Cemagref', 0, 300, path_prj)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'HYDRO_CHRONIC':
@@ -1374,7 +1374,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('Error: Minimum water height should be a float')
             return
 
-        hydraulic_chronic.chronic_hydro(merge_files, path_merges, discharge_in, discharge_out, name_prj, path_prj, minh)
+        hydraulic_chronic_mod.chronic_hydro(merge_files, path_merges, discharge_in, discharge_out, name_prj, path_prj, minh)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_HYDRO_HDF5':
@@ -1401,8 +1401,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             hdf52 = os.path.basename(filepath2)
 
             model_type = 'Imported_hydro'
-            new_name = load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
-                                               False, True, True, 'ADD_HYDRO_CMD_LAST_' + hdf52[:-3])
+            new_name = hdf5_mod.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
+                                              False, True, True, 'ADD_HYDRO_CMD_LAST_' + hdf52[:-3])
             filepath1 = os.path.join(path_prj, new_name + '.hab')
             if 2 < i < len(all_arg) - 1:
                 try:
@@ -1437,8 +1437,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             hdf52 = os.path.basename(filepath2)
 
             model_type = 'Imported_hydro'
-            new_name = load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
-                                               True, True, True, 'ADD_MERGE_CMD_LAST_' + hdf52[:-3])
+            new_name = hdf5_mod.addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_prj,
+                                              True, True, True, 'ADD_MERGE_CMD_LAST_' + hdf52[:-3])
             filepath1 = os.path.join(path_prj, new_name + '.hab')
             if 2 < i < len(all_arg) - 1:
                 if old_name != new_name:
@@ -1475,7 +1475,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             return
 
         # get the names of the files in the folder with the expected files
-        filenames_exp = load_hdf5.get_all_filename(folder1, '.txt')
+        filenames_exp = hdf5_mod.get_all_filename(folder1, '.txt')
 
         # check that the expected files exists and have the same content in the folder with the results files
         num_wrong = 0

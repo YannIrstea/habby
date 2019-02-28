@@ -26,7 +26,7 @@ from random import randrange
 from shapely.geometry.polygon import Polygon
 from shapely.geometry import Point, MultiPoint
 from PyQt5.QtWidgets import QMessageBox
-from src import load_hdf5
+from src import hdf5_mod
 
 
 
@@ -566,7 +566,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
             data_2d["nb_reach"] = 1
 
             # save hdf5
-            hdf5_management = load_hdf5.Hdf5Management(name_prj, path_prj, name_hdf5)
+            hdf5_management = hdf5_mod.Hdf5Management(name_prj, path_prj, name_hdf5)
             hdf5_management.create_hdf5_sub(sub_description_system, data_2d)
 
     queue.put(mystdout)
@@ -1000,7 +1000,7 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
     """
 
     # load hydro hdf5
-    [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(h5name, path)
+    [ikle_all_t, point_all, inter_vel_all, inter_height_all] = hdf5_mod.load_hdf5_hyd_and_merge(h5name, path)
 
     # get min max of coord
     minx = 1e40

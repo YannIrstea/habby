@@ -21,8 +21,9 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import sqlite3
 import time
-from src import load_hdf5
-from src_GUI import output_fig_GUI
+
+from src import hdf5_mod
+from src_GUI import preferences_GUI
 
 try:
     import xml.etree.cElementTree as ET
@@ -138,8 +139,8 @@ def test_evah_xml_pref(path_xml, path_evha):
     """
 
     # get filename evha
-    filenames = load_hdf5.get_all_filename(path_evha, '.PRF')
-    filenames2 = load_hdf5.get_all_filename(path_evha, '.prf')
+    filenames = hdf5_mod.get_all_filename(path_evha, '.PRF')
+    filenames2 = hdf5_mod.get_all_filename(path_evha, '.prf')
     filenames.extend(filenames2)
     # load evha
     h_evha = []
@@ -159,7 +160,7 @@ def test_evah_xml_pref(path_xml, path_evha):
         stage_evha.append(stages)
 
     # get filename xml
-    filenames = load_hdf5.get_all_filename(path_xml, '.xml')
+    filenames = hdf5_mod.get_all_filename(path_xml, '.xml')
     for i in range(0, len(filenames)):
         filename = os.path.join(path_xml, filenames[i])
         print(filename)
@@ -250,7 +251,7 @@ def figure_pref(height, vel, sub, code_fish, name_fish,
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         if not fig_opt:
-            fig_opt = output_fig_GUI.create_default_figoption()
+            fig_opt = preferences_GUI.create_default_figoption()
         plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
         plt.rcParams['font.size'] = fig_opt['font_size']
         if fig_opt['font_size'] > 7:
@@ -410,7 +411,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
     rea0 += ") values("
 
     # get all xml name
-    preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
+    preffiles = hdf5_mod.get_all_filename(path_bio, '.xml')
     if len(preffiles) < 1:
         print('Error: no xml preference file found.\
                 Please check the biology folder. \n')
@@ -584,7 +585,7 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
 
     if not preffiles:
         # get all xml name
-        preffiles = load_hdf5.get_all_filename(path_bio, '.xml')
+        preffiles = hdf5_mod.get_all_filename(path_bio, '.xml')
         if len(preffiles) < 1:
             print('Error: no xml preference file found.\
                 Please check the biology folder. \n')
@@ -1172,7 +1173,7 @@ def main():
     path_out = r'C:\Users\diane.von-gunten\HABBY\biology'
     xmlfiles = ['ABL01.xml', 'ABL01.xml', 'BAM01.xml']
     stages = ['adult', 'juvenile', 'fry']
-    fig_opt = output_fig_GUI.create_default_figoption()
+    fig_opt = preferences_GUI.create_default_figoption()
     fig_opt['language'] = 1
     create_pdf(xmlfiles, stages, path_bio, '', path_out, fig_opt)
 

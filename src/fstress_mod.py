@@ -18,16 +18,16 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from src import load_hdf5
+from src import hdf5_mod
 import h5py
 import os
 import time
 import numpy as np
-from src import stathab_c
+from src import stathab_mod
 from scipy import stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from src_GUI import output_fig_GUI
+from src_GUI import preferences_GUI
 
 
 def save_fstress(path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
@@ -124,7 +124,7 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
 
     # open hdf5 with check
     h5_filename_path = os.path.join(hdf5_path, hdf5_name)
-    h5file = load_hdf5.open_hdf5_(h5_filename_path, "read")
+    h5file = hdf5_mod.open_hdf5_(h5_filename_path, "read")
     if h5file is None:
         print('Error: hdf5 file could not be open. \n')
         return failload
@@ -282,7 +282,7 @@ def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, na
 
     # there are some functions from FStress which have already be done by Stathab.
     # so we create a 'dummy" instance of Stathab to be able to use the methods of Stathab when useful
-    blob_stathab = stathab_c.Stathab(name_prj, path_prj)
+    blob_stathab = stathab_mod.Stathab(name_prj, path_prj)
 
     # get the fish name
     for f in range(0, nb_inv):
@@ -466,7 +466,7 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt={}):
     """
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
@@ -521,7 +521,7 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, fig_opt={}):
     """
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']

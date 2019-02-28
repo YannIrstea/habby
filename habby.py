@@ -15,8 +15,8 @@ https://github.com/YannIrstea/habby
 
 """
 import sys
-from src_GUI import Main_windows_1
-from src import func_for_cmd
+from src_GUI import main_window_GUI
+from src import func_for_cmd_mod
 from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen
@@ -53,7 +53,7 @@ def main():
         app.processEvents()
 
         # create windows
-        ex = Main_windows_1.MainWindows(VERSION)
+        ex = main_window_GUI.MainWindows(VERSION)
         app.setActiveWindow(ex)
 
         # close the splash screen
@@ -126,8 +126,8 @@ def main():
         if not os.path.isdir(path_prj):
             os.makedirs(path_prj)
         if not os.path.isfile(os.path.join(path_prj, name_prj + '.xml')):
-            func_for_cmd.copyfile(filename_empty,
-                                  os.path.join(path_prj, name_prj + '.xml'))
+            func_for_cmd_mod.copyfile(filename_empty,
+                                      os.path.join(path_prj, name_prj + '.xml'))
 
         # check if enough argument
         if len(sys.argv) == 0 or len(sys.argv) == 1:
@@ -140,16 +140,16 @@ def main():
                 print('Error: the RESTART command needs the name of \
                       the restart file as input.')
                 return
-            func_for_cmd.habby_restart(sys.argv[2], name_prj, path_prj,
-                                       path_bio)
+            func_for_cmd_mod.habby_restart(sys.argv[2], name_prj, path_prj,
+                                           path_bio)
         elif sys.argv[1] == 'ALL':
             if len(sys.argv) < 2:
                 print('Error: the ALL command needs at least one argument.')
             all_arg = ['habby_cmd.py'] + sys.argv[2:]
-            func_for_cmd.habby_on_all(all_arg, name_prj, path_prj, path_bio)
+            func_for_cmd_mod.habby_on_all(all_arg, name_prj, path_prj, path_bio)
         else:
             all_arg = sys.argv[1:]
-            func_for_cmd.all_command(all_arg, name_prj, path_prj, path_bio)
+            func_for_cmd_mod.all_command(all_arg, name_prj, path_prj, path_bio)
 
 
 if __name__ == '__main__':

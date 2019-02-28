@@ -20,32 +20,30 @@ import glob
 import os
 import shutil
 import numpy as np
-import gc
-
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, \
-    pyqtRemoveInputHook, QObject, QEvent, pyqtSlot
+    pyqtRemoveInputHook, QObject, QEvent
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
-    QLabel, QGridLayout, QAction, QDialog, \
+    QLabel, QGridLayout, QAction, \
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
     QMessageBox, QComboBox, QScrollArea, \
-    QSizePolicy, QInputDialog, QMenu, QToolBar, QFrame, QProgressBar, QShortcut
-from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor, QKeySequence
+    QInputDialog, QMenu, QToolBar, QFrame, QProgressBar
+from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
 import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
 import matplotlib as mpl
-
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
+
 from src_GUI import estimhab_GUI
-from src_GUI import hydro_GUI_2
+from src_GUI import hydro_sub_GUI
 from src_GUI import stathab_GUI
-from src_GUI import output_fig_GUI
-from src_GUI import plot_GUI
-from src_GUI import bio_info_GUI
+from src_GUI import preferences_GUI
+from src_GUI import data_explorer_GUI
+from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 
 
@@ -236,8 +234,8 @@ class MainWindows(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # preferences
-        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
-        self.output_fig_gui = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        self.output_fig_gui = preferences_GUI.outputW(self.path_prj, self.name_prj)
         self.dialog_preferences = QMainWindow()
         self.dialog_preferences.setWindowTitle(self.tr("Preferences"))
         self.dialog_preferences.setCentralWidget(self.output_fig_gui)
@@ -379,15 +377,15 @@ class MainWindows(QMainWindow):
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
         else:
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
-            self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
+            self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
             if ind_hydrau_tab != 0:
                 self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
-            self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
-            self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+            self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
+            self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
+            self.central_widget.plot_tab = data_explorer_GUI.PlotTab(self.path_prj, self.name_prj)
 
             # pass the info to the bio info tab
             # to be modified if a new language is added !
@@ -401,7 +399,7 @@ class MainWindows(QMainWindow):
                 self.central_widget.bioinfo_tab.lang = 'English'
 
             # write the new language in the figure option to be able to get the title, axis in the right language
-            output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+            preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
@@ -1050,15 +1048,15 @@ class MainWindows(QMainWindow):
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
-            self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
-            self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+            self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+            self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
+            self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.output_tab.save_option_fig()
-            self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
-            self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+            self.central_widget.plot_tab = data_explorer_GUI.PlotTab(self.path_prj, self.name_prj)
+            self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
         else:
             print('Error: Could not find the project saved just now. \n')
             return
@@ -1186,15 +1184,15 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # recreate new widget
-        self.central_widget.hydro_tab = hydro_GUI_2.Hydro2W(self.path_prj, self.name_prj)
-        self.central_widget.substrate_tab = hydro_GUI_2.SubstrateW(self.path_prj, self.name_prj)
+        self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+        self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
         #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
-        self.central_widget.bioinfo_tab = bio_info_GUI.BioInfo(self.path_prj, self.name_prj)
+        self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
         self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
         self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
         self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-        self.central_widget.output_tab = output_fig_GUI.outputW(self.path_prj, self.name_prj)
-        self.central_widget.plot_tab = plot_GUI.PlotTab(self.path_prj, self.name_prj)
+        self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
+        self.central_widget.plot_tab = data_explorer_GUI.PlotTab(self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
@@ -1209,7 +1207,7 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_log()
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # check if project open somewhere else
         self.check_concurrency()
@@ -1270,7 +1268,7 @@ class MainWindows(QMainWindow):
         self.central_widget.statmod_tab.open_estimhab_hdf5()
 
         # write the new langugage in the figure option to be able to get the title, axis in the right language
-        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # check if project open somewhere else
         self.check_concurrency()
@@ -1365,7 +1363,7 @@ class MainWindows(QMainWindow):
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         self.central_widget.output_tab.save_option_fig()
-        output_fig_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
     def change_name_project(self):
         """
@@ -1845,7 +1843,7 @@ class CentralW(QWidget):
 
     Finally, each tab is filled. The tabs have been created before, but there were empty. Now we fill each one with the
     adequate widget. This is the link with many of the other classes that we describe below. Indeed, many of the widget
-    are based on more complicated classes created for example in hydro_GUI_2.py.
+    are based on more complicated classes created for example in hydro_sub_GUI.py.
 
     Then, we create an area under it for the log. Here HABBY will write various infos for the user. Two things to note
     here: a) we should show the end of the scroll area. b) The size of the area should be controlled and not be
@@ -1866,12 +1864,12 @@ class CentralW(QWidget):
         self.welcome_tab = WelcomeW(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
-            self.hydro_tab = hydro_GUI_2.Hydro2W(path_prj, name_prj)
-            self.substrate_tab = hydro_GUI_2.SubstrateW(path_prj, name_prj)
+            self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
+            self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
             #self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
-            self.plot_tab = plot_GUI.PlotTab(path_prj, name_prj)
-            self.bioinfo_tab = bio_info_GUI.BioInfo(path_prj, name_prj, lang_bio)
+            self.plot_tab = data_explorer_GUI.PlotTab(path_prj, name_prj)
+            self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
             #self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
             #self.update_merge_for_chronicle()

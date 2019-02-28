@@ -28,9 +28,9 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from src_GUI import output_fig_GUI
+from src_GUI import preferences_GUI
 from src_GUI import estimhab_GUI
-from src import load_hdf5
+from src import hdf5_mod
 import matplotlib as mpl
 
 
@@ -1022,7 +1022,7 @@ class Stathab:
 
         """
         # figure option
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         plt.rcParams['figure.figsize'] = self.fig_opt['width'], self.fig_opt['height']
         plt.rcParams['font.size'] = self.fig_opt['font_size']
         plt.rcParams['lines.linewidth'] = self.fig_opt['line_width']
@@ -1188,7 +1188,7 @@ class Stathab:
         A function to save the stathab result in .txt form
         """
         # to know if we kept the old file or we erase them
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         erase1 = self.fig_opt['erase_id']
         if erase1 == 'True':  # xml in text
             erase1 = True
@@ -1256,7 +1256,7 @@ class Stathab:
 
     def find_path_hdf5_stat(self):
         """
-        A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_GUI_2.py
+        A function to find the path where to save the hdf5 file. Careful a simialar one is in hydro_sub_GUI.py
         and in estimhab_GUI. By default,
         path_hdf5 is in the project folder in the folder 'hdf5'.
         """
@@ -1544,7 +1544,7 @@ def load_pref_trop_uni(code_fish, path):
     datav_all = []
 
     # get all possible file
-    all_files = load_hdf5.get_all_filename(path, '.csv')
+    all_files = hdf5_mod.get_all_filename(path, '.csv')
 
     # get the name of univariate height files
     filenamesh = []
@@ -1587,7 +1587,7 @@ def load_pref_trop_biv(code_fish, path):
     data_all = []
 
     # get all possible files
-    all_files = load_hdf5.get_all_filename(path, '.csv')
+    all_files = hdf5_mod.get_all_filename(path, '.csv')
 
     # get the name of univariate height files
     filenames = []

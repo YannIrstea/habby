@@ -22,8 +22,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
 from PyQt5.QtGui import QFont
 import sys
 import copy
-from src import stathab_c
-from src import load_hdf5
+from src import stathab_mod
+from src import hdf5_mod
 from src_GUI import estimhab_GUI
 import xml.etree.ElementTree as ET
 
@@ -35,7 +35,7 @@ class StathabW(estimhab_GUI.StatModUseful):
     **Technical comments**
 
     The class StathabW makes the link between the data prepared by the user for Stathab and  the Stathab model
-    which is in the src folder (stathab_c.py) using the graphical interface.  Most of the Stathab input are given in
+    which is in the src folder (stathab_mod.py) using the graphical interface.  Most of the Stathab input are given in
     form of text file. For more info on the preparation of text files for stathab, read the document called
     'stathabinfo.pdf".  To use Stathab in HABBY, all Stathab input should be in the same directory. The user select
     this directory (using the button “loadb”) and HABBY tries to find the file it needs. All found files are added to
@@ -94,7 +94,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref_latin.txt']
         self.name_file_allreach_trop = []
         self.hdf5_name = self.tr('No hdf5 selected')
-        self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
+        self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.dir_hdf5 = self.path_prj
         self.typeload = 'txt'  # txt or hdf5
         self.riverint = 0  # the type of river (default 0, tropical river 1, tropical river bivarate 2)
@@ -278,7 +278,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             return
 
         # clear all list
-        self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
+        self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
         self.list_s.clear()
@@ -331,7 +331,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.riverint = self.rivtype.currentIndex()
 
         # clear the different list
-        self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
+        self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
         self.list_s.clear()
@@ -350,7 +350,7 @@ class StathabW(estimhab_GUI.StatModUseful):
     def load_from_txt_gui(self):
         """
         The main roles of load_from_text_gui() are to call the load_function of the stathab class (which is in
-        stathab_c.py in the folder src) and to call the function which create an hdf5 file. However, it does some
+        stathab_mod.py in the folder src) and to call the function which create an hdf5 file. However, it does some
         modifications to the GUI before.
 
         **Technical comments**
@@ -410,7 +410,7 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # read the reaches name
         sys.stdout = self.mystdout = StringIO()
-        name_reach = stathab_c.load_namereach(self.dir_name, self.listrivname)
+        name_reach = stathab_mod.load_namereach(self.dir_name, self.listrivname)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         if name_reach == [-99]:
@@ -501,16 +501,16 @@ class StathabW(estimhab_GUI.StatModUseful):
         name_fish = []
         if self.riverint == 0:
             sys.stdout = self.mystdout = StringIO()
-            [name_fish, blob] = stathab_c.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+            [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
             sys.stdout = sys.__stdout__
             self.send_err_log()
         if self.riverint == 1:  # univariate
-            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
             for f in filenames:
                 if 'uni' in f and f[-7:-4] not in name_fish:
                     name_fish.append(f[-7:-4])
         if self.riverint == 2:
-            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
             for f in filenames:
                 if 'biv' in f:
                     name_fish.append(f[-7:-4])
@@ -544,7 +544,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         paths = [self.dir_name] * len(all_files)
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        load_hdf5.copy_files(all_files, paths, new_dir)
+        hdf5_mod.copy_files(all_files, paths, new_dir)
 
         # log info
         if not self.mystathab.load_ok:
@@ -638,7 +638,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             doc.write(filename_prj)
 
         # clear list of the GUI
-        self.mystathab = stathab_c.Stathab(self.name_prj, self.path_prj)
+        self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
         self.list_s.clear()
@@ -753,16 +753,16 @@ class StathabW(estimhab_GUI.StatModUseful):
         name_fish = []
         if self.riverint == 0:
             sys.stdout = self.mystdout = StringIO()
-            [name_fish, blob] = stathab_c.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+            [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
             sys.stdout = sys.__stdout__
             self.send_err_log()
         if self.riverint == 1:  # univariate
-            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
             for f in filenames:
                 if 'uni' in f and f[-7:-4] not in name_fish:
                     name_fish.append(f[-7:-4])
         if self.riverint == 2:
-            filenames = load_hdf5.get_all_filename(self.path_bio_stathab, '.csv')
+            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
             for f in filenames:
                 if 'biv' in f:
                     name_fish.append(f[-7:-4])

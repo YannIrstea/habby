@@ -29,11 +29,11 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from src import bio_info
+from src import bio_info_mod
 from src_GUI import estimhab_GUI
-from src import calcul_hab
-from src import load_hdf5
-from src_GUI import output_fig_GUI
+from src import calcul_hab_mod
+from src import hdf5_mod
+from src_GUI import preferences_GUI
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -155,7 +155,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # fill in list of fish
         sys.stdout = self.mystdout = StringIO()
-        self.data_fish = bio_info.load_xml_name(self.path_bio, self.attribute_acc)
+        self.data_fish = bio_info_mod.load_xml_name(self.path_bio, self.attribute_acc)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         # order data fish by alphabetical order on the first column
@@ -400,7 +400,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def show_hydrosignature(self):
         """
-        This function make the link with function in bio_info.py which allows to load and plot the data related
+        This function make the link with function in bio_info_mod.py which allows to load and plot the data related
         to the hydrosignature.
         """
 
@@ -409,7 +409,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
         # do the plot
         sys.stdout = self.mystdout = StringIO()
-        bio_info.plot_hydrosignature(xmlfile)
+        bio_info_mod.plot_hydrosignature(xmlfile)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         # show the plot
@@ -480,7 +480,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if files is not None:
             for idx, f in enumerate(files):
                 if os.path.isfile(os.path.join(path_hdf5, f.text)):
-                    [sub_ini, hydro_ini] = load_hdf5.get_initial_files(path_hdf5, f.text)
+                    [sub_ini, hydro_ini] = hdf5_mod.get_initial_files(path_hdf5, f.text)
                     hydro_ini = os.path.basename(hydro_ini)
                     textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate :' + sub_ini
                     if len(f.text) < 55:
@@ -500,7 +500,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
     def show_pref(self):
         """
         This function shows the image of the preference curve of the selected xml file. For this it calls, the functions
-        read_pref and figure_pref of bio_info.py. Hence, this function justs makes the link between the GUI and
+        read_pref and figure_pref of bio_info_mod.py. Hence, this function justs makes the link between the GUI and
         the functions effectively doing the image.
         """
 
@@ -514,12 +514,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # open the pref
         sys.stdout = self.mystdout = StringIO()
-        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info.read_pref(xmlfile)
+        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         # plot the pref
-        fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        bio_info.figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages, fig_opt=fig_dict)
+        fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        bio_info_mod.figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages, fig_opt=fig_dict)
 
         # show the image
         self.show_fig.emit()
@@ -537,7 +537,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
         # get the figure options and the type of output to be created
-        fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
@@ -622,12 +622,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.timer.start(100)  # to refresh progress info
         self.q4 = Queue()
         self.progress_value = Value("i", 0)
-        self.p4 = Process(target=calcul_hab.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
-                                                                       name_fish, name_fish_sh, run_choice,
-                                                                       self.path_bio, path_txt, path_shp, path_para,
-                                                                       path_im, self.progress_value,
-                                                                       self.q4, False, fig_dict, path_im_bioa,
-                                                                       xmlfiles))
+        self.p4 = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
+                                                                           name_fish, name_fish_sh, run_choice,
+                                                                           self.path_bio, path_txt, path_shp, path_para,
+                                                                           path_im, self.progress_value,
+                                                                           self.q4, False, fig_dict, path_im_bioa,
+                                                                           xmlfiles))
         self.p4.start()
 
         # log
@@ -658,7 +658,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if self.p4.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the langugage
-            fig_dict = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
             # send the message
             if fig_dict['language'] == str(1):
                 # it is necssary to start this string with Process to see it in the Statusbar

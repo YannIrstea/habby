@@ -15,10 +15,10 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from src import load_hdf5
+from src import hdf5_mod
 import numpy as np
 # from src import calcul_hab  useful to test, but do not work with the whole programm
-from src import hl
+from src import hl_mod
 import time
 import xml.dom.minidom
 
@@ -62,7 +62,7 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
 
     # load grid (could also be used if velcoity and height point data is needed)
     [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
+        hdf5_mod.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
     if ikle_all_t == [-99]:
         return
     nb_time = len(ikle_all_t)
@@ -112,7 +112,7 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
                     if os.path.isfile(name_here):
                         os.remove(name_here)
                 file_names_all.append(name_here)
-                hl.unstructuredGridToVTK(fileName + '_t' + str(t), x, y, z, connectivity, offsets, cell_types, cellData)
+                hl_mod.unstructuredGridToVTK(fileName + '_t' + str(t), x, y, z, connectivity, offsets, cell_types, cellData)
 
         # create the "grouping" file to read all time step together
         name_here = fileName + '.pvd'
@@ -170,11 +170,11 @@ def save_slf(name_hdf5, path_hdf5, path_slf, merge, output_name='', habitat=[]):
     """
     # load hdf5
     if not merge:
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5,
-                                                                                                     path_hdf5, merge=merge)
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = hdf5_mod.load_hdf5_hyd_and_merge(name_hdf5,
+                                                                                                    path_hdf5, merge=merge)
     else:
         [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
-            = load_hdf5.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=merge)
+            = hdf5_mod.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=merge)
     if isinstance(ikle_all_t[0][0], int) and ikle_all_t[0][0] == -99:
         print('Error: Hdf5 file not loaded \n')
         return

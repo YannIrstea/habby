@@ -21,9 +21,9 @@ import matplotlib.pyplot as plt
 import time
 import sys
 from io import StringIO
-from src import manage_grid_8
-from src import load_hdf5
-from src_GUI import output_fig_GUI
+from src import manage_grid_mod
+from src import hdf5_mod
+from src_GUI import preferences_GUI
 
 
 def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
@@ -55,7 +55,7 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     """
     # minimum water height
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
 
     # create the empy output
@@ -88,14 +88,14 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     for t in range(0, len(vel_cell)):
         # cell to node data
         if t == 0:
-            [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
-                                                                                          point_c_all_t[0], vel_cell[t],
-                                                                                          height_cell[t], warn1)
+            [v_node, h_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin(point_all_t[0],
+                                                                                            point_c_all_t[0], vel_cell[t],
+                                                                                            height_cell[t], warn1)
         else:
-            [v_node, h_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin(point_all_t[0],
-                                                                                          point_c_all_t[0], vel_cell[t],
-                                                                                          height_cell[t], warn1,
-                                                                                          vtx_all, wts_all)
+            [v_node, h_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin(point_all_t[0],
+                                                                                            point_c_all_t[0], vel_cell[t],
+                                                                                            height_cell[t], warn1,
+                                                                                            vtx_all, wts_all)
             # to study the difference in average, do no forget to comment sys.stdout = mystdout = StringIO()
             # other wise you get zero for all.
         warn1 = False
@@ -105,9 +105,9 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
         h_f = []
         for f in range(0, len(ikle_all_t[0])):  # by reach (or water area)
             # cut grid to wet area
-            [ikle2, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_all_t[0][f],
-                                                                                   point_all_t[0][f], h_node[f],
-                                                                                   v_node[f], minwh)
+            [ikle2, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_all_t[0][f],
+                                                                                     point_all_t[0][f], h_node[f],
+                                                                                     v_node[f], minwh)
             ikle_f.append(ikle2)
             point_f.append(point_all)
             h_f.append(water_height)
@@ -119,9 +119,9 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
         ikle_all_t.append(ikle_f)
 
     # save data
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-                                      point_all_t, point_c_all_t,
-                                      inter_vel_all_t, inter_h_all_t, sim_name=timesteps, hdf5_type="hydraulic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                     point_all_t, point_c_all_t,
+                                     inter_vel_all_t, inter_h_all_t, sim_name=timesteps, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -154,7 +154,7 @@ def load_hec_ras2d(filename, path):
     as an hdf5 input for HABBY. Indeed, even if they are both in hdf5, the formats of the hdf5 files are different
     (and would miss some important info for HABBY).  So we still need to load the HEC-RAS data in HABBY even if in 2D.
 
-    This function call the function get_trianglar grid which is in rubar.py.
+    This function call the function get_trianglar grid which is in rubar1d2d_mod.py.
 
     **Walk-through**
 
@@ -303,7 +303,7 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     In Hec-ras, it is possible to have non-triangular cells, often rectangular cells This function transform the
     "mixed" grid to a triangular grid. For this,
     it uses the centroid of each cell with more than three side and it create a triangle by side (linked with the
-    center of the cell). A similar function exists in rubar.py, but, as there are only one reach in rubar
+    center of the cell). A similar function exists in rubar1d2d_mod.py, but, as there are only one reach in rubar
     and because ikle is different in hec-ras, it was hard to merge both functions together.
 
     This function can only be used if the original grid is the same for all time steps. The grid created is dfferent

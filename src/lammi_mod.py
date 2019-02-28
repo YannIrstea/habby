@@ -21,10 +21,10 @@ import matplotlib.pyplot as plt
 import time
 from io import StringIO
 from collections import OrderedDict
-from src_GUI import output_fig_GUI
-from src import substrate
-from src import manage_grid_8
-from src import load_hdf5
+from src_GUI import preferences_GUI
+from src import substrate_mod
+from src import manage_grid_mod
+from src import hdf5_mod
 import matplotlib as mpl
 
 
@@ -97,7 +97,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     # create the grid
     # first, create the grid for the whole profile (no need for velcoity and height data)
     [ikle_all, point_all_reach, point_c_all, blob, blob] \
-        = manage_grid_8.create_grid_only_1_profile(coord_pro[0], nb_pro_reach)
+        = manage_grid_mod.create_grid_only_1_profile(coord_pro[0], nb_pro_reach)
     inter_vel_all_t.append([])
     inter_h_all_t.append([])
     sub_dom_all_t.append([])
@@ -112,18 +112,18 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         sub_dom = []
         sub_pg = []
         for ind, subp in enumerate(sub_pro[t]):
-            [sub_domp, sub_pgp] = substrate.percentage_to_domcoarse(subp, dominant_case)
+            [sub_domp, sub_pgp] = substrate_mod.percentage_to_domcoarse(subp, dominant_case)
             # careful, there are real uncertainties here !!!!
-            sub_pro[t][ind] = substrate.edf_to_cemagref_by_percentage(subp)
-            sub_domp = substrate.edf_to_cemagref(sub_domp)
-            sub_pgp = substrate.edf_to_cemagref(sub_pgp)
+            sub_pro[t][ind] = substrate_mod.edf_to_cemagref_by_percentage(subp)
+            sub_domp = substrate_mod.edf_to_cemagref(sub_domp)
+            sub_pgp = substrate_mod.edf_to_cemagref(sub_pgp)
             sub_pg.append(sub_pgp)
             sub_dom.append(sub_domp)
 
         # create the grid for this time step (including substrate data)
         [ikle_all, point_all_reach, point_c_all, inter_vel_all, inter_height_all, inter_dom_all, inter_pg_all,
-         inter_per_all] = manage_grid_8.create_grid_only_1_profile(coord_pro[t], nb_pro_reach, vh_pro[t], sub_pg,
-                                                                   sub_dom, sub_pro[t], True, div[t], True)
+         inter_per_all] = manage_grid_mod.create_grid_only_1_profile(coord_pro[t], nb_pro_reach, vh_pro[t], sub_pg,
+                                                                     sub_dom, sub_pro[t], True, div[t], True)
         inter_vel_all_t.append(inter_vel_all)
         inter_h_all_t.append(inter_height_all)
         ikle_all_t.append(ikle_all)
@@ -134,9 +134,9 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         sub_per_all_t.append(inter_per_all)
 
     # save the data in an hdf5 (merge) file with hydro and subtrate data
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 2, path_hdf5, ikle_all_t,
-                                      point_all_t, [], inter_vel_all_t, inter_h_all_t, [], [], [], [], True,
-                                      sub_pg_all_t, sub_dom_all_t, sub_per_all_t, sim_name=q_step, hdf5_type="merge")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 2, path_hdf5, ikle_all_t,
+                                     point_all_t, [], inter_vel_all_t, inter_h_all_t, [], [], [], [], True,
+                                     sub_pg_all_t, sub_dom_all_t, sub_per_all_t, sim_name=q_step, hdf5_type="merge")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -195,7 +195,7 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, fig_opt, savefig1d,
     failload = [-99], [-99], [-99], [-99], [-99], [-99]
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # get the filename of the transect by facies
     [length_all, fac_filename_all] = get_transect_filename(facies_path, facies_name, transect_path, transect_name,

@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 import os
 import matplotlib.pyplot as plt
 import time
-from src_GUI import output_fig_GUI
+from src_GUI import preferences_GUI
 import matplotlib as mpl
 
 
@@ -65,7 +65,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     a text file.
     """
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     if pict:
         plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
         plt.rcParams['font.size'] = fig_opt['font_size']
@@ -162,7 +162,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
         SPU_f = VH_f * w_all * 100
         if pict:
             if not fig_opt:
-                fig_opt = output_fig_GUI.create_default_figoption()
+                fig_opt = preferences_GUI.create_default_figoption()
 
             plt.subplot(2, 1, 1)
             plt.grid(True)

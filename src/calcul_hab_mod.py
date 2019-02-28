@@ -24,11 +24,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
-from src import load_hdf5
-from src import bio_info
 import shapefile
-from src import new_create_vtk
-from src_GUI import output_fig_GUI
+
+from src import hdf5_mod
+from src import bio_info_mod
+from src import paraview_mod
+from src_GUI import preferences_GUI
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fish, name_fish_sh, run_choice, path_bio,
@@ -37,7 +38,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
-    is done on the main thread as we want to show it to the user on the GUI. This function is called by bio_info_GUI.py
+    is done on the main thread as we want to show it to the user on the GUI. This function is called by calc_hab_GUI.py
     on a second thread to minimize the freezing on the GUI.
 
     :param hdf5_file: the name of the hdf5 with the results
@@ -69,7 +70,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # calcuation habitat
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
@@ -124,7 +125,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
     # get the time step name
     # get time step name if they exists
-    sim_name = load_hdf5.load_unit_name(hdf5_file, path_hdf5)
+    sim_name = hdf5_mod.load_unit_name(hdf5_file, path_hdf5)
 
     # text output
     if create_text:
@@ -150,13 +151,13 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
     # paraview outputs
     if create_para:
-        new_create_vtk.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
-                                      vel_c_all_t, name_fish, erase_id)
-        new_create_vtk.save_slf(hdf5_file, path_hdf5, path_para, True, output_name=name_base, habitat=vh_all_t_sp)
+        paraview_mod.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
+                                    vel_c_all_t, name_fish, erase_id)
+        paraview_mod.save_slf(hdf5_file, path_hdf5, path_para, True, output_name=name_base, habitat=vh_all_t_sp)
 
     # pdf with information on the fish
     if create_info and len(xmlfiles) > 0:
-        bio_info.create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_txt, fig_opt)
+        bio_info_mod.create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_txt, fig_opt)
 
     # figure done always
     # 2d figure and histogram of hydraulic data for certain timesteps
@@ -181,7 +182,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
 
     # saving hdf5 data of the habitat value
-    load_hdf5.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
+    hdf5_mod.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
 
     # progress
     progress_value.value = 90
@@ -230,7 +231,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
     # load merge
     # test if file exists in load_hdf5_hyd
     [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all, sub_description_system] = \
-        load_hdf5.load_hdf5_hyd_and_merge(merge_name, path_merge, merge=True)
+        hdf5_mod.load_hdf5_hyd_and_merge(merge_name, path_merge, merge=True)
     if ikle_all_t == [[-99]]:
         return failload
 
@@ -242,7 +243,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
 
         # load bio data
         xmlfile = os.path.join(path_bio, bio_name)
-        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info.read_pref(xmlfile)
+        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(xmlfile)
         if pref_height == [-99]:
             print('Error: preference file could not be loaded. \n')
             return failload
@@ -266,7 +267,7 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
                                       pref_vel, pref_height, pref_sub)
                 elif opt == 2:  # percentage
-                    sub_per = load_hdf5.load_sub_percent(merge_name, path_merge)
+                    sub_per = hdf5_mod.load_sub_percent(merge_name, path_merge)
                     if len(sub_per) == 1:
                         print('Error: Substrate data in percentage form is not found. Habitat by percentage cannot be'
                               ' computed. \n')
@@ -518,7 +519,7 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, area_c_all, vel_data, heig
     """
 
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
+        hdf5_mod.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
     if ikle == [-99]:
         return
 
@@ -735,7 +736,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     :param erase_id: If True, we erase old text file from identical hydraulic model
     """
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
+        hdf5_mod.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
     if ikle == [[-99]]:
         return
 
@@ -743,7 +744,7 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
         sim_name = []
 
     if save_perc:
-        sub_per_data = load_hdf5.load_sub_percent(name_merge_hdf5, path_hdf5)
+        sub_per_data = hdf5_mod.load_sub_percent(name_merge_hdf5, path_hdf5)
 
     # we do not print the first time step with the whole profile
     nb_reach = len(ikle[0])
@@ -846,7 +847,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     """
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     if fig_opt['font_size'] > 7:
@@ -1139,7 +1140,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     """
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
@@ -1150,7 +1151,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     b = 0
     # get grid data from hdf5
     [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
+        hdf5_mod.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
     if ikle_all_t == [-99]:
         return
     # format name fish
@@ -1336,7 +1337,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
     :param erase_id: If True, we erase a figure with an identical name
     """
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
@@ -1348,7 +1349,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
         sim_name = []
 
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
-        load_hdf5.load_hdf5_hyd_and_merge(hdf5_file, path_hdf5, merge=True)
+        hdf5_mod.load_hdf5_hyd_and_merge(hdf5_file, path_hdf5, merge=True)
     if ikle == [[-99]]:
         return
 
@@ -1510,7 +1511,7 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
     area_all = []
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']

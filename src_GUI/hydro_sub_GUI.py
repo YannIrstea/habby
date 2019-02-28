@@ -24,26 +24,26 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
     QLabel, QGridLayout, \
     QLineEdit, QFileDialog, QSpacerItem, QListWidget, \
     QComboBox, QMessageBox, QGroupBox, \
-    QStackedWidget, QRadioButton, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
+    QRadioButton, QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
 from PyQt5.QtGui import QIcon
 import h5py
 from multiprocessing import Process, Queue, Value
 from sridentify import Sridentify
-from src import Hec_ras06
-from src import hec_ras2D
-from src import selafin_habby1
-from src import substrate
-from src import rubar
-from src import river2d
-from src import sw2d
-from src import iber2d
-from src import mascaret
-from src import load_hdf5
-from src_GUI import output_fig_GUI
-from src import mesh_grid2
-from src import lammi
-from src import new_create_vtk
+from src import hec_ras1D_mod
+from src import hec_ras2D_mod
+from src import telemac_mod
+from src import substrate_mod
+from src import rubar1d2d_mod
+from src import river2d_mod
+from src import sw2d_mod
+from src import iber2d_mod
+from src import mascaret_mod
+from src import hdf5_mod
+from src_GUI import preferences_GUI
+from src import mesh_management_mod
+from src import lammi_mod
+from src import paraview_mod
 
 np.set_printoptions(threshold=np.inf)
 try:
@@ -477,7 +477,7 @@ class Hydro2W(QScrollArea):
             self.send_log.emit(self.tr('Error: No hydraulic file found. \n'))
             return
 
-        new_create_vtk.save_slf(name_hdf5, path_hdf5, path_slf, False)
+        paraview_mod.save_slf(name_hdf5, path_hdf5, path_slf, False)
 
 
 class SubHydroW(QWidget):
@@ -636,12 +636,12 @@ class SubHydroW(QWidget):
         than for the function was_model_loaded_before(). To keep the coherence between the filename and hdf5 name,
         a change in this behaviour should be reflected in both function.
 
-        This function calls the function get_hdf5_name in the load_hdf5.py file
+        This function calls the function get_hdf5_name in the hdf5_mod.py file
 
         """
 
         sys.stdout = self.mystdout = StringIO()  # out to GUI
-        pathname_hdf5 = load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
+        pathname_hdf5 = hdf5_mod.get_hdf5_name(self.model_type, self.name_prj, self.path_prj)
         sys.stdout = sys.__stdout__  # reset to console
         self.send_err_log()
 
@@ -1065,7 +1065,7 @@ class SubHydroW(QWidget):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
             # send the message FRENCH
             if self.fig_opt['language'] == str(1):
                 # MERGE
@@ -1188,10 +1188,10 @@ class SubHydroW(QWidget):
         :param show_info: If True, basic information about the data will be displayed into the log window.
         """
         # getting the name
-        name_hdf5 = os.path.basename(load_hdf5.get_hdf5_name(self.model_type, self.name_prj, self.path_prj))
+        name_hdf5 = os.path.basename(hdf5_mod.get_hdf5_name(self.model_type, self.name_prj, self.path_prj))
 
         # getting the data
-        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hdf5/")
+        units_raw = hdf5_mod.load_unit_name(name_hdf5, self.path_prj + "/hdf5/")
 
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
@@ -1218,7 +1218,7 @@ class SubHydroW(QWidget):
         name_hdf5 = self.lm2.text()
 
         # getting the subtrate data
-        units_raw = load_hdf5.load_unit_name(name_hdf5, self.path_prj + "/hdf5/")
+        units_raw = hdf5_mod.load_unit_name(name_hdf5, self.path_prj + "/hdf5/")
 
         # plot hydraulic data (h, v, mesh)
         types_hdf5 = "hydraulic"
@@ -1440,7 +1440,7 @@ class HEC_RAS1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         if self.fig_opt['raw_data'] == 'True':  # from the xml
             show_all_fig = True
         else:
@@ -1459,18 +1459,18 @@ class HEC_RAS1D(SubHydroW):
 
         # load hec_ras data and create the grid in a second thread
         self.q = Queue()
-        self.p = Process(target=Hec_ras06.open_hec_hec_ras_and_create_grid, args=(self.name_hdf5, path_hdf5,
-                                                                                  self.name_prj, self.path_prj,
-                                                                                  self.model_type, self.namefile,
-                                                                                  self.pathfile, self.interpo_choice,
-                                                                                  path_im, show_all_fig,
-                                                                                  self.pro_add, self.q, False,
-                                                                                  self.fig_opt))
+        self.p = Process(target=hec_ras1D_mod.open_hec_hec_ras_and_create_grid, args=(self.name_hdf5, path_hdf5,
+                                                                                      self.name_prj, self.path_prj,
+                                                                                      self.model_type, self.namefile,
+                                                                                      self.pathfile, self.interpo_choice,
+                                                                                      path_im, show_all_fig,
+                                                                                      self.pro_add, self.q, False,
+                                                                                      self.fig_opt))
         self.p.start()
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -1532,7 +1532,7 @@ class HEC_RAS1D(SubHydroW):
 
 class Rubar2D(SubHydroW):
     """
-    The class Rubar2D is there to manage the link between the graphical interface and the functions in src/rubar.py
+    The class Rubar2D is there to manage the link between the graphical interface and the functions in src/rubar1d2d_mod.py
     which loads the RUBAR data in 2D. It inherits from SubHydroW() so it have all the methods and the variables from
     the class SubHydroW(). The form of the function is similar to hec-ras, but it does not have the part about the grid
     creation as we look here as the data created in 2D by RUBAR.
@@ -1618,7 +1618,7 @@ class Rubar2D(SubHydroW):
 
     def load_rubar(self):
         """
-        A function to execture the loading and saving the the rubar file using rubar.py. It is similar to the
+        A function to execture the loading and saving the the rubar file using rubar1d2d_mod.py. It is similar to the
         load_hec_ras_gui() function. Obviously, it calls rubar and not hec_ras this time. A small difference is that
         the rubar2D outputs are only given in one grid for all time steps and all reaches. Moreover, it is
         necessary to cut the grid for each time step as a function of the wetted area and maybe to separate the
@@ -1662,21 +1662,21 @@ class Rubar2D(SubHydroW):
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
-        self.p = Process(target=rubar.load_rubar2d_and_create_grid, args=(self.name_hdf5, self.namefile[0],
-                                                                          self.namefile[1], self.pathfile[0],
-                                                                          self.pathfile[1], path_im, self.name_prj,
-                                                                          self.path_prj,
-                                                                          self.model_type, self.nb_dim, path_hdf5,
-                                                                          self.q, False, self.fig_opt))
+        self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid, args=(self.name_hdf5, self.namefile[0],
+                                                                                  self.namefile[1], self.pathfile[0],
+                                                                                  self.pathfile[1], path_im, self.name_prj,
+                                                                                  self.path_prj,
+                                                                                  self.model_type, self.nb_dim, path_hdf5,
+                                                                                  self.q, False, self.fig_opt))
         self.p.start()
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -1713,7 +1713,7 @@ class Rubar2D(SubHydroW):
 
 class Mascaret(SubHydroW):
     """
-    The class Mascaret is there to manage the link between the graphical interface and the functions in src/mascaret.py
+    The class Mascaret is there to manage the link between the graphical interface and the functions in src/mascaret_mod.py
     which loads the Masacret data in 1D. It inherits from SubHydroW() so it have all the methods and the variables
     from the class SubHydroW(). It is similar to the HEC-Ras1D class (see this class for more information). However, mascaret is 1D model, so the loading
     of mascaret has one additional step compared to the hec-ras load: The velocity must be distributed along the
@@ -1845,7 +1845,7 @@ class Mascaret(SubHydroW):
 
     def load_mascaret_gui(self):
         """
-        The function is used to load the mascaret data, calling the function contained in the script mascaret.py.
+        The function is used to load the mascaret data, calling the function contained in the script mascaret_mod.py.
         It also create a 2D grid from the 1D data and distribute the velocity.
         All of theses tasks are done on a second thread to avoid freezing the GUI.
         """
@@ -1880,7 +1880,7 @@ class Mascaret(SubHydroW):
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         if self.fig_opt['raw_data'] == 'True':  # from the xml
             show_all_fig = True
         else:
@@ -1912,18 +1912,18 @@ class Mascaret(SubHydroW):
         self.q = Queue()
         # for error management and figures (when time finsiehed call the self.send_data function)
         self.timer.start(1000)
-        self.p = Process(target=mascaret.load_mascaret_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
-                                                                              self.path_prj, self.model_type,
-                                                                              self.namefile,
-                                                                              self.pathfile, self.interpo_choice,
-                                                                              self.manning_arr, self.np_point_vel,
-                                                                              show_all_fig, self.pro_add, self.q,
-                                                                              path_im))
+        self.p = Process(target=mascaret_mod.load_mascaret_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
+                                                                                  self.path_prj, self.model_type,
+                                                                                  self.namefile,
+                                                                                  self.pathfile, self.interpo_choice,
+                                                                                  self.manning_arr, self.np_point_vel,
+                                                                                  show_all_fig, self.pro_add, self.q,
+                                                                                  path_im))
         self.p.start()
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -2242,7 +2242,7 @@ class River2D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
         for i in range(0, len(self.namefile)):
             # save each name in the project file, empty list on i == 0
@@ -2252,15 +2252,15 @@ class River2D(SubHydroW):
                 self.save_xml(i, True)
 
         self.q = Queue()
-        self.p = Process(target=river2d.load_river2d_and_cut_grid, args=(self.name_hdf5, self.namefile, self.pathfile,
-                                                                         self.name_prj, self.path_prj, self.model_type,
-                                                                         self.nb_dim, path_hdf5, self.q, False,
-                                                                         self.fig_opt))
+        self.p = Process(target=river2d_mod.load_river2d_and_cut_grid, args=(self.name_hdf5, self.namefile, self.pathfile,
+                                                                             self.name_prj, self.path_prj, self.model_type,
+                                                                             self.nb_dim, path_hdf5, self.q, False,
+                                                                             self.fig_opt))
         self.p.start()
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log
@@ -2287,7 +2287,7 @@ class River2D(SubHydroW):
 
 class Rubar1D(SubHydroW):
     """
-    The class Rubar1D is there to manage the link between the graphical interface and the functions in src/rubar.py
+    The class Rubar1D is there to manage the link between the graphical interface and the functions in src/rubar1d2d_mod.py
     which loads the Rubar1D data in 1D. It inherits from SubHydroW() so it have all the methods and the variables
     from the class SubHydroW(). It is very similar to Mascaret class.
     """
@@ -2404,7 +2404,7 @@ class Rubar1D(SubHydroW):
 
     def load_rubar1d(self):
         """
-        A function to execute the loading and saving the the rubar file using rubar.py. After loading the data,
+        A function to execute the loading and saving the the rubar file using rubar1d2d_mod.py. After loading the data,
         it distribute the velocity along the profiles by calling self.distribute_velocity() and it created the 2D grid
         by calling the method self.grid_and_interpo.
         """
@@ -2435,7 +2435,7 @@ class Rubar1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         if self.fig_opt['raw_data'] == 'True':  # xml, string
             show_all_fig = True
         else:
@@ -2466,16 +2466,16 @@ class Rubar1D(SubHydroW):
         self.q = Queue()
         # for error management and figures (when time finished call the self.send_data function)
         self.timer.start(1000)
-        self.p = Process(target=rubar.load_rubar1d_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
-                                                                          self.path_prj, self.model_type, self.namefile,
-                                                                          self.pathfile, self.interpo_choice,
-                                                                          self.manning_arr, self.np_point_vel,
-                                                                          show_all_fig, self.pro_add, self.q, path_im))
+        self.p = Process(target=rubar1d2d_mod.load_rubar1d_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
+                                                                                  self.path_prj, self.model_type, self.namefile,
+                                                                                  self.pathfile, self.interpo_choice,
+                                                                                  self.manning_arr, self.np_point_vel,
+                                                                                  show_all_fig, self.pro_add, self.q, path_im))
         self.p.start()
 
         # path input
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -2532,7 +2532,7 @@ class Rubar1D(SubHydroW):
 
 class HEC_RAS2D(SubHydroW):
     """
-    The class hec_RAS2D is there to manage the link between the graphical interface and the functions in src/hec_ras2D.py
+    The class hec_RAS2D is there to manage the link between the graphical interface and the functions in src/hec_ras2D_mod.py
     which loads the hec_ras2D data in 2D. It inherits from SubHydroW() so it have all the methods and the variables
     from the class SubHydroW(). It is very similar to RUBAR2D class and it has the same problem about node/cell
     which will need to be corrected.
@@ -2653,20 +2653,20 @@ class HEC_RAS2D(SubHydroW):
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
         # load the hec_ras data and cut the grid to the needed side
         self.q = Queue()
-        self.p = Process(target=hec_ras2D.load_hec_ras_2d_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
-                                                                              self.pathfile[0], self.name_prj,
-                                                                              self.path_prj, self.model_type,
-                                                                              self.nb_dim, path_hdf5,
-                                                                              self.q, False, self.fig_opt))
+        self.p = Process(target=hec_ras2D_mod.load_hec_ras_2d_and_cut_grid, args=(self.name_hdf5, self.namefile[0],
+                                                                                  self.pathfile[0], self.name_prj,
+                                                                                  self.path_prj, self.model_type,
+                                                                                  self.nb_dim, path_hdf5,
+                                                                                  self.q, False, self.fig_opt))
         self.p.start()
 
         # path input
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=([self.namefile[0]], [self.pathfile[0]], path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=([self.namefile[0]], [self.pathfile[0]], path_input))
         self.p2.start()
 
         # log info
@@ -2684,7 +2684,7 @@ class HEC_RAS2D(SubHydroW):
 class TELEMAC(SubHydroW):  # QGroupBox
     """
     The class Telemac is there to manage the link between the graphical
-    interface and the functions in src/selafin_habby1.py
+    interface and the functions in src/telemac_mod.py
     which loads the Telemac data in 2D. It inherits from SubHydroW()
     so it have all the methods and the variables
     from the class SubHydroW(). It is very similar to RUBAR2D class,
@@ -2873,7 +2873,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                     for i, file in enumerate(filename):
                         # get units name from TELEMAC file
-                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                        nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(file, folder_path)
                         unit_index_from_telemac_file = [True] * nbtimes
                         # hdf5 filename
                         blob2, ext = os.path.splitext(file)
@@ -2923,8 +2923,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 if not more_than_one_file_selected_by_user:
                     self.multi_hdf5 = False
                     # get units name from TELEMAC file
-                    nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(filename,
-                                                                                        folder_path)
+                    nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(filename,
+                                                                                     folder_path)
                     # names
                     self.pathfile[0] = folder_path  # source file path
                     self.namefile[0] = filename  # source file name
@@ -3092,7 +3092,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 """ CASE 1.a """
                 if self.telemac_case == "1.a":
                     # get units name from TELEMAC file
-                    nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(data_index_telemac["filename"][0], folder_path)
+                    nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(data_index_telemac["filename"][0], folder_path)
                     # get units name from indexTELEMAC.txt file
                     unit_name_from_indextelemac_file = data_index_telemac[headers[discharge_index]]
                     # check if lenght of two loading units
@@ -3141,7 +3141,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 """ CASE 1.b """
                 if self.telemac_case == "1.b":
                     # get units name from TELEMAC file
-                    nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(
+                    nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(
                         data_index_telemac["filename"][0], folder_path)
                     # get units name from indexTELEMAC.txt file
                     unit_name_from_indextelemac_file = data_index_telemac[headers[time_index]][0]
@@ -3195,7 +3195,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 if self.telemac_case == "2.a":
                     # get units name from TELEMAC files (must have only one time step by file)
                     for file in data_index_telemac["filename"]:
-                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                        nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(file, folder_path)
                         if unit_name_from_telemac_file == ["0.0"] and nbtimes == 1:
                             pass
                         else:
@@ -3254,7 +3254,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 if self.telemac_case == "2.b":
                     for rowindex, file in enumerate(data_index_telemac["filename"]):
                         # get units name from TELEMAC file
-                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                        nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(file, folder_path)
                         # get units name from indexTELEMAC.txt file
                         unit_name_from_indextelemac_file = data_index_telemac[headers[time_index]][rowindex]
                         # check if lenght of two loading units
@@ -3311,7 +3311,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 """ CASE 3.a """
                 if self.telemac_case == "3.a":
                     # get units name from TELEMAC file
-                    nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(data_index_telemac[headers[0]][0], folder_path)
+                    nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(data_index_telemac[headers[0]][0], folder_path)
 
                     # selected files same than indexTELEMAC file
                     if not selectedfiles_textfiles_matching:
@@ -3357,7 +3357,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 """ CASE 3.b """
                 if self.telemac_case == "3.b":
                     # get units name from TELEMAC file
-                    nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(data_index_telemac[headers[0]][0], folder_path)
+                    nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(data_index_telemac[headers[0]][0], folder_path)
 
                     # get units name from indexTELEMAC.txt file
                     unit_name_from_indextelemac_file = data_index_telemac[headers[time_index]][0]
@@ -3435,7 +3435,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                     for i, file in enumerate(data_index_telemac[headers[0]]):
                         # get units name from TELEMAC file
-                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                        nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(file, folder_path)
                         unit_index_from_telemac_file = [True] * nbtimes
                         # hdf5 filename
                         blob2, ext = os.path.splitext(file)
@@ -3499,7 +3499,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                     for i, file in enumerate(data_index_telemac[headers[0]]):
                         # get units name from TELEMAC file
-                        nbtimes, unit_name_from_telemac_file = selafin_habby1.get_time_step(file, folder_path)
+                        nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(file, folder_path)
                         # get units name from indexTELEMAC.txt file
                         unit_name_from_indextelemac_file = data_index_telemac[headers[time_index]][i]
                         unit_name_from_indextelemac_file2 = []
@@ -3655,7 +3655,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         """
         The function get timestep if selafin files to display them in GUI, in order for the user to be able to choose some of them.
         """
-        nbtimes, timestep = selafin_habby1.get_time_step(self.namefile[0], self.pathfile[0])
+        nbtimes, timestep = telemac_mod.get_time_step(self.namefile[0], self.pathfile[0])
 
         # number timestep
         self.number_timstep_label.setText(str(nbtimes))
@@ -3698,7 +3698,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3716,14 +3716,14 @@ class TELEMAC(SubHydroW):  # QGroupBox
         # check telemac cases
         if self.telemac_case == '4.a' or self.telemac_case == '4.b' or (self.telemac_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
-            self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid,
+            self.p = Process(target=telemac_mod.load_telemac_and_cut_grid,
                              args=(self.telemac_description_multiple,
                                    self.progress_value,
                                    self.q,
                                    False,
                                    self.fig_opt))
         else:
-            self.p = Process(target=selafin_habby1.load_telemac_and_cut_grid,
+            self.p = Process(target=telemac_mod.load_telemac_and_cut_grid,
                              args=(self.telemac_description,
                                    self.progress_value,
                                    self.q,
@@ -3736,10 +3736,10 @@ class TELEMAC(SubHydroW):  # QGroupBox
         files_list = self.namefile[0].split(", ")
         path_file_list = [self.pathfile[0]] * nb_files
         if nb_files > 1:
-            self.p2 = Process(target=load_hdf5.copy_files, args=(files_list, path_file_list, path_input))
+            self.p2 = Process(target=hdf5_mod.copy_files, args=(files_list, path_file_list, path_input))
             self.p2.start()
         if nb_files == 1:
-            self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+            self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
             self.p2.start()
 
         # log info
@@ -3756,7 +3756,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
 class LAMMI(SubHydroW):
     """
-    The class LAMMI is there to manage the link between the graphical interface and the functions in src/lammi.py
+    The class LAMMI is there to manage the link between the graphical interface and the functions in src/lammi_mod.py
     which loads the lammi data. It inherits from SubHydroW() so it have all the methods and the variables
     from the class SubHydroW().
     """
@@ -3882,7 +3882,7 @@ class LAMMI(SubHydroW):
 
         if i == 1:
             # test if there is at least one output file in the proposed output directory
-            filenames = load_hdf5.get_all_filename(dir_name, '.prn')
+            filenames = hdf5_mod.get_all_filename(dir_name, '.prn')
             if len(filenames) > 0:
                 self.pathfile[2] = dir_name
                 self.namefile[2] = os.path.basename(filenames[0])
@@ -3932,7 +3932,7 @@ class LAMMI(SubHydroW):
         self.name_hdf5 = self.hname.text()
         # get the image and load option
         path_im = self.find_path_im()
-        self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         if self.fig_opt['raw_data'] == 'True':  # saved before in the xml file!
             show_all_fig = True
         else:
@@ -3943,7 +3943,7 @@ class LAMMI(SubHydroW):
 
         # load the lammi data
         self.q = Queue()
-        self.p = Process(target=lammi.open_lammi_and_create_grid,
+        self.p = Process(target=lammi_mod.open_lammi_and_create_grid,
                          args=(self.pathfile[0], self.pathfile[1], path_im, self.name_hdf5, self.name_prj, self.path_prj
                                , path_hdf5, self.pathfile[2], self.fig_opt, show_all_fig, self.namefile[1],
                                self.namefile[0], False, self.q, 1, self.model_type))
@@ -3951,7 +3951,7 @@ class LAMMI(SubHydroW):
 
         # path input
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -4094,17 +4094,17 @@ class SW2D(SubHydroW):
         # load sw2d, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
         # to be changed
-        self.p = Process(target=sw2d.load_sw2d_and_modify_grid, args=(self.name_hdf5, self.namefile[0],
-                                                                      self.namefile[1], self.pathfile[0],
-                                                                      self.pathfile[1], path_im, self.name_prj,
-                                                                      self.path_prj,
-                                                                      self.model_type, self.nb_dim, path_hdf5, self.q,
-                                                                      False, self.fig_opt))
+        self.p = Process(target=sw2d_mod.load_sw2d_and_modify_grid, args=(self.name_hdf5, self.namefile[0],
+                                                                          self.namefile[1], self.pathfile[0],
+                                                                          self.pathfile[1], path_im, self.name_prj,
+                                                                          self.path_prj,
+                                                                          self.model_type, self.nb_dim, path_hdf5, self.q,
+                                                                          False, self.fig_opt))
         self.p.start()
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+        self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
         # log info
@@ -4313,7 +4313,7 @@ class IBER2D(SubHydroW):
         self.q = Queue()
         # to be changed
 
-        self.p = Process(target=iber2d.load_iber2d_and_modify_grid,
+        self.p = Process(target=iber2d_mod.load_iber2d_and_modify_grid,
                          args=(self.name_hdf5, self.namefile[0],
                                self.namefile[1], self.namefile[2],
                                self.namefile[3], self.namefile[4],
@@ -4325,7 +4325,7 @@ class IBER2D(SubHydroW):
 
         # copy input file
         path_input = self.find_path_input()
-        self.p2 = Process(target=load_hdf5.copy_files,
+        self.p2 = Process(target=hdf5_mod.copy_files,
                           args=(self.namefile, self.pathfile, path_input))
         self.p2.start()
 
@@ -4461,7 +4461,7 @@ class HabbyHdf5(SubHydroW):
             self.send_log.emit('Warning: No file selected.\n')
             return
         # load the data to check integrity
-        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = load_hdf5.load_hdf5_hyd_and_merge(fname_h5, path_hdf5)
+        [ikle_all_t, point_all, inter_vel_all, inter_height_all] = hdf5_mod.load_hdf5_hyd_and_merge(fname_h5, path_hdf5)
 
         # copy the file and update the attribute
         path_input = self.find_path_input()
@@ -4517,7 +4517,7 @@ class HabbyHdf5(SubHydroW):
             return
         # load the data to check integrity
         [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg, substrate_all_dom] \
-            = load_hdf5.load_hdf5_hyd_and_merge(fname_h5, path_hdf5, merge=True)
+            = hdf5_mod.load_hdf5_hyd_and_merge(fname_h5, path_hdf5, merge=True)
 
         # copy the file and update the attribute
         path_hdf5 = self.find_path_hdf5()
@@ -4588,7 +4588,7 @@ class HabbyHdf5(SubHydroW):
     def add_two_hdf5(self, merge):
         """
         This functions is used to merge together two hydro/merge hdf5. For this, it call the function 'addition_hdf5'
-        from load_hdf5.py
+        from hdf5_mod.py
 
         :param merge: A boolean which say if we load an hydrological or a merge file
         """
@@ -4647,14 +4647,14 @@ class HabbyHdf5(SubHydroW):
                 return
 
             # join the two files
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
             if self.fig_opt['erase_id'] == 'True':
                 erase_id = True
             else:
                 erase_id = False
 
-            load_hdf5.addition_hdf5(path1, hdf51, path2, hdf52, self.name_prj, self.path_prj, self.model_type,
-                                    path_hdf5, merge=self.ismerge, erase_id=erase_id)
+            hdf5_mod.addition_hdf5(path1, hdf51, path2, hdf52, self.name_prj, self.path_prj, self.model_type,
+                                   path_hdf5, merge=self.ismerge, erase_id=erase_id)
             self.add_new_hdf5_to_xml()
 
             self.send_log.emit('Two hdf5 file added together')
@@ -5289,7 +5289,7 @@ class SubstrateW(SubHydroW):
             sub_epsg_code = self.epsg_polygon_label.text()
             default_values = self.sub_default_values_polygon_label.text()
             self.name_hdf5 = self.polygon_hname.text()
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
             # check if we have all files
             name1 = namebase + '.dbf'
@@ -5309,7 +5309,7 @@ class SubstrateW(SubHydroW):
 
             # load substrate shp (and triangulation)
             self.q = Queue()
-            self.p = Process(target=substrate.load_sub_shp,
+            self.p = Process(target=substrate_mod.load_sub_shp,
                              args=(filename,
                                    self.pathfile_polygon,
                                    self.path_prj,
@@ -5334,7 +5334,7 @@ class SubstrateW(SubHydroW):
             if os.path.isfile(pathname3):
                 name_all = [filename, name1, name2, name3]
                 path_all = [self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon, self.pathfile_polygon]
-            self.p2 = Process(target=load_hdf5.copy_files, args=(name_all, path_all, path_input))
+            self.p2 = Process(target=hdf5_mod.copy_files, args=(name_all, path_all, path_input))
             self.p2.start()
 
             # log info
@@ -5363,22 +5363,22 @@ class SubstrateW(SubHydroW):
             sub_epsg_code = self.epsg_point_label.text()
             default_values = self.sub_default_values_point_label.text()
             self.name_hdf5 = self.point_hname.text()
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
             sys.stdout = self.mystdout = StringIO()  # out to GUI
 
-            sub_filename_voronoi_shp = substrate.load_sub_txt(self.namefile[0], self.pathfile[0],
-                                                              sub_mapping_method,
-                                                              sub_classification_code,
-                                                              sub_classification_method,
-                                                              sub_epsg_code,
-                                                              path_shp)
+            sub_filename_voronoi_shp = substrate_mod.load_sub_txt(self.namefile[0], self.pathfile[0],
+                                                                  sub_mapping_method,
+                                                                  sub_classification_code,
+                                                                  sub_classification_method,
+                                                                  sub_epsg_code,
+                                                                  path_shp)
 
             #if shp ok
             if sub_filename_voronoi_shp:
                 # load substrate shp (and triangulation)
                 self.q = Queue()
-                self.p = Process(target=substrate.load_sub_shp,
+                self.p = Process(target=substrate_mod.load_sub_shp,
                                  args=(sub_filename_voronoi_shp,
                                        path_shp,
                                        self.path_prj,
@@ -5397,7 +5397,7 @@ class SubstrateW(SubHydroW):
 
                 # copy
                 path_input = self.find_path_input()
-                self.p2 = Process(target=load_hdf5.copy_files, args=(self.namefile, self.pathfile, path_input))
+                self.p2 = Process(target=hdf5_mod.copy_files, args=(self.namefile, self.pathfile, path_input))
                 self.p2.start()
 
                 # log info
@@ -5426,7 +5426,7 @@ class SubstrateW(SubHydroW):
             sub_classification_method = self.sub_classification_method_constant_label.text()
             sub_constant_values = self.valuesdata_constant_label.text()
             self.name_hdf5 = self.constant_hname.text()
-            self.fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
             constant_values_list = sub_constant_values.split(",")
             sub_array = [[] for i in range(len(constant_values_list))]
@@ -5462,7 +5462,7 @@ class SubstrateW(SubHydroW):
 
 
             # save hdf5
-            hdf5_management = load_hdf5.Hdf5Management(self.name_prj, self.path_prj, self.name_hdf5)
+            hdf5_management = hdf5_mod.Hdf5Management(self.name_prj, self.path_prj, self.name_hdf5)
             self.p = Process(target=hdf5_management.create_hdf5_sub,
                              args=(sub_description_system, data))
             self.p.start()
@@ -5547,7 +5547,7 @@ class SubstrateW(SubHydroW):
         lob, ext = os.path.splitext(self.namefile[0])
         if ext == '.shp':
             self.e2.clear()
-            att_list = substrate.get_all_attribute(self.namefile[0], self.pathfile[0])  # list of attribute with info []
+            att_list = substrate_mod.get_all_attribute(self.namefile[0], self.pathfile[0])  # list of attribute with info []
             for i in range(0, len(att_list)):
                 self.e2.addItem(str(att_list[i][0]))
             self.e2.setEnabled(True)
@@ -5589,7 +5589,7 @@ class SubstrateW(SubHydroW):
 
     def send_merge_grid(self):
         """
-        This function calls the function merge grid in substrate.py. The goal is to have the substrate and hydrological
+        This function calls the function merge grid in substrate_mod.py. The goal is to have the substrate and hydrological
         data on the same grid. Hence, the hydrological grid will need to be cut to the form of the substrate grid.
 
         This function can be slow so it call on a second thread.
@@ -5633,7 +5633,7 @@ class SubstrateW(SubHydroW):
 
         # get if we erase old data or not
         # get the figure options and the type of output to be created
-        fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         if fig_opt['erase_id'] == 'True':
             erase_id = True
         else:
@@ -5648,7 +5648,7 @@ class SubstrateW(SubHydroW):
         # run the function
         self.q = Queue()
         self.progress_value = Value("i", 0)
-        self.p = Process(target=mesh_grid2.merge_grid_and_save,
+        self.p = Process(target=mesh_management_mod.merge_grid_and_save,
                          args=(name_hdf5merge,
                                hdf5_name_hyd,
                                hdf5_name_sub,

@@ -18,10 +18,10 @@ import numpy as np
 import sys
 import os
 from io import StringIO
-from src import manage_grid_8
-from src_GUI import output_fig_GUI
-from src import load_hdf5
-from src import rubar
+from src import manage_grid_mod
+from src_GUI import preferences_GUI
+from src import hdf5_mod
+from src import rubar1d2d_mod
 
 
 def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
@@ -63,7 +63,7 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
     """
     # get minimum water height
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
 
     # find where we should send the error (cmd or GUI)
@@ -105,7 +105,7 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
 
     # get triangular nodes from quadrilateral
     [ikle_base, coord_c, coord_p, height_cell, vel_cell] = \
-        rubar.get_triangular_grid(listNoNodElem, baryXY,
+        rubar1d2d_mod.get_triangular_grid(listNoNodElem, baryXY,
                                   nodesXYZ[:, :2], height_cell, vel_cell)
 
     # remove non connected nodes
@@ -151,20 +151,20 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
         # get data no the node (and not on the cells) by linear interpolation
         if t == 0:
             [vel_node, height_node, vtx_all, wts_all] = \
-                manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
-                                                         [coord_c],
-                                                         vel_cell[t],
-                                                         height_cell[t], warn1)
+                manage_grid_mod.pass_grid_cell_to_node_lin([coord_p],
+                                                           [coord_c],
+                                                           vel_cell[t],
+                                                           height_cell[t], warn1)
         else:
             [vel_node, height_node, vtx_all, wts_all] = \
-                manage_grid_8.pass_grid_cell_to_node_lin([coord_p], [coord_c],
-                                                         vel_cell[t],
-                                                         height_cell[t], warn1,
-                                                         vtx_all, wts_all)
+                manage_grid_mod.pass_grid_cell_to_node_lin([coord_p], [coord_c],
+                                                           vel_cell[t],
+                                                           height_cell[t], warn1,
+                                                           vtx_all, wts_all)
         # cut the grid to the water limit
         [ikle, point_all, water_height, velocity] = \
-            manage_grid_8.cut_2d_grid(ikle_base, coord_p, height_node[0],
-                                      vel_node[0], minwh)
+            manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
+                                        vel_node[0], minwh)
 
         inter_h_all_t.append([water_height])
         inter_vel_all_t.append([velocity])
@@ -175,10 +175,10 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
 
     # save data
     timestep_str = list(map(str, timesteps))
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim,
-                                      path_hdf5, ikle_all_t, point_all_t,
-                                      point_c_all_t,
-                                      inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim,
+                                     path_hdf5, ikle_all_t, point_all_t,
+                                     point_c_all_t,
+                                     inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

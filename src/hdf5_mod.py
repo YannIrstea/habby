@@ -20,13 +20,13 @@ import numpy as np
 import time
 import shutil
 import shapefile
-from src import substrate
+from src import substrate_mod
 
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from src_GUI import output_fig_GUI
+from src_GUI import preferences_GUI
 
 VERSION = 0.25
 
@@ -519,7 +519,7 @@ class Hdf5Management:
                         if convert_to_coarser_dom and sub_description_system["sub_classification_method"] != "coarser-dominant":
                             sub_array = self.file_object[mesh_group + "/sub"][:]
                             # dominant case = 1 ==> biggest substrate for plot
-                            sub_dominant, sub_coarser = substrate.percentage_to_domcoarse(sub_array, dominant_case=1)
+                            sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
                             sub_array_coarser_dom = np.array(list(zip(sub_coarser, sub_dominant)))
                             sub_array_list.append(sub_array_coarser_dom)
                         else:
@@ -753,7 +753,7 @@ class Hdf5Management:
                     if convert_to_coarser_dom and hab_description["sub_classification_method"] != "coarser-dominant":
                         sub_array = self.file_object[mesh_group + "/sub"][:]
                         # dominant case = 1 ==> biggest substrate for plot
-                        sub_dominant, sub_coarser = substrate.percentage_to_domcoarse(sub_array, dominant_case=1)
+                        sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
                         sub_array_coarser_dom = np.array(list(zip(sub_coarser, sub_dominant)))
                         sub_array_list.append(sub_array_coarser_dom)
                     else:
@@ -852,7 +852,7 @@ class Hdf5Management:
                 # filename
                 name_base = self.basename
                 name_shp = name_base + "_r" + str(reach_num) + "_t" + str(sim_name[unit_num]) + '.shp'
-                save_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+                save_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
                 if save_opt['erase_id'] == 'True':  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                         try:
@@ -1004,7 +1004,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # to know if we have to save a new hdf5
     if save_option is None:
-        save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+        save_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
         if save_opt['erase_id'] == 'True':  # xml is all in string
             erase_idem = True
         else:
@@ -1244,7 +1244,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
     """
 
     # to know if we have to save a new hdf5
-    save_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+    save_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
     if save_opt['erase_id'] == 'True':  # xml is all in string
         erase_idem = True
     else:
@@ -2405,7 +2405,7 @@ def create_shapfile_hydro(name_hdf5, path_hdf5, path_shp, merge=True, erase_id=T
     """
     This function creates a shapefile with the hydraulic and shapefile data. This can be used to check how the data
     was merged. The shapefile will have the same name than the hdf5 file. There are some similairites between this
-    function and the function in calcul_hab.py (save_hab_shape). It might be useful to change both function if
+    function and the function in calcul_hab_mod.py (save_hab_shape). It might be useful to change both function if
     corrections must be done.
 
     :param name_hdf5: the name of the hdf5 file (with .hab extension)

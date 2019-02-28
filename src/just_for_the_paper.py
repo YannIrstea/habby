@@ -27,7 +27,7 @@ from matplotlib.patches import Polygon
 
 def save_vh_fig_2d(ikle, coord_p, vh, name_fish, fig, pos, max_lim=1.0):
     """
-    This is a function to create 2d image based on a similar function in calcul_hab.py. This is just copied here
+    This is a function to create 2d image based on a similar function in calcul_hab_mod.py. This is just copied here
     as this version is much more simple
     :param ikle_all:
     :param point_all:

@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 from io import StringIO
 import sys
 import os
-from src import load_hdf5
+from src import hdf5_mod
 import time
 from copy import deepcopy
 import numpy as np
@@ -76,9 +76,9 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     #                                   sim_name=sim_name, sub_ini_name=hdf5_name_sub,
     #                                   hydro_ini_name=hdf5_name_hyd, hdf5_type="habitat")
 
-    hdf5_management = load_hdf5.Hdf5Management(name_prj,
-                                               path_prj,
-                                               name_hdf5merge)
+    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
+                                              path_prj,
+                                              name_hdf5merge)
     hdf5_management.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, merge_description)
 
 
@@ -122,17 +122,17 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
     height_all_both = []
 
     # load hdf5 hydro
-    hdf5_management = load_hdf5.Hdf5Management(name_prj,
-                                               path_prj,
-                                               hdf5_name_hyd)
+    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
+                                              path_prj,
+                                              hdf5_name_hyd)
     data_2d_hyd, data_2D_whole_profile, hyd_description = hdf5_management.load_hdf5_hyd(units_index="all",
                                                                                         whole_profil=True)
     # [ikle_all, point_all, inter_vel_all, inter_height_all, hyd_filename_source] = load_hdf5.load_hdf5_hyd_and_merge(hdf5_name_hyd, path_hdf5)
 
     # load hdf5 sub
-    hdf5_management = load_hdf5.Hdf5Management(name_prj,
-                                               path_prj,
-                                               hdf5_name_sub)
+    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
+                                              path_prj,
+                                              hdf5_name_sub)
     data_2d_sub, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=False)
     #[ikle_sub, point_all_sub, sub_array, sub_description_system] = load_hdf5.load_hdf5_sub(hdf5_name_sub, path_hdf5)
 

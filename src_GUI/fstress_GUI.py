@@ -27,15 +27,15 @@ import sys
 import os
 from io import StringIO
 from src_GUI import estimhab_GUI
-from src import fstress
-from src import load_hdf5
-from src_GUI import output_fig_GUI
+from src import fstress_mod
+from src import hdf5_mod
+from src_GUI import preferences_GUI
 
 
 class FstressW(estimhab_GUI.StatModUseful):
     """
     This class provides the graphical user interface for the habby version of Fstress. The Fstress model is described in
-    fstress.py. FstressW just loads the data given by the user. He/She can write this data in the GUI or loads it
+    fstress_mod.py. FstressW just loads the data given by the user. He/She can write this data in the GUI or loads it
     from files. The following files are needed:
 
     * listriv.txt the list of the river (if the file does not exist, the river is called river1).
@@ -209,7 +209,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # if exists, loads the hdf5
         if os.path.isfile(os.path.join(hdf5_path, hdf5_name)):
-            [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress.read_fstress_hdf5(hdf5_name, hdf5_path)
+            [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress_mod.read_fstress_hdf5(hdf5_name, hdf5_path)
         else:
             return
 
@@ -256,9 +256,9 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.save_ok = False
             return
         path_hdf5 = self.find_path_hdf5_est()
-        fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                             self.qhw,
-                             self.qrange, self.fish_selected)
+        fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                                 self.qhw,
+                                 self.qrange, self.fish_selected)
         self.save_ok = True
 
     def erase_name(self):
@@ -283,9 +283,9 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.show_data_one_river()
         if not self.riv.count() == 1:
             path_hdf5 = self.find_path_hdf5_est()
-            fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                                 self.qhw,
-                                 self.qrange, self.fish_selected)
+            fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                                     self.qhw,
+                                     self.qrange, self.fish_selected)
 
     def add_all_fish(self):
         """
@@ -450,9 +450,9 @@ class FstressW(estimhab_GUI.StatModUseful):
         for i in range(0, len(self.riv_name)):
             self.load_data_fstress(i)
         path_hdf5 = self.find_path_hdf5_est()
-        fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                             self.qhw,
-                             self.qrange, self.fish_selected)
+        fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                                 self.qhw,
+                                 self.qrange, self.fish_selected)
 
         # copy the input in the input folder
         input_folder = self.find_path_input_est()
@@ -461,7 +461,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         paths = [self.path_fstress] * len(all_files)
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
-        load_hdf5.copy_files(all_files, paths, new_dir)
+        hdf5_mod.copy_files(all_files, paths, new_dir)
 
         # show the data for the selected river
         self.show_data_one_river()
@@ -483,7 +483,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         hdf5_path = os.path.dirname(filename_path)
 
         # loads this new hdf5
-        [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress.read_fstress_hdf5(hdf5_name, hdf5_path)
+        [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress_mod.read_fstress_hdf5(hdf5_name, hdf5_path)
 
         # show the results on the gui
         if len(self.qhw) > 0 and self.qhw != [-99]:
@@ -491,9 +491,9 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # save it in a new name and links this copied hdf5 to the project
         path_hdf5 = self.find_path_hdf5_est()
-        fstress.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                             self.qhw,
-                             self.qrange, self.fish_selected)
+        fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
+                                 self.qhw,
+                                 self.qrange, self.fish_selected)
 
     def show_data_one_river(self):
         """
@@ -623,7 +623,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         """
 
         sys.stdout = mystdout = StringIO()
-        [self.pref_inver, self.all_inv_name] = fstress.read_pref(self.path_bio, self.name_bio)
+        [self.pref_inver, self.all_inv_name] = fstress_mod.read_pref(self.path_bio, self.name_bio)
         sys.stdout = sys.__stdout__
         if self.pref_inver != [-99]:
             self.pref_found = True
@@ -671,7 +671,7 @@ class FstressW(estimhab_GUI.StatModUseful):
     def runsave_fstress(self):
         """
         This function save the data related to FStress and call the model Fstress. It is the method which makes the
-        link between the GUI and fstress.py.
+        link between the GUI and fstress_mod.py.
         """
 
         self.send_log.emit(self.tr('#  Running: FStress'))
@@ -773,8 +773,8 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # run
         sys.stdout = self.mystdout = StringIO()
-        [vh, qmod, inv_select] = fstress.run_fstress(self.qhw, self.qrange, self.riv_name, fish_list, self.pref_inver,
-                                                     self.all_inv_name, self.name_prj, self.path_prj)
+        [vh, qmod, inv_select] = fstress_mod.run_fstress(self.qhw, self.qrange, self.riv_name, fish_list, self.pref_inver,
+                                                         self.all_inv_name, self.name_prj, self.path_prj)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         if isinstance(qmod, int):
@@ -791,14 +791,14 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # figures
         self.path_im = self.find_path_im_est()
-        fig_opt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
-        fstress.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, fig_opt)
+        fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, fig_opt)
         self.show_fig.emit()
         path_txt = self.find_path_text_est()
 
         # text file
         # abbreviation written in the textfile so no space in invertebrate name
-        fstress.write_txt(qmod, vh, inv_select, path_txt, self.riv_name)
+        fstress_mod.write_txt(qmod, vh, inv_select, path_txt, self.riv_name)
 
         # log
         str_found = self.mystdout.getvalue()

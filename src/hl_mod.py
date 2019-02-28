@@ -28,7 +28,7 @@
 # *  export data to binary VTK file.   *
 # **************************************
 
-from src import vtk  # VtkFile, VtkUnstructuredGrid, etc.
+from src import vtk_mod  # VtkFile, VtkUnstructuredGrid, etc.
 import numpy as np
 
 
@@ -111,7 +111,7 @@ def imageToVTK(path, origin=(0.0, 0.0, 0.0), spacing=(1.0, 1.0, 1.0), cellData=N
         end = (end[0] - 1, end[1] - 1, end[2] - 1)
 
     # Write data to file
-    w = vtk.VtkFile(path, vtk.VtkImageData)
+    w = vtk_mod.VtkFile(path, vtk_mod.VtkImageData)
     w.openGrid(start=start, end=end, origin=origin, spacing=spacing)
     w.openPiece(start=start, end=end)
     _addDataToFile(w, cellData, pointData)
@@ -156,17 +156,17 @@ def gridToVTK(path, x, y, z, cellData=None, pointData=None):
     if (x.ndim == 1 and y.ndim == 1 and z.ndim == 1):
         nx, ny, nz = x.size - 1, y.size - 1, z.size - 1
         isRect = True
-        ftype = vtk.VtkRectilinearGrid
+        ftype = vtk_mod.VtkRectilinearGrid
     elif (x.ndim == 3 and y.ndim == 3 and z.ndim == 3):
         s = x.shape
         nx, ny, nz = s[0] - 1, s[1] - 1, s[2] - 1
         isRect = False
-        ftype = vtk.VtkStructuredGrid
+        ftype = vtk_mod.VtkStructuredGrid
     else:
         assert (False)
     end = (nx, ny, nz)
 
-    w = vtk.VtkFile(path, ftype)
+    w = vtk_mod.VtkFile(path, ftype)
     w.openGrid(start=start, end=end)
     w.openPiece(start=start, end=end)
 
@@ -219,9 +219,9 @@ def pointsToVTK(path, x, y, z, data):
     connectivity = np.arange(npoints, dtype='int32')  # each point is only connected to itself
     cell_types = np.empty(npoints, dtype='uint8')
 
-    cell_types[:] = vtk.VtkVertex.tid
+    cell_types[:] = vtk_mod.VtkVertex.tid
 
-    w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
+    w = vtk_mod.VtkFile(path, vtk_mod.VtkUnstructuredGrid)
     w.openGrid()
     w.openPiece(ncells=npoints, npoints=npoints)
 
@@ -279,9 +279,9 @@ def linesToVTK(path, x, y, z, cellData=None, pointData=None):
     connectivity = np.arange(npoints, dtype='int32')  # each point is only connected to itself
     cell_types = np.empty(npoints, dtype='uint8')
 
-    cell_types[:] = vtk.VtkLine.tid
+    cell_types[:] = vtk_mod.VtkLine.tid
 
-    w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
+    w = vtk_mod.VtkFile(path, vtk_mod.VtkUnstructuredGrid)
     w.openGrid()
     w.openPiece(ncells=ncells, npoints=npoints)
 
@@ -345,9 +345,9 @@ def polyLinesToVTK(path, x, y, z, pointsPerLine, cellData=None, pointData=None):
     connectivity = np.arange(npoints, dtype='int32')  # each line connects points that are consecutive
 
     cell_types = np.empty(npoints, dtype='uint8')
-    cell_types[:] = vtk.VtkPolyLine.tid
+    cell_types[:] = vtk_mod.VtkPolyLine.tid
 
-    w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
+    w = vtk_mod.VtkFile(path, vtk_mod.VtkUnstructuredGrid)
     w.openGrid()
     w.openPiece(ncells=ncells, npoints=npoints)
 
@@ -406,7 +406,7 @@ def unstructuredGridToVTK(path, x, y, z, connectivity, offsets, cell_types, cell
     ncells = cell_types.size
     assert (offsets.size == ncells)
 
-    w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
+    w = vtk_mod.VtkFile(path, vtk_mod.VtkUnstructuredGrid)
     w.openGrid()
     w.openPiece(ncells=ncells, npoints=npoints)
 
@@ -476,7 +476,7 @@ def cylindricalToVTK(path, x, y, z, sh, cellData):
     # create some temporary arrays to write grid topology
     offsets = np.arange(start=8, stop=8 * (ncells + 1), step=8, dtype='int32')  # index of last node in each cell
     cell_types = np.empty(ncells, dtype='uint8')
-    cell_types[:] = vtk.VtkHexahedron.tid
+    cell_types[:] = vtk_mod.VtkHexahedron.tid
 
     # create connectivity
     connectivity = np.empty(8 * ncells, dtype='int32')
@@ -489,7 +489,7 @@ def cylindricalToVTK(path, x, y, z, sh, cellData):
                     connectivity[i] = r + d[0] + s[0] * ((tita + d[1]) % s[1]) + s[0] * s[1] * (zeta + d[2])
                     i += 1
 
-    w = vtk.VtkFile(path, vtk.VtkUnstructuredGrid)
+    w = vtk_mod.VtkFile(path, vtk_mod.VtkUnstructuredGrid)
     w.openGrid()
     w.openPiece(ncells=ncells, npoints=npoints)
 

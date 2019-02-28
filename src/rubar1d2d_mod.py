@@ -19,13 +19,13 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from src import hec_ras2D
+from src import hec_ras2D_mod
 from io import StringIO
-from src import load_hdf5
-from src import manage_grid_8
+from src import hdf5_mod
+from src import manage_grid_mod
 import xml.etree.ElementTree as Etree
-from src import dist_vistess2
-from src_GUI import output_fig_GUI
+from src import dist_vistess_mod
+from src_GUI import preferences_GUI
 import matplotlib as mpl
 
 
@@ -66,7 +66,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    fig_opt = output_fig_GUI.load_fig_option(path_prj, name_prj)
+    fig_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
     [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0], namefile[1], pathfile[0], pathfile[1],
                                                              path_im,
                                                              show_fig_1D, fig_opt)
@@ -85,19 +85,19 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
     nb_pro_reach = [0, len(coord_pro)]  # should be corrected? (only one reach for the moment)
 
     # distribute the velocity
-    vh_pro = dist_vistess2.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data)
+    vh_pro = dist_vistess_mod.distribute_velocity(manning_data, nb_point_vel, coord_pro, xhzv_data)
 
     # create the grid
     [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \
-        = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
+        = manage_grid_mod.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
 
     # save the hdf5 file
     timestep_str = list(map(str, timestep))
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
-                                      point_all_t,
-                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
-                                      nb_pro_reach,
-                                      sim_name=timestep_str, hdf5_type="hydraulic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
+                                     point_all_t,
+                                     point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
+                                     nb_pro_reach,
+                                     sim_name=timestep_str, hdf5_type="hydraulic")
     if print_cmd:
         sys.stdout = sys.__stdout__
     if q:
@@ -632,7 +632,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
     """
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
@@ -758,7 +758,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
 
     # minimum water height
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
 
     # create the empy output
@@ -797,17 +797,17 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     for t in range(0, len(vel_cell)):
         # get data no the node (and not on the cells) by linear interpolation
         if t == 0:
-            [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p],
-                                                                                                 [coord_c], vel_cell[t],
-                                                                                                 height_cell[t], warn1)
+            [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p],
+                                                                                                   [coord_c], vel_cell[t],
+                                                                                                   height_cell[t], warn1)
         else:
-            [vel_node, height_node, vtx_all, wts_all] = manage_grid_8.pass_grid_cell_to_node_lin([coord_p], [coord_c],
-                                                                                                 vel_cell[t],
-                                                                                                 height_cell[t], warn1,
-                                                                                                 vtx_all, wts_all)
+            [vel_node, height_node, vtx_all, wts_all] = manage_grid_mod.pass_grid_cell_to_node_lin([coord_p], [coord_c],
+                                                                                                   vel_cell[t],
+                                                                                                   height_cell[t], warn1,
+                                                                                                   vtx_all, wts_all)
         # cut the grid to the water limit
-        [ikle, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_base, coord_p, height_node[0],
-                                                                              vel_node[0], minwh)
+        [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
+                                                                                vel_node[0], minwh)
 
         inter_h_all_t.append([water_height])
         inter_vel_all_t.append([velocity])
@@ -818,9 +818,9 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
 
     # save data
     timestep_str = list(map(str, timestep))
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-                                      point_all_t, point_c_all_t,
-                                      inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                     point_all_t, point_c_all_t,
+                                     inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -1236,7 +1236,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
     for t in time_step:
         # plot water depth
         h_t = np.array(h[t][0])  # 0 in case we have more than one reach
-        hec_ras2D.scatter_plot(coord_c, h_t, 'Water Depth [m]', 'terrain', 8, t)
+        hec_ras2D_mod.scatter_plot(coord_c, h_t, 'Water Depth [m]', 'terrain', 8, t)
         plt.savefig(
             os.path.join(path_im,
                          "rubar2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
@@ -1247,7 +1247,7 @@ def figure_rubar2d(xy, coord_c, ikle, v, h, path_im, time_step=[-1]):
 
         # plot velocity
         vel_c0 = np.array(v[t][0])
-        hec_ras2D.scatter_plot(coord_c, vel_c0, 'Vel. [m/sec]', 'gist_ncar', 8, t)
+        hec_ras2D_mod.scatter_plot(coord_c, vel_c0, 'Vel. [m/sec]', 'gist_ncar', 8, t)
         plt.savefig(
             os.path.join(path_im, "rubar2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
         plt.savefig(

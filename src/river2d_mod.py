@@ -20,12 +20,12 @@ import numpy as np
 import sys
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from src import hec_ras2D
+from src import hec_ras2D_mod
 import time
-from src import manage_grid_8
-from src import load_hdf5
+from src import manage_grid_mod
+from src import hdf5_mod
 from io import StringIO
-from src_GUI import output_fig_GUI
+from src_GUI import preferences_GUI
 
 
 def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
@@ -50,7 +50,7 @@ def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, m
 
     # minimum water height
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
 
     # creation of array
@@ -78,7 +78,7 @@ def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, m
                     return
 
         # cut grid to wet area
-        [ikle_i, point_all, water_height, velocity] = manage_grid_8.cut_2d_grid(ikle_i, xyzhv_i[:, :2], xyzhv_i[:, 3],
+        [ikle_i, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_i, xyzhv_i[:, :2], xyzhv_i[:, 3],
                                                                                 xyzhv_i[:, 4], minwh)
 
         # mimic empty grid for t = 0 for 1 D model
@@ -97,9 +97,9 @@ def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, m
     # save data
     namefiles2 = [x[:-4] for x in namefiles]  # no need of the .cdg to name the time step
 
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-                                      point_all_t, point_c_all_t,
-                                      inter_vel_all_t, inter_h_all_t, sim_name=namefiles2, hdf5_type="hydraulic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+                                     point_all_t, point_c_all_t,
+                                     inter_vel_all_t, inter_h_all_t, sim_name=namefiles2, hdf5_type="hydraulic")
     if not print_cmd:
         sys.stdout = sys.__stdout__
 
@@ -293,7 +293,7 @@ def figure_river2d(xyzhv, ikle, path_im, t=0):
     mpl.rcParams['pdf.fonttype'] = 42
 
     # grid
-    [xlist, ylist] = hec_ras2D.prepare_grid(ikle, xyzhv[:, :2])
+    [xlist, ylist] = hec_ras2D_mod.prepare_grid(ikle, xyzhv[:, :2])
     fig = plt.figure()
     plt.plot(xlist, ylist, c='b', linewidth=0.2)
     plt.plot(xyzhv[:, 0], xyzhv[:, 1], '.', markersize=3)
@@ -304,14 +304,14 @@ def figure_river2d(xyzhv, ikle, path_im, t=0):
     plt.savefig(os.path.join(path_im, "river2D_grid_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
     plt.close()
 
-    hec_ras2D.scatter_plot(xyzhv[:, :2], xyzhv[:, 3], 'Water Depth [m]', 'terrain', 8, 0)
+    hec_ras2D_mod.scatter_plot(xyzhv[:, :2], xyzhv[:, 3], 'Water Depth [m]', 'terrain', 8, 0)
     # plt.savefig(
     #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     # plt.savefig(
     #  os.path.join(path_im, "river2D_waterdepth_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
     # plt.close()
 
-    hec_ras2D.scatter_plot(xyzhv[:, :2], xyzhv[:, 4], 'Vel. [m3/sec]', 'gist_ncar', 8, 0)
+    hec_ras2D_mod.scatter_plot(xyzhv[:, :2], xyzhv[:, 4], 'Vel. [m3/sec]', 'gist_ncar', 8, 0)
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'))
     plt.savefig(os.path.join(path_im, "river2D_vel_t" + str(t) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'))
 

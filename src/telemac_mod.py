@@ -18,13 +18,12 @@ from struct import unpack, pack
 import numpy as np
 import os
 import sys
-import warnings
 import matplotlib.pyplot as plt
 import time
 from io import StringIO
-from src import load_hdf5
-from src_GUI import output_fig_GUI
-from src import manage_grid_8
+from src import hdf5_mod
+from src_GUI import preferences_GUI
+from src import manage_grid_mod
 
 def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, fig_opt={}):
     """
@@ -51,7 +50,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
 
     # minimum water height
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
 
     # progress
@@ -175,13 +174,13 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"],
                                axis=1)  # Insert values before column 2
-            [tin_data, xy_data, h_data, v_data] = manage_grid_8.cut_2d_grid(data_2d_telemac["tin"],
-                                                                            xy,  # with z value (facilitate)
-                                                                            data_2d_telemac["h"][unit_index],
-                                                                            data_2d_telemac["v"][unit_index],
-                                                                            progress_value,
-                                                                            delta,
-                                                                            minwh)
+            [tin_data, xy_data, h_data, v_data] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
+                                                                              xy,  # with z value (facilitate)
+                                                                              data_2d_telemac["h"][unit_index],
+                                                                              data_2d_telemac["v"][unit_index],
+                                                                              progress_value,
+                                                                              delta,
+                                                                              minwh)
             data_2d["tin"][0].append(tin_data)
             data_2d["xy"][0].append(xy_data[:, :2])
             data_2d["h"][0].append(h_data)
@@ -207,9 +206,9 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         hyd_description["hyd_equal_z_values_for_all_time_steps"] = description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]
 
         # create hdf5
-        hdf5_management = load_hdf5.Hdf5Management(description_from_indextelemac_file[hyd_file]["name_prj"],
-                                                   description_from_indextelemac_file[hyd_file]["path_prj"],
-                                                   description_from_indextelemac_file[hyd_file]["hdf5_name"])
+        hdf5_management = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["name_prj"],
+                                                  description_from_indextelemac_file[hyd_file]["path_prj"],
+                                                  description_from_indextelemac_file[hyd_file]["hdf5_name"])
         hdf5_management.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
 
         # progress

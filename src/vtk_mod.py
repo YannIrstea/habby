@@ -28,8 +28,8 @@
 # *  export data to binary VTK file.   *
 # **************************************
 
-from src import evtk  # import writeBlockSize, writeArrayToFile, writeArraysToFile
-from src import xml_vk
+from src import evtk_mod  # import writeBlockSize, writeArrayToFile, writeArraysToFile
+from src import xml_vk_mod
 import sys
 import os
 
@@ -155,7 +155,7 @@ class VtkGroup:
             PARAMETERS:
                 filepath: filename without extension.
         """
-        self.xml = xml_vk.XmlWriter(filepath + ".pvd")
+        self.xml = xml_vk_mod.XmlWriter(filepath + ".pvd")
         self.xml.openElement("VTKFile")
         self.xml.addAttributes(type="Collection", version="0.1", byte_order=_get_byte_order())
         self.xml.openElement("Collection")
@@ -195,7 +195,7 @@ class VtkFile:
         """
         self.ftype = ftype
         self.filename = filepath + ftype.ext
-        self.xml = xml_vk.XmlWriter(self.filename)
+        self.xml = xml_vk_mod.XmlWriter(self.filename)
         self.offset = 0  # offset in bytes after beginning of binary section
         self.appendedDataIsOpen = False
         #        self.largeFile = largeFile
@@ -407,9 +407,9 @@ class VtkFile:
         dsize = np_to_vtk[dtype].size
         block_size = dsize * ncomp * nelem
         if self.largeFile == False:
-            evtk.writeBlockSize(self.xml.stream, block_size)
+            evtk_mod.writeBlockSize(self.xml.stream, block_size)
         else:
-            evtk.writeBlockSize64Bit(self.xml.stream, block_size)
+            evtk_mod.writeBlockSize64Bit(self.xml.stream, block_size)
 
     def appendData(self, data):
         """ Append data to binary section.
@@ -435,11 +435,11 @@ class VtkFile:
             nelem = data[0].size
             block_size = ncomp * nelem * dsize
             # if self.largeFile == False:
-            evtk.writeBlockSize(self.xml.stream, block_size)
+            evtk_mod.writeBlockSize(self.xml.stream, block_size)
             # else:
             #    writeBlockSize64Bit(self.xml.stream, block_size)
             x, y, z = data[0], data[1], data[2]
-            evtk.writeArraysToFile(self.xml.stream, x, y, z)
+            evtk_mod.writeArraysToFile(self.xml.stream, x, y, z)
 
         elif type(data).__name__ == 'ndarray' and (data.ndim == 1 or data.ndim == 3):  # single numpy array
             ncomp = 1
@@ -447,10 +447,10 @@ class VtkFile:
             nelem = data.size
             block_size = ncomp * nelem * dsize
             # if self.largeFile == False:
-            evtk.writeBlockSize(self.xml.stream, block_size)
+            evtk_mod.writeBlockSize(self.xml.stream, block_size)
             # else:
             #    writeBlockSize64Bit(self.xml.stream, block_size)
-            evtk.writeArrayToFile(self.xml.stream, data)
+            evtk_mod.writeArrayToFile(self.xml.stream, data)
 
         else:
             assert False

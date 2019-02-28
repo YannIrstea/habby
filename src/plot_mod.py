@@ -22,13 +22,13 @@ from matplotlib.collections import PatchCollection
 import mplcursors
 import time
 import os
-from src_GUI import output_fig_GUI
-from src import calcul_hab
+from src_GUI import preferences_GUI
+from src import calcul_hab_mod
 
 
 def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[], time_step=0, points=False):
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # plot the grid
     plt.rcParams[
@@ -135,7 +135,7 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=fig_opt['resolution'], transparent=True)
         else:
-            test = calcul_hab.remove_image(filename, path_im, format1)
+            test = calcul_hab_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
@@ -157,7 +157,7 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
 
 def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_im=[], time_step=0):
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # plot the grid
     plt.rcParams[
@@ -219,7 +219,7 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_i
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=fig_opt['resolution'], transparent=True)
         else:
-            test = calcul_hab.remove_image(filename, path_im, format1)
+            test = calcul_hab_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
@@ -241,7 +241,7 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_i
 
 def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=[], path_im=[], time_step=0):
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # plot the grid
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
@@ -319,7 +319,7 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=fig_opt['resolution'], transparent=True)
             else:
-                test = calcul_hab.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
+                test = calcul_hab_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
@@ -344,7 +344,7 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
 
 def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_v=[], path_im=[], time_step=0):
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # plot the grid
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
@@ -421,7 +421,7 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                                 dpi=fig_opt['resolution'], transparent=True)
             else:
-                test = calcul_hab.remove_image(filename, path_im, format1)
+                test = calcul_hab_mod.remove_image(filename, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
@@ -462,7 +462,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
     :param reach_num: If we plot more than one reach, this is the reach number
     """
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
@@ -600,7 +600,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
                                          '.jpg'), dpi=fig_opt['resolution'], transparent=True)
         else:
-            test = calcul_hab.remove_image("substrate_coars_dom", path_im, format)
+            test = calcul_hab_mod.remove_image("substrate_coars_dom", path_im, format)
             if not test:
                 return
             if format == 0 or format == 1:
@@ -641,7 +641,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
                 plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
                             fig_opt['resolution'], transparent=True)
             else:
-                test = calcul_hab.remove_image("substrate_txtdata", path_im, format)
+                test = calcul_hab_mod.remove_image("substrate_txtdata", path_im, format)
                 if not test:
                     return
                 plt.savefig(os.path.join(path_im, "substrate_txtdata.png"), fig_opt['resolution'], transparent=True)
@@ -659,7 +659,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
 
 def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_opt={}, path_im=[], time_step=0):
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
@@ -750,7 +750,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
                     "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
                             dpi=fig_opt['resolution'], transparent=True)
         else:
-            test = calcul_hab.remove_image(filename, path_im, format1)
+            test = calcul_hab_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:
                 return
             if format1 == 0 or format1 == 1:
@@ -788,7 +788,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
     """
 
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     if fig_opt['font_size'] > 7:
@@ -897,7 +897,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                     name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
                     name = 'WUA_' + name_base + '_Reach_' + str(r)
-                    test = calcul_hab.remove_image(name, path_im, format1)
+                    test = calcul_hab_mod.remove_image(name, path_im, format1)
                     if not test:
                         return
                 #plt.tight_layout()
@@ -1002,7 +1002,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                     name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
                     name = 'WUA_' + name_base + '_Reach_' + str(r)
-                    test = calcul_hab.remove_image(name, path_im, format1)
+                    test = calcul_hab_mod.remove_image(name, path_im, format1)
                     if not test:
                         return
                 if format1 == 0 or format1 == 1:
@@ -1077,7 +1077,7 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
                     name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
                     name = 'WUA_' + name_base + '_All_Reach_'
-                    test = calcul_hab.remove_image(name, path_im, format1)
+                    test = calcul_hab_mod.remove_image(name, path_im, format1)
                     if not test:
                         return
                 if format1 == 0 or format1 == 1:

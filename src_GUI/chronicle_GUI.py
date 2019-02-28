@@ -18,10 +18,10 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QLineEdit, \
     QComboBox, QListWidget, QSpacerItem, QFileDialog, QFrame
 import numpy as np
-from src import hydraulic_chronic
-from src import load_hdf5
+from src import hydraulic_chronic_mod
+from src import hdf5_mod
 from src_GUI import estimhab_GUI
-from src_GUI import output_fig_GUI
+from src_GUI import preferences_GUI
 import os
 import sys
 
@@ -313,7 +313,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         path_hdf5 = self.find_path_hdf5_est()
         nb_t_all = []
         for n in namefile:
-            nb_t = load_hdf5.get_unit_number(n, path_hdf5)
+            nb_t = hdf5_mod.get_unit_number(n, path_hdf5)
             if nb_t != -99:
                 nb_t_all.append(nb_t)
             else:
@@ -534,7 +534,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
                 self.send_log.emit('Warning: A merge file was not found in\
                 the hdf5 folder.')
             else:
-                timestep = load_hdf5.load_unit_name(namefile, path_hdf5)
+                timestep = hdf5_mod.load_unit_name(namefile, path_hdf5)
                 for t in timestep:
                     discharge += t + ','
         discharge = discharge[:-1]
@@ -696,7 +696,7 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
     def run_chronicle_func(self):
         """
         This function make the link between the GUI and the functions
-        in hydraulic_chronic.py. It calls the chronic_hydro functions.
+        in hydraulic_chronic_mod.py. It calls the chronic_hydro functions.
         """
 
         self.send_log.emit("Calculating hydrological chronicle....")
@@ -733,14 +733,14 @@ class ChroniqueGui(estimhab_GUI.StatModUseful):
         self.save_discharge()
 
         # send simulation
-        figopt = output_fig_GUI.load_fig_option(self.path_prj, self.name_prj)
+        figopt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         minh = figopt['min_height_hyd']
         sys.stdout = self.mystdout = StringIO()
-        hydraulic_chronic.chronic_hydro(merge_files, path_merges,
-                                        discharge_input, discharge_output,
-                                        self.name_prj, self.path_prj,
-                                        model_type='chronic_hydro',
-                                        min_height=minh)
+        hydraulic_chronic_mod.chronic_hydro(merge_files, path_merges,
+                                            discharge_input, discharge_output,
+                                            self.name_prj, self.path_prj,
+                                            model_type='chronic_hydro',
+                                            min_height=minh)
         sys.stdout = sys.__stdout__
         self.send_err_log()
 

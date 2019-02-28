@@ -16,8 +16,8 @@ https://github.com/YannIrstea/habby
 """
 import numpy as np
 import bisect
-from src import load_hdf5
-from src import manage_grid_8
+from src import hdf5_mod
+from src import manage_grid_mod
 import scipy.interpolate
 
 
@@ -83,7 +83,7 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
     for i in range(0, len(merge_files)):
         [ikle_all, point_all, inter_vel_all, inter_height_all,
          substrate_all_pg, substrate_all_dom] = \
-            load_hdf5.load_hdf5_hyd_and_merge(merge_files[i], path_merges[i], merge=True)
+            hdf5_mod.load_hdf5_hyd_and_merge(merge_files[i], path_merges[i], merge=True)
         # special cases and checks
         if len(ikle_all) == 1 and ikle_all[0] == [-99]:
             print('Error: hydrological data could not be loaded.')
@@ -102,7 +102,7 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
         substrate_dom_all_m.extend(substrate_all_dom[1:])
 
         # simulation name
-        sim_name = load_hdf5.load_unit_name(merge_files[i], path_merges[i])
+        sim_name = hdf5_mod.load_unit_name(merge_files[i], path_merges[i])
         sim_name_all.extend(sim_name)
 
         # one full, uncut, dry profile (if more than one, take the first one)
@@ -299,7 +299,7 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
                 # # cut the new grid to the water height is zeros
                 [ikle_here_all_r, point_here_all_r, height_here,
                  vel_here, ind_new_all] = \
-                    manage_grid_8.cut_2d_grid_all_reach(
+                    manage_grid_mod.cut_2d_grid_all_reach(
                         ikle_here_all_r, point_here_all_r, height_here, vel_here,
                         min_height, True)
 
@@ -337,12 +337,12 @@ def chronic_hydro(merge_files, path_merges, discharge_input, discharge_output,
     # save in a new merge file
     discharge_output_str = list(map(str, discharge_output))
     name_hdf5 = 'Chronic_' + merge_files[0][:-3]
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 2,
-                                      path_merges[0], ikle_all_new, point_all_new, [],
-                                      inter_vel_all_new, inter_height_all_new, merge=True,
-                                      sub_pg_all_t=substrate_pg_all_new,
-                                      sub_dom_all_t=substrate_dom_all_new,
-                                      sim_name=discharge_output_str, hdf5_type="chronic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 2,
+                                     path_merges[0], ikle_all_new, point_all_new, [],
+                                     inter_vel_all_new, inter_height_all_new, merge=True,
+                                     sub_pg_all_t=substrate_pg_all_new,
+                                     sub_dom_all_t=substrate_dom_all_new,
+                                     sim_name=discharge_output_str, hdf5_type="chronic")
 
 
 def main():

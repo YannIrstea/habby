@@ -25,9 +25,9 @@ import time
 from matplotlib.pyplot import axis, plot, step, figure, xlim, ylim, xlabel, ylabel, title, figure, text, legend, \
     show, subplot, fill_between, rcParams, savefig, close, rcParams, suptitle
 import matplotlib as mpl
-from src import manage_grid_8
-from src import load_hdf5
-from src_GUI import output_fig_GUI
+from src import manage_grid_mod
+from src import hdf5_mod
+from src_GUI import preferences_GUI
 
 
 def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model_type, namefile, pathfile,
@@ -63,7 +63,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
     if not fig_opt:
-        fig_opt = output_fig_GUI.create_default_figoption()
+        fig_opt = preferences_GUI.create_default_figoption()
 
     # load the hec-ra data (the function is just below)
     [coord_pro, vh_pro, nb_pro_reach, sim_name] = open_hecras(namefile[0], namefile[1], pathfile[0], pathfile[1],
@@ -83,7 +83,7 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
 
     # create the grid
     [ikle_all_t, point_all_t, point_c_all_t, inter_vel_all_t, inter_h_all_t] \
-        = manage_grid_8.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
+        = manage_grid_mod.grid_and_interpo(vh_pro, coord_pro, nb_pro_reach, interpo_choice, pro_add)
 
     # manage error
     if ikle_all_t == [-99]:
@@ -96,11 +96,11 @@ def open_hec_hec_ras_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, m
             return
 
     # save the hdf5 file
-    load_hdf5.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
-                                      point_all_t,
-                                      point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
-                                      nb_pro_reach,
-                                      sim_name=sim_name, hdf5_type="hydraulic")
+    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, 1.5, path_hdf5, ikle_all_t,
+                                     point_all_t,
+                                     point_c_all_t, inter_vel_all_t, inter_h_all_t, [], coord_pro, vh_pro,
+                                     nb_pro_reach,
+                                     sim_name=sim_name, hdf5_type="hydraulic")
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
