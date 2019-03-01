@@ -22,6 +22,7 @@ import shutil
 import shapefile
 from src import substrate_mod
 
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -71,14 +72,15 @@ class Hdf5Management:
         # file presence check
         try:
             # write or open hdf5 file
-            self.file_object = h5py.File(self.absolute_path_file, mode_file)
+            self.file_object = h5py.File(name=self.absolute_path_file,
+                                         mode=mode_file)
             if new:  # write + write attributes
-                self.file_object.attrs['hdf5_version'] = self.h5py_version
-                self.file_object.attrs['h5py_version'] = self.hdf5_version
-                self.file_object.attrs['software'] = 'HABBY'
-                self.file_object.attrs['software_version'] = str(VERSION)
-                self.file_object.attrs['path_projet'] = self.path_prj
-                self.file_object.attrs['name_projet'] = self.name_prj
+                self.file_object.attrs['-hdf5_version'] = self.hdf5_version
+                self.file_object.attrs['-h5py_version'] = self.h5py_version
+                self.file_object.attrs['-software'] = 'HABBY'
+                self.file_object.attrs['-software_version'] = str(VERSION)
+                self.file_object.attrs['-path_projet'] = self.path_prj
+                self.file_object.attrs['-name_projet'] = self.name_prj
                 self.file_object.attrs[self.extension[1:] + '_extension'] = self.extension
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
                 if self.extension == ".hyd":
@@ -137,12 +139,12 @@ class Hdf5Management:
         # open an hdf5
         self.open_hdf5_file(new=False)
         # get attributes
-        hdf5_attributes = list(self.file_object.attrs.items())
+        hdf5_attributes_dict = dict(self.file_object.attrs.items())
+        hdf5_attributes_dict_keys = sorted(hdf5_attributes_dict.keys())
         hdf5_attributes_text = ""
         # format attributes
-        for attribute_name, attribute_data in hdf5_attributes:
-            hdf5_attributes_text += attribute_name.replace("_", " ") + " : " + attribute_data + "\n"
-
+        for attribute_name in hdf5_attributes_dict_keys:
+            hdf5_attributes_text += attribute_name.replace("_", " ") + " : " + hdf5_attributes_dict[attribute_name] + "\n"
         return hdf5_attributes_text
 
     def get_hdf5_variables(self):
@@ -550,17 +552,16 @@ class Hdf5Management:
     # HABITAT
     def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description):
         # model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d
+        attributes_to_remove = ("sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type",
+                                "hyd_extension", "sub_extension", "hdf5_type")
 
         # create a new hdf5
         self.open_hdf5_file(new=True)
 
         # create hyd attributes
         for attribute_name, attribute_value in list(merge_description.items()):
-            if attribute_name in ("sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type"):
-                pass
-            else:
+            if attribute_name not in attributes_to_remove:
                 self.file_object.attrs[attribute_name] = attribute_value
-        self.file_object.attrs['hdf5_type'] = "habitat"
         # habitat
         # self.file_object.attrs['hab_filename_source'] = merge_description["hyd_filename_source"]
         # self.file_object.attrs['hab_reach_number'] = merge_description["hyd_reach_number"]
@@ -683,6 +684,113 @@ class Hdf5Management:
 
         # save XML
         self.save_xml("Habitat")  # uppercase for xml
+
+    def add_fish_hab(self, vh_cell, area_all, spu_all, fish_names):
+        """
+        This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
+        velocity and the water height by cell (and not by node)
+
+        :param hdf5_name: the name of the merge file
+        :param path_hdf5: the path to this file
+        :param vh_cell: the habitat value by cell
+        :param area_all: total wet area by reach
+        :param spu_all: total SPU by reach
+        :param fish_name: the name of the fish (with the stage in it)
+        """
+        # open an hdf5
+        self.open_hdf5_file(new=False)
+
+        # load the number of reach
+        try:
+            nb_r = int(self.file_object.attrs["hyd_reach_number"])
+        except KeyError:
+            print(
+                'Error: the number of time step is missing from the hdf5 file. \n')
+            return
+
+        # load the number of time steps
+        try:
+            nb_t = int(self.file_object.attrs["hyd_unit_number"])
+        except KeyError:
+            print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name
+                  + ' an hydrological input? \n')
+            return
+
+        # add name and stage of fish
+        if len(vh_cell) != len(fish_names):
+            print('Error: length of the list of fish name is not coherent')
+            self.file_object.close()
+            return
+
+        fish_replaced = []
+
+        # data_2D
+        data_group = self.file_object['data_2D']
+        # REACH GROUP
+        for reach_num in range(nb_r):
+            reach_group = data_group["reach_" + str(reach_num)]
+            # UNIT GROUP
+            for unit_num in range(nb_t):
+                unit_group = reach_group["unit_" + str(unit_num)]
+                # MESH GROUP
+                mesh_group = unit_group["mesh"]
+                # HV by celle for each fish
+                for fish_num, fish_name in enumerate(fish_names):
+                    if fish_name in mesh_group:  # if exist erase it
+                        del reach_group[fish_name]
+                        mesh_group.create_dataset(name=fish_name,
+                                              shape=[len(vh_cell[fish_num][reach_num][unit_num]), 1],
+                                              data=vh_cell[fish_num][reach_num][unit_num])
+                        fish_replaced.append(fish_name)
+                    else:
+                        mesh_group.create_dataset(name=fish_name,
+                                                  shape=[len(vh_cell[fish_num][reach_num][unit_num]), 1],
+                                                  data=vh_cell[fish_num][reach_num][unit_num])
+
+
+
+        # # create group habitat
+        # if "habitat" in self.file_object:  # if exist take it
+        #     habitat_group = self.file_object["habitat"]
+        # else:  # create it
+        #     habitat_group = self.file_object.create_group("habitat")
+
+        # # for all units (timestep or discharge)
+        # fish_replaced = []
+        # for t in range(1, nb_t + 1):
+        #     if 'unit_' + str(t - 1) in habitat_group:  # if exist take it
+        #         unit_group = habitat_group['unit_' + str(t - 1)]
+        #     else:  # create it
+        #         unit_group = habitat_group.create_group('unit_' + str(t - 1))
+        #     # for all reach
+        #     for r in range(0, nb_r):
+        #         if 'reach_' + str(r) in unit_group:  # if exist take it
+        #             reach_group = unit_group['reach_' + str(r)]
+        #         else:
+        #             reach_group = unit_group.create_group('reach_' + str(r))
+        #         # add reach attributes
+        #         reach_group.attrs['AREA'] = str(area_all[t][0])
+        #         # for all fish
+        #         for s in range(0, len(fish_name)):
+        #             if fish_name[s] in reach_group:  # if exist erase it
+        #                 del reach_group[fish_name[s]]
+        #                 fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
+        #                                                           data=vh_cell[s][t][r], maxshape=None)
+        #                 fish_replaced.append(fish_name[s])
+        #             else:
+        #                 fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
+        #                                                           data=vh_cell[s][t][r], maxshape=None)
+        #             # add fish attributes
+        #             fish_dataset.attrs['WUA'] = str(spu_all[s][t][0])
+        #             fish_dataset.attrs['HV'] = str(spu_all[s][t][0] / area_all[t][0])
+        # info fish replacement
+
+        if fish_replaced:
+            fish_replaced = set(fish_replaced)
+            fish_replaced = "; ".join(fish_replaced)
+            print(f'Warning: fish(s) information replaced in hdf5 file ({fish_replaced}).\n')
+        self.file_object.close()
+        time.sleep(1)  # as we need to insure different group of name
 
     def load_hdf5_hab(self, units_index="all", whole_profil=False, fish_names="all", convert_to_coarser_dom=False):
         # open an hdf5

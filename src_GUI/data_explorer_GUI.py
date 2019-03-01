@@ -554,10 +554,6 @@ class DataExplorerFrame(QFrame):
                                                 unit_type=sub_description_system["sub_unit_type"],
                                                 name_hdf5=sub_description_system["sub_filename"])
                     if types_hdf5 == "habitat":  # load habitat data
-                        # variables_to_remove = ["height", "velocity", "mesh", "coarser_dominant"]
-                        # fish_names = [variable for variable in variables if variable not in variables_to_remove]
-                        # [ikle_all_t, point_all_t, inter_vel_all_t, inter_h_all_t, sub_array,
-                        #  fish_data, total_wetarea_all_t, sub_description_system] = hdf5_mod.load_hdf5_hab(name_hdf5, path_hdf5, fish_names, units_index)
                         data_2d, hab_description = hdf5_management.load_hdf5_hab(units_index=units_index,
                                                                                  whole_profil=False,
                                                                                  convert_to_coarser_dom=True)

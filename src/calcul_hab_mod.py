@@ -25,16 +25,18 @@ import matplotlib as mpl
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 import shapefile
+from multiprocessing import Process, Queue, Value
 
 from src import hdf5_mod
 from src import bio_info_mod
 from src import paraview_mod
+from src import plot_mod
 from src_GUI import preferences_GUI
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fish, name_fish_sh, run_choice, path_bio,
-                        path_txt, path_shp, path_para, path_im, progress_value, q=[], print_cmd=False, fig_opt={}, path_im_bio='',
-                        xmlfiles=[]):
+                        path_txt, path_shp, path_para, path_im, progress_value, q=[], print_cmd=False, fig_opt={},
+                        path_im_bio='', xmlfiles=[]):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
@@ -73,8 +75,16 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         fig_opt = preferences_GUI.create_default_figoption()
 
     # calcuation habitat
+    path_prj = os.path.dirname(path_hdf5)
+    name_prj = os.path.basename(path_prj)
+    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
+                                              path_prj,
+                                              hdf5_file)
+    data_2d, hab_description = hdf5_management.load_hdf5_hab()
+
+
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
-        calc_hab(hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
+        calc_hab(data_2d, hab_description, hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
 
     if vh_all_t_sp == [-99] or isinstance(name_fish[0], int):
         if q:
@@ -123,37 +133,41 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     # progress
     progress_value.value = 60
 
-    # get the time step name
-    # get time step name if they exists
-    sim_name = hdf5_mod.load_unit_name(hdf5_file, path_hdf5)
+    # path_prj = os.path.dirname(path_hdf5)
+    # name_prj = os.path.basename(path_prj)
+    # hdf5_management = hdf5_mod.Hdf5Management(name_prj,
+    #                                           path_prj,
+    #                                           hdf5_file)
+    # sim_name = hdf5_management.get_hdf5_units_name()
+    sim_name = hab_description["hyd_unit_list"].split(", ")
 
     # text output
-    if create_text:
-        save_hab_txt(hdf5_file, path_hdf5, vh_all_t_sp, area_c_all, vel_c_all_t, height_c_all_t, name_fish, path_txt,
-                     name_base,
-                     sim_name, erase_id)
+    # if create_text:
+    #     save_hab_txt(data_2d, hab_description, vh_all_t_sp, area_c_all, vel_c_all_t, height_c_all_t, name_fish, path_txt,
+    #                  name_base,
+    #                  sim_name, erase_id)
     save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'], erase_id)
 
     # progress
     progress_value.value = 70
 
-    # shape output
-    if create_shape:
-        if run_choice == 2:
-            perc = True
-        else:
-            perc = False
-        save_hab_shape(hdf5_file, path_hdf5, vh_all_t_sp, vel_c_all_t, height_c_all_t,
-                       name_fish_sh, path_shp, name_base, sim_name, save_perc=perc, erase_id=erase_id)
+    # # shape output
+    # if create_shape:
+    #     if run_choice == 2:
+    #         perc = True
+    #     else:
+    #         perc = False
+    #     save_hab_shape(data_2d, hab_description, vh_all_t_sp, vel_c_all_t, height_c_all_t,
+    #                    name_fish_sh, path_shp, name_base, sim_name, save_perc=perc, erase_id=erase_id)
 
     # progress
     progress_value.value = 80
 
     # paraview outputs
-    if create_para:
-        paraview_mod.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
-                                    vel_c_all_t, name_fish, erase_id)
-        paraview_mod.save_slf(hdf5_file, path_hdf5, path_para, True, output_name=name_base, habitat=vh_all_t_sp)
+    # if create_para:
+    #     paraview_mod.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
+    #                                 vel_c_all_t, name_fish, erase_id)
+    #     paraview_mod.save_slf(hdf5_file, path_hdf5, path_para, True, output_name=name_base, habitat=vh_all_t_sp)
 
     # pdf with information on the fish
     if create_info and len(xmlfiles) > 0:
@@ -179,10 +193,23 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     #                 name_base2, sim_name, erase_id)
     # plot_hist_biology(vh_all_t_sp, area_c_all, name_fish, fig_opt, path_im, timestep, name_base2, sim_name, erase_id)
     # 1d figure (done on the main thread, so not necessary)
-    save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt)
+
+    #save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt, sim_name)
+
+
+    # state = Value("i", 0)
+    # plot_mod.plot_fish_hv_wua(state,
+    #                           area_all,
+    #                           spu_all,
+    #                           name_fish,
+    #                           path_im,
+    #                           name_base,
+    #                           fig_opt,
+    #                           sim_name)
+
 
     # saving hdf5 data of the habitat value
-    hdf5_mod.add_habitat_to_merge(hdf5_file, path_hdf5, vh_all_t_sp, area_all, spu_all, name_fish)
+    hdf5_management.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish)
 
     # progress
     progress_value.value = 90
@@ -196,7 +223,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         return
 
 
-def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
+def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages, path_bio, opt):
     """
     This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
@@ -230,17 +257,17 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
 
     # load merge
     # test if file exists in load_hdf5_hyd
-    [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all, sub_description_system] = \
-        hdf5_mod.load_hdf5_hyd_and_merge(merge_name, path_merge, merge=True)
-    if ikle_all_t == [[-99]]:
-        return failload
+    # [ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all, sub_description_system] = \
+    #     hdf5_mod.load_hdf5_hyd_and_merge(merge_name, path_merge, merge=True)
+    # create hdf5 class by file
 
-    if sub_description_system["sub_classification_method"] == "coarser-dominant":
-        substrate_all_pg = substrate_all[0]
-        substrate_all_dom = substrate_all[1]
-
+    # if hab_description["sub_classification_method"] == "coarser-dominant":
+    #     substrate_all_pg = substrate_all[0]
+    #     substrate_all_dom = substrate_all[1]
+    sys.stdout = sys.__stdout__
+    # for each fish ?
     for idx, bio_name in enumerate(bio_names):
-
+        print(idx, bio_name)
         # load bio data
         xmlfile = os.path.join(path_bio, bio_name)
         [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(xmlfile)
@@ -248,20 +275,23 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
             print('Error: preference file could not be loaded. \n')
             return failload
 
+        # for each stade ?
         for idx2, stade_bio in enumerate(stade_bios):
-
             if stages[idx] == stade_bio:
                 found_stage += 1
                 pref_height = pref_height[idx2]
                 pref_vel = pref_vel[idx2]
                 pref_sub = pref_sub[idx2]
+                print(idx2, stade_bio)
 
                 # calcul (one function for each calculation options)
                 if opt == 0:  # pg
                     # optmization possibility: feed_back the vel_c_att_t and height_c_all_t and area_all_t
-                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
-                        calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg,
-                                      pref_vel, pref_height, pref_sub)
+                    # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
+                    #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg,
+                    #                   pref_vel, pref_height, pref_sub)
+                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
+                        calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub)
                 elif opt == 1:  # dom
                     [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
@@ -289,13 +319,11 @@ def calc_hab(merge_name, path_merge, bio_names, stages, path_bio, opt):
             print('Error: the name of the fish stage are not coherent \n')
             return failload
 
-    b = time.time()
-
     return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp, area_c_all_t
 
 
-def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_height, pref_sub, percent=False,
-                  take_sub=True):
+def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, percent=False, take_sub=True):
+    # ikle_all_t, point_all_t, vel, height, sub,
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
     all habitat suitability index weighted by the cell area for each reach. It is called by clac_hab_norm.
@@ -314,118 +342,135 @@ def calc_hab_norm(ikle_all_t, point_all_t, vel, height, sub, pref_vel, pref_heig
 
     """
 
-    if len(height) != len(vel) or len(height) != len(sub):
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+    # if len(height) != len(vel) or len(height) != len(sub):
+    #     return [-99], [-99], [-99], [-99], [-99], [-99]
     s_pref_c = 1
 
-    vh_all_t = [[]]  # time step 0 is whole profile, no data
-    spu_all_t = [[]]
-    area_all_t = [[]]
-    height_c_all_t = [[[-1]]]
-    vel_c_att_t = [[[-1]]]
-    area_c_all_t = [[[-1]]]
+    # vh_all_t = [[]]  # time step 0 is whole profile, no data
+    # spu_all_t = [[]]
+    # area_all_t = [[]]
+    # height_c_all_t = [[[-1]]]
+    # vel_c_att_t = [[[-1]]]
+    # area_c_all_t = [[[-1]]]
 
-    for t in range(1, len(height)):  # time step 0 is whole profile
+    vh_all_t = []  # time step 0 is whole profile, no data
+    spu_all_t = []
+    area_all_t = []
+    height_c_all_t = []
+    vel_c_att_t = []
+    area_c_all_t = []
+
+    # for each reach
+    for reach_num in range(len(data_2d["tin"])):
         vh_all = []
         height_c = []
         vel_c = []
         area_all = []
         area_c_all = []
         spu_all = []
-        height_t = height[t]
-        vel_t = vel[t]
-        sub_t = sub[t]
-        ikle_t = ikle_all_t[t]
-        point_t = point_all_t[t]
-        # if failed before
-        if vel_t[0][0] == -99:
-            vh_all = [[-99]]
-            vel_c = [[-99]]
-            height_c = [[-99]]
-            area = [[-99]]
-        else:
-            for r in range(0, len(height_t)):
+        # for each unit
+        for unit_num in range(len(data_2d["h"][reach_num])):
+            # height_t = height[t]
+            # vel_t = vel[t]
+            # sub_t = sub[t]
+            # ikle_t = ikle_all_t[t]
+            # point_t = point_all_t[t]
+            height_t = data_2d["h"][reach_num][unit_num]
+            vel_t = data_2d["v"][reach_num][unit_num]
+            sub_t = data_2d["sub"][reach_num][unit_num]
+            ikle_t = data_2d["tin"][reach_num][unit_num]
+            point_t = data_2d["xy"][reach_num][unit_num]
+            # # if failed before
+            # if vel_t[0][0] == -99:
+            #     vh_all = [[-99]]
+            #     vel_c = [[-99]]
+            #     height_c = [[-99]]
+            #     area = [[-99]]
+            # else:
+            # for r in range(0, len(height_t)):
+            #
+            #     # # preparation
+            #     # ikle = np.array(ikle_t[r])
+            #     # h = np.array(height_t[r])
+            #     # v = np.array(vel_t[r])
+            #     # s = np.array(sub_t[r])
+            #     # p = np.array(point_t[r])
 
-                # preparation
-                ikle = np.array(ikle_t[r])
-                h = np.array(height_t[r])
-                v = np.array(vel_t[r])
-                s = np.array(sub_t[r])
-                p = np.array(point_t[r])
+            if len(ikle_t) == 0:
+                print('Warning: The connectivity table was not well-formed for one reach (1) \n')
+                vh = [-99]
+                v_cell = [-99]
+                h_cell = [-99]
+                area_reach = [-99]
+                spu_reach = -99
+                area = [-99]
+            elif len(ikle_t[0]) < 3:
+                print('Warning: The connectivity table was not well-formed for one reach (2) \n')
+                vh = [-99]
+                v_cell = [-99]
+                h_cell = [-99]
+                area_reach = [-99]
+                spu_reach = -99
+                area = [-99]
+            else:
+                # get data by cells
+                v1 = vel_t[ikle_t[:, 0]]
+                v2 = vel_t[ikle_t[:, 1]]
+                v3 = vel_t[ikle_t[:, 2]]
+                v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
 
-                if len(ikle) == 0:
-                    print('Warning: The connectivity table was not well-formed for one reach (1) \n')
-                    vh = [-99]
-                    v_cell = [-99]
-                    h_cell = [-99]
-                    area_reach = [-99]
-                    spu_reach = -99
-                    area = [-99]
-                elif len(ikle[0]) < 3:
-                    print('Warning: The connectivity table was not well-formed for one reach (2) \n')
-                    vh = [-99]
-                    v_cell = [-99]
-                    h_cell = [-99]
-                    area_reach = [-99]
-                    spu_reach = -99
-                    area = [-99]
-                else:
+                h1 = height_t[ikle_t[:, 0]]
+                h2 = height_t[ikle_t[:, 1]]
+                h3 = height_t[ikle_t[:, 2]]
+                h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
 
-                    # get data by cells
-                    v1 = v[ikle[:, 0]]
-                    v2 = v[ikle[:, 1]]
-                    v3 = v[ikle[:, 2]]
-                    v_cell = 1.0 / 3.0 * (v1 + v2 + v3)
+                # get area (based on Heron's formula)
+                p1 = point_t[ikle_t[:, 0], :]
+                p2 = point_t[ikle_t[:, 1], :]
+                p3 = point_t[ikle_t[:, 2], :]
 
-                    h1 = h[ikle[:, 0]]
-                    h2 = h[ikle[:, 1]]
-                    h3 = h[ikle[:, 2]]
-                    h_cell = 1.0 / 3.0 * (h1 + h2 + h3)
+                d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
+                d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
+                d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
+                s2 = (d1 + d2 + d3) / 2
+                area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
+                area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
+                area = area ** 0.5
+                area_reach = np.sum(area)
+                # get pref value
+                h_pref_c = find_pref_value(h_cell, pref_height)
+                v_pref_c = find_pref_value(v_cell, pref_vel)
 
-                    # get area (based on Heron's formula)
-                    p1 = p[ikle[:, 0], :]
-                    p2 = p[ikle[:, 1], :]
-                    p3 = p[ikle[:, 2], :]
-
-                    d1 = np.sqrt((p2[:, 0] - p1[:, 0]) ** 2 + (p2[:, 1] - p1[:, 1]) ** 2)
-                    d2 = np.sqrt((p3[:, 0] - p2[:, 0]) ** 2 + (p3[:, 1] - p2[:, 1]) ** 2)
-                    d3 = np.sqrt((p3[:, 0] - p1[:, 0]) ** 2 + (p3[:, 1] - p1[:, 1]) ** 2)
-                    s2 = (d1 + d2 + d3) / 2
-                    area = s2 * (s2 - d1) * (s2 - d2) * (s2 - d3)
-                    area[area < 0] = 0  # -1e-11, -2e-12, etc because some points are so close
-                    area = area ** 0.5
-                    area_reach = np.sum(area)
-                    # get pref value
-                    h_pref_c = find_pref_value(h_cell, pref_height)
-                    v_pref_c = find_pref_value(v_cell, pref_vel)
-                    if percent:
-                        for st in range(0, 8):
-                            s0 = s[:, st]
-                            sthere = np.zeros((len(s0),)) + st + 1
-                            s_pref_st = find_pref_value(sthere, pref_sub)
-                            if st == 0:
-                                s_pref_c = s_pref_st * s0 / 100
-                            else:
-                                s_pref_c += s0 / 100 * s_pref_st
-                    else:
-                        s_pref_c = find_pref_value(s, pref_sub)
-                    try:
-                        if take_sub:
-                            vh = h_pref_c * v_pref_c * s_pref_c
+                # choix type de substrat (selon combobox choix utilisateur) conversion sandre / cemagref si besoin
+                s = sub_t[:, 0]
+                if percent:
+                    for st in range(0, 8):
+                        s0 = s[:, st]
+                        sthere = np.zeros((len(s0),)) + st + 1
+                        s_pref_st = find_pref_value(sthere, pref_sub)
+                        if st == 0:
+                            s_pref_c = s_pref_st * s0 / 100
                         else:
-                            vh = h_pref_c * v_pref_c
-                        vh = np.round(vh, 7)  # necessary for  shapefile, do not get above 8 digits of precision
-                    except ValueError:
-                        print('Error: One time step misses substrate, velocity or water height value \n')
-                        vh = [-99]
-                    spu_reach = np.sum(vh * area)
+                            s_pref_c += s0 / 100 * s_pref_st
+                else:
+                    s_pref_c = find_pref_value(s, pref_sub)
+                try:
+                    if take_sub:
+                        vh = h_pref_c * v_pref_c * s_pref_c
+                    else:
+                        vh = h_pref_c * v_pref_c
+                    vh = np.round(vh, 7)  # necessary for  shapefile, do not get above 8 digits of precision
+                except ValueError:
+                    print('Error: One time step misses substrate, velocity or water height value \n')
+                    vh = [-99]
+                spu_reach = np.sum(vh * area)
 
-                vh_all.append(list(vh))
-                vel_c.append(v_cell)
-                height_c.append(h_cell)
-                area_all.append(area_reach)
-                area_c_all.append(area)
-                spu_all.append(spu_reach)
+            vh_all.append(list(vh))
+            vel_c.append(v_cell)
+            height_c.append(h_cell)
+            area_all.append(area_reach)
+            area_c_all.append(area)
+            spu_all.append(spu_reach)
 
         vh_all_t.append(vh_all)
         vel_c_att_t.append(vel_c)
@@ -492,7 +537,7 @@ def find_pref_value(data, pref):
     return pref_data
 
 
-def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, area_c_all, vel_data, height_data, name_fish, path_txt, name_base,
+def save_hab_txt(data_2d, hab_description, vh_data, area_c_all, vel_data, height_data, name_fish, path_txt, name_base,
                  sim_name=[], erase_id=False):
     """
     This function print the text output. We create one set of text file by time step. Each Reach is separated by the
@@ -518,8 +563,13 @@ def save_hab_txt(name_merge_hdf5, path_hdf5, vh_data, area_c_all, vel_data, heig
     :param erase_id: If True, we erase old text file from identical hydraulic model
     """
 
-    [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
-        hdf5_mod.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
+    # [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
+    #     hdf5_mod.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
+
+    data_2d, hab_description
+
+
+
     if ikle == [-99]:
         return
 
@@ -664,7 +714,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
                 return
 
     name = os.path.join(path_txt, name)
-    if len(sim_name) > 0 and len(sim_name) != len(area_all) - 1:
+    if len(sim_name) > 0 and len(sim_name) != len(area_all[0]):
         sim_name = []
 
     # open text to write
@@ -672,9 +722,9 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
 
         # header
         if lang == 0:
-            header = 'time_step\treach\treach_area'
+            header = 'reach\ttime_step\treach_area'
         else:
-            header = 'pas_de_temps\ttroncon\taire_troncon'
+            header = 'troncon\tpas_de_temps\taire_troncon'
         for i in range(0, len(name_fish)):
             if lang == 0:
                 header += '\tWUA' + str(i) + '\tHV' + str(i)
@@ -683,7 +733,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
         header += '\n'
         f.write(header)
         # header 2
-        header = '[?]\t[]\t[m2]'
+        header = '[]\t[?]\t[m2]'
         for i in name_fish:
             header += '\t[m2]\t[]'
         header += '\n'
@@ -696,23 +746,23 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
         header += '\n'
         f.write(header)
 
-        for t in range(0, len(area_all)):
-            for r in range(0, len(area_all[t])):  # at t=0, whole profile len(area_all[t]) = 0
+        for reach_num in range(0, len(area_all)):
+            for unit_num in range(0, len(area_all[reach_num])):  # at t=0, whole profile len(area_all[t]) = 0
                 if not sim_name:
-                    data_here = str(t) + '\t' + str(r) + '\t' + str(area_all[t][r])
+                    data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_all[reach_num][unit_num])
                 else:
-                    data_here = sim_name[t - 1] + '\t' + str(r) + '\t' + str(area_all[t][r])
-                for i in range(0, len(name_fish)):
-                    data_here += '\t' + str(spu_all[i][t][r])
+                    data_here = str(reach_num) + '\t' + sim_name[unit_num] + '\t' + str(area_all[reach_num][unit_num])
+                for fish_num in range(0, len(name_fish)):
+                    data_here += '\t' + str(spu_all[fish_num][reach_num][unit_num])
                     try:
-                        data_here += '\t' + str(spu_all[i][t][r] / area_all[t][r])
+                        data_here += '\t' + str(spu_all[fish_num][reach_num][unit_num] / area_all[reach_num][unit_num])
                     except TypeError:
                         data_here += '\t' + 'NaN'
                 data_here += '\n'
                 f.write(data_here)
 
 
-def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, name_fish_sh, path_shp, name_base,
+def save_hab_shape(data_2d, hab_description, vh_data, vel_data, height_data, name_fish_sh, path_shp, name_base,
                    sim_name=[], save_perc=False, erase_id=False):
     """
     This function create the output in the form of a shapefile. It creates one shapefile by time step. It put
@@ -735,6 +785,11 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
     :param save_perc: It true the substrate in percentage will be added to the shapefile
     :param erase_id: If True, we erase old text file from identical hydraulic model
     """
+
+
+    if save_perc:
+        sub_per_data = hdf5_mod.load_sub_percent(name_merge_hdf5, path_hdf5)
+
     [ikle, point, blob, blob, sub_pg_data, sub_dom_data] = \
         hdf5_mod.load_hdf5_hyd_and_merge(name_merge_hdf5, path_hdf5, merge=True)
     if ikle == [[-99]]:
@@ -742,9 +797,6 @@ def save_hab_shape(name_merge_hdf5, path_hdf5, vh_data, vel_data, height_data, n
 
     if len(sim_name) > 0 and len(sim_name) != len(ikle) - 1:
         sim_name = []
-
-    if save_perc:
-        sub_per_data = hdf5_mod.load_sub_percent(name_merge_hdf5, path_hdf5)
 
     # we do not print the first time step with the whole profile
     nb_reach = len(ikle[0])
@@ -868,7 +920,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
         return
 
     try:
-        nb_reach = len(max(area_all, key=len))  # we might have failed time step
+        nb_reach = len(area_all)  # we might have failed time step
     except TypeError:  # or all failed time steps -99
         # print('Error: No reach found. Is the hdf5 corrupted? \n')
         return
@@ -876,16 +928,17 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     for id, n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
-    if sim_name and len(area_all) - 1 != len(sim_name):
-        sim_name = []
+    # for each reach
+    for reach_num in range(0, nb_reach):
+        if sim_name and len(area_all[reach_num]) != len(sim_name):
+            sim_name = []
 
-    # one time step - bar
-    if len(area_all) == 1 or len(area_all) == 2:
-        for r in range(0, nb_reach):
+        # one time step - bar
+        if len(area_all[reach_num]) == 1:
             # SPU
             data_bar = []
             for s in range(0, len(name_fish)):
-                data_bar.append(spu_all[s][1][r])
+                data_bar.append(spu_all[r][s][1][r])
             y_pos = np.arange(len(spu_all))
             if r > 0:
                 fig = plt.figure()
@@ -932,8 +985,8 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             else:
                 name = 'WUA_' + name_base + '_Reach_' + str(r)
                 test = remove_image(name, path_im, format1)
-                if not test:
-                    return
+                #if not test:
+                    #return
             plt.tight_layout()
             if do_save:
                 if format1 == 0 or format1 == 1:
@@ -943,39 +996,55 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
-    # many time step - lines
-    elif len(area_all) > 2:
-        sum_data_spu = np.zeros((len(spu_all), len(area_all)))
-        sum_data_spu_div = np.zeros((len(spu_all), len(area_all)))
+        # many time step - lines
+        if len(area_all[reach_num]) >= 2:
+            for fish_num in range(len(name_fish)):
+                y_data_spu = np.array(spu_all[fish_num][reach_num])
+                #y_data_vh = y_data_spu / np.array(area_all[reach_num])
+                if sim_name:
+                    try:
+                        x_data = np.array(list(map(float, sim_name)))
+                    except:
+                        print("can't convert unit name to float")
+                        return
+                if not sim_name:
+                    x_data = np.array(list(range(len(spu_all[reach_num][0]))))
 
-        t_all = []
-        for r in range(0, nb_reach):
-            # SPU
-            if r > 0:
-                fig = plt.figure()
-            fig.add_subplot(211)
-            for s in range(0, len(spu_all)):
-                data_plot = []
-                t_all = []
-                for t in range(0, len(area_all)):
-                    if spu_all[s][t] and spu_all[s][t][r] != -99:
-                        data_plot.append(spu_all[s][t][r])
-                        sum_data_spu[s][t] += spu_all[s][t][r]
-                        t_all.append(t)
-                t_all_s = t_all
-                plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
+                plt.plot(x_data, y_data_spu, label=name_fish[fish_num], marker=mar)
+
+
+
+
+
+            # t_all = []
+            # # SPU
+            # fig = plt.figure()
+            # fig.add_subplot(211)
+            # for s in range(0, len(spu_all)):
+            #     data_plot = []
+            #     t_all = []
+            #     for t in range(0, len(area_all)):
+            #         if spu_all[s][t] and spu_all[s][t][r] != -99:
+            #             data_plot.append(spu_all[s][t][r])
+            #             sum_data_spu[s][t] += spu_all[s][t][r]
+            #             t_all.append(t)
+            #     t_all_s = t_all
+            #     plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
+
+
+
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m$^2$]')
-                plt.title('Weighted Usable Area for the Reach ' + str(r))
+                plt.title('Weighted Usable Area for the Reach ' + str(reach_num))
             elif fig_opt['language'] == 1:
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('SPU [m$^2$]')
-                plt.title('Surface Ponderée pour le troncon ' + str(r))
+                plt.title('Surface Ponderée pour le troncon ' + str(reach_num))
             else:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m$^2$]')
-                plt.title('Weighted Usable Area for the Reach ' + str(r))
+                plt.title('Weighted Usable Area for the Reach ' + str(reach_num))
             plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
             if sim_name:
                 if len(sim_name[0]) > 5:
@@ -983,36 +1052,50 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 else:
                     rot = 'horizontal'
                 if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
+                    plt.xticks(x_data, sim_name, rotation=rot)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+                    plt.xticks(x_data[::3], sim_name[::3], rotation=rot)
                 else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+                    plt.xticks(x_data[::10], sim_name[::10], rotation=rot)
             # VH
             ax = fig.add_subplot(212)
-            t_all = []
-            for s in range(0, len(spu_all)):
-                data_plot = []
-                t_all = []
-                for t in range(0, len(area_all)):
-                    if spu_all[s][t] and spu_all[s][t][r] != -99:
-                        data_here = spu_all[s][t][r] / area_all[t][r]
-                        data_plot.append(data_here)
-                        sum_data_spu_div[s][t] += data_here
-                        t_all.append(t)
-                plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
+            # t_all = []
+            # for s in range(0, len(spu_all)):
+            #     data_plot = []
+            #     t_all = []
+            #     for t in range(0, len(area_all)):
+            #         if spu_all[s][t] and spu_all[s][t][r] != -99:
+            #             data_here = spu_all[s][t][r] / area_all[t][r]
+            #             data_plot.append(data_here)
+            #             sum_data_spu_div[s][t] += data_here
+            #             t_all.append(t)
+            #     plt.plot(t_all, data_plot, label=name_fish[s], marker=mar)
+
+            for fish_num in range(len(name_fish)):
+                y_data_vh = np.array(spu_all[fish_num][reach_num]) / np.array(area_all[reach_num])
+                if sim_name:
+                    try:
+                        x_data = np.array(list(map(float, sim_name)))
+                    except:
+                        print("can't convert unit name to float")
+                        return
+                if not sim_name:
+                    x_data = np.array(list(range(len(spu_all[reach_num][0]))))
+
+                plt.plot(x_data, y_data_vh, label=name_fish[fish_num], marker=mar)
+
             if fig_opt['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value for the Reach ' + str(r))
+                plt.title('Habitat Value for the Reach ' + str(reach_num))
             elif fig_opt['language'] == 1:
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('HV (SPU/A) []')
-                plt.title("Valeur d'habitat pour le troncon " + str(r))
+                plt.title("Valeur d'habitat pour le troncon " + str(reach_num))
             else:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value for the Reach ' + str(r))
+                plt.title('Habitat Value for the Reach ' + str(reach_num))
             plt.ylim(0, 1)
             if sim_name:
                 if len(sim_name[0]) > 5:
@@ -1020,16 +1103,16 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 else:
                     rot = 'horizontal'
                 if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
+                    plt.xticks(x_data, sim_name, rotation=rot)
                 elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+                    plt.xticks(x_data[::3], sim_name[::3], rotation=rot)
                 else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+                    plt.xticks(x_data[::10], sim_name[::10], rotation=rot)
             plt.tight_layout()
             if not erase_id:
-                name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                name = 'WUA_' + name_base + '_Reach_' + str(reach_num) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = 'WUA_' + name_base + '_Reach_' + str(r)
+                name = 'WUA_' + name_base + '_Reach_' + str(reach_num)
                 test = remove_image(name, path_im, format1)
                 if not test:
                     return
@@ -1041,83 +1124,83 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
-        # all reach
-        if nb_reach > 1:
-            plt.close('all')  # only show the last reach
-            fig = plt.figure()
-            fig.add_subplot(211)
-            for s in range(0, len(spu_all)):
-                plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
-            if fig_opt['language'] == 0:
-                plt.xlabel('Computational step or discharge')
-                plt.ylabel('WUA [m^2]')
-                plt.title('Weighted Usable Area for All Reaches')
-            elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps/débit')
-                plt.ylabel('SPU [m^2]')
-                plt.title('Surface Ponderée pour tous les Troncons')
-            else:
-                plt.xlabel('Computational step or discharge')
-                plt.ylabel('WUA [m^2]')
-                plt.title('Weighted Usable Area for All Reaches')
-            plt.legend(fancybox=True, framealpha=0.5)
-            if sim_name:
-                if len(sim_name[0]) > 5:
-                    rot = 'vertical'
+            # all reach
+            if nb_reach > 1:
+                plt.close('all')  # only show the last reach
+                fig = plt.figure()
+                fig.add_subplot(211)
+                for s in range(0, len(spu_all)):
+                    plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
+                if fig_opt['language'] == 0:
+                    plt.xlabel('Computational step or discharge')
+                    plt.ylabel('WUA [m^2]')
+                    plt.title('Weighted Usable Area for All Reaches')
+                elif fig_opt['language'] == 1:
+                    plt.xlabel('Pas de temps/débit')
+                    plt.ylabel('SPU [m^2]')
+                    plt.title('Surface Ponderée pour tous les Troncons')
                 else:
-                    rot = 'horizontal'
-                if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
-                elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+                    plt.xlabel('Computational step or discharge')
+                    plt.ylabel('WUA [m^2]')
+                    plt.title('Weighted Usable Area for All Reaches')
+                plt.legend(fancybox=True, framealpha=0.5)
+                if sim_name:
+                    if len(sim_name[0]) > 5:
+                        rot = 'vertical'
+                    else:
+                        rot = 'horizontal'
+                    if len(sim_name) < 25:
+                        plt.xticks(t_all, sim_name, rotation=rot)
+                    elif len(sim_name) < 100:
+                        plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+                    else:
+                        plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+                # VH
+                fig.add_subplot(212)
+                for s in range(0, len(spu_all)):
+                    plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
+                if fig_opt['language'] == 0:
+                    plt.xlabel('Computational step or discharge ')
+                    plt.ylabel('HV (WUA/A) []')
+                    plt.title('Habitat Value For All Reaches')
+                elif fig_opt['language'] == 1:
+                    plt.xlabel('Pas de temps/débit')
+                    plt.ylabel('HV (SPU/A) []')
+                    plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
                 else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
-            # VH
-            fig.add_subplot(212)
-            for s in range(0, len(spu_all)):
-                plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
-            if fig_opt['language'] == 0:
-                plt.xlabel('Computational step or discharge ')
-                plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value For All Reaches')
-            elif fig_opt['language'] == 1:
-                plt.xlabel('Pas de temps/débit')
-                plt.ylabel('HV (SPU/A) []')
-                plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
-            else:
-                plt.xlabel('Computational step or discharge ')
-                plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value For All Reaches')
-            plt.ylim(0, 1)
-            plt.tight_layout()
-            if sim_name:
-                if len(sim_name[0]) > 5:
-                    rot = 'vertical'
+                    plt.xlabel('Computational step or discharge ')
+                    plt.ylabel('HV (WUA/A) []')
+                    plt.title('Habitat Value For All Reaches')
+                plt.ylim(0, 1)
+                plt.tight_layout()
+                if sim_name:
+                    if len(sim_name[0]) > 5:
+                        rot = 'vertical'
+                    else:
+                        rot = 'horizontal'
+                    if len(sim_name) < 25:
+                        plt.xticks(t_all, sim_name, rotation=rot)
+                    elif len(sim_name) < 100:
+                        plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+                    else:
+                        plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+                if not erase_id:
+                    name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
-                    rot = 'horizontal'
-                if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
-                elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
-                else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
-            if not erase_id:
-                name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            else:
-                name = 'WUA_' + name_base + '_All_Reach_'
-                test = remove_image(name, path_im, format1)
-                if not test:
-                    return
-            if do_save:
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                    name = 'WUA_' + name_base + '_All_Reach_'
+                    test = remove_image(name, path_im, format1)
+                    if not test:
+                        return
+                if do_save:
+                    if format1 == 0 or format1 == 1:
+                        plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                    if format1 == 0 or format1 == 3:
+                        plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                    if format1 == 2:
+                        plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
-    if not do_save:
-        return fig
+        if not do_save:
+            return fig
 
 
 def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1],

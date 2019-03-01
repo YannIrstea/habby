@@ -472,7 +472,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hdf5_merge = []
 
         # get filename
-        files = root.findall('.//hdf5_mergedata')
+        files = root.findall('.//hdf5_habitat')
         files = reversed(files)  # get the newest first
 
         path_hdf5 = self.find_path_hdf5_est()
