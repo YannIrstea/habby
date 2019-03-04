@@ -145,6 +145,9 @@ class Hdf5Management:
         # format attributes
         for attribute_name in hdf5_attributes_dict_keys:
             hdf5_attributes_text += attribute_name.replace("_", " ") + " : " + hdf5_attributes_dict[attribute_name] + "\n"
+
+        # close hdf5 file
+        self.file_object.close()
         return hdf5_attributes_text
 
     def get_hdf5_variables(self):
@@ -153,6 +156,8 @@ class Hdf5Management:
 
         # substrate constant ==> nothing to plot
         if self.type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
+            # close hdf5 file
+            self.file_object.close()
             return [False]
 
         # hydraulic substrate and habitat variables
@@ -185,6 +190,8 @@ class Hdf5Management:
                 variables = variables_node
             if variables_mesh and not variables_node:
                 variables = variables_mesh
+            # close hdf5 file
+            self.file_object.close()
             return variables
 
     def get_hdf5_units_name(self):
@@ -705,15 +712,14 @@ class Hdf5Management:
             nb_r = int(self.file_object.attrs["hyd_reach_number"])
         except KeyError:
             print(
-                'Error: the number of time step is missing from the hdf5 file. \n')
+                'Error: the number of time step is missing from :' + self.filename)
             return
 
         # load the number of time steps
         try:
             nb_t = int(self.file_object.attrs["hyd_unit_number"])
         except KeyError:
-            print('Error: the number of time step is missing from the hdf5 file. Is ' + hdf5_name
-                  + ' an hydrological input? \n')
+            print('Error: the number of time step is missing from :' + self.filename)
             return
 
         # add name and stage of fish
@@ -732,67 +738,38 @@ class Hdf5Management:
             # UNIT GROUP
             for unit_num in range(nb_t):
                 unit_group = reach_group["unit_" + str(unit_num)]
+                unit_group.attrs['total_wet_area'] = str(area_all[reach_num][unit_num])
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
                 # HV by celle for each fish
                 for fish_num, fish_name in enumerate(fish_names):
                     if fish_name in mesh_group:  # if exist erase it
-                        del reach_group[fish_name]
-                        mesh_group.create_dataset(name=fish_name,
-                                              shape=[len(vh_cell[fish_num][reach_num][unit_num]), 1],
-                                              data=vh_cell[fish_num][reach_num][unit_num])
-                        fish_replaced.append(fish_name)
-                    else:
-                        mesh_group.create_dataset(name=fish_name,
+                        del mesh_group[fish_name]
+                        fish_data_set = mesh_group.create_dataset(name=fish_name,
                                                   shape=[len(vh_cell[fish_num][reach_num][unit_num]), 1],
                                                   data=vh_cell[fish_num][reach_num][unit_num])
+                        fish_replaced.append(fish_name)
+                    else:  # if not exist create it
+                        fish_data_set = mesh_group.create_dataset(name=fish_name,
+                                                  shape=[len(vh_cell[fish_num][reach_num][unit_num]), 1],
+                                                  data=vh_cell[fish_num][reach_num][unit_num])
+                    fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
+                    fish_data_set.attrs['HV'] = str(spu_all[fish_num][reach_num][unit_num] / area_all[reach_num][unit_num])
 
-
-
-        # # create group habitat
-        # if "habitat" in self.file_object:  # if exist take it
-        #     habitat_group = self.file_object["habitat"]
-        # else:  # create it
-        #     habitat_group = self.file_object.create_group("habitat")
-
-        # # for all units (timestep or discharge)
-        # fish_replaced = []
-        # for t in range(1, nb_t + 1):
-        #     if 'unit_' + str(t - 1) in habitat_group:  # if exist take it
-        #         unit_group = habitat_group['unit_' + str(t - 1)]
-        #     else:  # create it
-        #         unit_group = habitat_group.create_group('unit_' + str(t - 1))
-        #     # for all reach
-        #     for r in range(0, nb_r):
-        #         if 'reach_' + str(r) in unit_group:  # if exist take it
-        #             reach_group = unit_group['reach_' + str(r)]
-        #         else:
-        #             reach_group = unit_group.create_group('reach_' + str(r))
-        #         # add reach attributes
-        #         reach_group.attrs['AREA'] = str(area_all[t][0])
-        #         # for all fish
-        #         for s in range(0, len(fish_name)):
-        #             if fish_name[s] in reach_group:  # if exist erase it
-        #                 del reach_group[fish_name[s]]
-        #                 fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
-        #                                                           data=vh_cell[s][t][r], maxshape=None)
-        #                 fish_replaced.append(fish_name[s])
-        #             else:
-        #                 fish_dataset = reach_group.create_dataset(fish_name[s], [len(vh_cell[s][t][r]), 1],
-        #                                                           data=vh_cell[s][t][r], maxshape=None)
-        #             # add fish attributes
-        #             fish_dataset.attrs['WUA'] = str(spu_all[s][t][0])
-        #             fish_dataset.attrs['HV'] = str(spu_all[s][t][0] / area_all[t][0])
-        # info fish replacement
+        # get all fish names and total number
+        fish_names_total_list = list(mesh_group.keys())
+        fish_names_total_list.remove("sub")
+        fish_names_total_list.remove("tin")
+        self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
+        self.file_object.attrs["hab_fish_number"] = str(len(fish_names_total_list))
 
         if fish_replaced:
             fish_replaced = set(fish_replaced)
             fish_replaced = "; ".join(fish_replaced)
             print(f'Warning: fish(s) information replaced in hdf5 file ({fish_replaced}).\n')
         self.file_object.close()
-        time.sleep(1)  # as we need to insure different group of name
 
-    def load_hdf5_hab(self, units_index="all", whole_profil=False, fish_names="all", convert_to_coarser_dom=False):
+    def load_hdf5_hab(self, units_index="all", fish_names=[], whole_profil=False, convert_to_coarser_dom=False):
         # open an hdf5
         self.open_hdf5_file(new=False)
 
@@ -852,44 +829,64 @@ class Hdf5Management:
         data_2d["v"] = []
         data_2d["nb_unit"] = len(units_index)
         data_2d["nb_reach"] = 1
+        # fish dict
+        if fish_names == "all":  # "all"
+            fish_names_total_list = self.file_object.attrs["hab_fish_list"].split(", ")
+        elif fish_names:  # list of fish
+            fish_names_total_list = fish_names
+        else:  # empty list []
+            fish_names_total_list = []
+        if fish_names_total_list:
+            data_2d["hv_data"] = []
+            data_2d["total_WUA_area"] = []
+            data_2d["total_wet_area"] = []
+            # for fish_name in fish_names_total_list:
+            #     data_2d["total_WUA_area"][fish_name] = []
+
         data_group = 'data_2D'
         # for all reach
         for reach_num in range(0, int(hab_description['hyd_reach_number'])):
             reach_group = data_group + "/reach_" + str(reach_num)
             # for all unit
-            tin_list = []
-            sub_array_list = []
-            xy_list = []
-            h_list = []
-            v_list = []
-            for unit_num in units_index:
+            data_2d["tin"].append([])
+            data_2d["sub"].append([])
+            data_2d["xy"].append([])
+            data_2d["h"].append([])
+            data_2d["v"].append([])
+            if fish_names_total_list:
+                data_2d["hv_data"].append(list(range(len(units_index))))
+                data_2d["total_WUA_area"].append(list(range(len(units_index))))
+                data_2d["total_wet_area"].append([])
+            for unit_index, unit_num in enumerate(units_index):
                 unit_group = reach_group + "/unit_" + str(unit_num)
                 mesh_group = unit_group + "/mesh"
                 node_group = unit_group + "/node"
                 try:
                     # mesh
-                    tin_list.append(self.file_object[mesh_group + "/tin"][:])
+                    data_2d["tin"][reach_num].append(self.file_object[mesh_group + "/tin"][:])
                     if convert_to_coarser_dom and hab_description["sub_classification_method"] != "coarser-dominant":
                         sub_array = self.file_object[mesh_group + "/sub"][:]
                         # dominant case = 1 ==> biggest substrate for plot
                         sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
                         sub_array_coarser_dom = np.array(list(zip(sub_coarser, sub_dominant)))
-                        sub_array_list.append(sub_array_coarser_dom)
+                        data_2d["sub"][reach_num].append(sub_array_coarser_dom)
                     else:
-                        sub_array_list.append(self.file_object[mesh_group + "/sub"][:])
+                        data_2d["sub"][reach_num].append(self.file_object[mesh_group + "/sub"][:])
+                    if fish_names_total_list:
+                        data_2d["hv_data"][reach_num][unit_index] = dict()
+                        data_2d["total_WUA_area"][reach_num][unit_index] = dict()
+                        for fish_name in fish_names_total_list:
+                            data_2d["hv_data"][reach_num][unit_index][fish_name] = self.file_object[mesh_group + "/" + fish_name][:].flatten()
+                            data_2d["total_WUA_area"][reach_num][unit_index][fish_name] = self.file_object[mesh_group + "/" + fish_name].attrs["WUA"]
+                        data_2d["total_wet_area"][reach_num].append(self.file_object[unit_group].attrs["total_wet_area"])
                     # node
-                    xy_list.append(self.file_object[node_group + "/xy"][:])
-                    h_list.append(self.file_object[node_group + "/h"][:].flatten())
-                    v_list.append(self.file_object[node_group + "/v"][:].flatten())
+                    data_2d["xy"][reach_num].append(self.file_object[node_group + "/xy"][:])
+                    data_2d["h"][reach_num].append(self.file_object[node_group + "/h"][:].flatten())
+                    data_2d["v"][reach_num].append(self.file_object[node_group + "/v"][:].flatten())
                 except KeyError:
                     print('Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
                     self.file_object.close()
                     return
-            data_2d["tin"].append(tin_list)
-            data_2d["sub"].append(sub_array_list)
-            data_2d["xy"].append(xy_list)
-            data_2d["h"].append(h_list)
-            data_2d["v"].append(v_list)
 
         # close file
         self.file_object.close()

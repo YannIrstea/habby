@@ -493,7 +493,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     name = f.text
                     self.hdf5_merge.append(name)
                 else:
-                    self.send_log.emit("Warning: One merge hdf5 file was not found by calc_hab.")
+                    self.send_log.emit("Warning: " + f.text + ", this .hab file has been deleted by the user.")
+                    # TODO : It will be deleted from the .xml file.
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
 

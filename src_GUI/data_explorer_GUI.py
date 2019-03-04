@@ -516,7 +516,8 @@ class DataExplorerFrame(QFrame):
             fig_opt['type_plot'] = types_plot  # "display", "export", "both"
 
             # init
-            fish_names = []
+            variables_to_remove = ["height", "velocity", "mesh", "mesh and points", "coarser_dominant"]
+            fish_names = [variable for variable in variables if variable not in variables_to_remove]
 
             # path
             path_hdf5 = self.parent().parent().path_prj + r"/hdf5/"
@@ -552,31 +553,36 @@ class DataExplorerFrame(QFrame):
                         data_description = dict(reach_number=sub_description_system["sub_reach_number"],
                                                 unit_number=sub_description_system["sub_unit_number"],
                                                 unit_type=sub_description_system["sub_unit_type"],
-                                                name_hdf5=sub_description_system["sub_filename"])
+                                                name_hdf5=sub_description_system["sub_filename"],
+                                                sub_classification_code=sub_description_system["sub_classification_code"])
                     if types_hdf5 == "habitat":  # load habitat data
                         data_2d, hab_description = hdf5_management.load_hdf5_hab(units_index=units_index,
+                                                                                 fish_names=fish_names,
                                                                                  whole_profil=False,
                                                                                  convert_to_coarser_dom=True)
                         data_description = dict(reach_number=hab_description["hyd_reach_number"],
                                                 unit_number=hab_description["hyd_unit_number"],
                                                 unit_type=hab_description["hyd_unit_type"],
-                                                name_hdf5=hab_description["hyd_filename"])
-                    # for one or more desired units ==> habitat data (HV and WUA)
-                    if fish_names:
-                        state = Value("i", 0)
-                        plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
-                                                           args=(state,
-                                                                 total_wetarea_all_t,
-                                                                 fish_data["total_WUA"],
-                                                                 fish_names,
-                                                                 path_im,
-                                                                 name_hdf5,
-                                                                 fig_opt,
-                                                                 units))
-                        self.plot_process_list.append((plot_hab_fig_spu_process, state))
+                                                name_hdf5=hab_description["hyd_filename"],
+                                                sub_classification_code=hab_description["sub_classification_code"])
 
                     # for each reach
                     for reach_num in range(int(data_description["reach_number"])):
+
+                        # for one or more desired units ==> habitat data (HV and WUA)
+                        if fish_names:
+                            state = Value("i", 0)
+                            plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
+                                                               args=(state,
+                                                                     data_2d["total_wet_area"][reach_num],
+                                                                     data_2d["total_WUA_area"][reach_num],
+                                                                     fish_names,
+                                                                     path_im,
+                                                                     name_hdf5,
+                                                                     fig_opt,
+                                                                     units))
+                            self.plot_process_list.append((plot_hab_fig_spu_process, state))
+
                         # for each desired units ==> maps
                         for unit_num, t in enumerate(units_index):
                             # input data
@@ -640,31 +646,18 @@ class DataExplorerFrame(QFrame):
                                                                  units[unit_num]))
                                 self.plot_process_list.append((velocity_process, state))
                             if "coarser_dominant" in variables:  # coarser_dominant
-                                if types_hdf5 == "substrate":  # from substrate
-                                    state = Value("i", 0)
-                                    susbtrat_process = Process(target=plot_mod.plot_map_substrate,
-                                                               args=(state,
-                                                                     data_2d["xy"][reach_num][unit_num],
-                                                                     data_2d["tin"][reach_num][unit_num],
-                                                                     data_2d["sub"][reach_num][unit_num],
-                                                                     sub_description_system,
-                                                                     path_im,
-                                                                     name_hdf5,
-                                                                     fig_opt))
-                                    self.plot_process_list.append((susbtrat_process, state))
-                                else:  # from habitat
-                                    state = Value("i", 0)
-                                    susbtrat_process = Process(target=plot_mod.plot_map_substrate,
-                                                               args=(state,
-                                                                     data_2d["xy"][reach_num][unit_num],
-                                                                     data_2d["tin"][reach_num][unit_num],
-                                                                     data_2d["sub"][reach_num][unit_num],
-                                                                     hab_description,
-                                                                     path_im,
-                                                                     name_hdf5,
-                                                                     fig_opt,
-                                                                     units[unit_num]))
-                                    self.plot_process_list.append((susbtrat_process, state))
+                                state = Value("i", 0)
+                                susbtrat_process = Process(target=plot_mod.plot_map_substrate,
+                                                           args=(state,
+                                                                 data_2d["xy"][reach_num][unit_num],
+                                                                 data_2d["tin"][reach_num][unit_num],
+                                                                 data_2d["sub"][reach_num][unit_num],
+                                                                 data_description,
+                                                                 path_im,
+                                                                 name_hdf5,
+                                                                 fig_opt,
+                                                                 units[unit_num]))
+                                self.plot_process_list.append((susbtrat_process, state))
                             if fish_names:  # habitat data (maps)
                                 # map by fish
                                 for fish_index, fish_name in enumerate(fish_names):
@@ -673,9 +666,9 @@ class DataExplorerFrame(QFrame):
                                     habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                                   args=(state,
                                                                         fish_name,
-                                                                        point_all_t[index + 1][0],
-                                                                        ikle_all_t[index + 1][0],
-                                                                        fish_data["HV_data"][index + 1][fish_index + 1],
+                                                                        data_2d["xy"][reach_num][unit_num],
+                                                                        data_2d["tin"][reach_num][unit_num],
+                                                                        data_2d["hv_data"][reach_num][unit_num][fish_name],
                                                                         name_hdf5,
                                                                         fig_opt,
                                                                         path_im,

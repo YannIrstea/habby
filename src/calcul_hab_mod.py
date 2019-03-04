@@ -267,7 +267,6 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
     sys.stdout = sys.__stdout__
     # for each fish ?
     for idx, bio_name in enumerate(bio_names):
-        print(idx, bio_name)
         # load bio data
         xmlfile = os.path.join(path_bio, bio_name)
         [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(xmlfile)

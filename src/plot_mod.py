@@ -820,277 +820,252 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
             map(str, sim_name))
     fig = plt.figure(plot_window_title)
 
-    if len(spu_all) != len(name_fish):
-        print('Error: Number of fish name and number of WUA data is not coherent \n')
-        return
-
-    try:
-        nb_reach = len(max(area_all, key=len))  # we might have failed time step
-    except TypeError:  # or all failed time steps -99
-        # print('Error: No reach found. Is the hdf5 corrupted? \n')
-        return
-
+    name_fish_origin = list(name_fish)
     for id, n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
-    if sim_name and len(area_all) - 1 != len(sim_name):
-        sim_name = []
+    # if sim_name and len(area_all) - 1 != len(sim_name):
+    #     sim_name = []
 
     # one time step - bar
-    if len(area_all) == 1 or len(area_all) == 2:
-        for r in range(0, nb_reach):
-            # SPU
-            data_bar = []
-            for s in range(0, len(name_fish)):
-                data_bar.append(spu_all[s][1][r])
-            y_pos = np.arange(len(spu_all))
-            if r > 0:
-                fig = plt.figure()
-            fig.add_subplot(211)
-            if data_bar:
-                #spu_string = '{:0.0f}'.format(data_bar[0])
-                data_bar2 = np.array(data_bar)
-                plt.bar(y_pos, data_bar2, 0.5)
-                #plt.text(x=y_pos, y=data_bar2 / 2, s=spu_string + " m²", horizontalalignment='left')
-                plt.xticks(y_pos + 0.25, name_fish)
-            if fig_opt['language'] == 0:
-                plt.ylabel('WUA [m^2]')
-            elif fig_opt['language'] == 1:
-                plt.ylabel('SPU [m^2]')
+    if len(area_all) == 1:
+        # SPU
+        data_bar = []
+        for name_fish_value in name_fish_origin:
+            data_bar.append(float(spu_all[0][name_fish_value]))
+        y_pos = np.arange(len(spu_all[0]))
+        fig.add_subplot(211)
+        if data_bar:
+            #spu_string = '{:0.0f}'.format(data_bar[0])
+            data_bar2 = np.array(data_bar)
+            plt.bar(y_pos, data_bar2, 0.5)
+            #plt.text(x=y_pos, y=data_bar2 / 2, s=spu_string + " m²", horizontalalignment='left')
+            plt.xticks(y_pos + 0.25, name_fish)
+        if fig_opt['language'] == 0:
+            plt.ylabel('WUA [m^2]')
+        elif fig_opt['language'] == 1:
+            plt.ylabel('SPU [m^2]')
+        else:
+            plt.ylabel('WUA [m^2]')
+        plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+        if fig_opt['language'] == 0:
+            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
+        elif fig_opt['language'] == 1:
+            plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}')
+        else:
+            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
+        # VH
+        fig.add_subplot(212)
+        if data_bar:
+            area = float(area_all[0])
+            vh = np.array(data_bar[0] / area)
+            #vh_string = '{:0.2f}'.format(vh)
+            plt.bar(y_pos, vh, 0.5)
+            #plt.text(x=y_pos, y=0.5, s=vh_string, horizontalalignment='left')
+            plt.xticks(y_pos + 0.25, name_fish)
+        if fig_opt['language'] == 0:
+            plt.ylabel('HV (WUA/A) []')
+        elif fig_opt['language'] == 1:
+            plt.ylabel('VH (SPU/A) []')
+        else:
+            plt.ylabel('HV (WUA/A) []')
+        plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+        plt.ylim(0, 1)
+        if fig_opt['language'] == 0:
+            plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
+        elif fig_opt['language'] == 1:
+            plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}")
+        else:
+            plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
+        # get data with mouse
+        mplcursors.cursor()
+        plt.tight_layout()
+        # export or not
+        if types_plot == "image export" or types_plot == "both":
+            if not erase_id:
+                name = 'WUA_' + name_base + '_Reach_' + str(0) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                plt.ylabel('WUA [m^2]')
-            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-            if fig_opt['language'] == 0:
-                plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
-            elif fig_opt['language'] == 1:
-                plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}')
-            else:
-                plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
-            # VH
-            fig.add_subplot(212)
-            if data_bar:
-                area = area_all[-1][r]
-                vh = np.array(data_bar[0] / area)
-                #vh_string = '{:0.2f}'.format(vh)
-                plt.bar(y_pos, vh, 0.5)
-                #plt.text(x=y_pos, y=0.5, s=vh_string, horizontalalignment='left')
-                plt.xticks(y_pos + 0.25, name_fish)
-            if fig_opt['language'] == 0:
-                plt.ylabel('HV (WUA/A) []')
-            elif fig_opt['language'] == 1:
-                plt.ylabel('VH (SPU/A) []')
-            else:
-                plt.ylabel('HV (WUA/A) []')
-            plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-            plt.ylim(0, 1)
-            if fig_opt['language'] == 0:
-                plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
-            elif fig_opt['language'] == 1:
-                plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}")
-            else:
-                plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
-            # get data with mouse
-            mplcursors.cursor()
-            # export or not
-            if types_plot == "image export" or types_plot == "both":
-                if not erase_id:
-                    name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                else:
-                    name = 'WUA_' + name_base + '_Reach_' + str(r)
-                    test = calcul_hab_mod.remove_image(name, path_im, format1)
-                    if not test:
-                        return
-                #plt.tight_layout()
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                name = 'WUA_' + name_base + '_Reach_' + str(0)
+                test = calcul_hab_mod.remove_image(name, path_im, format1)
+                if not test:
+                    return
+
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # many time step - lines
-    elif len(area_all) > 2:
-        sum_data_spu = np.zeros((len(spu_all), len(area_all)))
-        sum_data_spu_div = np.zeros((len(spu_all), len(area_all)))
-
-        t_all = []
-        for r in range(0, nb_reach):
-            # SPU
-            if r > 0:
-                fig = plt.figure("Habitat Value and Weighted Usable Area for the reach " + str(r))
-            spu_ax = fig.add_subplot(211)
-            data_wua_list = []
-            for s in range(0, len(spu_all)):
-                data_plot_spu = []
-                t_all = []
-                for t in range(0, len(area_all)):
-                    if spu_all[s][t] and spu_all[s][t][r] != -99:
-                        data_plot_spu.append(spu_all[s][t][r])
-                        sum_data_spu[s][t] += spu_all[s][t][r]
-                        t_all.append(t)
-                t_all_s = t_all
-                data_wua_list.append(data_plot_spu)
-                plt.plot(t_all, data_plot_spu, label=name_fish[s], marker=mar)
-            if fig_opt['language'] == 0:
-                # plt.xlabel('Computational step [ ]')
-                plt.ylabel('WUA [m$^2$]')
-                plt.title('Weighted Usable Area for the Reach ' + str(r))
-            elif fig_opt['language'] == 1:
-                plt.ylabel('SPU [m$^2$]')
-                plt.title('Surface Ponderée pour le troncon ' + str(r))
-            else:
-                # plt.xlabel('Computational step [ ]')
-                plt.ylabel('WUA [m$^2$]')
-                plt.title('Weighted Usable Area for the Reach ' + str(r))
-            plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
-            # spu_ax.xaxis.set_ticklabels([])
+    if len(area_all) > 1:
+        # SPU
+        spu_ax = fig.add_subplot(211)
+        x_data = list(map(float, sim_name))
+        y_data_spu_list = []
+        for name_fish_value in name_fish_origin:
+            y_data_spu = []
+            for unit_index in range(len(spu_all)):
+                y_data_spu.append(float(spu_all[unit_index][name_fish_value]))
+            y_data_spu_list.append(y_data_spu)
+            plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
+        if fig_opt['language'] == 0:
+            # plt.xlabel('Computational step [ ]')
+            plt.ylabel('WUA [m$^2$]')
+            plt.title('Weighted Usable Area for the Reach ' + str(0))
+        elif fig_opt['language'] == 1:
+            plt.ylabel('SPU [m$^2$]')
+            plt.title('Surface Ponderée pour le troncon ' + str(0))
+        else:
+            # plt.xlabel('Computational step [ ]')
+            plt.ylabel('WUA [m$^2$]')
+            plt.title('Weighted Usable Area for the Reach ' + str(0))
+        plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
+        # spu_ax.xaxis.set_ticklabels([])
+        if len(sim_name[0]) > 5:
+            rot = 'vertical'
+        else:
+            rot = 'horizontal'
+        if len(sim_name) < 25:
+            plt.xticks(x_data, [], rotation=rot)
+        elif len(sim_name) < 100:
+            plt.xticks(x_data[::3], [], rotation=rot)
+        else:
+            plt.xticks(x_data[::10], [], rotation=rot)
+        # VH
+        hv_ax = fig.add_subplot(212)
+        y_data_hv_list = []
+        for name_fish_value in name_fish_origin:
+            y_data_hv = []
+            for unit_index in range(len(spu_all)):
+                hv_data = float(spu_all[unit_index][name_fish_value]) / float(area_all[unit_index])
+                y_data_hv.append(hv_data)
+            y_data_hv_list.append(y_data_hv)
+            plt.plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
+        if fig_opt['language'] == 0:
+            plt.xlabel('Computational step [ ]')
+            plt.ylabel('HV (WUA/A) []')
+            plt.title('Habitat Value for the Reach ' + str(0))
+        elif fig_opt['language'] == 1:
+            plt.xlabel('Unité [ ]')
+            plt.ylabel('HV (SPU/A) []')
+            plt.title("Valeur d'habitat pour le troncon " + str(0))
+        else:
+            plt.xlabel('Computational step [ ]')
+            plt.ylabel('HV (WUA/A) []')
+            plt.title('Habitat Value for the Reach ' + str(0))
+        plt.ylim(0, 1)
+        # view data with mouse
+        # get data with mouse
+        mplcursors.cursor()
+        # cursorPT = SnaptoCursorPT(fig.canvas, spu_ax, hv_ax, x_data, y_data_spu_list, y_data_hv_list)
+        # fig.canvas.mpl_connect('motion_notify_event', cursorPT.mouse_move)
+        # label
+        if sim_name:
             if len(sim_name[0]) > 5:
                 rot = 'vertical'
             else:
                 rot = 'horizontal'
             if len(sim_name) < 25:
-                plt.xticks(t_all, [], rotation=rot)
+                plt.xticks(x_data, sim_name, rotation=45)
             elif len(sim_name) < 100:
-                plt.xticks(t_all[::3], [], rotation=rot)
+                plt.xticks(x_data[::3], sim_name[::3], rotation=45)
             else:
-                plt.xticks(t_all[::10], [], rotation=rot)
-            # VH
-            hv_ax = fig.add_subplot(212)
-            data_hv_list = []
-            for s in range(0, len(spu_all)):
-                data_plot_hv = []
-                t_all = []
-                for t in range(0, len(area_all)):
-                    if spu_all[s][t] and spu_all[s][t][r] != -99:
-                        data_here = spu_all[s][t][r] / area_all[t][r]
-                        data_plot_hv.append(data_here)
-                        sum_data_spu_div[s][t] += data_here
-                        t_all.append(t)
-                data_hv_list.append(data_plot_hv)
-                plt.plot(t_all, data_plot_hv, label=name_fish[s], marker=mar)
-            if fig_opt['language'] == 0:
-                plt.xlabel('Computational step [ ]')
-                plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value for the Reach ' + str(r))
-            elif fig_opt['language'] == 1:
-                plt.xlabel('Unité [ ]')
-                plt.ylabel('HV (SPU/A) []')
-                plt.title("Valeur d'habitat pour le troncon " + str(r))
+                plt.xticks(x_data[::10], sim_name[::10], rotation=45)
+        plt.tight_layout()
+        if types_plot == "image export" or types_plot == "both":
+            if not erase_id:
+                name = 'WUA_' + name_base + '_Reach_' + str(0) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                plt.xlabel('Computational step [ ]')
-                plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value for the Reach ' + str(r))
-            plt.ylim(0, 1)
-            # view data with mouse
-            cursorPT = SnaptoCursorPT(fig.canvas, spu_ax, hv_ax, t_all, data_wua_list, data_hv_list)
-            fig.canvas.mpl_connect('motion_notify_event', cursorPT.mouse_move)
-            # label
-            if sim_name:
-                if len(sim_name[0]) > 5:
-                    rot = 'vertical'
-                else:
-                    rot = 'horizontal'
-                if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=45)
-                elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=45)
-                else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=45)
-            # plt.tight_layout()
-            if types_plot == "image export" or types_plot == "both":
-                if not erase_id:
-                    name = 'WUA_' + name_base + '_Reach_' + str(r) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                else:
-                    name = 'WUA_' + name_base + '_Reach_' + str(r)
-                    test = calcul_hab_mod.remove_image(name, path_im, format1)
-                    if not test:
-                        return
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                name = 'WUA_' + name_base + '_Reach_' + str(0)
+                test = calcul_hab_mod.remove_image(name, path_im, format1)
+                if not test:
+                    return
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
-        # all reach
-        if nb_reach > 1:
-            plt.close('all')  # only show the last reach
-            fig = plt.figure()
-            fig.add_subplot(211)
-            for s in range(0, len(spu_all)):
-                plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
-            if fig_opt['language'] == 0:
-                plt.xlabel('Computational step or discharge')
-                plt.ylabel('WUA [m^2]')
-                plt.title('Weighted Usable Area for All Reaches')
-            elif fig_opt['language'] == 1:
-                plt.xlabel('Unité')
-                plt.ylabel('SPU [m^2]')
-                plt.title('Surface Ponderée pour tous les Troncons')
-            else:
-                plt.xlabel('Computational step or discharge')
-                plt.ylabel('WUA [m^2]')
-                plt.title('Weighted Usable Area for All Reaches')
-            plt.legend(fancybox=True, framealpha=0.5)
-            if sim_name:
-                if len(sim_name[0]) > 5:
-                    rot = 'vertical'
-                else:
-                    rot = 'horizontal'
-                if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=rot)
-                elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
-                else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
-            # VH
-            fig.add_subplot(212)
-            for s in range(0, len(spu_all)):
-                plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
-            if fig_opt['language'] == 0:
-                plt.xlabel('Computational step or discharge ')
-                plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value For All Reaches')
-            elif fig_opt['language'] == 1:
-                plt.xlabel('Unité')
-                plt.ylabel('HV (SPU/A) []')
-                plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
-            else:
-                plt.xlabel('Computational step or discharge ')
-                plt.ylabel('HV (WUA/A) []')
-                plt.title('Habitat Value For All Reaches')
-            plt.ylim(0, 1)
-            plt.tight_layout()
-            if sim_name:
-                if len(sim_name[0]) > 5:
-                    rot = 'vertical'
-                else:
-                    rot = 'horizontal'
-                if len(sim_name) < 25:
-                    plt.xticks(t_all, sim_name, rotation=45)
-                elif len(sim_name) < 100:
-                    plt.xticks(t_all[::3], sim_name[::3], rotation=45)
-                else:
-                    plt.xticks(t_all[::10], sim_name[::10], rotation=45)
-            if types_plot == "image export" or types_plot == "both":
-                if not erase_id:
-                    name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                else:
-                    name = 'WUA_' + name_base + '_All_Reach_'
-                    test = calcul_hab_mod.remove_image(name, path_im, format1)
-                    if not test:
-                        return
-                if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-                if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+        # # all reach
+        # if nb_reach > 1:
+        #     plt.close('all')  # only show the last reach
+        #     fig = plt.figure()
+        #     fig.add_subplot(211)
+        #     for s in range(0, len(spu_all)):
+        #         plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
+        #     if fig_opt['language'] == 0:
+        #         plt.xlabel('Computational step or discharge')
+        #         plt.ylabel('WUA [m^2]')
+        #         plt.title('Weighted Usable Area for All Reaches')
+        #     elif fig_opt['language'] == 1:
+        #         plt.xlabel('Unité')
+        #         plt.ylabel('SPU [m^2]')
+        #         plt.title('Surface Ponderée pour tous les Troncons')
+        #     else:
+        #         plt.xlabel('Computational step or discharge')
+        #         plt.ylabel('WUA [m^2]')
+        #         plt.title('Weighted Usable Area for All Reaches')
+        #     plt.legend(fancybox=True, framealpha=0.5)
+        #     if sim_name:
+        #         if len(sim_name[0]) > 5:
+        #             rot = 'vertical'
+        #         else:
+        #             rot = 'horizontal'
+        #         if len(sim_name) < 25:
+        #             plt.xticks(t_all, sim_name, rotation=rot)
+        #         elif len(sim_name) < 100:
+        #             plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
+        #         else:
+        #             plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
+        #     # VH
+        #     fig.add_subplot(212)
+        #     for s in range(0, len(spu_all)):
+        #         plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
+        #     if fig_opt['language'] == 0:
+        #         plt.xlabel('Computational step or discharge ')
+        #         plt.ylabel('HV (WUA/A) []')
+        #         plt.title('Habitat Value For All Reaches')
+        #     elif fig_opt['language'] == 1:
+        #         plt.xlabel('Unité')
+        #         plt.ylabel('HV (SPU/A) []')
+        #         plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
+        #     else:
+        #         plt.xlabel('Computational step or discharge ')
+        #         plt.ylabel('HV (WUA/A) []')
+        #         plt.title('Habitat Value For All Reaches')
+        #     plt.ylim(0, 1)
+        #     plt.tight_layout()
+        #     if sim_name:
+        #         if len(sim_name[0]) > 5:
+        #             rot = 'vertical'
+        #         else:
+        #             rot = 'horizontal'
+        #         if len(sim_name) < 25:
+        #             plt.xticks(t_all, sim_name, rotation=45)
+        #         elif len(sim_name) < 100:
+        #             plt.xticks(t_all[::3], sim_name[::3], rotation=45)
+        #         else:
+        #             plt.xticks(t_all[::10], sim_name[::10], rotation=45)
+        #     if types_plot == "image export" or types_plot == "both":
+        #         if not erase_id:
+        #             name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        #         else:
+        #             name = 'WUA_' + name_base + '_All_Reach_'
+        #             test = calcul_hab_mod.remove_image(name, path_im, format1)
+        #             if not test:
+        #                 return
+        #         if format1 == 0 or format1 == 1:
+        #             plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+        #         if format1 == 0 or format1 == 3:
+        #             plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+        #         if format1 == 2:
+        #             plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
     if types_plot == "interactive" or types_plot == "both":
-        # mplcursors.cursor()
         # fm = plt.get_current_fig_manager()
         # fm.window.showMinimized()
         plt.show()
@@ -1128,7 +1103,7 @@ class SnaptoCursorPT(object):
         if event.inaxes:
             # LOCATE
             self.take_closest(event.xdata, self.x)
-            for i in range(len(self.y_wua_list)):
+            for i in range(len(self.y_wua_list)):  # for each fish list
                 # PLOT WUA
                 y_wua = self.y_wua_list[i][self.x.index(self.x_loc)]
                 text_wua = '{:0.0f}'.format(y_wua) + " m²"
