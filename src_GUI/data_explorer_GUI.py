@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, \
-    QComboBox, QMessageBox, QFrame, \
+    QComboBox, QMessageBox, QFrame, QCheckBox, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit
 from src_GUI import preferences_GUI
 from src import hdf5_mod
@@ -78,6 +78,7 @@ class DataExplorerFrame(QFrame):
     def __init__(self):
         super().__init__()
         self.nb_plot = 0
+        self.variables_to_remove = ["height", "velocity", "mesh", "mesh and points", "coarser_dominant"]
         self.init_ui()
         self.plot_production_stoped = False
         self.plot_process_list = MyProcessList(self.progress_bar)
@@ -87,6 +88,7 @@ class DataExplorerFrame(QFrame):
         #self.setTitle(self.tr('HABBY data explorer'))
         #self.setStyleSheet('QGroupBox {font-weight: bold;}')
 
+        """ File selection """
         # types_hdf5_QComboBox
         self.types_hdf5_QLabel = QLabel(self.tr('file types'))
         self.types_hdf5_QComboBox = QComboBox()
@@ -109,6 +111,7 @@ class DataExplorerFrame(QFrame):
         self.names_hdf5_layout.addWidget(self.names_hdf5_QLabel)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QListWidget)
 
+        """ Graphic producer """
         # variable_QListWidget
         self.variable_hdf5_QLabel = QLabel(self.tr('variables'))
         self.variable_QListWidget = QListWidget()
@@ -132,7 +135,7 @@ class DataExplorerFrame(QFrame):
         self.units_layout.addWidget(self.units_QListWidget)
 
         # types_plot_QComboBox
-        self.types_plot_QLabel = QLabel(self.tr('type of graphic'))
+        self.types_plot_QLabel = QLabel(self.tr('View or export ?'))
         self.types_plot_QComboBox = QComboBox()
         self.types_plot_QComboBox.addItems(["interactive", "image export", "both"])
         self.types_plot_layout = QVBoxLayout()
@@ -153,6 +156,15 @@ class DataExplorerFrame(QFrame):
         self.plot_stop_button.setEnabled(False)
         self.types_plot_layout.addWidget(self.plot_stop_button)
 
+        # type plot
+        plot_type_qlabel = QLabel(self.tr("figure type :"))
+        self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
+        self.plot_map_QCheckBox.setChecked(True)
+        self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
+        self.plot_result_QCheckBox = QCheckBox(self.tr("result"))
+        self.plot_result_QCheckBox.setChecked(True)
+        self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
+
         # progress bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0)
@@ -162,6 +174,7 @@ class DataExplorerFrame(QFrame):
         self.hdf5_attributes_QTextEdit = QTextEdit(self)
         self.hdf5_attributes_QTextEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
+        """ File selection """
         # SELECTION FILE
         selectionfile_layout = QHBoxLayout()
         selectionfile_layout.addLayout(self.types_hdf5_layout)
@@ -169,17 +182,24 @@ class DataExplorerFrame(QFrame):
         selectionfile_group = QGroupBox(self.tr("File selection"))
         selectionfile_group.setLayout(selectionfile_layout)
 
+        """ Graphic producer """
         # PLOT GROUP
         plot_layout = QHBoxLayout()
         plot_layout.addLayout(self.variable_hdf5_layout)
         plot_layout.addLayout(self.units_layout)
         plot_layout.addLayout(self.types_plot_layout)
         plot_layout2 = QVBoxLayout()
+        plot_type_layout = QHBoxLayout()
+        plot_type_layout.addWidget(plot_type_qlabel)
+        plot_type_layout.addWidget(self.plot_map_QCheckBox)
+        plot_type_layout.addWidget(self.plot_result_QCheckBox)
         plot_layout2.addLayout(plot_layout)
+        plot_layout2.addLayout(plot_type_layout)
         plot_layout2.addWidget(self.progress_bar)
-        plot_group = QGroupBox(self.tr("Graphic producer"))
+        plot_group = QGroupBox(self.tr("Figure producer"))
         plot_group.setLayout(plot_layout2)
 
+        """ File information """
         # ATTRIBUTE GROUP
         attributes_layout = QVBoxLayout()
         attributes_layout.addWidget(self.hdf5_attributes_QTextEdit)
@@ -232,20 +252,37 @@ class DataExplorerFrame(QFrame):
         count number of graphic to produce and ajust progress bar range
         """
         types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_from_gui()
-        if types_hdf5 and names_hdf5 and variables and units:
+        plot_type = []
+        if self.plot_map_QCheckBox.isChecked():
+            plot_type = ["map"]
+        if self.plot_result_QCheckBox.isChecked():
+            plot_type = ["result"]
+        if self.plot_map_QCheckBox.isChecked() and self.plot_result_QCheckBox.isChecked():
+            plot_type = ["map", "result"]
+
+        if types_hdf5 and names_hdf5 and variables and units and plot_type:
             if types_hdf5 == "habitat":
-                variables_to_remove = ["height", "velocity", "mesh", "mesh and points", "coarser_dominant"]
-                fish_names = [variable for variable in variables if variable not in variables_to_remove]
+                fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
                 variables_other = [variable for variable in variables if variable not in fish_names]
                 if len(fish_names) == 0:
                     nb_plot_total = len(names_hdf5) * len(variables) * len(units)
                 if len(fish_names) == 1:
                     # one map by fish by unit
-                    nb_map = len(names_hdf5) * len(fish_names) * len(units)
+                    if plot_type == ["result"]:
+                        nb_map = 0
+                    else:
+                        nb_map = len(names_hdf5) * len(fish_names) * len(units)
                     if len(units) == 1:
-                        nb_wua_hv = len(names_hdf5) * len(fish_names) * len(units)
+                        if plot_type == ["map"]:
+                            nb_wua_hv = 0
+                        else:
+                            nb_wua_hv = len(names_hdf5) * len(fish_names) * len(units)
                     if len(units) > 1:
-                        nb_wua_hv = len(names_hdf5) * len(fish_names)
+                        if plot_type == ["map"]:
+                            nb_wua_hv = 0
+                        else:
+                            nb_wua_hv = len(names_hdf5) * len(fish_names)
+                    # total
                     nb_plot_total = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + nb_wua_hv
                 if len(fish_names) > 1:
                     # one map by fish by unit
@@ -254,6 +291,7 @@ class DataExplorerFrame(QFrame):
                     nb_plot_total = (len(names_hdf5) * len(variables_other) * len(units)) + nb_plot_total_hab
             else:
                 nb_plot_total = len(names_hdf5) * len(variables) * len(units)
+
             self.nb_plot = nb_plot_total
             self.progress_bar.setRange(0, self.nb_plot)
             self.progress_bar.setValue(0)
@@ -516,8 +554,7 @@ class DataExplorerFrame(QFrame):
             fig_opt['type_plot'] = types_plot  # "display", "export", "both"
 
             # init
-            variables_to_remove = ["height", "velocity", "mesh", "mesh and points", "coarser_dominant"]
-            fish_names = [variable for variable in variables if variable not in variables_to_remove]
+            fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
 
             # path
             path_hdf5 = self.parent().parent().path_prj + r"/hdf5/"
