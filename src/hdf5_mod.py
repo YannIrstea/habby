@@ -163,6 +163,7 @@ class Hdf5Management:
         # hydraulic substrate and habitat variables
         else:
             data_group = list(self.file_object.keys())[0]
+            """ MESH GROUP """
             # mesh_group for first reach and first unit
             mesh_group = data_group + "/reach_0/unit_0/mesh"
             variables_mesh = list(self.file_object[mesh_group].keys())
@@ -172,6 +173,7 @@ class Hdf5Management:
             # change sub by coarser_dominant
             if "sub" in variables_mesh:
                 variables_mesh[variables_mesh.index("sub")] = "coarser_dominant"
+            """ NODE GROUP """
             # node_group for first reach and first unit
             node_group = data_group + "/reach_0/unit_0/node"
             variables_node = list(self.file_object[node_group].keys())
@@ -190,6 +192,23 @@ class Hdf5Management:
                 variables = variables_node
             if variables_mesh and not variables_node:
                 variables = variables_mesh
+
+            # change names (estithic)
+            if "z" in variables:
+                variables.remove("z")
+                variables.insert(1, "points elevation")
+            if "mesh" in variables:
+                variables.insert(1, "mesh and points")
+
+            # estithic sort for GUI (classic variables + fish variables (alphanumeric))
+            variables.sort(key=str.lower)  # sort alphanumeric
+            list_to_gui = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+            list_to_gui = [x for x in list_to_gui if x in variables]  # remove variable not present in hdf5
+
+            for variable_index, variable in enumerate(list_to_gui):
+                if variable in variables:  # first
+                    variables.insert(variable_index, variables.pop(variables.index(variable)))
+
             # close hdf5 file
             self.file_object.close()
             return variables
@@ -569,6 +588,8 @@ class Hdf5Management:
         for attribute_name, attribute_value in list(merge_description.items()):
             if attribute_name not in attributes_to_remove:
                 self.file_object.attrs[attribute_name] = attribute_value
+        self.file_object.attrs["hab_fish_list"] = ", ".join([])
+        self.file_object.attrs["hab_fish_number"] = str(0)
         # habitat
         # self.file_object.attrs['hab_filename_source'] = merge_description["hyd_filename_source"]
         # self.file_object.attrs['hab_reach_number'] = merge_description["hyd_reach_number"]
