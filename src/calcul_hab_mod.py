@@ -84,7 +84,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
 
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
-        calc_hab(data_2d, hab_description, hdf5_file, path_hdf5, pref_list, stages_chosen, path_bio, run_choice)
+        calc_hab(data_2d, hab_description, hdf5_file, path_hdf5,
+                 pref_list, stages_chosen, path_bio, run_choice, progress_value)
 
     if vh_all_t_sp == [-99] or isinstance(name_fish[0], int):
         if q:
@@ -93,8 +94,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
             return
         else:
             return
-    # progress
-    progress_value.value = 50
 
     # to get which output must be created
     if fig_opt['text_output'] == 'True':  # from the xml, string only
@@ -123,15 +122,11 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     for id, n in enumerate(name_fish):
         name_fish[id] = n + '_' + stages_chosen[id]
         all_name += name_fish_sh[id]
-    if len(hdf5_file) > 25:
-        name_base = hdf5_file[:-3][:25] + '_' + all_name
-        name_base2 = hdf5_file[:-3][:25]
-    else:
-        name_base = hdf5_file[:-3] + '_' + all_name
-        name_base2 = hdf5_file[:-3]
+    name_base = hdf5_file[:-4]
+    name_base2 = hdf5_file[:-4]
 
     # progress
-    progress_value.value = 60
+    progress_value.value = 80
 
     # path_prj = os.path.dirname(path_hdf5)
     # name_prj = os.path.basename(path_prj)
@@ -149,7 +144,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'], erase_id)
 
     # progress
-    progress_value.value = 70
+    progress_value.value = 85
 
     # # shape output
     # if create_shape:
@@ -161,7 +156,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     #                    name_fish_sh, path_shp, name_base, sim_name, save_perc=perc, erase_id=erase_id)
 
     # progress
-    progress_value.value = 80
+    progress_value.value = 90
 
     # paraview outputs
     # if create_para:
@@ -212,7 +207,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     hdf5_management.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish)
 
     # progress
-    progress_value.value = 90
+    progress_value.value = 95
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -223,7 +218,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         return
 
 
-def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages, path_bio, opt):
+def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages, path_bio, opt, progress_value):
     """
     This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
@@ -264,7 +259,11 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
     # if hab_description["sub_classification_method"] == "coarser-dominant":
     #     substrate_all_pg = substrate_all[0]
     #     substrate_all_dom = substrate_all[1]
-    sys.stdout = sys.__stdout__
+
+    # progress
+    prog = progress_value.value
+    delta = (80 - 10) / len(bio_names)
+
     # for each fish ?
     for idx, bio_name in enumerate(bio_names):
         # load bio data
@@ -281,7 +280,7 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
                 pref_height = pref_height[idx2]
                 pref_vel = pref_vel[idx2]
                 pref_sub = pref_sub[idx2]
-                print(idx2, stade_bio)
+                #print(idx2, stade_bio)
 
                 # calcul (one function for each calculation options)
                 if opt == 0:  # pg
@@ -313,6 +312,10 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
                     return failload
                 vh_all_t_sp.append(vh_all_t)
                 spu_all_t_sp.append(spu_all_t)
+
+        # progress
+        prog += delta
+        progress_value.value = int(prog)
 
         if found_stage == 0:
             print('Error: the name of the fish stage are not coherent \n')
