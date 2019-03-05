@@ -78,7 +78,7 @@ class DataExplorerFrame(QFrame):
     def __init__(self):
         super().__init__()
         self.nb_plot = 0
-        self.variables_to_remove = ["height", "velocity", "mesh", "mesh and points", "coarser_dominant"]
+        self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
         self.init_ui()
         self.plot_production_stoped = False
         self.plot_process_list = MyProcessList(self.progress_bar)
@@ -134,27 +134,27 @@ class DataExplorerFrame(QFrame):
         self.units_layout.addWidget(self.units_QLabel)
         self.units_layout.addWidget(self.units_QListWidget)
 
-        # types_plot_QComboBox
-        self.types_plot_QLabel = QLabel(self.tr('View or export ?'))
-        self.types_plot_QComboBox = QComboBox()
-        self.types_plot_QComboBox.addItems(["interactive", "image export", "both"])
-        self.types_plot_layout = QVBoxLayout()
-        self.types_plot_layout.setAlignment(Qt.AlignTop)
-        self.types_plot_layout.addWidget(self.types_plot_QLabel)
-        self.types_plot_layout.addWidget(self.types_plot_QComboBox)
+        # export_type_QComboBox
+        self.export_type_QLabel = QLabel(self.tr('View or export ?'))
+        self.export_type_QComboBox = QComboBox()
+        self.export_type_QComboBox.addItems(["interactive", "image export", "both"])
+        self.export_type_layout = QVBoxLayout()
+        self.export_type_layout.setAlignment(Qt.AlignTop)
+        self.export_type_layout.addWidget(self.export_type_QLabel)
+        self.export_type_layout.addWidget(self.export_type_QComboBox)
 
         # buttons plot_button
         self.plot_button = QPushButton(self.tr("run"))
         self.plot_button.clicked.connect(self.collect_data_from_gui_and_plot)
         self.plot_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
-        self.types_plot_layout.addWidget(self.plot_button)
+        self.export_type_layout.addWidget(self.plot_button)
 
         # stop plot_button
         self.plot_stop_button = QPushButton(self.tr("stop"))
         self.plot_stop_button.clicked.connect(self.stop_plot)
         self.plot_stop_button.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         self.plot_stop_button.setEnabled(False)
-        self.types_plot_layout.addWidget(self.plot_stop_button)
+        self.export_type_layout.addWidget(self.plot_stop_button)
 
         # type plot
         plot_type_qlabel = QLabel(self.tr("figure type :"))
@@ -187,12 +187,13 @@ class DataExplorerFrame(QFrame):
         plot_layout = QHBoxLayout()
         plot_layout.addLayout(self.variable_hdf5_layout)
         plot_layout.addLayout(self.units_layout)
-        plot_layout.addLayout(self.types_plot_layout)
+        plot_layout.addLayout(self.export_type_layout)
         plot_layout2 = QVBoxLayout()
         plot_type_layout = QHBoxLayout()
         plot_type_layout.addWidget(plot_type_qlabel)
         plot_type_layout.addWidget(self.plot_map_QCheckBox)
         plot_type_layout.addWidget(self.plot_result_QCheckBox)
+        plot_type_layout.setAlignment(Qt.AlignLeft)
         plot_layout2.addLayout(plot_layout)
         plot_layout2.addLayout(plot_type_layout)
         plot_layout2.addWidget(self.progress_bar)
@@ -251,7 +252,7 @@ class DataExplorerFrame(QFrame):
         """
         count number of graphic to produce and ajust progress bar range
         """
-        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_from_gui()
+        types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type = self.collect_data_from_gui()
         plot_type = []
         if self.plot_map_QCheckBox.isChecked():
             plot_type = ["map"]
@@ -261,52 +262,68 @@ class DataExplorerFrame(QFrame):
             plot_type = ["map", "result"]
 
         if types_hdf5 and names_hdf5 and variables and units and plot_type:
-            if types_hdf5 == "habitat":
-                fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
-                variables_other = [variable for variable in variables if variable not in fish_names]
-                if len(fish_names) == 0:
-                    nb_plot_total = len(names_hdf5) * len(variables) * len(units)
-                if len(fish_names) == 1:
+            # is fish ?
+            fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
+            variables_other = [variable for variable in variables if variable not in fish_names]
+
+            # no fish
+            if len(fish_names) == 0:
+                if plot_type == ["result"]:
+                    self.nb_plot = 0
+                if plot_type == ["map"]:
+                    self.nb_plot = len(names_hdf5) * len(variables) * len(units)
+                if plot_type == ["map", "result"]:
+                    self.nb_plot = len(names_hdf5) * len(variables) * len(units)
+
+            # one fish
+            if len(fish_names) == 1:
+                if plot_type == ["result"]:
+                    nb_map = 0
+                else:
                     # one map by fish by unit
-                    if plot_type == ["result"]:
-                        nb_map = 0
+                    nb_map = len(names_hdf5) * len(fish_names) * len(units)
+                if len(units) == 1:
+                    if plot_type == ["map"]:
+                        nb_wua_hv = 0
                     else:
-                        nb_map = len(names_hdf5) * len(fish_names) * len(units)
-                    if len(units) == 1:
-                        if plot_type == ["map"]:
-                            nb_wua_hv = 0
-                        else:
-                            nb_wua_hv = len(names_hdf5) * len(fish_names) * len(units)
-                    if len(units) > 1:
-                        if plot_type == ["map"]:
-                            nb_wua_hv = 0
-                        else:
-                            nb_wua_hv = len(names_hdf5) * len(fish_names)
-                    # total
-                    nb_plot_total = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + nb_wua_hv
-                if len(fish_names) > 1:
+                        nb_wua_hv = len(names_hdf5) * len(fish_names) * len(units)
+                if len(units) > 1:
+                    if plot_type == ["map"]:
+                        nb_wua_hv = 0
+                    else:
+                        nb_wua_hv = len(names_hdf5) * len(fish_names)
+                # total
+                self.nb_plot = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + nb_wua_hv
+
+            # multi fish
+            if len(fish_names) > 1:
+                if plot_type == ["result"]:
+                    self.nb_plot = 1  #(len(names_hdf5) * len(variables_other) * len(units)) + 1
+                if plot_type == ["map"]:
                     # one map by fish by unit
                     nb_map = len(fish_names) * len(units)
-                    nb_plot_total_hab = nb_map + 1
-                    nb_plot_total = (len(names_hdf5) * len(variables_other) * len(units)) + nb_plot_total_hab
-            else:
-                nb_plot_total = len(names_hdf5) * len(variables) * len(units)
+                    self.nb_plot = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map
+                if plot_type == ["map", "result"]:
+                    # one map by fish by unit
+                    nb_map = len(fish_names) * len(units)
+                    self.nb_plot = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + 1
 
-            self.nb_plot = nb_plot_total
-            self.progress_bar.setRange(0, self.nb_plot)
+            # set prog
+            if self.nb_plot != 0:
+                self.progress_bar.setRange(0, self.nb_plot)
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
         else:
+            self.nb_plot = 0
+            # set prog
             self.progress_bar.setValue(0)
             self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
-            self.nb_plot = 0
 
     def types_hdf5_change(self):
         """
         Ajust item list according to hdf5 type selected by user
         """
         index = self.types_hdf5_QComboBox.currentIndex()
-        # "hydraulic", "substrate", "merge", "chronic", "habitat"
         # nothing
         if index == 0:
             self.names_hdf5_QListWidget.clear()
@@ -361,13 +378,10 @@ class DataExplorerFrame(QFrame):
             hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().name_prj,
                                                       self.parent().parent().path_prj,
                                                       hdf5name)
+            # get variables
             variables = hdf5_management.get_hdf5_variables()
-            if "z" in variables:
-                variables.remove("z")
-                variables.insert(1, "points elevation")
-            if "mesh" in variables:
-                variables.insert(1, "mesh and points")
 
+            # get units
             units_name = hdf5_management.get_hdf5_units_name()
 
             # hydraulic
@@ -383,13 +397,9 @@ class DataExplorerFrame(QFrame):
                     if units_name:
                         self.units_QListWidget.addItems(units_name)
 
-            # merge hab
+            # hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
-                #self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
                 self.variable_QListWidget.addItems(variables)
-                fish_list = hdf5_mod.get_fish_names_habitat(hdf5name, self.parent().parent().path_prj + "/hdf5/")
-                if fish_list:
-                    self.variable_QListWidget.addItems(fish_list)
                 if units_name:
                     self.units_QListWidget.addItems(units_name)
 
@@ -413,13 +423,7 @@ class DataExplorerFrame(QFrame):
                                                           selection[i].text())
                 units.append(hdf5_management.get_hdf5_units_name())
                 variables_a = hdf5_management.get_hdf5_variables()
-                if "z" in variables_a:
-                    variables_a.remove("z")
-                    variables_a.insert(1, "points elevation")
-                if "mesh" in variables_a:
-                    variables_a.insert(1, "mesh and points")
                 variables.append(variables_a)
-
 
             # variables or units are differents
             if not all(x == units[0] for x in units) or not all(x == variables[0] for x in variables):
@@ -454,9 +458,11 @@ class DataExplorerFrame(QFrame):
                         self.units_QListWidget.addItems(units_without_duplicate)
                 # merge hab
                 if self.types_hdf5_QComboBox.currentIndex() == 3:  # merge hab
-                    self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
-                    self.variable_QListWidget.addItems(hdf5_mod.get_fish_names_habitat(hdf5name[0], self.parent().parent().path_prj + "/hdf5/"))
-                    self.units_QListWidget.addItems(units)        # update progress bar
+                    self.variable_QListWidget.addItems(variables)
+                    self.units_QListWidget.addItems(units)
+                    # self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
+                    # self.variable_QListWidget.addItems(hdf5_mod.get_fish_names_habitat(hdf5name[0], self.parent().parent().path_prj + "/hdf5/"))
+                    # self.units_QListWidget.addItems(units)        # update progress bar
         else:
             self.hdf5_attributes_QTextEdit.clear()
         # count plot
@@ -493,20 +499,29 @@ class DataExplorerFrame(QFrame):
         units_index = [x[0] for x in sorted_together]
         units = [x[1] for x in sorted_together]
 
-        # type of plot
-        types_plot = self.types_plot_QComboBox.currentText()
+        # type of view (interactif, export, both)
+        export_type = self.export_type_QComboBox.currentText()
+
+        # plot type (map, result)
+        plot_type = []
+        if self.plot_map_QCheckBox.isChecked():
+            plot_type = ["map"]
+        if self.plot_result_QCheckBox.isChecked():
+            plot_type = ["result"]
+        if self.plot_map_QCheckBox.isChecked() and self.plot_result_QCheckBox.isChecked():
+            plot_type = ["map", "result"]
 
         # store values
-        return types_hdf5, names_hdf5, variables, units, units_index, types_plot
+        return types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type
 
     def collect_data_from_gui_and_plot(self):
         """
         Get selected values by user and plot them
         """
-        types_hdf5, names_hdf5, variables, units, units_index, types_plot = self.collect_data_from_gui()
-        self.plot(types_hdf5, names_hdf5, variables, units, units_index, types_plot)
+        types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type = self.collect_data_from_gui()
+        self.plot(types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type)
 
-    def plot(self, types_hdf5, names_hdf5, variables, units, units_index, types_plot):
+    def plot(self, types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type):
         """
         Plot
         :param types_hdf5: string representing the type of hdf5 ("hydraulic", "substrat", "habitat")
@@ -514,14 +529,14 @@ class DataExplorerFrame(QFrame):
         :param variables: list of string representing variables to be ploted, depend on type of hdf5 selected ("height", "velocity", "mesh")
         :param units: list of string representing units names (timestep value or discharge)
         :param units_index: list of integer representing the position of units in hdf5 file
-        :param types_plot: string representing plot types production ("display", "export", "both")
+        :param export_type: string representing plot types production ("display", "export", "both")
         """
         # print("types_hdf5 : ", types_hdf5)
         # print("names_hdf5 : ", names_hdf5)
         # print("variables : ", variables)
         # print("units : ", units)
         # print("units_index : ", units_index)
-        # print("types_plot : ", types_plot)
+        # print("export_type : ", export_type)
         if not types_hdf5:
             self.parent().parent().send_log.emit('Error: No hdf5 type selected.')
         if not names_hdf5:
@@ -530,8 +545,10 @@ class DataExplorerFrame(QFrame):
             self.parent().parent().send_log.emit('Error: No variable selected.')
         if not units:
             self.parent().parent().send_log.emit('Error: No units selected.')
+        if self.nb_plot == 0:
+            self.parent().parent().send_log.emit('Error: Selected variables and units not corresponding with figure type choices.')
         # check if number of display plot are > 30
-        if types_plot in ("display", "both") and self.nb_plot > 30:
+        if export_type in ("display", "both") and self.nb_plot > 30:
             qm = QMessageBox
             ret = qm.question(self, self.tr("Warning"),
                               self.tr("Displaying a large number of plots may crash HABBY. "
@@ -541,7 +558,7 @@ class DataExplorerFrame(QFrame):
             if ret == qm.No:  # pas de plot
                 return
         # Go plot
-        if types_hdf5 and names_hdf5 and variables and units:
+        if types_hdf5 and names_hdf5 and variables and units and plot_type:
             # disable
             self.plot_button.setEnabled(False)
             # active stop button
@@ -551,7 +568,7 @@ class DataExplorerFrame(QFrame):
             # figure option
             fig_opt = preferences_GUI.load_fig_option(self.parent().parent().path_prj,
                                                       self.parent().parent().name_prj)
-            fig_opt['type_plot'] = types_plot  # "display", "export", "both"
+            fig_opt['type_plot'] = export_type  # "display", "export", "both"
 
             # init
             fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
@@ -607,7 +624,7 @@ class DataExplorerFrame(QFrame):
                     for reach_num in range(int(data_description["reach_number"])):
 
                         # for one or more desired units ==> habitat data (HV and WUA)
-                        if fish_names:
+                        if fish_names and plot_type != ["map"] and not self.plot_production_stoped:
                             state = Value("i", 0)
                             plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
                                                                args=(state,
@@ -621,96 +638,97 @@ class DataExplorerFrame(QFrame):
                             self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
                         # for each desired units ==> maps
-                        for unit_num, t in enumerate(units_index):
-                            # input data
-                            if "mesh" in variables:  # mesh
-                                state = Value("i", 0)
-                                mesh_process = Process(target=plot_mod.plot_map_mesh,
-                                                       args=(state,
-                                                             data_2d["xy"][reach_num][unit_num],
-                                                             data_2d["tin"][reach_num][unit_num],
-                                                             fig_opt,
-                                                             data_description,
-                                                             path_im,
-                                                             units[unit_num],
-                                                             False))
-                                self.plot_process_list.append((mesh_process, state))
-                            if "mesh and points" in variables:  # mesh
-                                state = Value("i", 0)
-                                mesh_process = Process(target=plot_mod.plot_map_mesh,
-                                                       args=(state,
-                                                             data_2d["xy"][reach_num][unit_num],
-                                                             data_2d["tin"][reach_num][unit_num],
-                                                             fig_opt,
-                                                             data_description,
-                                                             path_im,
-                                                             units[unit_num],
-                                                             True))
-                                self.plot_process_list.append((mesh_process, state))
-                            if "points elevation" in variables:  # mesh
-                                state = Value("i", 0)
-                                mesh_process = Process(target=plot_mod.plot_map_elevation,
-                                                       args=(state,
-                                                             data_2d["xy"][reach_num][unit_num],
-                                                             data_2d["z"][reach_num][unit_num],
-                                                             fig_opt,
-                                                             data_description,
-                                                             path_im,
-                                                             units[unit_num]))
-                                self.plot_process_list.append((mesh_process, state))
-                            if "height" in variables:  # height
-                                state = Value("i", 0)
-                                height_process = Process(target=plot_mod.plot_map_height,
-                                                         args=(state,
-                                                               data_2d["xy"][reach_num][unit_num],
-                                                               data_2d["tin"][reach_num][unit_num],
-                                                               fig_opt,
-                                                               data_description,
-                                                               data_2d["h"][reach_num][unit_num],
-                                                               path_im,
-                                                               units[unit_num]))
-                                self.plot_process_list.append((height_process, state))
-                            if "velocity" in variables:  # velocity
-                                state = Value("i", 0)
-                                velocity_process = Process(target=plot_mod.plot_map_velocity,
-                                                           args=(state,
-                                                                 data_2d["xy"][reach_num][unit_num],
-                                                                 data_2d["tin"][reach_num][unit_num],
-                                                                 fig_opt,
-                                                                 data_description,
-                                                                 data_2d["v"][reach_num][unit_num],
-                                                                 path_im,
-                                                                 units[unit_num]))
-                                self.plot_process_list.append((velocity_process, state))
-                            if "coarser_dominant" in variables:  # coarser_dominant
-                                state = Value("i", 0)
-                                susbtrat_process = Process(target=plot_mod.plot_map_substrate,
-                                                           args=(state,
-                                                                 data_2d["xy"][reach_num][unit_num],
-                                                                 data_2d["tin"][reach_num][unit_num],
-                                                                 data_2d["sub"][reach_num][unit_num],
-                                                                 data_description,
-                                                                 path_im,
-                                                                 name_hdf5,
-                                                                 fig_opt,
-                                                                 units[unit_num]))
-                                self.plot_process_list.append((susbtrat_process, state))
-                            if fish_names:  # habitat data (maps)
-                                # map by fish
-                                for fish_index, fish_name in enumerate(fish_names):
-                                    # plot map
+                        if plot_type != ["result"]:
+                            for unit_num, t in enumerate(units_index):
+                                # input data
+                                if "mesh" in variables and not self.plot_production_stoped:  # mesh
                                     state = Value("i", 0)
-                                    habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
-                                                                  args=(state,
-                                                                        fish_name,
-                                                                        data_2d["xy"][reach_num][unit_num],
-                                                                        data_2d["tin"][reach_num][unit_num],
-                                                                        data_2d["hv_data"][reach_num][unit_num][fish_name],
-                                                                        name_hdf5,
-                                                                        fig_opt,
-                                                                        path_im,
-                                                                        units[unit_num]))
-                                    self.plot_process_list.append((habitat_map_process, state))
+                                    mesh_process = Process(target=plot_mod.plot_map_mesh,
+                                                           args=(state,
+                                                                 data_2d["xy"][reach_num][unit_num],
+                                                                 data_2d["tin"][reach_num][unit_num],
+                                                                 fig_opt,
+                                                                 data_description,
+                                                                 path_im,
+                                                                 units[unit_num],
+                                                                 False))
+                                    self.plot_process_list.append((mesh_process, state))
+                                if "mesh and points" in variables and not self.plot_production_stoped:  # mesh
+                                    state = Value("i", 0)
+                                    mesh_process = Process(target=plot_mod.plot_map_mesh,
+                                                           args=(state,
+                                                                 data_2d["xy"][reach_num][unit_num],
+                                                                 data_2d["tin"][reach_num][unit_num],
+                                                                 fig_opt,
+                                                                 data_description,
+                                                                 path_im,
+                                                                 units[unit_num],
+                                                                 True))
+                                    self.plot_process_list.append((mesh_process, state))
+                                if "points elevation" in variables and not self.plot_production_stoped:  # mesh
+                                    state = Value("i", 0)
+                                    mesh_process = Process(target=plot_mod.plot_map_elevation,
+                                                           args=(state,
+                                                                 data_2d["xy"][reach_num][unit_num],
+                                                                 data_2d["z"][reach_num][unit_num],
+                                                                 fig_opt,
+                                                                 data_description,
+                                                                 path_im,
+                                                                 units[unit_num]))
+                                    self.plot_process_list.append((mesh_process, state))
+                                if "height" in variables and not self.plot_production_stoped:  # height
+                                    state = Value("i", 0)
+                                    height_process = Process(target=plot_mod.plot_map_height,
+                                                             args=(state,
+                                                                   data_2d["xy"][reach_num][unit_num],
+                                                                   data_2d["tin"][reach_num][unit_num],
+                                                                   fig_opt,
+                                                                   data_description,
+                                                                   data_2d["h"][reach_num][unit_num],
+                                                                   path_im,
+                                                                   units[unit_num]))
+                                    self.plot_process_list.append((height_process, state))
+                                if "velocity" in variables and not self.plot_production_stoped:  # velocity
+                                    state = Value("i", 0)
+                                    velocity_process = Process(target=plot_mod.plot_map_velocity,
+                                                               args=(state,
+                                                                     data_2d["xy"][reach_num][unit_num],
+                                                                     data_2d["tin"][reach_num][unit_num],
+                                                                     fig_opt,
+                                                                     data_description,
+                                                                     data_2d["v"][reach_num][unit_num],
+                                                                     path_im,
+                                                                     units[unit_num]))
+                                    self.plot_process_list.append((velocity_process, state))
+                                if "coarser_dominant" in variables and not self.plot_production_stoped:  # coarser_dominant
+                                    state = Value("i", 0)
+                                    susbtrat_process = Process(target=plot_mod.plot_map_substrate,
+                                                               args=(state,
+                                                                     data_2d["xy"][reach_num][unit_num],
+                                                                     data_2d["tin"][reach_num][unit_num],
+                                                                     data_2d["sub"][reach_num][unit_num],
+                                                                     data_description,
+                                                                     path_im,
+                                                                     name_hdf5,
+                                                                     fig_opt,
+                                                                     units[unit_num]))
+                                    self.plot_process_list.append((susbtrat_process, state))
+                                if fish_names and not self.plot_production_stoped:  # habitat data (maps)
+                                    # map by fish
+                                    for fish_index, fish_name in enumerate(fish_names):
+                                        # plot map
+                                        state = Value("i", 0)
+                                        habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
+                                                                      args=(state,
+                                                                            fish_name,
+                                                                            data_2d["xy"][reach_num][unit_num],
+                                                                            data_2d["tin"][reach_num][unit_num],
+                                                                            data_2d["hv_data"][reach_num][unit_num][fish_name],
+                                                                            name_hdf5,
+                                                                            fig_opt,
+                                                                            path_im,
+                                                                            units[unit_num]))
+                                        self.plot_process_list.append((habitat_map_process, state))
 
             # end of loop file
             if self.plot_process_list.add_plots_state:  # if plot windows are open ==> add news to existing (don't close them)
