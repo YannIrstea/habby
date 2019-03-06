@@ -204,7 +204,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
 
     # saving hdf5 data of the habitat value
-    hdf5_management.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish)
+    hdf5_management.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish, pref_list, stages_chosen)
+    hdf5_management.create_shapefile()
 
     # progress
     progress_value.value = 95
