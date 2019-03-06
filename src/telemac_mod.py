@@ -166,7 +166,6 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                                                                           description_from_indextelemac_file[
                                                                               hyd_file]["path_filename_source"])
 
-
         for i, unit_index in enumerate(unit_index_list):
             if len(file_list) > 1:
                 data_2d_telemac, description_from_telemac_file = load_telemac(file_list[i],

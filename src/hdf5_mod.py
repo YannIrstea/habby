@@ -314,13 +314,13 @@ class Hdf5Management:
                     node_group.create_dataset(name="v",
                                               shape=[len(data_2d["v"][reach_num][unit_num]), 1],
                                               data=data_2d["v"][reach_num][unit_num])
-                    node_group.create_dataset(name="z",
-                                              shape=[len(data_2d["z"][reach_num][unit_num]), 1],
-                                              data=data_2d["z"][reach_num][unit_num])
                     node_group.create_dataset(name="xy",
                                               shape=[len(data_2d["xy"][reach_num][unit_num]),
                                                      len(data_2d["xy"][reach_num][unit_num][0])],
                                               data=data_2d["xy"][reach_num][unit_num])
+                    node_group.create_dataset(name="z",
+                                              shape=[len(data_2d["z"][reach_num][unit_num]), 1],
+                                              data=data_2d["z"][reach_num][unit_num])
 
         # close file
         self.file_object.close()
@@ -584,69 +584,13 @@ class Hdf5Management:
         # create a new hdf5
         self.open_hdf5_file(new=True)
 
-        # create hyd attributes
+        # create hab attributes
         for attribute_name, attribute_value in list(merge_description.items()):
             if attribute_name not in attributes_to_remove:
                 self.file_object.attrs[attribute_name] = attribute_value
         self.file_object.attrs["hab_fish_list"] = ", ".join([])
         self.file_object.attrs["hab_fish_number"] = str(0)
-        # habitat
-        # self.file_object.attrs['hab_filename_source'] = merge_description["hyd_filename_source"]
-        # self.file_object.attrs['hab_reach_number'] = merge_description["hyd_reach_number"]
-        # self.file_object.attrs['hab_unit_number'] = merge_description["hyd_unit_number"]
-        # self.file_object.attrs['hab_unit_list'] = merge_description["hyd_unit_list"]
-        # self.file_object.attrs['hab_unit_type'] = merge_description["hyd_unit_type"]
-        # self.file_object.attrs['hab_wholeprofile_unit_correspondence'] = merge_description["hyd_unit_wholeprofile_correspondence"]
-        # if merge_description["sub_mapping_method"] != "constant":
-        #     if merge_description["sub_epsg_code"] == merge_description["hyd_epsg_code"]:
-        #         self.file_object.attrs['hab_epsg_code'] = merge_description["sub_epsg_code"]
-        #     else:
-        #         self.file_object.attrs['hab_epsg_code'] = "unknown"
-        # # if merge_description["sub_mapping_method"] == "constant":
-        # #     self.file_object.attrs['hab_epsg_code'] = merge_description["hyd_epsg_code"]
-        # # hydraulic
-        # self.file_object.attrs['hyd_source'] = merge_description["hyd_filename_source"]
-        # # substrate
-        # self.file_object.attrs["sub_mapping_method"] = merge_description["sub_mapping_method"]
-        # self.file_object.attrs["sub_classification_code"] = merge_description["sub_classification_code"]
-        # self.file_object.attrs["sub_classification_method"] = merge_description["sub_classification_method"]
-        # self.file_object.attrs["sub_filename_source"] = merge_description["sub_filename_source"]
-        # self.file_object.attrs["sub_class_number"] = merge_description['sub_class_number']
-        # if merge_description["sub_mapping_method"] != "constant":
-        #     self.file_object.attrs['sub_default_values'] = merge_description["sub_default_values"]
-        # if merge_description["sub_mapping_method"] == "constant":
-        #     self.file_object.attrs["sub_constant_values"] = merge_description["sub_constant_values"]
 
-        # # data by type of model (1D)
-        # if nb_dim == 1:
-        #     data_group = self.file_object.create_group('data_1d')
-        #     xhzv_datag = data_group.create_group('xhzv_data')
-        #     xhzv_datag.create_dataset('xhzv_data', data=xhzv_data)
-        #
-        # # data by type of model (1.5D)
-        # if nb_dim < 2:
-        #     data_group = self.file_object.create_group('data_15d')
-        #     adict = dict()
-        #     for p in range(0, len(coord_pro)):
-        #         ns = 'p' + str(p)
-        #         adict[ns] = coord_pro[p]
-        #     coord_prog = data_group.create_group('coord_pro')
-        #     for k, v in adict.items():
-        #         coord_prog.create_dataset(k, data=v)
-        #         # coord_prog.create_dataset(h5name, [4, len(self.coord_pro[p][0])], data=self.coord_pro[p])
-        #     for t in range(0, len(vh_pro)):
-        #         there = data_group.create_group('unit_' + str(t))
-        #         adict = dict()
-        #         for p in range(0, len(vh_pro[t])):
-        #             ns = 'p' + str(p)
-        #             adict[ns] = vh_pro[t][p]
-        #         for k, v in adict.items():
-        #             there.create_dataset(k, data=v)
-        #     nbproreachg = data_group.create_group('Number_profile_by_reach')
-        #     nb_pro_reach2 = list(map(float, nb_pro_reach))
-        #     nbproreachg.create_dataset('Number_profile_by_reach', [len(nb_pro_reach2), 1], data=nb_pro_reach2)
-
-        # data by type of model (2D)
         # data_2D_whole_profile profile
         data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
         # REACH GROUP
@@ -665,10 +609,12 @@ class Hdf5Management:
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
                 mesh_group.create_dataset(name="tin",
-                                          shape=[len(data_2d_whole_profile["tin"][reach_num][unit_num]), 3],
+                                          shape=[len(data_2d_whole_profile["tin"][reach_num][unit_num]),
+                                                 3],
                                           data=data_2d_whole_profile["tin"][reach_num][unit_num])
                 mesh_group.create_dataset(name="xy_center",
-                                          shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]), 2],
+                                          shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]),
+                                                 2],
                                           data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
@@ -676,6 +622,10 @@ class Hdf5Management:
                                           shape=[len(data_2d_whole_profile["xy"][reach_num][unit_num]),
                                                  len(data_2d_whole_profile["xy"][reach_num][unit_num][0])],
                                           data=data_2d_whole_profile["xy"][reach_num][unit_num])
+                node_group.create_dataset(name="z",
+                                          shape=[len(data_2d_whole_profile["z"][reach_num][unit_num]),
+                                                 1],
+                                          data=data_2d_whole_profile["z"][reach_num][unit_num])
 
         # data_2D
         data_group = self.file_object.create_group('data_2D')
@@ -688,7 +638,8 @@ class Hdf5Management:
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
                 mesh_group.create_dataset(name="tin",
-                                          shape=[len(data_2d["tin"][reach_num][unit_num]), 3],
+                                          shape=[len(data_2d["tin"][reach_num][unit_num]),
+                                                 3],
                                           data=data_2d["tin"][reach_num][unit_num])
                 mesh_group.create_dataset(name="sub",
                                           shape=[len(data_2d["sub"][reach_num][unit_num]),
@@ -697,23 +648,28 @@ class Hdf5Management:
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
                 node_group.create_dataset(name="h",
-                                          shape=[len(data_2d["h"][reach_num][unit_num]), 1],
+                                          shape=[len(data_2d["h"][reach_num][unit_num]),
+                                                 1],
                                           data=data_2d["h"][reach_num][unit_num])
                 node_group.create_dataset(name="v",
-                                          shape=[len(data_2d["v"][reach_num][unit_num]), 1],
+                                          shape=[len(data_2d["v"][reach_num][unit_num]),
+                                                 1],
                                           data=data_2d["v"][reach_num][unit_num])
                 node_group.create_dataset(name="xy",
                                           shape=[len(data_2d["xy"][reach_num][unit_num]),
                                                  len(data_2d["xy"][reach_num][unit_num][0])],
                                           data=data_2d["xy"][reach_num][unit_num])
-
+                node_group.create_dataset(name="z",
+                                          shape=[len(data_2d["z"][reach_num][unit_num]),
+                                                 1],
+                                          data=data_2d["z"][reach_num][unit_num])
         # close file
         self.file_object.close()
 
         # save XML
         self.save_xml("Habitat")  # uppercase for xml
 
-    def add_fish_hab(self, vh_cell, area_all, spu_all, fish_names):
+    def add_fish_hab(self, vh_cell, area_all, spu_all, fish_names, pref_list, stages_chosen):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -767,13 +723,17 @@ class Hdf5Management:
                     if fish_name in mesh_group:  # if exist erase it
                         del mesh_group[fish_name]
                         fish_data_set = mesh_group.create_dataset(name=fish_name,
-                                                  shape=[len(vh_cell[fish_num][reach_num][unit_num]), 1],
-                                                  data=vh_cell[fish_num][reach_num][unit_num])
+                                                                  shape=[len(vh_cell[fish_num][reach_num][unit_num]),
+                                                                         1],
+                                                                  data=vh_cell[fish_num][reach_num][unit_num])
                         fish_replaced.append(fish_name)
                     else:  # if not exist create it
                         fish_data_set = mesh_group.create_dataset(name=fish_name,
-                                                  shape=[len(vh_cell[fish_num][reach_num][unit_num]), 1],
-                                                  data=vh_cell[fish_num][reach_num][unit_num])
+                                                                  shape=[len(vh_cell[fish_num][reach_num][unit_num]),
+                                                                         1],
+                                                                  data=vh_cell[fish_num][reach_num][unit_num])
+                    fish_data_set.attrs['pref_file'] = pref_list[fish_num]
+                    fish_data_set.attrs['stage'] = stages_chosen[fish_num]
                     fish_data_set.attrs['WUA'] = str(spu_all[fish_num][reach_num][unit_num])
                     fish_data_set.attrs['HV'] = str(spu_all[fish_num][reach_num][unit_num] / area_all[reach_num][unit_num])
 
@@ -781,8 +741,17 @@ class Hdf5Management:
         fish_names_total_list = list(mesh_group.keys())
         fish_names_total_list.remove("sub")
         fish_names_total_list.remove("tin")
+        # get xml and stage fish
+        xml_names = []
+        stage_names = []
+        for fish_name in fish_names_total_list:
+            xml_names.append(mesh_group[fish_name].attrs['pref_file'])
+            stage_names.append(mesh_group[fish_name].attrs['stage'])
+        # set to attributes
         self.file_object.attrs["hab_fish_list"] = ", ".join(fish_names_total_list)
         self.file_object.attrs["hab_fish_number"] = str(len(fish_names_total_list))
+        self.file_object.attrs["hab_pref_list"] = ", ".join(xml_names)
+        self.file_object.attrs["hab_stage_list"] = ", ".join(stage_names)
 
         if fish_replaced:
             fish_replaced = set(fish_replaced)
@@ -790,7 +759,7 @@ class Hdf5Management:
             print(f'Warning: fish(s) information replaced in hdf5 file ({fish_replaced}).\n')
         self.file_object.close()
 
-    def load_hdf5_hab(self, units_index="all", fish_names=[], whole_profil=False, convert_to_coarser_dom=False):
+    def load_hdf5_hab(self, units_index="all", fish_names="all", whole_profil=False, convert_to_coarser_dom=False):
         # open an hdf5
         self.open_hdf5_file(new=False)
 
@@ -811,6 +780,7 @@ class Hdf5Management:
             data_2D_whole_profile["tin"] = []
             data_2D_whole_profile["xy_center"] = []
             data_2D_whole_profile["xy"] = []
+            data_2D_whole_profile["z"] = []
             data_group = 'data_2D_whole_profile'
             # for all reach
             for reach_num in range(0, int(hab_description['hyd_reach_number'])):
@@ -819,6 +789,7 @@ class Hdf5Management:
                 tin_list = []
                 xy_center_list = []
                 xy_list = []
+                z_list = []
                 for unit_num in units_index:
                     if hab_description['hyd_unit_wholeprofile_correspondence'] == "all":
                         unit_group = reach_group + "/unit_all"
@@ -832,6 +803,7 @@ class Hdf5Management:
                         xy_center_list.append(self.file_object[mesh_group + "/xy_center"][:])
                         # node
                         xy_list.append(self.file_object[node_group + "/xy"][:])
+                        z_list.append(self.file_object[node_group + "/z"][:].flatten())
                     except KeyError:
                         print(
                             'Warning: the dataset for tin or xy (3) is missing from the hdf5 file for one time step. \n')
@@ -846,6 +818,7 @@ class Hdf5Management:
         data_2d["tin"] = []
         data_2d["sub"] = []
         data_2d["xy"] = []
+        data_2d["z"] = []
         data_2d["h"] = []
         data_2d["v"] = []
         data_2d["nb_unit"] = len(units_index)
@@ -853,6 +826,8 @@ class Hdf5Management:
         # fish dict
         if fish_names == "all":  # "all"
             fish_names_total_list = self.file_object.attrs["hab_fish_list"].split(", ")
+            if fish_names_total_list == ['']:
+                fish_names_total_list = []
         elif fish_names:  # list of fish
             fish_names_total_list = fish_names
         else:  # empty list []
@@ -872,6 +847,7 @@ class Hdf5Management:
             data_2d["tin"].append([])
             data_2d["sub"].append([])
             data_2d["xy"].append([])
+            data_2d["z"].append([])
             data_2d["h"].append([])
             data_2d["v"].append([])
             if fish_names_total_list:
@@ -902,6 +878,7 @@ class Hdf5Management:
                         data_2d["total_wet_area"][reach_num].append(self.file_object[unit_group].attrs["total_wet_area"])
                     # node
                     data_2d["xy"][reach_num].append(self.file_object[node_group + "/xy"][:])
+                    data_2d["z"][reach_num].append(self.file_object[node_group + "/z"][:].flatten())
                     data_2d["h"][reach_num].append(self.file_object[node_group + "/h"][:].flatten())
                     data_2d["v"][reach_num].append(self.file_object[node_group + "/v"][:].flatten())
                 except KeyError:
@@ -919,46 +896,50 @@ class Hdf5Management:
             return data_2d, hab_description
 
     # EXPORT
-    def create_shapefile(self, type):
-        if type == "hydraulic":
-            # [ikle_all_t, point_all_t, vel_nodes, height_node, hyd_filename_source] = load_hdf5_hyd_and_merge(name_hdf5,
-            #                                                                                                  path_hdf5,
-            #                                                                                                  merge=merge)
-            self.load_hdf5_hyd(units_index="all", whole_profil=False)
-        if type == "habitat":
-            # [ikle_all_t, point_all_t, vel_nodes, height_node, sub_array,
-            #  sub_description_system] = load_hdf5_hyd_and_merge(name_hdf5,
-            #                                                    path_hdf5,
-            #                                                    merge=merge)
-            data_2d, data_2D_whole_profile, hab_description = self.load_hdf5_hab(units_index="all", whole_profil=True)
+    def create_shapefile(self):
+        # load data from file
+        data_2d, data_description = self.load_hdf5_hab()
 
-        sim_name = hab_description["hyd_unit_list"].split(", ")
+        # get units list
+        unit_names = data_description["hyd_unit_list"].split(", ")
 
-        # we needs the data by cells and not nodes
-        # optmization possibility: save the data in the hdf5 and re-use it for the habitat calculation (but big file size)
+        # get fish name
+        fish_names = data_description["hab_fish_list"].split(", ")
+        if fish_names == ['']:
+            fish_names = []
+        pref_list = data_description["hab_pref_list"].split(", ")
+        stage_list = data_description["hab_stage_list"].split(", ")
+
 
         # for each reach
-        for reach_num in range(0, int(hab_description['hyd_reach_number'])):
+        for reach_num in range(0, int(data_description['hyd_reach_number'])):
             # for each unit
-            for unit_num in range(0, int(hab_description['hyd_unit_number'])):
+            for unit_num in range(0, int(data_description['hyd_unit_number'])):
                 # for each mesh
-                #w = shapefile.Writer(shapefile.POLYGON)
                 w = shapefile.Writer(shapefile.POLYGONZ)
                 w.autoBalance = 1
                 w.field('velocity', 'F', 50, 8)
                 w.field('water heig', 'F', 50, 8)
                 w.field('conveyance', 'F', 50, 8)
-                if type == "habitat":
-                    if hab_description["sub_classification_method"] == 'coarser-dominant':
+                if self.type_for_xml == "hdf5_habitat":
+                    # sub
+                    if data_description["sub_classification_method"] == 'coarser-dominant':
                         w.field('coarser', 'N', 10, 0)
                         w.field('dom', 'N', 10, 0)
-                    if hab_description["sub_classification_method"] == 'percentage':
-                        if hab_description["sub_classification_code"] == "Cemagref":
+                    if data_description["sub_classification_method"] == 'percentage':
+                        if data_description["sub_classification_code"] == "Cemagref":
                             sub_class_number = 8
-                        if hab_description["sub_classification_code"] == "Sandre":
+                        if data_description["sub_classification_code"] == "Sandre":
                             sub_class_number = 12
                         for i in range(sub_class_number):
                             w.field('S' + str(i + 1), 'N', 10, 0)
+                    # fish
+                    if fish_names:
+                        for fish_num, _ in enumerate(fish_names):
+                            column_name = os.path.splitext(pref_list[fish_num])[0].upper() + stage_list[fish_num]
+                            w.field(column_name, 'F', 50, 8)
+
+                # for each mesh
                 for mesh_num in range(0, len(data_2d["tin"][reach_num][unit_num])):
                     node1 = data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
                     node2 = data_2d["tin"][reach_num][unit_num][mesh_num][1]
@@ -974,13 +955,18 @@ class Hdf5Management:
                     h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
 
                     # data geom (get the triangle coordinates)
-                    p1 = list(data_2d["xy"][reach_num][unit_num][node1])
-                    p2 = list(data_2d["xy"][reach_num][unit_num][node2])
-                    p3 = list(data_2d["xy"][reach_num][unit_num][node3])
-                    w.poly(parts=[[p1, p2, p3, p1]])  # the double [[]] is important or it bugs, but why?
-                    if type == "habitat":
+                    p1 = list(data_2d["xy"][reach_num][unit_num][node1].tolist() + [float(data_2d["z"][reach_num][unit_num][node1])])
+                    p2 = list(data_2d["xy"][reach_num][unit_num][node2].tolist() + [float(data_2d["z"][reach_num][unit_num][node2])])
+                    p3 = list(data_2d["xy"][reach_num][unit_num][node3].tolist() + [float(data_2d["z"][reach_num][unit_num][node3])])
+                    w.poly(parts=[[p1, p2, p3, p1]], shapeType=15)  # the double [[]] is important or it bugs, but why?
+                    if self.type_for_xml == "hdf5_habitat":
                         sub = data_2d["sub"][reach_num][unit_num][mesh_num]
                         data_here = [v_mean_mesh, h_mean_mesh, v_mean_mesh * h_mean_mesh, *sub.tolist()]
+                        if fish_names:
+                            fish_data = []
+                            for fish_name in fish_names:
+                                fish_data.append(data_2d["hv_data"][reach_num][unit_num][fish_name][mesh_num])
+                            data_here = [v_mean_mesh, h_mean_mesh, v_mean_mesh * h_mean_mesh, *sub.tolist(), *fish_data]
                     else:
                         data_here = [v_mean_mesh, h_mean_mesh, v_mean_mesh * h_mean_mesh]
                     # the * pass tuple to function argument
@@ -988,7 +974,7 @@ class Hdf5Management:
 
                 # filename
                 name_base = self.basename
-                name_shp = name_base + "_r" + str(reach_num) + "_t" + str(sim_name[unit_num]) + '.shp'
+                name_shp = name_base + "_r" + str(reach_num) + "_t" + str(unit_names[unit_num]) + '.shp'
                 save_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
                 if save_opt['erase_id'] == 'True':  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
@@ -1000,7 +986,7 @@ class Hdf5Management:
                             return
                 else:
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                        name_shp = name_base + "_r" + str(reach_num) + "_t" + str(sim_name[unit_num]) + '_' + time.strftime(
+                        name_shp = name_base + "_r" + str(reach_num) + "_t" + str(unit_names[unit_num]) + '_' + time.strftime(
                             "%d_%m_%Y_at_%H_%M_%S") + '.shp'
                 # write file
                 w.save(os.path.join(self.path_shp, name_shp))

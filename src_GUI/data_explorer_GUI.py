@@ -537,6 +537,7 @@ class DataExplorerFrame(QFrame):
         # print("units : ", units)
         # print("units_index : ", units_index)
         # print("export_type : ", export_type)
+
         if not types_hdf5:
             self.parent().parent().send_log.emit('Error: No hdf5 type selected.')
         if not names_hdf5:
@@ -595,6 +596,7 @@ class DataExplorerFrame(QFrame):
                     hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().name_prj,
                                                               self.parent().parent().path_prj,
                                                               name_hdf5)
+
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
                         data_2d, hyd_description = hdf5_management.load_hdf5_hyd(units_index=units_index)
