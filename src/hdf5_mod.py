@@ -21,6 +21,7 @@ import time
 import shutil
 import shapefile
 from src import substrate_mod
+from stl import mesh
 
 
 try:
@@ -39,7 +40,8 @@ class Hdf5Management:
         self.hdf5_version = h5py.version.hdf5_version
         # project attributes
         self.path_prj = path_prj  # relative path to project
-        self.path_shp = os.path.join(self.path_prj, "output\shapefiles")
+        self.path_shp = os.path.join(self.path_prj, r"output\shapefiles")
+        self.path_visualisation = os.path.join(self.path_prj, r"output\visualisation")
         self.name_prj = name_prj  # name of project
         self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.xml')
         # hdf5 attributes fix
@@ -812,6 +814,7 @@ class Hdf5Management:
                 data_2D_whole_profile["tin"].append(tin_list)
                 data_2D_whole_profile["xy_center"].append(xy_center_list)
                 data_2D_whole_profile["xy"].append(xy_list)
+                data_2D_whole_profile["z"].append(z_list)
 
         # DATA 2D
         data_2d = dict()
@@ -907,9 +910,9 @@ class Hdf5Management:
         fish_names = data_description["hab_fish_list"].split(", ")
         if fish_names == ['']:
             fish_names = []
-        pref_list = data_description["hab_pref_list"].split(", ")
-        stage_list = data_description["hab_stage_list"].split(", ")
-
+        else:
+            pref_list = data_description["hab_pref_list"].split(", ")
+            stage_list = data_description["hab_stage_list"].split(", ")
 
         # for each reach
         for reach_num in range(0, int(data_description['hyd_reach_number'])):
@@ -990,6 +993,46 @@ class Hdf5Management:
                             "%d_%m_%Y_at_%H_%M_%S") + '.shp'
                 # write file
                 w.save(os.path.join(self.path_shp, name_shp))
+
+    def create_stl(self):
+        # load data from file
+        data_2d, data_2d_whole, data_description = self.load_hdf5_hab(whole_profil=True)
+
+        """ create stl whole profile (to see topography) """
+        # get data
+        xy = data_2d_whole["xy"][0][0]
+        z = data_2d_whole["z"][0][0] * 10
+        faces = data_2d_whole["tin"][0][0]
+        vertices = np.column_stack([xy, z])
+        # Create the mesh
+        stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+        for i, f in enumerate(faces):
+            for j in range(3):
+                stl_file.vectors[i][j] = vertices[f[j], :]
+        # Write the mesh to file "cube.stl"
+        stl_file.save(os.path.join(self.path_visualisation,
+                                   self.basename + "_wholetopography.stl"))
+
+        """ create stl water level (to see water level on topography) """
+        # get units list
+        unit_names = data_description["hyd_unit_list"].split(", ")
+        # for each reach
+        for reach_num in range(0, int(data_description['hyd_reach_number'])):
+            # for each unit
+            for unit_num in range(0, int(data_description['hyd_unit_number'])):
+                # get data
+                xy = data_2d["xy"][reach_num][unit_num]
+                z = (data_2d["z"][reach_num][unit_num] + data_2d["h"][reach_num][unit_num]) * 10
+                faces = data_2d["tin"][reach_num][unit_num]
+                vertices = np.column_stack([xy, z])
+                # Create the mesh
+                stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+                for i, f in enumerate(faces):
+                    for j in range(3):
+                        stl_file.vectors[i][j] = vertices[f[j], :]
+                # Write the mesh to file "cube.stl"
+                stl_file.save(os.path.join(self.path_visualisation,
+                                           self.basename + "_waterlevel_" + str(unit_names[unit_num]) + ".stl"))
 
 
 #################################################################
