@@ -23,6 +23,7 @@ from copy import deepcopy
 import numpy as np
 import triangle
 import matplotlib.pyplot as plt
+import shapefile
 
 
 def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path_prj,
@@ -55,10 +56,6 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 10
 
     # merge the grid
-    # [ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, inter_vel_all_both,
-    #  inter_h_all_both, sub_description_system, hyd_filename_source] = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
-    #                                                                   path_hdf5, name_prj, path_prj, progress_value)
-
     data_2d_merge, data_2d_whole_profile, merge_description = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
                                                             path_hdf5, name_prj, path_prj,
                                                             progress_value)
@@ -66,30 +63,20 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     # progress
     progress_value.value = 90
 
-    # get time step name if they exists
-    #sim_name = load_hdf5.load_unit_name(hdf5_name_hyd, path_hdf5)
-
-    # load_hdf5.save_hdf5_hyd_and_merge(name_hdf5merge, name_prj, path_prj, model_type, 2, path_hdf5, ikle_both,
-    #                                   point_all_both, [], inter_vel_all_both, inter_h_all_both, sub_description_system,
-    #                                   [], [], [], [], True,
-    #                                   sub_pg_all_t, sub_dom_all_t, hyd_filename_source=hyd_filename_source,
-    #                                   sim_name=sim_name, sub_ini_name=hdf5_name_sub,
-    #                                   hydro_ini_name=hdf5_name_hyd, hdf5_type="habitat")
-
+    # create hdf5 hab
     hdf5_management = hdf5_mod.Hdf5Management(name_prj,
                                               path_prj,
                                               name_hdf5merge)
     hdf5_management.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, merge_description)
-
-
 
     # progress
     progress_value.value = 95
 
     # save in a shapefile form
     if path_shp:
-        #load_hdf5.create_shapefile(name_hdf5merge, path_hdf5, path_shp, True, erase_id)
         hdf5_management.create_shapefile()
+        hdf5_management.create_stl()
+
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -118,6 +105,8 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
     point_all_both = []
     vel_all_both = []
     height_all_both = []
+    z_all_both = []
+    sub_data_all_t = []
 
     # load hdf5 hydro
     hdf5_management = hdf5_mod.Hdf5Management(name_prj,
@@ -176,32 +165,52 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
         for attribute_name, attribute_value in list(sub_description_system.items()):
             merge_description[attribute_name] = attribute_value
 
+        # defaut data
+        default_data = np.array(list(map(int, sub_description_system["sub_default_values"].split(", "))))
+
+        # copy data from hyd
+        data_2d_merge = dict(data_2d_hyd)
+
         # prog
         delta = 80 / int(hyd_description["hyd_unit_number"])
+        prog = progress_value.value
+
+        # check if whole profile is equal for all timestep
+        if hyd_description["hyd_unit_wholeprofile_correspondence"] == 'all':
+            # have to check intersection for only one timestep
+            print("whole profile is equal for all timestep")
+        else:
+            # TODO : merge for all time step
+            print("whole profile is not equal for all timestep")
 
         # for each reach
         warn_inter = True
         no_inter = False
-        sub_array_by_reach = []
         for reach_num in range(0, int(hyd_description["hyd_reach_number"])):
+
             # for each unit
             sub_array_by_unit = []
+            vel_by_unit = []
+            height_by_unit = []
+            ikle_all_by_unit = []
+            point_all_by_unit = []
+            point_z_all_by_unit = []
             for unit_num in range(0, int(hyd_description["hyd_unit_number"])):
-                try:
-                    sub_array = np.array(
-                        [data_2d_sub["sub"] for _ in range(0, len(data_2d_hyd["tin"][reach_num][unit_num]))])
-                except ValueError or TypeError:
-                    print('Error: no int in substrate. (only float or int accepted for now). \n')
-                    #return failload        # progress
 
-                    if not no_inter:  # in case that is possible to have intersection
-                        if unit_num == 0:  # should we adapt the subtrate grid? Only necessary once
-                            first_time = True
-                        else:
-                            first_time = False
+                if not no_inter:  # in case that is possible to have intersection
+                    if unit_num == 0:  # should we adapt the subtrate grid? Only necessary once
+                        first_time = True
+                    else:
+                        first_time = False
+
+                    point_before = np.array(data_2d_hyd["xy"][reach_num][unit_num])
+                    point_z_before = np.array(data_2d_hyd["z"][reach_num][unit_num])
+                    ikle_before = np.array(data_2d_hyd["tin"][reach_num][unit_num])
+                    vel_before = data_2d_hyd["v"][reach_num][unit_num]
+                    height_before = data_2d_hyd["h"][reach_num][unit_num]
 
                     # find intersection betweeen hydrology and substrate
-                    [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom, data_crossing, sub_cell] = \
+                    [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
                         find_sub_and_cross(data_2d_sub["tin"][reach_num][unit_num],
                                            data_2d_sub["xy"][reach_num][unit_num],
                                            data_2d_sub["sub"][reach_num][unit_num],
@@ -210,168 +219,71 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
                                            progress_value, delta,
                                            first_time)
 
-                    # if no intersection found at t==0
-                    if len(data_crossing[0]) < 1 or no_inter:
-                        if warn_inter:
-                            print('Warning: No intersection between the grid and the substrate for one reach for'
-                                  ' one or more time steps.\n')
-                            warn_inter = False
-                        try:
-                            sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
-                        except ValueError:
-                            print('Error: no float in substrate. (only float accepted for now).\n')
-                            return failload
-                        data_sub2_pg.append(sub_data_here)
-                        data_sub2_dom.append(sub_data_here)
-                        vel2.append(vel_before)
-                        height2.append(height_before)
-                        ikle_all2.append(ikle_before)
-                        point_all2.append(point_before)
+                # if no intersection found at t==0
+                if len(data_crossing[0]) < 1 or no_inter:
+                    if warn_inter:
+                        print('Warning: No intersection between the grid and the substrate for one reach for'
+                              ' one or more time steps.\n')
+                        warn_inter = False
+                    try:
+                        # sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
+                        sub_data_here = default_data
+                    except ValueError:
+                        print('Error: no float in substrate. (only float accepted for now).\n')
+                        return failload
+                    sub_array_by_unit.append(sub_data_here)
+                    vel_by_unit.append(vel_before)
+                    height_by_unit.append(height_before)
+                    ikle_all_by_unit.append(ikle_before)
+                    point_all_by_unit.append(point_before)
+                    point_z_all_by_unit.append(point_z_before)
 
-                        # if it is t==0, we have no interestction possible as the grid can only be smaller than the full
-                        # dry profile
-                        if t == 0:
-                            no_inter = True
+                else:
 
-                    else:
+                    # create the new grid based on intersection found
+                    [ikle_here, point_all_here, new_data_sub, vel_new, height_new, z_values_new] = \
+                        create_merge_grid(ikle_before,
+                                          point_before,
+                                          data_sub,
+                                          vel_before,
+                                          height_before,
+                                          point_z_before,
+                                          ikle_sub,
+                                          default_data,
+                                          data_crossing,
+                                          sub_cell)
 
-                        # create the new grid based on intersection found
-                        [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
-                            create_merge_grid(ikle_before, point_before, data_sub_pg, data_sub_dom, vel_before,
-                                              height_before,
-                                              ikle_sub, default_data, data_crossing, sub_cell)
+                    # check that each triangle of the grid is clock-wise (useful for shapefile)
+                    ikle_here = check_clockwise(ikle_here, point_all_here)
 
-                        # check that each triangle of the grid is clock-wise (useful for shapefile)
-                        ikle_here = check_clockwise(ikle_here, point_all_here)
+                    # print('TIME NEW GRID')
+                    # print(c - b)
+                    sub_array_by_unit.append(new_data_sub)
+                    vel_by_unit.append(vel_new)
+                    height_by_unit.append(height_new)
+                    point_z_all_by_unit.append(z_values_new)
+                    ikle_all_by_unit.append(np.array(ikle_here))
+                    point_all_by_unit.append(np.array(point_all_here))
 
-                        # print('TIME NEW GRID')
-                        # print(c - b)
-                        ikle_all2.append(np.array(ikle_here))
-                        point_all2.append(np.array(point_all_here))
-                        data_sub2_pg.append(new_data_sub_pg)
-                        data_sub2_dom.append(new_data_sub_dom)
-                        vel2.append(vel_new)
-                        height2.append(height_new)
+            ikle_both.append(ikle_all_by_unit)
+            point_all_both.append(point_all_by_unit)
+            sub_data_all_t.append(sub_array_by_unit)
+            vel_all_both.append(vel_by_unit)
+            height_all_both.append(height_by_unit)
+            z_all_both.append(point_z_all_by_unit)
+            # progress
+            prog += delta
+            progress_value.value = int(prog)
 
-            ikle_both.append(ikle_all2)
-            point_all_both.append(point_all2)
-            sub_pg_all_t.append(data_sub2_pg)
-            sub_dom_all_t.append(data_sub2_dom)
-            vel_all_both.append(vel2)
-            height_all_both.append(height2)
-            # # progress
-            # prog += delta
-            # progress_value.value = int(prog)
+        # add sub data to dict
+        data_2d_merge["tin"] = ikle_both
+        data_2d_merge["xy"] = point_all_both
+        data_2d_merge["sub"] = sub_data_all_t
+        data_2d_merge["v"] = vel_all_both
+        data_2d_merge["h"] = height_all_both
+        data_2d_merge["z"] = z_all_both
 
-
-            sub_array_by_unit.append(sub_array)
-            sub_array_by_reach.append(sub_array_by_unit)
-
-
-
-
-
-
-
-        # # merge the grid for each time step
-        # warn_inter = True
-        # no_inter = False
-        # for t in range(0, len(ikle_all)):  # len(ikle_all)
-        #     ikle_all2 = []
-        #     point_all2 = []
-        #     data_sub2_pg = []
-        #     data_sub2_dom = []
-        #     vel2 = []
-        #     height2 = []
-        #     if len(ikle_all[t]) > 0:
-        #         # print('Timestep: ' + str(t))
-        #         for r in range(0, len(ikle_all[t])):
-        #             point_before = np.array(point_all[t][r])
-        #             ikle_before = np.array(ikle_all[t][r])
-        #             if t > 0:
-        #                 vel_before = inter_vel_all[t][r]
-        #                 height_before = inter_height_all[t][r]
-        #             else:
-        #                 vel_before = []
-        #                 height_before = []
-        #             if len(ikle_before) < 1:
-        #                 print('Warning: One time steps without grids found. \n')
-        #                 data_sub2_pg.append([-99])
-        #                 data_sub2_dom.append([-99])
-        #                 vel2.append([-99])
-        #                 height2.append([-99])
-        #                 ikle_all2.append([[-99, -99]])
-        #                 point_all2.append([[[-99, -99]]])
-        #                 break
-        #
-        #             if not no_inter:  # in case that is possible to have intersection
-        #
-        #                 if t == 0:  # should we adapt the subtrate grid? Only necessary once
-        #                     first_time = True
-        #                 else:
-        #                     first_time = False
-        #
-        #                 # find intersection betweeen hydrology and substrate
-        #                 [ikle_sub, point_all_sub, data_sub_pg, data_sub_dom, data_crossing, sub_cell] = \
-        #                     find_sub_and_cross(ikle_sub, point_all_sub, ikle_before, point_before, data_sub_pg,
-        #                                         progress_value, delta,
-        #                                        first_time)
-        #
-        #             # if no intersection found at t==0
-        #             if len(data_crossing[0]) < 1 or no_inter:
-        #                 if warn_inter:
-        #                     print('Warning: No intersection between the grid and the substrate for one reach for'
-        #                           ' one or more time steps.\n')
-        #                     warn_inter = False
-        #                 try:
-        #                     sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
-        #                 except ValueError:
-        #                     print('Error: no float in substrate. (only float accepted for now).\n')
-        #                     return failload
-        #                 data_sub2_pg.append(sub_data_here)
-        #                 data_sub2_dom.append(sub_data_here)
-        #                 vel2.append(vel_before)
-        #                 height2.append(height_before)
-        #                 ikle_all2.append(ikle_before)
-        #                 point_all2.append(point_before)
-        #
-        #                 # if it is t==0, we have no interestction possible as the grid can only be smaller than the full
-        #                 # dry profile
-        #                 if t == 0:
-        #                     no_inter = True
-        #
-        #             else:
-        #
-        #                 # create the new grid based on intersection found
-        #                 [ikle_here, point_all_here, new_data_sub_pg, new_data_sub_dom, vel_new, height_new] = \
-        #                     create_merge_grid(ikle_before, point_before, data_sub_pg, data_sub_dom, vel_before,
-        #                                       height_before,
-        #                                       ikle_sub, default_data, data_crossing, sub_cell)
-        #
-        #                 # check that each triangle of the grid is clock-wise (useful for shapefile)
-        #                 ikle_here = check_clockwise(ikle_here, point_all_here)
-        #
-        #                 # print('TIME NEW GRID')
-        #                 # print(c - b)
-        #                 ikle_all2.append(np.array(ikle_here))
-        #                 point_all2.append(np.array(point_all_here))
-        #                 data_sub2_pg.append(new_data_sub_pg)
-        #                 data_sub2_dom.append(new_data_sub_dom)
-        #                 vel2.append(vel_new)
-        #                 height2.append(height_new)
-        #
-        #     ikle_both.append(ikle_all2)
-        #     point_all_both.append(point_all2)
-        #     sub_pg_all_t.append(data_sub2_pg)
-        #     sub_dom_all_t.append(data_sub2_dom)
-        #     vel_all_both.append(vel2)
-        #     height_all_both.append(height2)
-        #     # # progress
-        #     # prog += delta
-        #     # progress_value.value = int(prog)
-
-        return ikle_both, point_all_both, sub_pg_all_t, sub_dom_all_t, vel_all_both, height_all_both, \
-               sub_description_system, hyd_description
+        return data_2d_merge, data_2D_whole_profile, merge_description
 
 
 def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_value, delta, first_time=False):
@@ -390,7 +302,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
     :param ikle: the connectivity table for the hydrology
     :param coord_p: the coordinate of the hydrology
     :param first_time: If True, we preapre the subtrate data
-    :return: the new substrate grid (ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom, sub_cell), the data for
+    :return: the new substrate grid (ikle_sub, coord_p_sub, data_sub, sub_cell), the data for
              the crossing point (hydrological element with a crossing, crossing point, substrate element linked with
              the crossing point, point of substrate inside, substrate element linked with the substrate point,
              side of the crossing points, substrate leemnt link with hydro_point).
@@ -415,33 +327,18 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
         # a polygon convex substrate)
         xy_new = list(coord_p_sub)
         ikle_new = []
-        data_sub_pg_new = []
-        data_sub_dom_new = []
+        data_sub_new = []
         for idc, c in enumerate(ikle_sub):
-            if len(c) > 3:
-                c_center = (1 / len(c)) * sum(coord_p_sub[c])
-                xy_new.append(c_center)
-                for ind in range(0, len(c) - 1):
-                    ikle_new.append([len(xy_new) - 1, c[ind], c[ind + 1]])
-                    data_sub_pg_new.append(data_sub_pg[idc])
-                    data_sub_dom_new.append(data_sub_dom[idc])
-                ikle_new.append([len(xy_new) - 1, c[ind + 1], c[0]])
-                data_sub_pg_new.append(data_sub_pg[idc])
-                data_sub_dom_new.append(data_sub_dom[idc])
-            else:
-                ikle_new.append(c)
-                data_sub_pg_new.append(data_sub_pg[idc])
-                data_sub_dom_new.append(data_sub_dom[idc])
+            ikle_new.append(c)
+            data_sub_new.append(data_sub[idc])
 
         coord_p_sub = np.array(xy_new)
         ikle_sub = ikle_new
-        data_sub_pg = data_sub_pg_new
-        data_sub_dom = data_sub_dom_new
+        data_sub = list(data_sub_new)
 
         # erase substrate cell which are outside of the hydrological grid (to optimize)
         # the full time is the bigger grid
-        data_sub_pg2 = []
-        data_sub_dom2 = []
+        data_sub2 = []
         ikle_sub2 = []
         xhydmax = max(coord_p[:, 0])
         yhydmax = max(coord_p[:, 1])
@@ -454,14 +351,13 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
             if xhydmax >= min(coord_x_sub) and xhydmin <= max(coord_x_sub) and \
                     yhydmax >= min(coord_y_sub) and yhydmin <= max(coord_y_sub):
                 ikle_sub2.append(k)
-                data_sub_pg2.append(data_sub_pg[i])
-                data_sub_dom2.append(data_sub_dom[i])
+                data_sub2.append(data_sub[i])
             i += 1
         ikle_sub = np.array(ikle_sub2)
         if len(ikle_sub) < 1:
-            return ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom, [[]], sub_cell
-        data_sub_pg = np.copy(data_sub_pg2)
-        data_sub_dom = np.copy(data_sub_dom2)
+            return ikle_sub, coord_p_sub, data_sub, [[]], sub_cell
+
+        data_sub = np.copy(data_sub2)
 
     # preparation 2
     nb_poly = len(ikle_sub)
@@ -485,8 +381,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
     max_py = max_py[indmin]
     min_py = min_py[indmin]
     ikle_sub = ikle_sub[indmin, :]
-    data_sub_pg = data_sub_pg[indmin]
-    data_sub_dom = data_sub_dom[indmin]
+    data_sub = data_sub[indmin]
 
     # progress
     prog = progress_value.value
@@ -774,7 +669,7 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
 
     data_crossing = [el_cross, point_cross_el, point_cross, side_point_cross, sub_point_in_cross, sub_point_in_el,
                      hydro_el]
-    return ikle_sub, coord_p_sub, data_sub_pg, data_sub_dom, data_crossing, sub_cell
+    return ikle_sub, coord_p_sub, data_sub, data_crossing, sub_cell
 
 
 def inside_trigon(pt, p0, p1, p2):
@@ -843,7 +738,7 @@ def intersec_cross(hyd1, hyd2, sub1, sub2):
     return [xcross, ycross]
 
 
-def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikle_sub,
+def create_merge_grid(ikle, coord_p, data_sub, vel, height, point_z, ikle_sub,
                       default_data, data_crossing, sub_cell):
     """
     A function to update the grid after finding the crossing points. It also get the substrate_data for each cell
@@ -886,6 +781,7 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikl
     coord_p = list(coord_p)
     vel = list(vel)
     height = list(height)
+    z_values = list(point_z)
     el_cross = data_crossing[0]
     point_cross_el = data_crossing[1]
     point_cross = np.array(data_crossing[2])
@@ -920,7 +816,6 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikl
             # will delete the old element at the end(ikle and substrate)
             to_delete.append(e)
 
-            a1 = time.time()
             # new intersection point (we have two identical point)
             pc1 = [pc_here[0][0], pc_here[0][1]]
             pc2 = [pc_here[2][0], pc_here[2][1]]
@@ -930,16 +825,25 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikl
             # get the new height and velocity data
             if len(vel) > 0:  # not used by t=0, for the grid representing the whole profile
                 point_old = [coord_p[ikle[e][0]], coord_p[ikle[e][1]], coord_p[ikle[e][2]]]
+
                 vel_here = [vel[ikle[e][0]], vel[ikle[e][1]], vel[ikle[e][2]]]
                 h_here = [height[ikle[e][0]], height[ikle[e][1]], height[ikle[e][2]]]
-                vel_new1 = get_new_vel_height_data(pc1, point_old, vel_here)
-                vel_new2 = get_new_vel_height_data(pc2, point_old, vel_here)
-                vel.append(vel_new1)
+                z_here = [z_values[ikle[e][0]], z_values[ikle[e][1]], z_values[ikle[e][2]]]
+
+                vel_new1 = finit_element_interpolation(pc1, point_old, vel_here)
+                vel_new2 = finit_element_interpolation(pc2, point_old, vel_here)
                 vel.append(vel_new2)
-                h_new1 = get_new_vel_height_data(pc1, point_old, h_here)
-                h_new2 = get_new_vel_height_data(pc2, point_old, h_here)
-                height.append(h_new1)
+                vel.append(vel_new1)
+
+                h_new1 = finit_element_interpolation(pc1, point_old, h_here)
+                h_new2 = finit_element_interpolation(pc2, point_old, h_here)
                 height.append(h_new2)
+                height.append(h_new1)
+
+                z_new1 = finit_element_interpolation(pc1, point_old, z_here)
+                z_new2 = finit_element_interpolation(pc2, point_old, z_here)
+                z_values.append(z_new2)
+                z_values.append(z_new1)
 
             # update ikle
             # seg1 = [0,1] and seg2 = [1,2] in ikle order
@@ -1036,12 +940,16 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikl
                             if len(vel) > 0:
                                 point_old = [coord_p[ikle[e][0]], coord_p[ikle[e][1]], coord_p[ikle[e][2]]]
                                 vel_here = [vel[ikle[e][0]], vel[ikle[e][1]], vel[ikle[e][2]]]
+                                h_here = [height[ikle[e][0]], height[ikle[e][1]], height[ikle[e][2]]]
+                                z_here = [z_values[ikle[e][0]], z_values[ikle[e][1]], z_values[ikle[e][2]]]
                                 for i in point_new:
-                                    h_here = [height[ikle[e][0]], height[ikle[e][1]], height[ikle[e][2]]]
-                                    vel_new1 = get_new_vel_height_data(i, point_old, vel_here)
+                                    vel_new1 = finit_element_interpolation(i, point_old, vel_here)
                                     vel.append(vel_new1)
-                                    h_new1 = get_new_vel_height_data(i, point_old, h_here)
+                                    h_new1 = finit_element_interpolation(i, point_old, h_here)
                                     height.append(h_new1)
+                                    z_new1 = finit_element_interpolation(i, point_old, z_here)
+                                    z_values.append(z_new1)
+
                         except KeyError:
                             # in case triangulation was not ok
                             if empty_one:
@@ -1060,28 +968,45 @@ def create_merge_grid(ikle, coord_p, data_sub_pg, data_sub_dom, vel, height, ikl
 
     # create the new substrate data
     #print('create the new substrate data')
-    data_sub_dom_ok = np.zeros((len(sub_cell),))
-    data_sub_pg_ok = np.zeros((len(sub_cell),))
+    data_sub_ok = np.zeros((len(sub_cell), len(default_data)))
     for i, s in enumerate(sub_cell):
+        #print(i, s)
         if s == -99 or s == -1:
-            #print(i, s)
-            data_sub_dom_ok[i] = default_data[0]
-            data_sub_pg_ok[i] = default_data[1]
+            data_sub_ok[i] = default_data
+
         else:
-            data_sub_dom_ok[i] = data_sub_dom[int(s)]
-            data_sub_pg_ok[i] = data_sub_pg[int(s)]
+            data_sub_ok[i] = data_sub[int(s)]
 
     # remove element from ikle and new_data_sub
-    # ikle = [i for j, i in enumerate(ikle) if j not in to_delete]  # slow
     for d in reversed(to_delete):  # to_delete is ordered
         del ikle[d]
-    data_sub_pg_ok = np.delete(data_sub_pg_ok, to_delete)
-    data_sub_dom_ok = np.delete(data_sub_dom_ok, to_delete)
 
-    return ikle, coord_p, data_sub_pg_ok, data_sub_dom_ok, vel, height
+    data_sub_ok = np.delete(data_sub_ok, to_delete, axis=0)
+
+    return ikle, coord_p, data_sub_ok, vel, height, z_values
 
 
 def get_new_vel_height_data(newp, point_old, data_old):
+    """
+    This function gets the height and velcoity data for a new point in or on the side of an element. It does an
+    average of the data (velocity or height) given at the node of the original (old) elements. This average is weighted
+    as a function of the distance of the point.
+    :param newp: the coordinates of the new points
+    :param point_old: the coordinates of thre three old points (would work with more than three)
+    :param data_old: the data for the point in point_old
+    :return: the new data
+    """
+    point_old = np.array(point_old)
+    d_all = np.sqrt((point_old[:,0] - newp[0])**2 + (point_old[:,1]-newp[1])**2)
+    data_new = 0
+    for i in range(0, len(point_old)):
+        data_new += d_all[i] * data_old[i]
+    sum_d_all = np.sum(d_all)
+    data_new = data_new/sum_d_all
+    return data_new
+
+
+def finit_element_interpolation(newp, point_old, data_old):
     """
     This function gets the height and velcoity data for a new point in or on the side of an element. It does an
     average of the data (velocity or height) given at the node of the original (old) elements. This average is weighted
@@ -1092,14 +1017,51 @@ def get_new_vel_height_data(newp, point_old, data_old):
     :param data_old: the data for the point in point_old
     :return: the new data
     """
-    point_old = np.array(point_old)
-    d_all = np.sqrt((point_old[:, 0] - newp[0]) ** 2 + (point_old[:, 1] - newp[1]) ** 2)
-    data_new = 0
-    for i in range(0, len(point_old)):
-        data_new += d_all[i] * data_old[i]
-    sum_d_all = np.sum(d_all)
-    data_new = data_new / sum_d_all
-    return data_new
+    # point known
+    x1 = point_old[0][0]
+    x2 = point_old[1][0]
+    x3 = point_old[2][0]
+
+    y1 = point_old[0][1]
+    y2 = point_old[1][1]
+    y3 = point_old[2][1]
+
+    va1 = data_old[0]
+    va2 = data_old[1]
+    va3 = data_old[2]
+
+    # point new
+    xm = newp[0]
+    ym = newp[1]
+
+    # formula Yann Lecoarer
+    valm = va1 + (
+        (((xm - x1) * ((y2 - y1) * (va2 - va3) - (y2 - y3) * (va2 - va1))) +
+        ((ym - y1) * ((x2 - x3) * (va2 - va1) - (x2 - x1) * (va2 - va3)))) /
+        (((x2 - x3) * (y2 - y1)) - ((x2 - x1) * (y2 - y3)))
+    )
+
+    #export_one_mesh_and_new_point(x1, y1, va1, x2, y2, va2, x3, y3, va3, xm, ym, valm)
+
+    return valm
+
+
+def export_one_mesh_and_new_point(x1, y1, val1, x2, y2, val2, x3, y3, val3, xm, ym, valm):
+    # export triangle
+    fileOUT = os.path.join(r"C:\Users\quentin.royer\Documents\TAF\PROJETS_HABBY\Test_QR\DefaultProj", "test.shp")
+    w = shapefile.Writer(shapefile.POINTZ)
+    w.field('x', 'F', 10, 10)
+    w.field('y', 'F', 10, 10)
+    w.field('z', 'F', 10, 10)
+    w.point(x1, y1, val1, shapeType=11)
+    w.point(x2, y2, val2, shapeType=11)
+    w.point(x3, y3, val3, shapeType=11)
+    w.point(xm, ym, valm)
+    w.record(*[x1, y1, val1])
+    w.record(*[x2, y2, val2])
+    w.record(*[x3, y3, val3])
+    w.record(*[xm, ym, valm])
+    w.save(fileOUT)
 
 
 def check_clockwise(ikle, point):
