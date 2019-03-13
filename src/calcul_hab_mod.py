@@ -77,8 +77,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     # calcuation habitat
     path_prj = os.path.dirname(path_hdf5)
     name_prj = os.path.basename(path_prj)
-    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
-                                              path_prj,
+    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
                                               hdf5_file)
     data_2d, hab_description = hdf5_management.load_hdf5_hab()
 
@@ -130,8 +129,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
     # path_prj = os.path.dirname(path_hdf5)
     # name_prj = os.path.basename(path_prj)
-    # hdf5_management = hdf5_mod.Hdf5Management(name_prj,
-    #                                           path_prj,
+    # hdf5_management = hdf5_mod.Hdf5Management(path_prj,
     #                                           hdf5_file)
     # sim_name = hdf5_management.get_hdf5_units_name()
     sim_name = hab_description["hyd_unit_list"].split(", ")
@@ -205,7 +203,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
     # saving hdf5 data of the habitat value
     hdf5_management.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish, pref_list, stages_chosen)
-    hdf5_management.create_shapefile()
+
+    if create_shape:
+        hdf5_management.create_shapefile()
 
     # progress
     progress_value.value = 95
@@ -292,9 +292,11 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
                     vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
                         calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub)
                 elif opt == 1:  # dom
-                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
-                        calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
-                                      pref_vel, pref_height, pref_sub)
+                    # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
+                    #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
+                    #                   pref_vel, pref_height, pref_sub)
+                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
+                        calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub)
                 elif opt == 2:  # percentage
                     sub_per = hdf5_mod.load_sub_percent(merge_name, path_merge)
                     if len(sub_per) == 1:
@@ -305,9 +307,11 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, sub_per,
                                       pref_vel, pref_height, pref_sub, True)
                 elif opt == 3:
-                    [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
-                        calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
-                                      pref_vel, pref_height, pref_sub, False, False)
+                    # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
+                    #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
+                    #                   pref_vel, pref_height, pref_sub, False, False)
+                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
+                        calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, take_sub=False)
                 else:
                     print('Error: the calculation method is not found. \n')
                     return failload
