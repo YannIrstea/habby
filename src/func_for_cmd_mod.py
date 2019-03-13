@@ -44,7 +44,6 @@ from src import calcul_hab_mod
 from src import bio_info_mod
 from src import mesh_management_mod
 from src import lammi_mod
-from src import hydraulic_chronic_mod
 from src_GUI import preferences_GUI
 
 
