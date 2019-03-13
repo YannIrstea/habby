@@ -81,7 +81,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
             data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
-            if bool(description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]):
+            if bool(description_from_telemac_file["hyd_unit_z_equal"]):
                 data_2d_whole_profile["z"][0].append(data_2d_telemac["z"])
             data_2d_whole_profile["unit_correspondence"][0].append(str(i))
 
@@ -202,12 +202,11 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
         hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
         hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
-        hyd_description["hyd_unit_wholeprofile_correspondence"] = str(data_2d_whole_profile["unit_correspondence"])
-        hyd_description["hyd_equal_z_values_for_all_time_steps"] = description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"]
+        hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
+        hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
 
         # create hdf5
-        hdf5_management = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["name_prj"],
-                                                  description_from_indextelemac_file[hyd_file]["path_prj"],
+        hdf5_management = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
                                                   description_from_indextelemac_file[hyd_file]["hdf5_name"])
         hdf5_management.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
 
@@ -320,7 +319,7 @@ def load_telemac(namefilet, pathfilet):
     description_from_telemac_file["hyd_unit_list"] = ", ".join(list(map(str, timestep)))
     description_from_telemac_file["hyd_unit_number"] = str(len(list(map(str, timestep))))
     description_from_telemac_file["hyd_unit_type"] = "timestep"
-    description_from_telemac_file["hyd_equal_z_values_for_all_time_steps"] = str(all_z_equal)
+    description_from_telemac_file["hyd_unit_z_equal"] = str(all_z_equal)
 
     # data 2d dict
     data_2d = dict()

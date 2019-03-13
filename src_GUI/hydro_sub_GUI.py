@@ -1150,9 +1150,7 @@ class SubHydroW(QWidget):
                 self.update_sub_hdf5_name()
             self.send_log.emit("clear status bar")
             # refresh plot gui list file
-            index = self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.types_hdf5_QComboBox.currentIndex()
-            self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(0)
-            self.nativeParentWidget().central_widget.data_explorer_tab.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(index)
+            self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
             self.running_time = 0
 
         # finish
@@ -2986,8 +2984,12 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 data_index_telemac = dict((key, []) for key in headers)
                 data_row_list = dataraw.split("\n")[1:]
                 for line in data_row_list:
-                    for index, column_name in enumerate(headers):
-                        data_index_telemac[column_name].append(line.split("\t")[index])
+                    if line == "":
+                        print("empty line")
+                        pass
+                    else:
+                        for index, column_name in enumerate(headers):
+                            data_index_telemac[column_name].append(line.split("\t")[index])
 
                 if ext != ".txt":  # from file
                     # selectedfiles textfiles matching
@@ -3248,7 +3250,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     for i in range(len(items_list)):
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
-                    self.units_QListWidget.setEnabled(False)
+                    self.units_QListWidget.setEnabled(True)
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
@@ -3725,6 +3727,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                    False,
                                    self.fig_opt))
         else:
+            self.telemac_description["hdf5_name"] = self.name_hdf5
             self.p = Process(target=telemac_mod.load_telemac_and_cut_grid,
                              args=(self.telemac_description,
                                    self.progress_value,
@@ -5455,7 +5458,7 @@ class SubstrateW(SubHydroW):
             self.q.put("const_sub")
 
             # save hdf5
-            hdf5_management = hdf5_mod.Hdf5Management(self.name_prj, self.path_prj, self.name_hdf5)
+            hdf5_management = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
             self.p = Process(target=hdf5_management.create_hdf5_sub,
                              args=(sub_description_system, data))
             self.p.start()
@@ -5631,6 +5634,8 @@ class SubstrateW(SubHydroW):
             erase_id = True
         else:
             erase_id = False
+        if fig_opt['shape_output'] == 'False':
+            path_shp = ""
 
         # block button merge
         self.load_b2.setDisabled(True)  # merge

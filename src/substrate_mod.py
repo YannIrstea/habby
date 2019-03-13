@@ -565,7 +565,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
             data_2d["nb_reach"] = 1
 
             # save hdf5
-            hdf5_management = hdf5_mod.Hdf5Management(name_prj, path_prj, name_hdf5)
+            hdf5_management = hdf5_mod.Hdf5Management(path_prj, name_hdf5)
             hdf5_management.create_hdf5_sub(sub_description_system, data_2d)
 
     queue.put(mystdout)
