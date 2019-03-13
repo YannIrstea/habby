@@ -773,7 +773,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
         plt.close()
 
 
-def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fig_opt={}, sim_name=[]):
+def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_base, fig_opt={}):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -811,72 +811,69 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
 
     # prep data
     name_base = name_base[:-4]
+    area_all = list(map(float, data_description["total_wet_area"][reach_num]))
+    sim_name = []
+    for unit_index in data_description["units_index"]:
+        sim_name.append(data_description["hyd_unit_list"].split(", ")[unit_index])
+    unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # plot
     if len(sim_name) == 1:
-        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Step : {sim_name[0]}"
+        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Step : {sim_name[0]}" + " " + unit_type
     if len(sim_name) > 1:
         plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Steps : " + ", ".join(
-            map(str, sim_name))
+            map(str, sim_name)) + " " + unit_type
     fig = plt.figure(plot_window_title)
 
     name_fish_origin = list(name_fish)
     for id, n in enumerate(name_fish):
         name_fish[id] = n.replace('_', ' ')
 
-    # if sim_name and len(area_all) - 1 != len(sim_name):
-    #     sim_name = []
-
     # one time step - bar
     if len(area_all) == 1:
         # SPU
         data_bar = []
         for name_fish_value in name_fish_origin:
-            data_bar.append(float(spu_all[0][name_fish_value]))
-        y_pos = np.arange(len(spu_all[0]))
+            data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
+
+        y_pos = np.arange(len(name_fish))
         fig.add_subplot(211)
-        if data_bar:
-            #spu_string = '{:0.0f}'.format(data_bar[0])
-            data_bar2 = np.array(data_bar)
-            plt.bar(y_pos, data_bar2, 0.5)
-            #plt.text(x=y_pos, y=data_bar2 / 2, s=spu_string + " m²", horizontalalignment='left')
-            plt.xticks(y_pos + 0.25, name_fish)
+        data_bar2 = np.array(data_bar)
+        plt.bar(y_pos, data_bar2)
+        plt.xticks(y_pos, [])
         if fig_opt['language'] == 0:
             plt.ylabel('WUA [m^2]')
         elif fig_opt['language'] == 1:
             plt.ylabel('SPU [m^2]')
         else:
             plt.ylabel('WUA [m^2]')
-        plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
         if fig_opt['language'] == 0:
-            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
+            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
         elif fig_opt['language'] == 1:
-            plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}')
+            plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}' + " " + unit_type)
         else:
-            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}')
+            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
         # VH
         fig.add_subplot(212)
-        if data_bar:
-            area = float(area_all[0])
-            vh = np.array(data_bar[0] / area)
-            #vh_string = '{:0.2f}'.format(vh)
-            plt.bar(y_pos, vh, 0.5)
-            #plt.text(x=y_pos, y=0.5, s=vh_string, horizontalalignment='left')
-            plt.xticks(y_pos + 0.25, name_fish)
+        vh = data_bar2 / area_all[reach_num]
+        plt.bar(y_pos, vh)
+        plt.xticks(y_pos, name_fish, rotation=10)
+
         if fig_opt['language'] == 0:
             plt.ylabel('HV (WUA/A) []')
         elif fig_opt['language'] == 1:
             plt.ylabel('VH (SPU/A) []')
         else:
             plt.ylabel('HV (WUA/A) []')
-        plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
         plt.ylim(0, 1)
         if fig_opt['language'] == 0:
-            plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
+            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
         elif fig_opt['language'] == 1:
-            plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}")
+            plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}" + " " + unit_type)
         else:
-            plt.title(f'Habitat value - Computational Step : {sim_name[0]}')
+            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
         # get data with mouse
         mplcursors.cursor()
         plt.tight_layout()
@@ -902,12 +899,8 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
         # SPU
         spu_ax = fig.add_subplot(211)
         x_data = list(map(float, sim_name))
-        y_data_spu_list = []
         for name_fish_value in name_fish_origin:
-            y_data_spu = []
-            for unit_index in range(len(spu_all)):
-                y_data_spu.append(float(spu_all[unit_index][name_fish_value]))
-            y_data_spu_list.append(y_data_spu)
+            y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
             plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
         if fig_opt['language'] == 0:
             # plt.xlabel('Computational step [ ]')
@@ -934,24 +927,20 @@ def plot_fish_hv_wua(state, area_all, spu_all, name_fish, path_im, name_base, fi
             plt.xticks(x_data[::10], [], rotation=rot)
         # VH
         hv_ax = fig.add_subplot(212)
-        y_data_hv_list = []
         for name_fish_value in name_fish_origin:
-            y_data_hv = []
-            for unit_index in range(len(spu_all)):
-                hv_data = float(spu_all[unit_index][name_fish_value]) / float(area_all[unit_index])
-                y_data_hv.append(hv_data)
-            y_data_hv_list.append(y_data_hv)
+            y_data_hv = [b / m for b,m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
+                                                        area_all)]
             plt.plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
         if fig_opt['language'] == 0:
-            plt.xlabel('Computational step [ ]')
+            plt.xlabel('Computational step [' + unit_type + ']')
             plt.ylabel('HV (WUA/A) []')
             plt.title('Habitat Value for the Reach ' + str(0))
         elif fig_opt['language'] == 1:
-            plt.xlabel('Unité [ ]')
+            plt.xlabel('Unité [' + unit_type + ']')
             plt.ylabel('HV (SPU/A) []')
             plt.title("Valeur d'habitat pour le troncon " + str(0))
         else:
-            plt.xlabel('Computational step [ ]')
+            plt.xlabel('Computational step [' + unit_type + ']')
             plt.ylabel('HV (WUA/A) []')
             plt.title('Habitat Value for the Reach ' + str(0))
         plt.ylim(0, 1)
