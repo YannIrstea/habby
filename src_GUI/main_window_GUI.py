@@ -43,6 +43,7 @@ from src_GUI import hydro_sub_GUI
 from src_GUI import stathab_GUI
 from src_GUI import preferences_GUI
 from src_GUI import data_explorer_GUI
+from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 
@@ -386,6 +387,7 @@ class MainWindows(QMainWindow):
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
             self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+            self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
             # pass the info to the bio info tab
             # to be modified if a new language is added !
@@ -1056,6 +1058,7 @@ class MainWindows(QMainWindow):
             self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
             self.central_widget.output_tab.save_option_fig()
             self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+            self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
         else:
             print('Error: Could not find the project saved just now. \n')
@@ -1193,6 +1196,7 @@ class MainWindows(QMainWindow):
         self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
         self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
         self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+        self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
@@ -1867,12 +1871,10 @@ class CentralW(QWidget):
             self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
             self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
-            #self.output_tab = output_fig_GUI.outputW(path_prj, name_prj)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
+            self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
-            #self.chronicle_tab = chronicle_GUI.ChroniqueGui(path_prj, name_prj)
-            #self.update_merge_for_chronicle()
 
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
@@ -1970,7 +1972,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 5
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 6
             self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 7
-
+            self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 7
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
@@ -2077,6 +2079,7 @@ class CentralW(QWidget):
             self.fstress_tab.send_log.connect(self.write_log)
             #self.chronicle_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
+            self.tools_tab.send_log.connect(self.write_log)
 
     def connect_signal_fig_and_drop(self):
         """
