@@ -64,8 +64,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 90
 
     # create hdf5 hab
-    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
-                                              path_prj,
+    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
                                               name_hdf5merge)
     hdf5_management.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, merge_description)
 
@@ -109,20 +108,17 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
     sub_data_all_t = []
 
     # load hdf5 hydro
-    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
-                                              path_prj,
+    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
                                               hdf5_name_hyd)
     data_2d_hyd, data_2D_whole_profile, hyd_description = hdf5_management.load_hdf5_hyd(units_index="all",
                                                                                         whole_profil=True)
 
     # load hdf5 sub
-    hdf5_management = hdf5_mod.Hdf5Management(name_prj,
-                                              path_prj,
+    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
                                               hdf5_name_sub)
     data_2d_sub, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=False)
 
     if sub_description_system["sub_mapping_method"] == "constant":
-        print('Warning: Constant substrate.')
         # new dict
         merge_description = dict()
         # copy attributes hydraulic
@@ -153,8 +149,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
         return data_2d_merge, data_2D_whole_profile, merge_description
 
     if sub_description_system["sub_mapping_method"] != "constant":
-        print('Warning: ', sub_description_system["sub_mapping_method"])
-
         # new dict
         merge_description = dict()
         # copy attributes hydraulic
@@ -176,7 +170,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
         prog = progress_value.value
 
         # check if whole profile is equal for all timestep
-        if hyd_description["hyd_unit_wholeprofile_correspondence"] == 'all':
+        if hyd_description["hyd_unit_wholeprofile"] == 'all':
             # have to check intersection for only one timestep
             print("whole profile is equal for all timestep")
         else:
@@ -211,9 +205,9 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
 
                     # find intersection betweeen hydrology and substrate
                     [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
-                        find_sub_and_cross(data_2d_sub["tin"][reach_num][unit_num],
-                                           data_2d_sub["xy"][reach_num][unit_num],
-                                           data_2d_sub["sub"][reach_num][unit_num],
+                        find_sub_and_cross(data_2d_sub["tin"][reach_num][0],
+                                           data_2d_sub["xy"][reach_num][0],
+                                           data_2d_sub["sub"][reach_num][0],
                                            data_2d_hyd["tin"][reach_num][unit_num],
                                            data_2d_hyd["xy"][reach_num][unit_num],
                                            progress_value, delta,
@@ -1033,15 +1027,18 @@ def finit_element_interpolation(newp, point_old, data_old):
     # point new
     xm = newp[0]
     ym = newp[1]
+    valm = va1  # force to have coherent value (if divide by 0)
 
-    # formula Yann Lecoarer
-    valm = va1 + (
-        (((xm - x1) * ((y2 - y1) * (va2 - va3) - (y2 - y3) * (va2 - va1))) +
-        ((ym - y1) * ((x2 - x3) * (va2 - va1) - (x2 - x1) * (va2 - va3)))) /
-        (((x2 - x3) * (y2 - y1)) - ((x2 - x1) * (y2 - y3)))
-    )
-
-    #export_one_mesh_and_new_point(x1, y1, va1, x2, y2, va2, x3, y3, va3, xm, ym, valm)
+    if ((x2 - x3) * (y2 - y1)) - ((x2 - x1) * (y2 - y3)) == 0:
+        print("divide by zero, not a triangle ?")
+        #export_one_mesh_and_new_point(x1, y1, va1, x2, y2, va2, x3, y3, va3, xm, ym, valm)
+    else:
+        # formula Yann Lecoarer
+        valm = va1 + (
+            (((xm - x1) * ((y2 - y1) * (va2 - va3) - (y2 - y3) * (va2 - va1))) +
+            ((ym - y1) * ((x2 - x3) * (va2 - va1) - (x2 - x1) * (va2 - va3)))) /
+            (((x2 - x3) * (y2 - y1)) - ((x2 - x1) * (y2 - y3)))
+        )
 
     return valm
 
