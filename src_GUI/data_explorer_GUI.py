@@ -14,10 +14,10 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
+from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication, QVariant, QAbstractTableModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, \
-    QComboBox, QMessageBox, QFrame, QCheckBox, \
-    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit
+    QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, \
+    QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
 from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import plot_mod
@@ -68,6 +68,18 @@ class DataExplorerTab(QScrollArea):
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(self.data_explorer_frame)
+
+    def refresh_type(self):
+        index = self.data_explorer_frame.types_hdf5_QComboBox.currentIndex()
+        if index:
+            self.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(0)
+            self.data_explorer_frame.types_hdf5_QComboBox.setCurrentIndex(index)
+
+    def refresh_filename(self):
+        item = self.data_explorer_frame.names_hdf5_QListWidget.selectedItems()
+        if item:
+            self.data_explorer_frame.names_hdf5_QListWidget.setCurrentItem(None)
+            self.data_explorer_frame.names_hdf5_QListWidget.setCurrentItem(item[0])
 
 
 class DataExplorerFrame(QFrame):
@@ -159,10 +171,10 @@ class DataExplorerFrame(QFrame):
         # type plot
         plot_type_qlabel = QLabel(self.tr("figure type :"))
         self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
-        self.plot_map_QCheckBox.setChecked(True)
+        self.plot_map_QCheckBox.setChecked(False)
         self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
         self.plot_result_QCheckBox = QCheckBox(self.tr("result"))
-        self.plot_result_QCheckBox.setChecked(True)
+        self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
 
         # progress bar
@@ -171,8 +183,10 @@ class DataExplorerFrame(QFrame):
         self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
         # attributes hdf5
-        self.hdf5_attributes_QTextEdit = QTextEdit(self)
+        self.hdf5_attributes_QTextEdit = QTableView(self)
         self.hdf5_attributes_QTextEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.hdf5_attributes_QTextEdit.verticalHeader().setVisible(False)
+        self.hdf5_attributes_QTextEdit.horizontalHeader().setVisible(False)
 
         """ File selection """
         # SELECTION FILE
@@ -185,8 +199,8 @@ class DataExplorerFrame(QFrame):
         """ Graphic producer """
         # PLOT GROUP
         plot_layout = QHBoxLayout()
-        plot_layout.addLayout(self.variable_hdf5_layout)
-        plot_layout.addLayout(self.units_layout)
+        plot_layout.addLayout(self.variable_hdf5_layout, 4)
+        plot_layout.addLayout(self.units_layout, 1)
         plot_layout.addLayout(self.export_type_layout)
         plot_layout2 = QVBoxLayout()
         plot_type_layout = QHBoxLayout()
@@ -375,8 +389,7 @@ class DataExplorerFrame(QFrame):
             self.units_QListWidget.clear()
 
             # create hdf5 class
-            hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().name_prj,
-                                                      self.parent().parent().path_prj,
+            hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().path_prj,
                                                       hdf5name)
             # get variables
             variables = hdf5_management.get_hdf5_variables()
@@ -404,13 +417,19 @@ class DataExplorerFrame(QFrame):
                     self.units_QListWidget.addItems(units_name)
 
             # display hdf5 attributes
-            hdf5_attributes_text = hdf5_management.get_hdf5_attributes()
-            self.hdf5_attributes_QTextEdit.setText(hdf5_attributes_text)
+            hdf5_attributes_name_text, hdf5_attributes_info_text = hdf5_management.get_hdf5_attributes()
+            aa = list(zip(hdf5_attributes_name_text, hdf5_attributes_info_text))
+            tablemodel = MyTableModel(aa, self)
+            self.hdf5_attributes_QTextEdit.setModel(tablemodel)
+            header = self.hdf5_attributes_QTextEdit.horizontalHeader()
+            header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+            header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            self.hdf5_attributes_QTextEdit.verticalHeader().setDefaultSectionSize(self.hdf5_attributes_QTextEdit.verticalHeader().minimumSectionSize())
 
         # more than one file selected
         elif len(selection) > 1:
             # clear attributes hdf5_attributes_QTextEdit
-            self.hdf5_attributes_QTextEdit.clear()
+            self.hdf5_attributes_QTextEdit.setModel(None)
             nb_file = len(selection)
             hdf5name = []
             units = []
@@ -418,8 +437,7 @@ class DataExplorerFrame(QFrame):
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
                 # create hdf5 class
-                hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().name_prj,
-                                                          self.parent().parent().path_prj,
+                hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().path_prj,
                                                           selection[i].text())
                 units.append(hdf5_management.get_hdf5_units_name())
                 variables_a = hdf5_management.get_hdf5_variables()
@@ -464,7 +482,7 @@ class DataExplorerFrame(QFrame):
                     # self.variable_QListWidget.addItems(hdf5_mod.get_fish_names_habitat(hdf5name[0], self.parent().parent().path_prj + "/hdf5/"))
                     # self.units_QListWidget.addItems(units)        # update progress bar
         else:
-            self.hdf5_attributes_QTextEdit.clear()
+            self.hdf5_attributes_QTextEdit.setModel(None)
         # count plot
         self.count_plot()
 
@@ -593,8 +611,7 @@ class DataExplorerFrame(QFrame):
             for name_hdf5 in names_hdf5:
                 if not self.plot_production_stoped:  # stop loop with button
                     # create hdf5 class by file
-                    hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().name_prj,
-                                                              self.parent().parent().path_prj,
+                    hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().path_prj,
                                                               name_hdf5)
 
                     # read hdf5 data (get desired units)
@@ -616,11 +633,13 @@ class DataExplorerFrame(QFrame):
                                                                                  fish_names=fish_names,
                                                                                  whole_profil=False,
                                                                                  convert_to_coarser_dom=True)
-                        data_description = dict(reach_number=hab_description["hyd_reach_number"],
-                                                unit_number=hab_description["hyd_unit_number"],
-                                                unit_type=hab_description["hyd_unit_type"],
-                                                name_hdf5=hab_description["hyd_filename"],
-                                                sub_classification_code=hab_description["sub_classification_code"])
+                        data_description = dict(hab_description)
+                        data_description["reach_number"] = hab_description["hyd_reach_number"]
+                        data_description["unit_number"] = hab_description["hyd_unit_number"]
+                        data_description["unit_type"] = hab_description["hyd_unit_type"]
+                        data_description["units_index"] = units_index
+                        data_description["name_hdf5"] = hab_description["hyd_filename"]
+                        data_description["sub_classification_code"] = hab_description["sub_classification_code"]
 
                     # for each reach
                     for reach_num in range(int(data_description["reach_number"])):
@@ -630,13 +649,12 @@ class DataExplorerFrame(QFrame):
                             state = Value("i", 0)
                             plot_hab_fig_spu_process = Process(target=plot_mod.plot_fish_hv_wua,
                                                                args=(state,
-                                                                     data_2d["total_wet_area"][reach_num],
-                                                                     data_2d["total_WUA_area"][reach_num],
+                                                                     data_description,
+                                                                     reach_num,
                                                                      fish_names,
                                                                      path_im,
                                                                      name_hdf5,
-                                                                     fig_opt,
-                                                                     units))
+                                                                     fig_opt))
                             self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
                         # for each desired units ==> maps
@@ -725,7 +743,7 @@ class DataExplorerFrame(QFrame):
                                                                             fish_name,
                                                                             data_2d["xy"][reach_num][unit_num],
                                                                             data_2d["tin"][reach_num][unit_num],
-                                                                            data_2d["hv_data"][reach_num][unit_num][fish_name],
+                                                                            data_2d["hv_data"][fish_name][reach_num][unit_num],
                                                                             name_hdf5,
                                                                             fig_opt,
                                                                             path_im,
@@ -827,3 +845,22 @@ class MyProcessList(list):
         """
         for i in range(len(self)):
             self[i][0].terminate()
+
+
+class MyTableModel(QAbstractTableModel):
+    def __init__(self, datain, parent=None, *args):
+        QAbstractTableModel.__init__(self, parent, *args)
+        self.arraydata = datain
+
+    def rowCount(self, parent):
+        return len(self.arraydata)
+
+    def columnCount(self, parent):
+        return len(self.arraydata[0])
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QVariant()
+        elif role != Qt.DisplayRole:
+            return QVariant()
+        return QVariant(self.arraydata[index.row()][index.column()])

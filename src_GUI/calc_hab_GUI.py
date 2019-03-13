@@ -685,6 +685,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.running_time = 0
             self.send_log.emit("clear status bar")
             self.plot_new = False
+            # refresh plot gui list file
+            self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
+            self.running_time = 0
 
         if not self.p4.is_alive():
             # enable the button to call this functin directly again
