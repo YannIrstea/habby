@@ -221,6 +221,12 @@ class Hdf5Management:
             self.file_object.close()
             return variables
 
+    def get_hdf5_fish_names(self):
+        variables = self.get_hdf5_variables()
+        variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+        fish_list = [x for x in variables if x not in variables_to_remove]  # remove variable not present in hdf5
+        return fish_list
+
     def get_hdf5_units_name(self):
         """
         This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
