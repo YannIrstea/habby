@@ -101,7 +101,7 @@ class DataExplorerFrame(QFrame):
         #self.setStyleSheet('QGroupBox {font-weight: bold;}')
 
         """ File selection """
-        # types_hdf5_QComboBox
+        # hab_filenames_qcombobox
         self.types_hdf5_QLabel = QLabel(self.tr('file types'))
         self.types_hdf5_QComboBox = QComboBox()
         self.types_hdf5_list = ["", "hydraulic", "substrate", "habitat"]
@@ -112,7 +112,7 @@ class DataExplorerFrame(QFrame):
         self.types_hdf5_layout.addWidget(self.types_hdf5_QLabel)
         self.types_hdf5_layout.addWidget(self.types_hdf5_QComboBox)
 
-        # names_hdf5_QListWidget
+        # available_units_qlistwidget
         self.names_hdf5_QLabel = QLabel(self.tr('filenames'))
         self.names_hdf5_QListWidget = QListWidget()
         self.names_hdf5_QListWidget.setMinimumWidth(250)
@@ -183,10 +183,10 @@ class DataExplorerFrame(QFrame):
         self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
         # attributes hdf5
-        self.hdf5_attributes_QTextEdit = QTableView(self)
-        self.hdf5_attributes_QTextEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.hdf5_attributes_QTextEdit.verticalHeader().setVisible(False)
-        self.hdf5_attributes_QTextEdit.horizontalHeader().setVisible(False)
+        self.hdf5_attributes_qtableview = QTableView(self)
+        self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.hdf5_attributes_qtableview.verticalHeader().setVisible(False)
+        self.hdf5_attributes_qtableview.horizontalHeader().setVisible(False)
 
         """ File selection """
         # SELECTION FILE
@@ -217,7 +217,7 @@ class DataExplorerFrame(QFrame):
         """ File information """
         # ATTRIBUTE GROUP
         attributes_layout = QVBoxLayout()
-        attributes_layout.addWidget(self.hdf5_attributes_QTextEdit)
+        attributes_layout.addWidget(self.hdf5_attributes_qtableview)
         attributes_group = QGroupBox(self.tr("file informations"))
         attributes_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         attributes_group.setLayout(attributes_layout)
@@ -237,7 +237,6 @@ class DataExplorerFrame(QFrame):
         global_layout.addLayout(vbox_layout)
 
         # add layout to group
-        #self.setLayout(global_layout)
         self.setFrameShape(QFrame.NoFrame)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -420,16 +419,16 @@ class DataExplorerFrame(QFrame):
             hdf5_attributes_name_text, hdf5_attributes_info_text = hdf5_management.get_hdf5_attributes()
             aa = list(zip(hdf5_attributes_name_text, hdf5_attributes_info_text))
             tablemodel = MyTableModel(aa, self)
-            self.hdf5_attributes_QTextEdit.setModel(tablemodel)
-            header = self.hdf5_attributes_QTextEdit.horizontalHeader()
+            self.hdf5_attributes_qtableview.setModel(tablemodel)
+            header = self.hdf5_attributes_qtableview.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
             header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.hdf5_attributes_QTextEdit.verticalHeader().setDefaultSectionSize(self.hdf5_attributes_QTextEdit.verticalHeader().minimumSectionSize())
+            self.hdf5_attributes_qtableview.verticalHeader().setDefaultSectionSize(self.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
 
         # more than one file selected
         elif len(selection) > 1:
-            # clear attributes hdf5_attributes_QTextEdit
-            self.hdf5_attributes_QTextEdit.setModel(None)
+            # clear attributes hdf5_attributes_qtableview
+            self.hdf5_attributes_qtableview.setModel(None)
             nb_file = len(selection)
             hdf5name = []
             units = []
@@ -482,7 +481,7 @@ class DataExplorerFrame(QFrame):
                     # self.variable_QListWidget.addItems(hdf5_mod.get_fish_names_habitat(hdf5name[0], self.parent().parent().path_prj + "/hdf5/"))
                     # self.units_QListWidget.addItems(units)        # update progress bar
         else:
-            self.hdf5_attributes_QTextEdit.setModel(None)
+            self.hdf5_attributes_qtableview.setModel(None)
         # count plot
         self.count_plot()
 

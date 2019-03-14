@@ -1972,7 +1972,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 5
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 6
             self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 7
-            self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 7
+            self.tab_widget.addTab(self.tools_tab, self.tr("Interpolation tools"))  # 7
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
@@ -2119,7 +2119,9 @@ class CentralW(QWidget):
             self.hydro_tab.habbyhdf5.drop_hydro.connect(self.update_hydro_hdf5_name)
 
             # connect signal to update the merge file
-            #self.bioinfo_tab.get_list_merge.connect(self.update_merge_for_chronicle)
+            # refresh interpolation tools
+
+            self.bioinfo_tab.get_list_merge.connect(self.tools_tab.refresh_hab_filenames)
 #            self.chronicle_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)

@@ -687,6 +687,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.plot_new = False
             # refresh plot gui list file
             self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
+            self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
             self.running_time = 0
 
         if not self.p4.is_alive():
