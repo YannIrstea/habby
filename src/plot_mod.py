@@ -19,6 +19,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+import matplotlib.dates as mdates
 import mplcursors
 import time
 import os
@@ -1061,6 +1062,28 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     if types_plot == "image export":
         plt.close()
 
+
+def plot_interpolate_chronicle(chronicle, fish_names):
+
+    fig = plt.figure("Habitat values interpolation in discharge chronicle")
+
+    # PLOT Q
+    years = mdates.YearLocator()  # every year
+    months = mdates.MonthLocator()  # every month
+    # q_ax = fig.add_subplot(211)
+    # plt.plot(chronicle["units"], chronicle["Q"], label="Q")
+    # q_ax.xaxis.set_major_locator(years)
+    # q_ax.xaxis.set_minor_locator(months)
+    # plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
+
+    # PLOT HV
+    hv_ax = fig.add_subplot(212)
+    for fish_name in fish_names:
+        plt.plot(chronicle["units"], chronicle[fish_name], label=fish_name)
+    hv_ax.xaxis.set_major_locator(years)
+    hv_ax.xaxis.set_minor_locator(months)
+    plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
+    plt.show()
 
 class SnaptoCursorPT(object):
     """
