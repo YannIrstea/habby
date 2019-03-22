@@ -28,7 +28,7 @@ import shapefile
 
 def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path_prj,
                         model_type, progress_value,
-                        q=[], print_cmd=False, path_shp='', erase_id=False):
+                        q=[], print_cmd=False, fig_opt=[]):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
@@ -56,26 +56,28 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 10
 
     # merge the grid
-    data_2d_merge, data_2d_whole_profile, merge_description = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
-                                                            path_hdf5, name_prj, path_prj,
-                                                            progress_value)
+    data_2d_merge, data_2d_whole_profile, data_description = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
+                                                                                  path_hdf5, name_prj, path_prj,
+                                                                                  progress_value)
 
     # progress
     progress_value.value = 90
 
     # create hdf5 hab
-    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
-                                              name_hdf5merge)
-    hdf5_management.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, merge_description)
+    hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5merge)
+    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, data_description)
 
     # progress
-    progress_value.value = 95
+    progress_value.value = 93
 
-    # save in a shapefile form
-    if path_shp:
-        hdf5_management.create_shapefile()
-        hdf5_management.create_stl()
+    # export shapefile
+    hdf5.create_shapefile(fig_opt)
 
+    # progress
+    progress_value.value = 97
+
+    # export stl
+    hdf5.create_stl(fig_opt)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -108,37 +110,34 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
     sub_data_all_t = []
 
     # load hdf5 hydro
-    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
-                                              hdf5_name_hyd)
-    data_2d_hyd, data_2D_whole_profile, hyd_description = hdf5_management.load_hdf5_hyd(units_index="all",
-                                                                                        whole_profil=True)
+    hdf5_hydro = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hyd)
+    hdf5_hydro.load_hdf5_hyd(units_index="all", whole_profil=True)
 
     # load hdf5 sub
-    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
-                                              hdf5_name_sub)
-    data_2d_sub, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=False)
+    hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub)
+    hdf5_sub.load_hdf5_sub(convert_to_coarser_dom=False)
 
-    if sub_description_system["sub_mapping_method"] == "constant":
+    if hdf5_sub.data_description["sub_mapping_method"] == "constant":
         # new dict
         merge_description = dict()
         # copy attributes hydraulic
-        for attribute_name, attribute_value in list(hyd_description.items()):
+        for attribute_name, attribute_value in list(hdf5_hydro.data_description.items()):
             merge_description[attribute_name] = attribute_value
 
         # copy attributes substrate
-        for attribute_name, attribute_value in list(sub_description_system.items()):
+        for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
             merge_description[attribute_name] = attribute_value
 
         # copy data from hyd
-        data_2d_merge = dict(data_2d_hyd)
+        data_2d_merge = dict(hdf5_hydro.data_2d)
         # for each reach
         sub_array_by_reach = []
-        for reach_num in range(0, int(hyd_description["hyd_reach_number"])):
+        for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
             # for each unit
             sub_array_by_unit = []
-            for unit_num in range(0, int(hyd_description["hyd_unit_number"])):
+            for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
                 try:
-                    sub_array = np.array([data_2d_sub["sub"] for _ in range(0, len(data_2d_hyd["tin"][reach_num][unit_num]))])
+                    sub_array = np.array([hdf5_sub.data_2d["sub"] for _ in range(0, len(hdf5_hydro.data_2d["tin"][reach_num][unit_num]))])
                 except ValueError or TypeError:
                     print('Error: no int in substrate. (only float or int accepted for now). \n')
                     return failload
@@ -146,31 +145,31 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
             sub_array_by_reach.append(sub_array_by_unit)
         # add sub data to dict
         data_2d_merge["sub"] = sub_array_by_reach
-        return data_2d_merge, data_2D_whole_profile, merge_description
+        return data_2d_merge, hdf5_hydro.data_2d_whole, merge_description
 
-    if sub_description_system["sub_mapping_method"] != "constant":
+    if hdf5_sub.data_description["sub_mapping_method"] != "constant":
         # new dict
         merge_description = dict()
         # copy attributes hydraulic
-        for attribute_name, attribute_value in list(hyd_description.items()):
+        for attribute_name, attribute_value in list(hdf5_hydro.data_description.items()):
             merge_description[attribute_name] = attribute_value
 
         # copy attributes substrate
-        for attribute_name, attribute_value in list(sub_description_system.items()):
+        for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
             merge_description[attribute_name] = attribute_value
 
         # defaut data
-        default_data = np.array(list(map(int, sub_description_system["sub_default_values"].split(", "))))
+        default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
 
         # copy data from hyd
-        data_2d_merge = dict(data_2d_hyd)
+        data_2d_merge = dict(hdf5_hydro.data_2d)
 
         # prog
-        delta = 80 / int(hyd_description["hyd_unit_number"])
+        delta = 80 / int(hdf5_hydro.data_description["hyd_unit_number"])
         prog = progress_value.value
 
         # check if whole profile is equal for all timestep
-        if hyd_description["hyd_unit_wholeprofile"] == 'all':
+        if hdf5_hydro.data_description["hyd_unit_wholeprofile"] == 'all':
             # have to check intersection for only one timestep
             print("whole profile is equal for all timestep")
         else:
@@ -180,7 +179,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
         # for each reach
         warn_inter = True
         no_inter = False
-        for reach_num in range(0, int(hyd_description["hyd_reach_number"])):
+        for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
 
             # for each unit
             sub_array_by_unit = []
@@ -189,7 +188,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
             ikle_all_by_unit = []
             point_all_by_unit = []
             point_z_all_by_unit = []
-            for unit_num in range(0, int(hyd_description["hyd_unit_number"])):
+            for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
 
                 if not no_inter:  # in case that is possible to have intersection
                     if unit_num == 0:  # should we adapt the subtrate grid? Only necessary once
@@ -197,19 +196,19 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
                     else:
                         first_time = False
 
-                    point_before = np.array(data_2d_hyd["xy"][reach_num][unit_num])
-                    point_z_before = np.array(data_2d_hyd["z"][reach_num][unit_num])
-                    ikle_before = np.array(data_2d_hyd["tin"][reach_num][unit_num])
-                    vel_before = data_2d_hyd["v"][reach_num][unit_num]
-                    height_before = data_2d_hyd["h"][reach_num][unit_num]
+                    point_before = np.array(hdf5_hydro.data_2d["xy"][reach_num][unit_num])
+                    point_z_before = np.array(hdf5_hydro.data_2d["z"][reach_num][unit_num])
+                    ikle_before = np.array(hdf5_hydro.data_2d["tin"][reach_num][unit_num])
+                    vel_before = hdf5_hydro.data_2d["v"][reach_num][unit_num]
+                    height_before = hdf5_hydro.data_2d["h"][reach_num][unit_num]
 
                     # find intersection betweeen hydrology and substrate
                     [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
-                        find_sub_and_cross(data_2d_sub["tin"][reach_num][0],
-                                           data_2d_sub["xy"][reach_num][0],
-                                           data_2d_sub["sub"][reach_num][0],
-                                           data_2d_hyd["tin"][reach_num][unit_num],
-                                           data_2d_hyd["xy"][reach_num][unit_num],
+                        find_sub_and_cross(hdf5_sub.data_2d["tin"][reach_num][0],
+                                           hdf5_sub.data_2d["xy"][reach_num][0],
+                                           hdf5_sub.data_2d["sub"][reach_num][0],
+                                           hdf5_hydro.data_2d["tin"][reach_num][unit_num],
+                                           hdf5_hydro.data_2d["xy"][reach_num][unit_num],
                                            progress_value, delta,
                                            first_time)
 
@@ -277,7 +276,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
         data_2d_merge["h"] = height_all_both
         data_2d_merge["z"] = z_all_both
 
-        return data_2d_merge, data_2D_whole_profile, merge_description
+        return data_2d_merge, hdf5_hydro.data_2d_whole, merge_description
 
 
 def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_value, delta, first_time=False):

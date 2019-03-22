@@ -69,24 +69,33 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     """
     # progress
     progress_value.value = 10
+
+    # print output
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+
+    # fig options
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
 
+    # load hab file
+    hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(path_hdf5), hdf5_file)
+    hdf5.load_hdf5_hab()
+
     # calcuation habitat
-    path_prj = os.path.dirname(path_hdf5)
-    name_prj = os.path.basename(path_prj)
-    hdf5_management = hdf5_mod.Hdf5Management(path_prj,
-                                              hdf5_file)
-    data_2d, hab_description = hdf5_management.load_hdf5_hab()
-
-
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
-        calc_hab(data_2d, hab_description, hdf5_file, path_hdf5,
-                 pref_list, stages_chosen, path_bio, run_choice, progress_value)
+        calc_hab(hdf5.data_2d,
+                 hdf5.data_description,
+                 hdf5_file,
+                 path_hdf5,
+                 pref_list,
+                 stages_chosen,
+                 path_bio,
+                 run_choice,
+                 progress_value)
 
-    if vh_all_t_sp == [-99] or isinstance(name_fish[0], int):
+    # valid ?
+    if vh_all_t_sp == [-99]:
         if q:
             sys.stdout = sys.__stdout__
             q.put([mystdout, [-99], [-99], [-99], [-99], [-99]])
@@ -94,80 +103,43 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         else:
             return
 
-    # to get which output must be created
-    if fig_opt['text_output'] == 'True':  # from the xml, string only
-        create_text = True
-    else:
-        create_text = False
-    if fig_opt['shape_output'] == 'True':  # from the xml, string only
-        create_shape = True
-    else:
-        create_shape = False
-    if fig_opt['paraview'] == 'True':  # from the xml, string only
-        create_para = True
-    else:
-        create_para = False
-    if fig_opt['fish_info'] == 'True':  # from the xml, string only
-        create_info = True
-    else:
-        create_info = False
-    if fig_opt['erase_id'] == 'True':
-        erase_id = True
-    else:
-        erase_id = False
+    # saving hdf5 data of the habitat value
+    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish, pref_list, stages_chosen, name_fish_sh)
 
-    # prepare name for the output (there is more or less one form by output)
-    all_name = ''
-    for id, n in enumerate(name_fish):
-        name_fish[id] = n + '_' + stages_chosen[id]
-        all_name += name_fish_sh[id]
-    name_base = hdf5_file[:-4]
-    name_base2 = hdf5_file[:-4]
+    # # prepare name for the output (there is more or less one form by output)
+    # all_name = ''
+    # for id, n in enumerate(name_fish):
+    #     name_fish[id] = n + '_' + stages_chosen[id]
+    #     all_name += name_fish_sh[id]
 
     # progress
     progress_value.value = 80
 
-    # path_prj = os.path.dirname(path_hdf5)
-    # name_prj = os.path.basename(path_prj)
-    # hdf5_management = hdf5_mod.Hdf5Management(path_prj,
-    #                                           hdf5_file)
-    # sim_name = hdf5_management.get_hdf5_units_name()
-    sim_name = hab_description["hyd_unit_list"].split(", ")
-
     # text output
-    # if create_text:
-    #     save_hab_txt(data_2d, hab_description, vh_all_t_sp, area_c_all, vel_c_all_t, height_c_all_t, name_fish, path_txt,
-    #                  name_base,
-    #                  sim_name, erase_id)
-    save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name, fig_opt['language'], erase_id)
+    hdf5.save_spu_txt(fig_opt)
 
     # progress
     progress_value.value = 85
 
-    # # shape output
-    # if create_shape:
-    #     if run_choice == 2:
-    #         perc = True
-    #     else:
-    #         perc = False
-    #     save_hab_shape(data_2d, hab_description, vh_all_t_sp, vel_c_all_t, height_c_all_t,
-    #                    name_fish_sh, path_shp, name_base, sim_name, save_perc=perc, erase_id=erase_id)
+    # shape output
+    hdf5.create_shapefile(fig_opt)
 
     # progress
     progress_value.value = 90
 
-    # paraview outputs
-    # if create_para:
+    # # paraview outputs
+    # if bool(fig_opt['paraview']):
     #     paraview_mod.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
     #                                 vel_c_all_t, name_fish, erase_id)
     #     paraview_mod.save_slf(hdf5_file, path_hdf5, path_para, True, output_name=name_base, habitat=vh_all_t_sp)
 
+    # progress
+    progress_value.value = 95
+
     # pdf with information on the fish
-    if create_info and len(xmlfiles) > 0:
+    if bool(fig_opt['fish_info']) and len(xmlfiles) > 0:
         bio_info_mod.create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_txt, fig_opt)
 
-    # figure done always
-    # 2d figure and histogram of hydraulic data for certain timesteps
     timestep = fig_opt['time_step']
     if not isinstance(timestep, (list, tuple)):
         timestep = timestep.split(',')
@@ -185,11 +157,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     # plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
     #                 name_base2, sim_name, erase_id)
     # plot_hist_biology(vh_all_t_sp, area_c_all, name_fish, fig_opt, path_im, timestep, name_base2, sim_name, erase_id)
+
     # 1d figure (done on the main thread, so not necessary)
-
-    #save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt, sim_name)
-
-
     # state = Value("i", 0)
     # plot_mod.plot_fish_hv_wua(state,
     #                           area_all,
@@ -199,13 +168,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     #                           name_base,
     #                           fig_opt,
     #                           sim_name)
-
-
-    # saving hdf5 data of the habitat value
-    hdf5_management.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish, pref_list, stages_chosen)
-
-    if create_shape:
-        hdf5_management.create_shapefile()
 
     # progress
     progress_value.value = 95
@@ -219,7 +181,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         return
 
 
-def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages, path_bio, opt, progress_value):
+def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stages, path_bio, opt, progress_value):
     """
     This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
@@ -257,7 +219,7 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
     #     hdf5_mod.load_hdf5_hyd_and_merge(merge_name, path_merge, merge=True)
     # create hdf5 class by file
 
-    # if hab_description["sub_classification_method"] == "coarser-dominant":
+    # if data_description["sub_classification_method"] == "coarser-dominant":
     #     substrate_all_pg = substrate_all[0]
     #     substrate_all_dom = substrate_all[1]
 
@@ -290,13 +252,13 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
                     #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg,
                     #                   pref_vel, pref_height, pref_sub)
                     vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub)
+                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub)
                 elif opt == 1:  # dom
                     # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                     #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
                     #                   pref_vel, pref_height, pref_sub)
                     vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub)
+                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub)
                 elif opt == 2:  # percentage
                     sub_per = hdf5_mod.load_sub_percent(merge_name, path_merge)
                     if len(sub_per) == 1:
@@ -311,7 +273,7 @@ def calc_hab(data_2d, hab_description, merge_name, path_merge, bio_names, stages
                     #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
                     #                   pref_vel, pref_height, pref_sub, False, False)
                     vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, take_sub=False)
+                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, take_sub=False)
                 else:
                     print('Error: the calculation method is not found. \n')
                     return failload
@@ -685,7 +647,7 @@ def save_hab_txt(data_2d, hab_description, vh_data, area_c_all, vel_data, height
                                 str(sub_pg[i]) + '\t' + str(sub_dom[i]) + '\t' + vh_str + '\n')
 
 
-def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[], lang=0, erase_id=False):
+def save_spu_txt(area_all, spu_all, hab_description, sim_name=[], lang=0, erase_id=False):
     """
     This function create a text files with the folowing columns: the tiem step, the reach number, the area of the
     reach and the spu for each fish species. Use tab instead of space to help with excel import.
@@ -699,9 +661,15 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
     :param lang: an int which indicates the chosen language (0 is english)
     :param erase_id: If True, we erase old text file from identical hydraulic model
     """
-
+    path_txt = os.path.join(hab_description["path_projet"], "output", "text")
     if not os.path.exists(path_txt):
         print('Error: the path to the text file is not found. Text files not created \n')
+
+    name_base = os.path.splitext(hab_description["hab_filename"])[0]
+    sim_name = hab_description["hyd_unit_list"].split(", ")
+    name_fish = hab_description["hab_fish_list"].split(", ")
+    unit_type = hab_description["hyd_unit_type"][hab_description["hyd_unit_type"].find('[') + 1:hab_description["hyd_unit_type"].find(']')]
+
 
     if not erase_id:
         if lang == 0:
@@ -729,9 +697,9 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
 
         # header
         if lang == 0:
-            header = 'reach\ttime_step\treach_area'
+            header = 'reach\tunit\treach_area'
         else:
-            header = 'troncon\tpas_de_temps\taire_troncon'
+            header = 'troncon\tunit\taire_troncon'
         for i in range(0, len(name_fish)):
             if lang == 0:
                 header += '\tWUA' + str(i) + '\tHV' + str(i)
@@ -740,7 +708,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
         header += '\n'
         f.write(header)
         # header 2
-        header = '[]\t[?]\t[m2]'
+        header = '[]\t[' + unit_type + ']\t[m2]'
         for i in name_fish:
             header += '\t[m2]\t[]'
         header += '\n'
@@ -754,7 +722,7 @@ def save_spu_txt(area_all, spu_all, name_fish, path_txt, name_base, sim_name=[],
         f.write(header)
 
         for reach_num in range(0, len(area_all)):
-            for unit_num in range(0, len(area_all[reach_num])):  # at t=0, whole profile len(area_all[t]) = 0
+            for unit_num in range(0, len(area_all[reach_num])):
                 if not sim_name:
                     data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_all[reach_num][unit_num])
                 else:

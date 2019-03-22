@@ -39,10 +39,6 @@ class DataExplorerTab(QScrollArea):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
-        self.plot_list_combobox = QComboBox()
-        self.plot_previous_button = QPushButton("<<")
-        self.plot_next_button = QPushButton(">>")
-        self.plot_wigdet_layout = QHBoxLayout()
         self.init_iu()
 
     def init_iu(self):
@@ -199,8 +195,8 @@ class DataExplorerFrame(QFrame):
         """ Graphic producer """
         # PLOT GROUP
         plot_layout = QHBoxLayout()
-        plot_layout.addLayout(self.variable_hdf5_layout, 4)
-        plot_layout.addLayout(self.units_layout, 1)
+        plot_layout.addLayout(self.variable_hdf5_layout, 4)  # stretch factor
+        plot_layout.addLayout(self.units_layout, 1)  # stretch factor
         plot_layout.addLayout(self.export_type_layout)
         plot_layout2 = QVBoxLayout()
         plot_type_layout = QHBoxLayout()
@@ -371,6 +367,7 @@ class DataExplorerFrame(QFrame):
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
+
         # update progress bar
         self.count_plot()
 
@@ -388,37 +385,36 @@ class DataExplorerFrame(QFrame):
             self.units_QListWidget.clear()
 
             # create hdf5 class
-            hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().path_prj,
-                                                      hdf5name)
+            hdf5 = hdf5_mod.Hdf5Management(self.parent().parent().path_prj, hdf5name)
+
             # get variables
-            variables = hdf5_management.get_hdf5_variables()
+            hdf5.get_hdf5_variables()
 
             # get units
-            units_name = hdf5_management.get_hdf5_units_name()
+            hdf5.get_hdf5_units_name()
 
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
-                self.variable_QListWidget.addItems(variables)
-                if units_name:
-                    self.units_QListWidget.addItems(units_name)
+                self.variable_QListWidget.addItems(hdf5.variables)
+                if hdf5.units_name:
+                    self.units_QListWidget.addItems(hdf5.units_name)
 
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
-                if variables[0]:  # if not False (from constant substrate) add items else nothing
-                    self.variable_QListWidget.addItems(variables)
-                    if units_name:
-                        self.units_QListWidget.addItems(units_name)
+                if hdf5.variables:  # if not False (from constant substrate) add items else nothing
+                    self.variable_QListWidget.addItems(hdf5.variables)
+                    if hdf5.units_name:
+                        self.units_QListWidget.addItems(hdf5.units_name)
 
             # hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
-                self.variable_QListWidget.addItems(variables)
-                if units_name:
-                    self.units_QListWidget.addItems(units_name)
+                self.variable_QListWidget.addItems(hdf5.variables)
+                if hdf5.units_name:
+                    self.units_QListWidget.addItems(hdf5.units_name)
 
             # display hdf5 attributes
-            hdf5_attributes_name_text, hdf5_attributes_info_text = hdf5_management.get_hdf5_attributes()
-            aa = list(zip(hdf5_attributes_name_text, hdf5_attributes_info_text))
-            tablemodel = MyTableModel(aa, self)
+            hdf5.get_hdf5_attributes()
+            tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
             self.hdf5_attributes_qtableview.setModel(tablemodel)
             header = self.hdf5_attributes_qtableview.horizontalHeader()
             header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
@@ -436,10 +432,11 @@ class DataExplorerFrame(QFrame):
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
                 # create hdf5 class
-                hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().path_prj,
-                                                          selection[i].text())
-                units.append(hdf5_management.get_hdf5_units_name())
-                variables_a = hdf5_management.get_hdf5_variables()
+                hdf5 = hdf5_mod.Hdf5Management(self.parent().parent().path_prj, selection[i].text())
+                hdf5.get_hdf5_units_name()
+                hdf5.get_hdf5_variables()
+                units.append(hdf5.units_name)
+                variables_a = hdf5.variables
                 variables.append(variables_a)
 
             # variables or units are differents
@@ -477,9 +474,6 @@ class DataExplorerFrame(QFrame):
                 if self.types_hdf5_QComboBox.currentIndex() == 3:  # merge hab
                     self.variable_QListWidget.addItems(variables)
                     self.units_QListWidget.addItems(units)
-                    # self.variable_QListWidget.addItems(["height", "velocity", "mesh", "coarser_dominant"])
-                    # self.variable_QListWidget.addItems(hdf5_mod.get_fish_names_habitat(hdf5name[0], self.parent().parent().path_prj + "/hdf5/"))
-                    # self.units_QListWidget.addItems(units)        # update progress bar
         else:
             self.hdf5_attributes_qtableview.setModel(None)
         # count plot
@@ -610,35 +604,34 @@ class DataExplorerFrame(QFrame):
             for name_hdf5 in names_hdf5:
                 if not self.plot_production_stoped:  # stop loop with button
                     # create hdf5 class by file
-                    hdf5_management = hdf5_mod.Hdf5Management(self.parent().parent().path_prj,
-                                                              name_hdf5)
+                    hdf5 = hdf5_mod.Hdf5Management(self.parent().parent().path_prj, name_hdf5)
 
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
-                        data_2d, hyd_description = hdf5_management.load_hdf5_hyd(units_index=units_index)
-                        data_description = dict(reach_number=hyd_description["hyd_reach_number"],
-                                                unit_number=hyd_description["hyd_unit_number"],
-                                                unit_type=hyd_description["hyd_unit_type"],
-                                                name_hdf5=hyd_description["hyd_filename"])
+                        hdf5.load_hdf5_hyd(units_index=units_index)
+                        data_description = dict(reach_number=hdf5.data_description["hyd_reach_number"],
+                                                unit_number=hdf5.data_description["hyd_unit_number"],
+                                                unit_type=hdf5.data_description["hyd_unit_type"],
+                                                name_hdf5=hdf5.data_description["hyd_filename"])
                     if types_hdf5 == "substrate":  # load substrate data
-                        data_2d, sub_description_system = hdf5_management.load_hdf5_sub(convert_to_coarser_dom=True)
-                        data_description = dict(reach_number=sub_description_system["sub_reach_number"],
-                                                unit_number=sub_description_system["sub_unit_number"],
-                                                unit_type=sub_description_system["sub_unit_type"],
-                                                name_hdf5=sub_description_system["sub_filename"],
-                                                sub_classification_code=sub_description_system["sub_classification_code"])
+                        hdf5.load_hdf5_sub(convert_to_coarser_dom=True)
+                        data_description = dict(reach_number=hdf5.data_description["sub_reach_number"],
+                                                unit_number=hdf5.data_description["sub_unit_number"],
+                                                unit_type=hdf5.data_description["sub_unit_type"],
+                                                name_hdf5=hdf5.data_description["sub_filename"],
+                                                sub_classification_code=hdf5.data_description["sub_classification_code"])
                     if types_hdf5 == "habitat":  # load habitat data
-                        data_2d, hab_description = hdf5_management.load_hdf5_hab(units_index=units_index,
-                                                                                 fish_names=fish_names,
-                                                                                 whole_profil=False,
-                                                                                 convert_to_coarser_dom=True)
-                        data_description = dict(hab_description)
-                        data_description["reach_number"] = hab_description["hyd_reach_number"]
-                        data_description["unit_number"] = hab_description["hyd_unit_number"]
-                        data_description["unit_type"] = hab_description["hyd_unit_type"]
+                        hdf5.load_hdf5_hab(units_index=units_index,
+                                           fish_names=fish_names,
+                                           whole_profil=False,
+                                           convert_to_coarser_dom=True)
+                        data_description = dict(hdf5.data_description)
+                        data_description["reach_number"] = hdf5.data_description["hyd_reach_number"]
+                        data_description["unit_number"] = hdf5.data_description["hyd_unit_number"]
+                        data_description["unit_type"] = hdf5.data_description["hyd_unit_type"]
                         data_description["units_index"] = units_index
-                        data_description["name_hdf5"] = hab_description["hyd_filename"]
-                        data_description["sub_classification_code"] = hab_description["sub_classification_code"]
+                        data_description["name_hdf5"] = hdf5.data_description["hyd_filename"]
+                        data_description["sub_classification_code"] = hdf5.data_description["sub_classification_code"]
 
                     # for each reach
                     for reach_num in range(int(data_description["reach_number"])):
@@ -664,8 +657,8 @@ class DataExplorerFrame(QFrame):
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_mesh,
                                                            args=(state,
-                                                                 data_2d["xy"][reach_num][unit_num],
-                                                                 data_2d["tin"][reach_num][unit_num],
+                                                                 hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                 hdf5.data_2d["tin"][reach_num][unit_num],
                                                                  fig_opt,
                                                                  data_description,
                                                                  path_im,
@@ -676,8 +669,8 @@ class DataExplorerFrame(QFrame):
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_mesh,
                                                            args=(state,
-                                                                 data_2d["xy"][reach_num][unit_num],
-                                                                 data_2d["tin"][reach_num][unit_num],
+                                                                 hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                 hdf5.data_2d["tin"][reach_num][unit_num],
                                                                  fig_opt,
                                                                  data_description,
                                                                  path_im,
@@ -688,8 +681,8 @@ class DataExplorerFrame(QFrame):
                                     state = Value("i", 0)
                                     mesh_process = Process(target=plot_mod.plot_map_elevation,
                                                            args=(state,
-                                                                 data_2d["xy"][reach_num][unit_num],
-                                                                 data_2d["z"][reach_num][unit_num],
+                                                                 hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                 hdf5.data_2d["z"][reach_num][unit_num],
                                                                  fig_opt,
                                                                  data_description,
                                                                  path_im,
@@ -699,11 +692,11 @@ class DataExplorerFrame(QFrame):
                                     state = Value("i", 0)
                                     height_process = Process(target=plot_mod.plot_map_height,
                                                              args=(state,
-                                                                   data_2d["xy"][reach_num][unit_num],
-                                                                   data_2d["tin"][reach_num][unit_num],
+                                                                   hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                   hdf5.data_2d["tin"][reach_num][unit_num],
                                                                    fig_opt,
                                                                    data_description,
-                                                                   data_2d["h"][reach_num][unit_num],
+                                                                   hdf5.data_2d["h"][reach_num][unit_num],
                                                                    path_im,
                                                                    units[unit_num]))
                                     self.plot_process_list.append((height_process, state))
@@ -711,11 +704,11 @@ class DataExplorerFrame(QFrame):
                                     state = Value("i", 0)
                                     velocity_process = Process(target=plot_mod.plot_map_velocity,
                                                                args=(state,
-                                                                     data_2d["xy"][reach_num][unit_num],
-                                                                     data_2d["tin"][reach_num][unit_num],
+                                                                     hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                     hdf5.data_2d["tin"][reach_num][unit_num],
                                                                      fig_opt,
                                                                      data_description,
-                                                                     data_2d["v"][reach_num][unit_num],
+                                                                     hdf5.data_2d["v"][reach_num][unit_num],
                                                                      path_im,
                                                                      units[unit_num]))
                                     self.plot_process_list.append((velocity_process, state))
@@ -723,9 +716,9 @@ class DataExplorerFrame(QFrame):
                                     state = Value("i", 0)
                                     susbtrat_process = Process(target=plot_mod.plot_map_substrate,
                                                                args=(state,
-                                                                     data_2d["xy"][reach_num][unit_num],
-                                                                     data_2d["tin"][reach_num][unit_num],
-                                                                     data_2d["sub"][reach_num][unit_num],
+                                                                     hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                     hdf5.data_2d["tin"][reach_num][unit_num],
+                                                                     hdf5.data_2d["sub"][reach_num][unit_num],
                                                                      data_description,
                                                                      path_im,
                                                                      name_hdf5,
@@ -740,9 +733,9 @@ class DataExplorerFrame(QFrame):
                                         habitat_map_process = Process(target=plot_mod.plot_map_fish_habitat,
                                                                       args=(state,
                                                                             fish_name,
-                                                                            data_2d["xy"][reach_num][unit_num],
-                                                                            data_2d["tin"][reach_num][unit_num],
-                                                                            data_2d["hv_data"][fish_name][reach_num][unit_num],
+                                                                            hdf5.data_2d["xy"][reach_num][unit_num],
+                                                                            hdf5.data_2d["tin"][reach_num][unit_num],
+                                                                            hdf5.data_2d["hv_data"][fish_name][reach_num][unit_num],
                                                                             name_hdf5,
                                                                             fig_opt,
                                                                             path_im,

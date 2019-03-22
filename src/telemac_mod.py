@@ -206,9 +206,9 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
 
         # create hdf5
-        hdf5_management = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
-                                                  description_from_indextelemac_file[hyd_file]["hdf5_name"])
-        hdf5_management.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
+        hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
+                                       description_from_indextelemac_file[hyd_file]["hdf5_name"])
+        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
 
         # progress
         progress_value.value = 100

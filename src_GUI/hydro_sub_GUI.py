@@ -5458,8 +5458,8 @@ class SubstrateW(SubHydroW):
             self.q.put("const_sub")
 
             # save hdf5
-            hdf5_management = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
-            self.p = Process(target=hdf5_management.create_hdf5_sub,
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
+            self.p = Process(target=hdf5.create_hdf5_sub,
                              args=(sub_description_system, data))
             self.p.start()
 
@@ -5657,8 +5657,7 @@ class SubstrateW(SubHydroW):
                                self.progress_value,
                                self.q,
                                False,
-                               path_shp,
-                               erase_id))
+                               fig_opt))
         self.p.start()
 
         # log
