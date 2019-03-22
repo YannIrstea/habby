@@ -1373,8 +1373,6 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             print('Error: Minimum water height should be a float')
             return
 
-        hydraulic_chronic_mod.chronic_hydro(merge_files, path_merges, discharge_in, discharge_out, name_prj, path_prj, minh)
-
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_HYDRO_HDF5':
         if len(all_arg) < 4:

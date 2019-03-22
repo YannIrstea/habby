@@ -34,8 +34,8 @@ from src import plot_mod
 from src_GUI import preferences_GUI
 
 
-def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fish, name_fish_sh, run_choice, path_bio,
-                        path_txt, path_shp, path_para, path_im, progress_value, q=[], print_cmd=False, fig_opt={},
+def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_names, name_fish_sh, run_choice, path_bio,
+                        path_txt, progress_value, q=[], print_cmd=False, fig_opt={},
                         path_im_bio='', xmlfiles=[]):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
@@ -74,13 +74,13 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    # fig options
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-
     # load hab file
     hdf5 = hdf5_mod.Hdf5Management(os.path.dirname(path_hdf5), hdf5_file)
     hdf5.load_hdf5_hab()
+
+    # fig options
+    if not fig_opt:
+        fig_opt = preferences_GUI.load_fig_option(hdf5.path_prj, hdf5.name_prj)
 
     # calcuation habitat
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
@@ -103,14 +103,12 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
         else:
             return
 
-    # saving hdf5 data of the habitat value
-    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, name_fish, pref_list, stages_chosen, name_fish_sh)
+    # name fish with stage
+    for fish_ind, fish_name in enumerate(fish_names):
+        fish_names[fish_ind] = fish_name + "_" + stages_chosen[fish_ind]
 
-    # # prepare name for the output (there is more or less one form by output)
-    # all_name = ''
-    # for id, n in enumerate(name_fish):
-    #     name_fish[id] = n + '_' + stages_chosen[id]
-    #     all_name += name_fish_sh[id]
+    # saving hdf5 data of the habitat value
+    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh)
 
     # progress
     progress_value.value = 80
@@ -126,6 +124,10 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, name_fis
 
     # progress
     progress_value.value = 90
+
+    # shape output
+    hdf5.create_paraview(fig_opt)
+
 
     # # paraview outputs
     # if bool(fig_opt['paraview']):

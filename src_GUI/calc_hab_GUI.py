@@ -625,8 +625,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.progress_value = Value("i", 0)
         self.p4 = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
                                                                            name_fish, name_fish_sh, run_choice,
-                                                                           self.path_bio, path_txt, path_shp, path_para,
-                                                                           path_im, self.progress_value,
+                                                                           self.path_bio, path_txt, self.progress_value,
                                                                            self.q4, False, fig_dict, path_im_bioa,
                                                                            xmlfiles))
         self.p4.start()

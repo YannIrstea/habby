@@ -20,8 +20,10 @@ import numpy as np
 import time
 import shutil
 import shapefile
-from src import substrate_mod
 from stl import mesh
+from src import substrate_mod
+from src import hl_mod
+from src import paraview_mod
 
 
 try:
@@ -228,9 +230,9 @@ class Hdf5Management:
             self.variables = variables
 
     def get_hdf5_fish_names(self):
-        variables = self.get_hdf5_variables()
+        self.get_hdf5_variables()
         variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
-        fish_list = [x for x in variables if x not in variables_to_remove]  # remove variable not present in hdf5
+        fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
         self.fish_list = fish_list
 
     def get_hdf5_units_name(self):
@@ -373,7 +375,7 @@ class Hdf5Management:
             data_2D_whole_profile["tin"] = []
             data_2D_whole_profile["xy_center"] = []
             data_2D_whole_profile["xy"] = []
-            if bool(hyd_description["hyd_unit_z_equal"]):
+            if hyd_description["hyd_unit_z_equal"] == "True":
                 data_2D_whole_profile["z"] = []
             data_group = 'data_2D_whole_profile'
             # for all reach
@@ -951,8 +953,91 @@ class Hdf5Management:
         self.load_hdf5_hab()
 
     # EXPORT
+    def save_spu_txt(self, fig_opt):
+        if fig_opt['text_output'] == "True":
+            path_txt = os.path.join(self.data_description["path_projet"], "output", "text")
+            if not os.path.exists(path_txt):
+                print('Error: the path to the text file is not found. Text files not created \n')
+
+            name_base = os.path.splitext(self.data_description["hab_filename"])[0]
+            sim_name = self.data_description["hyd_unit_list"].split(", ")
+            fish_names = self.data_description["hab_fish_list"].split(", ")
+            unit_type = self.data_description["hyd_unit_type"][
+                        self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
+                            "hyd_unit_type"].find(']')]
+
+            if not fig_opt['erase_id'] == "True":
+                if fig_opt['language'] == 0:
+                    name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                else:
+                    name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+            else:
+                if fig_opt['language'] == 0:
+                    name = 'wua_' + name_base + '.txt'
+                else:
+                    name = 'spu_' + name_base + '.txt'
+                if os.path.isfile(os.path.join(path_txt, name)):
+                    try:
+                        os.remove(os.path.join(path_txt, name))
+                    except PermissionError:
+                        print('Error: Could not modify text file as it is open in another program. \n')
+                        return
+
+            name = os.path.join(path_txt, name)
+
+            # open text to write
+            with open(name, 'wt', encoding='utf-8') as f:
+
+                # header 1
+                if fig_opt['language'] == 0:
+                    header = 'reach\tunit\treach_area'
+                else:
+                    header = 'troncon\tunit\taire_troncon'
+                if fig_opt['language'] == 0:
+                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                else:
+                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                header += '\n'
+                f.write(header)
+                # header 2
+                header = '[]\t[' + unit_type + ']\t[m2]'
+                header += "".join(['\t[m2]\t[]' for _ in range(len(fish_names))])
+                header += '\n'
+                f.write(header)
+                # header 3
+                header = 'all\tall\tall '
+                for fish_name in fish_names * 2:
+                    header += '\t' + fish_name.replace(' ', '_')
+                header += '\n'
+                f.write(header)
+
+                for reach_num in range(0, len(self.data_description["total_wet_area"])):
+                    for unit_num in range(0, len(self.data_description["total_wet_area"][reach_num])):
+                        if not sim_name:
+                            data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(
+                                self.data_description["total_wet_area"][reach_num][unit_num])
+                        else:
+                            data_here = str(reach_num) + '\t' + sim_name[unit_num] + '\t' + str(
+                                self.data_description["total_wet_area"][reach_num][unit_num])
+                        # WUE
+                        for fish_name in fish_names:
+                            data_here += '\t' + str(
+                                self.data_description["total_WUA_area"][fish_name][reach_num][unit_num])
+                        # HV
+                        for fish_name in fish_names:
+                            try:
+                                data_here += '\t' + str(float(
+                                    self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]) / float(
+                                    self.data_description["total_wet_area"][reach_num][unit_num]))
+                            except TypeError:
+                                data_here += '\t' + 'NaN'
+                        data_here += '\n'
+                        f.write(data_here)
+
     def create_shapefile(self, fig_opt):
-        if bool(fig_opt['shape_output']):
+        if fig_opt['shape_output'] == "True":
             # get units list
             unit_names = self.data_description["hyd_unit_list"].split(", ")
 
@@ -1045,7 +1130,7 @@ class Hdf5Management:
                     w.save(os.path.join(self.path_shp, name_shp))
 
     def create_stl(self, fig_opt):
-        if bool(fig_opt['stl']):
+        if fig_opt['stl'] == "True":
             """ create stl whole profile (to see topography) """
             # get data
             xy = self.data_2d_whole["xy"][0][0]
@@ -1087,86 +1172,77 @@ class Hdf5Management:
                     stl_file.save(os.path.join(self.path_visualisation,
                                                self.basename + "_waterlevel_" + str(unit_names[unit_num]) + ".stl"))
 
-    def save_spu_txt(self, fig_opt):
-        if bool(fig_opt['text_output']):
-            path_txt = os.path.join(self.data_description["path_projet"], "output", "text")
-            if not os.path.exists(path_txt):
-                print('Error: the path to the text file is not found. Text files not created \n')
-
-            name_base = os.path.splitext(self.data_description["hab_filename"])[0]
-            sim_name = self.data_description["hyd_unit_list"].split(", ")
-            fish_names = self.data_description["hab_fish_list"].split(", ")
-            unit_type = self.data_description["hyd_unit_type"][
-                        self.data_description["hyd_unit_type"].find('[') + 1:self.data_description["hyd_unit_type"].find(']')]
-
-            if not bool(fig_opt['erase_id']):
-                if fig_opt['language'] == 0:
-                    name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                else:
-                    name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+    def create_paraview(self, fig_opt):
+        if fig_opt['paraview'] == "True":
+            file_names_all = []
+            if len(self.basename) > 60:
+                self.basename = os.path.join(self.path_visualisation, self.basename)[:-25]
             else:
-                if fig_opt['language'] == 0:
-                    name = 'wua_' + name_base + '.txt'
+                self.basename = os.path.join(self.path_visualisation, self.basename)
+
+            # format the name of species and stage
+            name_fish = self.data_description["hab_fish_list"].split(", ")
+            for id, n in enumerate(name_fish):
+                name_fish[id] = n.replace('_', ' ')
+
+            # # load grid (could also be used if velcoity and height point data is needed)
+            # [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
+            #     hdf5_mod.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
+            # if ikle_all_t == [-99]:
+            #     return
+
+            # for each reach
+            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                if not fig_opt["erase_id"] == "True":
+                    fileName = self.basename + '_' + 'Reach' + str(reach_num) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 else:
-                    name = 'spu_' + name_base + '.txt'
-                if os.path.isfile(os.path.join(path_txt, name)):
+                    fileName = self.basename + '_' + 'Reach' + str(reach_num)
+
+                # for each unit
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    # create one vtu file by time step
+                    # for the moment we do not show the time step zero with the full profile without data
+                    # grid data preparation for vtk
+
+                    # get data
+                    x = self.data_2d["xy"][reach_num][unit_num][:, 0]
+                    y = self.data_2d["xy"][reach_num][unit_num][:, 1]
                     try:
-                        os.remove(os.path.join(path_txt, name))
-                    except PermissionError:
-                        print('Error: Could not modify text file as it is open in another program. \n')
-                        return
+                        z = (self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10
+                    except Warning:
+                        print('oh no!')
 
-            name = os.path.join(path_txt, name)
+                    connectivity = np.reshape(self.data_2d["tin"][reach_num][unit_num], (len(self.data_2d["tin"][reach_num][unit_num]) * 3,))
+                    offsets = np.arange(3, len(self.data_2d["tin"][reach_num][unit_num]) * 3 + 3, 3)
+                    offsets = np.array(list(map(int, offsets)))
+                    cell_types = np.zeros(len(self.data_2d["tin"][reach_num][unit_num]), ) + 5  # triangle
+                    cell_types = np.array(list((map(int, cell_types))))
 
-            # open text to write
-            with open(name, 'wt', encoding='utf-8') as f:
+                    # data creation
+                    cellData = {}
+                    for fish_name in self.data_description["hab_fish_list"].split(", "):
+                        newkey = "HV " + fish_name
+                        cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
 
-                # header 1
-                if fig_opt['language'] == 0:
-                    header = 'reach\tunit\treach_area'
-                else:
-                    header = 'troncon\tunit\taire_troncon'
-                if fig_opt['language'] == 0:
-                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
-                else:
-                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
-                header += '\n'
-                f.write(header)
-                # header 2
-                header = '[]\t[' + unit_type + ']\t[m2]'
-                header += "".join(['\t[m2]\t[]' for _ in range(len(fish_names))])
-                header += '\n'
-                f.write(header)
-                # header 3
-                header = 'all\tall\tall '
-                for fish_name in fish_names * 2:
-                    header += '\t' + fish_name.replace(' ', '_')
-                header += '\n'
-                f.write(header)
+                    cellData['height'] = self.data_2d["h"][reach_num][unit_num]
+                    cellData['velocity'] = self.data_2d["v"][reach_num][unit_num]
 
-                for reach_num in range(0, len(self.data_description["total_wet_area"])):
-                    for unit_num in range(0, len(self.data_description["total_wet_area"][reach_num])):
-                        if not sim_name:
-                            data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(self.data_description["total_wet_area"][reach_num][unit_num])
-                        else:
-                            data_here = str(reach_num) + '\t' + sim_name[unit_num] + '\t' + str(
-                                self.data_description["total_wet_area"][reach_num][unit_num])
-                        # WUE
-                        for fish_name in fish_names:
-                            data_here += '\t' + str(self.data_description["total_WUA_area"][fish_name][reach_num][unit_num])
-                        # HV
-                        for fish_name in fish_names:
-                            try:
-                                data_here += '\t' + str(float(
-                                    self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]) / float(self.data_description["total_wet_area"][reach_num][unit_num]))
-                            except TypeError:
-                                data_here += '\t' + 'NaN'
-                        data_here += '\n'
-                        f.write(data_here)
-        
-        
+                    # create the grid and the vtu files
+                    name_here = fileName + '_unit' + str(unit_num) + '.vtu'
+                    if fig_opt["erase_id"] == "True":
+                        if os.path.isfile(name_here):
+                            os.remove(name_here)
+                    file_names_all.append(name_here)
+                    hl_mod.unstructuredGridToVTK(fileName + '_t' + str(unit_num), x, y, z, connectivity, offsets, cell_types,
+                                                 cellData)
+
+                # create the "grouping" file to read all time step together
+                name_here = fileName + '.pvd'
+                if fig_opt["erase_id"] == "True":
+                    if os.path.isfile(name_here):
+                        os.remove(name_here)
+                paraview_mod.writePVD(name_here, file_names_all)
+                file_names_all = []
         
         
 #################################################################
