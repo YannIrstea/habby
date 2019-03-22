@@ -32,6 +32,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QMessageBox, QComboBox, QScrollArea, \
     QInputDialog, QMenu, QToolBar, QFrame, QProgressBar
 from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
+import qdarkstyle
 import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
@@ -674,13 +675,16 @@ class MainWindows(QMainWindow):
         self.my_menu_bar(True)
 
     def setthemedark(self):
-        self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
+        #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
+        self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
         self.actual_theme = "dark"
         # other
         self.central_widget.welcome_tab.pic.setPixmap(
             QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
         self.my_menu_bar()
         self.my_menu_bar(True)
+        #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
+        #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
 
     def create_menu_right(self):
         """
@@ -753,7 +757,9 @@ class MainWindows(QMainWindow):
     def open_preferences(self):
         # get size
         height_pref = self.dialog_preferences.centralWidget().viewportSizeHint().height()
+        height_pref = height_pref + height_pref * 0.05
         width_pref = self.dialog_preferences.centralWidget().viewportSizeHint().width()
+        width_pref = width_pref + width_pref * 0.05
         self.dialog_preferences.resize(width_pref, height_pref)
         self.dialog_preferences.show()
 
@@ -1972,7 +1978,7 @@ class CentralW(QWidget):
             self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 5
             self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 6
             self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 7
-            self.tab_widget.addTab(self.tools_tab, self.tr("Interpolation tools"))  # 7
+            self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 7
             if self.rech:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
                 self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))

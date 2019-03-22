@@ -171,7 +171,7 @@ class outputW(QScrollArea):
         else:
             self.out2a.setChecked(False)
             self.out2b.setChecked(True)
-        self.out3 = QLabel(self.tr('Paraview input'))
+        self.out3 = QLabel(self.tr('Paraview'))
         self.out3a = QCheckBox(self.tr('Yes'))
         self.out3a.clicked.connect(lambda: self.check_uncheck(self.out3a, self.out3b))
         self.out3b = QCheckBox(self.tr('No'))
@@ -182,6 +182,17 @@ class outputW(QScrollArea):
         else:
             self.out3a.setChecked(False)
             self.out3b.setChecked(True)
+        self.outstl = QLabel(self.tr('3D STL'))
+        self.outstla = QCheckBox(self.tr('Yes'))
+        self.outstla.clicked.connect(lambda: self.check_uncheck(self.outstla, self.out3b))
+        self.outstlb = QCheckBox(self.tr('No'))
+        self.outstlb.clicked.connect(lambda: self.check_uncheck(self.out3b, self.outstla))
+        if fig_dict['stl'] == 'True':  # is a string not a boolean
+            self.outstla.setChecked(True)
+            self.outstlb.setChecked(False)
+        else:
+            self.outstla.setChecked(False)
+            self.outstlb.setChecked(True)
         self.out4 = QLabel(self.tr('Fish Information'))
         self.out4a = QCheckBox(self.tr('Yes'))
         self.out4a.clicked.connect(lambda: self.check_uncheck(self.out4a, self.out4b))
@@ -269,9 +280,14 @@ class outputW(QScrollArea):
         self.layout.addWidget(self.out3, 6, 3)
         self.layout.addWidget(self.out3a, 6, 4)
         self.layout.addWidget(self.out3b, 6, 5)
-        self.layout.addWidget(self.out4, 7, 3)
-        self.layout.addWidget(self.out4a, 7, 4)
-        self.layout.addWidget(self.out4b, 7, 5)
+
+        self.layout.addWidget(self.outstl, 7, 3)
+        self.layout.addWidget(self.outstla, 7, 4)
+        self.layout.addWidget(self.outstlb, 7, 5)
+
+        self.layout.addWidget(self.out4, 8, 3)
+        self.layout.addWidget(self.out4a, 8, 4)
+        self.layout.addWidget(self.out4b, 8, 5)
         self.layout.addWidget(self.saveb, 13, 4, 1, 1)
         self.layout.addWidget(self.closeb, 13, 5, 1, 1)
         [self.layout.setRowMinimumHeight(i, 30) for i in range(self.layout.rowCount())]
@@ -385,12 +401,21 @@ class outputW(QScrollArea):
             fig_dict['shape_output'] = True
         elif self.out2b.isChecked():
             fig_dict['shape_output'] = False
+
         if self.out3a.isChecked() and self.out3b.isChecked():
             self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
         if self.out3a.isChecked():
             fig_dict['paraview'] = True
         elif self.out3b.isChecked():
             fig_dict['paraview'] = False
+
+        if self.outstla.isChecked() and self.outstlb.isChecked():
+            self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
+        if self.outstla.isChecked():
+            fig_dict['stl'] = True
+        elif self.outstlb.isChecked():
+            fig_dict['stl'] = False
+
         if self.out4a.isChecked():
             fig_dict['fish_info'] = True
         elif self.out4b.isChecked():
@@ -580,6 +605,7 @@ def load_fig_option(path_prj, name_prj):
             text1 = root.find(".//TextOutput")
             shape1 = root.find(".//ShapeOutput")
             para1 = root.find(".//ParaviewOutput")
+            stl1 = root.find(".//stlOutput")
             langfig1 = root.find(".//LangFig")
             hopt1 = root.find(".//MinHeight")
             fishinfo1 = root.find(".//FishInfo")
@@ -617,6 +643,8 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['shape_output'] = shape1.text
                 if para1 is not None:
                     fig_dict['paraview'] = para1.text
+                if stl1 is not None:
+                    fig_dict['stl'] = stl1.text
                 if langfig1 is not None:
                     fig_dict['language'] = int(langfig1.text)
                 if hopt1 is not None:
@@ -657,6 +685,7 @@ def create_default_figoption():
     fig_dict['text_output'] = 'True'
     fig_dict['shape_output'] = 'True'
     fig_dict['paraview'] = 'True'
+    fig_dict['stl'] = 'True'
     fig_dict['fish_info'] = 'True'
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
