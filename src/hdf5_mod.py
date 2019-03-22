@@ -1205,10 +1205,10 @@ class Hdf5Management:
                     # grid data preparation for vtk
 
                     # get data
-                    x = self.data_2d["xy"][reach_num][unit_num][:, 0]
-                    y = self.data_2d["xy"][reach_num][unit_num][:, 1]
+                    x = np.asfortranarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
+                    y = np.asfortranarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
                     try:
-                        z = (self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10
+                        z = np.asfortranarray((self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10)
                     except Warning:
                         print('oh no!')
 
@@ -1228,12 +1228,13 @@ class Hdf5Management:
                     cellData['velocity'] = self.data_2d["v"][reach_num][unit_num]
 
                     # create the grid and the vtu files
-                    name_here = fileName + '_unit' + str(unit_num) + '.vtu'
+                    basename = fileName + '_unit' + str(unit_num)
+                    basename_ext = basename + '.vtu'
                     if fig_opt["erase_id"] == "True":
-                        if os.path.isfile(name_here):
-                            os.remove(name_here)
-                    file_names_all.append(name_here)
-                    hl_mod.unstructuredGridToVTK(fileName + '_t' + str(unit_num), x, y, z, connectivity, offsets, cell_types,
+                        if os.path.isfile(basename_ext):
+                            os.remove(basename_ext)
+                    file_names_all.append(basename_ext)
+                    hl_mod.unstructuredGridToVTK(basename, x, y, z, connectivity, offsets, cell_types,
                                                  cellData)
 
                 # create the "grouping" file to read all time step together
