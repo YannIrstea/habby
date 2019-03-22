@@ -1063,27 +1063,198 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.close()
 
 
-def plot_interpolate_chronicle(chronicle, fish_names):
+def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, data_description, name_fish, fig_opt):
+    """
+    This function creates the figure of the spu as a function of time for each reach. if there is only one
+    time step, it reverse to a bar plot. Otherwise it is a line plot.
 
-    fig = plt.figure("Habitat values interpolation in discharge chronicle")
+    :param area_all: the area for all reach
+    :param spu_all: the "surface pondere utile" (SPU) for each reach
+    :param name_fish: the list of fish latin name + stage
+    :param path_im: the path where to save the image
+    :param fig_opt: the dictionnary with the figure options
+    :param name_base: a string on which to base the name of the files
+    :param sim_name: the name of the time steps if not 0,1,2,3
+    """
 
-    # PLOT Q
-    years = mdates.YearLocator()  # every year
-    months = mdates.MonthLocator()  # every month
-    # q_ax = fig.add_subplot(211)
-    # plt.plot(chronicle["units"], chronicle["Q"], label="Q")
-    # q_ax.xaxis.set_major_locator(years)
-    # q_ax.xaxis.set_minor_locator(months)
-    # plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
+    if not fig_opt:
+        fig_opt = preferences_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    if fig_opt['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    format1 = int(fig_opt['format'])
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    mpl.rcParams['pdf.fonttype'] = 42
+    if fig_opt['marker'] == 'True':
+        mar = 'o'
+    else:
+        mar = None
+    erase1 = fig_opt['erase_id']
+    types_plot = fig_opt['type_plot']
+    if erase1 == 'True':  # xml in text
+        erase_id = True
+    else:
+        erase_id = False
 
-    # PLOT HV
-    hv_ax = fig.add_subplot(212)
-    for fish_name in fish_names:
-        plt.plot(chronicle["units"], chronicle[fish_name], label=fish_name)
-    hv_ax.xaxis.set_major_locator(years)
-    hv_ax.xaxis.set_minor_locator(months)
-    plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
-    plt.show()
+    # prep data
+    reach_num = int(data_description["hyd_reach_number"]) - 1
+    name_base = data_description["hab_filename"][:-4]
+    sim_name = list(map(float, vertical_headers))
+    unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
+    data_to_table["units"] = list(map(float, data_to_table["units"]))
+
+    # plot
+    if len(sim_name) == 1:
+        plot_window_title = f"Habitat Value and Weighted Usable Area interpolated - Computational Step : {sim_name[0]}" + " " + unit_type
+    if len(sim_name) > 1:
+        plot_window_title = f"Habitat Value and Weighted Usable Area interpolated  - Computational Steps : " + ", ".join(
+            map(str, sim_name)) + " " + unit_type
+    fig = plt.figure(plot_window_title)
+
+    name_fish_origin = list(name_fish)
+    for id, n in enumerate(name_fish):
+        name_fish[id] = n.replace('_', ' ')
+
+    # one time step - bar
+    if len(vertical_headers) == 1:
+        # SPU
+        data_bar = []
+        for name_fish_value in name_fish_origin:
+            data_bar.append(float(data_description["total_WUA_area"][name_fish_value][reach_num][0]))
+
+        y_pos = np.arange(len(name_fish))
+        fig.add_subplot(211)
+        data_bar2 = np.array(data_bar)
+        plt.bar(y_pos, data_bar2)
+        plt.xticks(y_pos, [])
+        if fig_opt['language'] == 0:
+            plt.ylabel('WUA [m^2]')
+        elif fig_opt['language'] == 1:
+            plt.ylabel('SPU [m^2]')
+        else:
+            plt.ylabel('WUA [m^2]')
+        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+        if fig_opt['language'] == 0:
+            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
+        elif fig_opt['language'] == 1:
+            plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}' + " " + unit_type)
+        else:
+            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
+        # VH
+        fig.add_subplot(212)
+        vh = data_bar2 / area_all[reach_num]
+        plt.bar(y_pos, vh)
+        plt.xticks(y_pos, name_fish, rotation=10)
+
+        if fig_opt['language'] == 0:
+            plt.ylabel('HV (WUA/A) []')
+        elif fig_opt['language'] == 1:
+            plt.ylabel('VH (SPU/A) []')
+        else:
+            plt.ylabel('HV (WUA/A) []')
+        #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
+        plt.ylim(0, 1)
+        if fig_opt['language'] == 0:
+            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
+        elif fig_opt['language'] == 1:
+            plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}" + " " + unit_type)
+        else:
+            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
+        # get data with mouse
+        mplcursors.cursor()
+        plt.tight_layout()
+        # export or not
+        if types_plot == "image export" or types_plot == "both":
+            if not erase_id:
+                name = 'WUA_' + name_base + '_Reach_' + str(0) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            else:
+                name = 'WUA_' + name_base + '_Reach_' + str(0)
+                test = calcul_hab_mod.remove_image(name, path_im, format1)
+                if not test:
+                    return
+
+            if format1 == 0 or format1 == 1:
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 0 or format1 == 3:
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+            if format1 == 2:
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+
+    # many time step - lines
+    if len(vertical_headers) > 1:
+        # if not sorted(data_to_table["units"]) == data_to_table["units"]:
+        #     idx = np.argsort(data_to_table["units"])
+        #     for key in data_to_table.keys():
+        #         data_provi = np.array(data_to_table[key])[idx].tolist()
+        #         aa = np.delete(data_provi, data_provi != np.array(None))
+        #
+
+
+        # SPU
+        spu_ax = fig.add_subplot(211)
+        x_data = range(len(sim_name))
+        for name_fish_value in name_fish_origin:
+            y_data_spu = data_to_table["spu_" + name_fish_value]
+            plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
+        if fig_opt['language'] == 0:
+            plt.ylabel('WUA [m$^2$]')
+            plt.title('Weighted Usable Area interpolated for the Reach ' + str(0))
+        elif fig_opt['language'] == 1:
+            plt.ylabel('SPU [m$^2$]')
+            plt.title(u'Surface Ponderée interpolées pour le troncon ' + str(0))
+        else:
+            # plt.xlabel('Computational step [ ]')
+            plt.ylabel('WUA [m$^2$]')
+            plt.title('Weighted Usable Area interpolated for the Reach ' + str(0))
+        plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
+        # spu_ax.xaxis.set_ticklabels([])
+        if len(str(sim_name[0])) > 5:
+            rot = 'vertical'
+        else:
+            rot = 'horizontal'
+        if len(sim_name) < 25:
+            plt.xticks(x_data, [], rotation=rot)
+        elif len(sim_name) < 100:
+            plt.xticks(x_data[::3], [], rotation=rot)
+        else:
+            plt.xticks(x_data[::10], [], rotation=rot)
+        # VH
+        hv_ax = fig.add_subplot(212)
+        for name_fish_value in name_fish_origin:
+            y_data_hv = data_to_table["hv_" + name_fish_value]
+            plt.plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
+        if fig_opt['language'] == 0:
+            plt.xlabel('Desired units [' + unit_type + ']')
+            plt.ylabel('HV (WUA/A) []')
+            plt.title('Habitat Value interpolated for the Reach ' + str(0))
+        elif fig_opt['language'] == 1:
+            plt.xlabel(u'Unité souhaitées [' + unit_type + ']')
+            plt.ylabel('HV (SPU/A) []')
+            plt.title("Valeur d'habitat interpolée pour le troncon " + str(0))
+        else:
+            plt.xlabel('Desired units [' + unit_type + ']')
+            plt.ylabel('HV (WUA/A) []')
+            plt.title('Habitat Value interpolated for the Reach ' + str(0))
+        plt.ylim(0, 1)
+        # get data with mouse
+        mplcursors.cursor()
+        # label
+        if sim_name:
+            if len(str(sim_name[0])) > 5:
+                rot = 'vertical'
+            else:
+                rot = 'horizontal'
+            if len(sim_name) < 25:
+                plt.xticks(x_data, sim_name, rotation=45)
+            elif len(sim_name) < 100:
+                plt.xticks(x_data[::3], sim_name[::3], rotation=45)
+            else:
+                plt.xticks(x_data[::10], sim_name[::10], rotation=45)
+        plt.tight_layout()
+        plt.show()
 
 class SnaptoCursorPT(object):
     """
