@@ -1205,10 +1205,10 @@ class Hdf5Management:
                     # grid data preparation for vtk
 
                     # get data
-                    x = np.asfortranarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
-                    y = np.asfortranarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
+                    x = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
+                    y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
                     try:
-                        z = np.asfortranarray((self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10)
+                        z = np.ascontiguousarray((self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10)
                     except Warning:
                         print('oh no!')
 
@@ -1218,14 +1218,34 @@ class Hdf5Management:
                     cell_types = np.zeros(len(self.data_2d["tin"][reach_num][unit_num]), ) + 5  # triangle
                     cell_types = np.array(list((map(int, cell_types))))
 
-                    # data creation
+                    # fish data creation
                     cellData = {}
                     for fish_name in self.data_description["hab_fish_list"].split(", "):
                         newkey = "HV " + fish_name
                         cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
 
-                    cellData['height'] = self.data_2d["h"][reach_num][unit_num]
-                    cellData['velocity'] = self.data_2d["v"][reach_num][unit_num]
+                    # hydrau data creation
+                    # for each mesh
+                    v_mean_mesh_list = []
+                    h_mean_mesh_list = []
+                    for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                        node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                        node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
+                        node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                        # data attributes
+                        v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
+                        v2 = self.data_2d["v"][reach_num][unit_num][node2]
+                        v3 = self.data_2d["v"][reach_num][unit_num][node3]
+                        v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
+                        v_mean_mesh_list.append(v_mean_mesh)
+                        h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
+                        h2 = self.data_2d["h"][reach_num][unit_num][node2]
+                        h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                        h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
+                        h_mean_mesh_list.append(h_mean_mesh)
+
+                    cellData['height'] = np.array(h_mean_mesh_list)
+                    cellData['velocity'] = np.array(v_mean_mesh_list)
 
                     # create the grid and the vtu files
                     basename = fileName + '_unit' + str(unit_num)
