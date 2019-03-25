@@ -822,8 +822,7 @@ class Hdf5Management:
                         sub_array = self.file_object[mesh_group + "/sub"][:]
                         # dominant case = 1 ==> biggest substrate for plot
                         sub_dominant, sub_coarser = substrate_mod.percentage_to_domcoarse(sub_array, dominant_case=1)
-                        sub_array_coarser_dom = np.array(list(zip(sub_coarser, sub_dominant)))
-                        data_2d["sub"][reach_num].append(sub_array_coarser_dom)
+                        data_2d["sub"][reach_num].append(np.array(list(zip(sub_coarser, sub_dominant))))
                     else:
                         data_2d["sub"][reach_num].append(self.file_object[mesh_group + "/sub"][:])
                     if fish_names_total_list:
@@ -950,7 +949,7 @@ class Hdf5Management:
         self.file_object.close()
 
         # reload to add new data to attributes
-        self.load_hdf5_hab()
+        self.load_hdf5_hab(convert_to_coarser_dom=True)
 
     # EXPORT
     def save_spu_txt(self, fig_opt):
@@ -1185,12 +1184,6 @@ class Hdf5Management:
             for id, n in enumerate(name_fish):
                 name_fish[id] = n.replace('_', ' ')
 
-            # # load grid (could also be used if velcoity and height point data is needed)
-            # [ikle_all_t, point_all_t, blob, blob, sub_pg_data, sub_dom_data] = \
-            #     hdf5_mod.load_hdf5_hyd_and_merge(name_hdf5, path_hdf5, merge=True)
-            # if ikle_all_t == [-99]:
-            #     return
-
             # for each reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                 if not fig_opt["erase_id"] == "True":
@@ -1201,10 +1194,6 @@ class Hdf5Management:
                 # for each unit
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                     # create one vtu file by time step
-                    # for the moment we do not show the time step zero with the full profile without data
-                    # grid data preparation for vtk
-
-                    # get data
                     x = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
                     y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
                     try:
@@ -1218,14 +1207,17 @@ class Hdf5Management:
                     cell_types = np.zeros(len(self.data_2d["tin"][reach_num][unit_num]), ) + 5  # triangle
                     cell_types = np.array(list((map(int, cell_types))))
 
-                    # fish data creation
+                    # fish
                     cellData = {}
                     for fish_name in self.data_description["hab_fish_list"].split(", "):
                         newkey = "HV " + fish_name
                         cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
 
-                    # hydrau data creation
-                    # for each mesh
+                    # substrate
+                    cellData["sub_coarser"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[0]
+                    cellData["sub_dominant"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[1]
+
+                    # hydrau data creation for each mesh
                     v_mean_mesh_list = []
                     h_mean_mesh_list = []
                     for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
