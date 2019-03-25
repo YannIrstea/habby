@@ -19,11 +19,12 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QLineEdit, QGridLayout , QFileDialog,\
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QProgressBar, QTextEdit, QTableView
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
+import os
+import numpy as np
 from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import tools_mod
 from src import plot_mod
-import os
 
 
 class ToolsTab(QScrollArea):
@@ -194,7 +195,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.require_unit_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.require_unit_qtableview.verticalHeader().setVisible(True)
         self.require_unit_qtableview.horizontalHeader().setVisible(True)
-        mytablemodel = MyTableModel("", "", "")
+        mytablemodel = MyTableModel("", "", "", "")
         self.require_unit_qtableview.setModel(mytablemodel)
         self.plot_chronicle_qpushbutton = QPushButton(self.tr('View interpolate chronicle'))
         self.plot_chronicle_qpushbutton.clicked.connect(self.plot_chronicle)
@@ -296,10 +297,14 @@ class InterpolationGroup(QGroupBoxCollapsible):
             by_sequ = float(self.by_qlineedit.text())  # by
 
             # dict range
-            unit_dict = dict(units=list(self.frange(from_sequ, to_sequ, by_sequ)))
+            chonicle_from_seq = dict(units=list(self.frange(from_sequ, to_sequ, by_sequ)))
+
+            # types_from_file
+            text_unit = self.unit_type_qlabel.text()
+            types_from_seq = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
 
             # display
-            self.create_model_array_and_display(unit_dict)
+            self.create_model_array_and_display(chonicle_from_seq, types_from_seq, source="seq")
 
     def display_required_units_from_txtfile(self):
         # find the filename based on user choice
@@ -310,11 +315,11 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         # exeption: you should be able to clik on "cancel"
         if filename_path:
-            unit_dict = tools_mod.read_chronicle_from_text_file(filename_path)
+            chronicle_from_file, types_from_file = tools_mod.read_chronicle_from_text_file(filename_path)
             # display
-            self.create_model_array_and_display(unit_dict)
+            self.create_model_array_and_display(chronicle_from_file, types_from_file, source=filename_path)
 
-    def create_model_array_and_display(self, dict_values):
+    def create_model_array_and_display(self, chronicle, types, source):
         # get fish selected
         selection = self.fish_available_qlistwidget.selectedItems()
         fish_names = [item.text() for item in selection]
@@ -326,23 +331,31 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
         hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
 
-        data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
-                                                                                         fish_names,
-                                                                                         dict_values,
-                                                                                         True)
+        # check matching units for interpolation
+        valid, text = tools_mod.check_matching_units(hdf5.data_description, types)
 
-        self.mytablemodel = MyTableModel(data_to_table, horiz_headers, vertical_headers)
-        self.require_unit_qtableview.model().clear()
-        self.require_unit_qtableview.setModel(self.mytablemodel)  # set model
-        # ajust width
-        header = self.require_unit_qtableview.horizontalHeader()
-        for i in range(len(horiz_headers)):
-            header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
-        self.require_unit_qtableview.verticalHeader().setDefaultSectionSize(
-            self.require_unit_qtableview.verticalHeader().minimumSectionSize())
-        self.plot_chronicle_qpushbutton.setEnabled(True)
-        self.export_txt_chronicle_qpushbutton.setEnabled(True)
-        self.send_log.emit("Interpolation done. Interpolated values can now be view in graphic and export in text file.")
+        if not valid:
+            self.send_log.emit("Interpolation not done." + text)
+
+        if valid:
+            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
+                                                                                         fish_names,
+                                                                                         chronicle,
+                                                                                         types,
+                                                                                         rounddata=True)
+
+            self.mytablemodel = MyTableModel(data_to_table, horiz_headers, vertical_headers, source=source)
+            self.require_unit_qtableview.model().clear()
+            self.require_unit_qtableview.setModel(self.mytablemodel)  # set model
+            # ajust width
+            header = self.require_unit_qtableview.horizontalHeader()
+            for i in range(len(horiz_headers)):
+                header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
+            self.require_unit_qtableview.verticalHeader().setDefaultSectionSize(
+                self.require_unit_qtableview.verticalHeader().minimumSectionSize())
+            self.plot_chronicle_qpushbutton.setEnabled(True)
+            self.export_txt_chronicle_qpushbutton.setEnabled(True)
+            self.send_log.emit("Interpolation done. Interpolated values can now be view in graphic and export in text file.")
 
     def frange(self, start, stop, step):
         i = start
@@ -386,8 +399,16 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 fish_names.append(fish.replace("spu_", ""))
         fish_names = list(set(fish_names))
 
-        # units
-        dict_values = dict(units=list(map(float, self.mytablemodel.rownames)))
+        # seq or txt
+        source = self.mytablemodel.source
+
+        # reread from seq (tablemodel)
+        if source == "seq":
+            chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
+            types = dict(units=self.unit_type_qlabel.text())
+        # reread from text file (re-read file)
+        else:
+            chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
         # load figure option
         fig_opt = preferences_GUI.load_fig_option(self.path_prj,
@@ -397,16 +418,18 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
         hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
 
-        # recompute interpolation
+        # recompute
         data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
                                                                                          fish_names,
-                                                                                         dict_values,
+                                                                                         chronicle,
+                                                                                         types,
                                                                                          False)
         plot_mod.plot_interpolate_chronicle(data_to_table,
                                             horiz_headers,
                                             vertical_headers,
                                             hdf5.data_description,
                                             fish_names,
+                                            types,
                                             fig_opt)
 
     def export_chronicle(self):
@@ -423,8 +446,16 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 fish_names.append(fish.replace("spu_", ""))
         fish_names = list(set(fish_names))
 
-        # units
-        dict_values = dict(units=list(map(float, self.mytablemodel.rownames)))
+        # seq or txt
+        source = self.mytablemodel.source
+
+        # reread from seq (tablemodel)
+        if source == "seq":
+            chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
+            types = dict(units=self.unit_type_qlabel.text())
+        # reread from text file (re-read file)
+        else:
+            chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
         # load hdf5 data
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
@@ -433,13 +464,15 @@ class InterpolationGroup(QGroupBoxCollapsible):
         # recompute interpolation
         data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
                                                                                          fish_names,
-                                                                                         dict_values,
+                                                                                         chronicle,
+                                                                                         types,
                                                                                          False)
         # export text
         exported = tools_mod.export_text_interpolatevalues(data_to_table,
                                                            horiz_headers,
                                                            vertical_headers,
-                                                           hdf5.data_description)
+                                                           hdf5.data_description,
+                                                           types)
         if exported:
             self.send_log.emit("Interpolated text file has been exported in 'output/text' project folder.")
         if not exported:
@@ -468,8 +501,10 @@ class OtherToolToCreate(QGroupBoxCollapsible):
 
 
 class MyTableModel(QStandardItemModel):
-    def __init__(self, data_to_table, horiz_headers, vertical_headers, parent=None, *args):
+    def __init__(self, data_to_table, horiz_headers, vertical_headers, source, parent=None, *args):
         QAbstractTableModel.__init__(self, parent, *args)
+        # save source
+        self.source = source
         # model data for table view
         if data_to_table and horiz_headers and vertical_headers:
             for row_index in range(len(vertical_headers)):
@@ -485,6 +520,11 @@ class MyTableModel(QStandardItemModel):
             self.setHorizontalHeaderLabels(horiz_headers)
             self.setVerticalHeaderLabels(vertical_headers)
 
-
+    def get_data_from_column(self, column):
+        col_index = self.colnames.index(column)
+        data_to_get = []
+        for row_nb in range(len(self.rownames)):
+            data_to_get.append(self.item(row_nb, col_index).text())
+        return data_to_get
 
 

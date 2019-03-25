@@ -23,6 +23,7 @@ import matplotlib.dates as mdates
 import mplcursors
 import time
 import os
+from datetime import datetime as dt
 from src_GUI import preferences_GUI
 from src import calcul_hab_mod
 
@@ -1063,7 +1064,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.close()
 
 
-def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, data_description, name_fish, fig_opt):
+def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, fig_opt):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -1100,11 +1101,18 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         erase_id = False
 
     # prep data
+    if len(types.keys()) > 1:  # date
+        data_presence = True
+        date_type = types["date"]
+        sim_name = np.array([dt.strptime(date, date_type).date() for date in vertical_headers], dtype='datetime64')
+    else:
+        data_presence = False
+        sim_name = list(map(float, vertical_headers))
+
     reach_num = int(data_description["hyd_reach_number"]) - 1
     name_base = data_description["hab_filename"][:-4]
-    sim_name = list(map(float, vertical_headers))
     unit_type = data_description["hyd_unit_type"][data_description["hyd_unit_type"].find('[') + len('['):data_description["hyd_unit_type"].find(']')]
-    data_to_table["units"] = list(map(float, data_to_table["units"]))
+    data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
 
     # plot
     if len(sim_name) == 1:
@@ -1195,7 +1203,10 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
 
         # SPU
         spu_ax = fig.add_subplot(211)
-        x_data = range(len(sim_name))
+        if len(types.keys()) > 1:  # date
+            x_data = sim_name
+        else:
+            x_data = range(len(sim_name))
         for name_fish_value in name_fish_origin:
             y_data_spu = data_to_table["spu_" + name_fish_value]
             plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
@@ -1210,7 +1221,6 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
             plt.ylabel('WUA [m$^2$]')
             plt.title('Weighted Usable Area interpolated for the Reach ' + str(0))
         plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
-        # spu_ax.xaxis.set_ticklabels([])
         if len(str(sim_name[0])) > 5:
             rot = 'vertical'
         else:
@@ -1219,8 +1229,10 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
             plt.xticks(x_data, [], rotation=rot)
         elif len(sim_name) < 100:
             plt.xticks(x_data[::3], [], rotation=rot)
-        else:
+        elif len(sim_name) < 200:
             plt.xticks(x_data[::10], [], rotation=rot)
+        else:
+            plt.xticks(x_data[::20], [], rotation=rot)
         # VH
         hv_ax = fig.add_subplot(212)
         for name_fish_value in name_fish_origin:
@@ -1242,19 +1254,22 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         # get data with mouse
         mplcursors.cursor()
         # label
-        if sim_name:
-            if len(str(sim_name[0])) > 5:
-                rot = 'vertical'
-            else:
-                rot = 'horizontal'
-            if len(sim_name) < 25:
-                plt.xticks(x_data, sim_name, rotation=45)
-            elif len(sim_name) < 100:
-                plt.xticks(x_data[::3], sim_name[::3], rotation=45)
-            else:
-                plt.xticks(x_data[::10], sim_name[::10], rotation=45)
+        if len(str(sim_name[0])) > 5:
+            rot = 'vertical'
+        else:
+            rot = 'horizontal'
+
+        if len(sim_name) < 25:
+            plt.xticks(x_data, sim_name, rotation=45)
+        elif len(sim_name) < 100:
+            plt.xticks(x_data[::3], sim_name[::3], rotation=45)
+        elif len(sim_name) < 200:
+            plt.xticks(x_data[::10], sim_name[::10], rotation=rot)
+        else:
+            plt.xticks(x_data[::20], sim_name[::20], rotation=90)
         plt.tight_layout()
         plt.show()
+
 
 class SnaptoCursorPT(object):
     """
