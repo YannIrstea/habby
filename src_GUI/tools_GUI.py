@@ -299,7 +299,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # dict range
             chonicle_from_seq = dict(units=list(self.frange(from_sequ, to_sequ, by_sequ)))
 
-            # types_from_file
+            # types
             text_unit = self.unit_type_qlabel.text()
             types_from_seq = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
 
@@ -316,8 +316,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
         # exeption: you should be able to clik on "cancel"
         if filename_path:
             chronicle_from_file, types_from_file = tools_mod.read_chronicle_from_text_file(filename_path)
-            # display
-            self.create_model_array_and_display(chronicle_from_file, types_from_file, source=filename_path)
+
+            if not chronicle_from_file:
+                self.send_log.emit(types_from_file)
+            if chronicle_from_file:
+                # display
+                self.create_model_array_and_display(chronicle_from_file, types_from_file, source=filename_path)
 
     def create_model_array_and_display(self, chronicle, types, source):
         # get fish selected
@@ -335,7 +339,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         valid, text = tools_mod.check_matching_units(hdf5.data_description, types)
 
         if not valid:
-            self.send_log.emit("Interpolation not done." + text)
+            self.send_log.emit("Warning : Interpolation not done." + text)
 
         if valid:
             data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
@@ -452,10 +456,16 @@ class InterpolationGroup(QGroupBoxCollapsible):
         # reread from seq (tablemodel)
         if source == "seq":
             chronicle = dict(units=list(map(float, self.mytablemodel.rownames)))
-            types = dict(units=self.unit_type_qlabel.text())
+            # types
+            text_unit = self.unit_type_qlabel.text()
+            types = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
         # reread from text file (re-read file)
         else:
             chronicle, types = tools_mod.read_chronicle_from_text_file(source)
+
+        # load figure option
+        fig_opt = preferences_GUI.load_fig_option(self.path_prj,
+                                                  self.name_prj)
 
         # load hdf5 data
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
@@ -472,11 +482,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                            horiz_headers,
                                                            vertical_headers,
                                                            hdf5.data_description,
-                                                           types)
+                                                           types,
+                                                           fig_opt)
         if exported:
             self.send_log.emit("Interpolated text file has been exported in 'output/text' project folder.")
         if not exported:
-            self.send_log.emit('Error: The file has not been exported as it may be opened by another program.')
+            self.send_log.emit('Error: File not exported as it may be opened by another program.')
 
 
 class OtherToolToCreate(QGroupBoxCollapsible):

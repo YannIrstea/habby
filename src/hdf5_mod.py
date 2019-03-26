@@ -993,16 +993,17 @@ class Hdf5Management:
                 else:
                     header = 'troncon\tunit\taire_troncon'
                 if fig_opt['language'] == 0:
-                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
                     header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
                 else:
-                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
                     header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
                 header += '\n'
                 f.write(header)
                 # header 2
                 header = '[]\t[' + unit_type + ']\t[m2]'
-                header += "".join(['\t[m2]\t[]' for _ in range(len(fish_names))])
+                header += "".join(['\t[]' for _ in range(len(fish_names))])
+                header += "".join(['\t[m2]' for _ in range(len(fish_names))])
                 header += '\n'
                 f.write(header)
                 # header 3
@@ -1014,24 +1015,23 @@ class Hdf5Management:
 
                 for reach_num in range(0, len(self.data_description["total_wet_area"])):
                     for unit_num in range(0, len(self.data_description["total_wet_area"][reach_num])):
+                        area_reach = self.data_description["total_wet_area"][reach_num][unit_num]
                         if not sim_name:
-                            data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(
-                                self.data_description["total_wet_area"][reach_num][unit_num])
+                            data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
                         else:
-                            data_here = str(reach_num) + '\t' + sim_name[unit_num] + '\t' + str(
-                                self.data_description["total_wet_area"][reach_num][unit_num])
-                        # WUE
-                        for fish_name in fish_names:
-                            data_here += '\t' + str(
-                                self.data_description["total_WUA_area"][fish_name][reach_num][unit_num])
+                            data_here = str(reach_num) + '\t' + sim_name[unit_num] + '\t' + str(area_reach)
                         # HV
                         for fish_name in fish_names:
                             try:
-                                data_here += '\t' + str(float(
-                                    self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]) / float(
-                                    self.data_description["total_wet_area"][reach_num][unit_num]))
+                                wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
+                                data_here += '\t' + str(float(wua_fish) / float(area_reach))
                             except TypeError:
                                 data_here += '\t' + 'NaN'
+                        # WUA
+                        for fish_name in fish_names:
+                            wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
+                            data_here += '\t' + str(wua_fish)
+
                         data_here += '\n'
                         f.write(data_here)
 

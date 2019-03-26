@@ -60,9 +60,12 @@ def read_chronicle_from_text_file(chronicle_filepath):
         if 'DATE' in headers[i].upper():  # Date
             date_index = i
             date_type = headers[date_index][headers[date_index].find('[') + 1:headers[date_index].find(']')]
-        if 'UNITS[' in headers[i].upper() and ']' in headers[i]:  # Q
+        if 'UNIT[' in headers[i].upper() and ']' in headers[i]:  # Q
             units_index = i
             unit_type = headers[units_index][headers[units_index].find('[') + 1:headers[units_index].find(']')]
+
+    if units_index is None:
+        return False, "Error : Interpolation not done. 'unit[' header not found in " + chronicle_filepath + "."
 
     # create dict
     if type(date_index) == int and type(units_index) == int:
@@ -201,34 +204,66 @@ def compute_interpolation(data_description, fish_names, chronicle, types, roundd
     return data_to_table, horiz_headers, vertical_headers
 
 
-def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_description, types):
+def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_description, types, fig_opt):
     filename = data_description["hab_filename"]
     path_prj = data_description["path_projet"]
-    units_type = types["units"]
+    unit_type = types["units"]
+
+    fish_names = list(horiz_headers)
 
     # prep data
-    if len(types.keys()) > 1:  # date
-        data_presence = True
-        date_type = types["date"]
-        headers = "date[" + date_type + "]"
-    else:
-        data_presence = False
-        headers = "units[" + units_type + "]"
+    for fish_num, fish_name in enumerate(fish_names):
+        if "hv_" in fish_name:
+            fish_names[fish_num] = fish_name.replace("hv_", "")
+        if "spu_" in fish_name:
+            fish_names[fish_num] = fish_name.replace("spu_", "")
 
-    # headers
-    for fish_name in horiz_headers:
-        if fish_name == "units":
-            fish_name = "units[" + units_type + "]"
-        headers += "\t" + fish_name
+    # header 1
+    if fig_opt['language'] == 0:
+        if len(types.keys()) > 1:  # date
+            date_type = types["date"]
+            header = 'reach\tdate\tunit'
+        else:
+            header = 'reach\tunit'
+    else:
+        if len(types.keys()) > 1:  # date
+            header = 'troncon\tdate\tunit'
+        else:
+            header = 'troncon\tunit'
+    if fig_opt['language'] == 0:
+        header += "".join(['\tHV' + str(i) for i in range(int(len(fish_names) / 2))])
+        header += "".join(['\tWUA' + str(i) for i in range(int(len(fish_names) / 2))])
+    else:
+        header += "".join(['\tVH' + str(i) for i in range(int(len(fish_names) / 2))])
+        header += "".join(['\tSPU' + str(i) for i in range(int(len(fish_names) / 2))])
+    header += '\n'
+    # header 2
+    if len(types.keys()) > 1:  # date
+        header += '[]\t[' + date_type + ']\t[' + unit_type + ']'
+    else:
+        header += '[]\t[' + unit_type + ']'
+    header += "".join(['\t[]' for _ in range(int(len(fish_names) / 2))])
+    header += "".join(['\t[m2]' for _ in range(int(len(fish_names) / 2))])
+    header += '\n'
+    # header 3
+    if len(types.keys()) > 1:  # date
+        header += 'all\tall\tall'
+    else:
+        header += 'all\tall'
+    for fish_name in fish_names:
+        if "units" in fish_name:
+            pass
+        else:
+            header += '\t' + fish_name.replace(' ', '_')
     # lines
     linetext = ""
     # for each line
     for row_index in range(len(vertical_headers)):
         # print("line", line)
         if len(types.keys()) > 1:  # date
-            linetext += str(vertical_headers[row_index]) + "\t"
+            linetext += "0" + "\t" + str(vertical_headers[row_index]) + "\t"
         else:
-            linetext += str(vertical_headers[row_index]) + "\t"
+            linetext += "0" + "\t" + str(vertical_headers[row_index]) + "\t"
         # for each column
         for column_name in horiz_headers:
             data_hv = data_to_table[column_name][row_index]
@@ -238,7 +273,7 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
                 linetext += str(data_hv) + "\t"
         # new line
         linetext += "\n"
-    text = headers + "\n" + linetext
+    text = header + "\n" + linetext
 
     # export
     try:
