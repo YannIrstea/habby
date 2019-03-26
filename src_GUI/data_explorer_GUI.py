@@ -43,7 +43,7 @@ class DataExplorerTab(QScrollArea):
 
     def init_iu(self):
         # DataExplorerFrame
-        self.data_explorer_frame = DataExplorerFrame()
+        self.data_explorer_frame = DataExplorerFrame(self.path_prj, self.name_prj, self.send_log)
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -83,8 +83,11 @@ class DataExplorerFrame(QFrame):
     This class is a subclass of class QGroupBox.
     """
 
-    def __init__(self):
+    def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.send_log = send_log
         self.nb_plot = 0
         self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
         self.init_ui()
@@ -341,8 +344,7 @@ class DataExplorerFrame(QFrame):
         # hydraulic
         if index == 1:
             # get list of file name by type
-            names = hdf5_mod.get_filename_by_type("hydraulic",
-                                                  self.parent().parent().path_prj + r"/hdf5/")
+            names = hdf5_mod.get_filename_by_type("hydraulic", self.path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -351,8 +353,7 @@ class DataExplorerFrame(QFrame):
         # substrate
         if index == 2:
             # get list of file name by type
-            names = hdf5_mod.get_filename_by_type("substrate",
-                                                  self.parent().parent().path_prj + r"/hdf5/")
+            names = hdf5_mod.get_filename_by_type("substrate", self.path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -361,7 +362,7 @@ class DataExplorerFrame(QFrame):
         # merge hab
         if index == 3:
             # get list of file name by type
-            names = hdf5_mod.get_filename_by_type("habitat", self.parent().parent().path_prj + r"/hdf5/")
+            names = hdf5_mod.get_filename_by_type("habitat", self.path_prj + r"/hdf5/")
             self.names_hdf5_QListWidget.clear()
             self.variable_QListWidget.clear()
             if names:
@@ -385,7 +386,7 @@ class DataExplorerFrame(QFrame):
             self.units_QListWidget.clear()
 
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.parent().parent().path_prj, hdf5name)
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
 
             # get variables
             hdf5.get_hdf5_variables()
@@ -432,7 +433,7 @@ class DataExplorerFrame(QFrame):
             for i in range(nb_file):
                 hdf5name.append(selection[i].text())
                 # create hdf5 class
-                hdf5 = hdf5_mod.Hdf5Management(self.parent().parent().path_prj, selection[i].text())
+                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[i].text())
                 hdf5.get_hdf5_units_name()
                 hdf5.get_hdf5_variables()
                 units.append(hdf5.units_name)
@@ -550,15 +551,15 @@ class DataExplorerFrame(QFrame):
         # print("export_type : ", export_type)
 
         if not types_hdf5:
-            self.parent().parent().send_log.emit('Error: No hdf5 type selected.')
+            self.send_log.emit('Error: No hdf5 type selected.')
         if not names_hdf5:
-            self.parent().parent().send_log.emit('Error: No hdf5 file selected.')
+            self.send_log.emit('Error: No hdf5 file selected.')
         if not variables:
-            self.parent().parent().send_log.emit('Error: No variable selected.')
+            self.send_log.emit('Error: No variable selected.')
         if not units:
-            self.parent().parent().send_log.emit('Error: No units selected.')
+            self.send_log.emit('Error: No units selected.')
         if self.nb_plot == 0:
-            self.parent().parent().send_log.emit('Error: Selected variables and units not corresponding with figure type choices.')
+            self.send_log.emit('Error: Selected variables and units not corresponding with figure type choices.')
         # check if number of display plot are > 30
         if export_type in ("display", "both") and self.nb_plot > 30:
             qm = QMessageBox
@@ -578,16 +579,16 @@ class DataExplorerFrame(QFrame):
             self.plot_production_stoped = False
 
             # figure option
-            fig_opt = preferences_GUI.load_fig_option(self.parent().parent().path_prj,
-                                                      self.parent().parent().name_prj)
+            fig_opt = preferences_GUI.load_fig_option(self.path_prj,
+                                                      self.name_prj)
             fig_opt['type_plot'] = export_type  # "display", "export", "both"
 
             # init
             fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
 
             # path
-            path_hdf5 = self.parent().parent().path_prj + r"/hdf5/"
-            path_im = self.parent().parent().path_prj + r"/output/figures/"
+            path_hdf5 = self.path_prj + r"/hdf5/"
+            path_im = self.path_prj + r"/output/figures/"
 
             # check plot process done
             if self.plot_process_list.check_all_plot_closed():
@@ -604,7 +605,7 @@ class DataExplorerFrame(QFrame):
             for name_hdf5 in names_hdf5:
                 if not self.plot_production_stoped:  # stop loop with button
                     # create hdf5 class by file
-                    hdf5 = hdf5_mod.Hdf5Management(self.parent().parent().path_prj, name_hdf5)
+                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name_hdf5)
 
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
