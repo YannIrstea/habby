@@ -16,13 +16,11 @@ https://github.com/YannIrstea/habby
 """
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-from datetime import datetime as dt
+import urllib
 from copy import deepcopy
-from src import plot_mod
 
 
+# INTERPOLATION TOOLS
 def export_empty_text_from_hdf5(unit_type, unit_min, unit_max, filename, path_prj):
     # get unit type
     start = unit_type.find('[')
@@ -284,4 +282,13 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
     except:
         return False
 
+
+# OTHERS TOOLS
+def get_prj_from_epsg_web(epsg_code):
+    wkt = urllib.request.urlopen("http://spatialreference.org/ref/epsg/{0}/prettywkt/".format(epsg_code))
+    data_byte = wkt.read()
+    data_str = data_byte.decode("utf-8")
+    remove_spaces = data_str.replace(" ", "")
+    output = remove_spaces.replace("\n", "")
+    return output
 
