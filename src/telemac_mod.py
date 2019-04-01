@@ -196,6 +196,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         hyd_description["hyd_model_type"] = description_from_indextelemac_file[hyd_file]["model_type"]
         hyd_description["hyd_model_dimension"] = description_from_indextelemac_file[hyd_file]["model_dimension"]
         hyd_description["hyd_variables_list"] = "h, v, z"
+        hyd_description["hyd_epsg_code"] = description_from_indextelemac_file[hyd_file]["epsg_code"]
         hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
         hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
         hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
@@ -355,6 +356,9 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+
             # headers
             headers = "filename" + "\t" + "T[" + time_unit + "]"
 
@@ -386,7 +390,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             linetowrite = filename_column[0] + "\t" + unit_data
 
             # text
-            text = headers + "\n" + linetowrite
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
 
         """ CASE 1.a """
         if telemac_case == "1.a":
@@ -400,6 +404,8 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
             if reach_column_presence:
@@ -410,7 +416,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
                 linetowrite = linetowrite + "\t" + reach_column
 
             # text
-            text = headers + "\n" + linetowrite
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
 
         """ CASE 1.b """
         if telemac_case == "1.b":
@@ -424,6 +430,8 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
             if reach_column_presence:
@@ -434,7 +442,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
             # text
-            text = headers + "\n" + linetowrite
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
 
         """ CASE 2.a """
         if telemac_case == "2.a":
@@ -448,6 +456,8 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
             if reach_column_presence:
@@ -464,7 +474,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             linetowrite = linetowrite[:-1]
 
             # text
-            text = headers + "\n" + linetowrite
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
 
         """ CASE 2.b """
         if telemac_case == "2.b":
@@ -478,6 +488,8 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
             if reach_column_presence:
@@ -495,7 +507,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             linetowrite = linetowrite[:-1]
 
             # text
-            text = headers + "\n" + linetowrite
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
 
         """ CASE 3.a 3.b """
         if telemac_case == "3.a" or telemac_case == "3.b":
@@ -509,6 +521,8 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
+            # epsg_code
+            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "T[" + time_unit + "]"
             if reach_column_presence:
@@ -542,7 +556,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
             # text
-            text = headers + "\n" + linetowrite
+            text = epsg_code + "\n" + headers + "\n" + linetowrite
 
         # write text file
         with open(filename_path, 'wt') as f:
@@ -561,13 +575,15 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
         start = unit_type.find('[')
         end = unit_type.find(']')
         time_unit = unit_type[start + 1:end]
+        # epsg_code
+        epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
         # headers
         headers = "filename" + "\t" + "T[" + time_unit + "]"
         if reach_column_presence:
             headers = headers + "\t" + "reachname"
 
         # text
-        text = headers
+        text = epsg_code + "\n" + headers
 
         for i_hdf5, hdf5_file in enumerate(range(len(description_from_indextelemac_file))):
             filename_path = os.path.join(description_from_indextelemac_file[i_hdf5]["path_prj"], "input", "indexTELEMAC.txt")

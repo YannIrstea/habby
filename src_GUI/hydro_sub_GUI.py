@@ -1111,47 +1111,53 @@ class SubHydroW(QWidget):
 
             # info
             if error:
-                self.send_log.emit(self.tr("Figures could not be shown because of a prior error \n"))
-            # MERGE
-            if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
-                self.send_log.emit(self.tr("Merging of substrate and hydraulic grid finished (computation time = ") + str(round(self.running_time)) + " s).")
-                self.drop_merge.emit()
-                # update last name
-                self.name_last_hdf5("hdf5_mergedata")
-                # unblock button merge
+                self.send_log.emit("clear status bar")
+                self.running_time = 0
                 self.load_b2.setDisabled(False)  # merge
-            # SUBSTRATE
-            elif self.model_type == 'SUBSTRATE':
-                self.send_log.emit(self.tr("Loading of substrate data finished (computation time = ") + str(round(self.running_time)) + " s).")
-                self.drop_merge.emit()
-                # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
-                self.update_sub_hdf5_name()
-                # update last name
-                self.name_last_hdf5("hdf5_substrate")
-                # unblock button substrate
                 self.load_polygon_substrate.setDisabled(False)  # substrate
                 self.load_point_substrate.setDisabled(False)  # substrate
                 self.load_constant_substrate.setDisabled(False)  # substrate
-            # HYDRAULIC
-            else:
-                self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(round(self.running_time)) + " s).")
-                # send a signal to the substrate tab so it can account for the new info
-                self.drop_hydro.emit()
-                # update last name
-                self.name_last_hdf5(self.model_type)
-                # unblock button hydraulic
-                self.load_b.setDisabled(False)  # hydraulic
+            if not error:
+                # MERGE
+                if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
+                    self.send_log.emit(self.tr("Merging of substrate and hydraulic grid finished (computation time = ") + str(round(self.running_time)) + " s).")
+                    self.drop_merge.emit()
+                    # update last name
+                    self.name_last_hdf5("hdf5_mergedata")
+                    # unblock button merge
+                    self.load_b2.setDisabled(False)  # merge
+                # SUBSTRATE
+                elif self.model_type == 'SUBSTRATE':
+                    self.send_log.emit(self.tr("Loading of substrate data finished (computation time = ") + str(round(self.running_time)) + " s).")
+                    self.drop_merge.emit()
+                    # add the name of the hdf5 to the drop down menu so we can use it to merge with hydrological data
+                    self.update_sub_hdf5_name()
+                    # update last name
+                    self.name_last_hdf5("hdf5_substrate")
+                    # unblock button substrate
+                    self.load_polygon_substrate.setDisabled(False)  # substrate
+                    self.load_point_substrate.setDisabled(False)  # substrate
+                    self.load_constant_substrate.setDisabled(False)  # substrate
+                # HYDRAULIC
+                else:
+                    self.send_log.emit(self.tr("Loading of hydraulic data finished (computation time = ") + str(round(self.running_time)) + " s).")
+                    # send a signal to the substrate tab so it can account for the new info
+                    self.drop_hydro.emit()
+                    # update last name
+                    self.name_last_hdf5(self.model_type)
+                    # unblock button hydraulic
+                    self.load_b.setDisabled(False)  # hydraulic
 
-            # general
-            self.nativeParentWidget().progress_bar.setValue(100)
-            if not const_sub:
-                self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
-            if const_sub:
-                self.update_sub_hdf5_name()
-            self.send_log.emit("clear status bar")
-            # refresh plot gui list file
-            self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
-            self.running_time = 0
+                # general
+                self.nativeParentWidget().progress_bar.setValue(100)
+                if not const_sub:
+                    self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
+                if const_sub:
+                    self.update_sub_hdf5_name()
+                self.send_log.emit("clear status bar")
+                # refresh plot gui list file
+                self.nativeParentWidget().central_widget.data_explorer_tab.refresh_type()
+                self.running_time = 0
 
         # finish
         if not self.p.is_alive() and self.q.empty():
@@ -2746,6 +2752,11 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.h2d_b.clicked.connect(
             lambda: self.h2d_t2.setToolTip(self.pathfile[0]))
 
+        # epsg
+        epsgtitle_telemac_label = QLabel(self.tr('EPSG code'))
+        self.epsg_telemac_label = QLineEdit(self.tr('unknown'))
+        self.epsg_telemac_label.editingFinished.connect(self.set_epsg_code)
+
         # hdf5 name
         lh = QLabel(self.tr('.hyd file name'))
         self.hname = QLineEdit(self.name_hdf5)
@@ -2781,11 +2792,13 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.layout_hec2.addWidget(self.number_timstep_label, 3, 1)
         self.layout_hec2.addWidget(l_selecttimestep, 4, 0)
         self.layout_hec2.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
-        self.layout_hec2.addWidget(lh, 5, 0)
-        self.layout_hec2.addWidget(self.hname, 5, 1)
-        self.layout_hec2.addWidget(self.load_b, 5, 2)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_label, 6, 0)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 6, 1)
+        self.layout_hec2.addWidget(epsgtitle_telemac_label, 5, 0)
+        self.layout_hec2.addWidget(self.epsg_telemac_label, 5, 1)
+        self.layout_hec2.addWidget(lh, 6, 0)
+        self.layout_hec2.addWidget(self.hname, 6, 1)
+        self.layout_hec2.addWidget(self.load_b, 6, 2)
+        self.layout_hec2.addWidget(self.last_hydraulic_file_label, 7, 0)
+        self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 7, 1)
         [self.layout_hec2.setRowMinimumHeight(i, 30) for i in range(self.layout_hec2.rowCount())]
 
         self.setLayout(self.layout_hec2)
@@ -2897,6 +2910,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                                                       reach_list="unknown",
                                                                       reach_number=str(1),
                                                                       reach_type="river",
+                                                                      epsg_code="unknown",
                                                                       flow_type="unknwon"))  # continuous flow
 
                     # set actual telemac_description
@@ -2913,6 +2927,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(self.telemac_description["unit_list_tf"][i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.h2d_t2.currentIndexChanged.connect(self.change_telemac_gui_when_combobox_name)
                     self.load_b.setText(
@@ -2937,7 +2952,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                                     path_filename_source=folder_path,
                                                     hdf5_name=self.name_hdf5,
                                                     model_type=self.model_type,
-                                                    model_dimension=str(self.nb_dim))
+                                                    model_dimension=str(self.nb_dim),
+                                                    epsg_code="unknown")
                     # telemac_description
                     self.telemac_description["unit_list"] = ", ".join(unit_name_from_telemac_file)
                     self.telemac_description["unit_list_full"] = unit_name_from_telemac_file
@@ -2959,6 +2975,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     for i in range(len(unit_name_from_telemac_file)):
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
                     self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
@@ -2976,13 +2993,15 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 # read text file
                 with open(filename_path_index, 'rt') as f:
                     dataraw = f.read()
+                # get epsg code
+                epsg_code = dataraw.split("\n")[0].split("EPSG=")[1].strip()
                 # read headers and nb row
-                headers = dataraw.split("\n")[0].split("\t")
+                headers = dataraw.split("\n")[1].split("\t")
                 nb_column = len(headers)
                 nb_row = len(dataraw.split("\n"))
                 # create one dict for all column
                 data_index_telemac = dict((key, []) for key in headers)
-                data_row_list = dataraw.split("\n")[1:]
+                data_row_list = dataraw.split("\n")[2:]
                 for line in data_row_list:
                     if line == "":
                         print("empty line")
@@ -3091,7 +3110,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                                 path_filename_source=self.pathfile[0],
                                                 hdf5_name=self.name_hdf5,
                                                 model_type=self.model_type,
-                                                model_dimension=str(self.nb_dim))
+                                                model_dimension=str(self.nb_dim),
+                                                epsg_code=epsg_code)
 
                 """ CASE 1.a """
                 if self.telemac_case == "1.a":
@@ -3100,8 +3120,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     # get units name from indexTELEMAC.txt file
                     unit_name_from_indextelemac_file = data_index_telemac[headers[discharge_index]]
                     # check if lenght of two loading units
-                    if len(unit_name_from_telemac_file) != len(unit_name_from_indextelemac_file):
-                        self.send_log.emit("Error: units number from indexTELEMAC and from TELEMAC file are different")
+                    if len(unit_name_from_telemac_file) > len(unit_name_from_indextelemac_file):
+                        self.send_log.emit("Error: units number from indexTELEMAC inferior than TELEMAC selected.")
                         self.clean_gui()
                         return
 
@@ -3111,7 +3131,16 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         reach_name = "unknown"
 
                     # items
-                    items_list = [a + " (" + b + ")" for a, b in list(zip(
+                    if len(unit_name_from_telemac_file) == len(unit_name_from_indextelemac_file):
+                        items_list = [a + " (" + b + ")" for a, b in list(zip(
+                        data_index_telemac[headers[discharge_index]],
+                        data_index_telemac[headers[0]]
+                    ))]
+                    if len(unit_name_from_telemac_file) < len(unit_name_from_indextelemac_file):
+                        index_file = data_index_telemac[headers[0]].index(self.namefile[0])
+                        data_index_telemac[headers[0]] = [data_index_telemac[headers[0]][index_file]]
+                        data_index_telemac[headers[discharge_index]] = [data_index_telemac[headers[discharge_index]][index_file]]
+                        items_list = [a + " (" + b + ")" for a, b in list(zip(
                         data_index_telemac[headers[discharge_index]],
                         data_index_telemac[headers[0]]
                     ))]
@@ -3139,6 +3168,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(False)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
+                    self.epsg_telemac_label.setEnabled(False)
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
@@ -3192,6 +3223,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(False)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
+                    self.epsg_telemac_label.setEnabled(False)
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
@@ -3251,6 +3284,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
@@ -3309,6 +3343,8 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(False)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
+                    self.epsg_telemac_label.setEnabled(False)
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
@@ -3353,6 +3389,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
                     self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
@@ -3421,6 +3458,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(timestep_to_select[i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.hname.setText(self.name_hdf5)  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
                     self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
@@ -3483,6 +3521,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(self.telemac_description["unit_list_tf"][i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.h2d_t2.currentIndexChanged.connect(self.change_telemac_gui_when_combobox_name)
                     self.load_b.setText("Load data and create " + str(len(data_index_telemac[headers[0]])) + " .hyd files")
@@ -3531,7 +3570,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                             else:
                                 unit_index_from_telemac_file.append(False)
 
-                            # hdf5 filename
+                        # hdf5 filename
                         blob2, ext = os.path.splitext(file)
                         name_hdf5 = blob2 + ".hyd"
                         # reach name
@@ -3548,6 +3587,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                                             hdf5_name=name_hdf5,
                                                             model_type=self.model_type,
                                                             model_dimension=str(self.nb_dim),
+                                                            epsg_code=epsg_code,
                                                             unit_list=", ".join(unit_name_from_indextelemac_file2),
                                                             unit_list_full=unit_name_from_telemac_file,
                                                             unit_list_tf=unit_index_from_telemac_file,
@@ -3572,6 +3612,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(self.telemac_description["unit_list_tf"][i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
+                    self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.h2d_t2.currentIndexChanged.connect(self.change_telemac_gui_when_combobox_name)
                     self.load_b.setText("Load data and create " + str(
@@ -3597,9 +3638,14 @@ class TELEMAC(SubHydroW):  # QGroupBox
         for i in range(len(self.telemac_description["unit_list_full"])):
             self.units_QListWidget.item(i).setSelected(self.telemac_description["unit_list_tf"][i])
             self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+        self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
         self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
         self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
         self.unit_counter()
+
+    def set_epsg_code(self):
+        if hasattr(self, 'telemac_description'):
+            self.telemac_description["epsg_code"] = self.epsg_telemac_label.text()
 
     def unit_counter(self):
         # count total number items (units)
@@ -3652,6 +3698,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.number_timstep_label.setText("unknown")  # number units
         self.units_QListWidget.clear()
         self.units_QListWidget.setEnabled(True)
+        self.epsg_telemac_label.setEnabled(True)
         self.hname.setText("")  # hdf5 name
         self.load_b.setText("Load data and create one .hyd file")
 
@@ -3677,7 +3724,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         The function which call the function which load telemac and
          save the name of files in the project file
         """
-        # get timestep selected
+        # get timestep and epsg selected
         if self.multi_hdf5:
             for i in range(len(self.telemac_description_multiple)):
                 if not any(self.telemac_description_multiple[i]["unit_list_tf"]):
@@ -3688,6 +3735,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
             if not selection:
                 self.send_log.emit("Error: No units selected. \n")
                 return
+            self.telemac_description["epsg_code"] = self.epsg_telemac_label.text()
 
         # for error management and figures
         self.timer.start(100)
@@ -5119,12 +5167,6 @@ class SubstrateW(SubHydroW):
                     # check EPSG in .txt (polygon or point shp)
                     if "EPSG=" in epsg_raw:
                         epsg_code = epsg_raw.split("EPSG=")[1].strip()
-                        try:
-                            int(epsg_code)
-                        except:
-                            self.send_log.emit("Error: The EPSG code can't be converted to integer : "
-                                               + epsg_code)
-                            return
                     else:
                         self.send_log.emit("Error: The name 'EPSG=' is not found in .txt file.")
                         return
@@ -5443,6 +5485,7 @@ class SubstrateW(SubHydroW):
                                           sub_classification_method=sub_classification_method,
                                           sub_filename_source=filename,
                                           sub_constant_values=sub_constant_values,
+                                          sub_default_values=sub_constant_values,
                                           sub_class_number=str(len(sub_array)),
                                           sub_reach_number="1",
                                           sub_unit_number="1",
@@ -5630,12 +5673,6 @@ class SubstrateW(SubHydroW):
         # get if we erase old data or not
         # get the figure options and the type of output to be created
         fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        if fig_opt['erase_id'] == 'True':
-            erase_id = True
-        else:
-            erase_id = False
-        if fig_opt['shape_output'] == 'False':
-            path_shp = ""
 
         # block button merge
         self.load_b2.setDisabled(True)  # merge
