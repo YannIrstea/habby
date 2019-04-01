@@ -57,8 +57,13 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
 
     # merge the grid
     data_2d_merge, data_2d_whole_profile, data_description = merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub,
-                                                                                  path_hdf5, name_prj, path_prj,
-                                                                                  progress_value)
+                                                                                  path_prj, progress_value)
+
+    if not any([data_2d_merge, data_2d_whole_profile, data_description]) and not print_cmd:
+        sys.stdout = sys.__stdout__
+        if q:
+            q.put(mystdout)
+            return
 
     # progress
     progress_value.value = 90
@@ -88,7 +93,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
         return
 
 
-def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path_prj, progress_value):
+def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value):
     """
     After the data for the substrate and the hydrological data are loaded, they are still in different grids.
     This functions will merge both grid together. This is done for all time step and all reaches. If a
@@ -101,13 +106,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
     :return: the connectivity table, the coordinates, the substrated data, the velocity and height data all in a merge form.
 
     """
-    failload = [-99], [-99], [-99], [-99], [-99], [-99]
-    ikle_both = []
-    point_all_both = []
-    vel_all_both = []
-    height_all_both = []
-    z_all_both = []
-    sub_data_all_t = []
+    failload = [False, False, False]
 
     # load hdf5 hydro
     hdf5_hydro = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hyd)
@@ -117,85 +116,108 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
     hdf5_sub = hdf5_mod.Hdf5Management(path_prj, hdf5_name_sub)
     hdf5_sub.load_hdf5_sub(convert_to_coarser_dom=False)
 
-    if hdf5_sub.data_description["sub_mapping_method"] == "constant":
-        # new dict
-        merge_description = dict()
-        # copy attributes hydraulic
-        for attribute_name, attribute_value in list(hdf5_hydro.data_description.items()):
-            merge_description[attribute_name] = attribute_value
+    # merge_description
+    merge_description = dict()
+    # copy attributes hydraulic
+    for attribute_name, attribute_value in list(hdf5_hydro.data_description.items()):
+        merge_description[attribute_name] = attribute_value
+    # copy attributes substrate
+    for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
+        merge_description[attribute_name] = attribute_value
 
-        # copy attributes substrate
-        for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
-            merge_description[attribute_name] = attribute_value
+    # data_2d_merge and data_2d_whole_merge
+    data_2d_merge = dict(hdf5_hydro.data_2d)
+    data_2d_whole_merge = dict(hdf5_hydro.data_2d_whole)
 
-        # copy data from hyd
-        data_2d_merge = dict(hdf5_hydro.data_2d)
-        # for each reach
-        sub_array_by_reach = []
-        for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
-            # for each unit
-            sub_array_by_unit = []
-            for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
-                try:
-                    sub_array = np.array([hdf5_sub.data_2d["sub"] for _ in range(0, len(hdf5_hydro.data_2d["tin"][reach_num][unit_num]))])
-                except ValueError or TypeError:
-                    print('Error: no int in substrate. (only float or int accepted for now). \n')
-                    return failload
-                sub_array_by_unit.append(sub_array)
-            sub_array_by_reach.append(sub_array_by_unit)
-        # add sub data to dict
-        data_2d_merge["sub"] = sub_array_by_reach
-        return data_2d_merge, hdf5_hydro.data_2d_whole, merge_description
+    # CONSTANT CASE
+    if hdf5_sub.data_description["sub_mapping_method"] == "constant":  # set default value to all mesh
+        print("Substrate constant case.")
+        merge_description["hab_epsg_code"] = merge_description["hyd_epsg_code"]
+        data_2d_merge, data_2d_whole_merge = set_constant_values_to_merge_data(hdf5_hydro,
+                                                                               hdf5_sub,
+                                                                               data_2d_merge,
+                                                                               data_2d_whole_merge)
+        if not any([data_2d_merge, data_2d_whole_merge]):
+            return failload
 
+    # POLYGON AND POINTS CASES
     if hdf5_sub.data_description["sub_mapping_method"] != "constant":
-        # new dict
-        merge_description = dict()
-        # copy attributes hydraulic
-        for attribute_name, attribute_value in list(hdf5_hydro.data_description.items()):
-            merge_description[attribute_name] = attribute_value
+        print("Substrate polygon or point case.")
+        # check if EPSG are integer and if TRUE they must be equal
+        epsg_hyd = hdf5_hydro.data_description["hyd_epsg_code"]
+        epsg_sub = hdf5_sub.data_description["sub_epsg_code"]
+        if RepresentsInt(epsg_hyd) and RepresentsInt(epsg_sub):
+            if epsg_hyd == epsg_sub:
+                merge_description["hab_epsg_code"] = epsg_hyd
+            if epsg_hyd != epsg_sub:
+                print("Error : Merging failed. EPSG codes are different between hydraulic and substrate data : " + epsg_hyd + ", " + epsg_sub)
+                return failload
+        if not RepresentsInt(epsg_hyd) and RepresentsInt(epsg_sub):
+            print(
+                "Warning : EPSG code of hydraulic data is unknown (" + epsg_hyd + ") "
+                "and EPSG code of substrate data is known (" + epsg_sub + "). " +
+                "The merging data will still be calculated.")
+            merge_description["hab_epsg_code"] = epsg_sub
+        if RepresentsInt(epsg_hyd) and not RepresentsInt(epsg_sub):
+            print(
+                "Warning : EPSG code of hydraulic data is known (" + epsg_hyd + ") "
+                "and EPSG code of substrate data is unknown (" + epsg_sub + "). " +
+                "The merging data will still be calculated.")
+            merge_description["hab_epsg_code"] = epsg_hyd
 
-        # copy attributes substrate
-        for attribute_name, attribute_value in list(hdf5_sub.data_description.items()):
-            merge_description[attribute_name] = attribute_value
-
-        # defaut data
-        default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
-
-        # copy data from hyd
-        data_2d_merge = dict(hdf5_hydro.data_2d)
-
-        # prog
-        delta = 80 / int(hdf5_hydro.data_description["hyd_unit_number"])
-        prog = progress_value.value
+        # check if extent match
+        extent_hyd = list(map(float, hdf5_hydro.data_description["hyd_extent"].split(", ")))
+        extent_sub = list(map(float, hdf5_sub.data_description["sub_extent"].split(", ")))
+        if (extent_hyd[2] < extent_sub[0] or extent_hyd[0] > extent_sub[2] or
+                extent_hyd[3] < extent_sub[1] or extent_hyd[1] > extent_sub[3]):
+            print("Warning : No intersection found between hydraulic and substrate data (from extent intersection).")
+            extent_intersect = False
+        else:
+            extent_intersect = True
 
         # check if whole profile is equal for all timestep
         if hdf5_hydro.data_description["hyd_unit_wholeprofile"] == 'all':
             # have to check intersection for only one timestep
-            print("whole profile is equal for all timestep")
+            pass
         else:
             # TODO : merge for all time step
-            print("whole profile is not equal for all timestep")
+            pass
 
-        # for each reach
-        warn_inter = True
-        no_inter = False
-        for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
+        if not extent_intersect:  # set default value to all mesh
+            data_2d_merge, data_2d_whole_merge = set_constant_values_to_merge_data(hdf5_hydro,
+                                                                                   hdf5_sub,
+                                                                                   data_2d_merge,
+                                                                                   data_2d_whole_merge)
+            if not any([data_2d_merge, data_2d_whole_merge]):
+                return failload
 
-            # for each unit
-            sub_array_by_unit = []
-            vel_by_unit = []
-            height_by_unit = []
-            ikle_all_by_unit = []
-            point_all_by_unit = []
-            point_z_all_by_unit = []
-            for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
-
-                if not no_inter:  # in case that is possible to have intersection
-                    if unit_num == 0:  # should we adapt the subtrate grid? Only necessary once
-                        first_time = True
-                    else:
-                        first_time = False
-
+        if extent_intersect:
+            # defaut data
+            default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
+            """ data_2d_whole """
+            data_2d_whole_merge = hdf5_hydro.data_2d_whole
+            """ data_2d """
+            # prog
+            delta = 80 / int(hdf5_hydro.data_description["hyd_unit_number"])
+            prog = progress_value.value
+            warn_inter = True
+            ikle_both = []
+            point_all_both = []
+            vel_all_both = []
+            height_all_both = []
+            z_all_both = []
+            sub_data_all_t = []
+            # for each reach
+            for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
+                sub_array_by_unit = []
+                vel_by_unit = []
+                height_by_unit = []
+                ikle_all_by_unit = []
+                point_all_by_unit = []
+                point_z_all_by_unit = []
+                # for each unit
+                for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
+                    first_time = False
                     point_before = np.array(hdf5_hydro.data_2d["xy"][reach_num][unit_num])
                     point_z_before = np.array(hdf5_hydro.data_2d["z"][reach_num][unit_num])
                     ikle_before = np.array(hdf5_hydro.data_2d["tin"][reach_num][unit_num])
@@ -212,71 +234,71 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path
                                            progress_value, delta,
                                            first_time)
 
-                # if no intersection found at t==0
-                if len(data_crossing[0]) < 1 or no_inter:
-                    if warn_inter:
-                        print('Warning: No intersection between the grid and the substrate for one reach for'
-                              ' one or more time steps.\n')
-                        warn_inter = False
-                    try:
-                        # sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
-                        sub_data_here = default_data
-                    except ValueError:
-                        print('Error: no float in substrate. (only float accepted for now).\n')
-                        return failload
-                    sub_array_by_unit.append(sub_data_here)
-                    vel_by_unit.append(vel_before)
-                    height_by_unit.append(height_before)
-                    ikle_all_by_unit.append(ikle_before)
-                    point_all_by_unit.append(point_before)
-                    point_z_all_by_unit.append(point_z_before)
+                    # if no intersection found at t==0
+                    if len(data_crossing[0]) < 1:
+                        if warn_inter:
+                            print('Warning: No intersection between the grid and the substrate for one reach for'
+                                  ' one or more time steps.\n')
+                            warn_inter = False
+                        try:
+                            # sub_data_here = np.zeros(len(ikle_all[t][r]), ) + float(default_data)
+                            sub_data_here = default_data
+                        except ValueError:
+                            print('Error: no float in substrate. (only float accepted for now).\n')
+                            return failload
+                        sub_array_by_unit.append(sub_data_here)
+                        vel_by_unit.append(vel_before)
+                        height_by_unit.append(height_before)
+                        ikle_all_by_unit.append(ikle_before)
+                        point_all_by_unit.append(point_before)
+                        point_z_all_by_unit.append(point_z_before)
 
-                else:
+                    else:
 
-                    # create the new grid based on intersection found
-                    [ikle_here, point_all_here, new_data_sub, vel_new, height_new, z_values_new] = \
-                        create_merge_grid(ikle_before,
-                                          point_before,
-                                          data_sub,
-                                          vel_before,
-                                          height_before,
-                                          point_z_before,
-                                          ikle_sub,
-                                          default_data,
-                                          data_crossing,
-                                          sub_cell)
+                        # create the new grid based on intersection found
+                        [ikle_here, point_all_here, new_data_sub, vel_new, height_new, z_values_new] = \
+                            create_merge_grid(ikle_before,
+                                              point_before,
+                                              data_sub,
+                                              vel_before,
+                                              height_before,
+                                              point_z_before,
+                                              ikle_sub,
+                                              default_data,
+                                              data_crossing,
+                                              sub_cell)
 
-                    # check that each triangle of the grid is clock-wise (useful for shapefile)
-                    ikle_here = check_clockwise(ikle_here, point_all_here)
+                        # check that each triangle of the grid is clock-wise (useful for shapefile)
+                        ikle_here = check_clockwise(ikle_here, point_all_here)
 
-                    # print('TIME NEW GRID')
-                    # print(c - b)
-                    sub_array_by_unit.append(new_data_sub)
-                    vel_by_unit.append(vel_new)
-                    height_by_unit.append(height_new)
-                    point_z_all_by_unit.append(z_values_new)
-                    ikle_all_by_unit.append(np.array(ikle_here))
-                    point_all_by_unit.append(np.array(point_all_here))
+                        # print('TIME NEW GRID')
+                        # print(c - b)
+                        sub_array_by_unit.append(new_data_sub)
+                        vel_by_unit.append(vel_new)
+                        height_by_unit.append(height_new)
+                        point_z_all_by_unit.append(z_values_new)
+                        ikle_all_by_unit.append(np.array(ikle_here))
+                        point_all_by_unit.append(np.array(point_all_here))
 
-            ikle_both.append(ikle_all_by_unit)
-            point_all_both.append(point_all_by_unit)
-            sub_data_all_t.append(sub_array_by_unit)
-            vel_all_both.append(vel_by_unit)
-            height_all_both.append(height_by_unit)
-            z_all_both.append(point_z_all_by_unit)
-            # progress
-            prog += delta
-            progress_value.value = int(prog)
+                ikle_both.append(ikle_all_by_unit)
+                point_all_both.append(point_all_by_unit)
+                sub_data_all_t.append(sub_array_by_unit)
+                vel_all_both.append(vel_by_unit)
+                height_all_both.append(height_by_unit)
+                z_all_both.append(point_z_all_by_unit)
+                # progress
+                prog += delta
+                progress_value.value = int(prog)
 
-        # add sub data to dict
-        data_2d_merge["tin"] = ikle_both
-        data_2d_merge["xy"] = point_all_both
-        data_2d_merge["sub"] = sub_data_all_t
-        data_2d_merge["v"] = vel_all_both
-        data_2d_merge["h"] = height_all_both
-        data_2d_merge["z"] = z_all_both
+            # add sub data to dict
+            data_2d_merge["tin"] = ikle_both
+            data_2d_merge["xy"] = point_all_both
+            data_2d_merge["sub"] = sub_data_all_t
+            data_2d_merge["v"] = vel_all_both
+            data_2d_merge["h"] = height_all_both
+            data_2d_merge["z"] = z_all_both
 
-        return data_2d_merge, hdf5_hydro.data_2d_whole, merge_description
+    return data_2d_merge, data_2d_whole_merge, merge_description
 
 
 def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_value, delta, first_time=False):
@@ -665,6 +687,27 @@ def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_
     return ikle_sub, coord_p_sub, data_sub, data_crossing, sub_cell
 
 
+def set_constant_values_to_merge_data(hdf5_hydro, hdf5_sub, data_2d_merge, data_2d_whole_merge):
+    # for each reach
+    sub_array_by_reach = []
+    for reach_num in range(0, int(hdf5_hydro.data_description["hyd_reach_number"])):
+        # for each unit
+        sub_array_by_unit = []
+        for unit_num in range(0, int(hdf5_hydro.data_description["hyd_unit_number"])):
+            try:
+                default_data = np.array(list(map(int, hdf5_sub.data_description["sub_default_values"].split(", "))))
+                sub_array = np.repeat([default_data], len(data_2d_merge["tin"][reach_num][unit_num]), 0)
+            except ValueError or TypeError:
+                print('Error: Merging failed. No numerical data in substrate. (only float or int accepted for now). \n')
+                return False, False
+            sub_array_by_unit.append(sub_array)
+        sub_array_by_reach.append(sub_array_by_unit)
+    # add sub data to dict
+    data_2d_merge["sub"] = sub_array_by_reach
+    data_2d_whole_merge["sub"] = sub_array_by_reach
+    return data_2d_merge, data_2d_whole_merge
+
+
 def inside_trigon(pt, p0, p1, p2):
     """
     This function check if a point is in a triangle using the barycentric coordinates.
@@ -727,7 +770,8 @@ def intersec_cross(hyd1, hyd2, sub1, sub2):
             xcross = hyd1[0] + u * sx
             ycross = hyd1[1] + u * sy
     else:
-        print('rxs == 0')
+        pass
+        #print('rxs == 0')
     return [xcross, ycross]
 
 
@@ -1033,11 +1077,9 @@ def finit_element_interpolation(newp, point_old, data_old):
         #export_one_mesh_and_new_point(x1, y1, va1, x2, y2, va2, x3, y3, va3, xm, ym, valm)
     else:
         # formula Yann Lecoarer
-        valm = va1 + (
-            (((xm - x1) * ((y2 - y1) * (va2 - va3) - (y2 - y3) * (va2 - va1))) +
-            ((ym - y1) * ((x2 - x3) * (va2 - va1) - (x2 - x1) * (va2 - va3)))) /
-            (((x2 - x3) * (y2 - y1)) - ((x2 - x1) * (y2 - y3)))
-        )
+        valm = va1 + ((xm - x1) * ((y2 - y1) * (va2 - va3) - (y2 - y3) * (va2 - va1)) + (ym - y1) * (
+                    (x2 - x3) * (va2 - va1) - (x2 - x1) * (va2 - va3))) / (
+                           (x2 - x3) * (y2 - y1) - (x2 - x1) * (y2 - y3))
 
     return valm
 
@@ -1149,6 +1191,13 @@ def fig_merge_grid(point_all_both_t, ikle_both_t, path_im, name_add='', ikle_orr
     plt.savefig(os.path.join(path_im, "Grid_merge_" + name_add + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
                 dpi=1000)
 
+
+def RepresentsInt(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 def main():
     """
