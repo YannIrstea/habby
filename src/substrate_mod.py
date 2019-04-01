@@ -21,12 +21,13 @@ import os
 import numpy as np
 from scipy.spatial import Voronoi
 from random import uniform
-import triangle
+import triangle as tr
 from random import randrange
-from shapely.geometry.polygon import Polygon
-from shapely.geometry import Point, MultiPoint
+from shapely.geometry import MultiPoint, Polygon, Point
 from PyQt5.QtWidgets import QMessageBox
 from src import hdf5_mod
+from src.tools_mod import get_prj_from_epsg_web
+from src import manage_grid_mod
 
 
 def open_shp(filename, path):
@@ -150,45 +151,80 @@ def get_useful_attribute(attributes):
     return sub_classification_method, attribute_name
 
 
-def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
-    path_shp = path_prj + r"/input"
-    # Read shapefile
-    file = os.path.join(path_file, filename)
-    sf = shapefile.Reader(file)
+def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
+    """
+    Convert a polygon shapefile to a polygon triangle shapefile
+    with a constrained Delaunay triangulation
+    of a Planar Straight Line Graph (PSLG)
+    :param in_shp_path: path where the input shapefile is present.
+    :param in_shp_filename: input filename (with extension)
+    :param out_shp_path: path where the output shapefile will be produced.
+    :param out_shp_filename: output filename (with extension)
+    :return: True (triangle shapefile produced) False (error)
+    """
+    # init
+    shapefile_type = 5  # polygon
+    prj = False  # presence of the .prj accompanying the shapefile
+
+    # read source shapefile
+    in_shp_abs_path = os.path.join(path_file, filename)
+    in_shp_basename_abs_path = os.path.splitext(in_shp_abs_path)[0]
+    sf = shapefile.Reader(in_shp_abs_path)
+    if sf.shapeType != shapefile_type:
+        print("file is not polygon type")
+        return False
     shapes = sf.shapes()
     records = sf.records()
     fields = sf.fields[1:]
-    if os.path.isfile(file[:-4] + ".prj"):
-        prj = open(file[:-4] + ".prj", "r").read()
-    # shapes[i].points[:] [(x0, y0), (x1, y1), (x2, y2), (x3, y3),(x0, y0) ] clockwise description
+    if os.path.isfile(in_shp_basename_abs_path + ".prj"):
+        prj = open(in_shp_basename_abs_path + ".prj", "r").read()
 
     # Extract list of points and segments from shp
     vertices_array = []  # point
     segments_array = []  # segment index or connectivity table
-    polyg_index = []
+    holes_array = []
+    inextpoint = 0
     for i in range(len(shapes)):  # for each polygon
-        polyg_index.append((i, i))
-        new_points = list((shapes[i].points[:-1]))  # taking off the first redundant description point
-        vertices_array.extend(new_points)
-        if i == 0:
-            a, b = 0, len(new_points) - 1
+        if len(shapes[i].parts) > 1:  # polygon a trous
+            index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
+            new_points = []
+            lnbptspolys = []
+            for j in range(len(index_hole) - 1):
+                new_points.extend(shapes[i].points[index_hole[j]:index_hole[j + 1] - 1])
+                lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
+                if j > 0:  # hole presence : creating a single point inside the hole using triangulation
+                    vertices_hole = np.array(shapes[i].points[index_hole[j]:index_hole[j + 1] - 1])
+                    segments_hole = []
+                    for k in range(lnbptspolys[-1]):
+                        segments_hole.append([k % lnbptspolys[-1], (k + 1) % lnbptspolys[-1]])
+                    segments_hole = np.array(segments_hole)
+                    polygon_hole = dict(vertices=vertices_hole, segments=segments_hole)
+                    polygon_hole_triangle = tr.triangulate(polygon_hole, "p")
+                    p1 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][0]].tolist()
+                    p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
+                    p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
+                    holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
         else:
-            a = b + 1
-            b += len(new_points)
-        for j in range(a, b):  # pour chaque point du polygone
-            segments_array.append([j, j + 1])
-        segments_array.append([b, a])  # triangle requires this segment to close the polygon
-    vertices_array = np.array(vertices_array)
+            new_points = list((shapes[i].points[:-1]))  # taking off the first redundant description point
+            lnbptspolys = [len(new_points)]
+        # add
+        vertices_array.extend(new_points)  # add the points to list
+        for j in range(len(lnbptspolys)):  # add the segments to list
+            for k in range(lnbptspolys[j]):
+                segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
+            inextpoint += lnbptspolys[j]
 
-    # Taking off the doublons (AIM: for using triangle to transform polygons into triangles it is necessary to avoid any point doublon)
-    n0 = np.array([[i] for i in range(b + 1)])
+    # Taking off the doublons
+    # AIM: for using triangle to transform polygons into triangles it is necessary to avoid any point doublon
+    vertices_array = np.array(vertices_array)
+    n0 = np.array([[i] for i in range(inextpoint)])
     t = np.hstack([vertices_array, n0])
     t = t[t[:, 1].argsort()]  # sort in y secondary key
     t = t[t[:, 0].argsort()]  # sort in x primary key
     vertices_array2 = []
     corresp = []
     j = -1
-    for i in range(b + 1):
+    for i in range(inextpoint):
         if i == 0 or not (x0 == t[i][0] and y0 == t[i][1]):
             x0, y0 = t[i][0], t[i][1]
             vertices_array2.append([x0, y0])
@@ -201,51 +237,81 @@ def convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file,
         segments_array2.append([corresp[elem[0]][1], corresp[elem[1]][1]])
     segments_array2 = np.array(segments_array2)
     vertices_array2 = np.array(vertices_array2)
+    holes_array = np.array(holes_array)
 
     # triangulate on polygon (if we use regions
-    polygon_from_shp = dict(vertices=vertices_array2, segments=segments_array2)  # , regions=polyg_index2
-    polygon_triangle = triangle.triangulate(polygon_from_shp, "p")  # , opts="p")
-    # triangle.plot.compare(plt, polygon_from_shp, polygon_triangle)
-    # plt.show()
+    if holes_array.size == 0:
+        polygon_from_shp = dict(vertices=vertices_array2,
+                                segments=segments_array2)
+    else:
+        polygon_from_shp = dict(vertices=vertices_array2,
+                                segments=segments_array2,
+                                holes=holes_array)
+    polygon_triangle = tr.triangulate(polygon_from_shp, "p")  # , opts="p")
+    #tr.compare(plt, polygon_from_shp, polygon_triangle)
 
     # get geometry and attributes of triangles
-    verticeList = polygon_triangle["vertices"]
-    trianglesListIndex = polygon_triangle["triangles"]
-    shapeType_OUT = sf.shapeType
-    polyg_OUT = []
-    trianglesListRecords2 = []
-    for i in range(len(trianglesListIndex)):
+    triangle_geom_list = []
+    triangle_records_list = []
+    for i in range(len(polygon_triangle["triangles"])):
         # triangle coords
-        p1 = verticeList[trianglesListIndex[i][0]].tolist()
-        p2 = verticeList[trianglesListIndex[i][1]].tolist()
-        p3 = verticeList[trianglesListIndex[i][2]].tolist()
-        polyg_OUT.append([p1, p2, p3])
+        p1 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][0]].tolist()
+        p2 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][1]].tolist()
+        p3 = polygon_triangle["vertices"][polygon_triangle["triangles"][i][2]].tolist()
+        triangle_geom_list.append([p1, p2, p3])
         # triangle centroid
         xmean = (p1[0] + p2[0] + p3[0]) / 3
         ymean = (p1[1] + p2[1] + p3[1]) / 3
         polyg_center = (xmean, ymean)
         # if center in polygon: get attributes
         for j in range(len(shapes)):  # for each polygon
-            if Polygon(shapes[j].points[:-1]).contains(Point(polyg_center)):
-                #print("triangle ", i, " contained by polygon ", j)
-                # polygon attributes
-                trianglesListRecords2.append(records[j])
+            if len(shapes[j].parts) > 1:  # hole presence
+                point_list = shapes[j].points[:shapes[j].parts[1]-2]
+            else:
+                point_list = shapes[j].points[:-1]
+            if point_inside_polygon(polyg_center[0], polyg_center[1], point_list):
+                triangle_records_list.append(records[j])
 
-    # export new shapefile triangle in path prj
-    filenameOUT = filename[:-4] + "_triangulated"  # "Substrat_simple_pr_triangle.shp" # # #
-    fileOUT = os.path.join(path_shp, filenameOUT)
-    w = shapefile.Writer(shapeType_OUT)
+    # write triangulate shapefile
+    out_shp_basename = os.path.splitext(filename)[0]
+    out_shp_filename = out_shp_basename + "_triangulated.shp"
+    out_shp_path = os.path.join(path_prj, "input")
+    out_shp_abs_path = os.path.join(out_shp_path, out_shp_filename)
+    out_shp_basename_abs_path = os.path.splitext(out_shp_abs_path)[0]
+    w = shapefile.Writer(shapefile_type)
     for field in fields:
         w.field(*field)
-    for i in range(len(polyg_OUT)):
-        w.poly(parts=[polyg_OUT[i]])
-        w.record(*trianglesListRecords2[i])
-
-    w.save(fileOUT)
-    if os.path.isfile(file[:-4] + ".prj"):
-        open(fileOUT + ".prj", "w").write(prj)
-
+    for i in range(len(triangle_geom_list)):
+        w.poly(parts=[triangle_geom_list[i]])
+        w.record(*triangle_records_list[i])
+    w.save(out_shp_abs_path)
+    if prj:
+        open(out_shp_basename_abs_path + ".prj", "w").write(prj)
     return True
+
+
+def point_inside_polygon(x, y, poly):
+    """
+    To know if point is inside or outsite of a polygon (without holes)
+    :param x: coordinate x in float
+    :param y: coordinate y in float
+    :param poly: list of coordinates [[x1, y1], ..., [xn, yn]]
+    :return: True (inside), False (not inseide)
+    """
+    n = len(poly)
+    inside = False
+    p1x, p1y = poly[0]
+    for i in range(n + 1):
+        p2x, p2y = poly[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+    return inside
 
 
 def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_classification_code):
@@ -335,6 +401,8 @@ def shp_validity(filename, path_prj, code_type, dominant_case=1):
 
     # open shape file (think about zero or one to start! )
     sf = open_shp(filename, path_prj)
+
+    fields = sf.fields
 
     # find where the info is and how was given the substrate (percentage or coarser/dominant/accessory)
     [attribute_type, attribute_name] = get_useful_attribute(fields)
@@ -528,7 +596,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
-        if convert_sub_shapefile_polygon_to_sub_shapefile_triangle(filename, path_file, path_prj):
+        if polygon_shp_to_triangle_shp(filename, path_file, path_prj):
             # file name triangulated
             filename = filename[:-4] + "_triangulated.shp"
 
@@ -538,7 +606,7 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
             ind = 0
 
             # open shape file (think about zero or one to start! )
-            sf = open_shp(filename, path_prj + "/input")
+            sf = open_shp(filename, os.path.join(path_prj, "input"))
 
             # get point coordinates and connectivity table in two lists
             shapes = sf.shapes()
@@ -558,9 +626,9 @@ def load_sub_shp(filename, path_file, path_prj, path_hdf5, name_prj, name_hdf5, 
             sub_array = list(zip(*records))
 
             data_2d = dict()
-            data_2d["tin"] = [tin]
-            data_2d["xy"] = [xy]
-            data_2d["sub"] = [sub_array]
+            data_2d["tin"] = [np.array(tin)]
+            data_2d["xy"] = [np.array(xy)]
+            data_2d["sub"] = [np.array(sub_array)]
             data_2d["nb_unit"] = 1
             data_2d["nb_reach"] = 1
 
@@ -816,7 +884,7 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         dataelement[1] = dataelement[1] - min_y
 
     # voronoi
-    vor = Voronoi(point_in)  # , qhull_options="Qt"
+    vor = Voronoi(point_in, qhull_options="Qt")  #
 
     # remove translation
     for dataelement in vor.vertices:
@@ -830,34 +898,43 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         dataelement[1] = dataelement[1] + min_y
 
     # voronoi_finite_polygons_2d (all points)
-    regions, vertices = voronoi_finite_polygons_2d(vor)
+    regions, vertices = voronoi_finite_polygons_2d(vor, 200)
+
+    # create extent from points
+    rect_extent = point_in[:, 0].min(), point_in[:, 1].min(), point_in[:, 0].max(), point_in[:, 1].max()
+
+    # clip from point extent + 200m
+    regions, vertices = clip_polygons_from_rect(regions, vertices, rect_extent)
 
     # convex_hull buffer to cut polygons
-    list_points = [Point(i) for i in point_in]
-    convex_hull = MultiPoint(list_points).convex_hull.buffer(200)
+    # list_points = [Point(i) for i in point_in]
+    # convex_hull = MultiPoint(list_points).convex_hull.buffer(200)
+    #
+    # # for each polyg voronoi
+    # list_polyg = []
+    # for region in regions:
+    #     polygon = vertices[region]
+    #     shape = list(polygon.shape)
+    #     shape[0] += 1
+    #     list_polyg.append(Polygon(np.append(polygon, polygon[0]).reshape(*shape)).intersection(convex_hull))
+    #
+    # # find one sub data by polyg
+    # if len(list_polyg) == 0:
+    #     print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
+    #     return False
+    #
+    # sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_class_number)]
+    #
+    # for e in range(0, len(list_polyg)):
+    #     polygon = list_polyg[e]
+    #     centerx = np.float64(polygon.centroid.x)
+    #     centery = np.float64(polygon.centroid.y)
+    #     nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
+    #     for k in range(sub_class_number):
+    #         sub_array2[k][e] = sub_array[k][nearest_ind]
 
-    # for each polyg
-    list_polyg = []
-    for region in regions:
-        polygon = vertices[region]
-        shape = list(polygon.shape)
-        shape[0] += 1
-        list_polyg.append(Polygon(np.append(polygon, polygon[0]).reshape(*shape)).intersection(convex_hull))
+    sub_array2 = [np.zeros(len(regions), ) for i in range(sub_class_number)]
 
-    # find one sub data by polyg
-    if len(list_polyg) == 0:
-        print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
-        return False
-
-    sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_class_number)]
-
-    for e in range(0, len(list_polyg)):
-        polygon = list_polyg[e]
-        centerx = np.float64(polygon.centroid.x)
-        centery = np.float64(polygon.centroid.y)
-        nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
-        for i in range(sub_class_number):
-            sub_array2[i][e] = sub_array[i][nearest_ind]
 
     # export sub initial voronoi in a shapefile
     w = shapefile.Writer(shapefile.POLYGON)
@@ -870,9 +947,13 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
         for i in range(sub_class_number):
             w.field('S' + str(i + 1), 'N', 10, 0)
 
-    for i, polygon in enumerate(list_polyg):  # for each polygon
-        coord_list = list(polygon.exterior.coords)
+    #for i, polygon in enumerate(list_polyg):  # for each polygon
+    for i, region in enumerate(regions):  # for each polygon
+        #coord_list = list(polygon.exterior.coords)
+        coord_list = vertices[region].tolist()
         w.poly(parts=[coord_list])  # the double [[]] is important or it bugs, but why?
+        for k in range(sub_class_number):
+            sub_array2[k][i] = sub_array[k][i]
         data_here = [item[i] for item in sub_array2]
         w.record(*data_here)
 
@@ -881,7 +962,13 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     sub_filename_voronoi_shp = name + '_voronoi' + '.shp'
     sub_filename_voronoi_shp_path = os.path.join(path_shp, sub_filename_voronoi_shp)
     w.save(sub_filename_voronoi_shp_path)
-
+    # write .prj
+    if sub_epsg_code != "unknown":
+        try:
+            string_prj = get_prj_from_epsg_web(int(sub_epsg_code))
+            open(os.path.join(path_shp, os.path.splitext(sub_filename_voronoi_shp)[0]) + ".prj", "w").write(string_prj)
+        except:
+            print("Warning : Can't write .prj from EPSG code :", sub_epsg_code)
     return sub_filename_voronoi_shp  # xy, ikle, sub_dom2, sub_pg2, x, y, sub_dom, sub_pg
 
 
@@ -948,7 +1035,7 @@ def modify_grid_if_concave(ikle, point_all, sub_pg, sub_dom):
             # triangulate
             try:
                 dict_point = dict(vertices=point_cell, segments=seg_cell)
-                grid_dict = triangle.triangulate(dict_point, 'p')
+                grid_dict = tr.triangulate(dict_point, 'p')
             except:
                 # to be done: create a second threat so that the error management will function
                 print('Triangulation failed')
@@ -1033,7 +1120,7 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
 
     # get a new substrate grid
     dict_point = dict(vertices=point_new)
-    grid_sub = triangle.triangulate(dict_point)
+    grid_sub = tr.triangulate(dict_point)
     try:
         ikle_r = list(grid_sub['triangles'])
         point_all_r = list(grid_sub['vertices'])
@@ -1117,6 +1204,63 @@ def create_dummy_substrate_from_hydro(h5name, path, new_name, code_type, attribu
         np.savetxt(os.path.join(path_out, new_name + '.txt'), data)
 
 
+def clip_polygons_from_rect(polygon_regions, polygon_vertices, rect):
+    # create rect_sides (clockwise)
+    xMin = rect[0] - 200
+    yMin = rect[1] - 200
+    xMax = rect[2] + 200
+    yMax = rect[3] + 200
+    left_side = [[xMin, yMin], [xMin, yMax]]
+    top_side = [[xMin, yMax], [xMax, yMax]]
+    right_side = [[xMax, yMax], [xMax, yMin]]
+    bottom_side = [[xMax, yMin], [xMin, yMin]]
+    extent = [xMin, yMin, xMax, yMax]
+    rect_sides = np.stack([left_side, top_side, right_side, bottom_side])
+
+    # # init
+    # shapefile_type = 5  # polygon
+    # # write shapefile
+    # out_shp_abs_path = os.path.join(r"C:\temp_out", "create_polygon_shp_from_data.shp")
+    # w = shapefile.Writer(shapefile_type)
+    # w.autoBalance = 1
+    # w.fields = [('empty', 'N', 10, 0)]
+    # w.poly(parts=rect_sides.tolist())
+    # aa = list([0.0])
+    # w.record(*aa)
+    # w.save(out_shp_abs_path)
+
+    # for each polygon
+    for i, region in enumerate(polygon_regions):  # for each polygon
+        # coord_list = list(polygon.exterior.coords)
+        coord_array = polygon_vertices[region]
+        first_done = False
+        # for each segment
+        for j in range(len(coord_array)):
+            segment = np.stack([coord_array[j], coord_array[j - 1]])
+            # segment outside of extent
+            if not rectContains(extent, segment[0]) and not rectContains(extent, segment[1]):
+                print("segment outside of extent")
+                polygon_vertices[region[j]] = polygon_vertices[region[j - 1]]
+            # segment inside extent
+            else:
+                if not first_done:
+                    # for each side of rectangle
+                    for rect_side in rect_sides:
+                        intersect, point = manage_grid_mod.intersection_seg(rect_side[0], rect_side[1], segment[0], segment[1])
+                        if intersect:
+                            print("intersect")
+                            polygon_vertices[region[j]] = np.array(point[0])
+                            first_done = True
+
+
+    return polygon_regions, polygon_vertices
+
+
+def rectContains(rect, pt):
+    logic = rect[0] < pt[0] < rect[0]+rect[2] and rect[1] < pt[1] < rect[1]+rect[3]
+    return logic
+
+
 def voronoi_finite_polygons_2d(vor, radius=None):
     """
     Reconstruct infinite voronoi regions in a 2D diagram to finite
@@ -1178,7 +1322,7 @@ def voronoi_finite_polygons_2d(vor, radius=None):
 
             # Compute the missing endpoint of an infinite ridge
 
-            t = vor.points[p2] - vor.points[p1] # tangent
+            t = vor.points[p2] - vor.points[p1]  # tangent
             t /= np.linalg.norm(t)
             n = np.array([-t[1], t[0]])  # normal
 
