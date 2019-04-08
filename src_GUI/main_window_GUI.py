@@ -2044,11 +2044,16 @@ class CentralW(QWidget):
 
     def closefig(self):
         """
-        A small function to close the images open in HABBY and managed by matplotlib
+        method to close the images opened in HABBY and managed by matplotlib
         """
         if hasattr(self, 'data_explorer_tab'):
             if hasattr(self.data_explorer_tab.data_explorer_frame, 'plot_process_list'):
                 self.data_explorer_tab.data_explorer_frame.plot_process_list.close_all_plot_process()
+        if hasattr(self, 'bioinfo_tab'):
+            if hasattr(self.bioinfo_tab, 'plot_process_list'):
+                self.bioinfo_tab.plot_process_list.close_all_plot_process()
+
+
 
     def optfig(self):
         """

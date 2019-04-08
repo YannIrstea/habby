@@ -33,7 +33,9 @@ from src import bio_info_mod
 from src_GUI import estimhab_GUI
 from src import calcul_hab_mod
 from src import hdf5_mod
+from src import plot_mod
 from src_GUI import preferences_GUI
+from src_GUI.data_explorer_GUI import MyProcessList
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -75,7 +77,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
-
         self.init_iu()
 
     def init_iu(self):
@@ -407,13 +408,22 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the file
         i = self.list_f.currentRow()
         xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
-        # do the plot
-        sys.stdout = self.mystdout = StringIO()
-        bio_info_mod.plot_hydrosignature(xmlfile)
-        sys.stdout = sys.__stdout__
+
+        # get data
+        sys.stdout = self.mystdout = StringIO()  # out to GUI
+        data = bio_info_mod.get_hydrosignature(xmlfile)
+        sys.stdout = sys.__stdout__  # reset to console
         self.send_err_log()
-        # show the plot
-        self.show_fig.emit()
+        if isinstance(data, np.ndarray):
+            # do the plot
+            if not hasattr(self, 'plot_process_list'):
+                self.plot_process_list = MyProcessList(self.nativeParentWidget().progress_bar)
+            state = Value("i", 0)
+            hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
+                                             args=(state,
+                                                   data,
+                                                   self.data_fish[i, 0]))
+            self.plot_process_list.append((hydrosignature_process, state))
 
     def select_fish(self):
         """
@@ -520,10 +530,21 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_err_log()
         # plot the pref
         fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        bio_info_mod.figure_pref(h_all, vel_all, sub_all, code_fish, name_fish, stages, fig_opt=fig_dict)
 
-        # show the image
-        self.show_fig.emit()
+        # do the plot
+        if not hasattr(self, 'plot_process_list'):
+            self.plot_process_list = MyProcessList(self.nativeParentWidget().progress_bar)
+        state = Value("i", 0)
+        curve_process = Process(target=plot_mod.plot_suitability_curve,
+                                         args=(state,
+                                               h_all,
+                                               vel_all,
+                                               sub_all,
+                                               code_fish,
+                                               name_fish,
+                                               stages,
+                                               fig_dict))
+        self.plot_process_list.append((curve_process, state))
 
     def run_habitat_value(self):
         """

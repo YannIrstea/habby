@@ -19,13 +19,159 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
-import matplotlib.dates as mdates
 import mplcursors
 import time
 import os
 from datetime import datetime as dt
+
 from src_GUI import preferences_GUI
 from src import calcul_hab_mod
+
+
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, fig_opt):
+    """
+    This function is used to plot the preference curves.
+
+    :param height: the height preference data (list of list)
+    :param vel: the height preference data (list of list)
+    :param sub: the height preference data (list of list)
+    :param code_fish: the three letter code which indiate which fish species
+        is analyzed
+    :param name_fish: the name of the fish analyzed
+    :param stade: the name of the stade analyzed (ADU, JUV, ...)
+    :param get_fig: usually False, If True return the figure
+        (to modfied it more)
+    """
+    mpl.rcParams['pdf.fonttype'] = 42
+    if not fig_opt:
+        fig_opt = preferences_GUI.create_default_figoption()
+    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+    plt.rcParams['font.size'] = fig_opt['font_size']
+    if fig_opt['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    plt.rcParams['legend.loc'] = 'best'
+    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
+    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if fig_opt['marker'] == 'True':
+        mar = 'o'
+    else:
+        mar = None
+    if fig_opt['language'] == 0:
+        title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
+    else:
+        title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
+
+    if len(stade) > 1:  # if you take this out, the command
+        # axarr[x,x] does not work as axarr is only 1D
+        f, axarr = plt.subplots(len(stade), 3, sharey='row')
+        f.canvas.set_window_title(title_plot)
+        plt.suptitle(title_plot)
+        for s in range(0, len(stade)):
+            axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
+            if fig_opt['language'] == 0:
+                axarr[s, 0].set_xlabel('Water height [m]')
+                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
+            else:
+                axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
+                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
+            axarr[s, 0].set_ylim([0, 1.1])
+
+            axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
+            if fig_opt['language'] == 0:
+                axarr[s, 1].set_xlabel('Velocity [m/sec]')
+            else:
+                axarr[s, 1].set_xlabel('Vitesse [m/sec]')
+            axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
+            axarr[s, 1].set_ylim([0, 1.1])
+
+            if len(sub[0][0]) > 2:  # if substrate is accounted,
+                # it is accounted for all stages
+                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
+                                align='center')
+            if fig_opt['language'] == 0:
+                axarr[s, 2].set_xlabel('Substrate []')
+            else:
+                axarr[s, 2].set_xlabel('Substrat []')
+            axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
+            axarr[s, 2].set_ylim([0, 1.1])
+            axarr[s, 2].set_xlim([0.4, 8.6])
+
+    else:
+        f, axarr = plt.subplots(3, 1, sharey='row')
+        f.canvas.set_window_title(title_plot)
+        plt.suptitle(title_plot)
+        axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
+        if fig_opt['language'] == 0:
+            axarr[0].set_xlabel('Water height [m]')
+            axarr[0].set_ylabel('Coeff. pref. ')
+        else:
+            axarr[0].set_xlabel("Hauteur d'eau [m]")
+            axarr[0].set_ylabel('Coeff. pref. ')
+        axarr[0].set_ylim([0, 1.1])
+
+        axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
+        if fig_opt['language'] == 0:
+            axarr[1].set_xlabel('Velocity [m/sec]')
+        else:
+            axarr[1].set_xlabel('Vitesse [m/sec]')
+        axarr[1].set_ylabel('Coeff. pref. ')
+        axarr[1].set_ylim([0, 1.1])
+
+        if len(sub[0][0]) > 2:
+            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
+        if fig_opt['language'] == 0:
+            axarr[2].set_xlabel('Substrate []')
+        else:
+            axarr[2].set_xlabel('Substrat []')
+        axarr[2].set_ylabel('Coeff. pref. ')
+        axarr[2].set_ylim([0, 1.1])
+        axarr[2].set_xlim([0.4, 8.6])
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    # fm = plt.get_current_fig_manager()
+    # fm.window.showMinimized()
+    plt.show()
+
+
+def plot_hydrosignature(state, data, fishname):
+    mpl.rcParams['pdf.fonttype'] = 42
+    fig_opt = preferences_GUI.create_default_figoption()
+
+    if fig_opt['language'] == 0:
+        title_plot = 'Measurement conditions \n' + fishname
+    else:
+        title_plot = 'Hydrosignature \n' + fishname
+
+    plt.figure(title_plot)
+    # cmap should be coherent with text color
+    plt.imshow(data, cmap='Blues', interpolation='nearest', origin='lower')
+    #  extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()]
+    ax1 = plt.gca()
+
+    # add percetage number
+    maxlab = np.max(data)
+    for (j, i), label in np.ndenumerate(data):
+        # text in black or white depending on the data
+        if label < maxlab / 2:
+            ax1.text(i, j, np.round(label, 2), ha='center',
+                     va='center', color='black')
+        else:
+            ax1.text(i, j, np.round(label, 2), ha='center',
+                     va='center', color='white')
+    plt.title(title_plot)
+    plt.xlabel('Velocity [m/s]')
+    plt.ylabel('Height [m]')
+    plt.locator_params(nticks=3)
+    cbar = plt.colorbar()
+    cbar.ax.set_ylabel('Relative area [%]')
+
+    # output for plot_GUI
+    state.value = 1  # process finished
+    # fm = plt.get_current_fig_manager()
+    # fm.window.showMinimized()
+    plt.show()
 
 
 def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[], time_step=0, points=False):
@@ -587,7 +733,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
                                     boundaries=listcathegories,
                                     orientation='vertical')
     cb1.set_label(sub_description_system["sub_classification_code"])
-    # plt.tight_layout()
+    plt.tight_layout()
 
     # save the figure
     if types_plot == "image export" or types_plot == "both":
@@ -611,43 +757,6 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
                 plt.savefig(os.path.join(path_im, filename_pg_dm + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
             if format == 2:
                 plt.savefig(os.path.join(path_im, filename_pg_dm + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
-
-    # if we start with txt data, plot the original data
-    # not done usually, but we let it here to debug
-    if xtxt != [-99]:
-        plt.figure()
-        subtxt = list(map(float, subtxt))
-        # size of the marker (to avoid having to pale, unclear figure)
-        # this is a rough estimation, no need for precise number here
-        d1 = 0.5 * np.sqrt((xtxt[1] - xtxt[0]) ** 2 + (ytxt[1] - xtxt[1]) ** 2)  # dist in coordinate
-        dist_data = np.mean([np.max(xtxt) - np.min(xtxt), np.max(ytxt) - np.min(ytxt)])
-        f_len = 5 * 72  # point is 1/72 inch, figure is 5 inch large
-        transf = f_len / dist_data
-        s1 = 3.1 * (d1 * transf) ** 2 / 2  # markersize is given as an area
-
-        cm = plt.cm.get_cmap('gist_rainbow')
-        sc = plt.scatter(xtxt, ytxt, c=subtxt, vmin=np.nanmin(subtxt), vmax=np.nanmax(subtxt), s=34, cmap=cm,
-                         edgecolors='none')
-        plt.xlabel('x coord []')
-        plt.ylabel('y coord []')
-        if fig_opt['language'] == 0:
-            plt.title('Original Substrate Data (x,y)')
-        elif fig_opt['language'] == 1:
-            plt.title('Données Substrat Original (x,y)')
-        else:
-            plt.title('Original Substrate Data (x,y)')
-        if types_plot == "image export" or types_plot == "both":
-            if not erase1:
-                plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
-                            fig_opt['resolution'], transparent=True)
-                plt.savefig(os.path.join(path_im, "substrate_txtdata" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
-                            fig_opt['resolution'], transparent=True)
-            else:
-                test = calcul_hab_mod.remove_image("substrate_txtdata", path_im, format)
-                if not test:
-                    return
-                plt.savefig(os.path.join(path_im, "substrate_txtdata.png"), fig_opt['resolution'], transparent=True)
-                plt.savefig(os.path.join(path_im, "substrate_txtdata.pdf"), fig_opt['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished

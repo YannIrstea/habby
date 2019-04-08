@@ -233,120 +233,6 @@ def test_evah_xml_pref(path_xml, path_evha):
     plt.show()
 
 
-def figure_pref(height, vel, sub, code_fish, name_fish,
-                stade, get_fig=False, fig_opt={}):
-    """
-    This function is used to plot the preference curves.
-
-    :param height: the height preference data (list of list)
-    :param vel: the height preference data (list of list)
-    :param sub: the height preference data (list of list)
-    :param code_fish: the three letter code which indiate which fish species
-        is analyzed
-    :param name_fish: the name of the fish analyzed
-    :param stade: the name of the stade analyzed (ADU, JUV, ...)
-    :param get_fig: usually False, If True return the figure
-        (to modfied it more)
-    """
-    mpl.rcParams['pdf.fonttype'] = 42
-    if not get_fig:
-        if not fig_opt:
-            fig_opt = preferences_GUI.create_default_figoption()
-        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-        plt.rcParams['font.size'] = fig_opt['font_size']
-        if fig_opt['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
-    plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    plt.rcParams['axes.grid'] = fig_opt['grid']
-    if fig_opt['marker'] == 'True':
-        mar = 'o'
-    else:
-        mar = None
-
-    if name_fish == '-99':  # failed before
-        return
-
-    if len(stade) > 1:  # if you take this out, the command
-        # axarr[x,x] does not work as axarr is only 1D
-        f, axarr = plt.subplots(len(stade), 3, sharey='row')
-        if fig_opt['language'] == 0:
-            plt.suptitle('Suitability curve of ' + name_fish
-                         + ' (' + code_fish + ') ')
-        else:
-            plt.suptitle('Courbe de préférence pour ' + name_fish
-                         + ' (' + code_fish + ') ')
-        for s in range(0, len(stade)):
-            axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
-            if fig_opt['language'] == 0:
-                axarr[s, 0].set_xlabel('Water height [m]')
-                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
-            else:
-                axarr[s, 0].set_xlabel("Hauteur d'eau [m]")
-                axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 0].set_ylim([0, 1.1])
-
-            axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
-            if fig_opt['language'] == 0:
-                axarr[s, 1].set_xlabel('Velocity [m/sec]')
-            else:
-                axarr[s, 1].set_xlabel('Vitesse [m/sec]')
-            axarr[s, 1].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 1].set_ylim([0, 1.1])
-
-            if len(sub[0][0]) > 2:  # if substrate is accounted,
-                # it is accounted for all stages
-                axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
-                                align='center')
-            if fig_opt['language'] == 0:
-                axarr[s, 2].set_xlabel('Substrate []')
-            else:
-                axarr[s, 2].set_xlabel('Substrat []')
-            axarr[s, 2].set_ylabel('Coeff. pref. ' + stade[s])
-            axarr[s, 2].set_ylim([0, 1.1])
-            axarr[s, 2].set_xlim([0.4, 8.6])
-
-    else:
-        f, axarr = plt.subplots(3, 1, sharey='row')
-        if fig_opt['language'] == 0:
-            plt.suptitle('Suitability curve of ' + name_fish
-                         + ' (' + code_fish + ') ')
-        else:
-            plt.suptitle('Courbe de préférence pour ' + name_fish
-                         + ' (' + code_fish + ') ')
-
-        axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
-        if fig_opt['language'] == 0:
-            axarr[0].set_xlabel('Water height [m]')
-            axarr[0].set_ylabel('Coeff. pref. ')
-        else:
-            axarr[0].set_xlabel("Hauteur d'eau [m]")
-            axarr[0].set_ylabel('Coeff. pref. ')
-        axarr[0].set_ylim([0, 1.1])
-
-        axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
-        if fig_opt['language'] == 0:
-            axarr[1].set_xlabel('Velocity [m/sec]')
-        else:
-            axarr[1].set_xlabel('Vitesse [m/sec]')
-        axarr[1].set_ylabel('Coeff. pref. ')
-        axarr[1].set_ylim([0, 1.1])
-
-        if len(sub[0][0]) > 2:
-            axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
-        if fig_opt['language'] == 0:
-            axarr[2].set_xlabel('Substrate []')
-        else:
-            axarr[2].set_xlabel('Substrat []')
-        axarr[2].set_ylabel('Coeff. pref. ')
-        axarr[2].set_ylim([0, 1.1])
-        axarr[2].set_xlim([0.4, 8.6])
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
-
-    if get_fig:
-        return f, axarr
-
-
 def create_and_fill_database(path_bio, name_database, attribute):
     """
     This function create a new database when Habby starts.
@@ -739,7 +625,7 @@ def get_stage(names_bio, path_bio):
     return latin_all, stages_all
 
 
-def plot_hydrosignature(xmlfile):
+def get_hydrosignature(xmlfile):
     """
     This function plots the hydrosignature in the vclass and hclass given
     in the xml file.
@@ -815,30 +701,7 @@ def plot_hydrosignature(xmlfile):
         return
 
     data = data.reshape((len(vclass) - 1, len(hclass) - 1))
-    mpl.rcParams['pdf.fonttype'] = 42
-
-    plt.figure()
-    # cmap should be coherent with text color
-    plt.imshow(data, cmap='Blues', interpolation='nearest', origin='lower')
-    #  extent=[vclass.min(), vclass.max(), hclass.min(), hclass.max()]
-    ax1 = plt.gca()
-
-    # add percetage number
-    maxlab = np.max(data)
-    for (j, i), label in np.ndenumerate(data):
-        # text in black or white depending on the data
-        if label < maxlab / 2:
-            ax1.text(i, j, np.round(label, 2), ha='center',
-                     va='center', color='black')
-        else:
-            ax1.text(i, j, np.round(label, 2), ha='center',
-                     va='center', color='white')
-    plt.title('Hydrosignature')
-    plt.xlabel('Velocity [m/s]')
-    plt.ylabel('Height [m]')
-    plt.locator_params(nticks=3)
-    cbar = plt.colorbar()
-    cbar.ax.set_ylabel('Relative area [%]')
+    return data
 
 
 def read_pref(xmlfile):
