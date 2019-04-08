@@ -565,6 +565,7 @@ class SubHydroW(QWidget):
         # get the last file created
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
         self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
+        self.last_path_input_data = None
 
     def was_model_loaded_before(self, i=0, many_file=False):
         """
@@ -2700,7 +2701,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
     def __init__(self, path_prj, name_prj):
 
         super().__init__(path_prj, name_prj)
-        self.last_path_input_data = None
         self.telemac_case = "unknown"
         self.multi_hdf5 = False
         self.init_iu()
@@ -5052,8 +5052,11 @@ class SubstrateW(SubHydroW):
         filter += ')' + ";; All File (*.*)"
 
         # get last path substrate_path xml
-        substrate_path = self.read_attribute_xml("substrate_path")
-        if substrate_path == 'no_data':
+        if self.last_path_input_data:
+            substrate_path = self.last_path_input_data
+        if not self.last_path_input_data:
+            substrate_path = self.read_attribute_xml("substrate_path")
+        if not self.last_path_input_data and self.read_attribute_xml("substrate_path") == 'no_data':
             substrate_path = self.path_prj
 
         # find the filename based on user choice
@@ -5064,6 +5067,7 @@ class SubstrateW(SubHydroW):
 
         # exeption: you should be able to clik on "cancel"
         if filename_path:
+            self.last_path_input_data = filename_path
             dirname = os.path.dirname(filename_path)
             filename = os.path.basename(filename_path)
             blob, ext = os.path.splitext(filename)
@@ -5163,6 +5167,9 @@ class SubstrateW(SubHydroW):
                 if os.path.isfile(os.path.join(dirname, blob + ".txt")):
                     with open(os.path.join(dirname, blob + ".txt"), 'rt') as f:
                         dataraw = f.read()
+                    if len(dataraw.split("\n")[:4]) < 4:
+                        self.send_log.emit("Error: This text file is not a valid point substrate.")
+                        return
                     epsg_raw, substrate_classification_code_raw, substrate_classification_method_raw, substrate_default_values_raw = dataraw.split("\n")[:4]
                     # check EPSG in .txt (polygon or point shp)
                     if "EPSG=" in epsg_raw:
