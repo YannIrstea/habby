@@ -77,6 +77,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
+        self.p = Process(target=None)  # second process
         self.init_iu()
 
     def init_iu(self):
@@ -630,7 +631,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         path_txt = self.find_path_text_est()
         path_im = self.find_path_im_est()
         path_shp = self.find_path_output_est("Path_Shape")
-        path_para = self.find_path_output_est("Path_Paraview")
+        path_para = self.find_path_output_est("Path_Visualisation")
 
         # get the type of option choosen for the habitat calculation
         run_choice = self.choice_run.currentIndex()
@@ -644,12 +645,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.timer.start(100)  # to refresh progress info
         self.q4 = Queue()
         self.progress_value = Value("i", 0)
-        self.p4 = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
-                                                                           name_fish, name_fish_sh, run_choice,
-                                                                           self.path_bio, path_txt, self.progress_value,
-                                                                           self.q4, False, fig_dict, path_im_bioa,
-                                                                           xmlfiles))
-        self.p4.start()
+        self.p = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
+                                                                          name_fish, name_fish_sh, run_choice,
+                                                                          self.path_bio, path_txt, self.progress_value,
+                                                                          self.q4, False, fig_dict, path_im_bioa,
+                                                                          xmlfiles))
+        self.p.name = "Habitat calculation"
+        self.p.start()
 
         # log
         self.send_log.emit("py    file1='" + hdf5_file + "'")
@@ -676,7 +678,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
 
         # say in the Stauts bar that the processus is alive
-        if self.p4.is_alive():
+        if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the langugage
             fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
@@ -710,7 +712,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
             self.running_time = 0
 
-        if not self.p4.is_alive():
+        if not self.p.is_alive():
             # enable the button to call this functin directly again
             self.timer.stop()
 

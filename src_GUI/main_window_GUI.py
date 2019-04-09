@@ -255,20 +255,27 @@ class MainWindows(QMainWindow):
 
         :param event: managed by the operating system.
         """
-        self.end_concurrency()
 
-        # # save path_last_file_loaded
-        # filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        # doc = ET.parse(filename_path_pro)
-        # root = doc.getroot()
-        # tree = ET.ElementTree(root)
-        # path_last_file_loaded_child = root.find(".//Path_last_file_loaded")
-        # path_last_file_loaded_child.text = self.central_widget.path_last_file_loaded_c
-        # print("quit habby :", self.central_widget.path_last_file_loaded_c)
-        # tree.write(filename_path_pro)
+        qm = QMessageBox
+        ret = qm.question(self,
+                          self.tr("Leave HABBY ?"),
+                          self.tr("Do you really want to leave HABBY ?\nAll alive processes and figure windows will be closed."),
+                          qm.Yes | qm.No)
+        if ret == QMessageBox.Yes:
+            if event:  # if CTRL+Q : event == False
+                event.accept()
+        else:
+            if event:  # if CTRL+Q : event == False
+                event.ignore()
+            return
+
+        self.end_concurrency()
 
         # close all process plot
         self.central_widget.closefig()
+
+        # close all process data
+        self.closeprocessalive()
 
         # save theme and windows position
         self.settings = QSettings('irstea', 'HABBY' + str(self.version))
@@ -472,7 +479,7 @@ class MainWindows(QMainWindow):
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip(self.tr('Exit application'))
         exitAction.triggered.connect(self.closeEvent)
-        openprj = QAction(self.tr('Open Project'), self)
+        openprj = QAction(self.tr('Open'), self)
         openprj.setShortcut('Ctrl+O')
         openprj.setStatusTip(self.tr('Open an exisiting project'))
         openprj.triggered.connect(self.open_project)
@@ -491,40 +498,37 @@ class MainWindows(QMainWindow):
                 recent_proj_menu[3].triggered.connect(lambda: self.open_recent_project(3))
             elif j == 4:
                 recent_proj_menu[4].triggered.connect(lambda: self.open_recent_project(4))
-        newprj = QAction(self.tr('New Project'), self)
+        newprj = QAction(self.tr('New'), self)
         newprj.setShortcut('Ctrl+N')
         newprj.setStatusTip(self.tr('Create a new project'))
         newprj.triggered.connect(self.new_project)
-        closeprj = QAction(self.tr('Close Project'), self)
+        closeprj = QAction(self.tr('Close'), self)
         closeprj.setShortcut('Ctrl+W')
         closeprj.setStatusTip(self.tr('Close the current project without opening a new one'))
         closeprj.triggered.connect(self.close_project)
 
         # Menu to open menu research
-        logc = QAction(self.tr("Clear Log Windows"), self)
+        logc = QAction(self.tr("Clear log"), self)
         logc.setStatusTip(
             self.tr('Empty the log windows at the bottom of the main window. Do not erase the .log file.'))
         logc.setShortcut('Ctrl+L')
         logc.triggered.connect(self.clear_log)
-        logn = QAction(self.tr("Do Not Save Log"), self)
+        logn = QAction(self.tr("Do not save log"), self)
         logn.setStatusTip(self.tr('The .log file will not be updated further.'))
         logn.triggered.connect(lambda: self.do_log(0))
-        logy = QAction(self.tr("Save Log"), self)
+        logy = QAction(self.tr("Save log"), self)
         logy.setStatusTip(self.tr('Events will be written to the .log file.'))
         logy.triggered.connect(lambda: self.do_log(1))
-        savi = QAction(self.tr("Delete All Images"), self)
-        savi.setStatusTip(self.tr('Figures saved by HABBY will be deleted'))
+        savi = QAction(self.tr("Delete all figure files"), self)
+        savi.setStatusTip(self.tr('Figures files of current project will be deleted'))
         savi.triggered.connect(self.erase_pict)
         # showim = QAction(self.tr("Show Images"), self)
         # showim.setStatusTip(self.tr('Open the window to view the created figures.'))
         # showim.triggered.connect(self.central_widget.showfig2)
-        closeim = QAction(self.tr("Close All Images"), self)
-        closeim.setStatusTip(self.tr('Close the figures which are currently created.'))
+        closeim = QAction(self.tr("Close all figure windows"), self)
+        closeim.setStatusTip(self.tr('Close all open figure windows'))
         closeim.triggered.connect(self.central_widget.closefig)
         closeim.setShortcut('Ctrl+B')
-        optim = QAction(self.tr("More Options"), self)
-        optim.setStatusTip(self.tr('Various options to modify the figures produced by HABBY.'))
-        optim.triggered.connect(self.central_widget.optfig)
 
         researchShortcut = QAction(self.tr("Hide/Show research tabs"), self)
         researchShortcut.setShortcut('Ctrl+R')
@@ -544,6 +548,11 @@ class MainWindows(QMainWindow):
         lAction3 = QAction(self.tr('&Spanish'), self)
         lAction3.setStatusTip(self.tr('click here for Spanish'))
         lAction3.triggered.connect(lambda: self.setlangue(2))
+
+        # process kill
+        process_kill_action = QAction(self.tr("Kill all current processes"), self)
+        process_kill_action.setStatusTip(self.tr('Kill all current processes'))
+        process_kill_action.triggered.connect(self.closeprocessalive)
 
         # Menu to obtain help and program version
         helpm = QAction(self.tr('Developper Help'), self)
@@ -592,47 +601,49 @@ class MainWindows(QMainWindow):
         # add all first level menu
         if right_menu:
             self.menu_right = QMenu()
-            fileMenu = self.menu_right.addMenu(self.tr('Project'))
-            fileMenu4 = self.menu_right.addMenu(self.tr('Settings'))
-            fileMenu2 = self.menu_right.addMenu(self.tr('Language'))
-            ViewMenu = self.menu_right.addMenu(self.tr('View'))
-            fileMenu3 = self.menu_right.addMenu(self.tr('Help'))
+            fileMenu_project = self.menu_right.addMenu(self.tr('Project'))
+            fileMenu_settings = self.menu_right.addMenu(self.tr('Settings'))
+            fileMenu_language = self.menu_right.addMenu(self.tr('Language'))
+            fileMenu_view = self.menu_right.addMenu(self.tr('View'))
+            fileMenu_process = self.menu_right.addMenu(self.tr('Process'))
+            fileMenu_help = self.menu_right.addMenu(self.tr('Help'))
         else:
             self.menubar = self.menuBar()
-            fileMenu = self.menubar.addMenu(self.tr('Project'))
-            fileMenu4 = self.menubar.addMenu(self.tr('Settings'))
-            fileMenu2 = self.menubar.addMenu(self.tr('Language'))
-            ViewMenu = self.menubar.addMenu(self.tr('View'))
-            fileMenu3 = self.menubar.addMenu(self.tr('Help'))
+            fileMenu_project = self.menubar.addMenu(self.tr('Project'))
+            fileMenu_settings = self.menubar.addMenu(self.tr('Settings'))
+            fileMenu_language = self.menubar.addMenu(self.tr('Language'))
+            fileMenu_view = self.menubar.addMenu(self.tr('View'))
+            fileMenu_process = self.menubar.addMenu(self.tr('Process'))
+            fileMenu_help = self.menubar.addMenu(self.tr('Help'))
 
         # add all the rest
-        fileMenu.addAction(openprj)
-        recentpMenu = fileMenu.addMenu(self.tr('Open Recent Project'))
+        fileMenu_project.addAction(newprj)
+        fileMenu_project.addAction(openprj)
+        recentpMenu = fileMenu_project.addMenu(self.tr('Open recent'))
         for j in range(0, len(recent_proj_menu)):
             recentpMenu.addAction(recent_proj_menu[j])
-        fileMenu.addAction(closeprj)
-        fileMenu.addAction(newprj)
-        fileMenu.addAction(exitAction)
-        log_all = fileMenu4.addMenu(self.tr('Log'))
+        fileMenu_project.addAction(closeprj)
+        fileMenu_project.addAction(exitAction)
+        log_all = fileMenu_settings.addMenu(self.tr('Log'))
         log_all.addAction(logc)
         log_all.addAction(logn)
         log_all.addAction(logy)
-        im_all = fileMenu4.addMenu(self.tr('Image options'))
+        im_all = fileMenu_settings.addMenu(self.tr('Figure options'))
         im_all.addAction(savi)
         im_all.addAction(closeim)
-        im_all.addAction(optim)
-        model_all = ViewMenu.addMenu(self.tr("Models"))
+        model_all = fileMenu_view.addMenu(self.tr("Models"))
         model_all.addAction(self.physicalmodelaction)
         model_all.addAction(self.statisticmodelaction)
-        theme_all = ViewMenu.addMenu(self.tr("Themes"))
+        theme_all = fileMenu_view.addMenu(self.tr("Themes"))
         theme_all.addAction(self.classicthemeaction)
         theme_all.addAction(self.darkthemeaction)
-        ViewMenu.addAction(researchShortcut)
-        fileMenu4.addAction(preferences_action)
-        fileMenu2.addAction(lAction1)
-        fileMenu2.addAction(lAction2)
-        fileMenu2.addAction(lAction3)
-        fileMenu3.addAction(helpm)
+        fileMenu_view.addAction(researchShortcut)
+        fileMenu_process.addAction(process_kill_action)
+        fileMenu_settings.addAction(preferences_action)
+        fileMenu_language.addAction(lAction1)
+        fileMenu_language.addAction(lAction2)
+        fileMenu_language.addAction(lAction3)
+        fileMenu_help.addAction(helpm)
 
         if not right_menu:
             # add the status and progress bar
@@ -729,20 +740,20 @@ class MainWindows(QMainWindow):
         icon_new.addPixmap(QPixmap(name1), QIcon.Normal)
 
         # create the actions of the toolbar
-        openAction = QAction(icon_open, self.tr('Open Project'), self)
+        openAction = QAction(icon_open, self.tr('Open project'), self)
         openAction.setStatusTip(self.tr('Open an existing project'))
         openAction.triggered.connect(self.open_project)
 
-        newAction = QAction(icon_new, self.tr('New Project'), self)
+        newAction = QAction(icon_new, self.tr('New project'), self)
         newAction.setStatusTip(self.tr('Create a new project'))
         newAction.triggered.connect(self.new_project)
 
-        seeAction = QAction(icon_see, self.tr('See Files of the Current Project'), self)
+        seeAction = QAction(icon_see, self.tr('See files of the current project'), self)
         seeAction.setStatusTip(self.tr('See the existing file of a project and open them.'))
         seeAction.triggered.connect(self.see_file)
 
-        closeAction = QAction(icon_closefig, self.tr('Close Figures'), self)
-        closeAction.setStatusTip(self.tr('Close all figures'))
+        closeAction = QAction(icon_closefig, self.tr('Close figure windows'), self)
+        closeAction.setStatusTip(self.tr('Close all open figure windows'))
         closeAction.triggered.connect(self.central_widget.closefig)
 
         # position of the toolbar
@@ -905,23 +916,23 @@ class MainWindows(QMainWindow):
             pathhdf5_child.text = 'hdf5'
 
             # path figures
-            path_im = os.path.join(self.path_prj, r'output/figures')
+            path_im = os.path.join(self.path_prj, 'output', 'figures')
             pathbio_child = ET.SubElement(path_element, "Path_Figure")
             pathbio_child.text = r'output/figures'
 
             # path text output
-            path_text = os.path.join(self.path_prj, r'output/text')
+            path_text = os.path.join(self.path_prj, 'output', 'text')
             pathtext_child = ET.SubElement(path_element, "Path_Text")
             pathtext_child.text = r'output/text'
 
             # path shapefile
-            path_shapefile = os.path.join(self.path_prj, r'output/shapefiles')
+            path_shapefile = os.path.join(self.path_prj, 'output', 'shapefiles')
             pathother_child = ET.SubElement(path_element, "Path_Shape")
             pathother_child.text = r'output/shapefiles'
 
             # path visualisation
-            path_para = os.path.join(self.path_prj, r'output/visualisation')
-            pathpara_child = ET.SubElement(path_element, "Path_Paraview")
+            path_para = os.path.join(self.path_prj, 'output', 'visualisation')
+            pathpara_child = ET.SubElement(path_element, "Path_Visualisation")
             pathpara_child.text = r'output/visualisation'
 
             # save new xml file
@@ -966,7 +977,7 @@ class MainWindows(QMainWindow):
             pathim_child = root.find(".//Path_Figure")
             pathtxt_child = root.find(".//Path_Text")
             pathshapefile_child = root.find(".//Path_Shape")
-            pathpara_child = root.find(".//Path_Paraview")
+            pathpara_child = root.find(".//Path_Visualisation")
 
             # path input
             if pathin_child is None:
@@ -1703,9 +1714,9 @@ class MainWindows(QMainWindow):
             root = doc.getroot()
             child = root.find(".//Path_Figure")
             if child is None:
-                path_im = os.path.join(self.path_prj, 'figures')
+                path_im = os.path.join(self.path_prj, 'output', 'figures')
             else:
-                path_im = os.path.join(self.path_prj, child.text)
+                path_im = os.path.join(self.path_prj, *child.text.split("/"))
         else:
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Save Hydrological Data"))
@@ -1731,7 +1742,7 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.drop_hyd.clear()
         self.central_widget.substrate_tab.drop_sub.clear()
         # log
-        t = self.central_widget.tracking_journal_QTextEdit.text()
+        t = self.central_widget.tracking_journal_QTextEdit.toPlainText()
         self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Images deleted. <br>'))
 
     def open_help(self):
@@ -1743,6 +1754,36 @@ class MainWindows(QMainWindow):
         filename_help = os.path.join(os.getcwd(), "doc", "_build", "html", "index.html")
         print(filename_help)
         wbopen(filename_help)
+
+    def closeprocessalive(self):
+        """
+        method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
+        """
+        tab_list = [("hydro_tab", "hecras1D"),
+                    ("hydro_tab", "hecras2D"),
+                    ("hydro_tab", "rubar2d"),
+                    ("hydro_tab", "rubar1d"),
+                    ("hydro_tab", "sw2d"),
+                    ("hydro_tab", "iber2d"),
+                    ("hydro_tab", "telemac"),
+                    ("hydro_tab", "riverhere2d"),
+                    ("hydro_tab", "mascar"),
+                    ("hydro_tab", "habbyhdf5"),
+                    ("hydro_tab", "lammi"),
+                    "substrate_tab",
+                    "bioinfo_tab"]
+        # loop
+        for tabs in tab_list:
+            if type(tabs) == tuple:
+                process_object = getattr(getattr(getattr(self, "central_widget"), tabs[0]), tabs[1]).p
+                if process_object.is_alive():
+                    process_object.terminate()
+                    self.central_widget.write_log("Warning: " + process_object.name + " process has been stopped by the user.")
+            else:
+                process_object = getattr(getattr(self, "central_widget"), tabs).p
+                if process_object.is_alive():
+                    process_object.terminate()
+                    self.central_widget.write_log("Warning: " + process_object.name + " process has been stopped by the user.")
 
 
 class CreateNewProject(QWidget):
@@ -1773,9 +1814,9 @@ class CreateNewProject(QWidget):
 
     def init_iu(self):
         lg = QLabel(self.tr(" <b> Create a new project </b>"))
-        l1 = QLabel(self.tr('Project Name: '))
+        l1 = QLabel(self.tr('Project name: '))
         self.e1 = QLineEdit(self.default_name)
-        l2 = QLabel(self.tr('Projects Folder: '))
+        l2 = QLabel(self.tr('Projects folder: '))
         self.e2 = QLineEdit(self.default_fold)
         button2 = QPushButton(self.tr('Change folder'), self)
         button2.clicked.connect(self.setfolder)
@@ -2052,14 +2093,6 @@ class CentralW(QWidget):
         if hasattr(self, 'bioinfo_tab'):
             if hasattr(self.bioinfo_tab, 'plot_process_list'):
                 self.bioinfo_tab.plot_process_list.close_all_plot_process()
-
-
-
-    def optfig(self):
-        """
-        A small function which open the output tab.
-        """
-        self.tab_widget.setCurrentIndex(self.opttab)
 
     def connect_signal_log(self):
         """
@@ -2427,9 +2460,9 @@ class WelcomeW(QScrollArea):
         font = QFont()
         font.setPointSize(20)
         l0.setFont(font)
-        buttono = QPushButton(self.tr('Open Exisiting Project'), self)
+        buttono = QPushButton(self.tr('Open exisiting project'), self)
         buttono.clicked.connect(self.open_proj.emit)
-        buttons = QPushButton(self.tr('New Project'), self)
+        buttons = QPushButton(self.tr('New project'), self)
         buttons.clicked.connect(self.new_proj_signal.emit)
         spacerleft = QSpacerItem(200, 1)
         spacerright = QSpacerItem(120, 1)
@@ -2437,12 +2470,12 @@ class WelcomeW(QScrollArea):
         highpart = QWidget()  # used to regroup all QWidgt in the first part of the Windows
 
         # general into to put in the xml .prj file
-        lg = QLabel(self.tr(" <b> Current Project </b>"))
-        l1 = QLabel(self.tr('Project Name: '))
+        lg = QLabel(self.tr(" <b> Current project </b>"))
+        l1 = QLabel(self.tr('Project name: '))
         self.e1 = QLabel(self.name_prj)
-        l2 = QLabel(self.tr('Main Folder: '))
+        l2 = QLabel(self.tr('Main folder: '))
         self.e2 = QLabel(self.path_prj)
-        button2 = QPushButton(self.tr('Set Folder'), self)
+        button2 = QPushButton(self.tr('Set folder'), self)
         button2.clicked.connect(self.setfolder2)
         button2.setToolTip(self.tr('Move the project to a new location. '
                                    'The data might be long to copy if the project folder is large.'))
@@ -2451,7 +2484,7 @@ class WelcomeW(QScrollArea):
         # this is used to save the data if the QLineEdit is going out of Focus
         self.e3.installEventFilter(self.outfocus_filter)
         self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
-        l4 = QLabel(self.tr('User Name: '))
+        l4 = QLabel(self.tr('User name: '))
         self.e4 = QLineEdit()
         # this is used to save the data if the QLineEdit is going out of Focus
         self.e4.installEventFilter(self.outfocus_filter)
@@ -2495,8 +2528,8 @@ class WelcomeW(QScrollArea):
         layouth.addItem(spacerleft, 1, 0)
         layouth.addItem(spacerright, 1, 5)
         layouth.addWidget(l0, 0, 1)
-        layouth.addWidget(buttono, 2, 1)
-        layouth.addWidget(buttons, 3, 1)
+        layouth.addWidget(buttons, 2, 1)
+        layouth.addWidget(buttono, 3, 1)
         layouth.addItem(spacer2, 5, 2)
         highpart.setLayout(layouth)
 

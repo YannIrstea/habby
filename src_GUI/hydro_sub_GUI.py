@@ -471,7 +471,7 @@ class Hydro2W(QScrollArea):
         self.send_log.emit('export slf is not finished yet')
         name_hdf5 = self.drop_hyd.currentText()
         path_hdf5 = self.rubar1d.find_path_hdf5()
-        path_slf = self.rubar1d.find_path_output('Path_Paraview')
+        path_slf = self.rubar1d.find_path_output('Path_Visualisation')
 
         if not name_hdf5:
             self.send_log.emit(self.tr('Error: No hydraulic file found. \n'))
@@ -783,9 +783,9 @@ class SubHydroW(QWidget):
                 instead of remplacing the old name by the new name.
 
         """
-        #filename_path_file = os.path.join(self.pathfile[i], self.namefile[i])
         filename_path_file = self.pathfile[i]
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+
         # save the name and the path in the xml .prj file
         if not os.path.isfile(filename_path_pro):
             self.end_log.emit('Error: The project is not saved. '
@@ -793,6 +793,11 @@ class SubHydroW(QWidget):
         else:
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
+
+            # save last file path
+            if os.path.isdir(filename_path_file):
+                last_child = root.find(".//Path_last_file_loaded")
+                last_child.text = filename_path_file
 
             child1 = root.find(".//" + self.model_type)
             if child1 is None:
@@ -1165,7 +1170,20 @@ class SubHydroW(QWidget):
             self.timer.stop()
             self.send_log.emit("clear status bar")
             self.running_time = 0
-
+            # MERGE
+            if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
+                # unblock button merge
+                self.load_b2.setDisabled(False)  # merge
+            # SUBSTRATE
+            elif self.model_type == 'SUBSTRATE':
+                # unblock button substrate
+                self.load_polygon_substrate.setDisabled(False)  # substrate
+                self.load_point_substrate.setDisabled(False)  # substrate
+                self.load_constant_substrate.setDisabled(False)  # substrate
+            # HYDRAULIC
+            else:
+                # unblock button hydraulic
+                self.load_b.setDisabled(False)  # hydraulic
             # if grid creation fails
             # if self.interpo_choice >= 1:
             #     self.send_log.emit(
@@ -1473,6 +1491,7 @@ class HEC_RAS1D(SubHydroW):
                                                                                       path_im, show_all_fig,
                                                                                       self.pro_add, self.q, False,
                                                                                       self.fig_opt))
+        self.p.name = "HEC-RAS 1D data loading"
         self.p.start()
 
         # copy input file
@@ -1679,6 +1698,7 @@ class Rubar2D(SubHydroW):
                                                                                   self.path_prj,
                                                                                   self.model_type, self.nb_dim, path_hdf5,
                                                                                   self.q, False, self.fig_opt))
+        self.p.name = "Rubar 2D data loading"
         self.p.start()
 
         # copy input file
@@ -1926,6 +1946,7 @@ class Mascaret(SubHydroW):
                                                                                   self.manning_arr, self.np_point_vel,
                                                                                   show_all_fig, self.pro_add, self.q,
                                                                                   path_im))
+        self.p.name = "Mascaret data loading"
         self.p.start()
 
         # copy input file
@@ -2263,6 +2284,7 @@ class River2D(SubHydroW):
                                                                              self.name_prj, self.path_prj, self.model_type,
                                                                              self.nb_dim, path_hdf5, self.q, False,
                                                                              self.fig_opt))
+        self.p.name = "River 2D data loading"
         self.p.start()
 
         # copy input file
@@ -2478,6 +2500,7 @@ class Rubar1D(SubHydroW):
                                                                                   self.pathfile, self.interpo_choice,
                                                                                   self.manning_arr, self.np_point_vel,
                                                                                   show_all_fig, self.pro_add, self.q, path_im))
+        self.p.name = "Rubar 1D data loading"
         self.p.start()
 
         # path input
@@ -2669,6 +2692,7 @@ class HEC_RAS2D(SubHydroW):
                                                                                   self.path_prj, self.model_type,
                                                                                   self.nb_dim, path_hdf5,
                                                                                   self.q, False, self.fig_opt))
+        self.p.name = "HEC-RAS 2D data loading"
         self.p.start()
 
         # path input
@@ -2833,13 +2857,13 @@ class TELEMAC(SubHydroW):  # QGroupBox
         else:
             filter2 = ''
 
-        # get last path substrate_path xml
-        if self.last_path_input_data:
-            model_path = self.last_path_input_data
-        if not self.last_path_input_data:
-            model_path = self.read_attribute_xml(self.attributexml[0])
-        if not self.last_path_input_data and self.read_attribute_xml(self.attributexml[0]) == 'no_data':
-            model_path = self.path_prj
+        # get last path
+        if self.read_attribute_xml(self.attributexml[0]) != self.path_prj and self.read_attribute_xml(self.attributexml[0]) != "no_data":
+            model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
+        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
+            model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        else:
+            model_path = self.path_prj  # path proj
 
         # find the filename based on user choice
         more_than_one_file_selected_by_user = False
@@ -2870,7 +2894,9 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 ext = [os.path.splitext(file)[1] for file in filename]
 
             # save last path
-            self.last_path_input_data = folder_path
+            self.pathfile[0] = folder_path  # source file path
+            self.save_xml(0)  # path in xml
+
             # indexTELEMAC paths
             filename_path_index = os.path.join(folder_path, "indexTELEMAC.txt")
             # check if indexTELEMAC.txt is associated to selected file
@@ -2941,7 +2967,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     nbtimes, unit_name_from_telemac_file = telemac_mod.get_time_step(filename,
                                                                                      folder_path)
                     # names
-                    self.pathfile[0] = folder_path  # source file path
                     self.namefile[0] = filename  # source file name
                     self.name_hdf5 = filename.split('.')[0] + ".hyd"
 
@@ -3782,6 +3807,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                    self.q,
                                    False,
                                    self.fig_opt))
+        self.p.name = "TELEMAC data loading"
         self.p.start()
 
         # copy input files
@@ -4374,6 +4400,7 @@ class IBER2D(SubHydroW):
                                path_im, self.name_prj,
                                self.path_prj, self.model_type, self.nb_dim,
                                path_hdf5, self.q, False, self.fig_opt))
+        self.p.name = "Iber 2D data loading"
         self.p.start()
 
         # copy input file
@@ -5051,13 +5078,13 @@ class SubstrateW(SubHydroW):
             filter += '*' + ext + ' '
         filter += ')' + ";; All File (*.*)"
 
-        # get last path substrate_path xml
-        if self.last_path_input_data:
-            substrate_path = self.last_path_input_data
-        if not self.last_path_input_data:
-            substrate_path = self.read_attribute_xml("substrate_path")
-        if not self.last_path_input_data and self.read_attribute_xml("substrate_path") == 'no_data':
-            substrate_path = self.path_prj
+        # get last path
+        if self.read_attribute_xml("substrate_path") != self.path_prj and self.read_attribute_xml("substrate_path") != "no_data":
+            substrate_path = self.read_attribute_xml("substrate_path")  # path spe
+        elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
+            substrate_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
+        else:
+            substrate_path = self.path_prj  # path proj
 
         # find the filename based on user choice
         filename_path = QFileDialog.getOpenFileName(self,
@@ -5067,10 +5094,12 @@ class SubstrateW(SubHydroW):
 
         # exeption: you should be able to clik on "cancel"
         if filename_path:
-            self.last_path_input_data = filename_path
+            # all case
             dirname = os.path.dirname(filename_path)
             filename = os.path.basename(filename_path)
             blob, ext = os.path.splitext(filename)
+            self.pathfile[0] = dirname
+            self.save_xml(0)  # path in xml
             if any(e in ext for e in extensions):  # extension known
                 pass
             else:
@@ -5143,7 +5172,6 @@ class SubstrateW(SubHydroW):
                     epsg_code = ident.get_epsg()
 
                 # save to attributes
-                self.pathfile[0] = dirname
                 self.namefile[0] = filename
                 self.pathfile_polygon = dirname
                 self.namefile_polygon = filename
@@ -5214,7 +5242,6 @@ class SubstrateW(SubHydroW):
                         return
 
                     # save to attributes
-                    self.pathfile[0] = dirname
                     self.namefile[0] = filename
                     self.pathfile_point = dirname
                     self.namefile_point = filename
@@ -5275,7 +5302,6 @@ class SubstrateW(SubHydroW):
                         self.send_log.emit("Error: The name 'constant_values=' is not found in .txt file.")
                         return
                     # save to attributes
-                    self.pathfile[0] = dirname
                     self.namefile[0] = filename
                     self.pathfile_constant = dirname
                     self.namefile_constant = filename
@@ -5288,9 +5314,6 @@ class SubstrateW(SubHydroW):
                     self.sub_classification_method_constant_label.setText(substrate_classification_method)
                     self.valuesdata_constant_label.setText(constant_values)
                     self.constant_hname.setText(self.name_hdf5_constant)
-
-        # all case
-        self.save_xml(0)  # path in xml
 
     def load_sub_gui(self, sub_mapping_method):
         """
@@ -5375,6 +5398,7 @@ class SubstrateW(SubHydroW):
                                    sub_epsg_code,
                                    default_values,
                                    self.q))
+            self.p.name = "Substrate data loading from shapefile"
             self.p.start()
 
             sys.stdout = sys.__stdout__  # reset to console
@@ -5392,7 +5416,7 @@ class SubstrateW(SubHydroW):
             self.p2.start()
 
             # log info
-            self.send_log.emit(self.tr('# Loading: Substrate data shapefile ...'))
+            self.send_log.emit(self.tr('# Loading: Substrate data ...'))
             self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
             self.send_log.emit("py    path1=r'" + path_input + "'")
             self.send_log.emit("py    type='" + sub_classification_code + "'")
@@ -5444,6 +5468,7 @@ class SubstrateW(SubHydroW):
                                        sub_epsg_code,
                                        default_values,
                                        self.q))
+                self.p.name = "Substrate data loading from points"
                 self.p.start()
 
                 sys.stdout = sys.__stdout__  # reset to console
@@ -5511,12 +5536,13 @@ class SubstrateW(SubHydroW):
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.name_hdf5)
             self.p = Process(target=hdf5.create_hdf5_sub,
                              args=(sub_description_system, data))
+            self.p.name = "Substrate data loading from constant values"
             self.p.start()
 
             self.send_err_log()
 
             # log info
-            self.send_log.emit(self.tr('# Loading: Substrate data constant value ...'))
+            self.send_log.emit(self.tr('# Loading: Substrate data constant values ...'))
             self.send_log.emit("py    val_c=" + sub_constant_values)
             self.send_log.emit(
                 "py    load_hdf5.save_hdf5_sub(path_prj, path_prj, name_prj, val_c, val_c, [], [], [], [], 're_run_const_sub'"
@@ -5702,6 +5728,7 @@ class SubstrateW(SubHydroW):
                                self.q,
                                False,
                                fig_opt))
+        self.p.name = "Hydraulic and substrate data merging"
         self.p.start()
 
         # log
