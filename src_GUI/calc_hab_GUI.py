@@ -56,7 +56,22 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.imfish = ''
-        self.path_im_bio = 'biology/figure_pref/'
+        # find the path bio
+        try:
+            try:
+                docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.xml'))
+                root = docxml.getroot()
+            except IOError:
+                # self.send_log.emit("Warning: the xml p file does not exist.")
+                return
+        except ET.ParseError:
+            self.send_log.emit("Warning: the xml file is not well-formed.")
+            return
+        pathbio_child = root.find(".//Path_Bio")
+        if pathbio_child is not None:
+            if os.path.isdir(pathbio_child.text):
+                self.path_bio = pathbio_child.text
+        self.path_im_bio = self.path_bio
         # self.path_bio is defined in StatModUseful.
         self.data_fish = []  # all data concerning the fish
         # attribute from the xml which the user can search the database
@@ -113,22 +128,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
         self.runhab.setStyleSheet("background-color: #47B5E6; color: black")
         self.runhab.clicked.connect(self.run_habitat_value)
-
-        # find the path bio
-        try:
-            try:
-                docxml = ET.parse(os.path.join(self.path_prj, self.name_prj + '.xml'))
-                root = docxml.getroot()
-            except IOError:
-                # self.send_log.emit("Warning: the xml p file does not exist.")
-                return
-        except ET.ParseError:
-            self.send_log.emit("Warning: the xml file is not well-formed.")
-            return
-        pathbio_child = root.find(".//Path_Bio")
-        if pathbio_child is not None:
-            if os.path.isdir(pathbio_child.text):
-                self.path_bio = pathbio_child.text
 
         # info on preference curve
         l4 = QLabel(self.tr('<b> Information on the suitability curve</b> (Right click on fish name)'))

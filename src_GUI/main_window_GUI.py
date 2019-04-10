@@ -163,7 +163,7 @@ class MainWindows(QMainWindow):
 
 
         # the path to the biological data by default (HABBY force the user to use this path)
-        self.path_bio_default = "biology"
+        self.path_bio_default = os.path.join("biology", "models")
 
         # create the central widget
         if self.lang == 0:
@@ -927,22 +927,22 @@ class MainWindows(QMainWindow):
             # path figures
             path_im = os.path.join(self.path_prj, 'output', 'figures')
             pathbio_child = ET.SubElement(path_element, "Path_Figure")
-            pathbio_child.text = r'output/figures'
+            pathbio_child.text = os.path.join("output", "figures")
 
             # path text output
             path_text = os.path.join(self.path_prj, 'output', 'text')
             pathtext_child = ET.SubElement(path_element, "Path_Text")
-            pathtext_child.text = r'output/text'
+            pathtext_child.text = os.path.join("output", "text")
 
             # path shapefile
             path_shapefile = os.path.join(self.path_prj, 'output', 'shapefiles')
             pathother_child = ET.SubElement(path_element, "Path_Shape")
-            pathother_child.text = r'output/shapefiles'
+            pathother_child.text = os.path.join("output", "shapefiles")
 
             # path visualisation
             path_para = os.path.join(self.path_prj, 'output', 'visualisation')
             pathpara_child = ET.SubElement(path_element, "Path_Visualisation")
-            pathpara_child.text = r'output/visualisation'
+            pathpara_child.text = os.path.join("output", "visualisation")
 
             # save new xml file
             if self.name_prj != '':
@@ -954,8 +954,8 @@ class MainWindows(QMainWindow):
                 os.makedirs(path_input)
             if not os.path.exists(path_hdf5):
                 os.makedirs(path_hdf5)
-            if not os.path.exists(os.path.join(self.path_prj, r'output')):
-                os.makedirs(os.path.join(self.path_prj, r'output'))
+            if not os.path.exists(os.path.join(self.path_prj, 'output')):
+                os.makedirs(os.path.join(self.path_prj, 'output'))
             if not os.path.exists(path_im):
                 os.makedirs(path_im)
             if not os.path.exists(path_text):
@@ -1002,25 +1002,25 @@ class MainWindows(QMainWindow):
 
             # path figures
             if pathim_child is None:
-                pathim_text = r'output/figures'
+                pathim_text = os.path.join("output", "figures")
             else:
                 pathim_text = pathim_child.text
 
             # path text output
             if pathtxt_child is None:
-                pathtxt_text = r'output/text'
+                pathtxt_text = os.path.join("output", "text")
             else:
                 pathtxt_text = pathtxt_child.text
 
             # path shapefile
             if pathshapefile_child is None:
-                pathshapefile_text = r'output/shapefiles'
+                pathshapefile_text = os.path.join("output", "shapefiles")
             else:
                 pathshapefile_text = pathin_child.text
 
             # path visualisation
             if pathpara_child is None:
-                pathpara_text = r'output/visualisation'
+                pathpara_text = os.path.join("output", "visualisation")
             else:
                 pathpara_text = pathin_child.text
 
@@ -1044,8 +1044,8 @@ class MainWindows(QMainWindow):
                     os.makedirs(pathin_text)
                 if not os.path.exists(path_h5):
                     os.makedirs(path_h5)
-                if not os.path.exists(os.path.join(self.path_prj, r'output')):
-                    os.makedirs(os.path.join(self.path_prj, r'output'))
+                if not os.path.exists(os.path.join(self.path_prj, 'output')):
+                    os.makedirs(os.path.join(self.path_prj, 'output'))
                 if not os.path.exists(path_im):
                     os.makedirs(path_im)
                 if not os.path.exists(path_text):
@@ -1386,9 +1386,9 @@ class MainWindows(QMainWindow):
         child1 = root.find('.//Path_Figure')
         if child1 is None:
             child1 = ET.SubElement(root, 'Path_Figure')
-            child1.text = r'output/figures'
+            child1.text = os.path.join("output", "figures")
         else:
-            child1.text = r'output/figures'
+            child1.text = os.path.join("output", "figures")
         doc.write(fname)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
