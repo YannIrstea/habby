@@ -25,12 +25,10 @@ import matplotlib as mpl
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 import shapefile
-from multiprocessing import Process, Queue, Value
+from time import time
 
 from src import hdf5_mod
 from src import bio_info_mod
-from src import paraview_mod
-from src import plot_mod
 from src_GUI import preferences_GUI
 
 
@@ -47,7 +45,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     :param path_hdf5: the path to the merged file
     :param pref_list: the name of the xml biological data
     :param stages_chosen: the stage chosen (youngs, adults, etc.). List with the same length as bio_names.
-    :param name_fish: the name of the chosen fish
+    :param fish_names: the name of the chosen fish
     :param name_fish_sh: In a shapefile, max 8 character for the column name. Hence, a modified name_fish is needed.
     :param run_choice: an int fron 0 to n. Gives which calculation method should be used
     :param path_bio: The path to the biological folder (with all files given in bio_names)
@@ -114,33 +112,25 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 80
 
     # text output
-    hdf5.save_spu_txt(fig_opt)
+    hdf5.export_spu_txt(fig_opt)
 
     # progress
     progress_value.value = 85
 
     # shape output
-    hdf5.create_shapefile(fig_opt)
+    hdf5.export_shapefile(fig_opt)
 
     # progress
     progress_value.value = 90
 
     # shape output
-    hdf5.create_paraview(fig_opt)
-
-
-    # # paraview outputs
-    # if bool(fig_opt['paraview']):
-    #     paraview_mod.habitat_to_vtu(name_base, path_para, path_hdf5, hdf5_file, vh_all_t_sp, height_c_all_t,
-    #                                 vel_c_all_t, name_fish, erase_id)
-    #     paraview_mod.save_slf(hdf5_file, path_hdf5, path_para, True, output_name=name_base, habitat=vh_all_t_sp)
+    hdf5.export_paraview(fig_opt)
 
     # progress
     progress_value.value = 95
 
-    # pdf with information on the fish
-    if bool(fig_opt['fish_info']) and len(xmlfiles) > 0:
-        bio_info_mod.create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_txt, fig_opt)
+    hdf5.export_pdf(path_bio, fig_opt)
+
 
     timestep = fig_opt['time_step']
     if not isinstance(timestep, (list, tuple)):
@@ -172,7 +162,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     #                           sim_name)
 
     # progress
-    progress_value.value = 95
+    progress_value.value = 98
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

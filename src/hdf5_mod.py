@@ -21,15 +21,20 @@ import time
 import shutil
 import shapefile
 from stl import mesh
-from src import substrate_mod
-from src import hl_mod
-from src import paraview_mod
-from src.tools_mod import get_prj_from_epsg_web
-
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
+from multiprocessing import Value
+
+from src import bio_info_mod
+from src import substrate_mod
+from src import plot_mod
+from src import hl_mod
+from src import paraview_mod
+from src.tools_mod import get_prj_from_epsg_web
 from src_GUI import preferences_GUI
 
 VERSION = 0.25
@@ -984,7 +989,7 @@ class Hdf5Management:
         self.load_hdf5_hab(convert_to_coarser_dom=True)
 
     # EXPORT
-    def save_spu_txt(self, fig_opt):
+    def export_spu_txt(self, fig_opt):
         if fig_opt['text_output'] == "True":
             path_txt = os.path.join(self.data_description["path_projet"], "output", "text")
             if not os.path.exists(path_txt):
@@ -1067,7 +1072,7 @@ class Hdf5Management:
                         data_here += '\n'
                         f.write(data_here)
 
-    def create_shapefile(self, fig_opt):
+    def export_shapefile(self, fig_opt):
         if fig_opt['shape_output'] == "True":
             # get units list
             unit_names = self.data_description["hyd_unit_list"].split(", ")
@@ -1195,7 +1200,7 @@ class Hdf5Management:
                             except:
                                 print("Warning : Can't write .prj from EPSG code :", self.data_description["hab_epsg_code"])
 
-    def create_stl(self, fig_opt):
+    def export_stl(self, fig_opt):
         if fig_opt['stl'] == "True":
             """ create stl whole profile (to see topography) """
             # get data
@@ -1238,7 +1243,7 @@ class Hdf5Management:
                     stl_file.save(os.path.join(self.path_visualisation,
                                                self.basename + "_waterlevel_" + str(unit_names[unit_num]) + ".stl"))
 
-    def create_paraview(self, fig_opt):
+    def export_paraview(self, fig_opt):
         if fig_opt['paraview'] == "True":
             file_names_all = []
             if len(self.basename) > 60:
@@ -1323,6 +1328,140 @@ class Hdf5Management:
                         os.remove(name_here)
                 paraview_mod.writePVD(name_here, file_names_all)
                 file_names_all = []
+
+    def export_pdf(self, path_bio, fig_opt):
+        """
+        # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt
+        This functionc create a pdf with information about the fish.
+        It tries to follow the chosen language, but
+        the stage name are not translated and the decription are usually
+        only given in French.
+
+        :param xmlfiles: the name of the xmlfile (without the path!)
+        :param stages_chosen: the stage chosen (might not be all stages)
+        :param path_bio: the path with the biological xml file
+        :param path_im_bio: the path with the images of the fish
+        :param path_out: the path where to save the .pdf file
+            (usually other_outputs)
+        :param fig_opt: the figure options (contain the chosen language)
+        """
+        if fig_opt['fish_info'] == "True":
+            # get data
+            xmlfiles = self.data_description["hab_fish_pref_list"].split(", ")
+            stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
+            path_im_bio = path_bio
+            path_out = os.path.join(self.path_prj, "output", "figures")
+
+            plt.close()
+            plt.rcParams['figure.figsize'] = 21, 29.7  # a4
+            plt.rcParams['font.size'] = 24
+
+            # get the stage chosen for each species and get rid of repetition
+            stage_chosen2 = []
+            stage_here = []
+            xmlold = 'sdfsdfs'
+            xmlfiles2 = []
+            for idx, f in enumerate(xmlfiles):
+                if xmlold != f:
+                    xmlfiles2.append(f)
+                    if stage_here:
+                        stage_chosen2.append(stage_here)
+                    stage_here = []
+                stage_here.append(stages_chosen[idx])
+                xmlold = f
+            if stage_here:
+                stage_chosen2.append(stage_here)
+            xmlfiles = xmlfiles2
+
+            # create the pdf
+            for idx, f in enumerate(xmlfiles):
+
+                # read pref
+                xmlfile = os.path.join(path_bio, f)
+                [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
+                    bio_info_mod.read_pref(xmlfile)
+
+                # read additionnal info
+                attributes = ['Description', 'Image', 'French_common_name',
+                              'English_common_name', ]
+                # careful: description is last data returned
+                data = bio_info_mod.load_xml_name(path_bio, attributes, [f])
+
+                # create figure
+                fake_value = Value("i", 0)
+                [f, axarr] = plot_mod.plot_suitability_curve(fake_value, h_all, vel_all, sub_all, code_fish, name_fish,
+                                                             stages, True, fig_opt)
+
+                # modification of the orginal preference fig
+                # (0,0) is bottom left - 1 is the end of the page in x and y direction
+                plt.tight_layout(rect=[0.05, 0.05, 0.95, 0.53])
+                # position for the image
+
+                # add a fish image
+                if path_im_bio:
+                    fish_im_name = os.path.join(os.getcwd(), path_im_bio, data[0][0])
+                    if os.path.isfile(fish_im_name):
+                        im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
+                        newax = f.add_axes([0.1, 0.4, 0.25, 0.25], anchor='NE',
+                                           zorder=-1)
+                        newax.imshow(im)
+                        newax.axis('off')
+
+                # move suptitle
+                if fig_opt['language'] == 0:
+                    f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
+                               weight='bold')
+                elif fig_opt['language'] == 1:
+                    f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32,
+                               weight='bold')
+                else:
+                    f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
+                               weight='bold')
+                # general info
+                if fig_opt['language'] == 0:
+                    plt.figtext(0.1, 0.7,
+                                "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
+                                weight='bold', fontsize=32)
+                    text_all = name_fish + '\n\n' + data[0][2] \
+                               + '\n\n' + code_fish + '\n\n'
+                elif fig_opt['language'] == 1:
+                    plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA:\n\nStade choisi :\n\nDescription :",
+                                weight='bold', fontsize=32)
+                    text_all = name_fish + '\n\n' + data[0][1] + '\n\n' \
+                               + code_fish + '\n\n'
+                else:
+                    plt.figtext(0.1, 0.7,
+                                "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
+                                weight='bold', fontsize=32)
+                    text_all = name_fish + '\n\n' + data[0][2] \
+                               + '\n\n' + code_fish + '\n\n'
+                for idx, s in enumerate(stage_chosen2[idx]):
+                    text_all += s + ', '
+                text_all = text_all[:-2] + '\n\n'
+                plt.figtext(0.4, 0.7, text_all, fontsize=32)
+                # bbox={'facecolor':'grey', 'alpha':0.07, 'pad':50}
+
+                # descirption
+                if len(data[0][-1]) > 250:
+                    plt.figtext(0.4, 0.61, data[0][-1][:250] + '...', wrap=True,
+                                fontsize=32)
+                else:
+                    plt.figtext(0.4, 0.61, data[0][-1], wrap=True, fontsize=32)
+
+                # title of the page
+                plt.figtext(0.1, 0.9, "REPORT - " + name_fish, fontsize=55,
+                            weight='bold',
+                            bbox={'facecolor': 'grey', 'alpha': 0.15, 'pad': 50})
+
+                # day
+                plt.figtext(0.8, 0.95, 'HABBY - ' + time.strftime("%d %b %Y"))
+
+                # save
+                filename = os.path.join(path_out, 'report_' + code_fish + '.pdf')
+                try:
+                    plt.savefig(filename)
+                except PermissionError:
+                    print('Warning: Close .pdf to update fish information')
 
 
 #################################################################
@@ -2154,7 +2293,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
     if fish_replaced:
         fish_replaced = set(fish_replaced)
         fish_replaced = "; ".join(fish_replaced)
-        print(f'Warning: fish(s) information replaced in hdf5 file ({fish_replaced}).\n')
+        print(f'Warning: fish(s) information replaced in .hab file ({fish_replaced}).\n')
     file_hydro.attrs['hdf5_type'] = "habitat"
     file_hydro.close()
     time.sleep(1)  # as we need to insure different group of name
