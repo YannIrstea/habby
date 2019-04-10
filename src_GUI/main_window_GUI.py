@@ -550,8 +550,8 @@ class MainWindows(QMainWindow):
         lAction3.triggered.connect(lambda: self.setlangue(2))
 
         # process kill
-        process_kill_action = QAction(self.tr("Kill all current processes"), self)
-        process_kill_action.setStatusTip(self.tr('Kill all current processes'))
+        process_kill_action = QAction(self.tr("Stop all current processes"), self)
+        process_kill_action.setStatusTip(self.tr('Stop all current processes'))
         process_kill_action.triggered.connect(self.closeprocessalive)
 
         # Menu to obtain help and program version
@@ -739,6 +739,10 @@ class MainWindows(QMainWindow):
         name1 = os.path.join(os.getcwd(), "translation", "icon", "newfile.png")
         icon_new.addPixmap(QPixmap(name1), QIcon.Normal)
 
+        icon_kill = QIcon()
+        name1 = os.path.join(os.getcwd(), "translation", "icon", "stop.png")
+        icon_kill.addPixmap(QPixmap(name1), QIcon.Normal)
+
         # create the actions of the toolbar
         openAction = QAction(icon_open, self.tr('Open project'), self)
         openAction.setStatusTip(self.tr('Open an existing project'))
@@ -756,6 +760,10 @@ class MainWindows(QMainWindow):
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
         closeAction.triggered.connect(self.central_widget.closefig)
 
+        killAction = QAction(icon_kill, self.tr('Stop all current processes'), self)
+        killAction.setStatusTip(self.tr('Stop all current processes'))
+        killAction.triggered.connect(self.closeprocessalive)
+
         # position of the toolbar
         self.toolbar.setOrientation(Qt.Vertical)
 
@@ -764,6 +772,7 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(newAction)
         self.toolbar.addAction(seeAction)
         self.toolbar.addAction(closeAction)
+        self.toolbar.addAction(killAction)
 
     def open_preferences(self):
         # get size
