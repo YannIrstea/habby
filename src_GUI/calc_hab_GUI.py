@@ -418,7 +418,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if isinstance(data, np.ndarray):
             # do the plot
             if not hasattr(self, 'plot_process_list'):
-                self.plot_process_list = MyProcessList(self.nativeParentWidget().progress_bar)
+                self.plot_process_list = MyProcessList()
             state = Value("i", 0)
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                              args=(state,
@@ -534,7 +534,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # do the plot
         if not hasattr(self, 'plot_process_list'):
-            self.plot_process_list = MyProcessList(self.nativeParentWidget().progress_bar)
+            self.plot_process_list = MyProcessList()
         state = Value("i", 0)
         curve_process = Process(target=plot_mod.plot_suitability_curve,
                                          args=(state,
@@ -544,6 +544,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                code_fish,
                                                name_fish,
                                                stages,
+                                               False,
                                                fig_dict))
         self.plot_process_list.append((curve_process, state))
 

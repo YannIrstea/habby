@@ -90,9 +90,10 @@ class DataExplorerFrame(QFrame):
         self.send_log = send_log
         self.nb_plot = 0
         self.variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+        self.plot_process_list = MyProcessList()
         self.init_ui()
         self.plot_production_stoped = False
-        self.plot_process_list = MyProcessList(self.progress_bar)
+
 
     def init_ui(self):
         # title
@@ -177,9 +178,9 @@ class DataExplorerFrame(QFrame):
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
 
         # progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(0)
-        self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
+        # self.progress_bar = QProgressBar()
+        # self.progress_bar.setValue(0)
+        # self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
         # attributes hdf5
         self.hdf5_attributes_qtableview = QTableView(self)
@@ -209,7 +210,8 @@ class DataExplorerFrame(QFrame):
         plot_type_layout.setAlignment(Qt.AlignLeft)
         plot_layout2.addLayout(plot_layout)
         plot_layout2.addLayout(plot_type_layout)
-        plot_layout2.addWidget(self.progress_bar)
+        # plot_layout2.addWidget(self.progress_bar)
+        plot_layout2.addWidget(self.plot_process_list.progress_bar)
         plot_group = QGroupBox(self.tr("Figure producer"))
         plot_group.setLayout(plot_layout2)
 
@@ -322,14 +324,14 @@ class DataExplorerFrame(QFrame):
 
             # set prog
             if self.nb_plot != 0:
-                self.progress_bar.setRange(0, self.nb_plot)
-            self.progress_bar.setValue(0)
-            self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
+                self.plot_process_list.progress_bar.setRange(0, self.nb_plot)
+            self.plot_process_list.progress_bar.setValue(0)
+            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
         else:
             self.nb_plot = 0
             # set prog
-            self.progress_bar.setValue(0)
-            self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
+            self.plot_process_list.progress_bar.setValue(0)
+            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
     def types_hdf5_change(self):
         """
@@ -597,8 +599,8 @@ class DataExplorerFrame(QFrame):
                 self.plot_process_list.add_plots(self.nb_plot)
 
             # progress bar
-            self.progress_bar.setValue(0)
-            self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
+            self.plot_process_list.progress_bar.setValue(0)
+            self.plot_process_list.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, self.nb_plot))
             QCoreApplication.processEvents()
 
             # loop on all desired hdf5 file
@@ -648,6 +650,7 @@ class DataExplorerFrame(QFrame):
                                                                      path_im,
                                                                      name_hdf5,
                                                                      fig_opt))
+
                             self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
                         # for each desired units ==> maps
@@ -768,9 +771,12 @@ class MyProcessList(list):
     :param progress_bar: Qprogressbar of DataExplorerFrame to be refreshed
     """
 
-    def __init__(self, progress_bar):
+    def __init__(self):
         super().__init__()
-        self.progress_bar = progress_bar
+        #self.progress_bar = progress_bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setValue(0)
+        self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
         self.nb_plot_total = 0
 
     def new_plots(self, nb_plot_total):
