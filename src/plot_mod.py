@@ -28,7 +28,7 @@ from src_GUI import preferences_GUI
 from src import calcul_hab_mod
 
 
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, fig_opt):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, fig_opt=[]):
     """
     This function is used to plot the preference curves.
 
@@ -43,12 +43,13 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         (to modfied it more)
     """
     mpl.rcParams['pdf.fonttype'] = 42
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    if fig_opt['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    if not get_fig:
+        if not fig_opt:
+            fig_opt = preferences_GUI.create_default_figoption()
+        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
+        plt.rcParams['font.size'] = fig_opt['font_size']
+        if fig_opt['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     plt.rcParams['axes.grid'] = fig_opt['grid']
@@ -132,7 +133,10 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     state.value = 1  # process finished
     # fm = plt.get_current_fig_manager()
     # fm.window.showMinimized()
-    plt.show()
+    if get_fig:
+        return f, axarr
+    else:
+        plt.show()
 
 
 def plot_hydrosignature(state, data, fishname):

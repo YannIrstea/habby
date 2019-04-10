@@ -21,8 +21,10 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import sqlite3
 import time
+from multiprocessing import Value
 
 from src import hdf5_mod
+from src import plot_mod
 from src_GUI import preferences_GUI
 
 try:
@@ -212,7 +214,8 @@ def test_evah_xml_pref(path_xml, path_evha):
             stage_corr_evha = np.array(stage_corr_evha) - min(stage_corr_evha)
 
         # plot xml
-        [f, axarr] = figure_pref(height, vel, sub, code_fish, name_fish,
+        fake_value = Value("i", 0)
+        [f, axarr] = plot_mod.plot_suitability_curve(fake_value, height, vel, sub, code_fish, name_fish,
                                  stages, True)
 
         # plt evha data
@@ -925,7 +928,8 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
         data = load_xml_name(path_bio, attributes, [f])
 
         # create figure
-        [f, axarr] = figure_pref(h_all, vel_all, sub_all, code_fish, name_fish,
+        fake_value = Value("i", 0)
+        [f, axarr] = plot_mod.plot_suitability_curve(fake_value, h_all, vel_all, sub_all, code_fish, name_fish,
                                  stages, True, fig_opt)
 
         # modification of the orginal preference fig
