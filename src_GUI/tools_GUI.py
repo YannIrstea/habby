@@ -60,9 +60,11 @@ class ToolsTab(QScrollArea):
 
         # interpolation group
         self.interpolation_group = InterpolationGroup(self.path_prj, self.name_prj, self.send_log)
+        self.interpolation_group.setChecked(False)
 
         # other tool
         self.newtool_group = OtherToolToCreate(self.path_prj, self.name_prj, self.send_log)
+        self.newtool_group.setChecked(False)
 
         # vertical layout
         self.setWidget(tools_frame)
@@ -80,6 +82,8 @@ class ToolsTab(QScrollArea):
         names = hdf5_mod.get_filename_by_type("habitat", os.path.join(self.path_prj, "hdf5"))
         self.interpolation_group.hab_filenames_qcombobox.clear()
         if names:
+            # append_empty_element_to_list
+            names = [""] + names
             # change list widget
             self.interpolation_group.hab_filenames_qcombobox.addItems(names)
 
@@ -203,6 +207,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         self.export_txt_chronicle_qpushbutton = QPushButton(self.tr('Export interpolate chronicle'))
         self.export_txt_chronicle_qpushbutton.clicked.connect(self.export_chronicle)
         self.export_txt_chronicle_qpushbutton.setEnabled(False)
+
         """ Available data """
         available_data_layout = QHBoxLayout()
         available_data_layout.addLayout(available_firstlayout)
@@ -210,14 +215,14 @@ class InterpolationGroup(QGroupBoxCollapsible):
         available_data_group.setLayout(available_data_layout)
 
         """ Required data """
-        require_data_layout = QVBoxLayout()
+        self.require_data_layout = QVBoxLayout()
         require_data_group = QGroupBox(self.tr("Desired data"))
-        require_data_group.setLayout(require_data_layout)
+        require_data_group.setLayout(self.require_data_layout)
 
         require_first_layout = QHBoxLayout()
         require_first_layout.addWidget(fromsequence_group)
         require_first_layout.addWidget(fromtext_group)
-        require_data_layout.addLayout(require_first_layout)
+        self.require_data_layout.addLayout(require_first_layout)
 
         require_unit_layout = QVBoxLayout()
         require_unit_layout.addWidget(require_units_qlabel)
@@ -229,7 +234,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         unit_hv_layout = QHBoxLayout()
         unit_hv_layout.addLayout(require_unit_layout)
-        require_data_layout.addLayout(unit_hv_layout)
+        self.require_data_layout.addLayout(unit_hv_layout)
 
         """ interpolation layout """
         hbox_layout = QHBoxLayout()
@@ -237,26 +242,39 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hbox_layout.addWidget(require_data_group, 3)  # stretch factor
         self.setLayout(hbox_layout)
 
+    def disable_and_clean_group_widgets(self, checker):
+        # available
+        self.unit_min_qlabel.setText("")
+        self.unit_max_qlabel.setText("")
+        self.unit_type_qlabel.setText("")
+        self.fish_available_qlistwidget.clear()
+        self.export_empty_text_pushbutton.setEnabled(checker)
+        self.fromtext_qpushbutton.setEnabled(checker)
+        # desired
+        self.from_qlineedit.setText("")
+        self.to_qlineedit.setText("")
+        self.by_qlineedit.setText("")
+        self.plot_chronicle_qpushbutton.setEnabled(checker)
+        self.export_txt_chronicle_qpushbutton.setEnabled(checker)
+        self.require_unit_qtableview.model().clear()
+
     def names_hab_change(self):
         """
         Ajust item list according to hdf5 filename selected by user
         """
         hdf5name = self.hab_filenames_qcombobox.currentText()
+        # no file
+        if not hdf5name:
+            # clean
+            self.disable_and_clean_group_widgets(False)
+        # file
         if hdf5name:
-            # clean gui
-            self.unit_min_qlabel.setText("")
-            self.unit_max_qlabel.setText("")
-            self.unit_type_qlabel.setText("")
-            self.fish_available_qlistwidget.clear()
-            self.require_unit_qtableview.model().clear()
-            self.plot_chronicle_qpushbutton.setEnabled(False)
-            self.export_txt_chronicle_qpushbutton.setEnabled(False)
+            # clean
+            self.disable_and_clean_group_widgets(True)
 
-            # create hdf5 class
+            # create hdf5 class to get hdf5 inforamtions
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-            # get hdf5 inforamtions
             hdf5.get_hdf5_attributes()
-
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
             fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
             fish_list.sort()
@@ -271,11 +289,11 @@ class InterpolationGroup(QGroupBoxCollapsible):
                 unit_num = list(map(float, units_name))
                 min_unit = min(unit_num)
                 max_unit = max(unit_num)
-                self.from_qlineedit.setText(str(min_unit))
-                self.to_qlineedit.setText(str(max_unit))
                 self.unit_min_qlabel.setText(str(min_unit))
                 self.unit_max_qlabel.setText(str(max_unit))
                 self.unit_type_qlabel.setText(unit_type)
+                self.from_qlineedit.setText(str(min_unit))
+                self.to_qlineedit.setText(str(max_unit))
 
     def display_required_units_from_sequence(self):
         # is value entry ?
