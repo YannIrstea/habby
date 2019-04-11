@@ -76,13 +76,13 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 93
 
     # export shapefile
-    hdf5.create_shapefile(fig_opt)
+    hdf5.export_shapefile(fig_opt)
 
     # progress
     progress_value.value = 97
 
     # export stl
-    hdf5.create_stl(fig_opt)
+    hdf5.export_stl(fig_opt)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -163,6 +163,11 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
                 "Warning : EPSG code of hydraulic data is known (" + epsg_hyd + ") "
                 "and EPSG code of substrate data is unknown (" + epsg_sub + "). " +
                 "The merging data will still be calculated.")
+            merge_description["hab_epsg_code"] = epsg_hyd
+        if not RepresentsInt(epsg_hyd) and not RepresentsInt(epsg_sub):
+            print(
+                "Warning : EPSG codes of hydraulic and substrate data are unknown : " + epsg_hyd + " ; "
+               + epsg_sub + ". The merging data will still be calculated.")
             merge_description["hab_epsg_code"] = epsg_hyd
 
         # check if extent match

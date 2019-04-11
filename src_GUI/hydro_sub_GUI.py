@@ -2937,7 +2937,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                                                       reach_number=str(1),
                                                                       reach_type="river",
                                                                       epsg_code="unknown",
-                                                                      flow_type="unknwon"))  # continuous flow
+                                                                      flow_type="unknown"))  # continuous flow
 
                     # set actual telemac_description
                     self.telemac_description = self.telemac_description_multiple[0]
@@ -3029,7 +3029,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 data_row_list = dataraw.split("\n")[2:]
                 for line in data_row_list:
                     if line == "":
-                        print("empty line")
+                        #print("empty line")
                         pass
                     else:
                         for index, column_name in enumerate(headers):
@@ -3106,7 +3106,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.telemac_case = "4.a"
                     if data_index_telemac[headers[time_index]][0] != "all":
                         self.telemac_case = "4.b"
-                print("telemac_case : ", self.telemac_case)
+                #print("telemac_case : ", self.telemac_case)
 
                 """ ALL CASE """
                 # hdf5 name and source filenames
@@ -5164,8 +5164,8 @@ class SubstrateW(SubHydroW):
 
                 # check EPSG code in .prj
                 if not os.path.isfile(os.path.join(dirname, blob + ".prj")):
-                    self.send_log.emit("Error: The selected shapefile is not accompanied by its .prj file.\n")
-                    return
+                    self.send_log.emit("Warning: The selected shapefile is not accompanied by its .prj file. EPSG code is unknwon.")
+                    epsg_code = "unknown"
                 if os.path.isfile(os.path.join(dirname, blob + ".prj")):
                     ident = Sridentify()
                     ident.from_file(os.path.join(dirname, blob + ".prj"))
