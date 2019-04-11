@@ -1079,7 +1079,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     ind_new = []
     water_height = np.array(water_height)
     ikle = np.array(ikle)
-    # get all cells with at least one node with h < 0
+    # get all cells with at least one node with h < min_height
     ind_neg = set(np.where(water_height < min_height)[0])  # set because it is quicker to search in a set
     for c in range(0, len(ikle)):
         iklec = ikle[c, :]
@@ -1129,7 +1129,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
             which_side_c.append([2])
         pc_all.append(pc_c)
         which_side.append(which_side_c)
-        # let check if we have on or two value under min_height
+        # let check if we have one or two value under min_height
         if (hc < min_height and ha < min_height) or (hb < min_height and ha < min_height) or (
                 hb < min_height and hc < min_height):
             double_neg.append(True)
@@ -1216,7 +1216,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     water_height = np.array(water_height)
     velocity = np.array(velocity)
 
-    # should not be used anymore, but who knows?
+    # should not be used anymore, but who knows? LOL
     water_height[water_height < 0] = 0
     velocity[water_height < 0] = 0
 
@@ -1252,10 +1252,10 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
 def linear_h_cross(p1, p2, h1, h2, minwh=0.0):
     """
     This function is called by cut_2D_grid. It find the intersection point along a side of the triangle if part of a
-    cells is dry.
+    cells is 'dry'.
 
     :param p1: the coordinate (x,y) of the first point
-    :param p2: the coordinate (x,y) of the first point
+    :param p2: the coordinate (x,y) of the second point
     :param h1: the water height at p1 (might be negative or positive)
     :param h2: the water height at p2 (might be negative or positive)
     :return: the intersection point
@@ -1266,7 +1266,7 @@ def linear_h_cross(p1, p2, h1, h2, minwh=0.0):
         if h1 > h2:
             mix = (h1 - minwh) / (h1 - h2)
             pc = p1 + mix * (p2 - p1)
-        else:
+        else:  # h1 < h2
             mix = (h2 - minwh) / (h2 - h1)
             pc = p2 + mix * (p1 - p2)
 
@@ -2078,11 +2078,11 @@ def find_profile_between(coord_pro_p0, coord_pro_p1, nb_pro, trim=True, divgiv=[
         #     # plt.plot(p1[0], p1[1], '.b')
         #     # plt.plot(p2[0], p2[1], '.b')
         #     # plt.plot(p3[0], p3[1], '.g')
-        #     # plt.plot(p4[0], p4[1], '.r')
+        #     # plt.plot(p[0], p[1], '.r')
         #     # plt.plot(p30[0], p30[1], '.k')
         #     # plt.plot(x1all, y1all, '-r')
         #     # plt.plot(x0all, y0all, '-m')
-        #     # print(far * (p4[0] - p30[0]))
+        #     # print(far * (p[0] - p30[0]))
         #     # plt.show()
         #     point_inter1[j] = point_inter1[j - 1] + 0.001
 

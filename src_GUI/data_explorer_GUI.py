@@ -94,7 +94,6 @@ class DataExplorerFrame(QFrame):
         self.init_ui()
         self.plot_production_stoped = False
 
-
     def init_ui(self):
         # title
         #self.setTitle(self.tr('HABBY data explorer'))
@@ -773,7 +772,6 @@ class MyProcessList(list):
 
     def __init__(self):
         super().__init__()
-        #self.progress_bar = progress_bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setValue(0)
         self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
