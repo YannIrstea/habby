@@ -351,6 +351,7 @@ class EstimhabW(StatModUseful):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
+        self.tab_name = "estimhab"
         self.eq50 = QLineEdit()
         self.esub = QLineEdit()
         self.path_prj = path_prj

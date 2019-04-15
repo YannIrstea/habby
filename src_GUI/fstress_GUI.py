@@ -48,6 +48,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
     def __init__(self, path_prj, name_prj):
         super().__init__()
+        self.tab_name = "fstress"
         self.pref_found = False
         self.path_prj = path_prj
         self.name_prj = name_prj

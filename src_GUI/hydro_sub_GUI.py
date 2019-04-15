@@ -110,6 +110,7 @@ class Hydro2W(QScrollArea):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
+        self.tab_name = "hydraulic"
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET",
@@ -560,7 +561,7 @@ class SubHydroW(QWidget):
 
         # update error or show figure every second (1000ms)
         #self.timer.setInterval(1000)  # ms
-        self.timer.timeout.connect(self.send_data)
+        self.timer.timeout.connect(self.show_prog)
 
         # get the last file created
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
@@ -1056,7 +1057,7 @@ class SubHydroW(QWidget):
 
         self.manning_arr = manning
 
-    def send_data(self):
+    def show_prog(self):
         """
         This function is call regularly by the methods which have a second thread (so moslty the function
         to load the hydrological data). To call this function regularly, the variable self.timer of QTimer type is used.
@@ -1072,6 +1073,7 @@ class SubHydroW(QWidget):
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
             self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.nativeParentWidget().killAction.setVisible(True)
             # send the message FRENCH
             if self.fig_opt['language'] == str(1):
                 # MERGE
@@ -1156,6 +1158,7 @@ class SubHydroW(QWidget):
 
                 # general
                 self.nativeParentWidget().progress_bar.setValue(100)
+                self.nativeParentWidget().killAction.setVisible(False)
                 if not const_sub:
                     self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
                 if const_sub:
@@ -1456,7 +1459,7 @@ class HEC_RAS1D(SubHydroW):
         self.save_xml(0)
         self.save_xml(1)
 
-        # for error management and figures (when time finsiehed call the self.send_data function)
+        # for error management and figures (when time finsiehed call the self.show_prog function)
         self.timer.start(1000)
 
         # get the image and load option
@@ -1937,7 +1940,7 @@ class Mascaret(SubHydroW):
 
         # load mascaret data, distribute the velocity and create the grid in a second thread
         self.q = Queue()
-        # for error management and figures (when time finsiehed call the self.send_data function)
+        # for error management and figures (when time finsiehed call the self.show_prog function)
         self.timer.start(1000)
         self.p = Process(target=mascaret_mod.load_mascaret_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
                                                                                   self.path_prj, self.model_type,
@@ -2493,7 +2496,7 @@ class Rubar1D(SubHydroW):
 
         # load rubar 1D, distribute velcoity and create the grid
         self.q = Queue()
-        # for error management and figures (when time finished call the self.send_data function)
+        # for error management and figures (when time finished call the self.show_prog function)
         self.timer.start(1000)
         self.p = Process(target=rubar1d2d_mod.load_rubar1d_and_create_grid, args=(self.name_hdf5, path_hdf5, self.name_prj,
                                                                                   self.path_prj, self.model_type, self.namefile,
@@ -2648,7 +2651,7 @@ class HEC_RAS2D(SubHydroW):
         It open a second thread to avoid freezing the GUI.
 
         When this function starts, it also starts a timer. Every three seconds,
-         the timer run the function send_data()
+         the timer run the function show_prog()
         which is the class SubHydroW(). This function checks if the thread is
          finished and, it is finished, manage
         figure and errors.
@@ -4759,6 +4762,7 @@ class SubstrateW(SubHydroW):
     def __init__(self, path_prj, name_prj):
         super().__init__(path_prj, name_prj)
         # update attribute
+        self.tab_name = "substrate"
         self.attributexml = ['substrate_path', 'att_name']
         self.model_type = 'SUBSTRATE'
         self.data_type = "SUBSTRATE"

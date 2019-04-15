@@ -523,7 +523,7 @@ class outputW(QScrollArea):
         #     self.parent().close()
         # except:
         #     print("bug")
-        print("pref saved")
+        #print("pref saved")
         if self.parent():
             self.close_option_fig()
 
