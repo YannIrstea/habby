@@ -2896,18 +2896,20 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 blob = [os.path.splitext(file)[0] for file in filename]
                 ext = [os.path.splitext(file)[1] for file in filename]
 
+            # indexTELEMAC paths
+            filename_path_index = os.path.join(folder_path, "indexTELEMAC.txt")
+
             # save last path
             self.pathfile[0] = folder_path  # source file path
             self.save_xml(0)  # path in xml
 
-            # indexTELEMAC paths
-            filename_path_index = os.path.join(folder_path, "indexTELEMAC.txt")
-            # check if indexTELEMAC.txt is associated to selected file
+            # indexTELEMAC.txt absence
             if not os.path.isfile(filename_path_index):
                 self.send_log.emit("Warning: indexTELEMAC.txt doesn't exist. It will be created in the 'input' directory after the creation of the .hyd file. The latter will be filled in according to your choices.")
                 self.clean_gui()
                 self.indextelemac_presence = False
 
+                # more_than_one_file_selected_by_user
                 if more_than_one_file_selected_by_user:
                     self.multi_hdf5 = True
                     # telemac_description for several file
@@ -2960,10 +2962,11 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.h2d_t2.currentIndexChanged.connect(self.change_telemac_gui_when_combobox_name)
                     self.load_b.setText(
-                        "Load data and create " + str(len(filename_list[0])) + " .hyd files")
+                        "Load data and create " + str(len(filename)) + " .hyd files")
                     self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                     self.unit_counter()
 
+                # one file selected_by_user
                 if not more_than_one_file_selected_by_user:
                     self.multi_hdf5 = False
                     # get units name from TELEMAC file
@@ -2994,7 +2997,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
 
                     # to GUI
                     self.h2d_t2.clear()
-                    self.h2d_t2.addItems([filename])
+                    self.h2d_t2.addItems([self.telemac_description["filename_source"]])
                     self.reach_name_label.setText("unknown")
                     self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
                     self.number_timstep_label.setText(self.telemac_description["unit_number"])  # number units
@@ -3004,11 +3007,12 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setSelected(True)
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
-                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
                     self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                     self.unit_counter()
 
+            # indexTELEMAC.txt presence
             if os.path.isfile(filename_path_index):
                 # init variables
                 self.indextelemac_presence = True
@@ -3109,7 +3113,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.telemac_case = "4.a"
                     if data_index_telemac[headers[time_index]][0] != "all":
                         self.telemac_case = "4.b"
-                #print("telemac_case : ", self.telemac_case)
+                print("telemac_case : ", self.telemac_case)
 
                 """ ALL CASE """
                 # hdf5 name and source filenames
@@ -3158,21 +3162,6 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     if not reach_presence:
                         reach_name = "unknown"
 
-                    # items
-                    if len(unit_name_from_telemac_file) == len(unit_name_from_indextelemac_file):
-                        items_list = [a + " (" + b + ")" for a, b in list(zip(
-                        data_index_telemac[headers[discharge_index]],
-                        data_index_telemac[headers[0]]
-                    ))]
-                    if len(unit_name_from_telemac_file) < len(unit_name_from_indextelemac_file):
-                        index_file = data_index_telemac[headers[0]].index(self.namefile[0])
-                        data_index_telemac[headers[0]] = [data_index_telemac[headers[0]][index_file]]
-                        data_index_telemac[headers[discharge_index]] = [data_index_telemac[headers[discharge_index]][index_file]]
-                        items_list = [a + " (" + b + ")" for a, b in list(zip(
-                        data_index_telemac[headers[discharge_index]],
-                        data_index_telemac[headers[0]]
-                    ))]
-
                     # telemac_description
                     self.telemac_description["filename_source"] = ", ".join(data_index_telemac[headers[0]])
                     self.telemac_description["unit_list"] = ", ".join(data_index_telemac[headers[discharge_index]])
@@ -3184,10 +3173,25 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.telemac_description["reach_type"] = "river"
                     self.telemac_description["flow_type"] = "continuous flow"  # transient flow
 
+                    # items
+                    if len(self.telemac_description["unit_list_full"]) == len(unit_name_from_indextelemac_file):
+                        items_list = [a + " (" + b + ")" for a, b in list(zip(
+                        data_index_telemac[headers[discharge_index]],
+                        data_index_telemac[headers[0]]
+                    ))]
+                    if len(self.telemac_description["unit_list_full"]) < len(unit_name_from_indextelemac_file):
+                        index_file = data_index_telemac[headers[0]].index(self.namefile[0])
+                        data_index_telemac[headers[0]] = [data_index_telemac[headers[0]][index_file]]
+                        data_index_telemac[headers[discharge_index]] = [data_index_telemac[headers[discharge_index]][index_file]]
+                        items_list = [a + " (" + b + ")" for a, b in list(zip(
+                        data_index_telemac[headers[discharge_index]],
+                        data_index_telemac[headers[0]]
+                    ))]
+
                     # to GUI
                     self.h2d_t2.clear()
-                    self.h2d_t2.addItems(data_index_telemac[headers[0]])
-                    self.reach_name_label.setText(reach_name)
+                    self.h2d_t2.addItems(self.telemac_description["filename_source"].split(", "))
+                    self.reach_name_label.setText(self.telemac_description["reach_list"])
                     self.units_name_label.setText(self.telemac_description["unit_type"])  # kind of unit
                     self.number_timstep_label.setText(self.telemac_description["unit_number"])  # number units
                     self.units_QListWidget.clear()
@@ -3198,7 +3202,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.units_QListWidget.setEnabled(False)
                     self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.epsg_telemac_label.setEnabled(False)
-                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
                 """ CASE 1.b """
@@ -3253,7 +3257,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.units_QListWidget.setEnabled(False)
                     self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.epsg_telemac_label.setEnabled(False)
-                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
                 """ CASE 2.a """
@@ -3313,7 +3317,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
                     self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
-                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
                 """ CASE 2.b """
@@ -3373,7 +3377,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                     self.units_QListWidget.setEnabled(False)
                     self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
                     self.epsg_telemac_label.setEnabled(False)
-                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
 
                 """ CASE 3.a """
@@ -3418,7 +3422,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
                     self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
-                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
                     self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                     self.unit_counter()
@@ -3487,7 +3491,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                     self.units_QListWidget.setEnabled(True)
                     self.epsg_telemac_label.setText(self.telemac_description["epsg_code"])
-                    self.hname.setText(self.name_hdf5)  # hdf5 name
+                    self.hname.setText(self.telemac_description["hdf5_name"])  # hdf5 name
                     self.load_b.setText("Load data and create one .hyd file")
                     self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                     self.unit_counter()
@@ -3518,22 +3522,23 @@ class TELEMAC(SubHydroW):  # QGroupBox
                             reach_name = "unknown"
                         # multi description
                         self.telemac_description_multiple.append(dict(path_prj=self.path_prj,
-                                                        name_prj=self.name_prj,
-                                                        telemac_case=self.telemac_case,
-                                                        filename_source=file,
-                                                        path_filename_source=folder_path,
-                                                        hdf5_name=name_hdf5,
-                                                        model_type=self.model_type,
-                                                        model_dimension=str(self.nb_dim),
-                                                        unit_list=", ".join(unit_name_from_telemac_file),
-                                                        unit_list_full=unit_name_from_telemac_file,
-                                                        unit_list_tf=unit_index_from_telemac_file,
-                                                        unit_number=str(nbtimes),
-                                                        unit_type="time [" + time_unit + "]",
-                                                        reach_list=reach_name,
-                                                        reach_number=str(1),
-                                                        reach_type="river",
-                                                        flow_type="transient flow"))  # continuous flow
+                                                                      name_prj=self.name_prj,
+                                                                      telemac_case=self.telemac_case,
+                                                                      filename_source=file,
+                                                                      path_filename_source=folder_path,
+                                                                      hdf5_name=name_hdf5,
+                                                                      model_type=self.model_type,
+                                                                      model_dimension=str(self.nb_dim),
+                                                                      epsg_code=epsg_code,
+                                                                      unit_list=", ".join(unit_name_from_telemac_file),
+                                                                      unit_list_full=unit_name_from_telemac_file,
+                                                                      unit_list_tf=unit_index_from_telemac_file,
+                                                                      unit_number=str(nbtimes),
+                                                                      unit_type="time [" + time_unit + "]",
+                                                                      reach_list=reach_name,
+                                                                      reach_number=str(1),
+                                                                      reach_type="river",
+                                                                      flow_type="transient flow"))  # continuous flow
 
                     # set actual telemac_description
                     self.telemac_description = self.telemac_description_multiple[0]
