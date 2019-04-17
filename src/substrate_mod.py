@@ -214,8 +214,8 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj):
                 segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
             inextpoint += lnbptspolys[j]
 
-    # Taking off the doublons
-    # AIM: for using triangle to transform polygons into triangles it is necessary to avoid any point doublon
+    # Remove duplicates
+    # AIM: for using triangle to transform polygons into triangles it is necessary to avoid any dupplicate point
     vertices_array = np.array(vertices_array)
     n0 = np.array([[i] for i in range(inextpoint)])
     t = np.hstack([vertices_array, n0])

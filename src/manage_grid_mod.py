@@ -1060,217 +1060,168 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
 def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, min_height=0.001, get_ind_new=False):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
-    with h>0, this function cut the cells to find the wetted perimeter, assuminga linear decrease in the water elevation.
+    with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
     This function works for one time steps and for one reach
 
     :param ikle: the connectivity table of the 2D grid
     :param point_all: the coordinate of the points
     :param water_height: the water height data given on the nodes
-    :param velocity: the velcoity given on the nodes
+    :param velocity: the velocity given on the nodes
     :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
     :param get_ind_new: If True, a np.array is returned which give the indices of the old cell in the order of the new cells
     :return: the update connectivity table, the coodinate of the point, the height of the water and the
              velocity on the updated grid and (if get_ind_new is True) the indices of the old connectivity table in
              the new cell orders.
     """
-    # prep
-    warn_cut = True
-    c_dry = []
-    ind_new = []
-    water_height = np.array(water_height)
-    ikle = np.array(ikle)
-    # get all cells with at least one node with h < min_height
-    ind_neg = set(np.where(water_height < min_height)[0])  # set because it is quicker to search in a set
-    for c in range(0, len(ikle)):
-        iklec = ikle[c, :]
-        if iklec[0] in ind_neg or iklec[1] in ind_neg or iklec[2] in ind_neg:
-            c_dry.append(c)
+    typeikle = ikle.dtype
+    typepoint = point_all.dtype
+    failload = False, False, False, False, False
+    point_new = np.empty((0, 3), dtype=typepoint)
+    jpn0 = len(point_all) - 1
+    iklenew = np.empty((0, 3), dtype=typeikle)
+    ind_whole = np.arange(len(ikle), dtype=typeikle)
 
     # progress
     prog = progress_value.value
-    if len(c_dry) == 0:
-        delta2 = delta
-    elif len(c_dry) == 1:
-        delta2 = delta / 2
-    else:
-        delta2 = delta / len(c_dry)
+    delta2 = delta / len(ikle)
 
-    # find the intersection point for cells particlally dry
-    pc_all = []
-    which_side = []
-    double_neg = []
-    for c in c_dry:
+    water_height[water_height < min_height] = 0  # correcting the height of water  hw<0 or hw <min_height=> hw=0
+    bhw = (water_height > 0).astype(np.int)
+    ikle_bit = bhw[ikle]
+    ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
+    mikle_keep = ikle_type == 3
+
+    jpn = jpn0
+    ipt_all_ok_wetdry = []
+    ind_whole2 = []
+    for i, iklec in enumerate(ikle):
         # progress
         prog += delta2
         progress_value.value = int(prog)
-
-        pc_c = []
-        which_side_c = []
-        a = ikle[c, 0]
-        b = ikle[c, 1]
-        c = ikle[c, 2]
-        p1a = point_all[a]
-        p1b = point_all[b]
-        p1c = point_all[c]
-        ha = water_height[a]
-        hb = water_height[b]
-        hc = water_height[c]
-        pc = linear_h_cross(p1a, p1b, ha, hb, min_height)
-        if len(pc) > 0:
-            pc_c.append(pc)
-            which_side_c.append([0])
-        pc = linear_h_cross(p1b, p1c, hb, hc, min_height)
-        if len(pc) > 0:
-            pc_c.append(pc)
-            which_side_c.append([1])
-        pc = linear_h_cross(p1c, p1a, hc, ha, min_height)
-        if len(pc) > 0:
-            pc_c.append(pc)
-            which_side_c.append([2])
-        pc_all.append(pc_c)
-        which_side.append(which_side_c)
-        # let check if we have one or two value under min_height
-        if (hc < min_height and ha < min_height) or (hb < min_height and ha < min_height) or (
-                hb < min_height and hc < min_height):
-            double_neg.append(True)
-        else:
-            double_neg.append(False)
-
-    # create new cells
-    which_side = np.array(which_side)
-    i = 0
-    # list is more efficient
-    ikle = list(ikle)
-    point_all = list(point_all)
-    water_height = list(water_height)
-    velocity = list(velocity)
-    if get_ind_new:
-        ind_new = list(range(0, len(ikle)))
-    for c in c_dry:
-        if len(pc_all[i]) == 2:  # if intersection
-            # add new point
-            pc1 = pc_all[i][0]
-            pc2 = pc_all[i][1]
-            point_all.append(pc2)  # order matters
-            point_all.append(pc1)
-            lenp = len(point_all)
-            water_height.extend([min_height, min_height])
-            velocity.extend([0, 0])
-            iklec = ikle[c]
-            # seg1 = [0,1] and seg2 = [1,2] in ikle order
-            if np.sum(which_side[i]) == 1:
-                if double_neg[i]:
-                    ikle.append([lenp - 1, lenp - 2, iklec[1]])
-                    if get_ind_new:
-                        ind_new.append(c)
-                else:
-                    if which_side[i][1] == 1:  # seg = [1, 2]
-                        ikle.append([lenp - 1, lenp - 2, iklec[0]])
-                        ikle.append([lenp - 2, iklec[2], iklec[0]])
+        if ikle_type[i] == 1 or ikle_type[i] == 2:
+            sumk, nboverdry, bkeep = 0, 0, True
+            ia, ib, ic = ikle[i]
+            pa = point_all[ia]
+            pb = point_all[ib]
+            pc = point_all[ic]
+            ha = water_height[ia]
+            hb = water_height[ib]
+            hc = water_height[ic]
+            p1, overdry, koverdry = linear_z_cross(pa, pb, ha, hb)
+            if overdry > 0:
+                nboverdry = nboverdry + 1
+                if koverdry > 1: bkeep = False
+            if len(p1) > 0:
+                sumk = sumk + 1
+            p2, overdry, koverdry = linear_z_cross(pb, pc, hb, hc)
+            if overdry > 0:
+                nboverdry = nboverdry + 1
+                if koverdry > 1: bkeep = False
+            if len(p2) > 0:
+                sumk = sumk + 2
+            p3, overdry, koverdry = linear_z_cross(pc, pa, hc, ha)
+            if overdry > 0:
+                nboverdry = nboverdry + 1
+                if koverdry > 1: bkeep = False
+            if len(p3) > 0:
+                sumk = sumk + 3
+            if nboverdry > 0:
+                if bkeep: mikle_keep[i] = True  # keeping the mesh we can't split
+            else:
+                if sumk == 5:
+                    point_new = np.append(point_new, np.array([p2, p3]), axis=0)
+                    if hc == 0:
+                        iklenew = np.append(iklenew, np.array([[ia, jpn + 1, jpn + 2], [ia, ib, jpn + 1]]), axis=0)
+                        ipt_all_ok_wetdry.extend([ia, ib])
+                        ind_whole2.extend([i, i])
                     else:
-                        ikle.append([lenp - 1, lenp - 2, iklec[2]])
-                        ikle.append([lenp - 1, iklec[2], iklec[0]])  # not understood why not lenp-2
-                    if get_ind_new:
-                        ind_new.append(c)
-                        ind_new.append(c)
-            # seg1 = [0,1] and seg2 = [0,2]
-            if np.sum(which_side[i]) == 2:
-                if double_neg[i]:
-                    ikle.append([lenp - 1, lenp - 2, iklec[0]])
-                    if get_ind_new:
-                        ind_new.append(c)
-                else:
-                    if which_side[i][1] == 0:  # seg = [1, 0]
-                        ikle.append([lenp - 1, lenp - 2, iklec[2]])
-                        ikle.append([lenp - 2, iklec[1], iklec[2]])
+                        iklenew = np.append(iklenew, np.array([[jpn + 2, jpn + 1, ic]]), axis=0)
+                        ipt_all_ok_wetdry.append(ic)
+                        ind_whole2.append(i)
+                elif sumk == 4:
+                    point_new = np.append(point_new, np.array([p1, p3]), axis=0)
+                    if ha == 0:
+                        iklenew = np.append(iklenew, np.array([[jpn + 1, ib, jpn + 2], [ib, ic, jpn + 2]]), axis=0)
+                        ipt_all_ok_wetdry.extend([ic, ib])
+                        ind_whole2.extend([i, i])
                     else:
-                        ikle.append([lenp - 1, lenp - 2, iklec[1]])
-                        ikle.append([lenp - 2, iklec[1], iklec[2]])
-                    if get_ind_new:
-                        ind_new.append(c)
-                        ind_new.append(c)
-            # seg1 = [2,1] and seg2 = [0,2]
-            if np.sum(which_side[i]) == 3:
-                if double_neg[i]:
-                    ikle.append([lenp - 1, lenp - 2, iklec[2]])
-                    if get_ind_new:
-                        ind_new.append(c)
-                else:
-                    if which_side[i][1] == 2:  # seg = [2, 0]
-                        ikle.append([lenp - 1, lenp - 2, iklec[1]])
-                        ikle.append([lenp - 2, iklec[1], iklec[0]])
+                        iklenew = np.append(iklenew, np.array([[ia, jpn + 1, jpn + 2]]), axis=0)
+                        ipt_all_ok_wetdry.append(ia)
+                        ind_whole2.append(i)
+                elif sumk == 3:
+                    point_new = np.append(point_new, np.array([p1, p2]), axis=0)
+                    if hb == 0:
+                        iklenew = np.append(iklenew, np.array([[jpn + 1, jpn + 2, ia], [ia, jpn + 2, ic]]), axis=0)
+                        ipt_all_ok_wetdry.extend([ia, ic])
+                        ind_whole2.extend([i, i])
                     else:
-                        ikle.append([lenp - 1, lenp - 2, iklec[0]])
-                        ikle.append([lenp - 1, iklec[1], iklec[0]])  # ?
-                    if get_ind_new:
-                        ind_new.append(c)
-                        ind_new.append(c)
-        elif len(pc_all[i]) != 0:
-            if warn_cut:
-                print('Warning: One triangle found which touches only one point. The grid was not cut on '
-                      'this triangle \n')
-                warn_cut = False
-        i += 1
-    ikle = np.array(ikle)
-    point_all = np.array(point_all)
-    water_height = np.array(water_height)
-    velocity = np.array(velocity)
+                        iklenew = np.append(iklenew, np.array([[ib, jpn + 2, jpn + 1]]), axis=0)
+                        ipt_all_ok_wetdry.append(ib)
+                        ind_whole2.append(i)
+                else:
+                    print("impossible case during cut_2d_grid")
+                    return failload
+                jpn += 2
 
-    # should not be used anymore, but who knows? LOL
-    water_height[water_height < 0] = 0
-    velocity[water_height < 0] = 0
+    iklekeep = ikle[
+        mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
+    ind_whole = ind_whole[mikle_keep, ...]
+    ind_whole = np.append(ind_whole, np.asarray(ind_whole2), axis=0)
+    ipt_iklenew_unique = np.unique(iklekeep)
+    ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry), axis=0)
+    ipt_iklenew_unique = np.unique(ipt_iklenew_unique)
+    point_all_ok = point_all[ipt_iklenew_unique]  # select only the point of the selectionned meshes
+    water_height_ok = water_height[ipt_iklenew_unique]
+    velocity_ok = velocity[ipt_iklenew_unique]
+    ipt_old_new = np.array([-1] * len(point_all))
+    for i, point_index in enumerate(ipt_iklenew_unique):
+        ipt_old_new[point_index] = i
+    iklekeep2 = ipt_old_new[ikle]
+    iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
 
-    # erease the old cells
-    ikle2 = np.delete(ikle, c_dry, axis=0)
+    # delete dupplicate of the new point set
+    point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
+    ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)
+    iklekeep = np.append(iklekeep, ipt_old_new[iklenew], axis=0)
 
-    # erase points and variables outside the wet area and refresh ikle
-    ikle_onelist = ikle2.flatten()  # get one ikle list
-    ikle_onelist.sort()  # sort
-    ikle_onelist_sorted_set = np.unique(ikle_onelist)
-    liste_na_noeud = np.array([-999999] * len(point_all))
-    for i, point_index in enumerate(ikle_onelist_sorted_set):
-        liste_na_noeud[point_index] = i
-    for i, (p1_index, p2_index, p3_index) in enumerate(ikle2):
-        ikle2[i][0] = liste_na_noeud[ikle2[i][0]]
-        ikle2[i][1] = liste_na_noeud[ikle2[i][1]]
-        ikle2[i][2] = liste_na_noeud[ikle2[i][2]]
-    index_to_remove = np.where(liste_na_noeud == -999999)
-    point_all = np.delete(point_all, index_to_remove, axis=0)
-    water_height = np.delete(water_height, index_to_remove, axis=0)
-    velocity = np.delete(velocity, index_to_remove, axis=0)
-
+    point_all_ok = np.append(point_all_ok, point_new_single, axis=0)
+    water_height_ok = np.append(water_height_ok, np.zeros(len(point_new_single), dtype=water_height.dtype), axis=0)
+    velocity_ok = np.append(velocity_ok, np.zeros(len(point_new_single), dtype=velocity.dtype), axis=0)
     if get_ind_new:
-        ind_new = np.array(ind_new)
-        ind_new = np.delete(ind_new, c_dry, axis=0)
-
-    if get_ind_new:
-        return ikle2, point_all, water_height, velocity, ind_new
+        return iklekeep, point_all_ok, water_height_ok, velocity_ok, ind_whole
     else:
-        return ikle2, point_all, water_height, velocity
+        return iklekeep, point_all_ok, water_height_ok, velocity_ok
 
 
-def linear_h_cross(p1, p2, h1, h2, minwh=0.0):
+def linear_z_cross(p1, p2, h1, h2):
     """
     This function is called by cut_2D_grid. It find the intersection point along a side of the triangle if part of a
     cells is 'dry'.
 
-    :param p1: the coordinate (x,y) of the first point
-    :param p2: the coordinate (x,y) of the second point
-    :param h1: the water height at p1 (might be negative or positive)
-    :param h2: the water height at p2 (might be negative or positive)
-    :return: the intersection point
+    :param p1: the coordinate (x,y,z) of the first point
+    :param p2: the coordinate (x,y,z) of the second point
+    :param h1: the water height at p1 (might be 0 or positive)
+    :param h2: the water height at p2 (might be 0 or positive)
+    :return: the intersection point and a overdry that characterize the 'hydraulic' validity of  the side
+    ie the height of water measure above a 'dry' node when we assume that the water surface is plane
     """
-    pc = []
-    if (h1 <= minwh and h2 > minwh) or (h1 > minwh and h2 <= minwh):
-        # h is linear, i.e., h = a*x +b pc == x(h==0) and y = a2*x + b2
-        if h1 > h2:
-            mix = (h1 - minwh) / (h1 - h2)
-            pc = p1 + mix * (p2 - p1)
-        else:  # h1 < h2
-            mix = (h2 - minwh) / (h2 - h1)
-            pc = p2 + mix * (p1 - p2)
-
-    return pc
+    pm = []
+    overdry = 0
+    koverdry = 0
+    if not ((h1 == 0 and h2 == 0) or (h1 > 0 and h2 > 0)):
+        if (h1 == 0 and p2[2] + h2 > p1[2]) or (h2 == 0 and p1[2] + h1 > p2[2]) or (p1[2] == p2[2]):
+            overdry = abs(p2[2] + h2 - p1[2] - h1)
+            koverdry = overdry / (h2 + h1)
+        else:
+            if h2 == 0:
+                zm = p1[2] + h1
+                k = (zm - p1[2]) / (p2[2] - p1[2])
+                pm = [(k * (p2[0] - p1[0]) + p1[0]), (k * (p2[1] - p1[1]) + p1[1]), zm]
+            else:
+                zm = p2[2] + h2
+                k = (zm - p2[2]) / (p1[2] - p2[2])
+                pm = [(k * (p1[0] - p2[0]) + p2[0]), (k * (p1[1] - p2[1]) + p2[1]), zm]
+    return pm, overdry, koverdry
 
 
 def update_coord_pro_with_vh_pro(coord_pro, vh_pro_t):

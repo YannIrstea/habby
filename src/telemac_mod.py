@@ -174,13 +174,14 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"],
                                axis=1)  # Insert values before column 2
-            [tin_data, xy_data, h_data, v_data] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
+            [tin_data, xy_data, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
                                                                               xy,  # with z value (facilitate)
                                                                               data_2d_telemac["h"][unit_index],
                                                                               data_2d_telemac["v"][unit_index],
                                                                               progress_value,
                                                                               delta,
-                                                                              minwh)
+                                                                              minwh,
+                                                                              True)
             data_2d["tin"][0].append(tin_data)
             data_2d["xy"][0].append(xy_data[:, :2])
             data_2d["h"][0].append(h_data)
