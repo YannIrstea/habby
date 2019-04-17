@@ -44,6 +44,8 @@ from src import calcul_hab_mod
 from src import bio_info_mod
 from src import mesh_management_mod
 from src import lammi_mod
+from src import hydro_input_file_mode
+from src import project_manag_mod
 from src_GUI import preferences_GUI
 
 
@@ -205,6 +207,8 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             # inputfile
             if arg[:10] == 'inputfile=':
                 filename = arg[10:]
+                if not "[" in filename:
+                    filename = [filename]
             # units
             if arg[:6] == 'units=':
                 units_string = arg[6:]
@@ -214,10 +218,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
         # inputfile (telemac file absolute path with extension)
         if not input_file:
-            pathfilet = os.path.dirname(filename)
+            pathfilet = os.path.dirname(filename[0])
         else:
             pathfilet = path_input
-        namefilet = os.path.basename(filename)
+        namefilet = os.path.basename(filename[0])
 
         # units
         if units_string:
@@ -236,24 +240,23 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             name_hdf5 = 'Hydro_TELEMAC_' + os.path.splitext(namefilet)[0]
             path_hdf5 = path_prj
 
+        # get_hydrau_description_from_source
+        telemac_description = hydro_input_file_mode.get_hydrau_description_from_source(filename,
+                                                                                       path_prj,
+                                                                                       "TELEMAC",
+                                                                                       2)
+
         # run process
         progress_value = Value("i", 0)
-        p = Process(target=telemac_mod.load_telemac_and_cut_grid, args=(name_hdf5,
-                                                                        namefilet,
-                                                                        pathfilet,
-                                                                        name_prj,
-                                                                        path_prj,
-                                                                           'TELEMAC',
-                                                                        2,
-                                                                        path_hdf5,
+        q = Queue()
+        p = Process(target=telemac_mod.load_telemac_and_cut_grid, args=(telemac_description,
                                                                         progress_value,
-                                                                        units,
-                                                                        [],
-                                                                        True,
-                                                                        {}))
+                                                                        q,
+                                                                        True))
+
         p.start()
         while p.is_alive():
-            print('Progress %d%%\r' % progress_value.value, end="")
+            print("Progress : " + str(progress_value.value) + "%\r", end="")
         p.join()
         #print("--- done ! ---")
 

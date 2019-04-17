@@ -1128,10 +1128,21 @@ class SubHydroW(QWidget):
             if error:
                 self.send_log.emit("clear status bar")
                 self.running_time = 0
-                self.load_b2.setDisabled(False)  # merge
-                self.load_polygon_substrate.setDisabled(False)  # substrate
-                self.load_point_substrate.setDisabled(False)  # substrate
-                self.load_constant_substrate.setDisabled(False)  # substrate
+                self.nativeParentWidget().killAction.setVisible(False)
+                # MERGE
+                if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
+                    # unblock button merge
+                    self.load_b2.setDisabled(False)  # merge
+                # SUBSTRATE
+                elif self.model_type == 'SUBSTRATE':
+                    # unblock button substrate
+                    self.load_polygon_substrate.setDisabled(False)  # substrate
+                    self.load_point_substrate.setDisabled(False)  # substrate
+                    self.load_constant_substrate.setDisabled(False)  # substrate
+                # HYDRAULIC
+                else:
+                    # unblock button hydraulic
+                    self.load_b.setDisabled(False)  # hydraulic
             if not error:
                 # MERGE
                 if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
@@ -1633,7 +1644,7 @@ class Rubar2D(SubHydroW):
             self.gethdf5_name_gui()
 
         # load button
-        self.load_b = QPushButton(self.tr('Load data and create hab file'), self)
+        self.load_b = QPushButton(self.tr('Load data and create .hyd file'), self)
         self.load_b.setStyleSheet("background-color: #47B5E6; color: black")
         self.load_b.clicked.connect(self.load_rubar)
         self.spacer = QSpacerItem(1, 200)
@@ -1709,12 +1720,14 @@ class Rubar2D(SubHydroW):
 
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
+        self.progress_value = Value("i", 0)
         self.p = Process(target=rubar1d2d_mod.load_rubar2d_and_create_grid, args=(self.name_hdf5, self.namefile[0],
                                                                                   self.namefile[1], self.pathfile[0],
                                                                                   self.pathfile[1], path_im,
                                                                                   self.name_prj,
                                                                                   self.path_prj,
                                                                                   self.model_type, self.nb_dim,
+                                                                                  self.progress_value,
                                                                                   path_hdf5,
                                                                                   self.q, False, self.fig_opt))
         self.p.name = "Rubar 2D data loading"

@@ -75,9 +75,10 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         data_2d_whole_profile["unit_correspondence"] = [[]]  # always one reach
         for i, file in enumerate(filename_source):
             # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
-            data_2d_telemac, description_from_telemac_file = load_telemac(file,
-                                                                          description_from_indextelemac_file[
-                                                                              hyd_file]["path_filename_source"])
+            data_2d_telemac, description_from_telemac_file = load_telemac(file, description_from_indextelemac_file[hyd_file]["path_filename_source"])
+            if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
+                q.put(mystdout)
+                return
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
             data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
@@ -172,7 +173,9 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                                                                               description_from_indextelemac_file[
                                                                                   hyd_file]["path_filename_source"])
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
-                xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"],
+                xy = np.insert(data_2d_telemac["xy"],
+                               2,
+                               values=data_2d_telemac["z"],
                                axis=1)  # Insert values before column 2
             [tin_data, xy_data, h_data, v_data] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
                                                                               xy,  # with z value (facilitate)
@@ -186,6 +189,11 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             data_2d["h"][0].append(h_data)
             data_2d["v"][0].append(v_data)
             data_2d["z"][0].append(xy_data[:, 2])
+            # data_2d["tin"][0].append(data_2d_telemac["tin"])
+            # data_2d["xy"][0].append(xy[:, :2])
+            # data_2d["h"][0].append(data_2d_telemac["h"][unit_index])
+            # data_2d["v"][0].append(data_2d_telemac["v"][unit_index])
+            # data_2d["z"][0].append(xy[:, 2])
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress
@@ -214,10 +222,9 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         # progress
         progress_value.value = 100
 
-    # create_indextelemac_text_file
-    create_indextelemac_text_file(description_from_indextelemac_file)
-
     if not print_cmd:
+        # create_indextelemac_text_file
+        create_indextelemac_text_file(description_from_indextelemac_file)
         sys.stdout = sys.__stdout__
     if q and not print_cmd:
         q.put(mystdout)
@@ -234,7 +241,7 @@ def load_telemac(namefilet, pathfilet):
     :param pathfilet: the path to this file (string)
     :return: the velocity, the height, the coordinate of the points of the grid, the connectivity table.
     """
-    faiload = [-99], [-99], [-99], [-99], [-99], [-99]
+    faiload = [-99], [-99]
 
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
