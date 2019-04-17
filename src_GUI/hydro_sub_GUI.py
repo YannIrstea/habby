@@ -44,7 +44,7 @@ from src_GUI import preferences_GUI
 from src import mesh_management_mod
 from src import lammi_mod
 from src import paraview_mod
-from src import hydro_input_file_mode
+from src import hydro_input_file_mod
 
 np.set_printoptions(threshold=np.inf)
 try:
@@ -2918,10 +2918,10 @@ class TELEMAC(SubHydroW):  # QGroupBox
             self.clean_gui()
 
             # get_hydrau_description_from_source
-            telemac_description, warning_list = hydro_input_file_mode.get_hydrau_description_from_source(filename_list[0],
-                                                                                           self.path_prj,
-                                                                                           self.model_type,
-                                                                                           self.nb_dim)
+            telemac_description, warning_list = hydro_input_file_mod.get_hydrau_description_from_source(filename_list[0],
+                                                                                                        self.path_prj,
+                                                                                                        self.model_type,
+                                                                                                        self.nb_dim)
             # warnings
             if warning_list:
                 for warn in warning_list:

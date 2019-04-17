@@ -44,7 +44,7 @@ from src import calcul_hab_mod
 from src import bio_info_mod
 from src import mesh_management_mod
 from src import lammi_mod
-from src import hydro_input_file_mode
+from src import hydro_input_file_mod
 from src import project_manag_mod
 from src_GUI import preferences_GUI
 
@@ -241,10 +241,10 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             path_hdf5 = path_prj
 
         # get_hydrau_description_from_source
-        telemac_description = hydro_input_file_mode.get_hydrau_description_from_source(filename,
-                                                                                       path_prj,
+        telemac_description = hydro_input_file_mod.get_hydrau_description_from_source(filename,
+                                                                                      path_prj,
                                                                                        "TELEMAC",
-                                                                                       2)
+                                                                                      2)
 
         # run process
         progress_value = Value("i", 0)
