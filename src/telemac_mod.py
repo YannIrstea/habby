@@ -116,6 +116,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         # cut the grid to have the precise wet area and put data in new form
         data_2d = dict()
         data_2d["tin"] = [[]]  # always one reach
+        data_2d["i_whole_profile"] = [[]]  # always one reach
         data_2d["xy"] = [[]]  # always one reach
         data_2d["h"] = [[]]  # always one reach
         data_2d["v"] = [[]]  # always one reach
@@ -186,6 +187,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                                                                               minwh,
                                                                               True)
             data_2d["tin"][0].append(tin_data)
+            data_2d["i_whole_profile"][0].append(ind_new)
             data_2d["xy"][0].append(xy_data[:, :2])
             data_2d["h"][0].append(h_data)
             data_2d["v"][0].append(v_data)
@@ -219,6 +221,24 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
                                        description_from_indextelemac_file[hyd_file]["hdf5_name"])
         hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
+
+        # progress
+        progress_value.value = 92
+
+        # export_mesh_whole_profile_shp
+        hdf5.export_mesh_whole_profile_shp(fig_opt)
+
+        # progress
+        progress_value.value = 96
+
+        # export shape
+        hdf5.export_mesh_shp(fig_opt)
+
+        # progress
+        progress_value.value = 98
+
+        # export_point_shp
+        hdf5.export_point_shp(fig_opt)
 
         # progress
         progress_value.value = 100

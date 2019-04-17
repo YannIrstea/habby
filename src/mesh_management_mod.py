@@ -76,7 +76,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 93
 
     # export shapefile
-    hdf5.export_shapefile(fig_opt)
+    hdf5.export_mesh_shp(fig_opt)
 
     # progress
     progress_value.value = 97
