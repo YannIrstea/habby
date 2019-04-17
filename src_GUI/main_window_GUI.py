@@ -20,6 +20,7 @@ import glob
 import os
 import shutil
 import numpy as np
+from functools import partial
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -27,7 +28,7 @@ except ImportError:
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, \
     pyqtRemoveInputHook, QObject, QEvent
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
-    QLabel, QGridLayout, QAction, \
+    QLabel, QGridLayout, QAction, QSizePolicy,\
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
     QMessageBox, QComboBox, QScrollArea, \
     QInputDialog, QMenu, QToolBar, QFrame, QProgressBar
@@ -47,7 +48,7 @@ from src_GUI import data_explorer_GUI
 from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
-
+from src import project_manag_mod
 
 class MainWindows(QMainWindow):
     """
@@ -138,7 +139,9 @@ class MainWindows(QMainWindow):
 
         # prepare the attributes, careful if change the Qsetting!
         self.msg2 = QMessageBox()
-        self.rechmain = False
+        self.physic_tabs = True
+        self.stat_tabs = False
+        self.research_tabs = False
         if name_path_set:
             self.name_prj = name_prj_set
         else:
@@ -161,7 +164,6 @@ class MainWindows(QMainWindow):
         self.does_it_work = True
         self.actual_theme = "classic"
 
-
         # the path to the biological data by default (HABBY force the user to use this path)
         self.path_bio_default = os.path.join("biology", "models")
 
@@ -176,11 +178,20 @@ class MainWindows(QMainWindow):
         # set geometry
         self.settings = QSettings('irstea', 'HABBY' + str(self.version))
 
-        model_tab_state = "both"  # physical or statistical
-        if self.settings.value('model_chosen'):
-            model_tab_state = self.settings.value('model_chosen')
+        if self.settings.value('selected_tabs'):
+            self.physic_tabs, self.stat_tabs, self.research_tabs = list(map(eval, self.settings.value('selected_tabs').split(", ")))
+        else:
+            self.physic_tabs = True
+            self.stat_tabs = False
+            self.research_tabs = False
 
-        self.central_widget = CentralW(self.rechmain, self.path_prj, self.name_prj, lang_bio, model_tab_state)
+        self.central_widget = CentralW(self.physic_tabs,
+                                       self.stat_tabs,
+                                       self.research_tabs,
+                                       self.path_prj,
+                                       self.name_prj,
+                                       lang_bio)
+
         self.msg2 = QMessageBox()
 
         # call the normal constructor of QWidget
@@ -204,12 +215,6 @@ class MainWindows(QMainWindow):
             windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(
                 map(int, self.settings.value('wind_position').split(",")))
             self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
-        # set theme
-        if self.settings.value('theme') == "dark":
-            self.setthemedark()
-        else:
-            self.setthemeclassic()
-        del self.settings
 
         # create the menu bar
         self.my_menu_bar()
@@ -243,6 +248,22 @@ class MainWindows(QMainWindow):
         self.dialog_preferences.setCentralWidget(self.output_fig_gui)
         self.dialog_preferences.setWindowIcon(QIcon(name_icon))
 
+        # set theme
+        if self.settings.value('theme') == "dark":
+            self.setthemedark()
+        else:
+            self.setthemeclassic()
+
+        # set check menu
+        if self.settings.value('theme') == "dark":
+            self.setthemedark()
+        else:
+            self.setthemeclassic()
+
+        del self.settings
+
+
+
         self.check_concurrency()
         self.show()
 
@@ -255,27 +276,29 @@ class MainWindows(QMainWindow):
 
         :param event: managed by the operating system.
         """
-
-        qm = QMessageBox
-        ret = qm.question(self,
-                          self.tr("Leave HABBY ?"),
-                          self.tr("Do you really want to leave HABBY ?\nAll alive processes and figure windows will be closed."),
-                          qm.Yes | qm.No)
-        if ret == QMessageBox.Yes:
-            if event:  # if CTRL+Q : event == False
-                event.accept()
-        else:
-            if event:  # if CTRL+Q : event == False
-                event.ignore()
-            return
+        isalive = self.process_alive(close=False, isalive=True)
+        if isalive:
+            qm = QMessageBox
+            ret = qm.question(self,
+                              self.tr(", ".join(isalive) + " still running"),
+                              self.tr("Do you really want to leave HABBY ?\nAll alive processes and figure windows will be closed."),
+                              qm.Yes | qm.No)
+            if ret == QMessageBox.Yes:
+                if event:  # if CTRL+Q : event == False
+                    event.accept()
+            else:
+                if event:  # if CTRL+Q : event == False
+                    event.ignore()
+                return
 
         self.end_concurrency()
 
         # close all process plot
-        self.central_widget.closefig()
+        if hasattr(self, "central_widget"):
+            self.central_widget.closefig()
 
-        # close all process data
-        self.closeprocessalive()
+        # close all process data (security)
+        self.process_alive(close=True, isalive=False)
 
         # save theme and windows position
         self.settings = QSettings('irstea', 'HABBY' + str(self.version))
@@ -283,7 +306,10 @@ class MainWindows(QMainWindow):
             [str(self.geometry().x()), str(self.geometry().y()), str(self.geometry().width()),
              str(self.geometry().height())]))
         self.settings.setValue('theme', self.actual_theme)
-        self.settings.setValue('model_chosen', self.central_widget.model_chosen)
+        selected_tabs = ", ".join([str(self.physic_tabs),
+                                   str(self.stat_tabs),
+                                   str(self.research_tabs)])
+        self.settings.setValue('selected_tabs', selected_tabs)
         del self.settings
 
         os._exit(1)
@@ -386,16 +412,19 @@ class MainWindows(QMainWindow):
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
         else:
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
+            #if self.physic_tabs:
             self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
             if ind_hydrau_tab != 0:
                 self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
             self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
             self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+            self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+            self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+            #if self.stat_tabs:
             self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
             self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
             self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
-            self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+
 
             # pass the info to the bio info tab
             # to be modified if a new language is added !
@@ -422,7 +451,6 @@ class MainWindows(QMainWindow):
 
         # create the new menu
         self.my_menu_bar()
-
         # create the new toolbar
         self.my_toolbar()
         # reconnect signal for the welcome tab
@@ -530,14 +558,6 @@ class MainWindows(QMainWindow):
         closeim.triggered.connect(self.central_widget.closefig)
         closeim.setShortcut('Ctrl+B')
 
-        researchShortcut = QAction(self.tr("Hide/Show research tabs"), self)
-        researchShortcut.setShortcut('Ctrl+R')
-        researchShortcut.setStatusTip(self.tr('Hide/Show research tabs'))
-        researchShortcut.triggered.connect(self.open_close_rech)
-
-        # researchShortcut = QShortcut(QKeySequence('Ctrl+R'), self, None, self.open_close_rech) # don't work, why ?
-        # #self.researchShortcut.setContext(Qt.WidgetShortcut)
-
         # Menu to choose the language
         lAction1 = QAction(self.tr('&English'), self)
         lAction1.setStatusTip(self.tr('click here for English'))
@@ -549,11 +569,6 @@ class MainWindows(QMainWindow):
         lAction3.setStatusTip(self.tr('click here for Spanish'))
         lAction3.triggered.connect(lambda: self.setlangue(2))
 
-        # process kill
-        process_kill_action = QAction(self.tr("Stop all current processes"), self)
-        process_kill_action.setStatusTip(self.tr('Stop all current processes'))
-        process_kill_action.triggered.connect(self.closeprocessalive)
-
         # Menu to obtain help and program version
         helpm = QAction(self.tr('Developper Help'), self)
         helpm.setStatusTip(self.tr('Get help to use the programme'))
@@ -564,22 +579,16 @@ class MainWindows(QMainWindow):
         preferences_action.triggered.connect(self.open_preferences)
 
         # physical
-        self.physicalmodelaction = QAction(self.tr('Physical models'), self, checkable=True)
-        self.physicalmodelaction.triggered.connect(self.setmodelstab)
+        self.physicalmodelaction = QAction(self.tr('Physical tabs'), self, checkable=True)
+        self.physicalmodelaction.triggered.connect(self.open_close_physic)
 
         # statistic
-        self.statisticmodelaction = QAction(self.tr('Statistical models'), self, checkable=True)
-        self.statisticmodelaction.triggered.connect(self.setmodelstab)
+        self.statisticmodelaction = QAction(self.tr('Statistical tabs'), self, checkable=True)
+        self.statisticmodelaction.triggered.connect(self.open_close_stat)
 
-        if self.central_widget.model_chosen == "both":
-            self.physicalmodelaction.setChecked(True)
-            self.statisticmodelaction.setChecked(True)
-        if self.central_widget.model_chosen == "statistical":
-            self.physicalmodelaction.setChecked(False)
-            self.statisticmodelaction.setChecked(True)
-        if self.central_widget.model_chosen == "physical":
-            self.physicalmodelaction.setChecked(True)
-            self.statisticmodelaction.setChecked(False)
+        # reasearch
+        self.researchmodelaction = QAction(self.tr("Research tabs"), self, checkable=True)
+        self.researchmodelaction.triggered.connect(self.open_close_rech)
 
         # classic them
         self.classicthemeaction = QAction(self.tr('classic'), self, checkable=True)
@@ -598,6 +607,11 @@ class MainWindows(QMainWindow):
             self.classicthemeaction.setChecked(False)
             self.darkthemeaction.setChecked(True)
 
+        # tabs
+        self.physicalmodelaction.setChecked(self.physic_tabs)
+        self.statisticmodelaction.setChecked(self.stat_tabs)
+        self.researchmodelaction.setChecked(self.research_tabs)
+
         # add all first level menu
         if right_menu:
             self.menu_right = QMenu()
@@ -605,7 +619,7 @@ class MainWindows(QMainWindow):
             fileMenu_settings = self.menu_right.addMenu(self.tr('Settings'))
             fileMenu_language = self.menu_right.addMenu(self.tr('Language'))
             fileMenu_view = self.menu_right.addMenu(self.tr('View'))
-            fileMenu_process = self.menu_right.addMenu(self.tr('Process'))
+            self.fileMenu_tabs = self.menu_right.addMenu(self.tr('Tabs'))
             fileMenu_help = self.menu_right.addMenu(self.tr('Help'))
         else:
             self.menubar = self.menuBar()
@@ -613,7 +627,7 @@ class MainWindows(QMainWindow):
             fileMenu_settings = self.menubar.addMenu(self.tr('Settings'))
             fileMenu_language = self.menubar.addMenu(self.tr('Language'))
             fileMenu_view = self.menubar.addMenu(self.tr('View'))
-            fileMenu_process = self.menubar.addMenu(self.tr('Process'))
+            self.fileMenu_tabs = self.menubar.addMenu(self.tr('Tabs'))
             fileMenu_help = self.menubar.addMenu(self.tr('Help'))
 
         # add all the rest
@@ -631,14 +645,12 @@ class MainWindows(QMainWindow):
         im_all = fileMenu_settings.addMenu(self.tr('Figure options'))
         im_all.addAction(savi)
         im_all.addAction(closeim)
-        model_all = fileMenu_view.addMenu(self.tr("Models"))
-        model_all.addAction(self.physicalmodelaction)
-        model_all.addAction(self.statisticmodelaction)
         theme_all = fileMenu_view.addMenu(self.tr("Themes"))
         theme_all.addAction(self.classicthemeaction)
         theme_all.addAction(self.darkthemeaction)
-        fileMenu_view.addAction(researchShortcut)
-        fileMenu_process.addAction(process_kill_action)
+        self.fileMenu_tabs.addAction(self.physicalmodelaction)
+        self.fileMenu_tabs.addAction(self.statisticmodelaction)
+        self.fileMenu_tabs.addAction(self.researchmodelaction)
         fileMenu_settings.addAction(preferences_action)
         fileMenu_language.addAction(lAction1)
         fileMenu_language.addAction(lAction2)
@@ -655,29 +667,13 @@ class MainWindows(QMainWindow):
 
             # add the title of the windows
             # let it here as it should be changes if language changes
-            if self.name_prj != '':
+            if self.name_prj:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
             else:
                 self.setWindowTitle(self.tr('HABBY ') + str(self.version))
 
             # in case we need a tool bar
             # self.toolbar = self.addToolBar('')
-
-    def setmodelstab(self):
-        # check
-        if self.physicalmodelaction.isChecked() and not self.statisticmodelaction.isChecked():
-            self.central_widget.model_chosen = "statistical"
-        if not self.physicalmodelaction.isChecked() and self.statisticmodelaction.isChecked():
-            self.central_widget.model_chosen = "physical"
-        if not self.physicalmodelaction.isChecked() and not self.statisticmodelaction.isChecked():
-            self.central_widget.model_chosen = "both"
-
-        # add tabs
-        self.central_widget.add_all_tab()
-
-        # refresh menu
-        self.my_menu_bar()
-        self.my_menu_bar(True)
 
     def setthemeclassic(self):
         self.app.setStyleSheet("")
@@ -760,19 +756,22 @@ class MainWindows(QMainWindow):
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
         closeAction.triggered.connect(self.central_widget.closefig)
 
-        killAction = QAction(icon_kill, self.tr('Stop all current processes'), self)
-        killAction.setStatusTip(self.tr('Stop all current processes'))
-        killAction.triggered.connect(self.closeprocessalive)
+        self.killAction = QAction(icon_kill, self.tr('Stop current process'), self)
+        self.killAction.triggered.connect(partial(self.process_alive, close=True, isalive=False))
+        self.killAction.setVisible(False)
+        spacer_toolbar = QWidget()
+        spacer_toolbar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # position of the toolbar
         self.toolbar.setOrientation(Qt.Vertical)
 
         # create the toolbar
-        self.toolbar.addAction(openAction)
         self.toolbar.addAction(newAction)
+        self.toolbar.addAction(openAction)
         self.toolbar.addAction(seeAction)
         self.toolbar.addAction(closeAction)
-        self.toolbar.addAction(killAction)
+        self.toolbar.addWidget(spacer_toolbar)
+        self.toolbar.addAction(self.killAction)
 
     def open_preferences(self):
         # get size
@@ -869,107 +868,13 @@ class MainWindows(QMainWindow):
 
         # if new projet or project move
         if not os.path.isfile(fname):
-            # create the root <root> and general tab
-            root_element = ET.Element("root")
-            tree = ET.ElementTree(root_element)
-            general_element = ET.SubElement(root_element, "General")
-            # create all child
-            child = ET.SubElement(general_element, "Project_Name")
-            child.text = self.name_prj
-            path_child = ET.SubElement(general_element, "Path_Projet")
-            path_child.text = self.path_prj
-            path_last_file_loaded_child = ET.SubElement(general_element, "Path_last_file_loaded")
-            path_last_file_loaded_child.text = self.path_prj
-            # log
-            log_element = ET.SubElement(general_element, "Log_Info")
-            pathlog_child = ET.SubElement(log_element, "File_Log")
-            pathlog_child.text = os.path.join(self.name_prj + '.log')
-            pathlog_child = ET.SubElement(log_element, "File_Restart")
-            pathlog_child.text = os.path.join('restart_' + self.name_prj + '.log')
-            savelog_child = ET.SubElement(log_element, "Save_Log")
-            savelog_child.text = str(self.central_widget.logon)
 
-            # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
-            if self.name_prj != '':
-                shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(self.path_prj, self.name_prj + '.log'))
-                shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'), os.path.join(self.path_prj,
-                                                                                      'restart_' + self.name_prj +
-                                                                                      '.log'))
-            # more precise info
-            user_child = ET.SubElement(general_element, "User_Name")
-            user_child.text = self.username_prj
-            des_child = ET.SubElement(general_element, "Description")
-            des_child.text = self.descri_prj
-            # we save here only the version number of when the project was saved the first time.
-            # if a project is used in two version, it has the first version number to insure back-compatibility.
-            # let say on version 1.5, we assure compatibility in version 1.4, but that we do assure compatibility
-            # for version 1.4 in version 1.6. In this case, we should not have the version number 1.5 in the xml.
-            ver_child = ET.SubElement(general_element, 'Version_HABBY')
-            ver_child.text = str(self.version)
-
-            # general paths
-            path_element = ET.SubElement(general_element, "Paths")
-
-            # path bio
-            pathbio_child = ET.SubElement(path_element, "Path_Bio")
-            pathbio_child.text = self.path_bio_default
-
-            # path input
-            path_input = os.path.join(self.path_prj, 'input')
-            pathinput_child = ET.SubElement(path_element, "Path_Input")
-            pathinput_child.text = 'input'
-
-            # path hdf5
-            path_hdf5 = os.path.join(self.path_prj, 'hdf5')
-            pathhdf5_child = ET.SubElement(path_element, "Path_Hdf5")
-            pathhdf5_child.text = 'hdf5'
-
-            # path figures
-            path_im = os.path.join(self.path_prj, 'output', 'figures')
-            pathbio_child = ET.SubElement(path_element, "Path_Figure")
-            pathbio_child.text = os.path.join("output", "figures")
-
-            # path text output
-            path_text = os.path.join(self.path_prj, 'output', 'text')
-            pathtext_child = ET.SubElement(path_element, "Path_Text")
-            pathtext_child.text = os.path.join("output", "text")
-
-            # path shapefile
-            path_shapefile = os.path.join(self.path_prj, 'output', 'shapefiles')
-            pathother_child = ET.SubElement(path_element, "Path_Shape")
-            pathother_child.text = os.path.join("output", "shapefiles")
-
-            # path visualisation
-            path_para = os.path.join(self.path_prj, 'output', 'visualisation')
-            pathpara_child = ET.SubElement(path_element, "Path_Visualisation")
-            pathpara_child.text = os.path.join("output", "visualisation")
-
-            # save new xml file
-            if self.name_prj != '':
-                fname = os.path.join(self.path_prj, self.name_prj + '.xml')
-                tree.write(fname)
-
-            # create a default directory for the figures and the hdf5
-            if not os.path.exists(path_input):
-                os.makedirs(path_input)
-            if not os.path.exists(path_hdf5):
-                os.makedirs(path_hdf5)
-            if not os.path.exists(os.path.join(self.path_prj, 'output')):
-                os.makedirs(os.path.join(self.path_prj, 'output'))
-            if not os.path.exists(path_im):
-                os.makedirs(path_im)
-            if not os.path.exists(path_text):
-                os.makedirs(path_text)
-            if not os.path.exists(path_shapefile):
-                os.makedirs(path_shapefile)
-            if not os.path.exists(path_para):
-                os.makedirs(path_para)
-
-            # create the concurrency file
-            filenamec = os.path.join(os.path.join(self.path_prj, 'hdf5'), 'check_concurrency.txt')
-            if os.path.isdir(os.path.join(self.path_prj, 'hdf5')):
-                with open(filenamec, 'wt') as f:
-                    f.write('open')
+            path_last_file_loaded_child = project_manag_mod.create_project_structure(self.path_prj,
+                                                       self.central_widget.logon,
+                                                       self.version,
+                                                       self.username_prj,
+                                                       self.descri_prj,
+                                                       self.path_bio_default)
 
         # project exist
         else:
@@ -1078,14 +983,15 @@ class MainWindows(QMainWindow):
             self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
             self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
             self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
-            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-            self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-            self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
-            self.central_widget.output_tab.save_option_fig()
+            self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
             self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
             self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
-            self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+            self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
+            self.central_widget.output_tab.save_option_fig()
+            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+            self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+            if not hasattr(self.central_widget, "fstress_tab"):
+                self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)  # crash if erase it
         else:
             print('Error: Could not find the project saved just now. \n')
             return
@@ -1215,7 +1121,6 @@ class MainWindows(QMainWindow):
         # recreate new widget
         self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
         self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
-        #self.central_widget.chronicle_tab = chronicle_GUI.ChroniqueGui(self.path_prj, self.name_prj)
         self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
         self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
         self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
@@ -1334,6 +1239,7 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.lowpart.setEnabled(False)
 
         self.end_concurrency()
+        # self.my_menu_bar()
 
     def save_project_if_new_project(self):
         """
@@ -1494,8 +1400,9 @@ class MainWindows(QMainWindow):
         self.central_widget.welcome_tab.e4.setText('')
         self.central_widget.welcome_tab.e3.setText('')
 
+        self.setWindowTitle(self.tr('HABBY ') + str(self.version))
         # save the project
-        # self.save_project()
+        self.save_project()
 
     def see_file(self):
         """
@@ -1643,6 +1550,42 @@ class MainWindows(QMainWindow):
 
         return var
 
+    def open_close_physic(self):
+        phisical_tabs_list = ["hydraulic", "substrate", "calc hab", "data explorer", "tools"]
+        if self.physic_tabs:
+            if self.name_prj:
+                for i in range(self.central_widget.tab_widget.count() - 1, 0, -1):
+                    if self.central_widget.tab_widget.widget(i).tab_name in phisical_tabs_list:
+                        self.central_widget.tab_widget.removeTab(i)
+            self.physic_tabs = False
+        elif not self.physic_tabs:
+            if self.name_prj:
+                self.central_widget.tab_widget.insertTab(1, self.central_widget.hydro_tab, self.tr("Hydraulic"))  # 1
+                self.central_widget.tab_widget.insertTab(2, self.central_widget.substrate_tab, self.tr("Substrate"))  # 2
+                self.central_widget.tab_widget.insertTab(3, self.central_widget.bioinfo_tab, self.tr("Habitat Calc."))  # 3
+                self.central_widget.tab_widget.insertTab(4, self.central_widget.data_explorer_tab, self.tr("Data explorer"))  # 4
+                self.central_widget.tab_widget.insertTab(5, self.central_widget.tools_tab, self.tr("Tools"))  # 5
+            self.physic_tabs = True
+
+    def open_close_stat(self):
+        stat_tabs_list = ["estimhab", "stathab", "fstress"]
+        if self.stat_tabs:
+            if self.name_prj:
+                for i in range(self.central_widget.tab_widget.count() - 1, 0, -1):
+                    if self.central_widget.tab_widget.widget(i).tab_name in stat_tabs_list:
+                        self.central_widget.tab_widget.removeTab(i)
+            self.stat_tabs = False
+        elif not self.stat_tabs:
+            if self.physic_tabs:
+                start_index = 6
+            else:
+                start_index = 1
+            if self.name_prj:
+                self.central_widget.tab_widget.insertTab(start_index, self.central_widget.statmod_tab, self.tr("ESTIMHAB"))  # 6
+                self.central_widget.tab_widget.insertTab(start_index + 1, self.central_widget.stathab_tab, self.tr("STATHAB"))  # 7
+                self.central_widget.tab_widget.insertTab(start_index + 2, self.central_widget.fstress_tab, self.tr("FStress"))  # 8
+            self.stat_tabs = True
+
     def open_close_rech(self):
         """
         Open the additional research tab, which can be used to create Tab with more experimental contents.
@@ -1651,14 +1594,18 @@ class MainWindows(QMainWindow):
         The plan is that these options are less tested than other mainstream options. It is not clear yet what
         will be added to these options, but the tabs are already there when it will be needed.
         """
-        if self.rechmain:
-            for i in range(self.central_widget.tab_widget.count(), self.central_widget.tab_widget.count() - 3, -1):
-                self.central_widget.tab_widget.removeTab(i)
-            self.rechmain = False
-        elif not self.rechmain:
-            self.central_widget.tab_widget.addTab(self.central_widget.other_tab, self.tr("Research 1"))
-            self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
-            self.rechmain = True
+        research_tabs_list = ["research"]
+        if self.research_tabs:
+            if self.name_prj:
+                for i in range(self.central_widget.tab_widget.count() - 1, 0, -1):
+                    if self.central_widget.tab_widget.widget(i).tab_name in research_tabs_list:
+                        self.central_widget.tab_widget.removeTab(i)
+            self.research_tabs = False
+        elif not self.research_tabs:
+            if self.name_prj:
+                self.central_widget.tab_widget.addTab(self.central_widget.other_tab, self.tr("Research 1"))
+                self.central_widget.tab_widget.addTab(self.central_widget.other_tab2, self.tr("Research 2"))
+            self.research_tabs = True
 
     def clear_log(self):
         """
@@ -1761,10 +1708,9 @@ class MainWindows(QMainWindow):
         for the user.
         """
         filename_help = os.path.join(os.getcwd(), "doc", "_build", "html", "index.html")
-        print(filename_help)
         wbopen(filename_help)
 
-    def closeprocessalive(self):
+    def process_alive(self, close=True, isalive=False):
         """
         method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
         """
@@ -1781,18 +1727,36 @@ class MainWindows(QMainWindow):
                     ("hydro_tab", "lammi"),
                     "substrate_tab",
                     "bioinfo_tab"]
+
+        alive = []
         # loop
-        for tabs in tab_list:
-            if type(tabs) == tuple:
-                process_object = getattr(getattr(getattr(self, "central_widget"), tabs[0]), tabs[1]).p
-                if process_object.is_alive():
-                    process_object.terminate()
-                    self.central_widget.write_log("Warning: " + process_object.name + " process has been stopped by the user.")
-            else:
-                process_object = getattr(getattr(self, "central_widget"), tabs).p
-                if process_object.is_alive():
-                    process_object.terminate()
-                    self.central_widget.write_log("Warning: " + process_object.name + " process has been stopped by the user.")
+        if hasattr(self, "central_widget"):
+            central_widget_attrib = getattr(self, "central_widget")
+            for tabs in tab_list:
+                if type(tabs) == tuple:
+                    if hasattr(central_widget_attrib, tabs[0]):
+                        process_object = getattr(getattr(central_widget_attrib, tabs[0]), tabs[1]).p
+                        if process_object.is_alive():
+                            alive.append(process_object.name)
+                            if close:
+                                process_object.terminate()
+                                self.central_widget.write_log("Warning: " + process_object.name +
+                                                              " process has been stopped by the user." +
+                                                              " The files produced by this process can be damaged.")
+                else:
+                    if hasattr(central_widget_attrib, tabs):
+                        process_object = getattr(central_widget_attrib, tabs).p
+                        if process_object.is_alive():
+                            alive.append(process_object.name)
+                            if close:
+                                process_object.terminate()
+                                self.central_widget.write_log("Warning: " + process_object.name +
+                                                              " process has been stopped by the user." +
+                                                              " The files produced by this process can be damaged.")
+            # hide button
+            self.killAction.setVisible(False)
+        if isalive:
+            return alive
 
 
 class CreateNewProject(QWidget):
@@ -1813,9 +1777,9 @@ class CreateNewProject(QWidget):
         if oldpath_prj and os.path.isdir(oldpath_prj):
             self.default_fold = os.path.dirname(oldpath_prj)
         else:
-            self.default_fold = os.path.expanduser("~")
+            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
         if self.default_fold == '':
-            self.default_fold = os.path.expanduser("~")
+            self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
         self.default_name = 'DefaultProj'
         super().__init__()
 
@@ -1912,14 +1876,13 @@ class CentralW(QWidget):
     The write_log() and write_log_file() method are explained in the section about the log.
     """
 
-    def __init__(self, rech, path_prj, name_prj, lang_bio, model_chosen):
+    def __init__(self, physic, stat, rech, path_prj, name_prj, lang_bio):
 
         super().__init__()
         self.msg2 = QMessageBox()
         self.tab_widget = QTabWidget()
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
-        self.model_chosen = model_chosen
 
         self.welcome_tab = WelcomeW(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
@@ -1932,6 +1895,8 @@ class CentralW(QWidget):
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
 
+        self.physic = physic
+        self.stat = stat
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
         self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
@@ -1939,6 +1904,7 @@ class CentralW(QWidget):
         self.tracking_journal_QTextEdit.setReadOnly(True)
         self.tracking_journal_QTextEdit.textChanged.connect(self.scrolldown)
         self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
+        self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project. <br>'))
         self.max_lengthshow = 180
         pyqtRemoveInputHook()
         self.old_ind_tab = 0
@@ -1976,6 +1942,7 @@ class CentralW(QWidget):
             name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
             self.msg2.setWindowIcon(QIcon(name_icon))
             self.msg2.show()
+
         else:
             doc = ET.parse(fname)
             root = doc.getroot()
@@ -2019,34 +1986,38 @@ class CentralW(QWidget):
         """
         fname = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
         if os.path.isfile(fname) and self.name_prj_c != '':
+            # allways uptodate
+            if self.parent():
+                go_physic = self.parent().physic_tabs
+                go_stat = self.parent().stat_tabs
+                go_research = self.parent().research_tabs
+            # first time from init
+            else:
+                go_physic = self.physic
+                go_stat = self.stat
+                go_research = self.rech
+
             # add all tabs
             self.tab_widget.addTab(self.welcome_tab, self.tr("Start"))  # 0
-            self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))  # 1
-            self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))  # 2
-            self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
-            self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 4
-            self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 5
-            self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 6
-            self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 7
-            self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 7
-            if self.rech:
-                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))
-                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))
+            if go_physic:
+                self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))  # 1
+                self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))  # 2
+                self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
+                self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
+                self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
+            if go_stat:
+                self.tab_widget.addTab(self.statmod_tab, self.tr("ESTIMHAB"))  # 6
+                self.tab_widget.addTab(self.stathab_tab, self.tr("STATHAB"))  # 7
+                self.tab_widget.addTab(self.fstress_tab, self.tr("FStress"))  # 8
+            if go_research:
+                self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 9
+                self.tab_widget.addTab(self.other_tab2, self.tr("Research 2"))  # 10
             self.welcome_tab.lowpart.setEnabled(True)
         # if the project do not exist, do not add new tab
         else:
             self.tab_widget.addTab(self.welcome_tab, self.tr("Project"))
             self.welcome_tab.lowpart.setEnabled(False)
 
-        # remove useless tabs
-        if self.model_chosen == "physical" or self.model_chosen == "both":
-            self.tab_widget.removeTab(6)
-            self.tab_widget.removeTab(5)
-            self.tab_widget.removeTab(4)
-        if self.model_chosen == "statistical" or self.model_chosen == "both":
-            self.tab_widget.removeTab(3)
-            self.tab_widget.removeTab(2)
-            self.tab_widget.removeTab(1)
         #self.tab_widget.setStyleSheet("QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
 
     def showfig(self):
@@ -2125,12 +2096,10 @@ class CentralW(QWidget):
             self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
             self.hydro_tab.mascar.send_log.connect(self.write_log)
             self.child_win.send_log.connect(self.write_log)
-            #self.output_tab.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
             self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
             self.hydro_tab.lammi.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
-            #self.chronicle_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
             self.tools_tab.send_log.connect(self.write_log)
 
@@ -2451,6 +2420,7 @@ class WelcomeW(QScrollArea):
     def __init__(self, path_prj, name_prj):
 
         super().__init__()
+        self.tab_name = "welcome"
         self.imname = os.path.join('translation', 'banner.jpg')  # image should be in the translation folder
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -2631,6 +2601,7 @@ class EmptyTab(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.tab_name = "research"
         self.init_iu()
 
     def init_iu(self):

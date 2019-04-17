@@ -52,6 +52,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def __init__(self, path_prj, name_prj, lang='French'):
         super().__init__()
+        self.tab_name = "calc hab"
         self.lang = lang
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -88,7 +89,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # self.name_database = 'pref_bio.db'
         self.timer = QTimer()
         self.running_time = 0
-        self.timer.timeout.connect(self.show_image_hab)
+        self.timer.timeout.connect(self.show_prog)
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
@@ -670,7 +671,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit("restart    stages chosen: " + ",".join(stages_chosen))
         self.send_log.emit("restart    type of calculation: " + str(run_choice))
 
-    def show_image_hab(self):
+    def show_prog(self):
         """
         This function is linked with the timer started in run_habitat_value. It is run regulary and
         check if the function on the second thread have finised created the figures. If yes,
@@ -690,6 +691,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # it is necssary to start this string with Process to see it in the Statusbar
                 self.send_log.emit("Process 'Habitat' is alive and run since " + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
+            self.nativeParentWidget().killAction.setVisible(True)
 
         # when the loading is finished
         if not self.q4.empty():
@@ -711,6 +713,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
             self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
             self.running_time = 0
+            self.nativeParentWidget().killAction.setVisible(False)
 
         if not self.p.is_alive():
             # enable the button to call this functin directly again
