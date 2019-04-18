@@ -57,11 +57,11 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
     # progress
     progress_value.value = 10
 
-    # check if telemac_description_multiple
-    if type(description_from_indextelemac_file) == dict:  # telemac_description simple (one .hyd)
+    # check if hydrau_description_multiple
+    if type(description_from_indextelemac_file) == dict:  # hydrau_description simple (one .hyd)
         file_number = 1
         description_from_indextelemac_file = [description_from_indextelemac_file]
-    if type(description_from_indextelemac_file) == list:  # telemac_description_multiple (several .hyd)
+    if type(description_from_indextelemac_file) == list:  # hydrau_description_multiple (several .hyd)
         file_number = len(description_from_indextelemac_file)
 
     for hyd_file in range(0, file_number):
@@ -370,7 +370,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
     if len(description_from_indextelemac_file) == 1:
         filename_path = os.path.join(description_from_indextelemac_file[0]["path_prj"], "input", "indexTELEMAC.txt")
         # telemac case
-        telemac_case = description_from_indextelemac_file[0]["telemac_case"]
+        telemac_case = description_from_indextelemac_file[0]["hydrau_case"]
 
         # column filename
         filename_column = description_from_indextelemac_file[0]["filename_source"].split(", ")
@@ -616,7 +616,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
         for i_hdf5, hdf5_file in enumerate(range(len(description_from_indextelemac_file))):
             filename_path = os.path.join(description_from_indextelemac_file[i_hdf5]["path_prj"], "input", "indexTELEMAC.txt")
             # telemac case
-            telemac_case = description_from_indextelemac_file[i_hdf5]["telemac_case"]
+            telemac_case = description_from_indextelemac_file[i_hdf5]["hydrau_case"]
 
             # column filename
             filename_column = description_from_indextelemac_file[i_hdf5]["filename_source"].split(", ")

@@ -26,8 +26,9 @@ from src import hdf5_mod
 from src_GUI import preferences_GUI
 
 
-def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
-                                 print_cmd=False, fig_opt={}):
+def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, fig_opt={}):
+    # name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
+    #                                  print_cmd=False, fig_opt={}
     """
     This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
     pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
@@ -53,18 +54,22 @@ def load_hec_ras_2d_and_cut_grid(name_hdf5, filename, path, name_prj, path_prj, 
     If it is called by the cmd, we want the print function to be sent to the command line.
 
     """
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
     # minimum water height
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
 
+    # progress
+    progress_value.value = 10
+
     # create the empy output
     inter_vel_all_t = []
     inter_h_all_t = []
 
-    # load hec-ras data
-    if not print_cmd:
-        sys.stdout = mystdout = StringIO()
+    # load
     [vel_cell, height_cell, elev_min, coord_p, coord_c, ikle, timesteps] = load_hec_ras2d(filename, path)
     if isinstance(vel_cell[0], int):
         if vel_cell == [-99]:
@@ -297,6 +302,26 @@ def load_hec_ras2d(filename, path):
 
     return vel_t_all2, water_depth_t_all2, elev_all, coord_p_all, coord_c_all, ikle_all, timesteps
 
+
+def get_time_step(filename_path):
+    # open file
+    if os.path.isfile(filename_path):
+        try:
+            file2D = h5py.File(filename_path, 'r')
+        except OSError:
+            print("Error: unable to open the hdf file.")
+
+    # name of the time step
+    timesteps = []
+    try:
+        timesteps = list(file2D["/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series"
+                                "/Time Date Stamp"])
+    except KeyError:
+        pass
+    for idx, t in enumerate(timesteps):
+        timesteps[idx] = t.decode('utf-8')
+        timesteps[idx] = timesteps[idx].replace(':', '-')
+    return len(timesteps), timesteps
 
 def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v):
     """

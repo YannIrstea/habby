@@ -1070,11 +1070,13 @@ def load_dat_2d(geofile, path):
                 print(data_geo2d[mi])
                 return [-99], [-99], [-99], [-99]
         m += 1
-    # separe x and z
+    # separe x and y
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:]
-    z = data_f[-10]
     xy = np.column_stack((x, y))
+
+    # get z
+    z_position_line = [data_geo2d[index] for index, value in enumerate(data_geo2d) if len(value) == 80]
 
     # find the center point of each cellss
     # slow because number of point of a cell changes
