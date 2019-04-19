@@ -103,7 +103,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
             #print("all tin are different (one tin by unit)")
             data_2d_whole_profile["unit_correspondence"] = whole_profil_egual_index
-        if "diff" not in whole_profil_egual_index:  # one tin for each unit
+        if "diff" not in whole_profil_egual_index:  # one tin for all unit
             #print("one tin for each unit")
             data_2d_whole_profile["tin"][0] = [data_2d_whole_profile["tin"][0][0]]
             data_2d_whole_profile["xy_center"][0] = [data_2d_whole_profile["xy_center"][0][0]]
@@ -161,7 +161,9 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
 
         if data_2d_whole_profile["unit_correspondence"] == "all":
             # conca xy with z value to facilitate the cutting of the grid (interpolation)
-            xy = np.insert(data_2d_telemac["xy"], 2, values=data_2d_telemac["z"],
+            xy = np.insert(data_2d_telemac["xy"],
+                           2,
+                           values=data_2d_telemac["z"][0],
                            axis=1)  # Insert values before column 2
         else:
             data_2d_telemac, description_from_telemac_file = load_telemac(file,
@@ -186,6 +188,11 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                                                                               delta,
                                                                               minwh,
                                                                               True)
+            if not isinstance(tin_data, np.ndarray):
+                print("Error: cut_2d_grid")
+                q.put(mystdout)
+                return
+
             data_2d["tin"][0].append(tin_data)
             data_2d["i_whole_profile"][0].append(ind_new)
             data_2d["xy"][0].append(xy_data[:, :2])
@@ -216,6 +223,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
         hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
+        del data_2d_whole_profile['unit_correspondence']
 
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
