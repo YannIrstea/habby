@@ -1091,12 +1091,12 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     ikle_bit = bhw[ikle]
     ikle_type = np.sum(ikle_bit, axis=1)  # list of meshes characters 0=dry 3=wet 1 or 2 = partially wet
     mikle_keep = ikle_type == 3
-    if all(mikle_keep): #all meshes are entirely wet
+    if all(mikle_keep):  # all meshes are entirely wet
         iklekeep=ikle
         point_all_ok=point_all
         water_height_ok=water_height
         velocity_ok=velocity
-    elif not(all(mikle_keep)):#all meshes are entirely dry
+    elif not True in mikle_keep:  # all meshes are entirely dry
         if get_ind_new:
             return failload1
         else:
