@@ -277,6 +277,47 @@ class Hdf5Management:
 
     # HYDRAU
     def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description):
+        """
+        :param data_2d: data 2d dict with keys :
+        'tin' : list by reach, sub list by units and sub list of numpy array type int64
+        (three values by mesh : triangle points indexes)
+        'i_whole_profile', : list by reach, sub list by units and sub list of numpy array type int64
+        (one value by mesh : whole profile mesh indexes)
+        'xy' : list by reach, sub list by units and sub list of numpy array type float64
+        (two values by point : x and y coordinates)
+        'h' : list by reach, sub list by units and sub list of numpy array type float32
+        (one value by point : water height)
+        'v' : list by reach, sub list by units and sub list of numpy array type float32
+        (one value by point : water velocity)
+        'z' : list by reach, sub list by units and sub list of numpy array type float64
+        (one value by point : bottom elevation)
+        :param data_2d_whole_profile: data 2d whole profile dict with keys :
+        'tin' : list by reach, sub list by units and sub list of numpy array type int32
+        (three values by mesh : triangle points indexes)
+        'xy_center' : list by reach, sub list by units and sub list of numpy array type float64
+        (two values by point : x and y center coordinates of triangle)
+        'xy' : list by reach, sub list by units and sub list of numpy array type float64
+        (two values by point : x and y coordinates)
+        'z' : list by reach, sub list by units and sub list of numpy array type float32
+        (one value by point : bottom elevation)
+        'unit_correspondence' :
+        :param hyd_description: description dict with keys :
+        'hyd_filename_source' : str of input filename(s) (sep: ', ')
+        'hyd_model_type' : str of hydraulic model type
+        'hyd_model_dimension' : str of dimension number
+        'hyd_variables_list' : str of variable list (sep: ', ')
+        'hyd_epsg_code' : str of EPSG number
+        'hyd_reach_list' : str of reach name(s) (sep: ', ')
+        'hyd_reach_number' : str of reach total number
+        'hyd_reach_type' : str of type of reach
+        'hyd_unit_list' : str of list of units (sep: ', ')
+        'hyd_unit_number' : str of units total number
+        'hyd_unit_type' : str of units type (discharge or time) with between brackets, the unit symbol ([m3/s], [s], ..)
+        ex : 'discharge [m3/s]', 'time [s]'
+        'hyd_unit_wholeprofile' : str ("all") if same tin for all unit
+                                list of integer if tin different between units
+        'hyd_unit_z_equal' : str of boolean, 'True' if all z are egual between units, 'False' if the bottom values vary
+        """
         # create a new hdf5
         self.open_hdf5_file(new=True)
 
