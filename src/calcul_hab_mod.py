@@ -118,7 +118,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 85
 
     # shape output
-    hdf5.export_shapefile(fig_opt)
+    hdf5.export_mesh_shp(fig_opt)
 
     # progress
     progress_value.value = 90

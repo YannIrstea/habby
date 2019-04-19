@@ -735,7 +735,7 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
 
 
 def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, path_im, name_prj, path_prj, model_type,
-                                 nb_dim, path_hdf5, q=[], print_cmd=False, fig_opt={}):
+                                 nb_dim, progress_value, path_hdf5, q=[], print_cmd=False, fig_opt={}):
     """
     This is the function used to load the RUBAR data in 2D, to pass the data from the cell to the node using
     interpolation and to save the whole in an hdf5 format
@@ -760,6 +760,9 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
     minwh = fig_opt['min_height_hyd']
+
+    # progress
+    progress_value.value = 10
 
     # create the empy output
     inter_vel_all_t = []
@@ -806,22 +809,50 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
                                                                                                    height_cell[t], warn1,
                                                                                                    vtx_all, wts_all)
         # cut the grid to the water limit
-        [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
-                                                                                vel_node[0], minwh)
-
-        inter_h_all_t.append([water_height])
-        inter_vel_all_t.append([velocity])
-        point_all_t.append([point_all])
+        # [ikle, point_all, water_height, velocity] = manage_grid_mod.cut_2d_grid(ikle_base, coord_p, height_node[0],
+        #                                                                         vel_node[0], minwh)
+        #
+        # inter_h_all_t.append([water_height])
+        # inter_vel_all_t.append([velocity])
+        # point_all_t.append([point_all])
+        # point_c_all_t.append([[]])
+        # ikle_all_t.append([ikle])
+        inter_h_all_t.append([height_node[0]])
+        inter_vel_all_t.append([vel_node[0]])
+        point_all_t.append([coord_p])
         point_c_all_t.append([[]])
-        ikle_all_t.append([ikle])
+        ikle_all_t.append([ikle_base])
         warn1 = False
 
     # save data
-    timestep_str = list(map(str, timestep))
-    hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
-                                     point_all_t, point_c_all_t,
-                                     inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
+    # timestep_str = list(map(str, timestep))
+    # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
+    #                                  point_all_t, point_c_all_t,
+    #                                  inter_vel_all_t, inter_h_all_t, sim_name=timestep_str, hdf5_type="hydraulic")
 
+        # hyd description
+        hyd_description = dict()
+        hyd_description["hyd_filename_source"] = geofile
+        hyd_description["hyd_model_type"] = "RUBAR2D"
+        hyd_description["hyd_model_dimension"] = 2
+        hyd_description["hyd_variables_list"] = "h, v, z"
+        hyd_description["hyd_epsg_code"] = description_from_indextelemac_file[hyd_file]["epsg_code"]
+        hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
+        hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
+        hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
+        hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
+        hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
+        hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
+        hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
+        hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
+
+        # create hdf5
+        hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
+                                       description_from_indextelemac_file[hyd_file]["hdf5_name"])
+        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
+
+    # progress
+    progress_value.value = 90
     if not print_cmd:
         sys.stdout = sys.__stdout__
     if q:
@@ -952,14 +983,14 @@ def load_mai_2d(geofile, path):
 
 def load_dat_2d(geofile, path):
     """
-       This  function is used to load the geomtery info for the 2D case, using the .dat file
-       The .dat file has the same role than the .mai file but with more information (number of side and more
-       complicated connectivity table).
+    This  function is used to load the geomtery info for the 2D case, using the .dat file
+    The .dat file has the same role than the .mai file but with more information (number of side and more
+    complicated connectivity table).
 
-       :param geofile: the .dat file which contain the connectivity table and the (x,y)
-       :param path: the path to this file
-       :return: connectivity table, point coordinates, coordinates of the cell centers
-       """
+    :param geofile: the .dat file which contain the connectivity table and the (x,y)
+    :param path: the path to this file
+    :return: connectivity table, point coordinates, coordinates of the cell centers
+    """
     filename_path = os.path.join(path, geofile)
     # check extension
     blob, ext = os.path.splitext(geofile)
@@ -1039,10 +1070,13 @@ def load_dat_2d(geofile, path):
                 print(data_geo2d[mi])
                 return [-99], [-99], [-99], [-99]
         m += 1
-    # separe x and z
+    # separe x and y
     x = data_f[0:nb_coord]  # choose every 2 float
     y = data_f[nb_coord:]
     xy = np.column_stack((x, y))
+
+    # get z
+    z_position_line = [data_geo2d[index] for index, value in enumerate(data_geo2d) if len(value) == 80]
 
     # find the center point of each cellss
     # slow because number of point of a cell changes

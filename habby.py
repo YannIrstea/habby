@@ -19,7 +19,7 @@ from src_GUI import main_window_GUI
 from src import func_for_cmd_mod
 from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QSplashScreen
+from PyQt5.QtWidgets import QApplication, QSplashScreen, QMessageBox
 import multiprocessing
 import os
 
@@ -45,6 +45,7 @@ def main():
         # create app
         app = QApplication(sys.argv)
 
+
         # Create and display the splash screen
         splash_pix = QPixmap('translation/habby_icon.png')
         splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
@@ -61,6 +62,7 @@ def main():
 
         # close
         sys.exit(app.exec_())
+
         # os._exit()
 
     # otherwise we use the command line
