@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 from src import telemac_mod
 from src import hec_ras2D_mod
-
+from src import ascii_mod
 
 def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_dim):
     """
@@ -578,5 +578,6 @@ def get_time_step(file_path, model_type):
         nbtimes, unit_name_from_file = telemac_mod.get_time_step(filename, folder_path)
     if model_type == "HECRAS2D":
         nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
-
+    if model_type == "ASCII":
+        nbtimes, unit_name_from_file = ascii_mod.get_time_step(file_path)
     return nbtimes, unit_name_from_file

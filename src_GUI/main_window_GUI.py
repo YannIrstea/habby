@@ -50,6 +50,7 @@ from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
 from src import project_manag_mod
 
+
 class MainWindows(QMainWindow):
     """
 
@@ -1721,6 +1722,7 @@ class MainWindows(QMainWindow):
                     ("hydro_tab", "sw2d"),
                     ("hydro_tab", "iber2d"),
                     ("hydro_tab", "telemac"),
+                    ("hydro_tab", "ascii"),
                     ("hydro_tab", "riverhere2d"),
                     ("hydro_tab", "mascar"),
                     ("hydro_tab", "habbyhdf5"),
@@ -2090,6 +2092,7 @@ class CentralW(QWidget):
             self.hydro_tab.sw2d.send_log.connect(self.write_log)
             self.hydro_tab.iber2d.send_log.connect(self.write_log)
             self.hydro_tab.telemac.send_log.connect(self.write_log)
+            self.hydro_tab.ascii.send_log.connect(self.write_log)
             self.substrate_tab.send_log.connect(self.write_log)
             self.statmod_tab.send_log.connect(self.write_log)
             self.stathab_tab.send_log.connect(self.write_log)
@@ -2114,6 +2117,7 @@ class CentralW(QWidget):
             self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
             self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
             self.hydro_tab.telemac.show_fig.connect(self.showfig)
+            self.hydro_tab.ascii.show_fig.connect(self.showfig)
             self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
             self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
             self.hydro_tab.sw2d.show_fig.connect(self.showfig)
@@ -2132,6 +2136,7 @@ class CentralW(QWidget):
             self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.telemac.drop_hydro.connect(self.update_hydro_hdf5_name)
+            self.hydro_tab.ascii.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.rubar2d.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.rubar1d.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.sw2d.drop_hydro.connect(self.update_hydro_hdf5_name)

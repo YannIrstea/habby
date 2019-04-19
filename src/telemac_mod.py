@@ -679,7 +679,7 @@ def get_time_step(namefilet, pathfilet):
     :param pathfilet: the path to this file (string)
     :return: timestep
     """
-    faiload = [-99], [-99], [-99], [-99], [-99], [-99]
+    faiload = [-99], [-99]
 
     filename_path_res = os.path.join(pathfilet, namefilet)
     # load the data and do some test
