@@ -1182,7 +1182,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
         ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=typeikle), axis=0)
         ipt_iklenew_unique = np.unique(iklekeep)
 
-        if ipt_all_ok_wetdry: # presence of partially wt/dry meshes
+        if ipt_all_ok_wetdry: # presence of partially wet/dry meshes
             ipt_iklenew_unique = np.append(ipt_iklenew_unique, np.asarray(ipt_all_ok_wetdry, dtype=typeikle), axis=0)
             ipt_iklenew_unique = np.unique(ipt_iklenew_unique)
 
@@ -1194,7 +1194,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
             ipt_old_new[point_index] = i
         iklekeep2 = ipt_old_new[ikle]
         iklekeep = iklekeep2[mikle_keep, ...]  # only the meshes selected with the new point index
-        if ipt_all_ok_wetdry: # in case no partially wt/dry meshes
+        if ipt_all_ok_wetdry: # in case no partially wet/dry meshes
             # delete dupplicate of the new point set
             point_new_single, ipt_new_new2 = np.unique(point_new, axis=0, return_inverse=True)
             ipt_old_new = np.append(ipt_old_new, ipt_new_new2 + len(point_all_ok), axis=0)

@@ -282,26 +282,26 @@ class Hdf5Management:
     def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description):
         """
         :param data_2d: data 2d dict with keys :
-        'tin' : list by reach, sub list by units and sub list of numpy array type int64
+        'tin' : list by reach, sub list by units and sub list of numpy array type int
         (three values by mesh : triangle points indexes)
-        'i_whole_profile', : list by reach, sub list by units and sub list of numpy array type int64
+        'i_whole_profile', : list by reach, sub list by units and sub list of numpy array type int
         (one value by mesh : whole profile mesh indexes)
-        'xy' : list by reach, sub list by units and sub list of numpy array type float64
+        'xy' : list by reach, sub list by units and sub list of numpy array type float
         (two values by point : x and y coordinates)
-        'h' : list by reach, sub list by units and sub list of numpy array type float32
+        'h' : list by reach, sub list by units and sub list of numpy array type float
         (one value by point : water height)
-        'v' : list by reach, sub list by units and sub list of numpy array type float32
+        'v' : list by reach, sub list by units and sub list of numpy array type float
         (one value by point : water velocity)
-        'z' : list by reach, sub list by units and sub list of numpy array type float64
+        'z' : list by reach, sub list by units and sub list of numpy array type float
         (one value by point : bottom elevation)
         :param data_2d_whole_profile: data 2d whole profile dict with keys :
-        'tin' : list by reach, sub list by units and sub list of numpy array type int32
+        'tin' : list by reach, sub list by units and sub list of numpy array type int
         (three values by mesh : triangle points indexes)
-        'xy_center' : list by reach, sub list by units and sub list of numpy array type float64
+        'xy_center' : list by reach, sub list by units and sub list of numpy array type float
         (two values by point : x and y center coordinates of triangle)
-        'xy' : list by reach, sub list by units and sub list of numpy array type float64
+        'xy' : list by reach, sub list by units and sub list of numpy array type float
         (two values by point : x and y coordinates)
-        'z' : list by reach, sub list by units and sub list of numpy array type float32
+        'z' : list by reach, sub list by units and sub list of numpy array type float
         (one value by point : bottom elevation)
         'unit_correspondence' :
         :param hyd_description: description dict with keys :
@@ -358,10 +358,10 @@ class Hdf5Management:
                                               shape=[len(data_2d_whole_profile["tin"][reach_num][unit_num]),
                                                      len(data_2d_whole_profile["tin"][reach_num][unit_num][0])],
                                               data=data_2d_whole_profile["tin"][reach_num][unit_num])
-                    mesh_group.create_dataset(name="xy_center",
-                                              shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]),
-                                                     len(data_2d_whole_profile["xy_center"][reach_num][unit_num][0])],
-                                              data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
+                    # mesh_group.create_dataset(name="xy_center",
+                    #                           shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]),
+                    #                                  len(data_2d_whole_profile["xy_center"][reach_num][unit_num][0])],
+                    #                           data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
 
                     # NODE GROUP
                     xMin.append(min(data_2d_whole_profile["xy"][reach_num][unit_num][:, 0]))
@@ -373,7 +373,7 @@ class Hdf5Management:
                                               shape=[len(data_2d_whole_profile["xy"][reach_num][unit_num]),
                                                      len(data_2d_whole_profile["xy"][reach_num][unit_num][0])],
                                               data=data_2d_whole_profile["xy"][reach_num][unit_num])
-                    if hyd_description["hyd_unit_z_equal"]:
+                    if hyd_description["hyd_unit_z_equal"] == "all":
                         node_group.create_dataset(name="z",
                                                   shape=[len(data_2d_whole_profile["z"][reach_num][unit_num]),
                                                          len(data_2d_whole_profile["z"][reach_num][unit_num][0])],
@@ -415,7 +415,8 @@ class Hdf5Management:
                                                      len(data_2d["xy"][reach_num][unit_num][0])],
                                               data=data_2d["xy"][reach_num][unit_num])
                     node_group.create_dataset(name="z",
-                                              shape=[len(data_2d["z"][reach_num][unit_num]), 1],
+                                              shape=[len(data_2d["z"][reach_num][unit_num]),
+                                                     1],
                                               data=data_2d["z"][reach_num][unit_num])
 
         # close file

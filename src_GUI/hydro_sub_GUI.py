@@ -3889,6 +3889,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
         self.p = Process(target=ascii_mod.load_ascii_and_cut_grid,
                                               args=(file_path,
+                                                    self.path_prj,
                                                     self.progress_value,
                                                     self.q,
                                                     False,
