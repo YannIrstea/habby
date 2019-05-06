@@ -186,6 +186,9 @@ class Hdf5Management:
             # mesh_group for first reach and first unit
             mesh_group = data_group + "/reach_0/unit_0/mesh"
             variables_mesh = list(self.file_object[mesh_group].keys())
+            # remove i_whole_profile
+            if "i_whole_profile" in variables_mesh:
+                variables_mesh.remove("i_whole_profile")
             # change tin by mesh
             if "tin" in variables_mesh:
                 variables_mesh[variables_mesh.index("tin")] = "mesh"
@@ -275,7 +278,7 @@ class Hdf5Management:
         # to attributes
         self.nb_unit = nb_unit
 
-    # HYDRAU
+    # HYDRAULIC
     def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description):
         """
         :param data_2d: data 2d dict with keys :
