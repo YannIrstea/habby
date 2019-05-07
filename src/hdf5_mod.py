@@ -337,7 +337,7 @@ class Hdf5Management:
             yMin = []
             yMax = []
 
-            # data_2D_whole_profile
+            # whole_profile
             data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
             # REACH GROUP
             for reach_num in range(int(hyd_description["hyd_reach_number"])):
@@ -358,11 +358,6 @@ class Hdf5Management:
                                               shape=[len(data_2d_whole_profile["tin"][reach_num][unit_num]),
                                                      len(data_2d_whole_profile["tin"][reach_num][unit_num][0])],
                                               data=data_2d_whole_profile["tin"][reach_num][unit_num])
-                    # mesh_group.create_dataset(name="xy_center",
-                    #                           shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]),
-                    #                                  len(data_2d_whole_profile["xy_center"][reach_num][unit_num][0])],
-                    #                           data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
-
                     # NODE GROUP
                     xMin.append(min(data_2d_whole_profile["xy"][reach_num][unit_num][:, 0]))
                     xMax.append(max(data_2d_whole_profile["xy"][reach_num][unit_num][:, 0]))
@@ -373,10 +368,9 @@ class Hdf5Management:
                                               shape=[len(data_2d_whole_profile["xy"][reach_num][unit_num]),
                                                      len(data_2d_whole_profile["xy"][reach_num][unit_num][0])],
                                               data=data_2d_whole_profile["xy"][reach_num][unit_num])
-                    if hyd_description["hyd_unit_z_equal"] == "all":
+                    if hyd_description["hyd_unit_z_equal"] == "True":
                         node_group.create_dataset(name="z",
-                                                  shape=[len(data_2d_whole_profile["z"][reach_num][unit_num]),
-                                                         len(data_2d_whole_profile["z"][reach_num][unit_num][0])],
+                                                  shape=[len(data_2d_whole_profile["z"][reach_num][unit_num]), 1],
                                                   data=data_2d_whole_profile["z"][reach_num][unit_num])
             # get extent
             xMin = str(min(xMin))
@@ -415,8 +409,7 @@ class Hdf5Management:
                                                      len(data_2d["xy"][reach_num][unit_num][0])],
                                               data=data_2d["xy"][reach_num][unit_num])
                     node_group.create_dataset(name="z",
-                                              shape=[len(data_2d["z"][reach_num][unit_num]),
-                                                     1],
+                                              shape=[len(data_2d["z"][reach_num][unit_num]), 1],
                                               data=data_2d["z"][reach_num][unit_num])
 
         # close file
@@ -443,11 +436,10 @@ class Hdf5Management:
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
             hyd_description[attribute_name] = attribute_value
 
-        # DATA 2D WHOLE PROFIL
+        # WHOLE PROFIL
         if whole_profil:
             data_2D_whole_profile = dict()
             data_2D_whole_profile["tin"] = []
-            data_2D_whole_profile["xy_center"] = []
             data_2D_whole_profile["xy"] = []
             if hyd_description["hyd_unit_z_equal"] == "True":
                 data_2D_whole_profile["z"] = []
@@ -458,9 +450,8 @@ class Hdf5Management:
                 reach_group = data_group + "/reach_" + str(reach_num)
                 # for all unit
                 tin_list = []
-                xy_center_list = []
                 xy_list = []
-                if bool(hyd_description["hyd_unit_z_equal"]):
+                if hyd_description["hyd_unit_z_equal"] == "True":
                     z_list = []
 
                 # for all units (selected or all)
@@ -474,10 +465,9 @@ class Hdf5Management:
                     try:
                         # mesh
                         tin_list.append(self.file_object[mesh_group + "/tin"][:])
-                        xy_center_list.append(self.file_object[mesh_group + "/xy_center"][:])
                         # node
                         xy_list.append(self.file_object[node_group + "/xy"][:])
-                        if bool(hyd_description["hyd_unit_z_equal"]):
+                        if hyd_description["hyd_unit_z_equal"] == "True":
                             z_list.append(self.file_object[node_group + "/z"][:])
                     except KeyError:
                         print(
@@ -485,10 +475,9 @@ class Hdf5Management:
                         self.file_object.close()
                         return
                 data_2D_whole_profile["tin"].append(tin_list)
-                data_2D_whole_profile["xy_center"].append(xy_center_list)
                 data_2D_whole_profile["xy"].append(xy_list)
-                if bool(hyd_description["hyd_unit_z_equal"]):
-                    data_2D_whole_profile["z"].append(self.file_object[node_group + "/z"][:])
+                if hyd_description["hyd_unit_z_equal"] == "True":
+                    data_2D_whole_profile["z"].append(z_list)
 
         # DATA 2D
         data_2d = dict()
@@ -732,10 +721,10 @@ class Hdf5Management:
                                           shape=[len(data_2d_whole_profile["tin"][reach_num][unit_num]),
                                                  3],
                                           data=data_2d_whole_profile["tin"][reach_num][unit_num])
-                mesh_group.create_dataset(name="xy_center",
-                                          shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]),
-                                                 2],
-                                          data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
+                # mesh_group.create_dataset(name="xy_center",
+                #                           shape=[len(data_2d_whole_profile["xy_center"][reach_num][unit_num]),
+                #                                  2],
+                #                           data=data_2d_whole_profile["xy_center"][reach_num][unit_num])
                 # NODE GROUP
                 node_group = unit_group.create_group('node')
                 node_group.create_dataset(name="xy",
@@ -825,7 +814,6 @@ class Hdf5Management:
         if whole_profil:
             data_2D_whole_profile = dict()
             data_2D_whole_profile["tin"] = []
-            data_2D_whole_profile["xy_center"] = []
             data_2D_whole_profile["xy"] = []
             data_2D_whole_profile["z"] = []
             data_group = 'data_2D_whole_profile'
@@ -834,7 +822,6 @@ class Hdf5Management:
                 reach_group = data_group + "/reach_" + str(reach_num)
                 # for all unit
                 tin_list = []
-                xy_center_list = []
                 xy_list = []
                 z_list = []
                 for unit_num in units_index:
@@ -847,7 +834,6 @@ class Hdf5Management:
                     try:
                         # mesh
                         tin_list.append(self.file_object[mesh_group + "/tin"][:])
-                        xy_center_list.append(self.file_object[mesh_group + "/xy_center"][:])
                         # node
                         xy_list.append(self.file_object[node_group + "/xy"][:])
                         z_list.append(self.file_object[node_group + "/z"][:].flatten())
@@ -857,7 +843,6 @@ class Hdf5Management:
                         self.file_object.close()
                         #return
                 data_2D_whole_profile["tin"].append(tin_list)
-                data_2D_whole_profile["xy_center"].append(xy_center_list)
                 data_2D_whole_profile["xy"].append(xy_list)
                 data_2D_whole_profile["z"].append(z_list)
 
@@ -1281,8 +1266,8 @@ class Hdf5Management:
                     # for each mesh
                     w = shapefile.Writer(shapefile.POINTZ)
                     w.autoBalance = 1
-                    w.field('velocity', 'F', 50, 8)
                     w.field('height', 'F', 50, 8)
+                    w.field('velocity', 'F', 50, 8)
                     w.field('elevation', 'F', 50, 8)
 
                     # for each point

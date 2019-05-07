@@ -82,8 +82,8 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
             data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
-            if bool(description_from_telemac_file["hyd_unit_z_equal"]):
-                data_2d_whole_profile["z"][0].append(data_2d_telemac["z"])
+            if description_from_telemac_file["hyd_unit_z_equal"] == "True":
+                data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][0])
             data_2d_whole_profile["unit_correspondence"][0].append(str(i))
 
         # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)

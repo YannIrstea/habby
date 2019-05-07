@@ -18,6 +18,7 @@ import os
 import sys
 from io import StringIO
 import numpy as np
+from copy import deepcopy
 
 from src_GUI import preferences_GUI
 from src import hdf5_mod
@@ -38,7 +39,7 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
 
     # load data from txt file
     data_2d_from_ascii, data_description = load_ascii_model(file_path, path_prj)
-    data_2d_whole_profile = dict(data_2d_from_ascii)
+    data_2d_whole_profile = deepcopy(data_2d_from_ascii)
 
     # progress from 10 to 90 : from 0 to len(units_index)
     delta = int(80 / int(data_description["reach_number"]))
@@ -46,31 +47,38 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
     # for each reach
     for reach_num in range(int(data_description["reach_number"])):
         # for each units
-        for i, unit_index in enumerate(data_description["unit_list"].split(", ")):
+        for unit_num, unit_index in enumerate(data_description["unit_list"].split(", ")):
             # conca xy with z value to facilitate the cutting of the grid (interpolation)
-            xy = np.insert(data_2d_from_ascii["xy"][reach_num][i],
+            xy = np.insert(data_2d_from_ascii["xy"][reach_num][unit_num],
                            2,
-                           values=data_2d_from_ascii["z"][reach_num][i],
+                           values=data_2d_from_ascii["z"][reach_num][unit_num],
                            axis=1)  # Insert values before column 2
-            [tin_data, xy_data, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_from_ascii["tin"][reach_num][i],
-                                                                                       xy,
-                                                                                       data_2d_from_ascii["h"][reach_num][i],
-                                                                                       data_2d_from_ascii["v"][reach_num][i],
-                                                                                       progress_value,
-                                                                                       delta,
-                                                                                       minwh,
-                                                                                       True)
-            if not isinstance(tin_data, np.ndarray):
-                print("Error: cut_2d_grid")
-                q.put(mystdout)
-                return
+            # [tin_data, xy, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_from_ascii["tin"][reach_num][unit_num],
+            #                                                                            xy,
+            #                                                                            data_2d_from_ascii["h"][reach_num][unit_num],
+            #                                                                            data_2d_from_ascii["v"][reach_num][unit_num],
+            #                                                                            progress_value,
+            #                                                                            delta,
+            #                                                                            minwh,
+            #                                                                            True)
+            # if not isinstance(tin_data, np.ndarray):
+            #     print("Error: cut_2d_grid")
+            #     q.put(mystdout)
+            #     return
 
-            data_2d_from_ascii["tin"][reach_num][i] = tin_data
-            data_2d_from_ascii["i_whole_profile"][reach_num][i] = ind_new
-            data_2d_from_ascii["xy"][reach_num][i] = xy_data[:, :2]
-            data_2d_from_ascii["h"][reach_num][i] = h_data
-            data_2d_from_ascii["v"][reach_num][i] = v_data
-            data_2d_from_ascii["z"][reach_num][i] = xy_data[:, 2]
+            # if we want to disable cut_2d_grid (for dev)
+            tin_data = data_2d_from_ascii["tin"][reach_num][unit_num]
+            ind_new = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
+            h_data = data_2d_from_ascii["h"][reach_num][unit_num]
+            v_data = data_2d_from_ascii["v"][reach_num][unit_num]
+
+            # replace cuted grid in dict
+            data_2d_from_ascii["tin"][reach_num][unit_num] = tin_data
+            data_2d_from_ascii["i_whole_profile"][reach_num][unit_num] = ind_new
+            data_2d_from_ascii["xy"][reach_num][unit_num] = xy[:, :2]
+            data_2d_from_ascii["h"][reach_num][unit_num] = h_data
+            data_2d_from_ascii["v"][reach_num][unit_num] = v_data
+            data_2d_from_ascii["z"][reach_num][unit_num] = xy[:, 2]
 
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
@@ -89,7 +97,7 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
     hyd_description["hyd_unit_number"] = data_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_unit_wholeprofile"] = "all"
-    hyd_description["hyd_unit_z_equal"] = "all"
+    hyd_description["hyd_unit_z_equal"] = "True"
 
     # create hdf5
     hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
@@ -319,7 +327,7 @@ def load_ascii_model(filename, path_prj):
                               filename_source=os.path.basename(filename),
                               path_filename_source=path,
                               hdf5_name=os.path.splitext(os.path.basename(filename))[0] + ".hyd",
-                              model_type="ASCII txt",
+                              model_type="ASCII",
                               model_dimension=str(2),
                               epsg_code=epsgcode)
     # data_description
