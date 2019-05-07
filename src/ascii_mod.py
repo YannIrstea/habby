@@ -129,14 +129,22 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
 
 
 def load_ascii_model(filename, path_prj):
+    """
+    using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
+    several reaches and units (discharges or times )descriptions are allowed
+    :param filename: the name of the text file
+    :param path_prj:
+    :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
+    """
     path = os.path.dirname(filename)
     fnoden, ftinn = os.path.join(path,'wwnode.txt'), os.path.join(path,'wwtin.txt')
     fi = open(filename, 'r', encoding='utf8')
     fnode = open(fnoden, 'w', encoding='utf8')
     ftin = open(ftinn, 'w', encoding='utf8')
-    kk, reachnumber = 0, 0
-    msg, unittype = '', ''
+    kk, reachnumber,nbunitforall = 0, 0,0
+    msg, unit_type = '', ''
     lunitall = []
+    bq = False
     for i, ligne in enumerate(fi):
         ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
         # print (i,ls)
@@ -152,17 +160,32 @@ def load_ascii_model(filename, path_prj):
                 break
             kk = 2
             epsgcode = ls[1]
-        elif ls[0].lower() == 'number':
-            if kk != 2:
-                msg = 'number but not EPSG just before'
+        elif ls[0][0:2].upper() == 'Q[' or ls[0][0:2].lower() == 't[' :
+            if kk != 2 and kk!=4:
+                msg = ls[0] +' but not EPSG just before or REACH before'
                 break
-            if len(ls) != 2:
-                msg = 'unit description number but not only one information just after'
+            if len(ls) !=1:
+                msg = 'unit description ' + ls[0] + '  but not the only one information'
                 break
-            unittype = ls[1]
-            lunit,nbnumber = [],0
+            if kk==4:
+                if ls[0][0:2].lower() == 't[':
+                    msg = ls[0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
+                    break
+                else:
+                    if bq == False and reachnumber !=1:
+                        msg = ls[ 0] + ' This structure REACH unit description is forbiden '
+                        break
+                    bq=True
+            unit_type = ls[0]
+            lunit,nbunit = [],0
             kk = 3
         elif ls[0].upper() == 'REACH':
+            if kk != 2 and kk!=3 and kk<7 :
+                msg = ls[0] +' but not EPSG  or Q[XXX or t[XXX before'
+                break
+            if bq  and kk==3:
+                msg = ls[0] + ' This structure REACH unit description is forbiden '
+                break
             reachnumber+=1
             if reachnumber==1:
                 lreachname=[('_'.join(ls[1:]))]
@@ -176,6 +199,17 @@ def load_ascii_model(filename, path_prj):
                 nodei, tini = nodef, tinf
             kk = 4
         elif ls[0].upper() == 'NODES':
+            if kk != 3 and kk!=4:
+                msg = ls[0] +' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
+                break
+            if bq:
+                if reachnumber==1:
+                    nbunitforall=nbunit
+                else:
+                    if nbunitforall!=nbunit:
+                        msg = ' the number of units Q[XXX ,Q1,Q2 after REACH must be constant for each reach'
+                        break
+            lunitall.append(lunit)
             kk = 5
         elif ls[0].lower() == 'x':
             if kk != 5:
@@ -189,7 +223,7 @@ def load_ascii_model(filename, path_prj):
                 if j % 2 != 0:
                     msg = 'number of information after z not even'
                     break
-                if j / 2 != nbnumber:
+                if j / 2 != nbunit:
                     msg = 'number of informations h v != number'
                     break
                 ik = 0
@@ -205,17 +239,13 @@ def load_ascii_model(filename, path_prj):
         elif ls[0].upper() == 'TIN':
             kk = 7
         elif kk == 3:
-            nbnumber += 1
-            if int(ls[0]) != nbnumber:
-                msg = 'not the right number waited for'
-                # print(type(nbnumber), type(ls[0]))
+            nbunit += 1
+            if len(ls) != 1:
+                msg = 'unit description but not only one information'
                 break
-            if len(ls) != 2:
-                msg = 'unit description number but not only one information just after'
-                break
-            lunit.append(ls[1])
+            lunit.append(ls[0])
         elif kk == 6:
-            if len(ls) != 3 + 2 * nbnumber:
+            if len(ls) != 3 + 2 * nbunit:
                 msg = 'NODES not the right number of informations waited for'
                 break
             fnode.write(ligne)
@@ -236,13 +266,13 @@ def load_ascii_model(filename, path_prj):
     else:
         pass
 
-    lunitall.append(lunit)
+
     lnode.append((nodei, nodef))
     ltin.append((tini, tinf))
     fi.close()
     fnode.close()
     ftin.close()
-    nodesall = np.loadtxt(fnoden)
+    nodesall = np.loadtxt(fnoden,dtype=float)
     ikleall = np.loadtxt(ftinn,dtype=int)
     os.remove(fnoden)
     os.remove(ftinn)
@@ -275,7 +305,7 @@ def load_ascii_model(filename, path_prj):
                                  axis=0)
                 newnode=np.mean(nodes[[ikle4[i][0],ikle4[i][1],ikle4[i][2],ikle4[i][3]],:], axis=0)
                 nodes=np.append(nodes,np.array([newnode]),axis=0)
-        for unit_num in range(nbnumber):
+        for unit_num in range(nbunit):
             data_2d["tin"][reach_num].append(ikle)
             data_2d["i_whole_profile"][reach_num].append(ikle)
             data_2d["xy"][reach_num].append(nodes[:, :2])
@@ -293,15 +323,15 @@ def load_ascii_model(filename, path_prj):
                               model_dimension=str(2),
                               epsg_code=epsgcode)
     # data_description
-    data_description["unit_list"] = ", ".join(lunit)
-    data_description["unit_list_full"] = ", ".join(lunit)
+    data_description["unit_list"] = ", ".join(lunit) # TODO lunitall indiquer par reach les debits
+    data_description["unit_list_full"] = ", ".join(lunit) # TODO lunitall indiquer par reach les debits
     data_description["unit_list_tf"] = []
-    data_description["unit_number"] = str(nbnumber)
-    data_description["unit_type"] = unittype
+    data_description["unit_number"] = str(nbunit)
+    data_description["unit_type"] = unit_type
     data_description["reach_list"] = ", ".join(lreachname)
     data_description["reach_number"] = str(reachnumber)
     data_description["reach_type"] = "river"
-    if unittype.upper()[0]=='Q' :
+    if unit_type.upper()[0]=='Q' :
         data_description["flow_type"] = "continuous flow"
     else:
         data_description["flow_type"] = "transient flow"
