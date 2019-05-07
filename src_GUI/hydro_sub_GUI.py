@@ -3131,19 +3131,18 @@ class TELEMAC(SubHydroW):  # QGroupBox
         super().__init__(path_prj, name_prj)
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
-        self.init_iu()
-
-    def init_iu(self):
-        """
-        Used by __init__() during the initialization.
-        """
-
         # update the attibutes
         self.attributexml = ['telemac_path']
         self.model_type = 'TELEMAC'
         self.data_type = "HYDRAULIC"
         self.extension = [['.res', '.slf', '.srf', '.txt']]
         self.nb_dim = 2
+        self.init_iu()
+
+    def init_iu(self):
+        """
+        Used by __init__() during the initialization.
+        """
 
         # if there is the project file with telemac info, update
         # the label and attibutes
@@ -3573,20 +3572,17 @@ class ASCII(SubHydroW):  # QGroupBox
         super().__init__(path_prj, name_prj)
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
+        self.attributexml = ['ascii_path']
+        self.model_type = 'ASCII'
+        self.data_type = "HYDRAULIC"
+        self.extension = [['.txt']]
+        self.nb_dim = 2
         self.init_iu()
 
     def init_iu(self):
         """
         Used by __init__() during the initialization.
         """
-
-        # update the attibutes
-        self.attributexml = ['ascii_path']
-        self.model_type = 'ASCII'
-        self.data_type = "HYDRAULIC"
-        self.extension = [['.txt']]
-        self.nb_dim = 2
-
         # if there is the project file with ascii info, update
         # the label and attibutes
         self.was_model_loaded_before()
@@ -3913,7 +3909,7 @@ class ASCII(SubHydroW):  # QGroupBox
         #                            self.q,
         #                            False,
         #                            self.fig_opt))
-        self.p.name = "TELEMAC data loading"
+        self.p.name = "ASCII TXT data loading"
         self.p.start()
 
         # copy input files
