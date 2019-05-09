@@ -145,14 +145,16 @@ def load_ascii_model(filename, path_prj):
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
     """
     path = os.path.dirname(filename)
-    fnoden, ftinn = os.path.join(path,'wwnode.txt'), os.path.join(path,'wwtin.txt')
+    fnoden, ftinn,fsubn = os.path.join(path,'wwnode.txt'), os.path.join(path,'wwtin.txt'), os.path.join(path,'wwsub.txt')
     fi = open(filename, 'r', encoding='utf8')
     fnode = open(fnoden, 'w', encoding='utf8')
     ftin = open(ftinn, 'w', encoding='utf8')
-    kk, reachnumber,nbunitforall = 0, 0,0
+    kk, reachnumber,nbunitforall,nbreachsub = 0, 0,0,0
     msg, unit_type = '', ''
     lunitall = []
-    bq = False
+    bq,bsub = False,False
+    sub_classification_code,sub_classification_method='',''
+    nbsubinfo= 0
     for i, ligne in enumerate(fi):
         ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
         # print (i,ls)
@@ -246,6 +248,47 @@ def load_ascii_model(filename, path_prj):
             kk = 6
         elif ls[0].upper() == 'TIN':
             kk = 7
+        elif ls[0].upper() == 'SUBSTRATE':
+            if len(ls) != 2:
+                msg = 'number of information for substrate_classification_code  not 2'
+                break
+            if reachnumber==1:
+                if ls[0].upper()=='CEMAGREF':
+                    sub_classification_code="Cemagref"
+                elif ls[0].upper()=='SANDRE':
+                    sub_classification_code = "Sandre"
+                else:
+                    msg = 'sub_classification_code given unknown'
+                    break
+            else:
+                if ls[0].upper() != sub_classification_code.upper():
+                    msg = 'sub_classification_code given not constant for all reaches'
+                    break
+            kk = 8
+        elif ls[0].upper() == 'COARSER' or ls[0].upper() == 'S1':
+            if kk != 8:
+                msg = 'substrate_classification_method but not SUBSTRATE just before'
+                break
+            if ls[0].upper() == 'COARSER':
+                if len(ls) != 2 or ls[0].upper() == 'DOMINANT':
+                    msg = 'COARSER information given but not followed by DOMINANT'
+                    break
+                sub_classification_method='coarser-dominant'
+            elif ls[0].upper() == 'S1':
+                if (len(ls) != 8 and sub_classification_code=="Cemagref" ) or (len(ls) != 12 and sub_classification_code == "Sandre") :
+                    msg = 'sub_classification_method percentage description irrelevant'
+                    break
+                sub_classification_method = 'percentage'
+            if reachnumber == 1:
+                nbsubinfo = len(ls)
+                bsub=True
+                fsub = open(fsubn, 'w', encoding='utf8')
+            else:
+                if len(ls) !=  nbsubinfo :
+                    msg = 'sub_classification_method not constant for all reaches'
+                    break
+            kk = 9
+
         elif kk == 3:
             nbunit += 1
             if len(ls) != 1:
@@ -267,9 +310,17 @@ def load_ascii_model(filename, path_prj):
                 msg = 'TIN not the right number of informations waited for'
                 break
             tinf+=1
+        elif kk == 9:
+            if len(ls) != nbsubinfo:
+                msg = 'number of integer given for substrate not correct'
+                break
 
     if msg != '':
         print('ligne : ', i, '\n', ligne, '\n', msg)
+        fi.close(); fnode.close();ftin.close()
+        os.remove(fnoden);os.remove(ftinn)
+        if bsub:
+            fsub.close();os.remove(fsubn)
         return False
     else:
         pass
@@ -284,7 +335,13 @@ def load_ascii_model(filename, path_prj):
     ikleall = np.loadtxt(ftinn,dtype=int)
     os.remove(fnoden)
     os.remove(ftinn)
-
+    if bsub:
+        fsub.close()
+        suball = np.loadtxt(fsubn, dtype=int)
+        os.remove(fsubn)
+        if len(suball)!=len(ikleall):
+            print('the number of elements given for TIN  and SUBSTRAT description are different')
+            return False
     # creaet empty dict
     data_2d = dict()
     data_2d["tin"] = [[] for _ in range(reachnumber)]  # create a number of empty nested lists for each reach
@@ -316,6 +373,8 @@ def load_ascii_model(filename, path_prj):
         for unit_num in range(nbunit):
             data_2d["tin"][reach_num].append(ikle)
             data_2d["i_whole_profile"][reach_num].append(ikle)
+            if bsub:
+                data_2d["sub"][reach_num].append(sub[:, 2])
             data_2d["xy"][reach_num].append(nodes[:, :2])
             data_2d["h"][reach_num].append(nodes[:, 2+unit_num*2+1])
             data_2d["v"][reach_num].append(nodes[:, 2+unit_num*2+2])
@@ -331,8 +390,8 @@ def load_ascii_model(filename, path_prj):
                               model_dimension=str(2),
                               epsg_code=epsgcode)
     # data_description
-    data_description["unit_list"] = ", ".join(lunit) # TODO lunitall indiquer par reach les debits
-    data_description["unit_list_full"] = ", ".join(lunit) # TODO lunitall indiquer par reach les debits
+    data_description["unit_list"] = ", ".join(lunit) # TODO lunitall ready pour indiquer par reach les debits
+    data_description["unit_list_full"] = ", ".join(lunit) # TODO lunitall ready pour indiquer par reach les debits
     data_description["unit_list_tf"] = []
     data_description["unit_number"] = str(nbunit)
     data_description["unit_type"] = unit_type
@@ -343,6 +402,11 @@ def load_ascii_model(filename, path_prj):
         data_description["flow_type"] = "continuous flow"
     else:
         data_description["flow_type"] = "transient flow"
+    if bsub:
+        data_description["sub_mapping_method"] = "polygon"
+        data_description["sub_classification_method"] =sub_classification_method  #"coarser-dominant" / "percentage"
+        data_description["sub_classification_code"] =sub_classification_code #"Cemagref" / "Sandre"
+
     return data_2d, data_description
 
 
