@@ -53,24 +53,27 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
                            2,
                            values=data_2d_from_ascii["z"][reach_num][unit_num],
                            axis=1)  # Insert values before column 2
-            # [tin_data, xy, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_from_ascii["tin"][reach_num][unit_num],
-            #                                                                            xy,
-            #                                                                            data_2d_from_ascii["h"][reach_num][unit_num],
-            #                                                                            data_2d_from_ascii["v"][reach_num][unit_num],
-            #                                                                            progress_value,
-            #                                                                            delta,
-            #                                                                            minwh,
-            #                                                                            True)
-            # if not isinstance(tin_data, np.ndarray):
-            #     print("Error: cut_2d_grid")
-            #     q.put(mystdout)
-            #     return
-
-            # if we want to disable cut_2d_grid (for dev)
-            tin_data = data_2d_from_ascii["tin"][reach_num][unit_num]
-            ind_new = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
-            h_data = data_2d_from_ascii["h"][reach_num][unit_num]
-            v_data = data_2d_from_ascii["v"][reach_num][unit_num]
+            # cut2dgrid
+            if fig_opt["Cut2Dgrid"] == "True":
+                [tin_data, xy, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_from_ascii["tin"][reach_num][unit_num],
+                                                                                           xy,
+                                                                                           data_2d_from_ascii["h"][reach_num][unit_num],
+                                                                                           data_2d_from_ascii["v"][reach_num][unit_num],
+                                                                                           progress_value,
+                                                                                           delta,
+                                                                                           minwh,
+                                                                                           True)
+                if not isinstance(tin_data, np.ndarray):
+                    print("Error: cut_2d_grid")
+                    q.put(mystdout)
+                    return
+            # not cut2dgrid
+            elif fig_opt["Cut2Dgrid"] == "False":
+                # if we want to disable cut_2d_grid (for dev)
+                tin_data = data_2d_from_ascii["tin"][reach_num][unit_num]
+                ind_new = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
+                h_data = data_2d_from_ascii["h"][reach_num][unit_num]
+                v_data = data_2d_from_ascii["v"][reach_num][unit_num]
 
             # replace cuted grid in dict
             data_2d_from_ascii["tin"][reach_num][unit_num] = tin_data
@@ -123,6 +126,9 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
 
     # export_point_shp
     hdf5.export_point_shp(fig_opt)
+
+    # export stl
+    hdf5.export_stl(fig_opt)
 
     # progress
     progress_value.value = 100
