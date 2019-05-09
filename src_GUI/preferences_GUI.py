@@ -205,10 +205,24 @@ class outputW(QScrollArea):
             self.out4a.setChecked(False)
             self.out4b.setChecked(True)
 
-        # other options
+        # general options
         self.outgen = QLabel(self.tr(' <b> General Options </b>'))
+        # Cut2Dgrid or not
+        self.out_cuttf = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
+        self.out_cuttfa = QCheckBox(self.tr('Yes'))
+        self.out_cuttfa.clicked.connect(lambda: self.check_uncheck(self.out_cuttfa, self.out_cuttfb))
+        self.out_cuttfb = QCheckBox(self.tr('No'))
+        self.out_cuttfb.clicked.connect(lambda: self.check_uncheck(self.out_cuttfb, self.out_cuttfa))
+        if fig_dict['erase_id'] == 'True':  # is a string not a boolean
+            self.out_cuttfa.setChecked(True)
+            self.out_cuttfb.setChecked(False)
+        else:
+            self.out_cuttfa.setChecked(False)
+            self.out_cuttfb.setChecked(True)
+        # heigth minimum for Cut2Dgrid
         self.l1 = QLabel(self.tr('2D minimum water height [m]'))
         self.hopt = QLineEdit(str(fig_dict['min_height_hyd']))
+
         # erase data or not
         self.out5 = QLabel(self.tr('Erase data if identical model'))
         self.out5a = QCheckBox(self.tr('Yes'))
@@ -262,32 +276,33 @@ class outputW(QScrollArea):
         self.layout.addWidget(self.fig12, 11, 1, 1, 2)
         self.layout.addWidget(self.out9a, 12, 1, 1, 1)
         self.layout.addWidget(self.out9b, 12, 2, 1, 1)
-
         self.layout.addWidget(self.outgen, 0, 3)
-        self.layout.addWidget(self.l1, 1, 3)
-        self.layout.addWidget(self.hopt, 1, 4, 1, 2)
-        self.layout.addWidget(self.out5, 2, 3)
-        self.layout.addWidget(self.out5a, 2, 4)
-        self.layout.addWidget(self.out5b, 2, 5)
+        self.layout.addWidget(self.out_cuttf, 1, 3)
+        self.layout.addWidget(self.out_cuttfa, 1, 4)
+        self.layout.addWidget(self.out_cuttfb, 1, 5)
+        self.layout.addWidget(self.l1, 2, 3)
+        self.layout.addWidget(self.hopt, 2, 4, 1, 2)
+        self.layout.addWidget(self.out5, 3, 3)
+        self.layout.addWidget(self.out5a, 3, 4)
+        self.layout.addWidget(self.out5b, 3, 5)
+        self.layout.addWidget(self.out0, 4, 3)  # , 2, 1
+        self.layout.addWidget(self.out1, 5, 3)
+        self.layout.addWidget(self.out1a, 5, 4)
+        self.layout.addWidget(self.out1b, 5, 5)
+        self.layout.addWidget(self.out2, 6, 3)
+        self.layout.addWidget(self.out2a, 6, 4)
+        self.layout.addWidget(self.out2b, 6, 5)
+        self.layout.addWidget(self.out3, 7, 3)
+        self.layout.addWidget(self.out3a, 7, 4)
+        self.layout.addWidget(self.out3b, 7, 5)
 
-        self.layout.addWidget(self.out0, 3, 3)  # , 2, 1
-        self.layout.addWidget(self.out1, 4, 3)
-        self.layout.addWidget(self.out1a, 4, 4)
-        self.layout.addWidget(self.out1b, 4, 5)
-        self.layout.addWidget(self.out2, 5, 3)
-        self.layout.addWidget(self.out2a, 5, 4)
-        self.layout.addWidget(self.out2b, 5, 5)
-        self.layout.addWidget(self.out3, 6, 3)
-        self.layout.addWidget(self.out3a, 6, 4)
-        self.layout.addWidget(self.out3b, 6, 5)
+        self.layout.addWidget(self.outstl, 8, 3)
+        self.layout.addWidget(self.outstla, 8, 4)
+        self.layout.addWidget(self.outstlb, 8, 5)
 
-        self.layout.addWidget(self.outstl, 7, 3)
-        self.layout.addWidget(self.outstla, 7, 4)
-        self.layout.addWidget(self.outstlb, 7, 5)
-
-        self.layout.addWidget(self.out4, 8, 3)
-        self.layout.addWidget(self.out4a, 8, 4)
-        self.layout.addWidget(self.out4b, 8, 5)
+        self.layout.addWidget(self.out4, 9, 3)
+        self.layout.addWidget(self.out4a, 9, 4)
+        self.layout.addWidget(self.out4b, 9, 5)
         self.layout.addWidget(self.saveb, 13, 4, 1, 1)
         self.layout.addWidget(self.closeb, 13, 5, 1, 1)
         [self.layout.setRowMinimumHeight(i, 30) for i in range(self.layout.rowCount())]
@@ -429,14 +444,20 @@ class outputW(QScrollArea):
             fig_dict['erase_id'] = True
         elif self.out5b.isChecked():
             fig_dict['erase_id'] = False
-
+        # Cut2Dgrid
+        if self.out_cuttfa.isChecked() and self.out_cuttfb.isChecked():
+            self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
+        if self.out_cuttfa.isChecked():
+            fig_dict['Cut2Dgrid'] = True
+        elif self.out_cuttfb.isChecked():
+            fig_dict['Cut2Dgrid'] = False
         # save the data in the xml file
         # open the xml project file
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
         # save the name and the path in the xml .prj file
         if not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Image Options Not Saved"))
+            self.msg2.setWindowTitle(self.tr("Unsaved preferences"))
             self.msg2.setText(
                 self.tr("The project is not saved. Save the project in the General tab before saving data."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
@@ -464,6 +485,7 @@ class outputW(QScrollArea):
                 para1 = root.find(".//ParaviewOutput")
                 langfig1 = root.find(".//LangFig")
                 hopt1 = root.find(".//MinHeight")
+                Cut2Dgrid = root.find(".//Cut2Dgrid")
                 fishinfo1 = root.find(".//FishInfo")
                 erase1 = root.find(".//EraseId")
             else:  # save in case no fig option exist
@@ -486,6 +508,7 @@ class outputW(QScrollArea):
                 para1 = ET.SubElement(child1, "ParaviewOutput")
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
+                Cut2Dgrid = ET.SubElement(child1, "Cut2Dgrid")
                 fishinfo1 = ET.SubElement(child1, "FishInfo")
                 erase1 = ET.SubElement(child1, "EraseId")
             width1.text = str(fig_dict['width'])
@@ -511,6 +534,7 @@ class outputW(QScrollArea):
             shape1.text = str(fig_dict['shape_output'])
             para1.text = str(fig_dict['paraview'])
             hopt1.text = str(fig_dict['min_height_hyd'])
+            Cut2Dgrid.text = str(fig_dict['Cut2Dgrid'])
             fishinfo1.text = str(fig_dict['fish_info'])
             erase1.text = str(fig_dict['erase_id'])
             doc.write(fname)
@@ -608,6 +632,7 @@ def load_fig_option(path_prj, name_prj):
             stl1 = root.find(".//stlOutput")
             langfig1 = root.find(".//LangFig")
             hopt1 = root.find(".//MinHeight")
+            Cut2Dgrid = root.find(".//Cut2Dgrid")
             fishinfo1 = root.find(".//FishInfo")
             erase1 = root.find(".//EraseId")
             try:
@@ -649,6 +674,8 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['language'] = int(langfig1.text)
                 if hopt1 is not None:
                     fig_dict['min_height_hyd'] = float(hopt1.text)
+                if Cut2Dgrid is not None:
+                    fig_dict['Cut2Dgrid'] = Cut2Dgrid.text
                 if fish1 is not None:
                     fig_dict['fish_info'] = fishinfo1.text
                 if erase1 is not None:
