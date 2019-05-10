@@ -205,7 +205,7 @@ def load_ascii_model(filename, path_prj):
             reachnumber+=1
             if reachnumber==1:
                 lreachname=[('_'.join(ls[1:]))]
-                nodei,nodef,tini,tinf=0,0,0,0
+                nodei,nodef,tini,tinf,tinfsub=0,0,0,0,0
                 lnode=[]
                 ltin=[]
             else:
@@ -213,6 +213,10 @@ def load_ascii_model(filename, path_prj):
                 lnode.append((nodei,nodef))
                 ltin.append((tini, tinf))
                 nodei, tini = nodef, tinf
+                if bsub:
+                    if tinfsub!=tinf:
+                        msg = ' number of meshes elements different between TIN and SUBSTRATE description'
+                        break
             kk = 4
         elif ls[0].upper() == 'NODES':
             if kk != 3 and kk!=4:
@@ -259,15 +263,15 @@ def load_ascii_model(filename, path_prj):
                 msg = 'number of information for substrate_classification_code  not 2'
                 break
             if reachnumber==1:
-                if ls[0].upper()=='CEMAGREF':
+                if ls[1].upper()=='CEMAGREF':
                     sub_classification_code="Cemagref"
-                elif ls[0].upper()=='SANDRE':
+                elif ls[1].upper()=='SANDRE':
                     sub_classification_code = "Sandre"
                 else:
                     msg = 'sub_classification_code given unknown'
                     break
             else:
-                if ls[0].upper() != sub_classification_code.upper():
+                if ls[1].upper() != sub_classification_code.upper():
                     msg = 'sub_classification_code given not constant for all reaches'
                     break
             kk = 8
@@ -276,11 +280,11 @@ def load_ascii_model(filename, path_prj):
                 msg = 'substrate_classification_method but not SUBSTRATE just before'
                 break
             if ls[0].upper() == 'COARSER':
-                if len(ls) != 2 or ls[0].upper() == 'DOMINANT':
+                if len(ls) != 2 or ls[1].upper() != 'DOMINANT':
                     msg = 'COARSER information given but not followed by DOMINANT'
                     break
                 sub_classification_method='coarser-dominant'
-            elif ls[0].upper() == 'S1':
+            elif ls[0].upper() == 'S1': #TODO  check Si ie S2 etc....
                 if (len(ls) != 8 and sub_classification_code=="Cemagref" ) or (len(ls) != 12 and sub_classification_code == "Sandre") :
                     msg = 'sub_classification_method percentage description irrelevant'
                     break
@@ -320,6 +324,8 @@ def load_ascii_model(filename, path_prj):
             if len(ls) != nbsubinfo:
                 msg = 'number of integer given for substrate not correct'
                 break
+            tinfsub+=1
+            fsub.write(ligne)
 
     if msg != '':
         print('ligne : ', i, '\n', ligne, '\n', msg)
@@ -328,8 +334,7 @@ def load_ascii_model(filename, path_prj):
         if bsub:
             fsub.close();os.remove(fsubn)
         return False
-    else:
-        pass
+
 
 
     lnode.append((nodei, nodef))
@@ -348,10 +353,27 @@ def load_ascii_model(filename, path_prj):
         if len(suball)!=len(ikleall):
             print('the number of elements given for TIN  and SUBSTRAT description are different')
             return False
+        if sub_classification_method == 'coarser-dominant':
+            if  sub_classification_code == "Cemagref":
+                if suball.max() >8 or suball.min() <1:
+                    msg='SUBSTRATE Cemagref coarser-dominant But extreme values are not in [1,8] '
+            elif sub_classification_code == "Sandre":
+                if suball.max() >12 or suball.min() <1:
+                    msg='SUBSTRATE Sandre coarser-dominant But extreme values are not in [1,12] '
+        elif sub_classification_method == 'percentage':
+            suball100 = np.sum(suball, axis=1)
+            if (suball100 !=100).all() :
+                msg = 'SUBSTRATE percentage But not the all the sums =100 '
+        if msg != '':
+            print( msg)
+            return False
+
     # creaet empty dict
     data_2d = dict()
     data_2d["tin"] = [[] for _ in range(reachnumber)]  # create a number of empty nested lists for each reach
     data_2d["i_whole_profile"] = [[] for _ in range(reachnumber)]
+    if bsub:
+        data_2d["sub"] = [[] for _ in range(reachnumber)]
     data_2d["xy"] = [[] for _ in range(reachnumber)]
     data_2d["h"] = [[] for _ in range(reachnumber)]
     data_2d["v"] = [[] for _ in range(reachnumber)]
@@ -360,6 +382,8 @@ def load_ascii_model(filename, path_prj):
     for reach_num in range(reachnumber):
         nodes=np.array(nodesall[lnode[reach_num][0]:lnode[reach_num][1],:])
         ikle =np.array(ikleall[ltin[reach_num][0]:ltin[reach_num][1],:])
+        if bsub:
+            sub = np.array(suball[ltin[reach_num][0]:ltin[reach_num][1], :])
         nbnodes = len(nodes)
         if ikle.max() != nbnodes - 1:
             print('REACH :', lreachname[reach_num], "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
@@ -367,7 +391,11 @@ def load_ascii_model(filename, path_prj):
         # managing  the 4angles (for triangle last index=-1)
         ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
         ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
+        if bsub:
+            sub4 = sub[np.where(ikle[:, [3]] != -1)[0]]
+            sub = sub[np.where(ikle[:, [3]] == -1)[0]]
         ikle = ikle3[:, 0:3]
+
         if len(ikle4): # partitionning each 4angles in 4 triangles
             for i in range( len(ikle4)):
                 nbnodes+=1
@@ -376,11 +404,13 @@ def load_ascii_model(filename, path_prj):
                                  axis=0)
                 newnode=np.mean(nodes[[ikle4[i][0],ikle4[i][1],ikle4[i][2],ikle4[i][3]],:], axis=0)
                 nodes=np.append(nodes,np.array([newnode]),axis=0)
+                if bsub:
+                    sub = np.append(sub, np.array([sub4[i,:],]*4), axis=0)
         for unit_num in range(nbunit):
             data_2d["tin"][reach_num].append(ikle)
             data_2d["i_whole_profile"][reach_num].append(ikle)
             if bsub:
-                data_2d["sub"][reach_num].append(sub[:, 2])
+                data_2d["sub"][reach_num].append(sub)
             data_2d["xy"][reach_num].append(nodes[:, :2])
             data_2d["h"][reach_num].append(nodes[:, 2+unit_num*2+1])
             data_2d["v"][reach_num].append(nodes[:, 2+unit_num*2+2])
