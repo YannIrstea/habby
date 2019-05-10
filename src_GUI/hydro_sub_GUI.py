@@ -134,6 +134,7 @@ class Hydro2W(QScrollArea):
 
         # group hydraulic model
         self.mod = QComboBox()
+        self.mod.setMaxVisibleItems(20)
         self.mod.addItems(self.name_model)  # available model
         self.mod.currentIndexChanged.connect(self.selectionchange)
         self.button1 = QPushButton(self.tr('?'), self)
