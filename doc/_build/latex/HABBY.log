@@ -1755,7 +1755,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 275--277
 
 
 Underfull \hbox (badness 10000) in paragraph at lines 325--327
-[]\T1/ptm/m/n/10 init_iu() (src_GUI.Main_windows_1.CreateNewProject
+[]\T1/ptm/m/n/10 init_iu() (src_GUI.Main_windows_1.CreateNewProjectDialog
  []
 
 
@@ -2020,7 +2020,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 636--638
 
 
 Overfull \hbox (10.0002pt too wide) in paragraph at lines 638--640
-[]\T1/ptm/m/n/10 save_project (src_GUI.Main_windows_1.CreateNewProject
+[]\T1/ptm/m/n/10 save_project (src_GUI.Main_windows_1.CreateNewProjectDialog
  []
 
 
@@ -2115,7 +2115,7 @@ Underfull \hbox (badness 6380) in paragraph at lines 703--705
 
 
 Overfull \hbox (1.46004pt too wide) in paragraph at lines 707--709
-[]\T1/ptm/m/n/10 setfolder() (src_GUI.Main_windows_1.CreateNewProject
+[]\T1/ptm/m/n/10 setfolder() (src_GUI.Main_windows_1.CreateNewProjectDialog
  []
 
 

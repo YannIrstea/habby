@@ -112,7 +112,7 @@
   \item create\_merge\_grid() (in module src.mesh\_grid2), 
 		\hyperpage{91}
   \item create\_pdf() (in module src.bio\_info), \hyperpage{95}
-  \item CreateNewProject (class in src\_GUI.Main\_windows\_1), 
+  \item CreateNewProjectDialog (class in src\_GUI.Main\_windows\_1),
 		\hyperpage{9}
   \item cut\_2d\_grid() (in module src.manage\_grid\_8), \hyperpage{72}
   \item cut\_2d\_grid\_all\_reach() (in module src.manage\_grid\_8), 
@@ -322,7 +322,7 @@
 		\hyperpage{24}
   \item init\_iu() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
-  \item init\_iu() (src\_GUI.Main\_windows\_1.CreateNewProject method), 
+  \item init\_iu() (src\_GUI.Main\_windows\_1.CreateNewProjectDialog method),
 		\hyperpage{9}
   \item init\_iu() (src\_GUI.Main\_windows\_1.EmptyTab method), 
 		\hyperpage{9}
@@ -635,7 +635,7 @@
 		\hyperpage{8}
   \item save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method), 
 		\hyperpage{24}
-  \item save\_project (src\_GUI.Main\_windows\_1.CreateNewProject attribute), 
+  \item save\_project (src\_GUI.Main\_windows\_1.CreateNewProjectDialog attribute),
 		\hyperpage{9}
   \item save\_project() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{12}
@@ -690,7 +690,7 @@
 		\hyperpage{17}
   \item send\_log (src\_GUI.hydro\_GUI\_2.SubHydroW attribute), 
 		\hyperpage{22}
-  \item send\_log (src\_GUI.Main\_windows\_1.CreateNewProject attribute), 
+  \item send\_log (src\_GUI.Main\_windows\_1.CreateNewProjectDialog attribute),
 		\hyperpage{9}
   \item send\_log (src\_GUI.Main\_windows\_1.ShowImageW attribute), 
 		\hyperpage{14}
@@ -704,7 +704,7 @@
 		\hyperpage{23}
   \item set\_lang\_fig() (in module src\_GUI.output\_fig\_GUI), 
 		\hyperpage{25}
-  \item setfolder() (src\_GUI.Main\_windows\_1.CreateNewProject method), 
+  \item setfolder() (src\_GUI.Main\_windows\_1.CreateNewProjectDialog method),
 		\hyperpage{9}
   \item setfolder2() (src\_GUI.Main\_windows\_1.WelcomeW method), 
 		\hyperpage{14}
