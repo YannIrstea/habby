@@ -213,7 +213,7 @@ class outputW(QScrollArea):
         self.out_cuttfa.clicked.connect(lambda: self.check_uncheck(self.out_cuttfa, self.out_cuttfb))
         self.out_cuttfb = QCheckBox(self.tr('No'))
         self.out_cuttfb.clicked.connect(lambda: self.check_uncheck(self.out_cuttfb, self.out_cuttfa))
-        if fig_dict['erase_id'] == 'True':  # is a string not a boolean
+        if fig_dict['Cut2Dgrid'] == 'True':  # is a string not a boolean
             self.out_cuttfa.setChecked(True)
             self.out_cuttfb.setChecked(False)
         else:
