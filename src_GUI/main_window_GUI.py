@@ -40,6 +40,7 @@ import h5py
 import matplotlib as mpl
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
+from src_GUI import welcome_GUI
 from src_GUI import estimhab_GUI
 from src_GUI import hydro_sub_GUI
 from src_GUI import stathab_GUI
@@ -235,9 +236,9 @@ class MainWindows(QMainWindow):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
         #  right click
-        self.create_menu_right()
+        self.create_menu_right_clic()
         self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
+        self.central_widget.customContextMenuRequested.connect(self.show_menu_right_clic)
 
         self.setCentralWidget(self.central_widget)
 
@@ -410,9 +411,9 @@ class MainWindows(QMainWindow):
 
         # recreate new widget
         if self.central_widget.tab_widget.count() == 1:
-            self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
+            self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
         else:
-            self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
+            self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
             #if self.physic_tabs:
             self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
             if ind_hydrau_tab != 0:
@@ -479,9 +480,9 @@ class MainWindows(QMainWindow):
         del self.settings
 
         #  right click
-        self.create_menu_right()
+        self.create_menu_right_clic()
         self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.central_widget.customContextMenuRequested.connect(self.on_context_menu)
+        self.central_widget.customContextMenuRequested.connect(self.show_menu_right_clic)
 
         # open at the old tab
         self.central_widget.tab_widget.setCurrentIndex(ind_tab)
@@ -550,10 +551,7 @@ class MainWindows(QMainWindow):
         logy.triggered.connect(lambda: self.do_log(1))
         savi = QAction(self.tr("Delete all figure files"), self)
         savi.setStatusTip(self.tr('Figures files of current project will be deleted'))
-        savi.triggered.connect(self.erase_pict)
-        # showim = QAction(self.tr("Show Images"), self)
-        # showim.setStatusTip(self.tr('Open the window to view the created figures.'))
-        # showim.triggered.connect(self.central_widget.showfig2)
+        savi.triggered.connect(self.remove_all_figure_files)
         closeim = QAction(self.tr("Close all figure windows"), self)
         closeim.setStatusTip(self.tr('Close all open figure windows'))
         closeim.triggered.connect(self.central_widget.closefig)
@@ -694,14 +692,14 @@ class MainWindows(QMainWindow):
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
 
-    def create_menu_right(self):
+    def create_menu_right_clic(self):
         """
         This function create the menu for right click
         """
 
         self.my_menu_bar(True)
 
-    def on_context_menu(self, point):
+    def show_menu_right_clic(self, point):
         """
         This function is used to show the menu on right click. If we are on the Habitat Tab and that the focus is on
         the QListWidget, it shows the information concerning the fish
@@ -783,6 +781,96 @@ class MainWindows(QMainWindow):
         self.dialog_preferences.resize(width_pref, height_pref)
         self.dialog_preferences.show()
 
+    def recreate_tabs_attributes(self):
+        # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            if hasattr(self.central_widget, "welcome_tab"):
+                if not self.central_widget.welcome_tab:
+                    self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.welcome_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
+
+            if hasattr(self.central_widget, "hydro_tab"):
+                if not self.central_widget.hydro_tab:
+                    self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.hydro_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+
+            if hasattr(self.central_widget, "substrate_tab"):
+                if not self.central_widget.substrate_tab:
+                    self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.substrate_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
+
+            if hasattr(self.central_widget, "bioinfo_tab"):
+                if not self.central_widget.bioinfo_tab:
+                    self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.bioinfo_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+
+            if hasattr(self.central_widget, "data_explorer_tab"):
+                if not self.central_widget.data_explorer_tab:
+                    self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.data_explorer_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+
+            if hasattr(self.central_widget, "tools_tab"):
+                if not self.central_widget.tools_tab:
+                    self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.tools_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+
+            # if hasattr(self.central_widget, "output_tab"):
+            #     if not self.central_widget.output_tab:
+            #         self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
+            #         self.central_widget.output_tab.save_option_fig()
+            #     else:
+            #         self.central_widget.output_tab.__init__(self.path_prj, self.name_prj)
+            #         self.central_widget.output_tab.save_option_fig()
+            # else:
+            #     self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
+            #     self.central_widget.output_tab.save_option_fig()
+
+            if hasattr(self.central_widget, "statmod_tab"):
+                if not self.central_widget.statmod_tab:
+                    self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.statmod_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+
+            if hasattr(self.central_widget, "stathab_tab"):
+                if not self.central_widget.stathab_tab:
+                    self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.stathab_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+
+            if hasattr(self.central_widget, "fstress_tab"):
+                if not self.central_widget.fstress_tab:
+                    self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+                else:
+                    self.central_widget.fstress_tab.__init__(self.path_prj, self.name_prj)
+            else:
+                self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+
+        else:
+            print('Error: Could not find the project saved just now. \n')
+            return
+
     def save_project(self):
         """
         A function to save the xml file with the information on the project
@@ -819,7 +907,7 @@ class MainWindows(QMainWindow):
 
         Finally the log is written (see “log and HABBY in the command line).
         """
-
+        print("save_project")
         # saved path
         path_prj = os.path.normpath(self.central_widget.welcome_tab.e2.text())
         if not os.path.isdir(path_prj):  # if the directoy do not exist
@@ -979,23 +1067,8 @@ class MainWindows(QMainWindow):
             self.central_widget.tab_widget.removeTab(i)
         self.central_widget.tab_widget.removeTab(0)
 
-        # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
-            self.central_widget.welcome_tab = WelcomeW(self.path_prj, self.name_prj)
-            self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
-            self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
-            self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
-            self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
-            self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
-            self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
-            self.central_widget.output_tab.save_option_fig()
-            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-            self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-            if not hasattr(self.central_widget, "fstress_tab"):
-                self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)  # crash if erase it
-        else:
-            print('Error: Could not find the project saved just now. \n')
-            return
+        # recreate new widget
+        self.recreate_tabs_attributes()
 
         self.central_widget.add_all_tab()
 
@@ -1021,20 +1094,6 @@ class MainWindows(QMainWindow):
 
         # enabled lowest part
         self.central_widget.welcome_tab.lowpart.setEnabled(True)
-
-        # update name project
-        if self.name_prj != '':
-            self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
-        else:
-            self.setWindowTitle(self.tr('HABBY ') + str(self.version))
-
-        # reconnect method to button
-        self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
-        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
-        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
-        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
-        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
-            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
     def open_project(self):
         """
@@ -1120,15 +1179,16 @@ class MainWindows(QMainWindow):
         self.central_widget.substrate_tab.update_sub_hdf5_name()
 
         # recreate new widget
-        self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
-        self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
-        self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
-        self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-        self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-        self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-        self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
-        self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
-        self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+        self.recreate_tabs_attributes()
+        # self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+        # self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
+        # self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+        # self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+        # self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        # self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+        # self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
+        # self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+        # self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), 0, -1):
@@ -1142,13 +1202,25 @@ class MainWindows(QMainWindow):
         self.central_widget.connect_signal_fig_and_drop()
         self.central_widget.connect_signal_log()
 
+        # update name project
+        if self.name_prj != '':
+            self.setWindowTitle(self.tr('HABBY ') + str(self.version) + ' - ' + self.name_prj)
+        else:
+            self.setWindowTitle(self.tr('HABBY ') + str(self.version))
+
+        # reconnect method to button
+        self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
+        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+
         # write the new language in the figure option to be able to get the title, axis in the right language
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # check if project open somewhere else
         self.check_concurrency()
-
-        return
 
     def open_recent_project(self, j):
         """
@@ -1212,14 +1284,14 @@ class MainWindows(QMainWindow):
     def new_project(self):
         """
         This function open an empty project and guide the user to create a new project, using a new Windows
-        of the class CreateNewProject
+        of the class CreateNewProjectDialog
         """
         pathprj_old = self.path_prj
 
         self.end_concurrency()
 
         # open a new Windows to ask for the info for the project
-        self.createnew = CreateNewProject(self.lang, self.path_trans, self.file_langue, pathprj_old)
+        self.createnew = CreateNewProjectDialog(self.lang, self.path_trans, self.file_langue, pathprj_old)
         self.createnew.save_project.connect(self.save_project_if_new_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
         self.createnew.show()
@@ -1244,8 +1316,8 @@ class MainWindows(QMainWindow):
 
     def save_project_if_new_project(self):
         """
-        This function is used to save a project when the project is created from the other Windows CreateNewProject. It
-        can not be in the new_project function as the new_project function call CreateNewProject().
+        This function is used to save a project when the project is created from the other Windows CreateNewProjectDialog. It
+        can not be in the new_project function as the new_project function call CreateNewProjectDialog().
         """
         name_prj_here = self.createnew.e1.text()
 
@@ -1299,7 +1371,7 @@ class MainWindows(QMainWindow):
         doc.write(fname)
 
         # write the new language in the figure option to be able to get the title, axis in the right language
-        self.central_widget.output_tab.save_option_fig()
+        # self.central_widget.output_tab.save_option_fig()
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
     def change_name_project(self):
@@ -1654,7 +1726,7 @@ class MainWindows(QMainWindow):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
 
-    def erase_pict(self):
+    def remove_all_figure_files(self):
         """
         All files contained in the folder indicated by path_im will be deleted.
 
@@ -1761,7 +1833,7 @@ class MainWindows(QMainWindow):
             return alive
 
 
-class CreateNewProject(QWidget):
+class CreateNewProjectDialog(QWidget):
     """
     A class which is used to help the user to create a new project
     """
@@ -1846,25 +1918,13 @@ class CentralW(QWidget):
     In the attribute list, there are a series of name which finish by “tab” such as stathab_tab or output_tab. Each of
     these names corresponds to one tab and a new name should be added to the attributes to add a new tab.
 
-    During the creation of the class, each tab is created. Then, the signals to show the figures are connected between this
-    class and all the children classes which need it (often this are the classes used to load the hydrological data). When a
-    class emits the signal “show_fig”, CentralW collect this signal and show the figure, using the showfig function.
-
-    Show_fig is mostly a “plt.show()”. To avoid problem between matplotlib and PyQt, it is however important that
-    matplotlib use the backend “Qt5Agg” in the .py where the “plt.plot” is called. Practically, this means modifying
-    the matplotlib import.
-
-    Showfig shows only one figure. To show all existing figures, one can call the function show_fig2 from the menu.
-    Show_fig2 call the instance child_win of the class ShowImageW to open a new Windows with all figure. However,
-    this would only show the figure without any option for the zoom.
-
     Then we call a function which connects all the signals from each class which need to write into the log. It is a good
     policy to create a “send_log” signal for each new important class. As there are a lot of signal to connect, these
     connections are written in the function “connect_signal_log”, where the signal for a new class can be added.
 
     When this is done, the info for the general tab (created before) is filled. If the user has opened a project in HABBY
     before, the name of the project and the other info related to it will be shown on the general tab. If the general
-    tab is modified in the class WelcomeW(), this part of the code which fill the general tab will probably needs to
+    tab is modified in the class welcome_GUI.WelcomeW(), this part of the code which fill the general tab will probably needs to
     be modified.
 
     Finally, each tab is filled. The tabs have been created before, but there were empty. Now we fill each one with the
@@ -1886,7 +1946,7 @@ class CentralW(QWidget):
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
 
-        self.welcome_tab = WelcomeW(path_prj, name_prj)
+        self.welcome_tab = welcome_GUI.WelcomeW(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
@@ -1901,10 +1961,9 @@ class CentralW(QWidget):
         self.stat = stat
         self.rech = rech
         self.logon = True  # do we save the log in .log file or not
-        self.child_win = ShowImageW(self.path_prj_c, self.name_prj_c)  # an extra windows to show figures
         self.tracking_journal_QTextEdit = QTextEdit(self)  # where the log is show
         self.tracking_journal_QTextEdit.setReadOnly(True)
-        self.tracking_journal_QTextEdit.textChanged.connect(self.scrolldown)
+        self.tracking_journal_QTextEdit.textChanged.connect(self.scrolldown_log)
         self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Log of HABBY started. <br>'))
         self.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Create or open a project. <br>'))
         self.max_lengthshow = 180
@@ -1974,7 +2033,7 @@ class CentralW(QWidget):
         self.layoutc.addWidget(self.tracking_journal_QTextEdit, 3, 0)
         self.setLayout(self.layoutc)
 
-    def scrolldown(self):
+    def scrolldown_log(self):
         """
         Move the scroll bar to the bottom if the ScollArea is getting bigger
         """
@@ -2022,49 +2081,6 @@ class CentralW(QWidget):
 
         #self.tab_widget.setStyleSheet("QTabBar::tab::disabled {width: 0; height: 0; margin: 0; padding: 0; border: none;} ")
 
-    def showfig(self):
-        """
-        A small function to show the last figure
-        """
-
-        # check if there is a path where to save the image
-        filename_path_pro = os.path.join(self.path_prj_c, self.name_prj_c + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            child = root.find(".//" + 'Path_Figure')
-            if child is not None:
-                self.path_im = os.path.join(self.path_prj_c, child.text)
-
-        # if os.name == 'nt':  # windows
-        # plt.show()
-        aa = 1
-        # plt.clf()
-        # plt.cla()
-        # plt.close()
-        # else:
-        #     num_fig = plt.get_fignums()
-        #     self.all_fig_widget = []
-        #     for id,n in enumerate(num_fig):
-        #         canvas = FigureCanvasQTAgg(plt.figure(n))  # plt.gcf()
-        #         myfigwig = QWidget()
-        #         self.all_fig_widget.append(myfigwig)
-        #         canvas.setParent(self.all_fig_widget[id])
-        #         menu = NavigationToolbar2QT(canvas, self.all_fig_widget[id])
-        #         self.all_fig_widget[id].layout = QGridLayout()
-        #         self.all_fig_widget[id].layout.addWidget(menu, 0, 0)
-        #         self.all_fig_widget[id].layout.addWidget(canvas, 1, 0)
-        #         self.all_fig_widget[id].setLayout(self.all_fig_widget[id].layout)
-        #         self.all_fig_widget[id].show()
-
-    def showfig2(self):
-        """
-        A function to see all saved figures without possibility to zoom
-        """
-        self.child_win.update_namefig()
-        self.child_win.selectionchange(-1)
-        self.child_win.show()
-
     def closefig(self):
         """
         method to close the images opened in HABBY and managed by matplotlib
@@ -2098,7 +2114,6 @@ class CentralW(QWidget):
             self.stathab_tab.send_log.connect(self.write_log)
             self.hydro_tab.riverhere2d.send_log.connect(self.write_log)
             self.hydro_tab.mascar.send_log.connect(self.write_log)
-            self.child_win.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
             self.hydro_tab.habbyhdf5.send_log.connect(self.write_log)
             self.hydro_tab.lammi.send_log.connect(self.write_log)
@@ -2113,25 +2128,6 @@ class CentralW(QWidget):
         """
 
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
-            # connect signals save figures
-            self.hydro_tab.hecras1D.show_fig.connect(self.showfig)
-            self.hydro_tab.hecras2D.show_fig.connect(self.showfig)
-            self.hydro_tab.telemac.show_fig.connect(self.showfig)
-            self.hydro_tab.ascii.show_fig.connect(self.showfig)
-            self.hydro_tab.rubar2d.show_fig.connect(self.showfig)
-            self.hydro_tab.rubar1d.show_fig.connect(self.showfig)
-            self.hydro_tab.sw2d.show_fig.connect(self.showfig)
-            self.hydro_tab.iber2d.show_fig.connect(self.showfig)
-            self.hydro_tab.lammi.show_fig.connect(self.showfig)
-            self.hydro_tab.habbyhdf5.show_fig.connect(self.showfig)
-            self.substrate_tab.show_fig.connect(self.showfig)
-            self.statmod_tab.show_fig.connect(self.showfig)
-            self.stathab_tab.show_fig.connect(self.showfig)
-            self.hydro_tab.riverhere2d.show_fig.connect(self.showfig)
-            self.hydro_tab.mascar.show_fig.connect(self.showfig)
-            self.fstress_tab.show_fig.connect(self.showfig)
-            self.bioinfo_tab.show_fig.connect(self.showfig)
-
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.hecras1D.drop_hydro.connect(self.update_hydro_hdf5_name)
             self.hydro_tab.hecras2D.drop_hydro.connect(self.update_hydro_hdf5_name)
@@ -2206,7 +2202,7 @@ class CentralW(QWidget):
         # add comments to QTextEdit and .log file
         if text_log[0] == '#':
             # set text cursor to the end (in order to append text at the end)
-            self.scrolldown()
+            self.scrolldown_log()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 text_log[1:] + '</br><br>')  # "<FONT COLOR='#000000'>" +
             self.write_log_file(text_log, pathname_logfile)
@@ -2217,13 +2213,13 @@ class CentralW(QWidget):
         elif text_log[:7] == 'restart':
             self.write_log_file(text_log[7:], pathname_restartfile)
         elif text_log[:5] == 'Error' or text_log[:6] == 'Erreur':
-            self.scrolldown()
+            self.scrolldown_log()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
             self.write_log_file('# ' + text_log, pathname_logfile)
         # add warning
         elif text_log[:7] == 'Warning':
-            self.scrolldown()
+            self.scrolldown_log()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
             self.write_log_file('# ' + text_log, pathname_logfile)
@@ -2235,7 +2231,7 @@ class CentralW(QWidget):
             self.parent().progress_bar.setVisible(False)  # hide progressbar
         # other case not accounted for
         else:
-            self.scrolldown()
+            self.scrolldown_log()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
                 text_log + '</br><br>')  # "<FONT COLOR='#000000'>" +
 
@@ -2391,213 +2387,6 @@ class CentralW(QWidget):
             self.data_explorer_tab.data_explorer_frame.types_hdf5_change()
 
 
-class WelcomeW(QScrollArea):
-    """
-    The class WeLcomeW()  creates the first tab of HABBY (the tab called “General”). This tab is there to create
-    a new project or to change the name, path, etc. of a project.
-    """
-    # define the signal used by the class
-    # should be outise of the __init__ function
-
-    save_signal = pyqtSignal()
-    """
-        A PyQt signal used to save the project
-    """
-    open_proj = pyqtSignal()
-    " A signal for MainWindows to open an existing project"
-    new_proj_signal = pyqtSignal()
-    """
-        A PyQt signal used to open a new project
-    """
-    send_log = pyqtSignal(str, name='send_log')
-    """
-       A PyQt signal used to write the log
-    """
-    change_name = pyqtSignal()
-    """
-    A signal to change the name of the project for MainWindows
-    """
-    save_info_signal = pyqtSignal()
-    """
-    A signal to change the user name and the description of the project
-    """
-
-    def __init__(self, path_prj, name_prj):
-
-        super().__init__()
-        self.tab_name = "welcome"
-        self.imname = os.path.join('translation', 'banner.jpg')  # image should be in the translation folder
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.msg2 = QMessageBox()
-        self.outfocus_filter = MyFilter()
-        self.init_iu()
-
-    def init_iu(self):
-        """
-        Used in the initialization of a new instance of the class WelcomeW()
-        """
-
-        # Welcome windows
-        l0 = QLabel('<b>HABitat suitaBilitY</b>')
-        l0.setAlignment(Qt.AlignCenter)
-        font = QFont()
-        font.setPointSize(20)
-        l0.setFont(font)
-        buttono = QPushButton(self.tr('Open exisiting project'), self)
-        buttono.clicked.connect(self.open_proj.emit)
-        buttons = QPushButton(self.tr('New project'), self)
-        buttons.clicked.connect(self.new_proj_signal.emit)
-        spacerleft = QSpacerItem(200, 1)
-        spacerright = QSpacerItem(120, 1)
-        spacer2 = QSpacerItem(1, 70)
-        highpart = QWidget()  # used to regroup all QWidgt in the first part of the Windows
-
-        # general into to put in the xml .prj file
-        lg = QLabel(self.tr(" <b> Current project </b>"))
-        l1 = QLabel(self.tr('Project name: '))
-        self.e1 = QLabel(self.name_prj)
-        l2 = QLabel(self.tr('Main folder: '))
-        self.e2 = QLabel(self.path_prj)
-        button2 = QPushButton(self.tr('Set folder'), self)
-        button2.clicked.connect(self.setfolder2)
-        button2.setToolTip(self.tr('Move the project to a new location. '
-                                   'The data might be long to copy if the project folder is large.'))
-        l3 = QLabel(self.tr('Description: '))
-        self.e3 = QTextEdit()
-        # this is used to save the data if the QLineEdit is going out of Focus
-        self.e3.installEventFilter(self.outfocus_filter)
-        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
-        l4 = QLabel(self.tr('User name: '))
-        self.e4 = QLineEdit()
-        # this is used to save the data if the QLineEdit is going out of Focus
-        self.e4.installEventFilter(self.outfocus_filter)
-        self.outfocus_filter.outfocus_signal.connect(self.save_info_signal.emit)
-        self.lowpart = QWidget()
-
-        # background image
-        self.pic = QLabel()
-        self.pic.setMaximumSize(1000, 200)
-        # use full ABSOLUTE path to the image, not relative
-        self.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
-        # pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
-
-        # insist on white background color (for linux, mac)
-        self.setAutoFillBackground(True)
-        p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.white)
-        self.setPalette(p)
-
-        # if the directory of the project does not exist, let the general tab empty
-        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if not os.path.isdir(self.path_prj) or not os.path.isfile(fname):
-            pass
-        # otherwise, fill it
-        else:
-            doc = ET.parse(fname)
-            root = doc.getroot()
-            user_child = root.find(".//User_Name")
-            des_child = root.find(".//Description")
-            self.e4.setText(user_child.text)
-            self.e3.setText(des_child.text)
-
-        # empty frame scrolable
-        content_widget = QFrame()
-
-        # layout (in two parts)
-        layout2 = QGridLayout(content_widget)
-        layouth = QGridLayout()
-        layoutl = QGridLayout()
-
-        layouth.addItem(spacerleft, 1, 0)
-        layouth.addItem(spacerright, 1, 5)
-        layouth.addWidget(l0, 0, 1)
-        layouth.addWidget(buttons, 2, 1)
-        layouth.addWidget(buttono, 3, 1)
-        layouth.addItem(spacer2, 5, 2)
-        highpart.setLayout(layouth)
-
-        layoutl.addWidget(lg, 0, 0)
-        layoutl.addWidget(l1, 1, 0)
-        layoutl.addWidget(self.e1, 1, 1)
-        layoutl.addWidget(l2, 2, 0)
-        layoutl.addWidget(self.e2, 2, 1)
-        layoutl.addWidget(button2, 2, 2)
-        layoutl.addWidget(l4, 3, 0)
-        layoutl.addWidget(self.e4, 3, 1)
-        layoutl.addWidget(l3, 4, 0)
-        layoutl.addWidget(self.e3, 4, 1)
-        self.lowpart.setLayout(layoutl)
-
-        layout2.addWidget(self.pic, 0, 0)
-        layout2.addWidget(highpart, 0, 0)
-        layout2.addWidget(self.lowpart, 1, 0)
-
-        # self.setLayout(layout2)
-        self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.NoFrame)
-        self.setWidget(content_widget)
-
-    def open_example(self):
-        """
-        This function will be used to open a project example for HABBY, but the example is not prepared yet. NOT DONE
-        AS IT IS COMPLICATED TO INSTALL A EXAMPLE PROJECT. WINDOWS SAVED PROGRAM IN FOLDER WITHOUT WRITE PERMISSIONS.
-        """
-        self.send_log.emit('Warning: No example prepared yet.')
-
-    def setfolder2(self):
-        """
-        This function is used by the user to select the folder where the xml project file will be located.
-        This is used in the case where the project exist already. A similar function is in the class CreateNewProject()
-        for the case where the project is new.
-        """
-        # check for invalid null parameter on Linuxgit
-        dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
-        if dir_name != '':  # cancel case
-            self.e2.setText(dir_name)
-            self.send_log.emit('New folder selected for the project.')
-        else:
-            return
-
-        # if the project exist and the project name has not changed
-        # ,change the project path in the xml file and copy the xml at the chosen location
-        # if a project directory exist copy it as long as no project directory exist at the end location
-        path_old = self.path_prj
-        fname_old = os.path.join(path_old, self.name_prj + '.xml')
-        new_path = os.path.join(dir_name, self.name_prj)
-        if os.path.isfile(fname_old) and self.e1.text() == self.name_prj:
-            # write new project path
-            if not os.path.exists(new_path):
-                self.path_prj = new_path
-                doc = ET.parse(fname_old)
-                root = doc.getroot()
-                path_child = root.find(".//Path_Projet")
-                path_child.text = self.path_prj  # new name
-                fname = os.path.join(self.path_prj, self.name_prj + '.xml')
-                try:
-                    shutil.copytree(path_old, self.path_prj)
-                except shutil.Error:
-                    self.send_log.emit('Could not copy the project. Permission Error?')
-                    return
-                self.send_log.emit('The files in the project folder have been copied to the new location.')
-                try:
-                    shutil.copyfile(fname_old, os.path.join(self.path_prj, self.name_prj + '.xml'))
-                except shutil.Error:
-                    self.send_log.emit('Could not copy the project. Permission Error?')
-                    return
-                doc.write(fname)
-                self.e2.setText(self.path_prj)
-                self.save_signal.emit()  # if not project folder, will create one
-            else:
-                self.send_log.emit('Error: A project with the same name exists at the new location. '
-                                   'Project not saved.')
-                self.e2.setText(path_old)
-                return
-        # if the project do not exist or has a different name than before, save a new project
-        else:
-            self.save_signal.emit()
-
-
 class EmptyTab(QWidget):
     """
     This class is  used to fill empty tabs with something during the developement.
@@ -2630,180 +2419,6 @@ class EmptyTab(QWidget):
         is connected.
         """
         print('Text Text and MORE Text')
-
-
-class ShowImageW(QWidget):
-    """
-    The widget which shows the saved images. Used only to show all the saved figure together iwhtout zoom or other
-    options. Not really used anymore in HABBY but it still there as it can be useful in the future.
-
-    **Technical comments**
-
-    The ShowImageW() class is used to show all the figures created by HABBY. It is a class which can only be
-    called from the menu (In Option/Option Image). This is not the usual way of opening a figure which is usually done
-    by plt.show from matplotlib. This is the way to look at all figures  together, which can be useful, even if zooming
-    is not possible anymore.
-
-    To show all image, HABBY open a separate window and show the saved image in .png format.  Currently, the figures
-    shown are in .png, but other formats could be used. For this, one can change the variable self.imtype.
-
-    An important point for the ShowImageW  class  is where the images were saved by the functions which created them.
-    In HABBY, all figures are saved in the same folder called “path_im”. One “path_im” is chosen at the start of each
-    project. By default, it is the folder “Figure_Habby”, but the user can modify this folder in the window created by
-    ShowImageW(). The function for this is called “change_folder”, also in ShowImageW(). The path_im is written in
-    the xml project file. The different functions which create image read this path and send the figure created
-    to this folder. ShowImageW() reads all  figure of “.png” type in the” path_im” folder and show the most recent
-    figure. The user can use the drop-down menu to choose to see another figure. The names of the figure are added to
-    the drop-down menu in the function update_namefig. The function "selectionchange" changes the figure shown based
-    on the user action.
-
-    """
-    send_log = pyqtSignal(str, name='send_log')
-    """
-        A PyQt signal used to write the log
-    """
-
-    def __init__(self, path_prj, name_prj):
-        super().__init__()
-        self.image_list = QComboBox()
-        self.path_prj = path_prj
-        self.name_prj = name_prj
-        self.label_im = QLabel()
-        self.w = 200  # size of the image (see if we let some options for this)
-        self.h = 200
-        self.imtype = '*.png'
-        self.path_im = os.path.join(self.path_prj, self.name_prj + r'/figures')
-        self.msg2 = QMessageBox()
-        self.init_iu()
-        self.all_file = []
-
-    def init_iu(self):
-        """
-        Used in the initialization.
-        """
-
-        # check if there is a path where to save the image
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            child = root.find(".//" + 'Path_Figure')
-            if child is not None:
-                self.path_im = child.text
-
-        # find all figures and add them to the menu ComboBox
-        self.image_list.activated.connect(self.selectionchange)
-
-        # create the label which will show the figure
-        self.label_im.setGeometry(QRect(0, 0, self.w, self.h))
-        self.label_im.setScaledContents(True)
-        self.but1 = QPushButton('Change Folder')
-        self.but1.clicked.connect(self.change_folder)
-
-        self.setWindowTitle(self.tr('ALL FIGURES'))
-        self.setGeometry(200, 200, 500, 300)
-        # self.setMaximumSize(100, 100)
-
-        # layout
-        self.layout4 = QGridLayout()
-        self.sublayout = QGridLayout()
-        self.layout4.addLayout(self.sublayout, 0, 0)
-        self.sublayout.addWidget(self.but1, 0, 1)
-        self.sublayout.addWidget(self.image_list, 0, 0)
-        self.layout4.addWidget(self.label_im, 1, 0)
-        self.setLayout(self.layout4)
-
-    def selectionchange(self, i):
-        """
-        A function to change the figure shown by ShowImageW()
-        :return:
-        """
-        if not self.all_file:
-            return
-        else:
-            namefile_im = os.path.join(self.path_im, self.all_file[i])
-            pixmap = QPixmap(namefile_im).scaled(800, 500)
-            self.label_im.setPixmap(pixmap)
-            self.label_im.show()
-
-    def change_folder(self):
-        """
-        A function to change the folder where are stored the image (i.e., the path_im)
-        """
-
-        self.path_im = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), os.getenv('HOME'))
-        if self.path_im == '':
-            return
-        self.update_namefig()
-        self.send_log.emit('# New folder selected to save figures.')
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        # save the name and the path in the xml .prj file
-        if not os.path.isfile(filename_path_pro):
-            self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Change Folder"))
-            self.msg2.setText( \
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-        else:
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            # geo data
-            child1 = root.find('.//Path_Figure')
-            if child1 is None:
-                child1 = ET.SubElement(root, 'Path_Figure')
-                child1.text = self.path_im
-            else:
-                child1.text = self.path_im
-            doc.write(filename_path_pro)
-            self.selectionchange(1)
-
-    def update_namefig(self):
-        """
-        This function add the different figure name to the drop-down list.
-        """
-
-        self.image_list.clear()
-        if not self.path_im:
-            self.path_im = os.path.join(self.path_prj, self.name_prj)
-        self.all_file = glob.glob(os.path.join(self.path_im, self.imtype))
-        if not self.all_file:
-            self.send_log.emit('Warning: No figure was found at the path:' + self.path_im)
-            return
-        self.all_file.sort(key=os.path.getmtime)  # the newest figure on the top
-        if self.all_file[0] != 'Available figures':
-            first_name = self.tr('Available figures')  # variable needed for the translation
-            self.all_file = [first_name] + self.all_file
-        all_file_nice = self.all_file
-        # make the name look nicer
-        for i in range(0, len(all_file_nice)):
-            all_file_nice[i] = all_file_nice[i].replace(self.path_im, "")
-            all_file_nice[i] = all_file_nice[i].replace("\\", "")
-            all_file_nice[i] = all_file_nice[i].replace("/", "")
-        self.image_list.addItems(all_file_nice)
-
-
-class MyFilter(QObject):
-    """
-    This is a filter which is used to know when a QWidget is going out of focus. Practically this is used
-    if the user goes away from a QLineEdit. If this events happens, the project is automatically saved with the new
-    info of the user.
-    """
-    outfocus_signal = pyqtSignal()
-    """
-    A signal to change the user name and the description of the project
-    """
-
-    def eventFilter(self, widget, event):
-        # FocusOut event
-        if event.type() == QEvent.FocusOut:
-            self.outfocus_signal.emit()
-            # return False so that the widget will also handle the event
-            # otherwise it won't focus out
-            return False
-        else:
-            # we don't care about other events
-            return False
 
 
 if __name__ == '__main__':

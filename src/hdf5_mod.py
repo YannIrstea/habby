@@ -2485,7 +2485,7 @@ def add_habitat_to_merge(hdf5_name, path_hdf5, vh_cell, area_all, spu_all, fish_
     if fish_replaced:
         fish_replaced = set(fish_replaced)
         fish_replaced = "; ".join(fish_replaced)
-        print(f'Warning: fish(s) information replaced in .hab file ({fish_replaced}).\n')
+        print(f'Warning: fish(s) informations replaced in .hab file ({fish_replaced}).\n')
     file_hydro.attrs['hdf5_type'] = "habitat"
     file_hydro.close()
     time.sleep(1)  # as we need to insure different group of name

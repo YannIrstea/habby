@@ -16,11 +16,11 @@
 \indexentry{update\_merge\_for\_chronicle() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{9}
 \indexentry{write\_log() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{9}
 \indexentry{write\_log\_file() (src\_GUI.Main\_windows\_1.CentralW method)|hyperpage}{9}
-\indexentry{CreateNewProject (class in src\_GUI.Main\_windows\_1)|hyperpage}{9}
-\indexentry{init\_iu() (src\_GUI.Main\_windows\_1.CreateNewProject method)|hyperpage}{9}
-\indexentry{save\_project (src\_GUI.Main\_windows\_1.CreateNewProject attribute)|hyperpage}{9}
-\indexentry{send\_log (src\_GUI.Main\_windows\_1.CreateNewProject attribute)|hyperpage}{9}
-\indexentry{setfolder() (src\_GUI.Main\_windows\_1.CreateNewProject method)|hyperpage}{9}
+\indexentry{CreateNewProjectDialog (class in src\_GUI.Main\_windows\_1)|hyperpage}{9}
+\indexentry{init\_iu() (src\_GUI.Main\_windows\_1.CreateNewProjectDialog method)|hyperpage}{9}
+\indexentry{save\_project (src\_GUI.Main\_windows\_1.CreateNewProjectDialog attribute)|hyperpage}{9}
+\indexentry{send\_log (src\_GUI.Main\_windows\_1.CreateNewProjectDialog attribute)|hyperpage}{9}
+\indexentry{setfolder() (src\_GUI.Main\_windows\_1.CreateNewProjectDialog method)|hyperpage}{9}
 \indexentry{EmptyTab (class in src\_GUI.Main\_windows\_1)|hyperpage}{9}
 \indexentry{addtext() (src\_GUI.Main\_windows\_1.EmptyTab method)|hyperpage}{9}
 \indexentry{init\_iu() (src\_GUI.Main\_windows\_1.EmptyTab method)|hyperpage}{9}
