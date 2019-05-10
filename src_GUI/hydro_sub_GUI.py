@@ -118,6 +118,7 @@ class Hydro2W(QScrollArea):
         self.name_model = ["", "HEC-RAS 1D", "HEC-RAS 2D", "LAMMI", "MASCARET",
                            "RIVER2D", "RUBAR BE", "RUBAR 20",
                            "SW2D", "IBER2D", "TELEMAC", "TXT", "HABBY HDF5"]  # "MAGE"
+        self.name_model.sort()
         self.mod_act = 0
         self.msgi = QMessageBox()
         self.init_iu()
