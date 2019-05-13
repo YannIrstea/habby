@@ -1836,6 +1836,8 @@ class MainWindows(QMainWindow):
                                 self.central_widget.write_log("Warning: " + process_object.name +
                                                               " process has been stopped by the user." +
                                                               " The files produced by this process can be damaged.")
+                                # hide button
+                                self.killAction.setVisible(False)
                 else:
                     if hasattr(central_widget_attrib, tabs):
                         process_object = getattr(central_widget_attrib, tabs).p
