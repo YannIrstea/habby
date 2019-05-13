@@ -14,27 +14,24 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from platform import system as operatingsystem
-from subprocess import call
-import glob
 import os
 import shutil
-import numpy as np
 from functools import partial
+from platform import system as operatingsystem
+from subprocess import call
+
+import numpy as np
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, \
-    pyqtRemoveInputHook, QObject, QEvent
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QSizePolicy,\
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
-    QMessageBox, QComboBox, QScrollArea, \
-    QInputDialog, QMenu, QToolBar, QFrame, QProgressBar
-from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
+    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
+from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 import qdarkstyle
-import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
 import matplotlib as mpl
@@ -216,7 +213,10 @@ class MainWindows(QMainWindow):
         if self.settings.value('wind_position'):
             windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(
                 map(int, self.settings.value('wind_position').split(",")))
-            self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
+            if windows_position_x != 0:
+                self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
+            if windows_position_x == 0:  # must be full screen but we dont want
+                self.setGeometry(50, 75, 950, 720)
 
         # create the menu bar
         self.my_menu_bar()
