@@ -66,6 +66,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
 
     for hyd_file in range(0, file_number):
         filename_source = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
+
         # get data_2d_whole_profile
         data_2d_whole_profile = dict()
         data_2d_whole_profile["tin"] = [[]]  # always one reach
@@ -79,11 +80,16 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
                 return
+            #description_from_telemac_file["hyd_unit_z_equal"] = "True"
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
             data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
             if description_from_telemac_file["hyd_unit_z_equal"] == "True":
                 data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][0])
+            elif description_from_telemac_file["hyd_unit_z_equal"] == "False":
+                for unit_num in range(len(description_from_indextelemac_file[hyd_file]["unit_list"].split(", "))):
+                    data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][unit_num])
+
             data_2d_whole_profile["unit_correspondence"][0].append(str(i))
 
         # create temporary list sorted to check if the whole profiles are equal to the first one (sort xy_center)
@@ -248,19 +254,26 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         progress_value.value = 92
 
         # export_mesh_whole_profile_shp
-        hdf5.export_mesh_whole_profile_shp(fig_opt)
+        #hdf5.export_mesh_whole_profile_shp(fig_opt)
 
         # progress
         progress_value.value = 96
 
         # export shape
-        hdf5.export_mesh_shp(fig_opt)
+        #hdf5.export_mesh_shp(fig_opt)
 
         # progress
         progress_value.value = 98
 
         # export_point_shp
-        hdf5.export_point_shp(fig_opt)
+        hdf5.export_point_shp(fig_opt,
+                        data_2d_whole_profile=True,
+                        data_2d=False)
+
+        # export stl
+        #hdf5.export_stl(fig_opt,
+        #                data_2d_whole_profile=True,
+        #                data_2d=False)
 
         # progress
         progress_value.value = 100

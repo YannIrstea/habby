@@ -370,8 +370,15 @@ class Hdf5Management:
                                               data=data_2d_whole_profile["xy"][reach_num][unit_num])
                     if hyd_description["hyd_unit_z_equal"] == "True":
                         node_group.create_dataset(name="z",
-                                                  shape=[len(data_2d_whole_profile["z"][reach_num][unit_num]), 1],
-                                                  data=data_2d_whole_profile["z"][reach_num][unit_num])
+                                                  shape=[len(data_2d_whole_profile["z"][reach_num][0]), 1],
+                                                  data=data_2d_whole_profile["z"][reach_num][0])
+                    if hyd_description["hyd_unit_z_equal"] == "False":
+                        for unit_num2 in range(int(hyd_description["hyd_unit_number"])):
+                            unit_group = reach_group.create_group('unit_' + str(unit_num2))
+                            node_group = unit_group.create_group('node')
+                            node_group.create_dataset(name="z",
+                                                  shape=[len(data_2d_whole_profile["z"][reach_num][unit_num2]), 1],
+                                                  data=data_2d_whole_profile["z"][reach_num][unit_num2])
             # get extent
             xMin = str(min(xMin))
             xMax = str(max(xMax))
@@ -1248,64 +1255,107 @@ class Hdf5Management:
                                 except:
                                     print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
 
-    def export_point_shp(self, fig_opt):
+    def export_point_shp(self, fig_opt, data_2d_whole_profile, data_2d):
         if fig_opt['shape_output'] == "True":
             # get units list
             unit_names = self.data_description["hyd_unit_list"].split(", ")
+            if data_2d_whole_profile:
+                name_shp = self.basename + "_whole_profile_point_r0_t0.shp"
 
-            # for each reach
-            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                    # set name
-                    unit_name_str = str(unit_names[unit_num])
-                    if "." in unit_name_str:
-                        unit_name_str = unit_name_str.replace(".", "%")
-                    name_shp = self.basename + "_point_r" + str(reach_num) + "_t" + unit_name_str + '.shp'
+                # for each mesh
+                w = shapefile.Writer(shapefile.POINTZ)
+                w.autoBalance = 1
+                w.field('elevation', 'F', 50, 8)
 
-                    # for each mesh
-                    w = shapefile.Writer(shapefile.POINTZ)
-                    w.autoBalance = 1
-                    w.field('height', 'F', 50, 8)
-                    w.field('velocity', 'F', 50, 8)
-                    w.field('elevation', 'F', 50, 8)
+                # for each point
+                for point_num in range(0, len(self.data_2d_whole["xy"][0][0])):
+                    # data geom (get the triangle coordinates)
+                    x = self.data_2d_whole["xy"][0][0][point_num][0]
+                    y = self.data_2d_whole["xy"][0][0][point_num][1]
+                    z = self.data_2d_whole["z"][0][0][point_num]
+                    w.point(x=x, y=y, z=z, shapeType=11)  # the double [[]] is important or it bugs, but why?
+                    data_here = [z]
+                    w.record(*data_here)
 
-                    # for each point
-                    for point_num in range(0, len(self.data_2d["xy"][reach_num][unit_num])):
-                        # data geom (get the triangle coordinates)
-                        x = self.data_2d["xy"][reach_num][unit_num][point_num][0]
-                        y = self.data_2d["xy"][reach_num][unit_num][point_num][1]
-                        h = self.data_2d["h"][reach_num][unit_num][point_num]
-                        v = self.data_2d["v"][reach_num][unit_num][point_num]
-                        z = self.data_2d["z"][reach_num][unit_num][point_num]
-                        w.point(x=x, y=y, z=z, shapeType=11)  # the double [[]] is important or it bugs, but why?
-                        data_here = [h, v, z]
-                        w.record(*data_here)
-
-                    # filename
-                    if fig_opt['erase_id'] == 'True':  # erase file if exist ?
-                        if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                            try:
-                                os.remove(os.path.join(self.path_shp, name_shp))
-                            except PermissionError:
-                                print(
-                                    'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                                return
-                    else:
-                        if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                            name_shp = self.basename + "_r" + str(reach_num) + "_t" + unit_name_str + '_' + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.shp'
-
-                    # write file
-                    w.save(os.path.join(self.path_shp, name_shp))
-
-                    # write .prj
-                    if self.data_description["hyd_epsg_code"] != "unknown":
+                # filename
+                if fig_opt['erase_id'] == 'True':  # erase file if exist ?
+                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                         try:
-                            string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
-                            open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj", "w").write(string_prj)
-                        except:
-                            print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+                            os.remove(os.path.join(self.path_shp, name_shp))
+                        except PermissionError:
+                            print(
+                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                            return
+                else:
+                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                        name_shp = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S") + '.shp'
+
+                # write file
+                w.save(os.path.join(self.path_shp, name_shp))
+
+                # write .prj
+                if self.data_description["hyd_epsg_code"] != "unknown":
+                    try:
+                        string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
+                        open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj", "w").write(string_prj)
+                    except:
+                        print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+
+            if data_2d:
+                # for each reach
+                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                    # for each unit
+                    for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                        # set name
+                        unit_name_str = str(unit_names[unit_num])
+                        if "." in unit_name_str:
+                            unit_name_str = unit_name_str.replace(".", "%")
+                        name_shp = self.basename + "_point_r" + str(reach_num) + "_t" + unit_name_str + '.shp'
+
+                        # for each mesh
+                        w = shapefile.Writer(shapefile.POINTZ)
+                        w.autoBalance = 1
+                        w.field('height', 'F', 50, 8)
+                        w.field('velocity', 'F', 50, 8)
+                        w.field('elevation', 'F', 50, 8)
+
+                        # for each point
+                        for point_num in range(0, len(self.data_2d["xy"][reach_num][unit_num])):
+                            # data geom (get the triangle coordinates)
+                            x = self.data_2d["xy"][reach_num][unit_num][point_num][0]
+                            y = self.data_2d["xy"][reach_num][unit_num][point_num][1]
+                            h = self.data_2d["h"][reach_num][unit_num][point_num]
+                            v = self.data_2d["v"][reach_num][unit_num][point_num]
+                            z = self.data_2d["z"][reach_num][unit_num][point_num]
+                            w.point(x=x, y=y, z=z, shapeType=11)  # the double [[]] is important or it bugs, but why?
+                            data_here = [h, v, z]
+                            w.record(*data_here)
+
+                        # filename
+                        if fig_opt['erase_id'] == 'True':  # erase file if exist ?
+                            if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                                try:
+                                    os.remove(os.path.join(self.path_shp, name_shp))
+                                except PermissionError:
+                                    print(
+                                        'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                                    return
+                        else:
+                            if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                                name_shp = self.basename + "_r" + str(reach_num) + "_t" + unit_name_str + '_' + time.strftime(
+                                    "%d_%m_%Y_at_%H_%M_%S") + '.shp'
+
+                        # write file
+                        w.save(os.path.join(self.path_shp, name_shp))
+
+                        # write .prj
+                        if self.data_description["hyd_epsg_code"] != "unknown":
+                            try:
+                                string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
+                                open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj", "w").write(string_prj)
+                            except:
+                                print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
 
     # EXPORT TXT
     def export_spu_txt(self, fig_opt):
@@ -1526,48 +1576,50 @@ class Hdf5Management:
                     print('Warning: Close .pdf to update fish information')
 
     # EXPORT 3D
-    def export_stl(self, fig_opt):
+    def export_stl(self, fig_opt, data_2d_whole_profile, data_2d):
         if fig_opt['stl'] == "True":
-            """ create stl whole profile (to see topography) """
-            # get data
-            xy = self.data_2d_whole["xy"][0][0]
-            z = self.data_2d_whole["z"][0][0] * 10
-            faces = self.data_2d_whole["tin"][0][0]
-            vertices = np.column_stack([xy, z])
-            # Create the mesh
-            stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-            for i, f in enumerate(faces):
-                for j in range(3):
-                    stl_file.vectors[i][j] = vertices[f[j], :]
-            # Write the mesh to file "cube.stl"
-            stl_file.save(os.path.join(self.path_visualisation,
-                                       self.basename + "_wholetopography.stl"))
+            if data_2d_whole_profile:
+                """ create stl whole profile (to see topography) """
+                # get data
+                xy = self.data_2d_whole["xy"][0][0]
+                z = self.data_2d_whole["z"][0][0] * 10
+                faces = self.data_2d_whole["tin"][0][0]
+                vertices = np.column_stack([xy, z])
+                # Create the mesh
+                stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+                for i, f in enumerate(faces):
+                    for j in range(3):
+                        stl_file.vectors[i][j] = vertices[f[j], :]
+                # Write the mesh to file "cube.stl"
+                stl_file.save(os.path.join(self.path_visualisation,
+                                           self.basename + "_wholetopography.stl"))
 
-            """ create stl water level (to see water level on topography) """
-            # get units list
-            unit_names = self.data_description["hyd_unit_list"].split(", ")
-            # for each reach
-            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                    # get data
-                    xy = self.data_2d["xy"][reach_num][unit_num]
-                    # with warnings.catch_warnings():
-                    #     warnings.filterwarnings('error')
-                    try:
-                        z = (self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10
-                    except Warning:
-                        print('oh no!')
-                    faces = self.data_2d["tin"][reach_num][unit_num]
-                    vertices = np.column_stack([xy, z])
-                    # Create the mesh
-                    stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-                    for i, f in enumerate(faces):
-                        for j in range(3):
-                            stl_file.vectors[i][j] = vertices[f[j], :]
-                    # Write the mesh to file "cube.stl"
-                    stl_file.save(os.path.join(self.path_visualisation,
-                                               self.basename + "_waterlevel_" + str(unit_names[unit_num]) + ".stl"))
+            if data_2d:
+                """ create stl water level (to see water level on topography) """
+                # get units list
+                unit_names = self.data_description["hyd_unit_list"].split(", ")
+                # for each reach
+                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                    # for each unit
+                    for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                        # get data
+                        xy = self.data_2d["xy"][reach_num][unit_num]
+                        # with warnings.catch_warnings():
+                        #     warnings.filterwarnings('error')
+                        try:
+                            z = (self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10
+                        except Warning:
+                            print('oh no!')
+                        faces = self.data_2d["tin"][reach_num][unit_num]
+                        vertices = np.column_stack([xy, z])
+                        # Create the mesh
+                        stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+                        for i, f in enumerate(faces):
+                            for j in range(3):
+                                stl_file.vectors[i][j] = vertices[f[j], :]
+                        # Write the mesh to file "cube.stl"
+                        stl_file.save(os.path.join(self.path_visualisation,
+                                                   self.basename + "_waterlevel_" + str(unit_names[unit_num]) + ".stl"))
 
     def export_paraview(self, fig_opt):
         if fig_opt['paraview'] == "True":
@@ -3086,14 +3138,14 @@ def copy_files(names, paths, path_input):
         if names[i] != 'unknown file':
             src = os.path.join(paths[i], names[i])
             # if the file is too big, the GUI is freezed
-            if os.path.getsize(src) > 200 * 1024 * 1024:
-                print('Warning: One input file was larger than 200MB and therefore was not copied to the project'
-                      ' folder. It is necessary to copy this file manually to the input folder if one wants to use the '
-                      'restart file or the log file to load this data auomatically again. \n')
-            else:
-                if os.path.isfile(src):
-                    dst = os.path.join(path_input, names[i])
-                    shutil.copy(src, dst)
+            # if os.path.getsize(src) > 200 * 1024 * 1024:
+            #     print('Warning: One input file was larger than 200MB and therefore was not copied to the project'
+            #           ' folder. It is necessary to copy this file manually to the input folder if one wants to use the '
+            #           'restart file or the log file to load this data auomatically again. \n')
+            # else:
+            if os.path.isfile(src):
+                dst = os.path.join(path_input, names[i])
+                shutil.copy(src, dst)
 
 
 def addition_hdf5(path1, hdf51, path2, hdf52, name_prj, path_prj, model_type, path_hdf5, merge=False, erase_id=True,
