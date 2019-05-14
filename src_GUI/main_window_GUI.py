@@ -14,27 +14,24 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from platform import system as operatingsystem
-from subprocess import call
-import glob
 import os
 import shutil
-import numpy as np
 from functools import partial
+from platform import system as operatingsystem
+from subprocess import call
+
+import numpy as np
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, QRect, \
-    pyqtRemoveInputHook, QObject, QEvent
+from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QSizePolicy,\
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QSpacerItem, \
-    QMessageBox, QComboBox, QScrollArea, \
-    QInputDialog, QMenu, QToolBar, QFrame, QProgressBar
-from PyQt5.QtGui import QPixmap, QFont, QIcon, QTextCursor
+    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
+from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 import qdarkstyle
-import qdarkgraystyle
 from webbrowser import open as wbopen
 import h5py
 import matplotlib as mpl
@@ -152,6 +149,10 @@ class MainWindows(QMainWindow):
             self.path_prj = name_path_set
         else:
             self.path_prj = '.'
+        # if xml project dont exist remove path and name
+        if not os.path.isfile(os.path.join(self.path_prj, self.name_prj + ".xml")):
+            self.name_prj = ''
+            self.path_prj = '.'
         if recent_projects_set:
             self.recent_project = recent_projects_set[::-1]
         else:
@@ -207,8 +208,8 @@ class MainWindows(QMainWindow):
         """ Used by __init__() to create an instance of the class MainWindows """
 
         # set window icon
-        name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
-        self.setWindowIcon(QIcon(name_icon))
+        self.name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
+        self.setWindowIcon(QIcon(self.name_icon))
 
         # position theme
         if not self.settings.value('wind_position'):
@@ -216,7 +217,10 @@ class MainWindows(QMainWindow):
         if self.settings.value('wind_position'):
             windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(
                 map(int, self.settings.value('wind_position').split(",")))
-            self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
+            if windows_position_x != 0:
+                self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
+            if windows_position_x == 0:  # must be full screen but we dont want
+                self.setGeometry(50, 75, 950, 720)
 
         # create the menu bar
         self.my_menu_bar()
@@ -235,7 +239,7 @@ class MainWindows(QMainWindow):
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
             self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
 
-        #  right click
+        # right click
         self.create_menu_right_clic()
         self.central_widget.setContextMenuPolicy(Qt.CustomContextMenu)
         self.central_widget.customContextMenuRequested.connect(self.show_menu_right_clic)
@@ -244,11 +248,11 @@ class MainWindows(QMainWindow):
 
         # preferences
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
-        self.output_fig_gui = preferences_GUI.outputW(self.path_prj, self.name_prj)
-        self.dialog_preferences = QMainWindow()
-        self.dialog_preferences.setWindowTitle(self.tr("Preferences"))
-        self.dialog_preferences.setCentralWidget(self.output_fig_gui)
-        self.dialog_preferences.setWindowIcon(QIcon(name_icon))
+        self.preferences_options = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
+        self.preferences_dialog = QMainWindow()
+        self.preferences_dialog.setWindowTitle(self.tr("Preferences"))
+        self.preferences_dialog.setCentralWidget(self.preferences_options)
+        self.preferences_dialog.setWindowIcon(QIcon(self.name_icon))
 
         # set theme
         if self.settings.value('theme') == "dark":
@@ -263,8 +267,6 @@ class MainWindows(QMainWindow):
             self.setthemeclassic()
 
         del self.settings
-
-
 
         self.check_concurrency()
         self.show()
@@ -774,12 +776,12 @@ class MainWindows(QMainWindow):
 
     def open_preferences(self):
         # get size
-        height_pref = self.dialog_preferences.centralWidget().viewportSizeHint().height()
+        height_pref = self.preferences_dialog.centralWidget().viewportSizeHint().height()
         height_pref = height_pref + height_pref * 0.05
-        width_pref = self.dialog_preferences.centralWidget().viewportSizeHint().width()
+        width_pref = self.preferences_dialog.centralWidget().viewportSizeHint().width()
         width_pref = width_pref + width_pref * 0.05
-        self.dialog_preferences.resize(width_pref, height_pref)
-        self.dialog_preferences.show()
+        self.preferences_dialog.resize(width_pref, height_pref)
+        self.preferences_dialog.show()
 
     def recreate_tabs_attributes(self):
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
@@ -834,14 +836,14 @@ class MainWindows(QMainWindow):
 
             # if hasattr(self.central_widget, "output_tab"):
             #     if not self.central_widget.output_tab:
-            #         self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
-            #         self.central_widget.output_tab.save_option_fig()
+            #         self.central_widget.output_tab = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
+            #         self.central_widget.output_tab.save_preferences()
             #     else:
             #         self.central_widget.output_tab.__init__(self.path_prj, self.name_prj)
-            #         self.central_widget.output_tab.save_option_fig()
+            #         self.central_widget.output_tab.save_preferences()
             # else:
-            #     self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
-            #     self.central_widget.output_tab.save_option_fig()
+            #     self.central_widget.output_tab = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
+            #     self.central_widget.output_tab.save_preferences()
 
             if hasattr(self.central_widget, "statmod_tab"):
                 if not self.central_widget.statmod_tab:
@@ -1079,6 +1081,15 @@ class MainWindows(QMainWindow):
         # update name
         self.central_widget.update_hydro_hdf5_name()
 
+        # save_preferences
+        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        self.preferences_options = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
+        self.preferences_options.save_preferences()
+        self.preferences_dialog = QMainWindow()
+        self.preferences_dialog.setWindowTitle(self.tr("Preferences"))
+        self.preferences_dialog.setCentralWidget(self.preferences_options)
+        self.preferences_dialog.setWindowIcon(QIcon(self.name_icon))
+
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()
         self.central_widget.write_log('# Log of HABBY started.')
@@ -1100,12 +1111,13 @@ class MainWindows(QMainWindow):
         This function is used to open an existing habby project by selecting an xml project file. Called by
         my_menu_bar()
         """
-
         #  indicate to HABBY that this project will close
         self.end_concurrency()
 
         # open an xml file
         path_here = os.path.dirname(self.path_prj)
+        if not path_here:
+            path_here = os.path.join(os.path.expanduser("~"), "HABBY_projects")
         filename_path = QFileDialog.getOpenFileName(self, self.tr('Open File'), path_here, "XML (*.xml)")[0]
         if not filename_path:  # cancel
             return
@@ -1186,12 +1198,12 @@ class MainWindows(QMainWindow):
         # self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
         # self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
         # self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
-        # self.central_widget.output_tab = preferences_GUI.outputW(self.path_prj, self.name_prj)
+        # self.central_widget.output_tab = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
         # self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
         # self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
         # set the central widget
-        for i in range(self.central_widget.tab_widget.count(), 0, -1):
+        for i in range(self.central_widget.tab_widget.count(), -1, -1):
             self.central_widget.tab_widget.removeTab(i)
         self.central_widget.name_prj_c = self.name_prj
         self.central_widget.path_prj_c = self.path_prj
@@ -1370,8 +1382,15 @@ class MainWindows(QMainWindow):
             child1.text = os.path.join("output", "figures")
         doc.write(fname)
 
+        # reconnect method to button
+        self.central_widget.welcome_tab.save_signal.connect(self.central_widget.save_info_projet)
+        self.central_widget.welcome_tab.open_proj.connect(self.open_project)
+        self.central_widget.welcome_tab.new_proj_signal.connect(self.new_project)
+        self.central_widget.welcome_tab.change_name.connect(self.change_name_project)
+        if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.xml')):
+            self.central_widget.statmod_tab.save_signal_estimhab.connect(self.save_project_estimhab)
+
         # write the new language in the figure option to be able to get the title, axis in the right language
-        # self.central_widget.output_tab.save_option_fig()
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
     def change_name_project(self):
@@ -1817,6 +1836,8 @@ class MainWindows(QMainWindow):
                                 self.central_widget.write_log("Warning: " + process_object.name +
                                                               " process has been stopped by the user." +
                                                               " The files produced by this process can be damaged.")
+                                # hide button
+                                self.killAction.setVisible(False)
                 else:
                     if hasattr(central_widget_attrib, tabs):
                         process_object = getattr(central_widget_attrib, tabs).p
@@ -1997,7 +2018,7 @@ class CentralW(QWidget):
                 or not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("First time with HABBY ?"))
-            self.msg2.setText(self.tr("Create or open a project."))
+            self.msg2.setText(self.tr("Create or open an HABBY project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.setMinimumWidth(1000)
             name_icon = os.path.join(os.getcwd(), "translation", "habby_icon.png")
@@ -2364,11 +2385,11 @@ class CentralW(QWidget):
         Careful, the order of the tab is important here.
         """
 
-        # if self.old_ind_tab == 0:
-        #     self.save_info_projet()
+        if self.old_ind_tab == 0:
+            self.save_info_projet()
         # elif self.old_ind_tab == self.opttab:
-        #     #self.output_tab.save_option_fig()
-        # self.old_ind_tab = self.tab_widget.currentIndex()
+        #     self.output_tab.save_preferences()
+        self.old_ind_tab = self.tab_widget.currentIndex()
 
     def update_merge_for_chronicle(self):
         """

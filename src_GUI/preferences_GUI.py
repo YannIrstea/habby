@@ -18,6 +18,7 @@ from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QSpacerItem, QComboBox, QMessageBox, \
     QCheckBox, QScrollArea, QFrame
+from time import sleep
 
 try:
     import xml.etree.cElementTree as ET
@@ -27,7 +28,7 @@ import numpy as np
 import os
 
 
-class outputW(QScrollArea):
+class PreferenceWindow(QScrollArea):
     """
     The class which support the creation and management of the output. It is notably used to select the options to
     create the figures.
@@ -213,7 +214,7 @@ class outputW(QScrollArea):
         self.out_cuttfa.clicked.connect(lambda: self.check_uncheck(self.out_cuttfa, self.out_cuttfb))
         self.out_cuttfb = QCheckBox(self.tr('No'))
         self.out_cuttfb.clicked.connect(lambda: self.check_uncheck(self.out_cuttfb, self.out_cuttfa))
-        if fig_dict['erase_id'] == 'True':  # is a string not a boolean
+        if fig_dict['Cut2Dgrid'] == 'True':  # is a string not a boolean
             self.out_cuttfa.setChecked(True)
             self.out_cuttfb.setChecked(False)
         else:
@@ -238,7 +239,7 @@ class outputW(QScrollArea):
 
         # save
         self.saveb = QPushButton(self.tr('OK'))
-        self.saveb.clicked.connect(self.save_option_fig)
+        self.saveb.clicked.connect(self.save_preferences)
 
         self.closeb = QPushButton(self.tr('Cancel'))
         self.closeb.clicked.connect(self.close_option_fig)
@@ -321,7 +322,7 @@ class outputW(QScrollArea):
         main_checkbox.setChecked(True)
         other_checkbox.setChecked(False)
 
-    def save_option_fig(self):
+    def save_preferences(self):
         """
         A function which save the options for the figures in the xlm project file. The options for the figures are
         contained in a dictionnary. The idea is to give this dictinnory in argument to all the fonction which create
@@ -330,8 +331,7 @@ class outputW(QScrollArea):
         If you change things here, it is necessary to start a new project as the old projects will not be compatible.
         For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
         """
-
-        # get default option
+        # get default option for security
         fig_dict = create_default_figoption()
 
         # get the data and check validity
@@ -454,12 +454,13 @@ class outputW(QScrollArea):
         # save the data in the xml file
         # open the xml project file
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+
         # save the name and the path in the xml .prj file
         if not os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
             self.msg2.setWindowTitle(self.tr("Unsaved preferences"))
             self.msg2.setText(
-                self.tr("The project is not saved. Save the project in the General tab before saving data."))
+                self.tr("Create or open an HABBY project."))
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
@@ -552,8 +553,7 @@ class outputW(QScrollArea):
             self.close_option_fig()
 
     def close_option_fig(self):
-        #close window if opened
-        print("close_option_fig")
+        # close window if opened
         try:
             self.parent().close()
         except:
@@ -717,6 +717,7 @@ def create_default_figoption():
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
+    fig_dict['Cut2Dgrid'] = 'True'
     fig_dict['marker'] = 'True'  # Add point to line plot
     fig_dict['erase_id'] = 'True'
     fig_dict['type_plot'] = 'display'
