@@ -27,7 +27,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
+from PyQt5.QtWidgets import QDialog, QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QSizePolicy,\
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
@@ -776,12 +776,17 @@ class MainWindows(QMainWindow):
 
     def open_preferences(self):
         # get size
-        height_pref = self.preferences_dialog.centralWidget().viewportSizeHint().height()
-        height_pref = height_pref + height_pref * 0.05
-        width_pref = self.preferences_dialog.centralWidget().viewportSizeHint().width()
-        width_pref = width_pref + width_pref * 0.05
+        height_pref = self.preferences_dialog.centralWidget().sizeHint().height()
+        height_pref = height_pref
+        width_pref = self.preferences_dialog.centralWidget().sizeHint().width()
+        width_pref = width_pref + width_pref * 0.15
+        # resize window
         self.preferences_dialog.resize(width_pref, height_pref)
+        # show the pref
         self.preferences_dialog.show()
+        # witdh_for_checkbox_alignement
+        witdh_for_checkbox_alignement = self.preferences_dialog.centralWidget().cut_2d_grid_label.size().width()
+        self.preferences_dialog.centralWidget().erase_data_label.setMinimumWidth(witdh_for_checkbox_alignement)
 
     def recreate_tabs_attributes(self):
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
@@ -1085,7 +1090,7 @@ class MainWindows(QMainWindow):
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_options = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
         self.preferences_options.save_preferences()
-        self.preferences_dialog = QMainWindow()
+        self.preferences_dialog = QDialog()
         self.preferences_dialog.setWindowTitle(self.tr("Preferences"))
         self.preferences_dialog.setCentralWidget(self.preferences_options)
         self.preferences_dialog.setWindowIcon(QIcon(self.name_icon))

@@ -15,10 +15,9 @@ https://github.com/YannIrstea/habby
 
 """
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, \
-    QLineEdit, QSpacerItem, QComboBox, QMessageBox, \
+from PyQt5.QtWidgets import QGroupBox, QPushButton, QLabel, QGridLayout, \
+    QLineEdit, QComboBox, QMessageBox, QFormLayout, \
     QCheckBox, QScrollArea, QFrame
-from time import sleep
 
 try:
     import xml.etree.cElementTree as ET
@@ -52,275 +51,193 @@ class PreferenceWindow(QScrollArea):
         self.init_iu()
 
     def init_iu(self):
-
-        # read actual figure option
-        fig_dict = load_fig_option(self.path_prj, self.name_prj)
-
-        # on half of the widget, give options to create the figure
-        # figrst write the QLabel
-        self.fig0l = QLabel(self.tr('<b> Figures Options </b> '), self)
-        self.fig1l = QLabel(self.tr('Figure Size [cm]'), self)
-        self.fig2l = QLabel(self.tr('Color Map 1'), self)
-        self.fig3l = QLabel(self.tr('Color Map 2'), self)
-        self.fig5l = QLabel(self.tr('Font Size'), self)
-        self.fig6l = QLabel(self.tr('Line Width'), self)
-        self.fig7l = QLabel(self.tr('Grid'), self)
-        self.fig8l = QLabel(self.tr('Time step [for all time steps: -99]'))
-        self.fig9l = QLabel(self.tr('Plot raw loaded data'))
-        self.fig10l = QLabel(self.tr('Figure Format'))
-        self.fig11l = QLabel(self.tr('Resolution [dpi]'))
-        self.fig12l = QLabel(self.tr('Type of fish name'))
-
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
+        
+        # read actual figure option
+        fig_dict = load_fig_option(self.path_prj, self.name_prj)
 
-        # then fill the size
-        self.fig1 = QLineEdit(str(fig_dict['width']) + ',' + str(fig_dict['height']))
-
-        # fill the colormap options
-        self.fig2 = QComboBox()
-        self.fig2.addItems(self.namecmap)
-        namecmap1 = fig_dict['color_map1']
-        index = self.fig2.findText(namecmap1)
-        self.fig2.setCurrentIndex(index)
-        self.fig3 = QComboBox()
-        self.fig3.addItems(self.namecmap)
-        namecmap1 = fig_dict['color_map2']
-        index = self.fig2.findText(namecmap1)
-        self.fig3.setCurrentIndex(index)
-
-        # fill other options
-        self.fig5 = QLineEdit(str(fig_dict['font_size']))
-        self.fig6 = QLineEdit(str(fig_dict['line_width']))
-        self.fig7a = QCheckBox(self.tr('On'), self)
-        self.fig7a.clicked.connect(lambda: self.check_uncheck(self.fig7a, self.fig7b))
-        self.fig7b = QCheckBox(self.tr('Off'), self)
-        self.fig7b.clicked.connect(lambda: self.check_uncheck(self.fig7b, self.fig7a))
-        if fig_dict['grid'] == 'True':  # is a string not a boolean
-            self.fig7a.setChecked(True)
-            self.fig7b.setChecked(False)
-        else:
-            self.fig7a.setChecked(False)
-            self.fig7b.setChecked(True)
-
-        # fill the option for the time steps
-        self.fig8 = QLineEdit('0,1')
-        self.fig8.setText(str(fig_dict['time_step'])[1:-1])  # [1:-1] because of []
-
-        # choose if we should plot the data from the 1D model (before the grid is created)
-        self.fig9a = QCheckBox(self.tr('Yes'), self)
-        self.fig9a.clicked.connect(lambda: self.check_uncheck(self.fig9a, self.fig9b))
-        self.fig9b = QCheckBox(self.tr('No'), self)
-        self.fig9b.clicked.connect(lambda: self.check_uncheck(self.fig9b, self.fig9a))
-        if fig_dict['raw_data'] == 'True':  # is a string not a boolean
-            self.fig9a.setChecked(True)
-            self.fig9b.setChecked(False)
-        else:
-            self.fig9a.setChecked(False)
-            self.fig9b.setChecked(True)
-        self.fig10 = QComboBox()
-        # DO NOT change order here 0,1,2,3 aew used afterward
-        self.fig10.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not save figures')])
-        self.fig10.setCurrentIndex(int(fig_dict['format']))
-
-        # choose the resolution of the figures
-        self.fig11 = QLineEdit(str(fig_dict['resolution']))
-
-        # how to write the fish name in the calcul of habitat
-        self.fig12 = QComboBox()
-        self.fig12.addItems([self.tr('Latin Name'), self.tr('French Common Name'), self.tr('English Common Name'),
-                             self.tr('Code ONEMA')])  # order matters here, add stuff at the end!
-        self.fig12.setCurrentIndex(int(fig_dict['fish_name_type']))
-
-        # marker for habitat and preference file
-        self.out9 = QLabel(self.tr('Markers for habitat figures'))
-        self.out9a = QCheckBox(self.tr('Yes'))
-        self.out9a.clicked.connect(lambda: self.check_uncheck(self.out9a, self.out9b))
-        self.out9b = QCheckBox(self.tr('No'))
-        self.out9b.clicked.connect(lambda: self.check_uncheck(self.out9b, self.out9a))
-        if fig_dict['marker'] == 'True':  # is a string not a boolean
-            self.out9a.setChecked(True)
-            self.out9b.setChecked(False)
-        else:
-            self.out9a.setChecked(False)
-            self.out9b.setChecked(True)
-
-        # output options on the lower half,
-        self.out0 = QLabel(self.tr(' <b> Output Options </b>'))
-        self.out1 = QLabel(self.tr('Detailed text file'))
-        self.out1a = QCheckBox(self.tr('Yes'))
-        self.out1a.clicked.connect(lambda: self.check_uncheck(self.out1a, self.out1b))
-        self.out1b = QCheckBox(self.tr('No'))
-        self.out1b.clicked.connect(lambda: self.check_uncheck(self.out1b, self.out1a))
-        if fig_dict['text_output'] == 'True':  # is a string not a boolean
-            self.out1a.setChecked(True)
-            self.out1b.setChecked(False)
-        else:
-            self.out1a.setChecked(False)
-            self.out1b.setChecked(True)
-        self.out2 = QLabel(self.tr('Shapefile'))
-        self.out2a = QCheckBox(self.tr('Yes'))
-        self.out2a.clicked.connect(lambda: self.check_uncheck(self.out2a, self.out2b))
-        self.out2b = QCheckBox(self.tr('No'))
-        self.out2b.clicked.connect(lambda: self.check_uncheck(self.out2b, self.out2a))
-        if fig_dict['shape_output'] == 'True':  # is a string not a boolean
-            self.out2a.setChecked(True)
-            self.out2b.setChecked(False)
-        else:
-            self.out2a.setChecked(False)
-            self.out2b.setChecked(True)
-        self.out3 = QLabel(self.tr('Paraview'))
-        self.out3a = QCheckBox(self.tr('Yes'))
-        self.out3a.clicked.connect(lambda: self.check_uncheck(self.out3a, self.out3b))
-        self.out3b = QCheckBox(self.tr('No'))
-        self.out3b.clicked.connect(lambda: self.check_uncheck(self.out3b, self.out3a))
-        if fig_dict['paraview'] == 'True':  # is a string not a boolean
-            self.out3a.setChecked(True)
-            self.out3b.setChecked(False)
-        else:
-            self.out3a.setChecked(False)
-            self.out3b.setChecked(True)
-        self.outstl = QLabel(self.tr('3D STL'))
-        self.outstla = QCheckBox(self.tr('Yes'))
-        self.outstla.clicked.connect(lambda: self.check_uncheck(self.outstla, self.out3b))
-        self.outstlb = QCheckBox(self.tr('No'))
-        self.outstlb.clicked.connect(lambda: self.check_uncheck(self.out3b, self.outstla))
-        if fig_dict['stl'] == 'True':  # is a string not a boolean
-            self.outstla.setChecked(True)
-            self.outstlb.setChecked(False)
-        else:
-            self.outstla.setChecked(False)
-            self.outstlb.setChecked(True)
-        self.out4 = QLabel(self.tr('Fish Information'))
-        self.out4a = QCheckBox(self.tr('Yes'))
-        self.out4a.clicked.connect(lambda: self.check_uncheck(self.out4a, self.out4b))
-        self.out4b = QCheckBox(self.tr('No'))
-        self.out4b.clicked.connect(lambda: self.check_uncheck(self.out4b, self.out4a))
-        if fig_dict['fish_info'] == 'True':  # is a string not a boolean
-            self.out4a.setChecked(True)
-            self.out4b.setChecked(False)
-        else:
-            self.out4a.setChecked(False)
-            self.out4b.setChecked(True)
-
-        # general options
-        self.outgen = QLabel(self.tr(' <b> General Options </b>'))
-        # Cut2Dgrid or not
-        self.out_cuttf = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
-        self.out_cuttfa = QCheckBox(self.tr('Yes'))
-        self.out_cuttfa.clicked.connect(lambda: self.check_uncheck(self.out_cuttfa, self.out_cuttfb))
-        self.out_cuttfb = QCheckBox(self.tr('No'))
-        self.out_cuttfb.clicked.connect(lambda: self.check_uncheck(self.out_cuttfb, self.out_cuttfa))
+        """ WIDGETS """
+        # cut_2d_grid
+        self.cut_2d_grid_label = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
+        self.cut_2d_grid_checkbox = QCheckBox(self.tr(''))
         if fig_dict['Cut2Dgrid'] == 'True':  # is a string not a boolean
-            self.out_cuttfa.setChecked(True)
-            self.out_cuttfb.setChecked(False)
+            self.cut_2d_grid_checkbox.setChecked(True)
         else:
-            self.out_cuttfa.setChecked(False)
-            self.out_cuttfb.setChecked(True)
-        # heigth minimum for Cut2Dgrid
-        self.l1 = QLabel(self.tr('2D minimum water height [m]'))
-        self.hopt = QLineEdit(str(fig_dict['min_height_hyd']))
+            self.cut_2d_grid_checkbox.setChecked(False)
+            
+        # min_height
+        min_height_label = QLabel(self.tr('2D minimum water height [m]'))
+        self.min_height_lineedit = QLineEdit(str(fig_dict['min_height_hyd']))
 
-        # erase data or not
-        self.out5 = QLabel(self.tr('Erase data if identical model'))
-        self.out5a = QCheckBox(self.tr('Yes'))
-        self.out5a.clicked.connect(lambda: self.check_uncheck(self.out5a, self.out5b))
-        self.out5b = QCheckBox(self.tr('No'))
-        self.out5b.clicked.connect(lambda: self.check_uncheck(self.out5b, self.out5a))
+        # erase_data
+        self.erase_data_label = QLabel(self.tr('Erase file if exist'))
+        self.erase_data_checkbox = QCheckBox(self.tr(''))
         if fig_dict['erase_id'] == 'True':  # is a string not a boolean
-            self.out5a.setChecked(True)
-            self.out5b.setChecked(False)
+            self.erase_data_checkbox.setChecked(True)
         else:
-            self.out5a.setChecked(False)
-            self.out5b.setChecked(True)
+            self.erase_data_checkbox.setChecked(False)
 
+        # detailed_text_out
+        detailed_text_out_label = QLabel(self.tr('Detailed text (.txt)'))
+        self.detailed_text_out_checkbox = QCheckBox(self.tr(''))
+        if fig_dict['text_output'] == 'True':  # is a string not a boolean
+            self.detailed_text_out_checkbox.setChecked(True)
+        else:
+            self.detailed_text_out_checkbox.setChecked(False)
+        
+        # shape_out
+        shape_out_label = QLabel(self.tr('Shapefile (.shp)'))
+        self.shape_out_checkbox = QCheckBox(self.tr(''))
+        if fig_dict['shape_output'] == 'True':  # is a string not a boolean
+            self.shape_out_checkbox.setChecked(True)
+        else:
+            self.shape_out_checkbox.setChecked(False)
+
+        # 3d_stl
+        stl_out_label = QLabel(self.tr('3D stereolithography (.stl)'))
+        self.stl_out_checkbox = QCheckBox(self.tr(''))
+        if fig_dict['stl'] == 'True':  # is a string not a boolean
+            self.stl_out_checkbox.setChecked(True)
+        else:
+            self.stl_out_checkbox.setChecked(False)
+
+        # paraview_out
+        paraview_out_label = QLabel(self.tr('3D Paraview (.pvd, .vtu)'))
+        self.paraview_out_checkbox = QCheckBox(self.tr(''))
+        if fig_dict['paraview'] == 'True':  # is a string not a boolean
+            self.paraview_out_checkbox.setChecked(True)
+        else:
+            self.paraview_out_checkbox.setChecked(False)
+        
+        # fish_info
+        fish_info_label = QLabel(self.tr('Fish Information (.pdf)'))
+        self.fish_info_checkbox = QCheckBox(self.tr(''))
+        if fig_dict['fish_info'] == 'True':  # is a string not a boolean
+            self.fish_info_checkbox.setChecked(True)
+        else:
+            self.fish_info_checkbox.setChecked(False)
+        
+        # fig_size
+        fig_size_label = QLabel(self.tr('Figure Size [cm]'), self)
+        self.fig_size_lineedit = QLineEdit(str(fig_dict['width']) + ',' + str(fig_dict['height']))
+
+        # color_map
+        color_map_label = QLabel(self.tr('Color Map 1'), self)
+        self.color_map_combobox = QComboBox()
+        self.color_map_combobox.addItems(self.namecmap)
+        namecmap1 = fig_dict['color_map1']
+        index = self.color_map_combobox.findText(namecmap1)
+        self.color_map_combobox.setCurrentIndex(index)
+        
+        # color_map2
+        color_map2_label = QLabel(self.tr('Color Map 2'), self)
+        self.color_map2_combobox = QComboBox()
+        self.color_map2_combobox.addItems(self.namecmap)
+        namecmap1 = fig_dict['color_map2']
+        index = self.color_map_combobox.findText(namecmap1)
+        self.color_map2_combobox.setCurrentIndex(index)
+        
+        # font_size
+        font_size_label = QLabel(self.tr('Font Size'), self)
+        self.font_size_lineedit = QLineEdit(str(fig_dict['font_size']))
+
+        # line_width
+        line_width_label = QLabel(self.tr('Line Width'), self)
+        self.line_width_lineedit = QLineEdit(str(fig_dict['line_width']))
+
+        # grid
+        grid_label = QLabel(self.tr('Grid'), self)
+        self.grid_checkbox = QCheckBox("", self)
+        if fig_dict['grid'] == 'True':  # is a string not a boolean
+            self.grid_checkbox.setChecked(True)
+        else:
+            self.grid_checkbox.setChecked(False)
+
+        # fig_forma
+        fig_format_label = QLabel(self.tr('Figure Format'))
+        self.fig_format_combobox = QComboBox()
+        self.fig_format_combobox.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not save figures')])
+        self.fig_format_combobox.setCurrentIndex(int(fig_dict['format']))
+        
+        # resolution
+        resolution_label = QLabel(self.tr('Resolution [dpi]'))
+        self.resolution_lineedit = QLineEdit(str(fig_dict['resolution']))
+        
+        # type_fishname
+        type_fishname_label = QLabel(self.tr('Type of fish name'))
+        self.type_fishname_combobox = QComboBox()
+        self.type_fishname_combobox.addItems([self.tr('Latin Name'), self.tr('French Common Name'), self.tr('English Common Name'),
+                                              self.tr('Code ONEMA')])  # order matters here, add stuff at the end!
+        self.type_fishname_combobox.setCurrentIndex(int(fig_dict['fish_name_type']))
+        
+        # marquers_hab_fig
+        marquers_hab_fig_label = QLabel(self.tr('Markers for habitat figures'))
+        self.marquers_hab_fig_checkbox = QCheckBox(self.tr(''))
+        if fig_dict['marker'] == 'True':  # is a string not a boolean
+            self.marquers_hab_fig_checkbox.setChecked(True)
+        else:
+            self.marquers_hab_fig_checkbox.setChecked(False)
+       
         # save
-        self.saveb = QPushButton(self.tr('OK'))
-        self.saveb.clicked.connect(self.save_preferences)
+        self.save_pref_button = QPushButton(self.tr('Save and close'))
+        self.save_pref_button.clicked.connect(self.save_preferences)
 
-        self.closeb = QPushButton(self.tr('Cancel'))
-        self.closeb.clicked.connect(self.close_option_fig)
+        self.close_pref_button = QPushButton(self.tr('Close'))
+        self.close_pref_button.clicked.connect(self.close_preferences)
 
-        # empty frame scrolable
-        content_widget = QFrame()
+        """ LAYOUT """
+        # general
+        layout_general_options = QFormLayout()
+        general_options_group = QGroupBox(self.tr("General"))
+        general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        general_options_group.setLayout(layout_general_options)
+        layout_general_options.addRow(self.cut_2d_grid_label, self.min_height_lineedit)
+        layout_general_options.addRow(min_height_label, self.cut_2d_grid_checkbox)
 
-        self.layout = QGridLayout(content_widget)
-        self.layout.addWidget(self.fig0l, 0, 0)
-        self.layout.addWidget(self.fig1l, 1, 0)
-        self.layout.addWidget(self.fig2l, 2, 0)
-        self.layout.addWidget(self.fig3l, 3, 0)
-        self.layout.addWidget(self.fig5l, 4, 0)
-        self.layout.addWidget(self.fig6l, 5, 0)
-        self.layout.addWidget(self.fig7l, 6, 0)
-        self.layout.addWidget(self.fig8l, 7, 0)
-        self.layout.addWidget(self.fig9l, 8, 0)
-        self.layout.addWidget(self.fig10l, 9, 0)
-        self.layout.addWidget(self.fig11l, 10, 0)
-        self.layout.addWidget(self.fig12l, 11, 0)
-        self.layout.addWidget(self.out9, 12, 0)
+        # exports
+        layout_available_exports = QFormLayout()
+        available_exports_group = QGroupBox(self.tr("Output"))
+        available_exports_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        available_exports_group.setLayout(layout_available_exports)
+        layout_available_exports.addRow(self.erase_data_label, self.erase_data_checkbox)  # , Qt.AlignLeft
+        layout_available_exports.addRow(detailed_text_out_label, self.detailed_text_out_checkbox)
+        layout_available_exports.addRow(shape_out_label, self.shape_out_checkbox)
+        layout_available_exports.addRow(stl_out_label, self.stl_out_checkbox)
+        layout_available_exports.addRow(paraview_out_label, self.paraview_out_checkbox)
+        layout_available_exports.addRow(fish_info_label, self.fish_info_checkbox)
 
-        self.layout.addWidget(self.fig1, 1, 1, 1, 2)
-        self.layout.addWidget(self.fig2, 2, 1, 1, 2)
-        self.layout.addWidget(self.fig3, 3, 1, 1, 2)
-        self.layout.addWidget(self.fig5, 4, 1, 1, 2)
-        self.layout.addWidget(self.fig6, 5, 1, 1, 2)
-        self.layout.addWidget(self.fig7a, 6, 1, 1, 1)
-        self.layout.addWidget(self.fig7b, 6, 2, 1, 1)
-        self.layout.addWidget(self.fig8, 7, 1, 1, 2)
-        self.layout.addWidget(self.fig9a, 8, 1, 1, 1)
-        self.layout.addWidget(self.fig9b, 8, 2, 1, 1)
-        self.layout.addWidget(self.fig10, 9, 1, 1, 2)
-        self.layout.addWidget(self.fig11, 10, 1, 1, 2)
-        self.layout.addWidget(self.fig12, 11, 1, 1, 2)
-        self.layout.addWidget(self.out9a, 12, 1, 1, 1)
-        self.layout.addWidget(self.out9b, 12, 2, 1, 1)
-        self.layout.addWidget(self.outgen, 0, 3)
-        self.layout.addWidget(self.out_cuttf, 1, 3)
-        self.layout.addWidget(self.out_cuttfa, 1, 4)
-        self.layout.addWidget(self.out_cuttfb, 1, 5)
-        self.layout.addWidget(self.l1, 2, 3)
-        self.layout.addWidget(self.hopt, 2, 4, 1, 2)
-        self.layout.addWidget(self.out5, 3, 3)
-        self.layout.addWidget(self.out5a, 3, 4)
-        self.layout.addWidget(self.out5b, 3, 5)
-        self.layout.addWidget(self.out0, 4, 3)  # , 2, 1
-        self.layout.addWidget(self.out1, 5, 3)
-        self.layout.addWidget(self.out1a, 5, 4)
-        self.layout.addWidget(self.out1b, 5, 5)
-        self.layout.addWidget(self.out2, 6, 3)
-        self.layout.addWidget(self.out2a, 6, 4)
-        self.layout.addWidget(self.out2b, 6, 5)
-        self.layout.addWidget(self.out3, 7, 3)
-        self.layout.addWidget(self.out3a, 7, 4)
-        self.layout.addWidget(self.out3b, 7, 5)
+        # figure
+        layout_figures = QFormLayout()
+        figures_group = QGroupBox(self.tr("Figures"))
+        figures_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        figures_group.setLayout(layout_figures)
+        layout_figures.addRow(fig_size_label, self.fig_size_lineedit)
+        layout_figures.addRow(color_map_label, self.color_map_combobox)
+        layout_figures.addRow(color_map2_label, self.color_map2_combobox)
+        layout_figures.addRow(font_size_label, self.font_size_lineedit)
+        layout_figures.addRow(line_width_label, self.line_width_lineedit)
+        layout_figures.addRow(grid_label, self.grid_checkbox)
+        layout_figures.addRow(fig_format_label, self.fig_format_combobox)
+        layout_figures.addRow(resolution_label, self.resolution_lineedit)
+        layout_figures.addRow(type_fishname_label, self.type_fishname_combobox)
+        layout_figures.addRow(marquers_hab_fig_label, self.marquers_hab_fig_checkbox)
 
-        self.layout.addWidget(self.outstl, 8, 3)
-        self.layout.addWidget(self.outstla, 8, 4)
-        self.layout.addWidget(self.outstlb, 8, 5)
-
-        self.layout.addWidget(self.out4, 9, 3)
-        self.layout.addWidget(self.out4a, 9, 4)
-        self.layout.addWidget(self.out4b, 9, 5)
-        self.layout.addWidget(self.saveb, 13, 4, 1, 1)
-        self.layout.addWidget(self.closeb, 13, 5, 1, 1)
-        [self.layout.setRowMinimumHeight(i, 30) for i in range(self.layout.rowCount())]
-        self.layout.setAlignment(Qt.AlignTop)
+        # general
+        content_widget = QFrame()  # empty frame scrolable
+        layout = QGridLayout(content_widget)
+        layout.addWidget(general_options_group, 0, 0)
+        layout.addWidget(available_exports_group, 1, 0)
+        layout.addWidget(figures_group, 0, 1, 3, 2)
+        layout.addWidget(self.save_pref_button, 3, 1)  # , 1, 1
+        layout.addWidget(self.close_pref_button, 3, 2)  # , 1, 1
+        layout.setAlignment(Qt.AlignTop)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
-
-    def check_uncheck(self, main_checkbox, other_checkbox):
-        """
-        This function is used to check a box when the user clied on it and unckeked another passed as parameter
-
-        :param main_checkbox: A QCheckBox which sould by selected
-        :param other_checkbox: A QCheckbox which should be "unticked" when main_checkbox is selected by the user
-        """
-        main_checkbox.setChecked(True)
-        other_checkbox.setChecked(False)
 
     def save_preferences(self):
         """
@@ -336,7 +253,7 @@ class PreferenceWindow(QScrollArea):
 
         # get the data and check validity
         # fig_size
-        fig_size = self.fig1.text()
+        fig_size = self.fig_size_lineedit.text()
         if fig_size:
             fig_size = fig_size.split(',')
             try:
@@ -347,47 +264,38 @@ class PreferenceWindow(QScrollArea):
             except ValueError:
                 self.send_log.emit('Error: The size of the figure should be in the format: num1,num2.\n')
         # color map
-        c1 = str(self.fig2.currentText())
+        c1 = str(self.color_map_combobox.currentText())
         if c1:
             fig_dict['color_map1'] = c1
-        c2 = str(self.fig3.currentText())
+        c2 = str(self.color_map2_combobox.currentText())
         if c2:
             fig_dict['color_map2'] = c2
         # font size
-        font_size = self.fig5.text()
+        font_size = self.font_size_lineedit.text()
         if font_size:
             try:
                 fig_dict['font_size'] = int(font_size)
             except ValueError:
                 self.send_log.emit('Error: Font size should be an integer. \n')
         # line width
-        line_width = self.fig6.text()
+        line_width = self.line_width_lineedit.text()
         if line_width:
             try:
                 fig_dict['line_width'] = int(line_width)
             except ValueError:
                 self.send_log.emit('Error: Line width should be an integer. \n')
         # grid
-        if self.fig7a.isChecked() and self.fig7b.isChecked():
+        if self.grid_checkbox.isChecked():
             self.send_log.emit('Error: Grid cannot be on and off at the same time. \n')
-        if self.fig7a.isChecked():
+        if self.grid_checkbox.isChecked():
             fig_dict['grid'] = True
-        elif self.fig7b.isChecked():
+        else:
             fig_dict['grid'] = False
-        # time step
-        fig_dict['time_step'] = str(self.fig8.text())
-        # raw data
-        if self.fig9a.isChecked() and self.fig9b.isChecked():
-            self.send_log.emit('Error: The option to plot raw output cannot be on and off at the same time. \n')
-        if self.fig9a.isChecked():
-            fig_dict['raw_data'] = True
-        elif self.fig9b.isChecked():
-            fig_dict['raw_data'] = False
         # format
-        fig_dict['format'] = str(self.fig10.currentIndex())
+        fig_dict['format'] = str(self.fig_format_combobox.currentIndex())
         # resolution
         try:
-            fig_dict['resolution'] = int(self.fig11.text())
+            fig_dict['resolution'] = int(self.resolution_lineedit.text())
         except ValueError:
             self.send_log.emit('Error: the resolution should be an integer. \n')
         if fig_dict['resolution'] < 0:
@@ -397,62 +305,62 @@ class PreferenceWindow(QScrollArea):
             self.send_log.emit('Warning: The resolution is higher than 2000 dpi. Figures might be very large.\n')
 
         # fish name type
-        fig_dict['fish_name_type'] = int(self.fig12.currentIndex())
+        fig_dict['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())
         # marker
-        if self.out9a.isChecked():
+        if self.marquers_hab_fig_checkbox.isChecked():
             fig_dict['marker'] = True
-        elif self.out9b.isChecked():
+        else:
             fig_dict['marker'] = False
         # outputs
-        if self.out1a.isChecked() and self.out1b.isChecked():
+        if self.detailed_text_out_checkbox.isChecked():
             self.send_log.emit('Error: Text Output cannot be on and off at the same time. \n')
-        if self.out1a.isChecked():
+        if self.detailed_text_out_checkbox.isChecked():
             fig_dict['text_output'] = True
-        elif self.out1b.isChecked():
+        else:
             fig_dict['text_output'] = False
-        if self.out2a.isChecked() and self.out2b.isChecked():
+        if self.shape_out_checkbox.isChecked():
             self.send_log.emit('Error: Shapefile output cannot be on and off at the same time. \n')
-        if self.out2a.isChecked():
+        if self.shape_out_checkbox.isChecked():
             fig_dict['shape_output'] = True
-        elif self.out2b.isChecked():
+        else:
             fig_dict['shape_output'] = False
 
-        if self.out3a.isChecked() and self.out3b.isChecked():
+        if self.paraview_out_checkbox.isChecked():
             self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
-        if self.out3a.isChecked():
+        if self.paraview_out_checkbox.isChecked():
             fig_dict['paraview'] = True
-        elif self.out3b.isChecked():
+        else:
             fig_dict['paraview'] = False
 
-        if self.outstla.isChecked() and self.outstlb.isChecked():
+        if self.stl_out_checkbox.isChecked():
             self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
-        if self.outstla.isChecked():
+        if self.stl_out_checkbox.isChecked():
             fig_dict['stl'] = True
-        elif self.outstlb.isChecked():
+        else:
             fig_dict['stl'] = False
 
-        if self.out4a.isChecked():
+        if self.fish_info_checkbox.isChecked():
             fig_dict['fish_info'] = True
-        elif self.out4b.isChecked():
+        else:
             fig_dict['fish_info'] = False
         # other option
         try:
-            fig_dict['min_height_hyd'] = float(self.hopt.text())
+            fig_dict['min_height_hyd'] = float(self.min_height_lineedit.text())
         except ValueError:
             self.send_log.emit('Error: Minimum Height should be a number')
-        if self.out5a.isChecked():
+        if self.erase_data_checkbox.isChecked():
             fig_dict['erase_id'] = True
-        elif self.out5b.isChecked():
+        else:
             fig_dict['erase_id'] = False
         # Cut2Dgrid
-        if self.out_cuttfa.isChecked() and self.out_cuttfb.isChecked():
+        if self.cut_2d_grid_checkbox.isChecked():
             self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
-        if self.out_cuttfa.isChecked():
+        if self.cut_2d_grid_checkbox.isChecked():
             fig_dict['Cut2Dgrid'] = True
-        elif self.out_cuttfb.isChecked():
+        else:
             fig_dict['Cut2Dgrid'] = False
+
         # save the data in the xml file
-        # open the xml project file
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
 
         # save the name and the path in the xml .prj file
@@ -475,8 +383,6 @@ class PreferenceWindow(QScrollArea):
                 fontsize1 = root.find(".//FontSize")
                 linewidth1 = root.find(".//LineWidth")
                 grid1 = root.find(".//Grid")
-                time1 = root.find(".//TimeStep")
-                raw1 = root.find(".//PlotRawData")
                 format1 = root.find(".//Format")
                 reso1 = root.find(".//Resolution")
                 fish1 = root.find(".//FishNameType")
@@ -484,6 +390,7 @@ class PreferenceWindow(QScrollArea):
                 text1 = root.find(".//TextOutput")
                 shape1 = root.find(".//ShapeOutput")
                 para1 = root.find(".//ParaviewOutput")
+                stl1 = root.find(".//stlOutput")
                 langfig1 = root.find(".//LangFig")
                 hopt1 = root.find(".//MinHeight")
                 Cut2Dgrid = root.find(".//Cut2Dgrid")
@@ -498,8 +405,6 @@ class PreferenceWindow(QScrollArea):
                 fontsize1 = ET.SubElement(child1, 'FontSize')
                 linewidth1 = ET.SubElement(child1, 'LineWidth')
                 grid1 = ET.SubElement(child1, 'Grid')
-                time1 = ET.SubElement(child1, 'TimeStep')
-                raw1 = ET.SubElement(child1, "PlotRawData")
                 format1 = ET.SubElement(child1, "Format")
                 reso1 = ET.SubElement(child1, "Resolution")
                 fish1 = ET.SubElement(child1, "FishNameType")
@@ -507,6 +412,7 @@ class PreferenceWindow(QScrollArea):
                 text1 = ET.SubElement(child1, "TextOutput")
                 shape1 = ET.SubElement(child1, "ShapeOutput")
                 para1 = ET.SubElement(child1, "ParaviewOutput")
+                stl1 = ET.SubElement(child1, "stlOutput")
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
                 Cut2Dgrid = ET.SubElement(child1, "Cut2Dgrid")
@@ -519,8 +425,6 @@ class PreferenceWindow(QScrollArea):
             fontsize1.text = str(fig_dict['font_size'])
             linewidth1.text = str(fig_dict['line_width'])
             grid1.text = str(fig_dict['grid'])
-            time1.text = str(fig_dict['time_step'])  # -99 is all time steps
-            raw1.text = str(fig_dict['raw_data'])
             format1.text = str(fig_dict['format'])
             reso1.text = str(fig_dict['resolution'])
             # usually not useful, but should be added to new options for comptability with older project
@@ -534,6 +438,7 @@ class PreferenceWindow(QScrollArea):
             text1.text = str(fig_dict['text_output'])
             shape1.text = str(fig_dict['shape_output'])
             para1.text = str(fig_dict['paraview'])
+            stl1.text = str(fig_dict['stl'])
             hopt1.text = str(fig_dict['min_height_hyd'])
             Cut2Dgrid.text = str(fig_dict['Cut2Dgrid'])
             fishinfo1.text = str(fig_dict['fish_info'])
@@ -542,17 +447,10 @@ class PreferenceWindow(QScrollArea):
 
         self.send_log.emit('# The new options for the figures are saved.')
         self.send_log.emit('# Modifications of figure options.')
-        # self.send_log.emit('restart     SAVE_OPTION_FIG')
-        #close window if opened
-        # try:
-        #     self.parent().close()
-        # except:
-        #     print("bug")
-        #print("pref saved")
         if self.parent():
-            self.close_option_fig()
+            self.close_preferences()
 
-    def close_option_fig(self):
+    def close_preferences(self):
         # close window if opened
         try:
             self.parent().close()
@@ -620,8 +518,6 @@ def load_fig_option(path_prj, name_prj):
             fontsize1 = root.find(".//FontSize")
             linewidth1 = root.find(".//LineWidth")
             grid1 = root.find(".//Grid")
-            time1 = root.find(".//TimeStep")
-            raw1 = root.find(".//PlotRawData")
             format1 = root.find(".//Format")
             marker1 = root.find(".//Marker")
             reso1 = root.find(".//Resolution")
@@ -650,10 +546,6 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['line_width'] = int(linewidth1.text)
                 if grid1 is not None:
                     fig_dict['grid'] = grid1.text
-                if time1 is not None:
-                    fig_dict['time_step'] = time1.text  # -99 is all
-                if raw1 is not None:
-                    fig_dict['raw_data'] = raw1.text
                 if format1 is not None:
                     fig_dict['format'] = format1.text
                 if marker1 is not None:
@@ -683,12 +575,6 @@ def load_fig_option(path_prj, name_prj):
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
 
-    fig_dict['time_step'] = fig_dict['time_step'].split(',')
-    try:
-        fig_dict['time_step'] = list(map(int, fig_dict['time_step']))
-    except ValueError:
-        print('Error: Time step could not be read in the options')  # sendLog not read yet
-
     return fig_dict
 
 
@@ -704,8 +590,6 @@ def create_default_figoption():
     fig_dict['font_size'] = 12
     fig_dict['line_width'] = 1
     fig_dict['grid'] = 'False'
-    fig_dict['time_step'] = '1,-1'
-    fig_dict['raw_data'] = 'False'
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800
     fig_dict['fish_name_type'] = 0

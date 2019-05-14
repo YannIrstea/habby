@@ -1527,10 +1527,11 @@ class HEC_RAS1D(SubHydroW):
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        if self.fig_opt['raw_data'] == 'True':  # from the xml
-            show_all_fig = True
-        else:
-            show_all_fig = False
+        # if self.fig_opt['raw_data'] == 'True':  # from the xml
+        #     show_all_fig = True
+        # else:
+        #     show_all_fig = False
+        show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
@@ -1974,10 +1975,11 @@ class Mascaret(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        if self.fig_opt['raw_data'] == 'True':  # from the xml
-            show_all_fig = True
-        else:
-            show_all_fig = False
+        # if self.fig_opt['raw_data'] == 'True':  # from the xml
+        #     show_all_fig = True
+        # else:
+        #     show_all_fig = False
+        show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
@@ -2533,10 +2535,11 @@ class Rubar1D(SubHydroW):
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        if self.fig_opt['raw_data'] == 'True':  # xml, string
-            show_all_fig = True
-        else:
-            show_all_fig = False
+        # if self.fig_opt['raw_data'] == 'True':  # xml, string
+        #     show_all_fig = True
+        # else:
+        #     show_all_fig = False
+        show_all_fig = True
         if path_im != 'no_path':
             self.save_fig = True
         self.interpo_choice = self.inter.currentIndex()
@@ -2741,7 +2744,7 @@ class HEC_RAS2D(SubHydroW):
         self.setLayout(self.layout_hec2)
         #
         # # geometry and output data
-        # l1 = QLabel(self.tr('<b> Geometry and output data </b>'))
+        # min_height = QLabel(self.tr('<b> Geometry and output data </b>'))
         # self.h2d_b = QPushButton(self.tr('Choose file (.hdf, .h5)'), self)
         # self.h2d_b.clicked.connect(lambda: self.show_dialog(0))
         # self.h2d_b.clicked.connect(lambda: self.h2d_t2.setText(self.namefile[0]))
@@ -2776,7 +2779,7 @@ class HEC_RAS2D(SubHydroW):
         #
         # # layout
         # self.layout_hec2 = QGridLayout()
-        # self.layout_hec2.addWidget(l1, 0, 0)
+        # self.layout_hec2.addWidget(min_height, 0, 0)
         # self.layout_hec2.addWidget(self.h2d_t2, 0, 1)
         # self.layout_hec2.addWidget(self.h2d_b, 0, 2)
         # self.layout_hec2.addWidget(l2, 1, 0)
@@ -4116,11 +4119,11 @@ class LAMMI(SubHydroW):
         # get the image and load option
         path_im = self.find_path_im()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        if self.fig_opt['raw_data'] == 'True':  # saved before in the xml file!
-            show_all_fig = True
-        else:
-            show_all_fig = False
-
+        # if self.fig_opt['raw_data'] == 'True':  # saved before in the xml file!
+        #     show_all_fig = True
+        # else:
+        #     show_all_fig = False
+        show_all_fig = True
         if not os.path.isdir(self.pathfile[2]):
             self.pathfile[2] = []
 
