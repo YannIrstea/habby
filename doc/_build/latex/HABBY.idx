@@ -154,11 +154,11 @@
 \indexentry{src\_GUI.output\_fig\_GUI (module)|hyperpage}{24}
 \indexentry{create\_default\_figoption() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{24}
 \indexentry{load\_fig\_option() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{24}
-\indexentry{outputW (class in src\_GUI.output\_fig\_GUI)|hyperpage}{24}
-\indexentry{check\_uncheck() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{24}
-\indexentry{init\_iu() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{24}
-\indexentry{save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method)|hyperpage}{24}
-\indexentry{send\_log (src\_GUI.output\_fig\_GUI.outputW attribute)|hyperpage}{24}
+\indexentry{PreferenceWindow (class in src\_GUI.output\_fig\_GUI)|hyperpage}{24}
+\indexentry{check\_uncheck() (src\_GUI.output\_fig\_GUI.PreferenceWindow method)|hyperpage}{24}
+\indexentry{init\_iu() (src\_GUI.output\_fig\_GUI.PreferenceWindow method)|hyperpage}{24}
+\indexentry{save\_option\_fig() (src\_GUI.output\_fig\_GUI.PreferenceWindow method)|hyperpage}{24}
+\indexentry{send\_log (src\_GUI.output\_fig\_GUI.PreferenceWindow attribute)|hyperpage}{24}
 \indexentry{set\_lang\_fig() (in module src\_GUI.output\_fig\_GUI)|hyperpage}{25}
 \indexentry{src\_GUI.stathab\_GUI (module)|hyperpage}{25}
 \indexentry{StathabW (class in src\_GUI.stathab\_GUI)|hyperpage}{25}

@@ -70,7 +70,7 @@
   \item check\_code\_change() (in module src.lammi), \hyperpage{59}
   \item check\_concurrency() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
-  \item check\_uncheck() (src\_GUI.output\_fig\_GUI.outputW method), 
+  \item check\_uncheck() (src\_GUI.output\_fig\_GUI.PreferenceWindow method),
 		\hyperpage{24}
   \item clear\_log() (src\_GUI.Main\_windows\_1.MainWindows method), 
 		\hyperpage{10}
@@ -330,7 +330,7 @@
 		\hyperpage{14}
   \item init\_iu() (src\_GUI.Main\_windows\_1.WelcomeW method), 
 		\hyperpage{14}
-  \item init\_iu() (src\_GUI.output\_fig\_GUI.outputW method), 
+  \item init\_iu() (src\_GUI.output\_fig\_GUI.PreferenceWindow method),
 		\hyperpage{24}
   \item init\_iu() (src\_GUI.stathab\_GUI.StathabW method), 
 		\hyperpage{25}
@@ -532,7 +532,7 @@
 		\hyperpage{8}
   \item outfocus\_signal (src\_GUI.Main\_windows\_1.MyFilter attribute), 
 		\hyperpage{13}
-  \item outputW (class in src\_GUI.output\_fig\_GUI), \hyperpage{24}
+  \item PreferenceWindow (class in src\_GUI.output\_fig\_GUI), \hyperpage{24}
 
   \indexspace
 
@@ -633,7 +633,7 @@
 		\hyperpage{14}
   \item save\_on\_change\_tab() (src\_GUI.Main\_windows\_1.CentralW method), 
 		\hyperpage{8}
-  \item save\_option\_fig() (src\_GUI.output\_fig\_GUI.outputW method), 
+  \item save\_option\_fig() (src\_GUI.output\_fig\_GUI.PreferenceWindow method),
 		\hyperpage{24}
   \item save\_project (src\_GUI.Main\_windows\_1.CreateNewProjectDialog attribute),
 		\hyperpage{9}
@@ -696,7 +696,7 @@
 		\hyperpage{14}
   \item send\_log (src\_GUI.Main\_windows\_1.WelcomeW attribute), 
 		\hyperpage{14}
-  \item send\_log (src\_GUI.output\_fig\_GUI.outputW attribute), 
+  \item send\_log (src\_GUI.output\_fig\_GUI.PreferenceWindow attribute),
 		\hyperpage{24}
   \item send\_log (src\_GUI.stathab\_GUI.StathabW attribute), 
 		\hyperpage{27}

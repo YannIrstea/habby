@@ -2662,7 +2662,7 @@ All alive processes and figure windows will be closed.</source>
     </message>
 </context>
 <context>
-    <name>outputW</name>
+    <name>PreferenceWindow</name>
     <message>
         <location filename="preferences_GUI.py" line="60"/>
         <source>&lt;b&gt; Figures Options &lt;/b&gt; </source>

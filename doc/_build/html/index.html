@@ -1630,13 +1630,13 @@ function uses data by default which are in the fonction create_default_fig_optio
 </dd></dl>
 
 <dl class="class">
-<dt id="src_GUI.output_fig_GUI.outputW">
-<em class="property">class </em><code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">outputW</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW" title="Permalink to this definition">¶</a></dt>
+<dt id="src_GUI.output_fig_GUI.PreferenceWindow">
+<em class="property">class </em><code class="descclassname">src_GUI.output_fig_GUI.</code><code class="descname">PreferenceWindow</code><span class="sig-paren">(</span><em>path_prj</em>, <em>name_prj</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.PreferenceWindow" title="Permalink to this definition">¶</a></dt>
 <dd><p>The class which support the creation and management of the output. It is notably used to select the options to
 create the figures.</p>
 <dl class="method">
-<dt id="src_GUI.output_fig_GUI.outputW.check_uncheck">
-<code class="descname">check_uncheck</code><span class="sig-paren">(</span><em>main_checkbox</em>, <em>other_checkbox</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.check_uncheck" title="Permalink to this definition">¶</a></dt>
+<dt id="src_GUI.output_fig_GUI.PreferenceWindow.check_uncheck">
+<code class="descname">check_uncheck</code><span class="sig-paren">(</span><em>main_checkbox</em>, <em>other_checkbox</em><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.PreferenceWindow.check_uncheck" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to check a box when the user clied on it and unckeked another passed as parameter</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1653,13 +1653,13 @@ create the figures.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="src_GUI.output_fig_GUI.outputW.init_iu">
-<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.init_iu" title="Permalink to this definition">¶</a></dt>
+<dt id="src_GUI.output_fig_GUI.PreferenceWindow.init_iu">
+<code class="descname">init_iu</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.PreferenceWindow.init_iu" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="src_GUI.output_fig_GUI.outputW.save_option_fig">
-<code class="descname">save_option_fig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.save_option_fig" title="Permalink to this definition">¶</a></dt>
+<dt id="src_GUI.output_fig_GUI.PreferenceWindow.save_option_fig">
+<code class="descname">save_option_fig</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#src_GUI.output_fig_GUI.PreferenceWindow.save_option_fig" title="Permalink to this definition">¶</a></dt>
 <dd><p>A function which save the options for the figures in the xlm project file. The options for the figures are
 contained in a dictionnary. The idea is to give this dictinnory in argument to all the fonction which create
 figures. In the xml project file, the options for the figures are saved under the attribute &#8220;Figure_Option&#8221;.</p>
@@ -1668,8 +1668,8 @@ For the new version of HABBY, it will be necessary to insure compatibility by ad
 </dd></dl>
 
 <dl class="attribute">
-<dt id="src_GUI.output_fig_GUI.outputW.send_log">
-<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.output_fig_GUI.outputW.send_log" title="Permalink to this definition">¶</a></dt>
+<dt id="src_GUI.output_fig_GUI.PreferenceWindow.send_log">
+<code class="descname">send_log</code><a class="headerlink" href="#src_GUI.output_fig_GUI.PreferenceWindow.send_log" title="Permalink to this definition">¶</a></dt>
 <dd><p>A PyQtsignal used to write the log.</p>
 </dd></dl>
 
