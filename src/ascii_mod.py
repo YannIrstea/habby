@@ -23,6 +23,7 @@ from copy import deepcopy
 from src_GUI import preferences_GUI
 from src import hdf5_mod
 from src import manage_grid_mod
+from src import mesh_management_mod
 
 
 def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd=False, fig_opt={}):
@@ -146,6 +147,9 @@ def load_ascii_model(filename, path_prj):
     """
     using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
     several reaches and units (discharges or times )descriptions are allowed
+    transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
+    transforming each quadrangle into 4 triangle and taking care of partially wet quadrangles to interpolate the centers
+    WARNING this function is parallel with  get_time_step function and some integrity tests are similar
     :param filename: the name of the text file
     :param path_prj:
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
@@ -157,8 +161,8 @@ def load_ascii_model(filename, path_prj):
     ftin = open(ftinn, 'w', encoding='utf8')
     kk, reachnumber,nbunitforall,nbreachsub = 0, 0,0,0
     msg, unit_type = '', ''
-    lunitall = []
-    bq,bsub = False,False
+    lunitall = [] # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches  or nbreaches elements
+    bq_per_reach,bsub = False,False
     sub_classification_code,sub_classification_method='',''
     nbsubinfo= 0
     for i, ligne in enumerate(fi):
@@ -188,10 +192,10 @@ def load_ascii_model(filename, path_prj):
                     msg = ls[0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
                     break
                 else:
-                    if bq == False and reachnumber !=1:
+                    if bq_per_reach == False and reachnumber !=1:
                         msg = ls[ 0] + ' This structure REACH unit description is forbiden '
                         break
-                    bq=True
+                    bq_per_reach=True
             unit_type = ls[0]
             lunit,nbunit = [],0
             kk = 3
@@ -199,7 +203,7 @@ def load_ascii_model(filename, path_prj):
             if kk != 2 and kk!=3 and kk<7 :
                 msg = ls[0] +' but not EPSG  or Q[XXX or t[XXX before'
                 break
-            if bq  and kk==3:
+            if bq_per_reach  and kk==3:
                 msg = ls[0] + ' This structure REACH unit description is forbiden '
                 break
             reachnumber+=1
@@ -222,14 +226,15 @@ def load_ascii_model(filename, path_prj):
             if kk != 3 and kk!=4:
                 msg = ls[0] +' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
                 break
-            if bq:
+            if bq_per_reach:
                 if reachnumber==1:
                     nbunitforall=nbunit
                 else:
                     if nbunitforall!=nbunit:
                         msg = ' the number of units Q[XXX ,Q1,Q2 after REACH must be constant for each reach'
                         break
-            lunitall.append(lunit)
+            if reachnumber == 1 or bq_per_reach:
+                lunitall.append(lunit)
             kk = 5
         elif ls[0].lower() == 'x':
             if kk != 5:
@@ -346,6 +351,16 @@ def load_ascii_model(filename, path_prj):
     ikleall = np.loadtxt(ftinn,dtype=int)
     os.remove(fnoden)
     os.remove(ftinn)
+    #transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
+    for unit_num in range(nbunit):
+        nodesall[:, 2 + unit_num * 2 + 2] = np.abs(nodesall[:, 2 + unit_num * 2 + 2])
+        hwneg=np.where(nodesall[:, 2 + unit_num * 2 + 1]<0)
+        nodesall[:, 2 + unit_num * 2 + 1][hwneg]=0
+        hwnul = np.where(nodesall[:, 2 + unit_num * 2 + 1] == 0)
+        nodesall[:, 2 + unit_num * 2 + 2][hwnul] = 0
+
+
+
     if bsub:
         fsub.close()
         suball = np.loadtxt(fsubn, dtype=int)
@@ -360,6 +375,8 @@ def load_ascii_model(filename, path_prj):
             elif sub_classification_code == "Sandre":
                 if suball.max() >12 or suball.min() <1:
                     msg='SUBSTRATE Sandre coarser-dominant But extreme values are not in [1,12] '
+                if (suball[:,0]>=suball[:,1]).all()==False:
+                    print( 'SUBSTRATE  coarser-dominant it happends that sizes seems incorrect coarser element < dominant element ')
         elif sub_classification_method == 'percentage':
             suball100 = np.sum(suball, axis=1)
             if (suball100 !=100).all() :
@@ -368,7 +385,7 @@ def load_ascii_model(filename, path_prj):
             print( msg)
             return False
 
-    # creaet empty dict
+    # create empty dict
     data_2d = dict()
     data_2d["tin"] = [[] for _ in range(reachnumber)]  # create a number of empty nested lists for each reach
     data_2d["i_whole_profile"] = [[] for _ in range(reachnumber)]
@@ -396,15 +413,21 @@ def load_ascii_model(filename, path_prj):
             sub = sub[np.where(ikle[:, [3]] == -1)[0]]
         ikle = ikle3[:, 0:3]
 
-        if len(ikle4): # partitionning each 4angles in 4 triangles
-            for i in range( len(ikle4)):
-                nbnodes+=1
-                ikle = np.append(ikle, np.array([[ikle4[i][0], nbnodes-1, ikle4[i][3]], [ikle4[i][0], ikle4[i][1], nbnodes-1],
-                                                 [ikle4[i][1], ikle4[i][2], nbnodes-1], [nbnodes-1, ikle4[i][2], ikle4[i][3]]]),
-                                 axis=0)
-                newnode=np.mean(nodes[[ikle4[i][0],ikle4[i][1],ikle4[i][2],ikle4[i][3]],:], axis=0)
-                nodes=np.append(nodes,np.array([newnode]),axis=0)
-                if bsub:
+
+
+
+        if len(ikle4):  # partitionning each 4angles in 4 triangles
+            for unit_num in range(nbunit):
+                #always obtain the sames ikle3new,xynew,znew only hnew,vnew are differents
+                ikle3new,xynew,znew,hnew,vnew=mesh_management_mod.quadrangles_to_triangles(ikle4,nodes[:, 0:2],nodes[:, 2],nodes[:,2+unit_num*2+1],nodes[:,2+unit_num*2+2])
+                if unit_num==0:
+                    newnodes = np.concatenate((xynew, znew,hnew,vnew), axis=1)
+                else:
+                    newnodes=np.concatenate((newnodes,hnew,vnew), axis=1)
+            ikle = np.append(ikle,ikle3new, axis=0)
+            nodes = np.append(nodes,newnodes, axis=0)
+            if bsub:
+                for i in range(len(ikle4)):
                     sub = np.append(sub, np.array([sub4[i,:],]*4), axis=0)
         for unit_num in range(nbunit):
             data_2d["tin"][reach_num].append(ikle)
@@ -447,13 +470,95 @@ def load_ascii_model(filename, path_prj):
 
 
 def get_time_step(file_path):
+    """
+    using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
+    several reaches and units (discharges or times )descriptions are allowed
+
+    WARNING this function is parallel with  load_ascii_model function and some integrity tests are similar
+    :param file_path:
+    :return:
+    """
     faiload = [-99], [-99]
     # file exist ?
     if not os.path.isfile(file_path):
         print('Error: The ascci text file does not exist. Cannot be loaded.')
         return faiload
+    kk, reachnumber= 0, 0
+    msg, unit_type = '', ''
+    lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches  or nbreaches elements
+    epsgcode=''
+    bq_per_reach = False
+    with open(file_path, 'r', encoding='utf8') as fi:
+        for i, ligne in enumerate(fi):
+            ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
+            # print (i,ls)
+            if len(ls) == 0:  # empty line
+                pass
+            elif ls[0][0] == '#':  # comment line
+                pass
+            elif ls[0].upper() == 'HABBY':
+                kk = 1
+            elif 'EPSG' in ls[0].upper():
+                if kk != 1:
+                    msg = 'EPSG but not HABBY just before'
+                    break
+                kk = 2
+                epsgcode = ls[1]
+            elif ls[0][0:2].upper() == 'Q[' or ls[0][0:2].lower() == 't[':
+                if kk != 2 and kk != 4:
+                    msg = ls[0] + ' but not EPSG just before or REACH before'
+                    break
+                if len(ls) != 1:
+                    msg = 'unit description ' + ls[0] + '  but not the only one information'
+                    break
+                if kk == 4:
+                    if ls[0][0:2].lower() == 't[':
+                        msg = ls[
+                                  0] + ' but t[XXX  after REACH is forbiden all the reaches must have the same times units'
+                        break
+                    else:
+                        if bq_per_reach == False and reachnumber != 1:
+                            msg = ls[0] + ' This structure REACH unit description is forbiden '
+                            break
+                        bq_per_reach = True
+                unit_type = ls[0]
+                lunit, nbunit = [], 0
+                kk = 3
+            elif ls[0].upper() == 'REACH':
+                if kk != 2 and kk != 3 and kk < 7:
+                    msg = ls[0] + ' but not EPSG  or Q[XXX or t[XXX before'
+                    break
+                if bq_per_reach and kk == 3:
+                    msg = ls[0] + ' This structure REACH unit description is forbiden '
+                    break
+                reachnumber += 1
+                if reachnumber == 1:
+                    lreachname = [('_'.join(ls[1:]))]
+                else:
+                    lreachname.append(('_'.join(ls[1:])))
+                kk = 4
+            #.................
+            elif ls[0].upper() == 'NODES':
+                if kk != 3 and kk != 4:
+                    msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
+                    break
+                if reachnumber==1 or bq_per_reach:
+                    lunitall.append(lunit)
+                kk = 5
+            elif ls[0].upper() == 'TIN':
+                kk = 7
+            elif kk == 3:
+                nbunit += 1
+                if len(ls) != 1:
+                    msg = 'unit description but not only one information'
+                    break
+                lunit.append(ls[0])
 
-    nbtimes = 0
-    timestep_string = "0"
 
-    return nbtimes, timestep_string
+        if msg != '':
+            print('ligne : ', i, '\n', ligne, '\n', msg)
+            return faiload
+
+
+
+    return epsgcode,unit_type, lunitall,reachnumber,lreachname
