@@ -757,9 +757,9 @@ class MainWindows(QMainWindow):
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
         closeAction.triggered.connect(self.central_widget.closefig)
 
-        self.killAction = QAction(icon_kill, self.tr('Stop current process'), self)
-        self.killAction.triggered.connect(partial(self.process_alive, close=True, isalive=False))
-        self.killAction.setVisible(False)
+        self.kill_process = QAction(icon_kill, self.tr('Stop current process'), self)
+        self.kill_process.triggered.connect(partial(self.process_alive, close=True, isalive=False))
+        self.kill_process.setVisible(False)
         spacer_toolbar = QWidget()
         spacer_toolbar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -772,7 +772,7 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(seeAction)
         self.toolbar.addAction(closeAction)
         self.toolbar.addWidget(spacer_toolbar)
-        self.toolbar.addAction(self.killAction)
+        self.toolbar.addAction(self.kill_process)
 
     def open_preferences(self):
         # get size
@@ -1842,7 +1842,8 @@ class MainWindows(QMainWindow):
                                                               " process has been stopped by the user." +
                                                               " The files produced by this process can be damaged.")
                                 # hide button
-                                self.killAction.setVisible(False)
+                                self.kill_process.setVisible(False)
+                                print("setVisible(False)1")
                 else:
                     if hasattr(central_widget_attrib, tabs):
                         process_object = getattr(central_widget_attrib, tabs).p
@@ -1853,8 +1854,12 @@ class MainWindows(QMainWindow):
                                 self.central_widget.write_log("Warning: " + process_object.name +
                                                               " process has been stopped by the user." +
                                                               " The files produced by this process can be damaged.")
+                                # hide button
+                                self.kill_process.setVisible(False)
+                                print("setVisible(False)2")
             # hide button
-            self.killAction.setVisible(False)
+            self.kill_process.setVisible(False)
+            print("setVisible(False)3")
         if isalive:
             return alive
 

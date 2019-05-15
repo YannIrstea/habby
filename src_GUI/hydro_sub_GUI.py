@@ -1108,7 +1108,7 @@ class SubHydroW(QWidget):
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
             self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-            self.nativeParentWidget().killAction.setVisible(True)
+            self.nativeParentWidget().kill_process.setVisible(True)
             # send the message FRENCH
             if self.fig_opt['language'] == str(1):
                 # MERGE
@@ -1162,7 +1162,7 @@ class SubHydroW(QWidget):
             if error:
                 self.send_log.emit("clear status bar")
                 self.running_time = 0
-                self.nativeParentWidget().killAction.setVisible(False)
+                self.nativeParentWidget().kill_process.setVisible(False)
                 # MERGE
                 if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
                     # unblock button merge
@@ -1214,7 +1214,7 @@ class SubHydroW(QWidget):
 
                 # general
                 self.nativeParentWidget().progress_bar.setValue(100)
-                self.nativeParentWidget().killAction.setVisible(False)
+                self.nativeParentWidget().kill_process.setVisible(False)
                 if not const_sub:
                     self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
                 if const_sub:
@@ -1228,6 +1228,7 @@ class SubHydroW(QWidget):
         if not self.p.is_alive() and self.q.empty():
             self.timer.stop()
             self.send_log.emit("clear status bar")
+            self.nativeParentWidget().kill_process.setVisible(False)
             self.running_time = 0
             # MERGE
             if self.model_type == 'HABITAT' or self.model_type == 'LAMMI':
@@ -1243,18 +1244,6 @@ class SubHydroW(QWidget):
             else:
                 # unblock button hydraulic
                 self.load_b.setDisabled(False)  # hydraulic
-            # if grid creation fails
-            # if self.interpo_choice >= 1:
-            #     self.send_log.emit(
-            #         "Error: Grid creation failed. Try with the interpolation method 'Interpolation by block'")
-            #     # add here the call to the interpolatin method 0 to automatize this correction. TO BE DONE.
-            #     # if a new thread is created, join it to wait (The GUI would freeze,
-            #     # but it will get too complicated otherwise)
-            #     return
-            # if self.interpo_choice == 0:
-            #     self.send_log.emit(
-            #         "Error: Grid creation failed. Try with the interpolation method 'Linear Interpolation'")
-            #     return
 
     def recreate_image(self):
         """
