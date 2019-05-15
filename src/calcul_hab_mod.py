@@ -80,6 +80,9 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     if not fig_opt:
         fig_opt = preferences_GUI.load_fig_option(hdf5.path_prj, hdf5.name_prj)
 
+    # progress
+    progress_value.value = 20
+
     # calcuation habitat
     [vh_all_t_sp, vel_c_all_t, height_c_all_t, area_all, spu_all, area_c_all] = \
         calc_hab(hdf5.data_2d,
@@ -130,36 +133,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 95
 
     hdf5.export_pdf(path_bio, fig_opt)
-
-
-    timestep = fig_opt['time_step']
-    if not isinstance(timestep, (list, tuple)):
-        timestep = timestep.split(',')
-    try:
-        timestep = list(map(int, timestep))
-    except ValueError:
-        print('Error: Time step was not recognized. \n')
-        return
-    if -1 in timestep and len(vh_all_t_sp[0]) == 2 and 1 in timestep:
-        del timestep[1]
-
-    # figure
-    # save_vh_fig_2d(hdf5_file, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base2, fig_opt, timestep, sim_name,
-    #                erase_id=erase_id)
-    # plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all, fig_opt, path_im, timestep,
-    #                 name_base2, sim_name, erase_id)
-    # plot_hist_biology(vh_all_t_sp, area_c_all, name_fish, fig_opt, path_im, timestep, name_base2, sim_name, erase_id)
-
-    # 1d figure (done on the main thread, so not necessary)
-    # state = Value("i", 0)
-    # plot_mod.plot_fish_hv_wua(state,
-    #                           area_all,
-    #                           spu_all,
-    #                           name_fish,
-    #                           path_im,
-    #                           name_base,
-    #                           fig_opt,
-    #                           sim_name)
 
     # progress
     progress_value.value = 98
@@ -217,7 +190,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stage
 
     # progress
     prog = progress_value.value
-    delta = (80 - 10) / len(bio_names)
+    delta = (80 - 20) / len(bio_names)
 
     # for each fish ?
     for idx, bio_name in enumerate(bio_names):
