@@ -691,7 +691,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # it is necssary to start this string with Process to see it in the Statusbar
                 self.send_log.emit("Process 'Habitat' is alive and run since " + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
-            self.nativeParentWidget().killAction.setVisible(True)
+            self.nativeParentWidget().kill_process.setVisible(True)
 
         # when the loading is finished
         if not self.q4.empty():
@@ -713,7 +713,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.nativeParentWidget().central_widget.data_explorer_tab.refresh_filename()
             self.nativeParentWidget().central_widget.tools_tab.refresh_hab_filenames()
             self.running_time = 0
-            self.nativeParentWidget().killAction.setVisible(False)
+            self.nativeParentWidget().kill_process.setVisible(False)
 
         if not self.p.is_alive():
             # enable the button to call this functin directly again
