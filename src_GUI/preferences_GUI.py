@@ -195,8 +195,8 @@ class PreferenceWindow(QScrollArea):
         general_options_group = QGroupBox(self.tr("General"))
         general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         general_options_group.setLayout(layout_general_options)
-        layout_general_options.addRow(self.cut_2d_grid_label, self.min_height_lineedit)
-        layout_general_options.addRow(min_height_label, self.cut_2d_grid_checkbox)
+        layout_general_options.addRow(self.cut_2d_grid_label, self.cut_2d_grid_checkbox)
+        layout_general_options.addRow(min_height_label, self.min_height_lineedit)
 
         # exports
         layout_available_exports = QFormLayout()
