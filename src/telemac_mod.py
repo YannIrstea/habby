@@ -188,7 +188,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                                axis=1)  # Insert values before column 2
             # cut2dgrid
             if fig_opt["Cut2Dgrid"] == "True":
-                [tin_data, xy, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
+                [tin_data, xy_cuted, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
                                                                                   xy,  # with z value (facilitate)
                                                                                   data_2d_telemac["h"][unit_num],
                                                                                   data_2d_telemac["v"][unit_num],
@@ -204,6 +204,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             # not cut2dgrid
             elif fig_opt["Cut2Dgrid"] == "False":
                 # if we want to disable cut_2d_grid (for dev)
+                xy_cuted = xy
                 tin_data = data_2d_telemac["tin"]
                 ind_new = np.array([10] * len(data_2d_telemac["tin"]))
                 h_data = data_2d_telemac["h"][unit_num]
@@ -212,10 +213,10 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             # save data in dict
             data_2d["tin"][0].append(tin_data)
             data_2d["i_whole_profile"][0].append(ind_new)
-            data_2d["xy"][0].append(xy[:, :2])
+            data_2d["xy"][0].append(xy_cuted[:, :2])
             data_2d["h"][0].append(h_data)
             data_2d["v"][0].append(v_data)
-            data_2d["z"][0].append(xy[:, 2])
+            data_2d["z"][0].append(xy_cuted[:, 2])
             # data_2d["tin"][0].append(data_2d_telemac["tin"])
             # data_2d["xy"][0].append(xy[:, :2])
             # data_2d["h"][0].append(data_2d_telemac["h"][unit_num])
@@ -244,7 +245,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         if fig_opt["Cut2Dgrid"] == "False":
             namehdf5_old = os.path.splitext(description_from_indextelemac_file[hyd_file]["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(description_from_indextelemac_file[hyd_file]["hdf5_name"])[1]
-            description_from_indextelemac_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut_" + exthdf5_old
+            description_from_indextelemac_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
                                        description_from_indextelemac_file[hyd_file]["hdf5_name"])
@@ -271,9 +272,9 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                         data_2d=False)
 
         # export stl
-        #hdf5.export_stl(fig_opt,
-        #                data_2d_whole_profile=True,
-        #                data_2d=False)
+        hdf5.export_stl(fig_opt,
+                       data_2d_whole_profile=True,
+                       data_2d=False)
 
         # progress
         progress_value.value = 100
