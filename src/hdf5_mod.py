@@ -243,6 +243,27 @@ class Hdf5Management:
         fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
         self.fish_list = fish_list
 
+    def get_hdf5_reach_name(self):
+        """
+        This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
+        of the time steps, it returns them. If not, it return an empty list.
+        :return: the name of the time step if they exist. Otherwise, an empty list
+        """
+        # open hdf5 file
+        self.open_hdf5_file(new=False)
+        # units name
+        reach_name = []
+        # get unit_list
+        hdf5_attributes = list(self.file_object.attrs.items())
+        for attribute_name, attribute_data in hdf5_attributes:
+            if "reach_list" in attribute_name:
+                reach_name = attribute_data.split(", ")
+        # close hdf5 file
+        self.file_object.close()
+
+        # to attributes
+        self.reach_name = reach_name
+
     def get_hdf5_units_name(self):
         """
         This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
