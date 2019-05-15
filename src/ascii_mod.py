@@ -41,6 +41,10 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
 
     # load data from txt file
     data_2d_from_ascii, data_description = load_ascii_model(file_path, path_prj)
+    if not data_2d_from_ascii and not data_description:
+        q.put(mystdout)
+        return
+
     data_2d_whole_profile = deepcopy(data_2d_from_ascii)
 
     # progress from 10 to 90 : from 0 to len(units_index)
@@ -49,7 +53,7 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
     # for each reach
     for reach_num in range(int(data_description["reach_number"])):
         # for each units
-        for unit_num, unit_index in enumerate(data_description["unit_list"].split(", ")):
+        for unit_num, unit_index in enumerate(data_description["unit_list"]):
             # conca xy with z value to facilitate the cutting of the grid (interpolation)
             xy = np.insert(data_2d_from_ascii["xy"][reach_num][unit_num],
                            2,
@@ -160,6 +164,7 @@ def load_ascii_model(filename, path_prj):
     :param path_prj:
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
     """
+    faiload = False, False
     path = os.path.dirname(filename)
     fnoden, ftinn, fsubn = os.path.join(path, 'wwnode.txt'), os.path.join(path, 'wwtin.txt'), os.path.join(path,
                                                                                                            'wwsub.txt')
@@ -350,7 +355,7 @@ def load_ascii_model(filename, path_prj):
         if bsub:
             fsub.close();
             os.remove(fsubn)
-        return False
+        return faiload
 
     lnode.append((nodei, nodef))
     ltin.append((tini, tinf))
@@ -375,7 +380,7 @@ def load_ascii_model(filename, path_prj):
         os.remove(fsubn)
         if len(suball) != len(ikleall):
             print('the number of elements given for TIN  and SUBSTRAT description are different')
-            return False
+            return faiload
         if sub_classification_method == 'coarser-dominant':
             if sub_classification_code == "Cemagref":
                 if suball.max() > 8 or suball.min() < 1:
@@ -392,7 +397,7 @@ def load_ascii_model(filename, path_prj):
                 msg = 'SUBSTRATE percentage But not the all the sums =100 '
         if msg != '':
             print(msg)
-            return False
+            return faiload
 
     # create empty dict
     data_2d = dict()
@@ -413,7 +418,7 @@ def load_ascii_model(filename, path_prj):
         nbnodes = len(nodes)
         if ikle.max() != nbnodes - 1:
             print('REACH :', lreachname[reach_num], "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
-            return False
+            return faiload
         # managing  the 4angles (for triangle last index=-1)
         ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
         ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
@@ -459,8 +464,8 @@ def load_ascii_model(filename, path_prj):
                             model_dimension=str(2),
                             epsg_code=epsgcode)
     # data_description
-    data_description["unit_list"] = ", ".join(lunit)  # TODO lunitall ready pour indiquer par reach les debits
-    data_description["unit_list_full"] = ", ".join(lunit)  # TODO lunitall ready pour indiquer par reach les debits
+    data_description["unit_list"] = lunitall  # ", ".join(lunit)  # TODO lunitall ready pour indiquer par reach les debits
+    data_description["unit_list_full"] = lunitall # ", ".join(lunit)   # TODO lunitall ready pour indiquer par reach les debits
     data_description["unit_list_tf"] = []
     data_description["unit_number"] = str(nbunit)
     data_description["unit_type"] = unit_type
@@ -488,7 +493,7 @@ def get_time_step(file_path):
     :param file_path:
     :return:
     """
-    faiload = [-99], [-99]
+    faiload = False, False, False, False, False
     # file exist ?
     if not os.path.isfile(file_path):
         print('Error: The ascci text file does not exist. Cannot be loaded.')
