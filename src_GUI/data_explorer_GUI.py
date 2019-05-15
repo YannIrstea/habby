@@ -123,7 +123,7 @@ class DataExplorerFrame(QFrame):
         self.names_hdf5_layout.addWidget(self.names_hdf5_QLabel)
         self.names_hdf5_layout.addWidget(self.names_hdf5_QListWidget)
 
-        """ Graphic producer """
+        """ Figure producer """
         # variable_QListWidget
         self.variable_hdf5_QLabel = QLabel(self.tr('variables'))
         self.variable_QListWidget = QListWidget()
@@ -134,6 +134,18 @@ class DataExplorerFrame(QFrame):
         self.variable_hdf5_layout.setAlignment(Qt.AlignTop)
         self.variable_hdf5_layout.addWidget(self.variable_hdf5_QLabel)
         self.variable_hdf5_layout.addWidget(self.variable_QListWidget)
+
+        # reach_QListWidget
+        self.reach_hdf5_QLabel = QLabel(self.tr('reachs'))
+        self.reach_QListWidget = QListWidget()
+        self.reach_QListWidget.setMinimumWidth(110)
+        self.reach_QListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.reach_QListWidget.itemSelectionChanged.connect(self.reach_hdf5_change)
+        self.reach_QListWidget.itemSelectionChanged.connect(self.count_plot)
+        self.reach_hdf5_layout = QVBoxLayout()
+        self.reach_hdf5_layout.setAlignment(Qt.AlignTop)
+        self.reach_hdf5_layout.addWidget(self.reach_hdf5_QLabel)
+        self.reach_hdf5_layout.addWidget(self.reach_QListWidget)
 
         # units_QListWidget
         self.units_QLabel = QLabel(self.tr('units'))
@@ -182,8 +194,10 @@ class DataExplorerFrame(QFrame):
         # self.progress_bar.setValue(0)
         # self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
+        """ File information """
         # attributes hdf5
         self.hdf5_attributes_qtableview = QTableView(self)
+        self.hdf5_attributes_qtableview.setFrameShape(QFrame.NoFrame)
         self.hdf5_attributes_qtableview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.hdf5_attributes_qtableview.verticalHeader().setVisible(False)
         self.hdf5_attributes_qtableview.horizontalHeader().setVisible(False)
@@ -196,10 +210,11 @@ class DataExplorerFrame(QFrame):
         selectionfile_group = QGroupBox(self.tr("File selection"))
         selectionfile_group.setLayout(selectionfile_layout)
 
-        """ Graphic producer """
+        """ Figure producer """
         # PLOT GROUP
         plot_layout = QHBoxLayout()
         plot_layout.addLayout(self.variable_hdf5_layout, 4)  # stretch factor
+        plot_layout.addLayout(self.reach_hdf5_layout, 1)  # stretch factor
         plot_layout.addLayout(self.units_layout, 1)  # stretch factor
         plot_layout.addLayout(self.export_type_layout)
         plot_layout2 = QVBoxLayout()
@@ -266,7 +281,7 @@ class DataExplorerFrame(QFrame):
         """
         count number of graphic to produce and ajust progress bar range
         """
-        types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type = self.collect_data_from_gui()
+        types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
         plot_type = []
         if self.plot_map_QCheckBox.isChecked():
             plot_type = ["map"]
@@ -275,7 +290,7 @@ class DataExplorerFrame(QFrame):
         if self.plot_map_QCheckBox.isChecked() and self.plot_result_QCheckBox.isChecked():
             plot_type = ["map", "result"]
 
-        if types_hdf5 and names_hdf5 and variables and units and plot_type:
+        if types_hdf5 and names_hdf5 and variables and reach and units and plot_type:
             # is fish ?
             fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
             variables_other = [variable for variable in variables if variable not in fish_names]
@@ -285,9 +300,9 @@ class DataExplorerFrame(QFrame):
                 if plot_type == ["result"]:
                     self.nb_plot = 0
                 if plot_type == ["map"]:
-                    self.nb_plot = len(names_hdf5) * len(variables) * len(units)
+                    self.nb_plot = len(names_hdf5) * len(variables) * len(reach) * len(units)
                 if plot_type == ["map", "result"]:
-                    self.nb_plot = len(names_hdf5) * len(variables) * len(units)
+                    self.nb_plot = len(names_hdf5) * len(variables) * len(reach) * len(units)
 
             # one fish
             if len(fish_names) == 1:
@@ -295,19 +310,19 @@ class DataExplorerFrame(QFrame):
                     nb_map = 0
                 else:
                     # one map by fish by unit
-                    nb_map = len(names_hdf5) * len(fish_names) * len(units)
+                    nb_map = len(names_hdf5) * len(fish_names) * len(reach) * len(units)
                 if len(units) == 1:
                     if plot_type == ["map"]:
                         nb_wua_hv = 0
                     else:
-                        nb_wua_hv = len(names_hdf5) * len(fish_names) * len(units)
+                        nb_wua_hv = len(names_hdf5) * len(fish_names) * len(reach) * len(units)
                 if len(units) > 1:
                     if plot_type == ["map"]:
                         nb_wua_hv = 0
                     else:
                         nb_wua_hv = len(names_hdf5) * len(fish_names)
                 # total
-                self.nb_plot = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + nb_wua_hv
+                self.nb_plot = (len(names_hdf5) * len(variables_other) * len(reach) * len(units)) + nb_map + nb_wua_hv
 
             # multi fish
             if len(fish_names) > 1:
@@ -315,12 +330,12 @@ class DataExplorerFrame(QFrame):
                     self.nb_plot = 1  #(len(names_hdf5) * len(variables_other) * len(units)) + 1
                 if plot_type == ["map"]:
                     # one map by fish by unit
-                    nb_map = len(fish_names) * len(units)
-                    self.nb_plot = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map
+                    nb_map = len(fish_names) * len(reach) * len(units)
+                    self.nb_plot = (len(names_hdf5) * len(variables_other) * len(reach) * len(units)) + nb_map
                 if plot_type == ["map", "result"]:
                     # one map by fish by unit
-                    nb_map = len(fish_names) * len(units)
-                    self.nb_plot = (len(names_hdf5) * len(variables_other) * len(units)) + nb_map + 1
+                    nb_map = len(fish_names) * len(reach) * len(units)
+                    self.nb_plot = (len(names_hdf5) * len(variables_other) * len(reach) * len(units)) + nb_map + 1
 
             # set prog
             if self.nb_plot != 0:
@@ -379,8 +394,9 @@ class DataExplorerFrame(QFrame):
         Ajust item list according to hdf5 filename selected by user
         """
         selection = self.names_hdf5_QListWidget.selectedItems()
-        self.units_QListWidget.clear()
         self.variable_QListWidget.clear()
+        self.units_QListWidget.clear()
+        self.reach_QListWidget.clear()
 
         # one file selected
         if len(selection) == 1:
@@ -393,27 +409,27 @@ class DataExplorerFrame(QFrame):
             # get variables
             hdf5.get_hdf5_variables()
 
-            # get units
-            hdf5.get_hdf5_units_name()
+            # get_hdf5_reach_name
+            hdf5.get_hdf5_reach_name()
 
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
                 self.variable_QListWidget.addItems(hdf5.variables)
-                if hdf5.units_name:
-                    self.units_QListWidget.addItems(hdf5.units_name)
+                if hdf5.reach_name:
+                    self.reach_QListWidget.addItems(hdf5.reach_name)
 
             # substrat
             if self.types_hdf5_QComboBox.currentIndex() == 2:
                 if hdf5.variables:  # if not False (from constant substrate) add items else nothing
                     self.variable_QListWidget.addItems(hdf5.variables)
-                    if hdf5.units_name:
-                        self.units_QListWidget.addItems(hdf5.units_name)
+                    if hdf5.reach_name:
+                        self.reach_QListWidget.addItems(hdf5.reach_name)
 
             # hab
             if self.types_hdf5_QComboBox.currentIndex() == 3:
                 self.variable_QListWidget.addItems(hdf5.variables)
-                if hdf5.units_name:
-                    self.units_QListWidget.addItems(hdf5.units_name)
+                if hdf5.reach_name:
+                    self.reach_QListWidget.addItems(hdf5.reach_name)
 
             # display hdf5 attributes
             hdf5.get_hdf5_attributes()
@@ -424,28 +440,97 @@ class DataExplorerFrame(QFrame):
             header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
             self.hdf5_attributes_qtableview.verticalHeader().setDefaultSectionSize(self.hdf5_attributes_qtableview.verticalHeader().minimumSectionSize())
 
-        # more than one file selected
-        elif len(selection) > 1:
-            # clear attributes hdf5_attributes_qtableview
+        else:
             self.hdf5_attributes_qtableview.setModel(None)
-            nb_file = len(selection)
-            hdf5name = []
-            units = []
-            variables = []
-            for i in range(nb_file):
-                hdf5name.append(selection[i].text())
-                # create hdf5 class
-                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[i].text())
-                hdf5.get_hdf5_units_name()
-                hdf5.get_hdf5_variables()
-                units.append(hdf5.units_name)
-                variables_a = hdf5.variables
-                variables.append(variables_a)
+        # # more than one file selected
+        # elif len(selection) > 1:
+        #     # clear attributes hdf5_attributes_qtableview
+        #     self.hdf5_attributes_qtableview.setModel(None)
+        #     nb_file = len(selection)
+        #     hdf5name = []
+        #     units = []
+        #     variables = []
+        #     for i in range(nb_file):
+        #         hdf5name.append(selection[i].text())
+        #         # create hdf5 class
+        #         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection[i].text())
+        #         hdf5.get_hdf5_units_name()
+        #         hdf5.get_hdf5_variables()
+        #         units.append(hdf5.units_name)
+        #         variables_a = hdf5.variables
+        #         variables.append(variables_a)
+        #
+        #     # variables or units are differents
+        #     if not all(x == units[0] for x in units) or not all(x == variables[0] for x in variables):
+        #         # clean
+        #         self.names_hdf5_QListWidget.clearSelection()
+        #         self.units_QListWidget.clear()
+        #         # message to user
+        #         msg2 = QMessageBox(self)
+        #         msg2.setIcon(QMessageBox.Warning)
+        #         msg2.setWindowTitle(self.tr("Warning"))
+        #         msg2.setText(
+        #             self.tr("The selected files don't have same units !"))
+        #         msg2.setStandardButtons(QMessageBox.Ok)
+        #         msg2.show()
+        #
+        #     # same units
+        #     if all(x == units[0] for x in units) and all(x == variables[0] for x in variables):  # OK
+        #         units = units[0]
+        #         variables = variables[0]
+        #         self.units_QListWidget.clear()
+        #         self.variable_QListWidget.clear()
+        #         # hydraulic
+        #         if self.types_hdf5_QComboBox.currentIndex() == 1:
+        #             self.variable_QListWidget.addItems(variables)
+        #             self.units_QListWidget.addItems(units)
+        #         # substrat
+        #         if self.types_hdf5_QComboBox.currentIndex() == 2:
+        #             variables_without_duplicate = [x for i, x in enumerate(variables) if i == variables.index(x)][0]
+        #             if not False in variables_without_duplicate:  # if not False (from constant substrate) add items else nothing
+        #                 self.variable_QListWidget.addItems(variables_without_duplicate)
+        #                 units_without_duplicate = [x for i, x in enumerate(units) if i == units.index(x)][0]
+        #                 self.units_QListWidget.addItems(units_without_duplicate)
+        #         # merge hab
+        #         if self.types_hdf5_QComboBox.currentIndex() == 3:  # merge hab
+        #             self.variable_QListWidget.addItems(variables)
+        #             self.units_QListWidget.addItems(units)
+        # else:
+        #     self.hdf5_attributes_qtableview.setModel(None)
+        # count plot
+        self.count_plot()
 
-            # variables or units are differents
-            if not all(x == units[0] for x in units) or not all(x == variables[0] for x in variables):
+    def reach_hdf5_change(self):
+        """
+         Ajust item list according to hdf5 filename selected by user
+         """
+        selection_file = self.names_hdf5_QListWidget.selectedItems()
+        selection_reach = self.reach_QListWidget.selectedItems()
+        self.units_QListWidget.clear()
+
+        # one file selected
+        if len(selection_reach) == 1:
+            hdf5name = selection_file[0].text()
+            self.units_QListWidget.clear()
+
+            # create hdf5 class
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+
+            # get units
+            hdf5.get_hdf5_units_name()
+
+            # add
+            self.units_QListWidget.addItems(hdf5.units_name)
+
+        # more than one file selected
+        elif len(selection_reach) > 1:
+            # clear attributes hdf5_attributes_qtableview
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection_file[0].text())
+            hdf5.get_hdf5_units_name()
+            if type(hdf5.units_name[0]) == str:  # homogene units between reach
+                self.units_QListWidget.addItems(hdf5.units_name)
+            if type(hdf5.units_name[0]) == list:  # heterogne units between reach
                 # clean
-                self.names_hdf5_QListWidget.clearSelection()
                 self.units_QListWidget.clear()
                 # message to user
                 msg2 = QMessageBox(self)
@@ -456,29 +541,6 @@ class DataExplorerFrame(QFrame):
                 msg2.setStandardButtons(QMessageBox.Ok)
                 msg2.show()
 
-            # same units
-            if all(x == units[0] for x in units) and all(x == variables[0] for x in variables):  # OK
-                units = units[0]
-                variables = variables[0]
-                self.units_QListWidget.clear()
-                self.variable_QListWidget.clear()
-                # hydraulic
-                if self.types_hdf5_QComboBox.currentIndex() == 1:
-                    self.variable_QListWidget.addItems(variables)
-                    self.units_QListWidget.addItems(units)
-                # substrat
-                if self.types_hdf5_QComboBox.currentIndex() == 2:
-                    variables_without_duplicate = [x for i, x in enumerate(variables) if i == variables.index(x)][0]
-                    if not False in variables_without_duplicate:  # if not False (from constant substrate) add items else nothing
-                        self.variable_QListWidget.addItems(variables_without_duplicate)
-                        units_without_duplicate = [x for i, x in enumerate(units) if i == units.index(x)][0]
-                        self.units_QListWidget.addItems(units_without_duplicate)
-                # merge hab
-                if self.types_hdf5_QComboBox.currentIndex() == 3:  # merge hab
-                    self.variable_QListWidget.addItems(variables)
-                    self.units_QListWidget.addItems(units)
-        else:
-            self.hdf5_attributes_qtableview.setModel(None)
         # count plot
         self.count_plot()
 
@@ -500,6 +562,12 @@ class DataExplorerFrame(QFrame):
         variables = []
         for i in range(len(selection)):
             variables.append(selection[i].text())
+
+        # variables
+        selection = self.reach_QListWidget.selectedItems()
+        reach = []
+        for i in range(len(selection)):
+            reach.append(selection[i].text())
 
         # units
         selection = self.units_QListWidget.selectedItems()
@@ -526,16 +594,16 @@ class DataExplorerFrame(QFrame):
             plot_type = ["map", "result"]
 
         # store values
-        return types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type
+        return types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type
 
     def collect_data_from_gui_and_plot(self):
         """
         Get selected values by user and plot them
         """
-        types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type = self.collect_data_from_gui()
-        self.plot(types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type)
+        types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type = self.collect_data_from_gui()
+        self.plot(types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type)
 
-    def plot(self, types_hdf5, names_hdf5, variables, units, units_index, export_type, plot_type):
+    def plot(self, types_hdf5, names_hdf5, variables, reach, units, units_index, export_type, plot_type):
         """
         Plot
         :param types_hdf5: string representing the type of hdf5 ("hydraulic", "substrat", "habitat")
@@ -558,8 +626,10 @@ class DataExplorerFrame(QFrame):
             self.send_log.emit('Error: No hdf5 file selected.')
         if not variables:
             self.send_log.emit('Error: No variable selected.')
+        if not reach:
+            self.send_log.emit('Error: No reach selected.')
         if not units:
-            self.send_log.emit('Error: No units selected.')
+            self.send_log.emit('Error: No unit selected.')
         if self.nb_plot == 0:
             self.send_log.emit('Error: Selected variables and units not corresponding with figure type choices.')
         # check if number of display plot are > 30
@@ -573,7 +643,7 @@ class DataExplorerFrame(QFrame):
             if ret == qm.No:  # pas de plot
                 return
         # Go plot
-        if types_hdf5 and names_hdf5 and variables and units and plot_type:
+        if types_hdf5 and names_hdf5 and variables and reach and units and plot_type:
             # disable
             self.plot_button.setEnabled(False)
             # active stop button
@@ -612,13 +682,15 @@ class DataExplorerFrame(QFrame):
                     # read hdf5 data (get desired units)
                     if types_hdf5 == "hydraulic":  # load hydraulic data
                         hdf5.load_hdf5_hyd(units_index=units_index)
-                        data_description = dict(reach_number=hdf5.data_description["hyd_reach_number"],
+                        data_description = dict(reach_list=hdf5.data_description["hyd_reach_list"].split(", "),
+                                                reach_number=hdf5.data_description["hyd_reach_number"],
                                                 unit_number=hdf5.data_description["hyd_unit_number"],
                                                 unit_type=hdf5.data_description["hyd_unit_type"],
                                                 name_hdf5=hdf5.data_description["hyd_filename"])
                     if types_hdf5 == "substrate":  # load substrate data
                         hdf5.load_hdf5_sub(convert_to_coarser_dom=True)
-                        data_description = dict(reach_number=hdf5.data_description["sub_reach_number"],
+                        data_description = dict(reach_list=hdf5.data_description["hyd_reach_list"].split(", "),
+                                                reach_number=hdf5.data_description["sub_reach_number"],
                                                 unit_number=hdf5.data_description["sub_unit_number"],
                                                 unit_type=hdf5.data_description["sub_unit_type"],
                                                 name_hdf5=hdf5.data_description["sub_filename"],
@@ -629,6 +701,7 @@ class DataExplorerFrame(QFrame):
                                            whole_profil=False,
                                            convert_to_coarser_dom=True)
                         data_description = dict(hdf5.data_description)
+                        data_description["reach_list"] = hdf5.data_description["hyd_reach_list"].split(", ")
                         data_description["reach_number"] = hdf5.data_description["hyd_reach_number"]
                         data_description["unit_number"] = hdf5.data_description["hyd_unit_number"]
                         data_description["unit_type"] = hdf5.data_description["hyd_unit_type"]
@@ -637,8 +710,8 @@ class DataExplorerFrame(QFrame):
                         data_description["sub_classification_code"] = hdf5.data_description["sub_classification_code"]
 
                     # for each reach
-                    for reach_num in range(int(data_description["reach_number"])):
-
+                    for reach_name in reach:
+                        reach_num = data_description["reach_list"].index(reach_name)
                         # for one or more desired units ==> habitat data (HV and WUA)
                         if fish_names and plot_type != ["map"] and not self.plot_production_stoped:
                             state = Value("i", 0)
@@ -650,7 +723,6 @@ class DataExplorerFrame(QFrame):
                                                                      path_im,
                                                                      name_hdf5,
                                                                      fig_opt))
-
                             self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
                         # for each desired units ==> maps
