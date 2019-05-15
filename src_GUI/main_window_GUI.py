@@ -27,7 +27,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
-from PyQt5.QtWidgets import QDialog, QMainWindow, QApplication, QWidget, QPushButton, \
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QSizePolicy,\
     QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
@@ -1090,7 +1090,7 @@ class MainWindows(QMainWindow):
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_options = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
         self.preferences_options.save_preferences()
-        self.preferences_dialog = QDialog()
+        self.preferences_dialog = QMainWindow()
         self.preferences_dialog.setWindowTitle(self.tr("Preferences"))
         self.preferences_dialog.setCentralWidget(self.preferences_options)
         self.preferences_dialog.setWindowIcon(QIcon(self.name_icon))
