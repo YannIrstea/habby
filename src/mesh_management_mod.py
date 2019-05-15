@@ -108,11 +108,6 @@ def quadrangles_to_triangles(ikle4,xy,z,h,v):
     return ikle3,xy[nbnodes0-nbnodes:,:],z[nbnodes0-nbnodes:],h[nbnodes0-nbnodes:],v[nbnodes0-nbnodes:]
 
 
-
-
-
-
-
 def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path_prj,
                         model_type, progress_value,
                         q=[], print_cmd=False, fig_opt=[]):
@@ -169,7 +164,9 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
     progress_value.value = 97
 
     # export stl
-    hdf5.export_stl(fig_opt)
+    hdf5.export_stl(fig_opt,
+                       data_2d_whole_profile=True,
+                       data_2d=False)
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
