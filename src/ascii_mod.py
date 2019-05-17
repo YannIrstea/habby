@@ -21,6 +21,7 @@ from io import StringIO
 
 import numpy as np
 
+from src.tools_mod import isstranumber
 from src import hdf5_mod
 from src import manage_grid_mod
 from src import mesh_management_mod
@@ -86,7 +87,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
 
                 # cut2dgrid
                 if fig_opt["Cut2Dgrid"] == "True":
-                    [tin_data, xy_cuted, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(
+                    [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(
                         data_2d_from_ascii["tin"][reach_num][unit_num],
                         xy,
                         data_2d_from_ascii["h"][reach_num][unit_num],
@@ -105,17 +106,19 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     # if we want to disable cut_2d_grid
                     xy_cuted = xy
                     tin_data = data_2d_from_ascii["tin"][reach_num][unit_num]
-                    ind_new = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
+                    i_whole_profile = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
                     h_data = data_2d_from_ascii["h"][reach_num][unit_num]
                     v_data = data_2d_from_ascii["v"][reach_num][unit_num]
 
                 # get cuted grid
                 data_2d["tin"][reach_num].append(tin_data)
-                data_2d["i_whole_profile"][reach_num].append(ind_new)
+                data_2d["i_whole_profile"][reach_num].append(i_whole_profile)
+
+                # get new substrate
+                data_2d_from_ascii["sub"][reach_num][unit_num] #old substrate
 
 
-
-                data_2d["sub"][reach_num].append()  # TODO: add the new substrate in append
+                data_2d["sub"][reach_num].append(data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile])  # the new substrate
 
 
                 data_2d["xy"][reach_num].append(xy_cuted[:, :2])
@@ -364,7 +367,10 @@ def load_ascii_model(filename, path_prj):
             if len(ls) != 1:
                 msg = 'unit description but not only one information'
                 break
-            lunit.append(ls[0])
+            if not isstranumber(ls[0]):
+                msg = 'unit description but not numeric information'
+                break
+            lunit.append(float(ls[0]))
         elif kk == 6:
             if len(ls) != 3 + 2 * nbunit:
                 msg = 'NODES not the right number of informations waited for'
@@ -388,7 +394,7 @@ def load_ascii_model(filename, path_prj):
             fsub.write(ligne)
 
     if msg != '':
-        print('ligne : ', i, '\n', ligne, '\n', msg)
+        print('Error:','ligne : ', i, ' {', ligne.rstrip() ,' }', msg)
         fi.close();
         fnode.close();
         ftin.close()
@@ -421,7 +427,7 @@ def load_ascii_model(filename, path_prj):
         suball = np.loadtxt(fsubn, dtype=int)
         os.remove(fsubn)
         if len(suball) != len(ikleall):
-            print('the number of elements given for TIN  and SUBSTRAT description are different')
+            print('Error:','the number of elements given for TIN  and SUBSTRATE description are different')
             return faiload
         if sub_classification_method == 'coarser-dominant':
             if sub_classification_code == "Cemagref":
@@ -438,7 +444,7 @@ def load_ascii_model(filename, path_prj):
             if (suball100 != 100).all():
                 msg = 'SUBSTRATE percentage But not the all the sums =100 '
         if msg != '':
-            print(msg)
+            print( 'Error:',msg)
             return faiload
 
     # create empty dict
@@ -459,7 +465,7 @@ def load_ascii_model(filename, path_prj):
             sub = np.array(suball[ltin[reach_num][0]:ltin[reach_num][1], :])
         nbnodes = len(nodes)
         if ikle.max() != nbnodes - 1:
-            print('REACH :', lreachname[reach_num], "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
+            print('Error:','REACH :', lreachname[reach_num], "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
             return faiload
         # managing  the 4angles (for triangle last index=-1)
         ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
@@ -506,8 +512,8 @@ def load_ascii_model(filename, path_prj):
                             model_dimension=str(2),
                             epsg_code=epsgcode)
     # data_description
-    data_description["unit_list"] = lunitall  # ", ".join(lunit)  # TODO lunitall ready pour indiquer par reach les debits
-    data_description["unit_list_full"] = lunitall # ", ".join(lunit)   # TODO lunitall ready pour indiquer par reach les debits
+    data_description["unit_list"] = lunitall
+    data_description["unit_list_full"] = lunitall
     data_description["unit_list_tf"] = []
     data_description["unit_number"] = str(nbunit)
     data_description["unit_type"] = unit_type
@@ -533,7 +539,7 @@ def get_ascii_model_description(file_path):
 
     WARNING this function is parallel with  load_ascii_model function and some integrity tests are similar
     :param file_path:
-    :return:
+    :return: the reachname list and the unit description (times or discharges)
     """
     faiload = False
     # file exist ?
@@ -615,7 +621,7 @@ def get_ascii_model_description(file_path):
                 lunit.append(ls[0])
 
         if msg != '':
-            print('ligne : ', i, '\n', ligne, '\n', msg)
+            print('Error:','ligne : ', i, ' {', ligne.rstrip() ,' }', msg)
             return faiload
 
     # create dict

@@ -292,3 +292,10 @@ def get_prj_from_epsg_web(epsg_code):
     output = remove_spaces.replace("\n", "")
     return output
 
+def isstranumber(a):
+    try:
+        float(a)
+        bool_a = True
+    except:
+        bool_a = False
+    return bool_a
