@@ -26,7 +26,7 @@ from src_GUI import preferences_GUI
 from src import manage_grid_mod
 
 
-def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, fig_opt={}):
+def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value, q=[], print_cmd=False, fig_opt={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
     was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
@@ -58,14 +58,14 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
     progress_value.value = 10
 
     # check if hydrau_description_multiple
-    if type(description_from_indextelemac_file) == dict:  # hydrau_description simple (one .hyd)
+    if type(description_from_indexHYDRAU_file) == dict:  # hydrau_description simple (one .hyd)
         file_number = 1
-        description_from_indextelemac_file = [description_from_indextelemac_file]
-    if type(description_from_indextelemac_file) == list:  # hydrau_description_multiple (several .hyd)
-        file_number = len(description_from_indextelemac_file)
+        description_from_indexHYDRAU_file = [description_from_indexHYDRAU_file]
+    if type(description_from_indexHYDRAU_file) == list:  # hydrau_description_multiple (several .hyd)
+        file_number = len(description_from_indexHYDRAU_file)
 
     for hyd_file in range(0, file_number):
-        filename_source = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
+        filename_source = description_from_indexHYDRAU_file[hyd_file]["filename_source"].split(", ")
 
         # get data_2d_whole_profile
         data_2d_whole_profile = dict()
@@ -76,7 +76,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         data_2d_whole_profile["unit_correspondence"] = [[]]  # always one reach
         for i, file in enumerate(filename_source):
             # _, _, xy, tin, xy_center, _ = load_telemac(file, pathfilet)
-            data_2d_telemac, description_from_telemac_file = load_telemac(file, description_from_indextelemac_file[hyd_file]["path_filename_source"])
+            data_2d_telemac, description_from_telemac_file = load_telemac(file, description_from_indexHYDRAU_file[hyd_file]["path_filename_source"])
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
                 return
@@ -87,7 +87,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             if description_from_telemac_file["hyd_unit_z_equal"] == "True":
                 data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][0])
             elif description_from_telemac_file["hyd_unit_z_equal"] == "False":
-                for unit_num in range(len(description_from_indextelemac_file[hyd_file]["unit_list"].split(", "))):
+                for unit_num in range(len(description_from_indexHYDRAU_file[hyd_file]["unit_list"].split(", "))):
                     data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][unit_num])
 
             data_2d_whole_profile["unit_correspondence"][0].append(str(i))
@@ -117,7 +117,7 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
             data_2d_whole_profile["unit_correspondence"] = "all"
 
         # progress from 10 to 90 : from 0 to len(units_index)
-        delta = int(80 / int(description_from_indextelemac_file[hyd_file]["unit_number"]))
+        delta = int(80 / int(description_from_indexHYDRAU_file[hyd_file]["unit_number"]))
 
         # cut the grid to have the precise wet area and put data in new form
         data_2d = dict()
@@ -128,27 +128,27 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         data_2d["v"] = [[]]  # always one reach
         data_2d["z"] = [[]]  # always one reach
         # get unit list from telemac file
-        file_list = description_from_indextelemac_file[hyd_file]["filename_source"].split(", ")
+        file_list = description_from_indexHYDRAU_file[hyd_file]["filename_source"].split(", ")
         if len(file_list) > 1:
             unit_number_list = []
             unit_list_from_telemac_file_list = []
-            for file_indextelemac in file_list:
+            for file_indexHYDRAU in file_list:
                 unit_number, unit_list_from_telemac_file = get_time_step(
-                    file_indextelemac,
-                    description_from_indextelemac_file[hyd_file]["path_filename_source"])
+                    file_indexHYDRAU,
+                    description_from_indexHYDRAU_file[hyd_file]["path_filename_source"])
                 unit_number_list.append(unit_number)
                 unit_list_from_telemac_file_list.append(unit_list_from_telemac_file)
         if len(file_list) == 1:
             unit_number, unit_list_from_telemac_file = get_time_step(
-                description_from_indextelemac_file[hyd_file]["filename_source"],
-                description_from_indextelemac_file[hyd_file]["path_filename_source"])
-        # get unit list from indexTELEMAC file
-        if "timestep_list" in description_from_indextelemac_file[hyd_file].keys():
-            unit_list_from_indextelemac_file = description_from_indextelemac_file[hyd_file]["timestep_list"].split(", ")
+                description_from_indexHYDRAU_file[hyd_file]["filename_source"],
+                description_from_indexHYDRAU_file[hyd_file]["path_filename_source"])
+        # get unit list from indexHYDRAU file
+        if "timestep_list" in description_from_indexHYDRAU_file[hyd_file].keys():
+            unit_list_from_indexHYDRAU_file = description_from_indexHYDRAU_file[hyd_file]["timestep_list"].split(", ")
         else:
-            unit_list_from_indextelemac_file = description_from_indextelemac_file[hyd_file]["unit_list"].split(", ")
+            unit_list_from_indexHYDRAU_file = description_from_indexHYDRAU_file[hyd_file]["unit_list"].split(", ")
         # get unit index to load
-        if len(unit_list_from_telemac_file) == 1 and len(unit_list_from_indextelemac_file) == 1:
+        if len(unit_list_from_telemac_file) == 1 and len(unit_list_from_indexHYDRAU_file) == 1:
             unit_index_list = [0]
         else:
             if len(file_list) > 1:
@@ -156,12 +156,12 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                     unit_index_list = [0] * len(file_list)
                 if list(set(unit_number_list))[0] > 1:  # several time step by file
                     unit_index_list = []
-                    for i, time_step in enumerate(unit_list_from_indextelemac_file):
+                    for i, time_step in enumerate(unit_list_from_indexHYDRAU_file):
                         if time_step in unit_list_from_telemac_file_list[i]:
                             unit_index_list.append(unit_list_from_telemac_file_list[i].index(time_step))
             else:
                 unit_index_list = []  # for all cases with specific timestep indicate
-                for unit_wish in unit_list_from_indextelemac_file:
+                for unit_wish in unit_list_from_indexHYDRAU_file:
                     if unit_wish in unit_list_from_telemac_file:
                         unit_index_list.append(unit_list_from_telemac_file.index(unit_wish))
 
@@ -173,13 +173,13 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
                            axis=1)  # Insert values before column 2
         else:
             data_2d_telemac, description_from_telemac_file = load_telemac(file,
-                                                                          description_from_indextelemac_file[
+                                                                          description_from_indexHYDRAU_file[
                                                                               hyd_file]["path_filename_source"])
 
         for i, unit_num in enumerate(unit_index_list):
             if len(file_list) > 1:
                 data_2d_telemac, description_from_telemac_file = load_telemac(file_list[i],
-                                                                              description_from_indextelemac_file[
+                                                                              description_from_indexHYDRAU_file[
                                                                                   hyd_file]["path_filename_source"])
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_telemac["xy"],
@@ -228,27 +228,27 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
 
         # hyd description
         hyd_description = dict()
-        hyd_description["hyd_filename_source"] = description_from_indextelemac_file[hyd_file]["filename_source"]
-        hyd_description["hyd_model_type"] = description_from_indextelemac_file[hyd_file]["model_type"]
-        hyd_description["hyd_model_dimension"] = description_from_indextelemac_file[hyd_file]["model_dimension"]
+        hyd_description["hyd_filename_source"] = description_from_indexHYDRAU_file[hyd_file]["filename_source"]
+        hyd_description["hyd_model_type"] = description_from_indexHYDRAU_file[hyd_file]["model_type"]
+        hyd_description["hyd_model_dimension"] = description_from_indexHYDRAU_file[hyd_file]["model_dimension"]
         hyd_description["hyd_variables_list"] = "h, v, z"
-        hyd_description["hyd_epsg_code"] = description_from_indextelemac_file[hyd_file]["epsg_code"]
-        hyd_description["hyd_reach_list"] = description_from_indextelemac_file[hyd_file]["reach_list"]
-        hyd_description["hyd_reach_number"] = description_from_indextelemac_file[hyd_file]["reach_number"]
-        hyd_description["hyd_reach_type"] = description_from_indextelemac_file[hyd_file]["reach_type"]
-        hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
-        hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
-        hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
+        hyd_description["hyd_epsg_code"] = description_from_indexHYDRAU_file[hyd_file]["epsg_code"]
+        hyd_description["hyd_reach_list"] = description_from_indexHYDRAU_file[hyd_file]["reach_list"]
+        hyd_description["hyd_reach_number"] = description_from_indexHYDRAU_file[hyd_file]["reach_number"]
+        hyd_description["hyd_reach_type"] = description_from_indexHYDRAU_file[hyd_file]["reach_type"]
+        hyd_description["hyd_unit_list"] = description_from_indexHYDRAU_file[hyd_file]["unit_list"]
+        hyd_description["hyd_unit_number"] = description_from_indexHYDRAU_file[hyd_file]["unit_number"]
+        hyd_description["hyd_unit_type"] = description_from_indexHYDRAU_file[hyd_file]["unit_type"]
         hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
         del data_2d_whole_profile['unit_correspondence']
         if fig_opt["Cut2Dgrid"] == "False":
-            namehdf5_old = os.path.splitext(description_from_indextelemac_file[hyd_file]["hdf5_name"])[0]
-            exthdf5_old = os.path.splitext(description_from_indextelemac_file[hyd_file]["hdf5_name"])[1]
-            description_from_indextelemac_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+            namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
+            exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
+            description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
         # create hdf5
-        hdf5 = hdf5_mod.Hdf5Management(description_from_indextelemac_file[hyd_file]["path_prj"],
-                                       description_from_indextelemac_file[hyd_file]["hdf5_name"])
+        hdf5 = hdf5_mod.Hdf5Management(description_from_indexHYDRAU_file[hyd_file]["path_prj"],
+                                       description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])
         hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
 
         # progress
@@ -280,8 +280,8 @@ def load_telemac_and_cut_grid(description_from_indextelemac_file, progress_value
         progress_value.value = 100
 
     if not print_cmd:
-        # create_indextelemac_text_file
-        create_indextelemac_text_file(description_from_indextelemac_file)
+        # create_indexHYDRAU_text_file
+        create_indexHYDRAU_text_file(description_from_indexHYDRAU_file)
         sys.stdout = sys.__stdout__
     if q and not print_cmd:
         q.put(mystdout)
@@ -400,39 +400,39 @@ def load_telemac(namefilet, pathfilet):
     return data_2d, description_from_telemac_file
 
 
-def create_indextelemac_text_file(description_from_indextelemac_file):
+def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
     """ ONE HDF5 """
     # one case (one hdf5 produced)
-    if len(description_from_indextelemac_file) == 1:
-        filename_path = os.path.join(description_from_indextelemac_file[0]["path_prj"], "input", "indexTELEMAC.txt")
+    if len(description_from_indexHYDRAU_file) == 1:
+        filename_path = os.path.join(description_from_indexHYDRAU_file[0]["path_prj"], "input", "indexHYDRAU.txt")
         # telemac case
-        telemac_case = description_from_indextelemac_file[0]["hydrau_case"]
+        telemac_case = description_from_indexHYDRAU_file[0]["hydrau_case"]
 
         # column filename
-        filename_column = description_from_indextelemac_file[0]["filename_source"].split(", ")
+        filename_column = description_from_indexHYDRAU_file[0]["filename_source"].split(", ")
 
         # nb_row
         nb_row = len(filename_column)
 
         """ CASE unknown """
         if telemac_case == "unknown":
-            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
 
             # headers
             headers = "filename" + "\t" + "T[" + time_unit + "]"
 
             # first line
-            if description_from_indextelemac_file[0]["unit_list"].split(", ") == \
-                    description_from_indextelemac_file[0]["unit_list_full"]:
+            if description_from_indexHYDRAU_file[0]["unit_list"].split(", ") == \
+                    description_from_indexHYDRAU_file[0]["unit_list_full"]:
                 unit_data = "all"
             else:
-                index = [i for i, item in enumerate(description_from_indextelemac_file[0]["unit_list_full"]) if
-                         item in description_from_indextelemac_file[0]["unit_list"].split(", ")]
+                index = [i for i, item in enumerate(description_from_indexHYDRAU_file[0]["unit_list_full"]) if
+                         item in description_from_indexHYDRAU_file[0]["unit_list"].split(", ")]
                 my_sequences = []
                 for idx, item in enumerate(index):
                     if not idx or item - 1 != my_sequences[-1][-1]:
@@ -442,9 +442,9 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
                 from_to_string_list = []
                 for sequence in my_sequences:
                     start = min(sequence)
-                    start_string = description_from_indextelemac_file[0]["unit_list_full"][start]
+                    start_string = description_from_indexHYDRAU_file[0]["unit_list_full"][start]
                     end = max(sequence)
-                    end_string = description_from_indextelemac_file[0]["unit_list_full"][end]
+                    end_string = description_from_indexHYDRAU_file[0]["unit_list_full"][end]
                     if start == end:
                         start_end_string = start_string
                     if start != end:
@@ -458,24 +458,24 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
 
         """ CASE 1.a """
         if telemac_case == "1.a":
-            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
             # first line
-            linetowrite = filename_column[0] + "\t" + str(description_from_indextelemac_file[0]["unit_list"].split(", ")[0])
+            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[0])
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
 
@@ -484,25 +484,25 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
 
         """ CASE 1.b """
         if telemac_case == "1.b":
-            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
             # first line
-            linetowrite = filename_column[0] + "\t" + str(description_from_indextelemac_file[0]["unit_list"].split(", ")[0])
-            linetowrite = linetowrite + "\t" + description_from_indextelemac_file[0]["unit_list_full"]
+            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[0])
+            linetowrite = linetowrite + "\t" + description_from_indexHYDRAU_file[0]["unit_list_full"]
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
             # text
@@ -510,18 +510,18 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
 
         """ CASE 2.a """
         if telemac_case == "2.a":
-            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]"
             if reach_column_presence:
@@ -529,7 +529,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             # lines
             linetowrite = ""
             for row in range(nb_row):
-                linetowrite += filename_column[row] + "\t" + str(description_from_indextelemac_file[0]["unit_list"].split(", ")[row])
+                linetowrite += filename_column[row] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[row])
                 if reach_column_presence:
                     linetowrite = linetowrite + "\t" + reach_column + "\n"
                 else:
@@ -542,18 +542,18 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
 
         """ CASE 2.b """
         if telemac_case == "2.b":
-            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             discharge_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "Q[" + discharge_unit + "]" + "\t" + "T[s]"
             if reach_column_presence:
@@ -562,7 +562,7 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
             linetowrite = ""
             for row in range(nb_row):
                 linetowrite += filename_column[row] + "\t" + str(
-                    description_from_indextelemac_file[0]["unit_list"].split(", ")[row]) + "\t" + description_from_indextelemac_file[0]["timestep_list"].split(", ")[row]
+                    description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[row]) + "\t" + description_from_indexHYDRAU_file[0]["timestep_list"].split(", ")[row]
                 if reach_column_presence:
                     linetowrite = linetowrite + "\t" + reach_column + "\n"
                 else:
@@ -575,28 +575,28 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
 
         """ CASE 3.a 3.b """
         if telemac_case == "3.a" or telemac_case == "3.b":
-            if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+            if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
                 reach_column_presence = False
             else:
                 reach_column_presence = True
-                reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+                reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
 
-            unit_type = description_from_indextelemac_file[0]["unit_type"]
+            unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
             start = unit_type.find('[')
             end = unit_type.find(']')
             time_unit = unit_type[start + 1:end]
             # epsg_code
-            epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+            epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
             # headers
             headers = "filename" + "\t" + "T[" + time_unit + "]"
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
 
             # first line
-            if description_from_indextelemac_file[0]["unit_list"].split(", ") == description_from_indextelemac_file[0]["unit_list_full"]:
+            if description_from_indexHYDRAU_file[0]["unit_list"].split(", ") == description_from_indexHYDRAU_file[0]["unit_list_full"]:
                 unit_data = "all"
             else:
-                index = [i for i, item in enumerate(description_from_indextelemac_file[0]["unit_list_full"]) if item in description_from_indextelemac_file[0]["unit_list"].split(", ")]
+                index = [i for i, item in enumerate(description_from_indexHYDRAU_file[0]["unit_list_full"]) if item in description_from_indexHYDRAU_file[0]["unit_list"].split(", ")]
                 my_sequences = []
                 for idx, item in enumerate(index):
                     if not idx or item - 1 != my_sequences[-1][-1]:
@@ -606,9 +606,9 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
                 from_to_string_list = []
                 for sequence in my_sequences:
                     start = min(sequence)
-                    start_string = description_from_indextelemac_file[0]["unit_list_full"][start]
+                    start_string = description_from_indexHYDRAU_file[0]["unit_list_full"][start]
                     end = max(sequence)
-                    end_string = description_from_indextelemac_file[0]["unit_list_full"][end]
+                    end_string = description_from_indexHYDRAU_file[0]["unit_list_full"][end]
                     if start == end:
                         start_end_string = start_string
                     if start != end:
@@ -628,19 +628,19 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
 
     """ MULTI HDF5 """
     # multi case (several hdf5 produced)
-    if len(description_from_indextelemac_file) > 1:
-        if description_from_indextelemac_file[0]["reach_list"] == "unknown":
+    if len(description_from_indexHYDRAU_file) > 1:
+        if description_from_indexHYDRAU_file[0]["reach_list"] == "unknown":
             reach_column_presence = False
         else:
             reach_column_presence = True
-            reach_column = description_from_indextelemac_file[0]["reach_list"].split(", ")[0]
+            reach_column = description_from_indexHYDRAU_file[0]["reach_list"].split(", ")[0]
 
-        unit_type = description_from_indextelemac_file[0]["unit_type"]
+        unit_type = description_from_indexHYDRAU_file[0]["unit_type"]
         start = unit_type.find('[')
         end = unit_type.find(']')
         time_unit = unit_type[start + 1:end]
         # epsg_code
-        epsg_code = "EPSG=" + description_from_indextelemac_file[0]["epsg_code"]
+        epsg_code = "EPSG=" + description_from_indexHYDRAU_file[0]["epsg_code"]
         # headers
         headers = "filename" + "\t" + "T[" + time_unit + "]"
         if reach_column_presence:
@@ -649,26 +649,26 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
         # text
         text = epsg_code + "\n" + headers
 
-        for i_hdf5, hdf5_file in enumerate(range(len(description_from_indextelemac_file))):
-            filename_path = os.path.join(description_from_indextelemac_file[i_hdf5]["path_prj"], "input", "indexTELEMAC.txt")
+        for i_hdf5, hdf5_file in enumerate(range(len(description_from_indexHYDRAU_file))):
+            filename_path = os.path.join(description_from_indexHYDRAU_file[i_hdf5]["path_prj"], "input", "indexHYDRAU.txt")
             # telemac case
-            telemac_case = description_from_indextelemac_file[i_hdf5]["hydrau_case"]
+            telemac_case = description_from_indexHYDRAU_file[i_hdf5]["hydrau_case"]
 
             # column filename
-            filename_column = description_from_indextelemac_file[i_hdf5]["filename_source"].split(", ")
+            filename_column = description_from_indexHYDRAU_file[i_hdf5]["filename_source"].split(", ")
 
             if telemac_case == "4.a" or telemac_case == "4.b" or telemac_case == "unknown":
-                if description_from_indextelemac_file[i_hdf5]["reach_list"] == "unknown":
+                if description_from_indexHYDRAU_file[i_hdf5]["reach_list"] == "unknown":
                     reach_column_presence = False
                 else:
                     reach_column_presence = True
-                    reach_column = description_from_indextelemac_file[i_hdf5]["reach_list"].split(", ")[0]
+                    reach_column = description_from_indexHYDRAU_file[i_hdf5]["reach_list"].split(", ")[0]
 
                 # first line
-                if description_from_indextelemac_file[i_hdf5]["unit_list"].split(", ") == description_from_indextelemac_file[i_hdf5]["unit_list_full"]:
+                if description_from_indexHYDRAU_file[i_hdf5]["unit_list"].split(", ") == description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"]:
                     unit_data = "all"
                 else:
-                    index = [i for i, item in enumerate(description_from_indextelemac_file[i_hdf5]["unit_list_full"]) if item in description_from_indextelemac_file[i_hdf5]["unit_list"].split(", ")]
+                    index = [i for i, item in enumerate(description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"]) if item in description_from_indexHYDRAU_file[i_hdf5]["unit_list"].split(", ")]
                     my_sequences = []
                     for idx, item in enumerate(index):
                         if not idx or item - 1 != my_sequences[-1][-1]:
@@ -678,9 +678,9 @@ def create_indextelemac_text_file(description_from_indextelemac_file):
                     from_to_string_list = []
                     for sequence in my_sequences:
                         start = min(sequence)
-                        start_string = description_from_indextelemac_file[i_hdf5]["unit_list_full"][start]
+                        start_string = description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"][start]
                         end = max(sequence)
-                        end_string = description_from_indextelemac_file[i_hdf5]["unit_list_full"][end]
+                        end_string = description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"][end]
                         if start == end:
                             start_end_string = start_string
                         if start != end:

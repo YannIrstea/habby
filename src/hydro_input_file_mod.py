@@ -15,9 +15,11 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from src import telemac_mod
-from src import hec_ras2D_mod
+
 from src import ascii_mod
+from src import hec_ras2D_mod
+from src import telemac_mod
+
 
 def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_dim):
     """
@@ -47,13 +49,14 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         blob = [os.path.splitext(file)[0] for file in filename]
         ext = [os.path.splitext(file)[1] for file in filename]
 
-    # indexTELEMAC paths
-    filename_path_index = os.path.join(folder_path, "indexTELEMAC.txt")
+    # indexHYDRAU paths
+    filename_path_index = os.path.join(folder_path, "indexHYDRAU.txt")
 
-    # indexTELEMAC.txt absence
+    # indexHYDRAU.txt absence
     if not os.path.isfile(filename_path_index):
-        warning_list.append("Warning: indexTELEMAC.txt doesn't exist. It will be created in the 'input' directory after the creation "
-              "of the .hyd file. The latter will be filled in according to your choices.")
+        if model_type != "ASCII":
+            warning_list.append("Warning: indexHYDRAU.txt doesn't exist. It will be created in the 'input' directory after the creation "
+                  "of the .hyd file. The latter will be filled in according to your choices.")
 
         # more_than_one_file_selected_by_user
         if more_than_one_file_selected_by_user:
@@ -95,28 +98,48 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         # one file selected_by_user
         if not more_than_one_file_selected_by_user:
             # get units name from file
-            nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
-            hydrau_description = dict(path_prj=path_prj,
-                                       name_prj=name_prj,
-                                       hydrau_case=hydrau_case,
-                                       filename_source=filename,
-                                       path_filename_source=folder_path,
-                                       hdf5_name=filename.split('.')[0] + ".hyd",
-                                       model_type=model_type,
-                                       model_dimension=str(nb_dim),
-                                       epsg_code="unknown")
-            # hydrau_description
-            hydrau_description["unit_list"] = ", ".join(unit_name_from_file)
-            hydrau_description["unit_list_full"] = ", ".join(unit_name_from_file)
-            hydrau_description["unit_list_tf"] = []
-            hydrau_description["unit_number"] = str(nbtimes)
-            hydrau_description["unit_type"] = "time [s]"
-            hydrau_description["reach_list"] = "unknown"
-            hydrau_description["reach_number"] = str(1)
-            hydrau_description["reach_type"] = "river"
-            hydrau_description["flow_type"] = "unknown"
+            if model_type == 'ASCII':
+                ascii_description = ascii_mod.get_ascii_model_description(filename_path)
+                epsg_code = ascii_description["epsg_code"]
+                unit_type = ascii_description["unit_type"]
+                unit_list = ascii_description["unit_list"]
+                reach_number = ascii_description["reach_number"]
+                reach_list = ascii_description["reach_list"]
+                sub = ascii_description["sub"]
+                if sub:
+                    warning_list.append("Warning: Substrate data in selected ascii input file. "
+                                        "Data loading will create .hab directly instead of .hyd "
+                                        "(loading button label changed)")
+                nbtimes = len(unit_list[0])
+            else:
+                epsg_code = "unknown"
+                unit_type = "time [s]"
+                reach_number = 1
+                reach_list = "unknown"
+                sub = False
+                nbtimes, unit_list = get_time_step(filename_path, model_type)
 
-    # indexTELEMAC.txt presence
+            hydrau_description = dict(path_prj=path_prj,
+                                      name_prj=name_prj,
+                                      hydrau_case=hydrau_case,
+                                      filename_source=filename,
+                                      path_filename_source=folder_path,
+                                      hdf5_name=filename.split('.')[0] + ".hyd",
+                                      model_type=model_type,
+                                      model_dimension=str(nb_dim),
+                                      epsg_code=epsg_code,
+                                      unit_list=unit_list,
+                                      unit_list_full=unit_list,
+                                      unit_list_tf=[],
+                                      unit_number=str(nbtimes),
+                                      unit_type=unit_type,
+                                      reach_list=reach_list,
+                                      reach_number=str(reach_number),
+                                      reach_type="river",
+                                      flow_type="unknown",
+                                      sub=sub)
+
+    # indexHYDRAU.txt presence
     if os.path.isfile(filename_path_index):
         # init variables
         discharge_presence = False  # "Q[" in headers
@@ -149,8 +172,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             for i, file_path in enumerate(filename_list):
                 if os.path.basename(file_path) in data_index_file["filename"]:
                     selectedfiles_textfiles_match[i] = True
-        if ext == ".txt":  # from indexTELEMAC.txt
-            # more_than_one_file_selected_by_user or more_than_one_file_in indextelemac (if from .txt)
+        if ext == ".txt":  # from indexHYDRAU.txt
+            # more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
             if len(data_index_file["filename"]) > 1:
                 more_than_one_file_selected_by_user = True
             # textfiles filesexisting matching
@@ -206,7 +229,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if ext != ".txt":  # from file
                 namefile = ", ".join(filename)  # source file name
                 name_hdf5 = "_".join(blob) + ".hyd"
-            if ext == ".txt":  # from indexTELEMAC.txt
+            if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = ", ".join(data_index_file["filename"])  # source file name
                 name_hdf5 = "_".join(
                     [os.path.splitext(file)[0] for file in data_index_file["filename"]]) + ".hyd"
@@ -214,7 +237,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             if ext != ".txt":  # from file
                 namefile = filename  # source file name
                 name_hdf5 = filename.split('.')[0] + ".hyd"
-            if ext == ".txt":  # from indexTELEMAC.txt
+            if ext == ".txt":  # from indexHYDRAU.txt
                 namefile = data_index_file["filename"][0]  # source file name
                 name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0] + ".hyd"
 
@@ -234,11 +257,11 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # get units name from TELEMAC file
             filename_path = os.path.join(folder_path, data_index_file["filename"][0])
             nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
-            # get units name from indexTELEMAC.txt file
+            # get units name from indexHYDRAU.txt file
             unit_name_from_index_file = data_index_file[headers[discharge_index]]
             # check if lenght of two loading units
             if len(unit_name_from_file) > len(unit_name_from_index_file):
-                return "Error: units number from indexTELEMAC inferior than TELEMAC selected."
+                return "Error: units number from indexHYDRAU inferior than TELEMAC selected."
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -270,7 +293,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # get units name from file
             filename_path = os.path.join(folder_path, data_index_file["filename"][0])
             nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
-            # get units name from indexTELEMAC.txt file
+            # get units name from indexHYDRAU.txt file
             unit_name_from_index_file = data_index_file[headers[time_index]][0]
 
             # check if lenght of two loading units
@@ -308,9 +331,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                         return "Error: file " + file + " contain more than one time step (timestep :" \
                                + str(unit_name_from_file) + ")"
 
-            # selected files same than indexTELEMAC file
+            # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexTELEMAC files"
+                return "Error: selected files are different from indexHYDRAU files"
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -335,15 +358,15 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 # get units name from file
                 filename_path = os.path.join(folder_path, file)
                 nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
-                # get units name from indexTELEMAC.txt file
+                # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[time_index]][rowindex]
                 # check if lenght of two loading units
                 if unit_name_from_index_file not in unit_name_from_file:
                     return "Error: " + unit_name_from_index_file + "don't exist in" + file
 
-            # selected files same than indexTELEMAC file
+            # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexTELEMAC files"
+                return "Error: selected files are different from indexHYDRAU files"
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -369,9 +392,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             filename_path = os.path.join(folder_path, data_index_file[headers[0]][0])
             nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
 
-            # selected files same than indexTELEMAC file
+            # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexTELEMAC files"
+                return "Error: selected files are different from indexHYDRAU files"
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -398,7 +421,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             filename_path = os.path.join(folder_path, data_index_file[headers[0]][0])
             nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
 
-            # get units name from indexTELEMAC.txt file
+            # get units name from indexHYDRAU.txt file
             unit_name_from_index_file = data_index_file[headers[time_index]][0]
 
             unit_name_from_index_file2 = []
@@ -423,9 +446,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 else:
                     timestep_to_select.append(False)
 
-            # selected files same than indexTELEMAC file
+            # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexTELEMAC files"
+                return "Error: selected files are different from indexHYDRAU files"
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -446,9 +469,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
         """ CASE 4.a """
         if hydrau_case == "4.a":
-            # selected files same than indexTELEMAC file
+            # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexTELEMAC files"
+                return "Error: selected files are different from indexHYDRAU files"
 
             # hydrau_description for several file
             hydrau_description_multiple = []
@@ -491,9 +514,9 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
         """ CASE 4.b """
         if hydrau_case == "4.b":
-            # selected files same than indexTELEMAC file
+            # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexTELEMAC files"
+                return "Error: selected files are different from indexHYDRAU files"
 
             # hydrau_description for several file
             hydrau_description_multiple = []
@@ -502,7 +525,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 # get units name from file
                 filename_path = os.path.join(folder_path, file)
                 nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
-                # get units name from indexTELEMAC.txt file
+                # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[time_index]][i]
                 unit_name_from_index_file2 = []
                 for element_unit in unit_name_from_index_file.split(";"):
@@ -578,6 +601,4 @@ def get_time_step(file_path, model_type):
         nbtimes, unit_name_from_file = telemac_mod.get_time_step(filename, folder_path)
     if model_type == "HECRAS2D":
         nbtimes, unit_name_from_file = hec_ras2D_mod.get_time_step(file_path)
-    if model_type == "ASCII":
-        nbtimes, unit_name_from_file = ascii_mod.get_time_step(file_path)
     return nbtimes, unit_name_from_file

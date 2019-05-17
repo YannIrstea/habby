@@ -1843,7 +1843,6 @@ class MainWindows(QMainWindow):
                                                               " The files produced by this process can be damaged.")
                                 # hide button
                                 self.kill_process.setVisible(False)
-                                print("setVisible(False)1")
                 else:
                     if hasattr(central_widget_attrib, tabs):
                         process_object = getattr(central_widget_attrib, tabs).p
@@ -1856,10 +1855,8 @@ class MainWindows(QMainWindow):
                                                               " The files produced by this process can be damaged.")
                                 # hide button
                                 self.kill_process.setVisible(False)
-                                print("setVisible(False)2")
             # hide button
             self.kill_process.setVisible(False)
-            print("setVisible(False)3")
         if isalive:
             return alive
 

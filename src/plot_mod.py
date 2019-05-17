@@ -183,8 +183,8 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
         fig_opt = preferences_GUI.create_default_figoption()
 
     # plot the grid
-    plt.rcParams[
-        'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
+    plt.rcParams['agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit
+    # (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
     plt.rcParams['font.size'] = fig_opt['font_size']
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
