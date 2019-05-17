@@ -278,10 +278,8 @@ class Hdf5Management:
         # units name
         units_name = []
         # get unit_list
-        hdf5_attributes = list(self.file_object.attrs.items())
-        for attribute_name, attribute_data in hdf5_attributes:
-            if "unit_list" in attribute_name:
-                units_name = attribute_data.split(", ")
+        units_name = [self.file_object["unit_by_reach"][:].astype(np.str).flatten().tolist()]
+
         # close hdf5 file
         self.file_object.close()
 
@@ -357,10 +355,11 @@ class Hdf5Management:
 
         # data by type of model (2D)
         if int(hyd_description["hyd_model_dimension"]) <= 2:
-
+            # dataset for unit_list
             self.file_object.create_dataset(name="unit_by_reach",
-                                            shape=[0, 1],
-                                            data=hyd_description["hyd_unit_list"])
+                                            shape=[len(hyd_description["hyd_unit_list"][0]),
+                                                   len(hyd_description["hyd_unit_list"])],
+                                            data=np.array(hyd_description["hyd_unit_list"]).astype(np.float64))
 
             # whole_profile
             data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
@@ -472,6 +471,9 @@ class Hdf5Management:
         hyd_description = dict()
         for attribute_name, attribute_value in list(self.file_object.attrs.items()):
             hyd_description[attribute_name] = attribute_value
+
+        # dataset for unit_list
+        hyd_description["hyd_unit_list"] = [self.file_object["unit_by_reach"][:].flatten().tolist()]
 
         # WHOLE PROFIL
         if whole_profil:
@@ -1152,9 +1154,6 @@ class Hdf5Management:
 
     def export_mesh_shp(self, fig_opt):
         if fig_opt['shape_output'] == "True":
-            # get units list
-            unit_names = self.data_description["hyd_unit_list"].split(", ")
-
             # init
             fish_names = []
 
@@ -1169,6 +1168,8 @@ class Hdf5Management:
 
             # for each reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                # get units list
+                unit_names = self.data_description["hyd_unit_list"][reach_num]
                 # for each unit
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                     # set name
@@ -1313,8 +1314,6 @@ class Hdf5Management:
 
     def export_point_shp(self, fig_opt, data_2d_whole_profile, data_2d):
         if fig_opt['shape_output'] == "True":
-            # get units list
-            unit_names = self.data_description["hyd_unit_list"].split(", ")
             if data_2d_whole_profile:
                 name_shp = self.basename + "_whole_profile_point_r0_t0.shp"
 
@@ -1361,6 +1360,8 @@ class Hdf5Management:
             if data_2d:
                 # for each reach
                 for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                    # get units list
+                    unit_names = self.data_description["hyd_unit_list"][reach_num]
                     # for each unit
                     for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                         # set name
@@ -1657,7 +1658,7 @@ class Hdf5Management:
             if data_2d:
                 """ create stl water level (to see water level on topography) """
                 # get units list
-                unit_names = self.data_description["hyd_unit_list"].split(", ")
+                unit_names = self.data_description["hyd_unit_list"]
                 # for each reach
                 for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                     # for each unit
@@ -1679,7 +1680,7 @@ class Hdf5Management:
                                 stl_file.vectors[i][j] = vertices[f[j], :]
                         # Write the mesh to file "cube.stl"
                         stl_file.save(os.path.join(self.path_visualisation,
-                                                   self.basename + "_waterlevel_" + str(unit_names[unit_num]) + ".stl"))
+                                                   self.basename + "_waterlevel_" + str(unit_names[reach_num][unit_num]) + ".stl"))
 
     def export_paraview(self, fig_opt):
         if fig_opt['paraview'] == "True":

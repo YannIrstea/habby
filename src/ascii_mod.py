@@ -27,9 +27,12 @@ from src import mesh_management_mod
 from src_GUI import preferences_GUI
 
 
-def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd=False, fig_opt={}):
+def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, fig_opt={}):
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+
+    file_path = os.path.join(hydrau_description["path_filename_source"], hydrau_description["filename_source"])
+    path_prj = hydrau_description["path_prj"]
 
     # minimum water height
     if not fig_opt:
@@ -45,50 +48,89 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
         q.put(mystdout)
         return
 
+    # create copy
     data_2d_whole_profile = deepcopy(data_2d_from_ascii)
+
+    # create empty dict
+    data_2d = dict()
+    data_2d["tin"] = []
+    data_2d["i_whole_profile"] = []
+    data_2d["sub"] = []
+    data_2d["xy"] = []
+    data_2d["h"] = []
+    data_2d["v"] = []
+    data_2d["z"] = []
 
     # progress from 10 to 90 : from 0 to len(units_index)
     delta = int(80 / int(data_description["reach_number"]))
 
     # for each reach
     for reach_num in range(int(data_description["reach_number"])):
-        # for each units
-        for unit_num, unit_index in enumerate(data_description["unit_list"]):
-            # conca xy with z value to facilitate the cutting of the grid (interpolation)
-            xy = np.insert(data_2d_from_ascii["xy"][reach_num][unit_num],
-                           2,
-                           values=data_2d_from_ascii["z"][reach_num][unit_num],
-                           axis=1)  # Insert values before column 2
-            # cut2dgrid
-            if fig_opt["Cut2Dgrid"] == "True":
-                [tin_data, xy, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(
-                    data_2d_from_ascii["tin"][reach_num][unit_num],
-                    xy,
-                    data_2d_from_ascii["h"][reach_num][unit_num],
-                    data_2d_from_ascii["v"][reach_num][unit_num],
-                    progress_value,
-                    delta,
-                    minwh,
-                    True)
-                if not isinstance(tin_data, np.ndarray):
-                    print("Error: cut_2d_grid")
-                    q.put(mystdout)
-                    return
-            # not cut2dgrid
-            elif fig_opt["Cut2Dgrid"] == "False":
-                # if we want to disable cut_2d_grid (for dev)
-                tin_data = data_2d_from_ascii["tin"][reach_num][unit_num]
-                ind_new = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
-                h_data = data_2d_from_ascii["h"][reach_num][unit_num]
-                v_data = data_2d_from_ascii["v"][reach_num][unit_num]
+        data_2d["tin"].append([])
+        data_2d["i_whole_profile"].append([])
+        data_2d["sub"].append([])
+        data_2d["xy"].append([])
+        data_2d["h"].append([])
+        data_2d["v"].append([])
+        data_2d["z"].append([])
 
-            # replace cuted grid in dict
-            data_2d_from_ascii["tin"][reach_num][unit_num] = tin_data
-            data_2d_from_ascii["i_whole_profile"][reach_num][unit_num] = ind_new
-            data_2d_from_ascii["xy"][reach_num][unit_num] = xy[:, :2]
-            data_2d_from_ascii["h"][reach_num][unit_num] = h_data
-            data_2d_from_ascii["v"][reach_num][unit_num] = v_data
-            data_2d_from_ascii["z"][reach_num][unit_num] = xy[:, 2]
+        # for each units
+        for unit_num, unit_index in enumerate(data_description["unit_list"][reach_num]):
+            if hydrau_description["unit_list_tf"][reach_num][unit_num]:
+
+                # conca xy with z value to facilitate the cutting of the grid (interpolation)
+                xy = np.insert(data_2d_from_ascii["xy"][reach_num][unit_num],
+                               2,
+                               values=data_2d_from_ascii["z"][reach_num][unit_num],
+                               axis=1)  # Insert values before column 2
+
+                # cut2dgrid
+                if fig_opt["Cut2Dgrid"] == "True":
+                    [tin_data, xy_cuted, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(
+                        data_2d_from_ascii["tin"][reach_num][unit_num],
+                        xy,
+                        data_2d_from_ascii["h"][reach_num][unit_num],
+                        data_2d_from_ascii["v"][reach_num][unit_num],
+                        progress_value,
+                        delta,
+                        minwh,
+                        True)
+                    if not isinstance(tin_data, np.ndarray):
+                        print("Error: cut_2d_grid")
+                        q.put(mystdout)
+                        return
+
+                # not cut2dgrid
+                elif fig_opt["Cut2Dgrid"] == "False":
+                    # if we want to disable cut_2d_grid
+                    xy_cuted = xy
+                    tin_data = data_2d_from_ascii["tin"][reach_num][unit_num]
+                    ind_new = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
+                    h_data = data_2d_from_ascii["h"][reach_num][unit_num]
+                    v_data = data_2d_from_ascii["v"][reach_num][unit_num]
+
+                # get cuted grid
+                data_2d["tin"][reach_num].append(tin_data)
+                data_2d["i_whole_profile"][reach_num].append(ind_new)
+
+
+
+                data_2d["sub"][reach_num].append()  # TODO: add the new substrate in append
+
+
+                data_2d["xy"][reach_num].append(xy_cuted[:, :2])
+                data_2d["h"][reach_num].append(h_data)
+                data_2d["v"][reach_num].append(v_data)
+                data_2d["z"][reach_num].append(xy_cuted[:, 2])
+
+            # erase unit in whole_profile
+            else:
+                data_2d_whole_profile["tin"][reach_num].pop(unit_num)
+                data_2d_whole_profile["i_whole_profile"][reach_num].pop(unit_num)
+                data_2d_whole_profile["xy"][reach_num].pop(unit_num)
+                data_2d_whole_profile["h"][reach_num].pop(unit_num)
+                data_2d_whole_profile["v"][reach_num].pop(unit_num)
+                data_2d_whole_profile["z"][reach_num].pop(unit_num)
 
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
@@ -103,8 +145,8 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
     hyd_description["hyd_reach_list"] = data_description["reach_list"]
     hyd_description["hyd_reach_number"] = data_description["reach_number"]
     hyd_description["hyd_reach_type"] = data_description["reach_type"]
-    hyd_description["hyd_unit_list"] = data_description["unit_list"]
-    hyd_description["hyd_unit_number"] = data_description["unit_number"]
+    hyd_description["hyd_unit_list"] = hydrau_description["unit_list"]
+    hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_unit_wholeprofile"] = "all"
     hyd_description["hyd_unit_z_equal"] = "True"
@@ -112,7 +154,7 @@ def load_ascii_and_cut_grid(file_path, path_prj, progress_value, q=[], print_cmd
     # create hdf5
     hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
                                    data_description["hdf5_name"])
-    hdf5.create_hdf5_hyd(data_2d_from_ascii,
+    hdf5.create_hdf5_hyd(data_2d,
                          data_2d_whole_profile,
                          hyd_description)
 
@@ -159,7 +201,7 @@ def load_ascii_model(filename, path_prj):
     several reaches and units (discharges or times )descriptions are allowed
     transforming v<0 in abs(v) ; hw<0 in hw=0 and where hw=0 v=0
     transforming each quadrangle into 4 triangle and taking care of partially wet quadrangles to interpolate the centers
-    WARNING this function is parallel with  get_time_step function and some integrity tests are similar
+    WARNING this function is parallel with get_ascii_model_description function and some integrity tests are similar
     :param filename: the name of the text file
     :param path_prj:
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
@@ -484,7 +526,7 @@ def load_ascii_model(filename, path_prj):
     return data_2d, data_description
 
 
-def get_time_step(file_path):
+def get_ascii_model_description(file_path):
     """
     using a text file description of hydraulic outputs from a 2 D model (with or without substrate description)
     several reaches and units (discharges or times )descriptions are allowed
@@ -493,7 +535,7 @@ def get_time_step(file_path):
     :param file_path:
     :return:
     """
-    faiload = False, False, False, False, False
+    faiload = False
     # file exist ?
     if not os.path.isfile(file_path):
         print('Error: The ascci text file does not exist. Cannot be loaded.')
@@ -503,6 +545,7 @@ def get_time_step(file_path):
     lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches  or nbreaches elements
     epsgcode = ''
     bq_per_reach = False
+    bsub =False
     with open(file_path, 'r', encoding='utf8') as fi:
         for i, ligne in enumerate(fi):
             ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
@@ -562,6 +605,8 @@ def get_time_step(file_path):
                 kk = 5
             elif ls[0].upper() == 'TIN':
                 kk = 7
+            elif ls[0].upper() == 'SUBSTRATE':
+                bsub=True
             elif kk == 3:
                 nbunit += 1
                 if len(ls) != 1:
@@ -573,4 +618,12 @@ def get_time_step(file_path):
             print('ligne : ', i, '\n', ligne, '\n', msg)
             return faiload
 
-    return epsgcode, unit_type, lunitall, reachnumber, lreachname
+    # create dict
+    ascii_description = dict(epsg_code=epsgcode,
+                             unit_type=unit_type,
+                             unit_list=lunitall,
+                             reach_number=reachnumber,
+                             reach_list=lreachname,
+                             sub=bsub)
+
+    return ascii_description

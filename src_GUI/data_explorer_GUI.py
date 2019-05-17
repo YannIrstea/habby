@@ -520,7 +520,7 @@ class DataExplorerFrame(QFrame):
             hdf5.get_hdf5_units_name()
 
             # add
-            self.units_QListWidget.addItems(hdf5.units_name)
+            self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
 
         # more than one file selected
         elif len(selection_reach) > 1:
