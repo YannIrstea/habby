@@ -294,8 +294,7 @@ def load_ascii_model(filename, path_prj):
                     if nbunitforall != nbunit:
                         msg = ' the number of units Q[XXX ,Q1,Q2 after REACH must be constant for each reach'
                         break
-            if reachnumber == 1 or bq_per_reach:
-                lunitall.append(lunit)
+            lunitall.append(lunit)
             kk = 5
         elif ls[0].lower() == 'x':
             if kk != 5:
@@ -611,8 +610,7 @@ def get_ascii_model_description(file_path):
                 if kk != 3 and kk != 4:
                     msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
                     break
-                if reachnumber == 1 or bq_per_reach:
-                    lunitall.append(lunit)
+                lunitall.append(lunit)
                 kk = 5
             elif ls[0].upper() == 'TIN':
                 kk = 7
