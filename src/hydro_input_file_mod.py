@@ -103,11 +103,12 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 epsg_code = ascii_description["epsg_code"]
                 unit_type = ascii_description["unit_type"]
                 unit_list = ascii_description["unit_list"]
+                unit_list_tf = [list(map(bool, x)) for x in ascii_description["unit_list"]]
                 reach_number = ascii_description["reach_number"]
                 reach_list = ascii_description["reach_list"]
                 sub = ascii_description["sub"]
                 if sub:
-                    warning_list.append("Warning: Substrate data in selected ascii input file. "
+                    warning_list.append("Warning: Substrate data present in the ascii input file. "
                                         "Data loading will create .hab directly instead of .hyd "
                                         "(loading button label changed)")
                 nbtimes = len(unit_list[0])
@@ -118,6 +119,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 reach_list = "unknown"
                 sub = False
                 nbtimes, unit_list = get_time_step(filename_path, model_type)
+                unit_list_tf = [list(map(bool, x)) for x in unit_list]
 
             hydrau_description = dict(path_prj=path_prj,
                                       name_prj=name_prj,
@@ -130,7 +132,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                                       epsg_code=epsg_code,
                                       unit_list=unit_list,
                                       unit_list_full=unit_list,
-                                      unit_list_tf=[],
+                                      unit_list_tf=unit_list_tf,
                                       unit_number=str(nbtimes),
                                       unit_type=unit_type,
                                       reach_list=reach_list,

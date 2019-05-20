@@ -96,6 +96,18 @@ class Hdf5Management:
                 self.file_object.attrs['path_projet'] = self.path_prj
                 self.file_object.attrs['name_projet'] = self.name_prj
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
+            if not new:
+                self.get_hdf5_attributes()
+                self.get_hdf5_reach_name()
+                self.get_hdf5_fish_names()
+                self.get_hdf5_units_name()
+                # create basename_output for output files
+                self.basename_output = []
+                for reach_num, reach_name in enumerate(self.reach_name):
+                    self.basename_output.append([])
+                    for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                        unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name).replace(".", "%")
+                        self.basename_output[reach_num].append(self.basename + "_" + reach_name + "_" + str(unit_name2))
 
         except OSError:
             print('Error: the hdf5 file could not be loaded.')
@@ -142,8 +154,8 @@ class Hdf5Management:
 
     # GET HDF5 INFORMATIONS
     def get_hdf5_attributes(self):
-        # open an hdf5
-        self.open_hdf5_file(new=False)
+        # # open an hdf5
+        # self.open_hdf5_file(new=False)
         # get attributes
         hdf5_attributes_dict = dict(self.file_object.attrs.items())
         hdf5_attributes_dict_keys = sorted(hdf5_attributes_dict.keys())
@@ -164,21 +176,21 @@ class Hdf5Management:
             hdf5_attributes_name_text.extend([attribute_name.replace("_", " ")])
             hdf5_attributes_info_text.extend([hdf5_attributes_dict[attribute_name]])
 
-        # close hdf5 file
-        self.file_object.close()
+        # # close hdf5 file
+        # self.file_object.close()
 
         # to attributes
         self.hdf5_attributes_name_text = hdf5_attributes_name_text
         self.hdf5_attributes_info_text = hdf5_attributes_info_text
 
     def get_hdf5_variables(self):
-        # open an hdf5
-        self.open_hdf5_file(new=False)
+        # # open an hdf5
+        # self.open_hdf5_file(new=False)
 
         # substrate constant ==> nothing to plot
         if self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
-            # close hdf5 file
-            self.file_object.close()
+            # # close hdf5 file
+            # self.file_object.close()
             # to attribute
             self.variables = []
 
@@ -234,8 +246,8 @@ class Hdf5Management:
                 if variable in variables:  # first
                     variables.insert(variable_index, variables.pop(variables.index(variable)))
 
-            # close hdf5 file
-            self.file_object.close()
+            # # close hdf5 file
+            # self.file_object.close()
 
             # to attribute
             self.variables = variables
@@ -252,8 +264,8 @@ class Hdf5Management:
         of the time steps, it returns them. If not, it return an empty list.
         :return: the name of the time step if they exist. Otherwise, an empty list
         """
-        # open hdf5 file
-        self.open_hdf5_file(new=False)
+        # # open hdf5 file
+        # self.open_hdf5_file(new=False)
         # units name
         reach_name = []
         # get unit_list
@@ -261,8 +273,8 @@ class Hdf5Management:
         for attribute_name, attribute_data in hdf5_attributes:
             if "reach_list" in attribute_name:
                 reach_name = attribute_data.split(", ")
-        # close hdf5 file
-        self.file_object.close()
+        # # close hdf5 file
+        # self.file_object.close()
 
         # to attributes
         self.reach_name = reach_name
@@ -273,29 +285,30 @@ class Hdf5Management:
         of the time steps, it returns them. If not, it return an empty list.
         :return: the name of the time step if they exist. Otherwise, an empty list
         """
-        # open hdf5 file
-        self.open_hdf5_file(new=False)
+        # # open hdf5 file
+        # self.open_hdf5_file(new=False)
         # units name
         units_name = []
         # get unit_list
-        units_name = [self.file_object["unit_by_reach"][:].astype(np.str).flatten().tolist()]
 
-        # close hdf5 file
-        self.file_object.close()
+        units_name = self.file_object["unit_by_reach"].value.transpose().tolist()
+
+        # # close hdf5 file
+        # self.file_object.close()
 
         # to attributes
         self.units_name = units_name
 
     def get_hdf5_units_number(self):  # ? a changer si on utilise attributs
-        # open hdf5 file
-        self.open_hdf5_file(new=False)
+        # # open hdf5 file
+        # self.open_hdf5_file(new=False)
         # get nb_unit
         hdf5_attributes = list(self.file_object.attrs.items())
         for attribute_name, attribute_data in hdf5_attributes:
             if "nb_unit" in attribute_name:
                 nb_unit = int(attribute_data)
-        # close hdf5 file
-        self.file_object.close()
+        # # close hdf5 file
+        # self.file_object.close()
 
         # to attributes
         self.nb_unit = nb_unit
@@ -359,7 +372,7 @@ class Hdf5Management:
             self.file_object.create_dataset(name="unit_by_reach",
                                             shape=[len(hyd_description["hyd_unit_list"][0]),
                                                    len(hyd_description["hyd_unit_list"])],
-                                            data=np.array(hyd_description["hyd_unit_list"]).astype(np.float64))
+                                            data=np.array(hyd_description["hyd_unit_list"]).astype(np.float64).transpose())
 
             # whole_profile
             data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
@@ -473,7 +486,7 @@ class Hdf5Management:
             hyd_description[attribute_name] = attribute_value
 
         # dataset for unit_list
-        hyd_description["hyd_unit_list"] = [self.file_object["unit_by_reach"][:].flatten().tolist()]
+        hyd_description["hyd_unit_list"] = self.file_object["unit_by_reach"].value.transpose().tolist()
 
         # WHOLE PROFIL
         if whole_profil:
@@ -727,7 +740,7 @@ class Hdf5Management:
     # HABITAT
     def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description):
         # model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d
-        attributes_to_remove = ("sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type", "hdf5_type")
+        attributes_to_remove = ("hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type", "hdf5_type")
 
         # create a new hdf5
         self.open_hdf5_file(new=True)
@@ -741,11 +754,18 @@ class Hdf5Management:
         self.file_object.attrs["hab_fish_pref_list"] = ", ".join([])
         self.file_object.attrs["hab_fish_stage_list"] = ", ".join([])
 
+        # dataset for unit_list
+        self.file_object.create_dataset(name="unit_by_reach",
+                                        shape=[len(merge_description["hyd_unit_list"][0]),
+                                               len(merge_description["hyd_unit_list"])],
+                                        data=np.array(merge_description["hyd_unit_list"]).astype(np.float64).transpose())
+        # np.array(merge_description["hyd_unit_list"]).astype(np.float64).reshape(list(reversed(np.array(merge_description["hyd_unit_list"]).shape)))
         # data_2D_whole_profile profile
         data_whole_profile_group = self.file_object.create_group('data_2D_whole_profile')
         # REACH GROUP
         for reach_num in range(int(merge_description["hyd_reach_number"])):
             reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
+
             # UNIT GROUP
             if merge_description["hyd_unit_wholeprofile"] == "all":  # one whole profile for all units
                 nb_whole_profil = 1
@@ -850,6 +870,9 @@ class Hdf5Management:
                     print("Error :", fish_name, "habitat don't exist in", self.filename)
             if not all_fish_exist:
                 return
+
+        # dataset for unit_list
+        data_description["hyd_unit_list"] = self.file_object["unit_by_reach"].value.transpose().tolist()
 
         # DATA 2D WHOLE PROFIL
         if whole_profil:
@@ -1088,18 +1111,9 @@ class Hdf5Management:
                 # for all units (selected or all)
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                     if self.data_description['hyd_unit_wholeprofile'] == "all":
-                        unit_names = ["all"]
-                        # set name
-                        unit_name_str = unit_names[0]
+                        name_shp = self.basename + "_" + self.reach_name[reach_num] + "_all_wholeprofile_mesh.shp"
                     else:
-                        unit_names = self.data_description['hyd_unit_list'].split(", ")
-                        # set name
-                        unit_name_str = str(unit_names[unit_num])
-
-                    if "." in unit_name_str:
-                        unit_name_str = unit_name_str.replace(".", "%")
-
-                    name_shp = self.basename + "_whole_profile_mesh_r" + str(reach_num) + "_t" + unit_name_str + '.shp'
+                        name_shp = self.basename_output[reach_num][unit_num] + "_wholeprofile_mesh.shp"
 
                     # for each mesh
                     w = shapefile.Writer(shapefile.POLYGONZ)
@@ -1133,9 +1147,8 @@ class Hdf5Management:
                                 return
                     else:
                         if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                            name_shp = self.basename + "_r" + str(
-                                reach_num) + "_t" + unit_name_str + '_' + time.strftime(
-                                "%d_%m_%Y_at_%H_%M_%S") + '.shp'
+                            name_shp = self.basename_output[reach_num][unit_num] + "_whole_profile_mesh.shp"\
+                                       + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
 
                     # write file
                     w.save(os.path.join(self.path_shp, name_shp))
@@ -1151,6 +1164,9 @@ class Hdf5Management:
                     # stop loop in this case (if one unit in whole profile)
                     if self.data_description['hyd_unit_wholeprofile'] == "all":
                         break
+                else:
+                    # Continue if the inner loop wasn't broken.
+                    continue
 
     def export_mesh_shp(self, fig_opt):
         if fig_opt['shape_output'] == "True":
@@ -1168,16 +1184,16 @@ class Hdf5Management:
 
             # for each reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                # get units list
-                unit_names = self.data_description["hyd_unit_list"][reach_num]
+                # # get units list
+                # unit_names = self.data_description["hyd_unit_list"][reach_num]
                 # for each unit
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                    # set name
-                    unit_name_str = str(unit_names[unit_num])
-                    if "." in unit_name_str:
-                        unit_name_str = unit_name_str.replace(".", "%")
+                    # # set name
+                    # unit_name_str = str(unit_names[unit_num])
+                    # if "." in unit_name_str:
+                    #     unit_name_str = unit_name_str.replace(".", "%")
 
-                    name_shp = self.basename + "_mesh_r" + str(reach_num) + "_t" + unit_name_str + '.shp'
+                    name_shp = self.basename_output[reach_num][unit_num] + "_mesh.shp"
                     shp_exist = False
 
                     # if exist
@@ -1316,6 +1332,7 @@ class Hdf5Management:
         if fig_opt['shape_output'] == "True":
             if data_2d_whole_profile:
                 name_shp = self.basename + "_whole_profile_point_r0_t0.shp"
+                name_shp = self.basename_output[0][0] + "_whole_profile_point.shp"
 
                 # for each mesh
                 w = shapefile.Writer(shapefile.POINTZ)
@@ -1361,14 +1378,15 @@ class Hdf5Management:
                 # for each reach
                 for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                     # get units list
-                    unit_names = self.data_description["hyd_unit_list"][reach_num]
+                    #unit_names = self.data_description["hyd_unit_list"][reach_num]
                     # for each unit
                     for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                        # set name
-                        unit_name_str = str(unit_names[unit_num])
-                        if "." in unit_name_str:
-                            unit_name_str = unit_name_str.replace(".", "%")
-                        name_shp = self.basename + "_point_r" + str(reach_num) + "_t" + unit_name_str + '.shp'
+                        # # set name
+                        # unit_name_str = str(unit_names[unit_num])
+                        # if "." in unit_name_str:
+                        #     unit_name_str = unit_name_str.replace(".", "%")
+                        # name_shp = self.basename + "_point_r" + str(reach_num) + "_t" + unit_name_str + '.shp'
+                        name_shp = self.basename_output[reach_num][unit_num] + "_point.shp"
 
                         # for each mesh
                         w = shapefile.Writer(shapefile.POINTZ)
@@ -1400,8 +1418,7 @@ class Hdf5Management:
                                     return
                         else:
                             if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                                name_shp = self.basename + "_r" + str(
-                                    reach_num) + "_t" + unit_name_str + '_' + time.strftime(
+                                name_shp = os.path.splitext(name_shp)[0] + '_' + time.strftime(
                                     "%d_%m_%Y_at_%H_%M_%S") + '.shp'
 
                         # write file
@@ -1424,8 +1441,8 @@ class Hdf5Management:
             if not os.path.exists(path_txt):
                 print('Error: the path to the text file is not found. Text files not created \n')
 
-            name_base = os.path.splitext(self.data_description["hab_filename"])[0]
-            sim_name = self.data_description["hyd_unit_list"].split(", ")
+            name_base = self.basename
+            sim_name = self.units_name
             fish_names = self.data_description["hab_fish_list"].split(", ")
             unit_type = self.data_description["hyd_unit_type"][
                         self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
@@ -1485,7 +1502,7 @@ class Hdf5Management:
                         if not sim_name:
                             data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
                         else:
-                            data_here = str(reach_num) + '\t' + sim_name[unit_num] + '\t' + str(area_reach)
+                            data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(area_reach)
                         # HV
                         for fish_name in fish_names:
                             try:
@@ -1641,19 +1658,28 @@ class Hdf5Management:
         if fig_opt['stl'] == "True":
             if data_2d_whole_profile:
                 """ create stl whole profile (to see topography) """
-                # get data
-                xy = self.data_2d_whole["xy"][0][0]
-                z = self.data_2d_whole["z"][0][0] * 10
-                faces = self.data_2d_whole["tin"][0][0]
-                vertices = np.column_stack([xy, z])
-                # Create the mesh
-                stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-                for i, f in enumerate(faces):
-                    for j in range(3):
-                        stl_file.vectors[i][j] = vertices[f[j], :]
-                # Write the mesh to file "cube.stl"
-                stl_file.save(os.path.join(self.path_visualisation,
-                                           self.basename + "_wholetopography.stl"))
+                # for all reach
+                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                    # for all units (selected or all)
+                    for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                        if self.data_description['hyd_unit_wholeprofile'] == "all":
+                            name_file = self.basename + "_" + self.reach_name[reach_num] + "_all_wholeprofile_mesh.stl"
+                        else:
+                            name_file = self.basename_output[reach_num][unit_num] + "_wholeprofile_mesh.stl"
+
+                        # get data
+                        xy = self.data_2d_whole["xy"][reach_num][unit_num]
+                        z = self.data_2d_whole["z"][reach_num][unit_num] * 10
+                        faces = self.data_2d_whole["tin"][reach_num][unit_num]
+                        vertices = np.column_stack([xy, z])
+                        # Create the mesh
+                        stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+                        for i, f in enumerate(faces):
+                            for j in range(3):
+                                stl_file.vectors[i][j] = vertices[f[j], :]
+                        # Write the mesh to file "cube.stl"
+                        stl_file.save(os.path.join(self.path_visualisation,
+                                                   name_file))
 
             if data_2d:
                 """ create stl water level (to see water level on topography) """
@@ -1679,16 +1705,13 @@ class Hdf5Management:
                             for j in range(3):
                                 stl_file.vectors[i][j] = vertices[f[j], :]
                         # Write the mesh to file "cube.stl"
+                        name_file = self.basename_output[reach_num][unit_num] + "_waterlevel.stl"
                         stl_file.save(os.path.join(self.path_visualisation,
-                                                   self.basename + "_waterlevel_" + str(unit_names[reach_num][unit_num]) + ".stl"))
+                                                   name_file))
 
     def export_paraview(self, fig_opt):
         if fig_opt['paraview'] == "True":
             file_names_all = []
-            if len(self.basename) > 60:
-                self.basename = os.path.join(self.path_visualisation, self.basename)[:-25]
-            else:
-                self.basename = os.path.join(self.path_visualisation, self.basename)
 
             # format the name of species and stage
             name_fish = self.data_description["hab_fish_list"].split(", ")
@@ -1697,12 +1720,7 @@ class Hdf5Management:
 
             # for each reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                if not fig_opt["erase_id"] == "True":
-                    fileName = self.basename + '_' + 'Reach' + str(reach_num) + '_' + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S")
-                else:
-                    fileName = self.basename + '_' + 'Reach' + str(reach_num)
-
+                file_names_all = []
                 # for each unit
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                     # create one vtu file by time step
@@ -1754,22 +1772,20 @@ class Hdf5Management:
                     cellData['velocity'] = np.array(v_mean_mesh_list)
 
                     # create the grid and the vtu files
-                    basename = fileName + '_unit' + str(unit_num)
-                    basename_ext = basename + '.vtu'
+                    name_file = os.path.join(self.path_visualisation, self.basename_output[reach_num][unit_num])
                     if fig_opt["erase_id"] == "True":
-                        if os.path.isfile(basename_ext):
-                            os.remove(basename_ext)
-                    file_names_all.append(basename_ext)
-                    hl_mod.unstructuredGridToVTK(basename, x, y, z, connectivity, offsets, cell_types,
+                        if os.path.isfile(name_file):
+                            os.remove(name_file)
+                    file_names_all.append(name_file + ".vtu")
+                    hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
                                                  cellData)
 
                 # create the "grouping" file to read all time step together
-                name_here = fileName + '.pvd'
+                name_here = self.basename + "_" + self.reach_name[reach_num] + '.pvd'
                 if fig_opt["erase_id"] == "True":
                     if os.path.isfile(name_here):
                         os.remove(name_here)
-                paraview_mod.writePVD(name_here, file_names_all)
-                file_names_all = []
+                paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all)
 
 
 #################################################################

@@ -215,7 +215,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
 
     # CONSTANT CASE
     if hdf5_sub.data_description["sub_mapping_method"] == "constant":  # set default value to all mesh
-        print("Substrate constant case.")
         merge_description["hab_epsg_code"] = merge_description["hyd_epsg_code"]
         data_2d_merge, data_2d_whole_merge = set_constant_values_to_merge_data(hdf5_hydro,
                                                                                hdf5_sub,
@@ -226,7 +225,6 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
 
     # POLYGON AND POINTS CASES
     if hdf5_sub.data_description["sub_mapping_method"] != "constant":
-        print("Substrate polygon or point case.")
         # check if EPSG are integer and if TRUE they must be equal
         epsg_hyd = hdf5_hydro.data_description["hyd_epsg_code"]
         epsg_sub = hdf5_sub.data_description["sub_epsg_code"]

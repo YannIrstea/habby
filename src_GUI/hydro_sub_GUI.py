@@ -1209,6 +1209,8 @@ class SubHydroW(QWidget):
                     self.drop_hydro.emit()
                     # update last name
                     self.name_last_hdf5(self.model_type)
+                    if self.model_type == "ASCII":  # can produce .hab
+                        self.drop_merge.emit()
                     # unblock button hydraulic
                     self.load_b.setDisabled(False)  # hydraulic
 
@@ -1244,6 +1246,8 @@ class SubHydroW(QWidget):
             else:
                 # unblock button hydraulic
                 self.load_b.setDisabled(False)  # hydraulic
+                if self.model_type == "ASCII":  # can produce .hab
+                    self.drop_merge.emit()
 
     def recreate_image(self):
         """
@@ -1324,10 +1328,13 @@ class SubHydroW(QWidget):
             doc = ET.parse(filename_path_pro)
             root = doc.getroot()
             # geo data
-            if type in ("hdf5_substrate", "hdf5_mergedata"):  # substrate hdf5
+            if type == "hdf5_substrate": # substrate hdf5
                 child1 = root.findall(f".//SUBSTRATE/{type}")
+            elif type == "hdf5_mergedata":  # hab hdf5
+                child1 = root.findall(f".//Habitat/")
             else:
                 child1 = root.findall(f".//{type}/hdf5_hydrodata")  # hydraulic hdf5
+
             if child1 is not None:
                 if len(child1) > 0:
                     name = child1[-1].text
@@ -2767,21 +2774,21 @@ class HEC_RAS2D(SubHydroW):
         #     self.butfig.setDisabled(True)
         #
         # # layout
-        # self.layout_hec2 = QGridLayout()
-        # self.layout_hec2.addWidget(min_height, 0, 0)
-        # self.layout_hec2.addWidget(self.h2d_t2, 0, 1)
-        # self.layout_hec2.addWidget(self.h2d_b, 0, 2)
-        # self.layout_hec2.addWidget(l2, 1, 0)
-        # self.layout_hec2.addWidget(l3, 1, 1)
-        # self.layout_hec2.addWidget(l4, 1, 2)
-        # self.layout_hec2.addWidget(l2D1, 2, 0)
-        # self.layout_hec2.addWidget(l2D2, 2, 1, 1, 2)
-        # self.layout_hec2.addWidget(lh, 3, 0)
-        # self.layout_hec2.addWidget(self.hname, 3, 1)
-        # self.layout_hec2.addWidget(self.load_b, 4, 2)
-        # self.layout_hec2.addWidget(self.butfig, 5, 2)
-        # # self.layout_hec2.addItem(self.spacer, 6, 1)
-        # self.setLayout(self.layout_hec2)
+        # self.layout_ascii = QGridLayout()
+        # self.layout_ascii.addWidget(min_height, 0, 0)
+        # self.layout_ascii.addWidget(self.h2d_t2, 0, 1)
+        # self.layout_ascii.addWidget(self.h2d_b, 0, 2)
+        # self.layout_ascii.addWidget(l2, 1, 0)
+        # self.layout_ascii.addWidget(l3, 1, 1)
+        # self.layout_ascii.addWidget(l4, 1, 2)
+        # self.layout_ascii.addWidget(l2D1, 2, 0)
+        # self.layout_ascii.addWidget(l2D2, 2, 1, 1, 2)
+        # self.layout_ascii.addWidget(lh, 3, 0)
+        # self.layout_ascii.addWidget(self.hname, 3, 1)
+        # self.layout_ascii.addWidget(self.load_b, 4, 2)
+        # self.layout_ascii.addWidget(self.butfig, 5, 2)
+        # # self.layout_ascii.addItem(self.spacer, 6, 1)
+        # self.setLayout(self.layout_ascii)
 
     def show_dialog_hec_ras2d(self, i=0):
         """
@@ -3560,12 +3567,14 @@ class ASCII(SubHydroW):  # QGroupBox
     from the class SubHydroW(). It is very similar to RUBAR2D class,
     but data from Telemac is on the node as in HABBY.
     """
+    drop_merge = pyqtSignal()
 
     def __init__(self, path_prj, name_prj):
 
         super().__init__(path_prj, name_prj)
         self.hydrau_case = "unknown"
         self.multi_hdf5 = False
+        self.multi_reach = False
         self.attributexml = ['ascii_path']
         self.model_type = 'ASCII'
         self.data_type = "HYDRAULIC"
@@ -3639,28 +3648,28 @@ class ASCII(SubHydroW):  # QGroupBox
         self.name_last_hdf5(type="TELEMAC")  # find the name of the last merge file and add it to self.lm2
 
         # layout
-        self.layout_hec2 = QGridLayout()
-        self.layout_hec2.addWidget(l1, 0, 0)
-        self.layout_hec2.addWidget(self.h2d_t2, 0, 1)
-        self.layout_hec2.addWidget(self.h2d_b, 0, 2)
-        self.layout_hec2.addWidget(reach_name_title_label, 1, 0)
-        self.layout_hec2.addWidget(self.reach_name_label, 1, 1)
-        self.layout_hec2.addWidget(units_name_title_label, 2, 0)
-        self.layout_hec2.addWidget(self.units_name_label, 2, 1)
-        self.layout_hec2.addWidget(l2, 3, 0)
-        self.layout_hec2.addWidget(self.number_timstep_label, 3, 1)
-        self.layout_hec2.addWidget(l_selecttimestep, 4, 0)
-        self.layout_hec2.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
-        self.layout_hec2.addWidget(epsgtitle_ascii_label, 5, 0)
-        self.layout_hec2.addWidget(self.epsg_label, 5, 1)
-        self.layout_hec2.addWidget(lh, 6, 0)
-        self.layout_hec2.addWidget(self.hname, 6, 1)
-        self.layout_hec2.addWidget(self.load_b, 6, 2)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_label, 7, 0)
-        self.layout_hec2.addWidget(self.last_hydraulic_file_name_label, 7, 1)
-        [self.layout_hec2.setRowMinimumHeight(i, 30) for i in range(self.layout_hec2.rowCount())]
+        self.layout_ascii = QGridLayout()
+        self.layout_ascii.addWidget(l1, 0, 0)
+        self.layout_ascii.addWidget(self.h2d_t2, 0, 1)
+        self.layout_ascii.addWidget(self.h2d_b, 0, 2)
+        self.layout_ascii.addWidget(reach_name_title_label, 1, 0)
+        self.layout_ascii.addWidget(self.reach_name_label, 1, 1)
+        self.layout_ascii.addWidget(units_name_title_label, 2, 0)
+        self.layout_ascii.addWidget(self.units_name_label, 2, 1)
+        self.layout_ascii.addWidget(l2, 3, 0)
+        self.layout_ascii.addWidget(self.number_timstep_label, 3, 1)
+        self.layout_ascii.addWidget(l_selecttimestep, 4, 0)
+        self.layout_ascii.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
+        self.layout_ascii.addWidget(epsgtitle_ascii_label, 5, 0)
+        self.layout_ascii.addWidget(self.epsg_label, 5, 1)
+        self.layout_ascii.addWidget(lh, 6, 0)
+        self.layout_ascii.addWidget(self.hname, 6, 1)
+        self.layout_ascii.addWidget(self.load_b, 6, 2)
+        self.layout_ascii.addWidget(self.last_hydraulic_file_label, 7, 0)
+        self.layout_ascii.addWidget(self.last_hydraulic_file_name_label, 7, 1)
+        [self.layout_ascii.setRowMinimumHeight(i, 30) for i in range(self.layout_ascii.rowCount())]
 
-        self.setLayout(self.layout_hec2)
+        self.setLayout(self.layout_ascii)
 
     def show_dialog_ascii(self, i=0):
         """
@@ -3747,23 +3756,50 @@ class ASCII(SubHydroW):  # QGroupBox
                 # to GUI (decription)
                 self.h2d_t2.clear()
                 self.h2d_t2.addItems([self.hydrau_description["filename_source"]])
-                self.reach_name_label.setText(self.hydrau_description["reach_list"][0])
-                self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
-                self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"][0])
-                if not self.hydrau_description["unit_list_tf"]:
-                    self.units_QListWidget.selectAll()
-                else:
-                    for i in range(len(self.hydrau_description["unit_list_full"].split(", "))):
-                        self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
-                        self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
-                self.units_QListWidget.setEnabled(True)
-                self.epsg_label.setText(self.hydrau_description["epsg_code"])
-                self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
-                if not ascii_description["sub"]:
-                    self.load_b.setText("Load data and create one .hyd file")
-                if ascii_description["sub"]:
-                    self.load_b.setText("Load data and create one .hab file")
+                # one reach
+                if len(ascii_description["unit_list"]) == 1:
+                    self.multi_reach = False
+                    self.swith_qlabel_qcombobox_reach_name("qlabel")
+                    self.reach_name_label.setText(self.hydrau_description["reach_list"][0])
+                    self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"][0])
+                    if not self.hydrau_description["unit_list_tf"]:
+                        self.units_QListWidget.selectAll()
+                    else:
+                        for i in range(len(self.hydrau_description["unit_list_full"][0])):
+                            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][0][i])
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.units_QListWidget.setEnabled(True)
+                    self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                    self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                    if not ascii_description["sub"]:
+                        self.load_b.setText("Load data and create one .hyd file")
+                    if ascii_description["sub"]:
+                        self.load_b.setText("Load data and create one .hab file")
+                # multi reach  ==> change reach_name label by combobox
+                if len(ascii_description["unit_list"]) > 1:
+                    self.multi_reach = True
+                    self.swith_qlabel_qcombobox_reach_name("qcombobox")
+                    self.reach_name_label.addItems(self.hydrau_description["reach_list"])
+                    self.reach_name_label.currentIndexChanged.connect(self.change_gui_when_combobox_reach_change)
+                    self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
+                    self.units_QListWidget.clear()
+                    self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"][0])
+                    if not self.hydrau_description["unit_list_tf"]:
+                        self.units_QListWidget.selectAll()
+                    else:
+                        for i in range(len(self.hydrau_description["unit_list_full"][0])):
+                            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][0][i])
+                            self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
+                    self.units_QListWidget.setEnabled(True)
+                    self.epsg_label.setText(self.hydrau_description["epsg_code"])
+                    self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
+                    if not ascii_description["sub"]:
+                        self.load_b.setText("Load data and create one .hyd file")
+                    if ascii_description["sub"]:
+                        self.load_b.setText("Load data and create one .hab file")
+
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
@@ -3805,26 +3841,28 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
                 self.unit_counter()
 
+    def swith_qlabel_qcombobox_reach_name(self, wish_widget):
+        self.layout_ascii.removeWidget(self.reach_name_label)
+        self.reach_name_label.setParent(None)
+        if wish_widget == "qcombobox":
+            self.reach_name_label = QComboBox()
+        if wish_widget == "qlabel":
+            self.reach_name_label = QLabel(self.tr('unknown'))
+        self.layout_ascii.addWidget(self.reach_name_label, 1, 1)
+
     def change_gui_when_combobox_reach_change(self):
         try:
             self.units_QListWidget.disconnect()
         except:
             pass
 
-        # change telemac description
-        self.hydrau_description = self.hydrau_description_multiple[self.h2d_t2.currentIndex()]
-
         # change GUI
-        self.reach_name_label.setText(self.hydrau_description["reach_list"])
-        self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
         self.units_QListWidget.clear()
-        self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"].split(", "))
+        self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"][self.reach_name_label.currentIndex()])
         # change selection items
-        for i in range(len(self.hydrau_description["unit_list_full"].split(", "))):
-            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
+        for i in range(len(self.hydrau_description["unit_list_full"][self.reach_name_label.currentIndex()])):
+            self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][self.reach_name_label.currentIndex()][i])
             self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
-        self.epsg_label.setText(self.hydrau_description["epsg_code"])
-        self.hname.setText(self.hydrau_description["hdf5_name"])  # hdf5 name
         self.units_QListWidget.itemSelectionChanged.connect(self.unit_counter)
         self.unit_counter()
 
@@ -3875,10 +3913,12 @@ class ASCII(SubHydroW):  # QGroupBox
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
         # save one
         else:
-            self.hydrau_description["unit_list"] = [unit_list]
-            self.hydrau_description["unit_list_full"] = [unit_list_full]
-            self.hydrau_description["unit_list_tf"] = [selected_list]
-            self.hydrau_description["unit_number"] = str(selected)
+            if self.multi_reach:
+                for reach_num in range(int(self.hydrau_description["reach_number"])):
+                    print(reach_num)
+                    for unit_num in range(int(self.hydrau_description["unit_number"])):
+                        print(unit_num)
+                        self.hydrau_description["unit_list_tf"][reach_num][unit_num] = selected_list[unit_num]
 
         # set text
         text = str(selected) + "/" + str(total)
@@ -4064,7 +4104,7 @@ class LAMMI(SubHydroW):
         self.layout_hec2.addWidget(self.hname, 4, 1)
         self.layout_hec2.addWidget(self.load_b, 5, 2)
         self.layout_hec2.addWidget(self.butfig, 6, 2)
-        # self.layout_hec2.addItem(self.spacer, 7, 1)
+        # self.layout_ascii.addItem(self.spacer, 7, 1)
         self.setLayout(self.layout_hec2)
 
     def show_dialog_lammi(self, i=0):

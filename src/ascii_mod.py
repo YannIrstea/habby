@@ -34,7 +34,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
 
     file_path = os.path.join(hydrau_description["path_filename_source"], hydrau_description["filename_source"])
     path_prj = hydrau_description["path_prj"]
-
+    sub_presence = False # no substrate init
     # minimum water height
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
@@ -48,6 +48,9 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     if not data_2d_from_ascii and not data_description:
         q.put(mystdout)
         return
+
+    if "sub" in data_2d_from_ascii.keys():
+        sub_presence = True
 
     # create copy
     data_2d_whole_profile = deepcopy(data_2d_from_ascii)
@@ -96,6 +99,9 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                         delta,
                         minwh,
                         True)
+                    if sub_presence:
+                        sub = data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile]
+
                     if not isinstance(tin_data, np.ndarray):
                         print("Error: cut_2d_grid")
                         q.put(mystdout)
@@ -109,22 +115,18 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     i_whole_profile = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
                     h_data = data_2d_from_ascii["h"][reach_num][unit_num]
                     v_data = data_2d_from_ascii["v"][reach_num][unit_num]
+                    if sub_presence:
+                        sub = data_2d_from_ascii["sub"][reach_num][unit_num]
 
                 # get cuted grid
                 data_2d["tin"][reach_num].append(tin_data)
                 data_2d["i_whole_profile"][reach_num].append(i_whole_profile)
-
-                # get new substrate
-                data_2d_from_ascii["sub"][reach_num][unit_num] #old substrate
-
-
-                data_2d["sub"][reach_num].append(data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile])  # the new substrate
-
-
                 data_2d["xy"][reach_num].append(xy_cuted[:, :2])
                 data_2d["h"][reach_num].append(h_data)
                 data_2d["v"][reach_num].append(v_data)
                 data_2d["z"][reach_num].append(xy_cuted[:, 2])
+                if sub_presence:
+                    data_2d["sub"][reach_num].append(sub)
 
             # erase unit in whole_profile
             else:
@@ -154,18 +156,30 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_wholeprofile"] = "all"
     hyd_description["hyd_unit_z_equal"] = "True"
 
+    # change extension of hdf5 to create .hab
+    if sub_presence:
+        hyd_description["sub_classification_method"] = data_description["sub_classification_method"]
+        hyd_description["sub_classification_code"] = data_description["sub_classification_code"]
+        hyd_description["sub_mapping_method"] = data_description["sub_mapping_method"]
+        hyd_description["hab_epsg_code"] = data_description["epsg_code"]
+        data_description["hdf5_name"] = os.path.splitext(data_description["hdf5_name"])[0] + ".hab"
+
     # create hdf5
     hdf5 = hdf5_mod.Hdf5Management(data_description["path_prj"],
                                    data_description["hdf5_name"])
-    hdf5.create_hdf5_hyd(data_2d,
-                         data_2d_whole_profile,
-                         hyd_description)
-
+    if not sub_presence:
+        hdf5.create_hdf5_hyd(data_2d,
+                             data_2d_whole_profile,
+                             hyd_description)
+    if sub_presence:
+        hdf5.create_hdf5_hab(data_2d,
+                             data_2d_whole_profile,
+                             hyd_description)
     # progress
     progress_value.value = 92
 
     # export_mesh_whole_profile_shp
-    hdf5.export_mesh_whole_profile_shp(fig_opt)
+    #hdf5.export_mesh_whole_profile_shp(fig_opt)
 
     # progress
     progress_value.value = 96
@@ -548,7 +562,8 @@ def get_ascii_model_description(file_path):
         return faiload
     kk, reachnumber = 0, 0
     msg, unit_type = '', ''
-    lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches  or nbreaches elements
+    lunitall = []   # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
+                    # or nbreaches elements
     epsgcode = ''
     bq_per_reach = False
     bsub =False

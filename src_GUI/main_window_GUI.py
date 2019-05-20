@@ -2176,6 +2176,7 @@ class CentralW(QWidget):
 #            self.chronicle_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.substrate_tab.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.lammi.drop_merge.connect(self.bioinfo_tab.update_merge_list)
+            self.hydro_tab.ascii.drop_merge.connect(self.bioinfo_tab.update_merge_list)
             self.hydro_tab.habbyhdf5.drop_merge.connect(self.bioinfo_tab.update_merge_list)
 
     def write_log(self, text_log):
