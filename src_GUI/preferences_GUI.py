@@ -64,7 +64,7 @@ class PreferenceWindow(QScrollArea):
         # cut_2d_grid
         self.cut_2d_grid_label = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
         self.cut_2d_grid_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['Cut2Dgrid'] == 'True':  # is a string not a boolean
+        if fig_dict['CutMeshPartialyDry'] == 'True':  # is a string not a boolean
             self.cut_2d_grid_checkbox.setChecked(True)
         else:
             self.cut_2d_grid_checkbox.setChecked(False)
@@ -352,13 +352,13 @@ class PreferenceWindow(QScrollArea):
             fig_dict['erase_id'] = True
         else:
             fig_dict['erase_id'] = False
-        # Cut2Dgrid
+        # CutMeshPartialyDry
         if self.cut_2d_grid_checkbox.isChecked():
             self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
         if self.cut_2d_grid_checkbox.isChecked():
-            fig_dict['Cut2Dgrid'] = True
+            fig_dict['CutMeshPartialyDry'] = True
         else:
-            fig_dict['Cut2Dgrid'] = False
+            fig_dict['CutMeshPartialyDry'] = False
 
         # save the data in the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -393,7 +393,7 @@ class PreferenceWindow(QScrollArea):
                 stl1 = root.find(".//stlOutput")
                 langfig1 = root.find(".//LangFig")
                 hopt1 = root.find(".//MinHeight")
-                Cut2Dgrid = root.find(".//Cut2Dgrid")
+                CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
                 fishinfo1 = root.find(".//FishInfo")
                 erase1 = root.find(".//EraseId")
             else:  # save in case no fig option exist
@@ -415,7 +415,7 @@ class PreferenceWindow(QScrollArea):
                 stl1 = ET.SubElement(child1, "stlOutput")
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
-                Cut2Dgrid = ET.SubElement(child1, "Cut2Dgrid")
+                CutMeshPartialyDry = ET.SubElement(child1, "CutMeshPartialyDry")
                 fishinfo1 = ET.SubElement(child1, "FishInfo")
                 erase1 = ET.SubElement(child1, "EraseId")
             width1.text = str(fig_dict['width'])
@@ -440,7 +440,7 @@ class PreferenceWindow(QScrollArea):
             para1.text = str(fig_dict['paraview'])
             stl1.text = str(fig_dict['stl'])
             hopt1.text = str(fig_dict['min_height_hyd'])
-            Cut2Dgrid.text = str(fig_dict['Cut2Dgrid'])
+            CutMeshPartialyDry.text = str(fig_dict['CutMeshPartialyDry'])
             fishinfo1.text = str(fig_dict['fish_info'])
             erase1.text = str(fig_dict['erase_id'])
             doc.write(fname)
@@ -528,7 +528,7 @@ def load_fig_option(path_prj, name_prj):
             stl1 = root.find(".//stlOutput")
             langfig1 = root.find(".//LangFig")
             hopt1 = root.find(".//MinHeight")
-            Cut2Dgrid = root.find(".//Cut2Dgrid")
+            CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
             fishinfo1 = root.find(".//FishInfo")
             erase1 = root.find(".//EraseId")
             try:
@@ -566,8 +566,8 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['language'] = int(langfig1.text)
                 if hopt1 is not None:
                     fig_dict['min_height_hyd'] = float(hopt1.text)
-                if Cut2Dgrid is not None:
-                    fig_dict['Cut2Dgrid'] = Cut2Dgrid.text
+                if CutMeshPartialyDry is not None:
+                    fig_dict['CutMeshPartialyDry'] = CutMeshPartialyDry.text
                 if fish1 is not None:
                     fig_dict['fish_info'] = fishinfo1.text
                 if erase1 is not None:
@@ -601,7 +601,7 @@ def create_default_figoption():
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
-    fig_dict['Cut2Dgrid'] = 'True'
+    fig_dict['CutMeshPartialyDry'] = 'True'
     fig_dict['marker'] = 'True'  # Add point to line plot
     fig_dict['erase_id'] = 'True'
     fig_dict['type_plot'] = 'display'

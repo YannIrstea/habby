@@ -3879,6 +3879,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
         self.h2d_t2.clear()
         self.h2d_t2.addItems(["unknown file"])
+        self.swith_qlabel_qcombobox_reach_name("qlabel")
         self.reach_name_label.setText("unknown")
         self.units_name_label.setText("unknown")  # kind of unit
         self.number_timstep_label.setText("unknown")  # number units

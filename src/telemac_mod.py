@@ -186,8 +186,8 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                                2,
                                values=data_2d_telemac["z"],
                                axis=1)  # Insert values before column 2
-            # cut2dgrid
-            if fig_opt["Cut2Dgrid"] == "True":
+            # CutMeshPartialyDry
+            if fig_opt["CutMeshPartialyDry"] == "True":
                 [tin_data, xy_cuted, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
                                                                                   xy,  # with z value (facilitate)
                                                                                   data_2d_telemac["h"][unit_num],
@@ -201,8 +201,8 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                     q.put(mystdout)
                     return
 
-            # not cut2dgrid
-            elif fig_opt["Cut2Dgrid"] == "False":
+            # not CutMeshPartialyDry
+            elif fig_opt["CutMeshPartialyDry"] == "False":
                 # if we want to disable cut_2d_grid (for dev)
                 xy_cuted = xy
                 tin_data = data_2d_telemac["tin"]
@@ -242,7 +242,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
         del data_2d_whole_profile['unit_correspondence']
-        if fig_opt["Cut2Dgrid"] == "False":
+        if fig_opt["CutMeshPartialyDry"] == "False":
             namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
             description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old

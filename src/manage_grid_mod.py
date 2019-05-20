@@ -1057,18 +1057,19 @@ def cut_2d_grid_all_reach(ikle_all, point_all, inter_height_all, inter_vel_all, 
         return ikle_all_new, point_all_new, inter_height_all_new, inter_vel_all_new
 
 
-def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta,cut_dry_only, min_height=0.001):
+def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, CutMeshPartialyDry, min_height=0.001):
     """
     This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
     with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
-    This function works for one time steps and for one reach
+    All mesh entierly dry are always cuted. if CutMeshPartialyDry is True, partialy dry mesh are also cuted.
+    This function works for one unit of a reach.
 
     :param ikle: the connectivity table of the 2D grid
     :param point_all: the coordinate of the points
     :param water_height: the water height data given on the nodes
     :param velocity: the velocity given on the nodes
     :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
-    :param cut_dry_only: If True only the dry meshes are cut (but not the partially ones)
+    :param CutMeshPartialyDry: If True partialy dry mesh are cuted
     :return: the update connectivity table, the coordinates of the point, the height of the water and the
              velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
     """
@@ -1099,7 +1100,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta,c
     elif not True in mikle_keep:  # all meshes are entirely dry
         print('Error: all meshes are entirely dry')
         return failload
-    elif cut_dry_only:  # only the dry meshes are cut (but not the partially ones)
+    elif CutMeshPartialyDry == "False":  # only the dry meshes are cut (but not the partially ones)
         mikle_keep = ikle_type != 0
         iklekeep = ikle[mikle_keep, ...]
         ind_whole = ind_whole[mikle_keep, ...]

@@ -88,35 +88,25 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                                values=data_2d_from_ascii["z"][reach_num][unit_num],
                                axis=1)  # Insert values before column 2
 
-                # cut2dgrid
-                if fig_opt["Cut2Dgrid"] == "True":
-                    [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(
-                        data_2d_from_ascii["tin"][reach_num][unit_num],
-                        xy,
-                        data_2d_from_ascii["h"][reach_num][unit_num],
-                        data_2d_from_ascii["v"][reach_num][unit_num],
-                        progress_value,
-                        delta,
-                        minwh,
-                        True)
-                    if sub_presence:
-                        sub = data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile]
+                # cut mesh dry and cut partialy dry in option
+                [tin_data, xy_cuted, h_data, v_data, i_whole_profile] = manage_grid_mod.cut_2d_grid(
+                    data_2d_from_ascii["tin"][reach_num][unit_num],
+                    xy,
+                    data_2d_from_ascii["h"][reach_num][unit_num],
+                    data_2d_from_ascii["v"][reach_num][unit_num],
+                    progress_value,
+                    delta,
+                    fig_opt["CutMeshPartialyDry"],
+                    minwh)
 
-                    if not isinstance(tin_data, np.ndarray):
-                        print("Error: cut_2d_grid")
-                        q.put(mystdout)
-                        return
+                if not isinstance(tin_data, np.ndarray):
+                    print("Error: cut_2d_grid")
+                    q.put(mystdout)
+                    return
 
-                # not cut2dgrid
-                elif fig_opt["Cut2Dgrid"] == "False":
-                    # if we want to disable cut_2d_grid
-                    xy_cuted = xy
-                    tin_data = data_2d_from_ascii["tin"][reach_num][unit_num]
-                    i_whole_profile = np.array([10] * len(data_2d_from_ascii["tin"][reach_num][unit_num]))
-                    h_data = data_2d_from_ascii["h"][reach_num][unit_num]
-                    v_data = data_2d_from_ascii["v"][reach_num][unit_num]
-                    if sub_presence:
-                        sub = data_2d_from_ascii["sub"][reach_num][unit_num]
+                # get substrate after cuting mesh
+                if sub_presence:
+                    sub = data_2d_from_ascii["sub"][reach_num][unit_num][i_whole_profile]
 
                 # get cuted grid
                 data_2d["tin"][reach_num].append(tin_data)
