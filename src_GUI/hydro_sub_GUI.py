@@ -1218,7 +1218,7 @@ class SubHydroW(QWidget):
                 self.nativeParentWidget().progress_bar.setValue(100)
                 self.nativeParentWidget().kill_process.setVisible(False)
                 if not const_sub:
-                    self.send_log.emit(self.tr("Figures can be displayed/exported from graphics tab.\n"))
+                    self.send_log.emit(self.tr("Figures can be displayed/exported from 'Data explorer' tab.\n"))
                 if const_sub:
                     self.update_sub_hdf5_name()
                 self.send_log.emit("clear status bar")
@@ -3091,7 +3091,7 @@ class HEC_RAS2D(SubHydroW):
                                    self.q,
                                    False,
                                    self.fig_opt))
-        self.p.name = "TELEMAC data loading"
+        self.p.name = "HEC_RAS2D data loading"
         self.p.start()
 
         # copy input files
@@ -3609,7 +3609,7 @@ class ASCII(SubHydroW):  # QGroupBox
 
         # unit number
         l2 = QLabel(self.tr('Unit(s) number'))
-        self.number_timstep_label = QLabel(self.tr('unknown'))
+        self.number_unit_label = QLabel(self.tr('unknown'))
 
         # unit list
         self.units_QListWidget = QListWidget()
@@ -3657,7 +3657,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.layout_ascii.addWidget(units_name_title_label, 2, 0)
         self.layout_ascii.addWidget(self.units_name_label, 2, 1)
         self.layout_ascii.addWidget(l2, 3, 0)
-        self.layout_ascii.addWidget(self.number_timstep_label, 3, 1)
+        self.layout_ascii.addWidget(self.number_unit_label, 3, 1)
         self.layout_ascii.addWidget(l_selecttimestep, 4, 0)
         self.layout_ascii.addWidget(self.units_QListWidget, 4, 1, 1, 1)  # from row, from column, nb row, nb column
         self.layout_ascii.addWidget(epsgtitle_ascii_label, 5, 0)
@@ -3882,7 +3882,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.swith_qlabel_qcombobox_reach_name("qlabel")
         self.reach_name_label.setText("unknown")
         self.units_name_label.setText("unknown")  # kind of unit
-        self.number_timstep_label.setText("unknown")  # number units
+        self.number_unit_label.setText("unknown")  # number units
         self.units_QListWidget.clear()
         self.units_QListWidget.setEnabled(True)
         self.epsg_label.setEnabled(True)
@@ -3916,14 +3916,12 @@ class ASCII(SubHydroW):  # QGroupBox
         else:
             if self.multi_reach:
                 for reach_num in range(int(self.hydrau_description["reach_number"])):
-                    print(reach_num)
                     for unit_num in range(int(self.hydrau_description["unit_number"])):
-                        print(unit_num)
                         self.hydrau_description["unit_list_tf"][reach_num][unit_num] = selected_list[unit_num]
 
         # set text
         text = str(selected) + "/" + str(total)
-        self.number_timstep_label.setText(text)  # number units
+        self.number_unit_label.setText(text)  # number units
 
     def load_ascii_gui(self):
         """
@@ -3990,7 +3988,7 @@ class ASCII(SubHydroW):  # QGroupBox
                                    self.q,
                                    False,
                                    self.fig_opt))
-        self.p.name = "TELEMAC data loading"
+        self.p.name = "ASCII data loading"
         self.p.start()
 
         # copy input files

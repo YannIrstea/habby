@@ -79,7 +79,8 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         data_2d["z"].append([])
 
         # for each units
-        for unit_num, unit_index in enumerate(data_description["unit_list"][reach_num]):
+        for unit_num in reversed(range(len(data_description["unit_list"][reach_num]))):  # reversed for pop
+            # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
 
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
@@ -129,6 +130,11 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
 
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
+
+    # change unit from according to user selection
+    for reach_units_index in range(len(hydrau_description["unit_list"])):
+        hydrau_description["unit_list"][reach_units_index] = [x for x, y in zip(hydrau_description["unit_list"][reach_units_index], hydrau_description["unit_list_tf"][reach_units_index]) if y]
+    hydrau_description["unit_number"] = str(len(hydrau_description["unit_list"][reach_units_index]))
 
     # hyd description
     hyd_description = dict()
