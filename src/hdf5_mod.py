@@ -72,7 +72,7 @@ class Hdf5Management:
             self.type_for_xml = "hdf5_habitat"  # for save xml
             self.hdf5_type = "habitat"
 
-    def open_hdf5_file(self, new):
+    def open_hdf5_file(self, new=False):
         # get mode
         if not new:
             mode_file = 'r+'  # Readonly, file must exist
@@ -98,9 +98,6 @@ class Hdf5Management:
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
                 self.get_hdf5_attributes()
-                self.get_hdf5_reach_name()
-                self.get_hdf5_fish_names()
-                self.get_hdf5_units_name()
                 # create basename_output for output files
                 self.basename_output = []
                 for reach_num, reach_name in enumerate(self.reach_name):
@@ -154,8 +151,6 @@ class Hdf5Management:
 
     # GET HDF5 INFORMATIONS
     def get_hdf5_attributes(self):
-        # # open an hdf5
-        # self.open_hdf5_file(new=False)
         # get attributes
         hdf5_attributes_dict = dict(self.file_object.attrs.items())
         hdf5_attributes_dict_keys = sorted(hdf5_attributes_dict.keys())
@@ -176,21 +171,13 @@ class Hdf5Management:
             hdf5_attributes_name_text.extend([attribute_name.replace("_", " ")])
             hdf5_attributes_info_text.extend([hdf5_attributes_dict[attribute_name]])
 
-        # # close hdf5 file
-        # self.file_object.close()
-
         # to attributes
         self.hdf5_attributes_name_text = hdf5_attributes_name_text
         self.hdf5_attributes_info_text = hdf5_attributes_info_text
 
-    def get_hdf5_variables(self):
-        # # open an hdf5
-        # self.open_hdf5_file(new=False)
-
+        """ get_hdf5_variables """
         # substrate constant ==> nothing to plot
         if self.hdf5_type == "substrate" and self.file_object.attrs["sub_mapping_method"] == "constant":
-            # # close hdf5 file
-            # self.file_object.close()
             # to attribute
             self.variables = []
 
@@ -246,26 +233,15 @@ class Hdf5Management:
                 if variable in variables:  # first
                     variables.insert(variable_index, variables.pop(variables.index(variable)))
 
-            # # close hdf5 file
-            # self.file_object.close()
-
             # to attribute
             self.variables = variables
 
-    def get_hdf5_fish_names(self):
-        self.get_hdf5_variables()
+        """ get_hdf5_fish_names """
         variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
         fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
         self.fish_list = fish_list
 
-    def get_hdf5_reach_name(self):
-        """
-        This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
-        of the time steps, it returns them. If not, it return an empty list.
-        :return: the name of the time step if they exist. Otherwise, an empty list
-        """
-        # # open hdf5 file
-        # self.open_hdf5_file(new=False)
+        """ get_hdf5_reach_name """
         # units name
         reach_name = []
         # get unit_list
@@ -273,45 +249,18 @@ class Hdf5Management:
         for attribute_name, attribute_data in hdf5_attributes:
             if "reach_list" in attribute_name:
                 reach_name = attribute_data.split(", ")
-        # # close hdf5 file
-        # self.file_object.close()
 
         # to attributes
         self.reach_name = reach_name
 
-    def get_hdf5_units_name(self):
-        """
-        This function looks for the name of the timesteps in hydrological or merge hdf5. If it find the name
-        of the time steps, it returns them. If not, it return an empty list.
-        :return: the name of the time step if they exist. Otherwise, an empty list
-        """
-        # # open hdf5 file
-        # self.open_hdf5_file(new=False)
-        # units name
-        units_name = []
-        # get unit_list
-
-        units_name = self.file_object["unit_by_reach"].value.transpose().tolist()
-
-        # # close hdf5 file
-        # self.file_object.close()
-
+        """ get_hdf5_units_name """
         # to attributes
-        self.units_name = units_name
-
-    def get_hdf5_units_number(self):  # ? a changer si on utilise attributs
-        # # open hdf5 file
-        # self.open_hdf5_file(new=False)
-        # get nb_unit
-        hdf5_attributes = list(self.file_object.attrs.items())
-        for attribute_name, attribute_data in hdf5_attributes:
-            if "nb_unit" in attribute_name:
-                nb_unit = int(attribute_data)
-        # # close hdf5 file
-        # self.file_object.close()
-
-        # to attributes
-        self.nb_unit = nb_unit
+        if self.hdf5_type == "substrate":
+            self.units_name = []
+            self.nb_unit = 0
+        else:
+            self.units_name = self.file_object["unit_by_reach"].value.transpose().astype(np.str).tolist()
+            self.nb_unit = len(self.units_name)
 
     # HYDRAULIC
     def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description):

@@ -178,7 +178,7 @@ def plot_hydrosignature(state, data, fishname):
     plt.show()
 
 
-def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[], time_step=0, points=False):
+def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[], reach_name="", unit_name=0, points=False):
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
 
@@ -200,30 +200,23 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
         erase1 = False
 
     name_hdf5 = data_description["name_hdf5"]
-    unit = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 0:
+    if fig_opt['language'] == 1:
         if not points:
-            title = name_hdf5[:-4] + " : " + 'Mesh - Unit ' + str(time_step) + " " + unit
-            filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
+            title = f"{name_hdf5[:-4]} : maillage - {reach_name} - {unit_name} {unit_type}"
+            filename = f"{name_hdf5[:-4]}_maillage_{reach_name}_{unit_name}"
         if points:
-            title = name_hdf5[:-4] + " : " + 'Mesh and points - Unit ' + str(time_step) + " " + unit
-            filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
-    elif fig_opt['language'] == 1:
-        if not points:
-            title = name_hdf5[:-4] + " : " + 'Maillage - Unité: ' + str(time_step) + " " + unit
-            filename = name_hdf5[:-4] + "_maillage_" + str(time_step)
-        if points:
-            title = name_hdf5[:-4] + " : " + 'Maillage et points - Unité: ' + str(time_step) + " " + unit
-            filename = name_hdf5[:-4] + "_maillage_points_" + str(time_step)
+            title = f"{name_hdf5[:-4]} : maillage et point - {reach_name} - {unit_name} {unit_type}"
+            filename = f"{name_hdf5[:-4]}_maillage_points_{reach_name}_{unit_name}"
     else:
         if not points:
-            title = name_hdf5[:-4] + " : " + 'Mesh - Unit ' + str(time_step) + " " + unit
-            filename = name_hdf5[:-4] + "_mesh_" + str(time_step)
+            title = f"{name_hdf5[:-4]} : mesh - {reach_name} - {unit_name} {unit_type}"
+            filename = f"{name_hdf5[:-4]}_mesh_{reach_name}_{unit_name}"
         if points:
-            title = name_hdf5[:-4] + " : " + 'Mesh and points - Unit ' + str(time_step) + " " + unit
-            filename = name_hdf5[:-4] + "_mesh_points_" + str(time_step)
+            title = f"{name_hdf5[:-4]} : mesh and points - {reach_name} - {unit_name} {unit_type}"
+            filename = f"{name_hdf5[:-4]}_mesh_points_{reach_name}_{unit_name}"
 
     # plot
     plt.figure(filename)
@@ -232,10 +225,6 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
     plt.ylabel('y coord []')
     plt.title(title)
     plt.axis('equal')
-    # for r in range(0, len(data_tin)):
-    #     # get data for this reach
-    #     ikle = data_tin[r]
-    #     coord_p = data_xy[r]
 
     # prepare the grid
     if data_tin is not None:  # case empty grid
@@ -307,7 +296,7 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
         plt.close()
 
 
-def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_im=[], time_step=0):
+def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_im=[], reach_name="", unit_name=0, ):
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
 
@@ -329,19 +318,16 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_i
         erase1 = False
 
     name_hdf5 = data_description["name_hdf5"]
-    unit = data_description["unit_type"][
+    unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 0:
-        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
-    elif fig_opt['language'] == 1:
-        title = name_hdf5[:-4] + " : " + 'Elevation - Unité: ' + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
+    if fig_opt['language'] == 1:
+        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
     else:
-        title = name_hdf5[:-4] + " : " + 'Elevation - Unit ' + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_elevation_" + str(time_step)
+        title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
 
     # plot
     plt.figure(filename)
@@ -391,7 +377,7 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_i
         plt.close()
 
 
-def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=[], path_im=[], time_step=0):
+def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
 
@@ -411,19 +397,16 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
         erase1 = False
 
     name_hdf5 = data_description["name_hdf5"]
-    unit = data_description["unit_type"][
+    unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 0:
-        title = name_hdf5[:-4] + " : " + 'Water depth - Unit ' + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_height_" + str(time_step)
-    elif fig_opt['language'] == 1:
-        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_hauteur_" + str(time_step)
+    if fig_opt['language'] == 1:
+        title = f"{name_hdf5[:-4]} : hauteur d'eau - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_profondeur_{reach_name}_{unit_name}"
     else:
-        title = name_hdf5[:-4] + " : " + "Hauteur d'eau - Unité: " + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_height_" + str(time_step)
+        title = f"{name_hdf5[:-4]} : water depth - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_depth_{reach_name}_{unit_name}"
 
     # plot the height
     if len(data_h) > 0:  # 0
@@ -494,7 +477,7 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
             plt.close()
 
 
-def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_v=[], path_im=[], time_step=0):
+def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
 
@@ -514,19 +497,16 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
         erase1 = False
 
     name_hdf5 = data_description["name_hdf5"]
-    unit = data_description["unit_type"][
+    unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 0:
-        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_velocity_" + str(time_step)
-    elif fig_opt['language'] == 1:
-        title = name_hdf5[:-4] + " : " + 'Vitesse - Unité: ' + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_vitesse_" + str(time_step)
+    if fig_opt['language'] == 1:
+        title = f"{name_hdf5[:-4]} : vitesse - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_vitesse_{reach_name}_{unit_name}"
     else:
-        title = name_hdf5[:-4] + " : " + 'Velocity - Unit ' + str(time_step) + " " + unit
-        filename = name_hdf5[:-4] + "_velocity_" + str(time_step)
+        title = f"{name_hdf5[:-4]} : velocity - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_velocity_{reach_name}_{unit_name}"
 
     # plot
     if len(data_v) > 0:  # 0
@@ -595,9 +575,7 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
             plt.close()
 
 
-def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, path_im, name_hdf5, fig_opt={}, time_step=0.0, xtxt=[-99],
-                       ytxt=[-99], subtxt=[-99],
-                       reach_num=-99):
+def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_im, fig_opt={}, reach_name="", unit_name=0.0):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -628,18 +606,19 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
     else:
         erase1 = False
 
-    if fig_opt['language'] == 0:
-        title_pg = 'Substrate Grid - Coarser Data - Unit ' + str(time_step)
-        title_dom = 'Substrate Grid - Dominant - Unit ' + str(time_step)
-        filename_pg_dm = name_hdf5[:-4] + "_substrate_" + str(time_step)
-    elif fig_opt['language'] == 1:
-        title_pg = 'Maillaige substrat - Plus Gros - Unit ' + str(time_step)
-        title_dom = 'Maillaige substrat - Dominant - Unit ' + str(time_step)
-        filename_pg_dm = name_hdf5[:-4] + "_substrate_" + str(time_step)
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+
+    # title and filename
+    if fig_opt['language'] == 1:
+        title_pg = f"Substrate - Plus Gros - {reach_name} - {unit_name} {unit_type}"
+        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} {unit_type}"
+        filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
     else:
-        title_pg = 'Substrate Grid - Coarser Data - Unit ' + str(time_step)
-        title_dom = 'Substrate Grid - Dominant - Unit ' + str(time_step)
-        filename_pg_dm = name_hdf5[:-4] + "_substrate_" + str(time_step)
+        title_pg = f"Substrate - Coarser - {reach_name} - {unit_name} {unit_type}"
+        title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} {unit_type}"
+        filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
 
     # prepare data
     unziped = list(zip(*sub_array))
@@ -678,10 +657,10 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
     colors_val = np.array(sub_pg)  # convert nfloors to colors that we can use later (cemagref)
     # Set norm to correspond to the data for which
     # the colorbar will be used.
-    if sub_description_system["sub_classification_code"] == "Cemagref":
+    if data_description["sub_classification_code"] == "Cemagref":
         max_class = 8
         norm = mpl.colors.Normalize(vmin=1, vmax=8)
-    if sub_description_system["sub_classification_code"] == "Sandre":
+    if data_description["sub_classification_code"] == "Sandre":
         max_class = 12
         norm = mpl.colors.Normalize(vmin=1, vmax=12)
     n = len(sub_pg)
@@ -736,7 +715,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
                                     norm=norm,
                                     boundaries=listcathegories,
                                     orientation='vertical')
-    cb1.set_label(sub_description_system["sub_classification_code"])
+    cb1.set_label(data_description["sub_classification_code"])
     plt.tight_layout()
 
     # save the figure
@@ -772,7 +751,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, sub_description_system, 
         plt.close()
 
 
-def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_opt={}, path_im=[], time_step=0):
+def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description, fig_opt={}, path_im=[], reach_name="", unit_name=0):
     if not fig_opt:
         fig_opt = preferences_GUI.create_default_figoption()
     plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
@@ -788,16 +767,19 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
     else:
         erase1 = False
 
+    name_hdf5 = data_description["name_hdf5"]
+    unit_type = data_description["unit_type"][
+           data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    fish_index = data_description["hab_fish_list"].split(", ").index(fish_name)
+    fish_short_name = data_description["hab_fish_shortname_list"].split(", ")[fish_index]
+
     # title and filename
-    if fig_opt['language'] == 0:
-        title = 'Habitat Value of ' + fish_name + ' - Unit ' + time_step
-        filename = name_hdf5[:-4] + '_HSI_' + fish_name + '_' + str(time_step)
-    elif fig_opt['language'] == 1:
-        title = "Valeur d'Habitat pour " + fish_name + '- Unité/débit: ' + time_step
-        filename = name_hdf5[:-4] + "_VH_" + fish_name + '_' + str(time_step)
+    if fig_opt['language'] == 1:
+        title = f"{name_hdf5[:-4]} : valeur d'habitat\n{fish_name} - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_VH_{fish_short_name}_{reach_name}_{unit_name}"
     else:
-        title = 'Habitat Value of ' + fish_name + '- Computational Step: ' + time_step
-        filename = name_hdf5[:-4] + '_HSI_' + fish_name + '_' + str(time_step)
+        title = f"{name_hdf5[:-4]} : habitat value\n{fish_name} - {reach_name} - {unit_name} {unit_type}"
+        filename = f"{name_hdf5[:-4]}_HSI_{fish_short_name}_{reach_name}_{unit_name}"
 
     # preplot
     fig = plt.figure(filename)
@@ -888,7 +870,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, name_hdf5, fig_op
         plt.close()
 
 
-def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_base, fig_opt={}):
+def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_hdf5, fig_opt={}):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -898,8 +880,8 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
     :param fig_opt: the dictionnary with the figure options
-    :param name_base: a string on which to base the name of the files
-    :param sim_name: the name of the time steps if not 0,1,2,3
+    :param name_hdf5: a string on which to base the name of the files
+    :param unit_name: the name of the time steps if not 0,1,2,3
     """
 
     if not fig_opt:
@@ -925,19 +907,24 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         erase_id = False
 
     # prep data
-    name_base = name_base[:-4]
+    name_hdf5 = name_hdf5[:-4]
     area_all = list(map(float, data_description["total_wet_area"][reach_num]))
-    sim_name = []
-    for unit_index in data_description["units_index"]:
-        sim_name.append(data_description["hyd_unit_list"].split(", ")[unit_index])
+    unit_name = []
+    if len(area_all) == 1:
+        for unit_index in data_description["units_index"]:
+            unit_name.append(data_description["hyd_unit_list"][unit_index])
+    if len(area_all) > 1:
+        for unit_index in data_description["units_index"]:
+            unit_name.append(str(data_description["hyd_unit_list"][reach_num][unit_index]))
     unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
+    reach_name = data_description["hyd_reach_list"].split(", ")[reach_num]
 
     # plot
-    if len(sim_name) == 1:
-        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Step : {sim_name[0]}" + " " + unit_type
-    if len(sim_name) > 1:
+    if len(unit_name) == 1:
+        plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Step : {unit_name[0]}" + " " + unit_type
+    if len(unit_name) > 1:
         plot_window_title = f"Habitat Value and Weighted Usable Area - Computational Steps : " + ", ".join(
-            map(str, sim_name)) + " " + unit_type
+            map(str, unit_name)) + " " + unit_type
     fig = plt.figure(plot_window_title)
 
     name_fish_origin = list(name_fish)
@@ -964,11 +951,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
             plt.ylabel('WUA [m^2]')
         #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
         if fig_opt['language'] == 0:
-            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
+            plt.title(f'Weighted Usable Area - {reach_name} - {unit_name[0]} {unit_type}')
         elif fig_opt['language'] == 1:
-            plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}' + " " + unit_type)
+            plt.title(f'Surface Ponderée Utile - {reach_name} - {unit_name[0]} {unit_type}')
         else:
-            plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
+            plt.title(f'Weighted Usable Area -  {reach_name} - {unit_name[0]} {unit_type}')
         # VH
         fig.add_subplot(212)
         vh = data_bar2 / area_all[reach_num]
@@ -984,20 +971,20 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
         plt.ylim(0, 1)
         if fig_opt['language'] == 0:
-            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
+            plt.title(f'Habitat value - {reach_name} - {unit_name[0]} {unit_type}')
         elif fig_opt['language'] == 1:
-            plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}" + " " + unit_type)
+            plt.title(f"Valeur d'Habitat - {reach_name} - {unit_name[0]} {unit_type}")
         else:
-            plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
+            plt.title(f'Habitat value -  - {reach_name} - {unit_name[0]} {unit_type}')
         # get data with mouse
         mplcursors.cursor()
         plt.tight_layout()
         # export or not
         if types_plot == "image export" or types_plot == "both":
             if not erase_id:
-                name = 'WUA_' + name_base + '_Reach_' + str(0) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = 'WUA_' + name_base + '_Reach_' + str(0)
+                name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + unit_name[0]
                 test = calcul_hab_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
@@ -1013,30 +1000,30 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     if len(area_all) > 1:
         # SPU
         spu_ax = fig.add_subplot(211)
-        x_data = list(map(float, sim_name))
+        x_data = list(map(float, unit_name))
         for name_fish_value in name_fish_origin:
             y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
             plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
         if fig_opt['language'] == 0:
             # plt.xlabel('Computational step [ ]')
             plt.ylabel('WUA [m$^2$]')
-            plt.title('Weighted Usable Area for the Reach ' + str(0))
+            plt.title(f'Weighted Usable Area - {reach_name}')
         elif fig_opt['language'] == 1:
             plt.ylabel('SPU [m$^2$]')
-            plt.title('Surface Ponderée pour le troncon ' + str(0))
+            plt.title(f'Surface Ponderée Utile - {reach_name}')
         else:
             # plt.xlabel('Computational step [ ]')
             plt.ylabel('WUA [m$^2$]')
-            plt.title('Weighted Usable Area for the Reach ' + str(0))
+            plt.title(f'Weighted Usable Area - {reach_name}')
         plt.legend(fancybox=True, framealpha=0.5)  # make the legend transparent
         # spu_ax.xaxis.set_ticklabels([])
-        if len(sim_name[0]) > 5:
+        if len(unit_name[0]) > 5:
             rot = 'vertical'
         else:
             rot = 'horizontal'
-        if len(sim_name) < 25:
+        if len(unit_name) < 25:
             plt.xticks(x_data, [], rotation=rot)
-        elif len(sim_name) < 100:
+        elif len(unit_name) < 100:
             plt.xticks(x_data[::3], [], rotation=rot)
         else:
             plt.xticks(x_data[::10], [], rotation=rot)
@@ -1049,15 +1036,15 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         if fig_opt['language'] == 0:
             plt.xlabel('Computational step [' + unit_type + ']')
             plt.ylabel('HV (WUA/A) []')
-            plt.title('Habitat Value for the Reach ' + str(0))
+            plt.title(f'Habitat Value - {reach_name}')
         elif fig_opt['language'] == 1:
             plt.xlabel('Unité [' + unit_type + ']')
             plt.ylabel('HV (SPU/A) []')
-            plt.title("Valeur d'habitat pour le troncon " + str(0))
+            plt.title(f"Valeur d'habitat - {reach_name}")
         else:
             plt.xlabel('Computational step [' + unit_type + ']')
             plt.ylabel('HV (WUA/A) []')
-            plt.title('Habitat Value for the Reach ' + str(0))
+            plt.title(f'Habitat Value - {reach_name}')
         plt.ylim(0, 1)
         # view data with mouse
         # get data with mouse
@@ -1065,23 +1052,23 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         # cursorPT = SnaptoCursorPT(fig.canvas, spu_ax, hv_ax, x_data, y_data_spu_list, y_data_hv_list)
         # fig.canvas.mpl_connect('motion_notify_event', cursorPT.mouse_move)
         # label
-        if sim_name:
-            if len(sim_name[0]) > 5:
+        if unit_name:
+            if len(unit_name[0]) > 5:
                 rot = 'vertical'
             else:
                 rot = 'horizontal'
-            if len(sim_name) < 25:
-                plt.xticks(x_data, sim_name, rotation=45)
-            elif len(sim_name) < 100:
-                plt.xticks(x_data[::3], sim_name[::3], rotation=45)
+            if len(unit_name) < 25:
+                plt.xticks(x_data, unit_name, rotation=45)
+            elif len(unit_name) < 100:
+                plt.xticks(x_data[::3], unit_name[::3], rotation=45)
             else:
-                plt.xticks(x_data[::10], sim_name[::10], rotation=45)
+                plt.xticks(x_data[::10], unit_name[::10], rotation=45)
         plt.tight_layout()
         if types_plot == "image export" or types_plot == "both":
             if not erase_id:
-                name = 'WUA_' + name_base + '_Reach_' + str(0) + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+                name = 'WUA_' + name_hdf5 + '_' + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                name = 'WUA_' + name_base + '_Reach_' + str(0)
+                name = 'WUA_' + name_hdf5 + '_' + reach_name
                 test = calcul_hab_mod.remove_image(name, path_im, format1)
                 if not test:
                     return
@@ -1091,81 +1078,6 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
-
-        # # all reach
-        # if nb_reach > 1:
-        #     plt.close('all')  # only show the last reach
-        #     fig = plt.figure()
-        #     fig.add_subplot(211)
-        #     for s in range(0, len(spu_all)):
-        #         plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
-        #     if fig_opt['language'] == 0:
-        #         plt.xlabel('Computational step or discharge')
-        #         plt.ylabel('WUA [m^2]')
-        #         plt.title('Weighted Usable Area for All Reaches')
-        #     elif fig_opt['language'] == 1:
-        #         plt.xlabel('Unité')
-        #         plt.ylabel('SPU [m^2]')
-        #         plt.title('Surface Ponderée pour tous les Troncons')
-        #     else:
-        #         plt.xlabel('Computational step or discharge')
-        #         plt.ylabel('WUA [m^2]')
-        #         plt.title('Weighted Usable Area for All Reaches')
-        #     plt.legend(fancybox=True, framealpha=0.5)
-        #     if sim_name:
-        #         if len(sim_name[0]) > 5:
-        #             rot = 'vertical'
-        #         else:
-        #             rot = 'horizontal'
-        #         if len(sim_name) < 25:
-        #             plt.xticks(t_all, sim_name, rotation=rot)
-        #         elif len(sim_name) < 100:
-        #             plt.xticks(t_all[::3], sim_name[::3], rotation=rot)
-        #         else:
-        #             plt.xticks(t_all[::10], sim_name[::10], rotation=rot)
-        #     # VH
-        #     fig.add_subplot(212)
-        #     for s in range(0, len(spu_all)):
-        #         plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
-        #     if fig_opt['language'] == 0:
-        #         plt.xlabel('Computational step or discharge ')
-        #         plt.ylabel('HV (WUA/A) []')
-        #         plt.title('Habitat Value For All Reaches')
-        #     elif fig_opt['language'] == 1:
-        #         plt.xlabel('Unité')
-        #         plt.ylabel('HV (SPU/A) []')
-        #         plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
-        #     else:
-        #         plt.xlabel('Computational step or discharge ')
-        #         plt.ylabel('HV (WUA/A) []')
-        #         plt.title('Habitat Value For All Reaches')
-        #     plt.ylim(0, 1)
-        #     plt.tight_layout()
-        #     if sim_name:
-        #         if len(sim_name[0]) > 5:
-        #             rot = 'vertical'
-        #         else:
-        #             rot = 'horizontal'
-        #         if len(sim_name) < 25:
-        #             plt.xticks(t_all, sim_name, rotation=45)
-        #         elif len(sim_name) < 100:
-        #             plt.xticks(t_all[::3], sim_name[::3], rotation=45)
-        #         else:
-        #             plt.xticks(t_all[::10], sim_name[::10], rotation=45)
-        #     if types_plot == "image export" or types_plot == "both":
-        #         if not erase_id:
-        #             name = 'WUA_' + name_base + '_All_Reach_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-        #         else:
-        #             name = 'WUA_' + name_base + '_All_Reach_'
-        #             test = calcul_hab_mod.remove_image(name, path_im, format1)
-        #             if not test:
-        #                 return
-        #         if format1 == 0 or format1 == 1:
-        #             plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
-        #         if format1 == 0 or format1 == 3:
-        #             plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
-        #         if format1 == 2:
-        #             plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished

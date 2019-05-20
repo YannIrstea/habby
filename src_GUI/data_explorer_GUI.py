@@ -183,16 +183,11 @@ class DataExplorerFrame(QFrame):
         # type plot
         plot_type_qlabel = QLabel(self.tr("figure type :"))
         self.plot_map_QCheckBox = QCheckBox(self.tr("map"))
-        self.plot_map_QCheckBox.setChecked(False)
+        self.plot_map_QCheckBox.setChecked(True)
         self.plot_map_QCheckBox.stateChanged.connect(self.count_plot)
         self.plot_result_QCheckBox = QCheckBox(self.tr("result"))
         self.plot_result_QCheckBox.setChecked(False)
         self.plot_result_QCheckBox.stateChanged.connect(self.count_plot)
-
-        # progress bar
-        # self.progress_bar = QProgressBar()
-        # self.progress_bar.setValue(0)
-        # self.progress_bar.setFormat("{0:.0f}/{1:.0f}".format(0, 0))
 
         """ File information """
         # attributes hdf5
@@ -405,12 +400,7 @@ class DataExplorerFrame(QFrame):
 
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-
-            # get variables
-            hdf5.get_hdf5_variables()
-
-            # get_hdf5_reach_name
-            hdf5.get_hdf5_reach_name()
+            hdf5.open_hdf5_file(False)
 
             # hydraulic
             if self.types_hdf5_QComboBox.currentIndex() == 1:
@@ -432,7 +422,6 @@ class DataExplorerFrame(QFrame):
                     self.reach_QListWidget.addItems(hdf5.reach_name)
 
             # display hdf5 attributes
-            hdf5.get_hdf5_attributes()
             tablemodel = MyTableModel(list(zip(hdf5.hdf5_attributes_name_text, hdf5.hdf5_attributes_info_text)), self)
             self.hdf5_attributes_qtableview.setModel(tablemodel)
             header = self.hdf5_attributes_qtableview.horizontalHeader()
@@ -515,9 +504,7 @@ class DataExplorerFrame(QFrame):
 
             # create hdf5 class
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
-
-            # get units
-            hdf5.get_hdf5_units_name()
+            hdf5.open_hdf5_file(False)
 
             # add
             self.units_QListWidget.addItems(hdf5.units_name[self.reach_QListWidget.currentRow()])
@@ -526,10 +513,15 @@ class DataExplorerFrame(QFrame):
         elif len(selection_reach) > 1:
             # clear attributes hdf5_attributes_qtableview
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, selection_file[0].text())
-            hdf5.get_hdf5_units_name()
-            if type(hdf5.units_name[0]) == str:  # homogene units between reach
-                self.units_QListWidget.addItems(hdf5.units_name)
-            if type(hdf5.units_name[0]) == list:  # heterogne units between reach
+            hdf5.open_hdf5_file(False)
+            # check if units are equal between reachs
+            units_equal = True
+            for reach_num in range(len(hdf5.units_name) - 1):
+                if hdf5.units_name[reach_num] != hdf5.units_name[reach_num + 1]:
+                    units_equal = False
+            if units_equal:  # homogene units between reach
+                self.units_QListWidget.addItems(hdf5.units_name[0])
+            if not units_equal:  # heterogne units between reach
                 # clean
                 self.units_QListWidget.clear()
                 # message to user
@@ -706,7 +698,7 @@ class DataExplorerFrame(QFrame):
                         data_description["unit_number"] = hdf5.data_description["hyd_unit_number"]
                         data_description["unit_type"] = hdf5.data_description["hyd_unit_type"]
                         data_description["units_index"] = units_index
-                        data_description["name_hdf5"] = hdf5.data_description["hyd_filename"]
+                        data_description["name_hdf5"] = hdf5.data_description["hab_filename"]
                         data_description["sub_classification_code"] = hdf5.data_description["sub_classification_code"]
 
                     # for each reach
@@ -738,6 +730,7 @@ class DataExplorerFrame(QFrame):
                                                                  fig_opt,
                                                                  data_description,
                                                                  path_im,
+                                                                 reach_name,
                                                                  units[unit_num],
                                                                  False))
                                     self.plot_process_list.append((mesh_process, state))
@@ -750,6 +743,7 @@ class DataExplorerFrame(QFrame):
                                                                  fig_opt,
                                                                  data_description,
                                                                  path_im,
+                                                                 reach_name,
                                                                  units[unit_num],
                                                                  True))
                                     self.plot_process_list.append((mesh_process, state))
@@ -762,6 +756,7 @@ class DataExplorerFrame(QFrame):
                                                                  fig_opt,
                                                                  data_description,
                                                                  path_im,
+                                                                 reach_name,
                                                                  units[unit_num]))
                                     self.plot_process_list.append((mesh_process, state))
                                 if "height" in variables and not self.plot_production_stoped:  # height
@@ -774,6 +769,7 @@ class DataExplorerFrame(QFrame):
                                                                    data_description,
                                                                    hdf5.data_2d["h"][reach_num][unit_num],
                                                                    path_im,
+                                                                   reach_name,
                                                                    units[unit_num]))
                                     self.plot_process_list.append((height_process, state))
                                 if "velocity" in variables and not self.plot_production_stoped:  # velocity
@@ -786,6 +782,7 @@ class DataExplorerFrame(QFrame):
                                                                      data_description,
                                                                      hdf5.data_2d["v"][reach_num][unit_num],
                                                                      path_im,
+                                                                     reach_name,
                                                                      units[unit_num]))
                                     self.plot_process_list.append((velocity_process, state))
                                 if "coarser_dominant" in variables and not self.plot_production_stoped:  # coarser_dominant
@@ -797,8 +794,8 @@ class DataExplorerFrame(QFrame):
                                                                      hdf5.data_2d["sub"][reach_num][unit_num],
                                                                      data_description,
                                                                      path_im,
-                                                                     name_hdf5,
                                                                      fig_opt,
+                                                                     reach_name,
                                                                      units[unit_num]))
                                     self.plot_process_list.append((susbtrat_process, state))
                                 if fish_names and not self.plot_production_stoped:  # habitat data (maps)
@@ -812,9 +809,10 @@ class DataExplorerFrame(QFrame):
                                                                             hdf5.data_2d["xy"][reach_num][unit_num],
                                                                             hdf5.data_2d["tin"][reach_num][unit_num],
                                                                             hdf5.data_2d["hv_data"][fish_name][reach_num][unit_num],
-                                                                            name_hdf5,
+                                                                            data_description,
                                                                             fig_opt,
                                                                             path_im,
+                                                                            reach_name,
                                                                             units[unit_num]))
                                         self.plot_process_list.append((habitat_map_process, state))
 
