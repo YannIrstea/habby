@@ -216,14 +216,14 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stage
                     # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                     #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_pg,
                     #                   pref_vel, pref_height, pref_sub)
-                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, prog, delta)
+                    vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value = \
+                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, progress_value, delta)
                 elif opt == 1:  # dom
                     # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                     #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
                     #                   pref_vel, pref_height, pref_sub)
                     vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, prog, delta)
+                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, progress_value, delta)
                 elif opt == 2:  # percentage
                     sub_per = hdf5_mod.load_sub_percent(merge_name, path_merge)
                     if len(sub_per) == 1:
@@ -232,22 +232,22 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stage
                         return failload
                     [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                         calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, sub_per,
-                                      pref_vel, pref_height, pref_sub, prog, delta, True)
+                                      pref_vel, pref_height, pref_sub, progress_value, delta, True)
                 elif opt == 3:
                     # [vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t] = \
                     #     calc_hab_norm(ikle_all_t, point_all, inter_vel_all, inter_height_all, substrate_all_dom,
                     #                   pref_vel, pref_height, pref_sub, False, False)
                     vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t = \
-                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, take_sub=False)
+                        calc_hab_norm(data_2d, data_description, pref_vel, pref_height, pref_sub, progress_value, delta, take_sub=False)
                 else:
                     print('Error: the calculation method is not found. \n')
                     return failload
                 vh_all_t_sp.append(vh_all_t)
                 spu_all_t_sp.append(spu_all_t)
 
-        # progress
-        prog += delta
-        progress_value.value = int(prog)
+        # # progress
+        # prog += delta
+        # progress_value.value = int(prog)
 
         if found_stage == 0:
             print('Error: the name of the fish stage are not coherent \n')
@@ -256,7 +256,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stage
     return vh_all_t_sp, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t_sp, area_c_all_t
 
 
-def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, prog, delta, percent=False, take_sub=True):
+def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, progress_value, delta, percent=False, take_sub=True):
     # ikle_all_t, point_all_t, vel, height, sub,
     """
     This function calculates the habitat suitiabilty index (f(H)xf(v)xf(sub)) for each and the SPU which is the sum of
@@ -302,6 +302,9 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
         area_all = []
         area_c_all = []
         spu_all = []
+        # progress
+        prog = progress_value.value
+        delta = (80 - prog) / len(data_2d["h"][reach_num])
         # for each unit
         for unit_num in range(len(data_2d["h"][reach_num])):
             # height_t = height[t]
@@ -405,6 +408,9 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
             area_all.append(area_reach)
             area_c_all.append(area)
             spu_all.append(spu_reach)
+            # progress
+            prog += delta
+            progress_value.value = int(prog)
 
         vh_all_t.append(vh_all)
         vel_c_att_t.append(vel_c)
@@ -413,7 +419,7 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
         area_all_t.append(area_all)
         area_c_all_t.append(area_c_all)
 
-    return vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t
+    return vh_all_t, vel_c_att_t, height_c_all_t, area_all_t, spu_all_t, area_c_all_t, progress_value
 
 
 def find_pref_value(data, pref):
