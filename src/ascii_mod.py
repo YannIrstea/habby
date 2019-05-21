@@ -151,6 +151,9 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_unit_wholeprofile"] = "all"
     hyd_description["hyd_unit_z_equal"] = "True"
+    if fig_opt["CutMeshPartialyDry"] == "False":
+        namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
+        data_description["hdf5_name"] = namehdf5_old + "_no_cut.hyd"
 
     # change extension of hdf5 to create .hab
     if sub_presence:
@@ -171,11 +174,12 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         hdf5.create_hdf5_hab(data_2d,
                              data_2d_whole_profile,
                              hyd_description)
+
     # progress
     progress_value.value = 92
 
     # export_mesh_whole_profile_shp
-    #hdf5.export_mesh_whole_profile_shp(fig_opt)
+    hdf5.export_mesh_whole_profile_shp(fig_opt)
 
     # progress
     progress_value.value = 96
@@ -189,12 +193,12 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     # export_point_shp
     hdf5.export_point_shp(fig_opt,
                           data_2d_whole_profile=True,
-                          data_2d=True)
+                          data_2d=False)
 
     # export stl
     hdf5.export_stl(fig_opt,
                     data_2d_whole_profile=True,
-                    data_2d=True)
+                    data_2d=False)
 
     # progress
     progress_value.value = 100
