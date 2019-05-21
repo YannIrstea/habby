@@ -14,16 +14,18 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from struct import unpack, pack
-import numpy as np
 import os
 import sys
-import matplotlib.pyplot as plt
 import time
 from io import StringIO
+from struct import unpack, pack
+
+import matplotlib.pyplot as plt
+import numpy as np
+
 from src import hdf5_mod
-from src_GUI import preferences_GUI
 from src import manage_grid_mod
+from src_GUI import preferences_GUI
 
 
 def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value, q=[], print_cmd=False, fig_opt={}):
@@ -61,7 +63,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
     if type(description_from_indexHYDRAU_file) == dict:  # hydrau_description simple (one .hyd)
         file_number = 1
         description_from_indexHYDRAU_file = [description_from_indexHYDRAU_file]
-    if type(description_from_indexHYDRAU_file) == list:  # hydrau_description_multiple (several .hyd)
+    elif type(description_from_indexHYDRAU_file) == list:  # hydrau_description_multiple (several .hyd)
         file_number = len(description_from_indexHYDRAU_file)
 
     for hyd_file in range(0, file_number):
@@ -79,7 +81,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             data_2d_telemac, description_from_telemac_file = load_telemac(file, description_from_indexHYDRAU_file[hyd_file]["path_filename_source"])
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
-                return
+                #return
             #description_from_telemac_file["hyd_unit_z_equal"] = "True"
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
@@ -87,7 +89,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             if description_from_telemac_file["hyd_unit_z_equal"] == "True":
                 data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][0])
             elif description_from_telemac_file["hyd_unit_z_equal"] == "False":
-                for unit_num in range(len(description_from_indexHYDRAU_file[hyd_file]["unit_list"].split(", "))):
+                for unit_num in range(len(description_from_indexHYDRAU_file[hyd_file]["unit_list"])):
                     data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][unit_num])
 
             data_2d_whole_profile["unit_correspondence"][0].append(str(i))
@@ -107,10 +109,8 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                 else:
                     whole_profil_egual_index.append("diff")
         if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
-            #print("all tin are different (one tin by unit)")
             data_2d_whole_profile["unit_correspondence"] = whole_profil_egual_index
         if "diff" not in whole_profil_egual_index:  # one tin for all unit
-            #print("one tin for each unit")
             data_2d_whole_profile["tin"][0] = [data_2d_whole_profile["tin"][0][0]]
             data_2d_whole_profile["xy_center"][0] = [data_2d_whole_profile["xy_center"][0][0]]
             data_2d_whole_profile["xy"][0] = [data_2d_whole_profile["xy"][0][0]]
@@ -144,9 +144,9 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                 description_from_indexHYDRAU_file[hyd_file]["path_filename_source"])
         # get unit list from indexHYDRAU file
         if "timestep_list" in description_from_indexHYDRAU_file[hyd_file].keys():
-            unit_list_from_indexHYDRAU_file = description_from_indexHYDRAU_file[hyd_file]["timestep_list"].split(", ")
+            unit_list_from_indexHYDRAU_file = description_from_indexHYDRAU_file[hyd_file]["timestep_list"]
         else:
-            unit_list_from_indexHYDRAU_file = description_from_indexHYDRAU_file[hyd_file]["unit_list"].split(", ")
+            unit_list_from_indexHYDRAU_file = description_from_indexHYDRAU_file[hyd_file]["unit_list"]
         # get unit index to load
         if len(unit_list_from_telemac_file) == 1 and len(unit_list_from_indexHYDRAU_file) == 1:
             unit_index_list = [0]
@@ -184,31 +184,25 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                 # conca xy with z value to facilitate the cutting of the grid (interpolation)
                 xy = np.insert(data_2d_telemac["xy"],
                                2,
-                               values=data_2d_telemac["z"],
+                               values=data_2d_telemac["z"][unit_num],
                                axis=1)  # Insert values before column 2
-            # CutMeshPartialyDry
-            if fig_opt["CutMeshPartialyDry"] == "True":
-                [tin_data, xy_cuted, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
-                                                                                  xy,  # with z value (facilitate)
-                                                                                  data_2d_telemac["h"][unit_num],
-                                                                                  data_2d_telemac["v"][unit_num],
-                                                                                  progress_value,
-                                                                                  delta,
-                                                                                  minwh,
-                                                                                  True)
-                if not isinstance(tin_data, np.ndarray):
-                    print("Error: cut_2d_grid")
-                    q.put(mystdout)
-                    return
 
-            # not CutMeshPartialyDry
-            elif fig_opt["CutMeshPartialyDry"] == "False":
-                # if we want to disable cut_2d_grid (for dev)
-                xy_cuted = xy
-                tin_data = data_2d_telemac["tin"]
-                ind_new = np.array([10] * len(data_2d_telemac["tin"]))
-                h_data = data_2d_telemac["h"][unit_num]
-                v_data = data_2d_telemac["v"][unit_num]
+            [tin_data, xy_cuted, h_data, v_data, ind_new] = manage_grid_mod.cut_2d_grid(data_2d_telemac["tin"],
+                                                                                        xy,
+                                                                                        # with z value (facilitate)
+                                                                                        data_2d_telemac["h"][
+                                                                                            unit_num],
+                                                                                        data_2d_telemac["v"][
+                                                                                            unit_num],
+                                                                                        progress_value,
+                                                                                        delta,
+                                                                                        fig_opt[
+                                                                                            "CutMeshPartialyDry"],
+                                                                                        minwh)
+            if not isinstance(tin_data, np.ndarray):
+                print("Error: cut_2d_grid")
+                q.put(mystdout)
+                return
 
             # save data in dict
             data_2d["tin"][0].append(tin_data)
@@ -217,11 +211,6 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             data_2d["h"][0].append(h_data)
             data_2d["v"][0].append(v_data)
             data_2d["z"][0].append(xy_cuted[:, 2])
-            # data_2d["tin"][0].append(data_2d_telemac["tin"])
-            # data_2d["xy"][0].append(xy[:, :2])
-            # data_2d["h"][0].append(data_2d_telemac["h"][unit_num])
-            # data_2d["v"][0].append(data_2d_telemac["v"][unit_num])
-            # data_2d["z"][0].append(xy[:, 2])
 
         # ALL CASE SAVE TO HDF5
         progress_value.value = 90  # progress
@@ -236,7 +225,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_reach_list"] = description_from_indexHYDRAU_file[hyd_file]["reach_list"]
         hyd_description["hyd_reach_number"] = description_from_indexHYDRAU_file[hyd_file]["reach_number"]
         hyd_description["hyd_reach_type"] = description_from_indexHYDRAU_file[hyd_file]["reach_type"]
-        hyd_description["hyd_unit_list"] = description_from_indexHYDRAU_file[hyd_file]["unit_list"]
+        hyd_description["hyd_unit_list"] = [description_from_indexHYDRAU_file[hyd_file]["unit_list"]]
         hyd_description["hyd_unit_number"] = description_from_indexHYDRAU_file[hyd_file]["unit_number"]
         hyd_description["hyd_unit_type"] = description_from_indexHYDRAU_file[hyd_file]["unit_type"]
         hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
@@ -246,6 +235,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
             description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
+
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(description_from_indexHYDRAU_file[hyd_file]["path_prj"],
                                        description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])
@@ -255,13 +245,13 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         progress_value.value = 92
 
         # export_mesh_whole_profile_shp
-        #hdf5.export_mesh_whole_profile_shp(fig_opt)
+        hdf5.export_mesh_whole_profile_shp(fig_opt)
 
         # progress
         progress_value.value = 96
 
         # export shape
-        #hdf5.export_mesh_shp(fig_opt)
+        hdf5.export_mesh_shp(fig_opt)
 
         # progress
         progress_value.value = 98
@@ -427,12 +417,12 @@ def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
             headers = "filename" + "\t" + "T[" + time_unit + "]"
 
             # first line
-            if description_from_indexHYDRAU_file[0]["unit_list"].split(", ") == \
+            if description_from_indexHYDRAU_file[0]["unit_list"] == \
                     description_from_indexHYDRAU_file[0]["unit_list_full"]:
                 unit_data = "all"
             else:
                 index = [i for i, item in enumerate(description_from_indexHYDRAU_file[0]["unit_list_full"]) if
-                         item in description_from_indexHYDRAU_file[0]["unit_list"].split(", ")]
+                         item in description_from_indexHYDRAU_file[0]["unit_list"]]
                 my_sequences = []
                 for idx, item in enumerate(index):
                     if not idx or item - 1 != my_sequences[-1][-1]:
@@ -475,7 +465,7 @@ def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
             # first line
-            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[0])
+            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"][0])
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
 
@@ -501,8 +491,8 @@ def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
             if reach_column_presence:
                 headers = headers + "\t" + "reachname"
             # first line
-            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[0])
-            linetowrite = linetowrite + "\t" + description_from_indexHYDRAU_file[0]["unit_list_full"]
+            linetowrite = filename_column[0] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"][0])
+            linetowrite = linetowrite + "\t" + description_from_indexHYDRAU_file[0]["unit_list_full"][0]
             if reach_column_presence:
                 linetowrite = linetowrite + "\t" + reach_column
             # text
@@ -529,7 +519,7 @@ def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
             # lines
             linetowrite = ""
             for row in range(nb_row):
-                linetowrite += filename_column[row] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[row])
+                linetowrite += filename_column[row] + "\t" + str(description_from_indexHYDRAU_file[0]["unit_list"][row])
                 if reach_column_presence:
                     linetowrite = linetowrite + "\t" + reach_column + "\n"
                 else:
@@ -562,7 +552,7 @@ def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
             linetowrite = ""
             for row in range(nb_row):
                 linetowrite += filename_column[row] + "\t" + str(
-                    description_from_indexHYDRAU_file[0]["unit_list"].split(", ")[row]) + "\t" + description_from_indexHYDRAU_file[0]["timestep_list"].split(", ")[row]
+                    description_from_indexHYDRAU_file[0]["unit_list"][row]) + "\t" + description_from_indexHYDRAU_file[0]["timestep_list"][row]
                 if reach_column_presence:
                     linetowrite = linetowrite + "\t" + reach_column + "\n"
                 else:
@@ -593,10 +583,10 @@ def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
                 headers = headers + "\t" + "reachname"
 
             # first line
-            if description_from_indexHYDRAU_file[0]["unit_list"].split(", ") == description_from_indexHYDRAU_file[0]["unit_list_full"]:
+            if description_from_indexHYDRAU_file[0]["unit_list"] == description_from_indexHYDRAU_file[0]["unit_list_full"]:
                 unit_data = "all"
             else:
-                index = [i for i, item in enumerate(description_from_indexHYDRAU_file[0]["unit_list_full"]) if item in description_from_indexHYDRAU_file[0]["unit_list"].split(", ")]
+                index = [i for i, item in enumerate(description_from_indexHYDRAU_file[0]["unit_list_full"]) if item in description_from_indexHYDRAU_file[0]["unit_list"]]
                 my_sequences = []
                 for idx, item in enumerate(index):
                     if not idx or item - 1 != my_sequences[-1][-1]:
@@ -665,10 +655,10 @@ def create_indexHYDRAU_text_file(description_from_indexHYDRAU_file):
                     reach_column = description_from_indexHYDRAU_file[i_hdf5]["reach_list"].split(", ")[0]
 
                 # first line
-                if description_from_indexHYDRAU_file[i_hdf5]["unit_list"].split(", ") == description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"]:
+                if description_from_indexHYDRAU_file[i_hdf5]["unit_list"] == description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"]:
                     unit_data = "all"
                 else:
-                    index = [i for i, item in enumerate(description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"]) if item in description_from_indexHYDRAU_file[i_hdf5]["unit_list"].split(", ")]
+                    index = [i for i, item in enumerate(description_from_indexHYDRAU_file[i_hdf5]["unit_list_full"]) if item in description_from_indexHYDRAU_file[i_hdf5]["unit_list"]]
                     my_sequences = []
                     for idx, item in enumerate(index):
                         if not idx or item - 1 != my_sequences[-1][-1]:

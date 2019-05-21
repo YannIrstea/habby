@@ -3318,11 +3318,11 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.reach_name_label.setText(self.hydrau_description["reach_list"])
                 self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
                 self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"].split(", "))
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
                 if not self.hydrau_description["unit_list_tf"]:
                     self.units_QListWidget.selectAll()
                 else:
-                    for i in range(len(self.hydrau_description["unit_list_full"].split(", "))):
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
                         self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                 self.units_QListWidget.setEnabled(True)
@@ -3352,11 +3352,11 @@ class TELEMAC(SubHydroW):  # QGroupBox
                 self.reach_name_label.setText(self.hydrau_description["reach_list"])
                 self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
                 self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"].split(", "))
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
                 if not self.hydrau_description["unit_list_tf"]:
                     self.units_QListWidget.selectAll()
                 else:
-                    for i in range(len(self.hydrau_description["unit_list_full"].split(", "))):
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
                         self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                 self.units_QListWidget.setEnabled(True)
@@ -3380,9 +3380,9 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.reach_name_label.setText(self.hydrau_description["reach_list"])
         self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
         self.units_QListWidget.clear()
-        self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"].split(", "))
+        self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
         # change selection items
-        for i in range(len(self.hydrau_description["unit_list_full"].split(", "))):
+        for i in range(len(self.hydrau_description["unit_list_full"])):
             self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
             self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
         self.epsg_label.setText(self.hydrau_description["epsg_code"])
@@ -3409,14 +3409,14 @@ class TELEMAC(SubHydroW):  # QGroupBox
         # save multi
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = ", ".join(unit_list)
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = ", ".join(unit_list_full)
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
         # save one
         else:
-            self.hydrau_description["unit_list"] = ", ".join(unit_list)
-            self.hydrau_description["unit_list_full"] = ", ".join(unit_list_full)
+            self.hydrau_description["unit_list"] = unit_list
+            self.hydrau_description["unit_list_full"] = unit_list_full
             self.hydrau_description["unit_list_tf"] = selected_list
             self.hydrau_description["unit_number"] = str(selected)
 
@@ -3823,11 +3823,11 @@ class ASCII(SubHydroW):  # QGroupBox
                 self.reach_name_label.setText(self.hydrau_description["reach_list"])
                 self.units_name_label.setText(self.hydrau_description["unit_type"])  # kind of unit
                 self.units_QListWidget.clear()
-                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"].split(", "))
+                self.units_QListWidget.addItems(self.hydrau_description["unit_list_full"])
                 if not self.hydrau_description["unit_list_tf"]:
                     self.units_QListWidget.selectAll()
                 else:
-                    for i in range(len(self.hydrau_description["unit_list_full"].split(", "))):
+                    for i in range(len(self.hydrau_description["unit_list_full"])):
                         self.units_QListWidget.item(i).setSelected(self.hydrau_description["unit_list_tf"][i])
                         self.units_QListWidget.item(i).setTextAlignment(Qt.AlignLeft)
                 self.units_QListWidget.setEnabled(True)
@@ -3908,8 +3908,8 @@ class ASCII(SubHydroW):  # QGroupBox
         # save multi
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = ", ".join(unit_list)
-            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = ", ".join(unit_list_full)
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list"] = unit_list
+            self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_full"] = unit_list_full
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_list_tf"] = selected_list
             self.hydrau_description_multiple[self.h2d_t2.currentIndex()]["unit_number"] = str(selected)
         # save one
@@ -3974,7 +3974,7 @@ class ASCII(SubHydroW):  # QGroupBox
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
-            self.p = Process(target=telemac_mod.load_telemac_and_cut_grid,
+            self.p = Process(target=telemac_mod.load_ascii_and_cut_grid,
                              args=(self.hydrau_description_multiple,
                                    self.progress_value,
                                    self.q,

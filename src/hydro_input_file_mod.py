@@ -81,8 +81,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                                                          hdf5_name=name_hdf5,
                                                          model_type=model_type,
                                                          model_dimension=str(nb_dim),
-                                                         unit_list=", ".join(unit_name_from_file),
-                                                         unit_list_full=", ".join(unit_name_from_file),
+                                                         unit_list=unit_name_from_file,
+                                                         unit_list_full=unit_name_from_file,
                                                          unit_list_tf=unit_index_from_file,
                                                          unit_number=str(nbtimes),
                                                          unit_type="time [s]",
@@ -119,7 +119,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 reach_list = "unknown"
                 sub = False
                 nbtimes, unit_list = get_time_step(filename_path, model_type)
-                unit_list_tf = [list(map(bool, x)) for x in unit_list]
+                unit_list_tf = list(map(bool, unit_list))
 
             hydrau_description = dict(path_prj=path_prj,
                                       name_prj=name_prj,
@@ -280,8 +280,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
-            hydrau_description["unit_list"] = ", ".join(data_index_file[headers[discharge_index]])
-            hydrau_description["unit_list_full"] = ", ".join(unit_name_from_file)
+            hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
+            hydrau_description["unit_list_full"] = unit_name_from_file
             hydrau_description["unit_list_tf"] = []
             hydrau_description["unit_number"] = str(1)
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
@@ -296,10 +296,10 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             filename_path = os.path.join(folder_path, data_index_file["filename"][0])
             nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
             # get units name from indexHYDRAU.txt file
-            unit_name_from_index_file = data_index_file[headers[time_index]][0]
+            unit_name_from_index_file = data_index_file[headers[time_index]]
 
             # check if lenght of two loading units
-            if unit_name_from_index_file not in unit_name_from_file:
+            if unit_name_from_index_file[0] not in unit_name_from_file:
                 return "Error: " + unit_name_from_index_file + " doesn't exist in telemac file"
 
             if reach_presence:
@@ -309,12 +309,12 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
-            hydrau_description["unit_list"] = ", ".join(data_index_file[headers[discharge_index]])
+            hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
             hydrau_description["unit_list_full"] = unit_name_from_index_file
             hydrau_description["unit_list_tf"] = []
             hydrau_description["unit_number"] = str(1)
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
-            hydrau_description["timestep_list"] = ", ".join(data_index_file[headers[time_index]])
+            hydrau_description["timestep_list"] = data_index_file[headers[time_index]]
             hydrau_description["reach_list"] = reach_name
             hydrau_description["reach_number"] = str(1)
             hydrau_description["reach_type"] = "river"
@@ -344,8 +344,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
-            hydrau_description["unit_list"] = ", ".join(data_index_file[headers[discharge_index]])
-            hydrau_description["unit_list_full"] = ", ".join(data_index_file[headers[discharge_index]])
+            hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
+            hydrau_description["unit_list_full"] = data_index_file[headers[discharge_index]]
             hydrau_description["unit_list_tf"] = []
             hydrau_description["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
@@ -377,12 +377,12 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
-            hydrau_description["unit_list"] = ", ".join(data_index_file[headers[discharge_index]])
-            hydrau_description["unit_list_full"] = ", ".join(data_index_file[headers[discharge_index]])
+            hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
+            hydrau_description["unit_list_full"] = data_index_file[headers[discharge_index]]
             hydrau_description["unit_list_tf"] = []
             hydrau_description["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
-            hydrau_description["timestep_list"] = ", ".join(data_index_file[headers[time_index]])
+            hydrau_description["timestep_list"] = data_index_file[headers[time_index]]
             hydrau_description["reach_list"] = reach_name
             hydrau_description["reach_number"] = str(1)
             hydrau_description["reach_type"] = "river"
@@ -407,8 +407,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
-            hydrau_description["unit_list"] = ", ".join(unit_name_from_file)
-            hydrau_description["unit_list_full"] = ", ".join(unit_name_from_file)
+            hydrau_description["unit_list"] = unit_name_from_file
+            hydrau_description["unit_list_full"] = unit_name_from_file
             hydrau_description["unit_list_tf"] = unit_index_from_file
             hydrau_description["unit_number"] = str(nbtimes)
             hydrau_description["unit_type"] = "time [" + time_unit + "]"
@@ -459,8 +459,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # hydrau_description
             hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
-            hydrau_description["unit_list"] = ", ".join(unit_name_from_index_file2)
-            hydrau_description["unit_list_full"] = ", ".join(unit_name_from_file)
+            hydrau_description["unit_list"] = unit_name_from_index_file2
+            hydrau_description["unit_list_full"] = unit_name_from_file
             hydrau_description["unit_list_tf"] = timestep_to_select
             hydrau_description["unit_number"] = str(len(unit_name_from_index_file2))
             hydrau_description["unit_type"] = "time [" + time_unit + "]"
@@ -501,8 +501,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                                                          model_type=model_type,
                                                          model_dimension=str(nb_dim),
                                                          epsg_code=epsg_code,
-                                                         unit_list=", ".join(unit_name_from_file),
-                                                         unit_list_full=", ".join(unit_name_from_file),
+                                                         unit_list=unit_name_from_file,
+                                                         unit_list_full=unit_name_from_file,
                                                          unit_list_tf=unit_index_from_file,
                                                          unit_number=str(nbtimes),
                                                          unit_type="time [" + time_unit + "]",
@@ -571,8 +571,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                                                          model_type=model_type,
                                                          model_dimension=str(nb_dim),
                                                          epsg_code=epsg_code,
-                                                         unit_list=", ".join(unit_name_from_index_file2),
-                                                         unit_list_full=", ".join(unit_name_from_file),
+                                                         unit_list=unit_name_from_index_file2,
+                                                         unit_list_full=unit_name_from_file,
                                                          unit_list_tf=unit_index_from_file,
                                                          unit_number=str(len(unit_name_from_index_file2)),
                                                          unit_type="time [" + time_unit + "]",
