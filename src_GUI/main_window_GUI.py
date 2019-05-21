@@ -28,8 +28,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
-    QLabel, QGridLayout, QAction, QSizePolicy,\
-    QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
+    QLabel, QGridLayout, QAction, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 import qdarkstyle
 from webbrowser import open as wbopen
@@ -248,11 +247,7 @@ class MainWindows(QMainWindow):
 
         # preferences
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
-        self.preferences_options = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
-        self.preferences_dialog = QMainWindow()
-        self.preferences_dialog.setWindowTitle(self.tr("Preferences"))
-        self.preferences_dialog.setCentralWidget(self.preferences_options)
-        self.preferences_dialog.setWindowIcon(QIcon(self.name_icon))
+        self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
 
         # set theme
         if self.settings.value('theme') == "dark":
@@ -775,18 +770,11 @@ class MainWindows(QMainWindow):
         self.toolbar.addAction(self.kill_process)
 
     def open_preferences(self):
-        # get size
-        height_pref = self.preferences_dialog.centralWidget().sizeHint().height()
-        height_pref = height_pref
-        width_pref = self.preferences_dialog.centralWidget().sizeHint().width()
-        width_pref = width_pref + width_pref * 0.15
-        # resize window
-        self.preferences_dialog.resize(width_pref, height_pref)
         # show the pref
         self.preferences_dialog.show()
-        # witdh_for_checkbox_alignement
-        witdh_for_checkbox_alignement = self.preferences_dialog.centralWidget().cut_2d_grid_label.size().width()
-        self.preferences_dialog.centralWidget().erase_data_label.setMinimumWidth(witdh_for_checkbox_alignement)
+        # # witdh_for_checkbox_alignement
+        witdh_for_checkbox_alignement = self.preferences_dialog.cut_2d_grid_label.size().width()
+        self.preferences_dialog.erase_data_label.setMinimumWidth(witdh_for_checkbox_alignement)
 
     def recreate_tabs_attributes(self):
         # create new tab (there were some segmentation fault here as it re-write existing QWidget, be careful)
@@ -1087,12 +1075,8 @@ class MainWindows(QMainWindow):
 
         # save_preferences
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
-        self.preferences_options = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
-        self.preferences_options.save_preferences()
-        self.preferences_dialog = QMainWindow()
-        self.preferences_dialog.setWindowTitle(self.tr("Preferences"))
-        self.preferences_dialog.setCentralWidget(self.preferences_options)
-        self.preferences_dialog.setWindowIcon(QIcon(self.name_icon))
+        self.preferences_dialog.save_preferences()
+        self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
 
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()

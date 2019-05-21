@@ -15,9 +15,9 @@ https://github.com/YannIrstea/habby
 
 """
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QGroupBox, QPushButton, QLabel, QGridLayout, \
-    QLineEdit, QComboBox, QMessageBox, QFormLayout, \
-    QCheckBox, QScrollArea, QFrame
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
+    QLineEdit, QComboBox, QMessageBox, QFormLayout, QCheckBox
 
 try:
     import xml.etree.cElementTree as ET
@@ -27,7 +27,7 @@ import numpy as np
 import os
 
 
-class PreferenceWindow(QScrollArea):
+class PreferenceWindow(QDialog):
     """
     The class which support the creation and management of the output. It is notably used to select the options to
     create the figures.
@@ -38,11 +38,12 @@ class PreferenceWindow(QScrollArea):
     A PyQtsignal used to write the log.
     """
 
-    def __init__(self, path_prj, name_prj):
+    def __init__(self, path_prj, name_prj, name_icon):
 
         super().__init__()
         self.path_prj = path_prj
         self.name_prj = name_prj
+        self.name_icon = name_icon
         # list with the available color map
         self.namecmap = ['coolwarm', 'jet', 'magma', 'viridis', 'inferno', 'plasma', 'Blues',
                          'Greens', 'Greys', 'Oranges', 'Purples',
@@ -227,17 +228,16 @@ class PreferenceWindow(QScrollArea):
         layout_figures.addRow(marquers_hab_fig_label, self.marquers_hab_fig_checkbox)
 
         # general
-        content_widget = QFrame()  # empty frame scrolable
-        layout = QGridLayout(content_widget)
+        layout = QGridLayout(self)
         layout.addWidget(general_options_group, 0, 0)
         layout.addWidget(available_exports_group, 1, 0)
         layout.addWidget(figures_group, 0, 1, 3, 2)
         layout.addWidget(self.save_pref_button, 3, 1)  # , 1, 1
         layout.addWidget(self.close_pref_button, 3, 2)  # , 1, 1
         layout.setAlignment(Qt.AlignTop)
-        self.setWidgetResizable(True)
-        self.setFrameShape(QFrame.NoFrame)
-        self.setWidget(content_widget)
+
+        self.setWindowTitle(self.tr("Preferences"))
+        self.setWindowIcon(QIcon(self.name_icon))
 
     def save_preferences(self):
         """
@@ -447,15 +447,11 @@ class PreferenceWindow(QScrollArea):
 
         self.send_log.emit('# The new options for the figures are saved.')
         self.send_log.emit('# Modifications of figure options.')
-        if self.parent():
-            self.close_preferences()
+        self.close()
 
     def close_preferences(self):
         # close window if opened
-        try:
-            self.parent().close()
-        except:
-            print("bug")
+        self.close()
 
 
 def set_lang_fig(nb_lang, path_prj, name_prj):
