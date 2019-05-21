@@ -1213,7 +1213,7 @@ class Hdf5Management:
                             # conveyance
                             conveyance = v_mean_mesh * h_mean_mesh
                             # i_whole_profile
-                            i_whole_profile = self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num]
+                            i_whole_profile = self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0]
                             # data geom (get the triangle coordinates)
                             p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
                                 float(self.data_2d["z"][reach_num][unit_num][node1])])
@@ -1250,8 +1250,7 @@ class Hdf5Management:
                                     return
                         else:
                             if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                                name_shp = self.basename + "_r" + str(
-                                    reach_num) + "_t" + unit_name_str + '_' + time.strftime(
+                                name_shp = os.path.splitext(name_shp)[0] + '_' + time.strftime(
                                     "%d_%m_%Y_at_%H_%M_%S") + '.shp'
 
                         # write file
@@ -1280,7 +1279,6 @@ class Hdf5Management:
     def export_point_shp(self, fig_opt, data_2d_whole_profile, data_2d):
         if fig_opt['shape_output'] == "True":
             if data_2d_whole_profile:
-                name_shp = self.basename + "_whole_profile_point_r0_t0.shp"
                 name_shp = self.basename_output[0][0] + "_whole_profile_point.shp"
 
                 # for each mesh
@@ -1293,7 +1291,7 @@ class Hdf5Management:
                     # data geom (get the triangle coordinates)
                     x = self.data_2d_whole["xy"][0][0][point_num][0]
                     y = self.data_2d_whole["xy"][0][0][point_num][1]
-                    z = self.data_2d_whole["z"][0][0][point_num]
+                    z = self.data_2d_whole["z"][0][0][point_num][0]
                     w.point(x=x, y=y, z=z, shapeType=11)  # the double [[]] is important or it bugs, but why?
                     data_here = [z]
                     w.record(*data_here)
