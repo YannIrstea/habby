@@ -914,7 +914,6 @@ class MainWindows(QMainWindow):
 
         Finally the log is written (see “log and HABBY in the command line).
         """
-        print("save_project")
         # saved path
         path_prj = os.path.normpath(self.central_widget.welcome_tab.e2.text())
         if not os.path.isdir(path_prj):  # if the directoy do not exist
@@ -1352,24 +1351,49 @@ class MainWindows(QMainWindow):
                 self.msg2.show()
                 return
 
-        # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by save_project)
-        self.central_widget.welcome_tab.e1.setText(name_prj_here)
-        self.central_widget.welcome_tab.e2.setText(path_new_fold)
-        self.central_widget.welcome_tab.e3.setText('')
-        self.central_widget.welcome_tab.e4.setText('')
-
         # check if there is not another project with the same path_name
-        fname = os.path.join(self.createnew.e2.text(), name_prj_here + '.xml')
+        fname = os.path.join(self.createnew.e2.text(), name_prj_here, name_prj_here + '.xml')
         if os.path.isfile(fname):
             self.msg2.setIcon(QMessageBox.Warning)
-            self.msg2.setWindowTitle(self.tr("Identical name"))
-            self.msg2.setText(self.tr("A project with an identical name exists. Choose another name."))
-            self.msg2.setStandardButtons(QMessageBox.Ok)
-            self.msg2.show()
-            return
+            self.msg2.setWindowTitle(self.tr("An HABBY project already exists."))
+            self.msg2.setText(self.tr("A project with an identical name exists.\n"
+                                      "Do you want to overwrite it and all its files ?"))
+            self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            res = self.msg2.exec_()
+
+            # delete
+            if res == QMessageBox.No:
+                self.central_widget.write_log('Warning: Project not created. Choose another project name.')
+                self.createnew.close()
+            if res == QMessageBox.Yes:
+                self.delete_project(path_new_fold)
+                try:
+                    os.makedirs(path_new_fold)
+                except PermissionError:
+                    self.msg2.setIcon(QMessageBox.Warning)
+                    self.msg2.setWindowTitle(self.tr("Permission Error"))
+                    self.msg2.setText(
+                        self.tr(
+                            "You do not have the permission to write in this folder. Choose another folder. \n"))
+                    self.msg2.setStandardButtons(QMessageBox.Ok)
+                    self.msg2.show()
+                    return
+                # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by save_project)
+                self.central_widget.welcome_tab.e1.setText(name_prj_here)
+                self.central_widget.welcome_tab.e2.setText(path_new_fold)
+                self.central_widget.welcome_tab.e3.setText('')
+                self.central_widget.welcome_tab.e4.setText('')
+                self.createnew.close()
+                self.save_project()
+                self.central_widget.write_log('Warning: Old project and its files are deleted. New empty project created.')
 
         # save project if unique name in the selected folder
         else:
+            # pass the info from the extra Windows to the HABBY MainWindows (check on user input done by save_project)
+            self.central_widget.welcome_tab.e1.setText(name_prj_here)
+            self.central_widget.welcome_tab.e2.setText(path_new_fold)
+            self.central_widget.welcome_tab.e3.setText('')
+            self.central_widget.welcome_tab.e4.setText('')
             self.createnew.close()
             self.save_project()
 
@@ -1797,6 +1821,13 @@ class MainWindows(QMainWindow):
         # log
         t = self.central_widget.tracking_journal_QTextEdit.toPlainText()
         self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('Images deleted. <br>'))
+
+    def delete_project(self, new_project_path):
+        try:
+            shutil.rmtree(new_project_path)
+        except:
+            self.central_widget.write_log.send_log.emit('Error: Old project and its files are opened by another programme.\n'
+                               'Close them and try again.')
 
     def open_help(self):
         """
