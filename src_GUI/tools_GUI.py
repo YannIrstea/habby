@@ -279,7 +279,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
             fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
             fish_list.sort()
-            units_name = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit list")].split(", ")
+            units_name = hdf5.units_name
 
             # hab
             if fish_list != [""]:

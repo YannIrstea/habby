@@ -92,8 +92,8 @@ class Hdf5Management:
                 self.file_object.attrs['h5py_version'] = self.h5py_version
                 self.file_object.attrs['software'] = 'HABBY'
                 self.file_object.attrs['software_version'] = str(HABBY_VERSION)
-                self.file_object.attrs['path_projet'] = self.path_prj
-                self.file_object.attrs['name_projet'] = self.name_prj
+                self.file_object.attrs['path_project'] = self.path_prj
+                self.file_object.attrs['name_project'] = self.name_prj
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
                 self.get_hdf5_attributes()
@@ -153,7 +153,7 @@ class Hdf5Management:
         # get attributes
         hdf5_attributes_dict = dict(self.file_object.attrs.items())
         hdf5_attributes_dict_keys = sorted(hdf5_attributes_dict.keys())
-        attributes_to_the_end = ['name_projet', 'path_projet', 'software', 'software_version', 'h5py_version',
+        attributes_to_the_end = ['name_project', 'path_project', 'software', 'software_version', 'h5py_version',
                                  'hdf5_version']
         hdf5_attributes_name_text = []
         hdf5_attributes_info_text = []
@@ -1383,7 +1383,7 @@ class Hdf5Management:
     # EXPORT TXT
     def export_spu_txt(self, fig_opt):
         if fig_opt['text_output'] == "True":
-            path_txt = os.path.join(self.data_description["path_projet"], "output", "text")
+            path_txt = os.path.join(self.data_description["path_project"], "output", "text")
             if not os.path.exists(path_txt):
                 print('Error: the path to the text file is not found. Text files not created \n')
 
@@ -1728,6 +1728,7 @@ class Hdf5Management:
 
                 # create the "grouping" file to read all time step together
                 name_here = self.basename + "_" + self.reach_name[reach_num] + '.pvd'
+                file_names_all = list(map(os.path.basename, file_names_all))
                 if fig_opt["erase_id"] == "True":
                     if os.path.isfile(name_here):
                         os.remove(name_here)
@@ -1900,8 +1901,8 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     # create attributes
     file.attrs['software'] = 'HABBY'
     file.attrs['software_version'] = str(VERSION)
-    file.attrs['path_projet'] = path_prj
-    file.attrs['name_projet'] = name_prj
+    file.attrs['path_project'] = path_prj
+    file.attrs['name_project'] = name_prj
     file.attrs['hdf5_version'] = h5py.version.hdf5_version
     file.attrs['h5py_version'] = h5py.version.version
     file.attrs['hdf5_type'] = hdf5_type
@@ -2149,8 +2150,8 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
         # create attributes
         file.attrs['software'] = 'HABBY'
         file.attrs['software_version'] = str(VERSION)
-        file.attrs['path_projet'] = path_prj
-        file.attrs['name_projet'] = name_prj
+        file.attrs['path_project'] = path_prj
+        file.attrs['name_project'] = name_prj
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
         file.attrs['h5py_version'] = h5py.version.version
         file.attrs['hdf5_type'] = "substrate"
@@ -2212,8 +2213,8 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
         # create attributes
         file.attrs['software'] = 'HABBY'
         file.attrs['software_version'] = str(VERSION)
-        file.attrs['path_projet'] = path_prj
-        file.attrs['name_projet'] = name_prj
+        file.attrs['path_project'] = path_prj
+        file.attrs['name_project'] = name_prj
         file.attrs['HDF5_version'] = h5py.version.hdf5_version
         file.attrs['h5py_version'] = h5py.version.version
         file.attrs['hdf5_type'] = "substrate"

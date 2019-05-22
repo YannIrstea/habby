@@ -32,7 +32,7 @@ def create_project_structure(path_prj, logon, version, username_prj, descri_prj,
     # create all child
     child = ET.SubElement(general_element, "Project_Name")
     child.text = name_prj
-    path_child = ET.SubElement(general_element, "Path_Projet")
+    path_child = ET.SubElement(general_element, "Path_Project")
     path_child.text = path_prj
     path_last_file_loaded_child = ET.SubElement(general_element, "Path_last_file_loaded")
     path_last_file_loaded_child.text = path_prj

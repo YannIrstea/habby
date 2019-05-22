@@ -972,7 +972,7 @@ class MainWindows(QMainWindow):
             doc = ET.parse(fname)
             root = doc.getroot()
             child = root.find(".//Project_Name")
-            path_child = root.find(".//Path_Projet")
+            path_child = root.find(".//Path_Project")
             path_last_file_loaded_child = root.find(".//Path_last_file_loaded")
             user_child = root.find(".//User_Name")
             des_child = root.find(".//Description")
@@ -1141,7 +1141,7 @@ class MainWindows(QMainWindow):
         # get the project name and path. Write it in the QWiddet.
         # the text in the Qwidget will be used to save the project
         self.name_prj = root2.find(".//Project_Name").text
-        self.path_prj = root2.find(".//Path_Projet").text
+        self.path_prj = root2.find(".//Path_Project").text
         self.central_widget.path_last_file_loaded_c = root2.find(".//Path_last_file_loaded").text
 
         if self.name_prj is None or self.path_prj is None:
@@ -1158,7 +1158,7 @@ class MainWindows(QMainWindow):
             self.central_widget.write_log('Warning: xml file path is not coherent with project path. '
                                           'New project path: ' + os.path.dirname(filename_path))
             self.path_prj = os.path.dirname(filename_path)
-            root2.find(".//Path_Projet").text = self.path_prj
+            root2.find(".//Path_Project").text = self.path_prj
             # if we have change the project path, it is probable that the project folder was copied from somewhere else
             # so the check concurrency file was probably copied and look like open even if the project is closed.
             self.central_widget.write_log('Warning: Could not control for concurrency between projects due to path '
@@ -1262,7 +1262,7 @@ class MainWindows(QMainWindow):
         # get the project name and path. Write it in the QWiddet.
         # the text in the Qwidget will be used to save the project
         self.name_prj = root.find(".//Project_Name").text
-        self.path_prj = root.find(".//Path_Projet").text
+        self.path_prj = root.find(".//Path_Project").text
         self.username_prj = root.find(".//User_Name").text
         self.descri_prj = root.find(".//Description").text
         stathab_info = root.find(".//hdf5Stathab")
@@ -1452,7 +1452,7 @@ class MainWindows(QMainWindow):
             root = doc.getroot()
             name_child = root.find(".//Project_Name")
             # change project path
-            path_child = root.find(".//Path_Projet")
+            path_child = root.find(".//Path_Project")
             path_prj_old = path_child.text
             path_child.text = os.path.join(os.path.dirname(path_child.text), name_prj_here)
             new_path_prj = os.path.join(os.path.dirname(path_child.text), name_prj_here)
@@ -1508,7 +1508,7 @@ class MainWindows(QMainWindow):
         # get the project name and path. Write it in the QWiddet.
         # the text in the Qwidget will be used to save the project
         self.name_prj = root2.find(".//Project_Name").text
-        self.path_prj = root2.find(".//Path_Projet").text
+        self.path_prj = root2.find(".//Path_Project").text
         self.central_widget.welcome_tab.e1.setText(self.name_prj)
         self.central_widget.welcome_tab.e2.setText(self.path_prj)
         self.central_widget.welcome_tab.e4.setText('')
@@ -2313,9 +2313,9 @@ class CentralW(QWidget):
                 shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
                             os.path.join(self.path_prj_c, 'restart_' + self.name_prj_c + '.log'))
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write("    name_projet = " + self.name_prj_c + "'\n")
+                    myfile.write("    name_project = " + self.name_prj_c + "'\n")
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
-                    myfile.write("    path_projet = " + self.path_prj_c + "'\n")
+                    myfile.write("    path_project = " + self.path_prj_c + "'\n")
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write('\n' + text_log)
 

@@ -211,7 +211,7 @@ class WelcomeW(QScrollArea):
                 self.path_prj = new_path
                 doc = ET.parse(fname_old)
                 root = doc.getroot()
-                path_child = root.find(".//Path_Projet")
+                path_child = root.find(".//Path_Project")
                 path_child.text = self.path_prj  # new name
                 fname = os.path.join(self.path_prj, self.name_prj + '.xml')
                 try:

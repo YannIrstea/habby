@@ -632,7 +632,7 @@ def save_spu_txt(area_all, spu_all, hab_description, sim_name=[], lang=0, erase_
     :param lang: an int which indicates the chosen language (0 is english)
     :param erase_id: If True, we erase old text file from identical hydraulic model
     """
-    path_txt = os.path.join(hab_description["path_projet"], "output", "text")
+    path_txt = os.path.join(hab_description["path_project"], "output", "text")
     if not os.path.exists(path_txt):
         print('Error: the path to the text file is not found. Text files not created \n')
 

@@ -4742,8 +4742,8 @@ class HabbyHdf5(SubHydroW):
         except OSError:
             self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
             return
-        file_hydro2.attrs['path_projet'] = self.path_prj
-        file_hydro2.attrs['name_projet'] = self.name_prj
+        file_hydro2.attrs['path_project'] = self.path_prj
+        file_hydro2.attrs['name_project'] = self.name_prj
 
         self.add_new_hdf5_to_xml()
 
@@ -4799,8 +4799,8 @@ class HabbyHdf5(SubHydroW):
         except OSError:
             self.send_log.emit('Error: The hdf5 file could not be loaded. \n')
             return
-        file_hydro2.attrs['path_projet'] = self.path_prj
-        file_hydro2.attrs['name_projet'] = self.name_prj
+        file_hydro2.attrs['path_project'] = self.path_prj
+        file_hydro2.attrs['name_project'] = self.name_prj
 
         self.add_new_hdf5_to_xml()
 

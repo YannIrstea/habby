@@ -204,7 +204,7 @@ def compute_interpolation(data_description, fish_names, chronicle, types, roundd
 
 def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_description, types, fig_opt):
     filename = data_description["hab_filename"]
-    path_prj = data_description["path_projet"]
+    path_prj = data_description["path_project"]
     unit_type = types["units"]
 
     fish_names = list(horiz_headers)
