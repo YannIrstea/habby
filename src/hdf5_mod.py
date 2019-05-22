@@ -38,8 +38,7 @@ from src import hl_mod
 from src import paraview_mod
 from src.tools_mod import get_prj_from_epsg_web
 from src_GUI import preferences_GUI
-
-VERSION = 0.25
+from habby import HABBY_VERSION
 
 
 class Hdf5Management:
@@ -92,7 +91,7 @@ class Hdf5Management:
                 self.file_object.attrs['hdf5_version'] = self.hdf5_version
                 self.file_object.attrs['h5py_version'] = self.h5py_version
                 self.file_object.attrs['software'] = 'HABBY'
-                self.file_object.attrs['software_version'] = str(VERSION)
+                self.file_object.attrs['software_version'] = str(HABBY_VERSION)
                 self.file_object.attrs['path_projet'] = self.path_prj
                 self.file_object.attrs['name_projet'] = self.name_prj
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename

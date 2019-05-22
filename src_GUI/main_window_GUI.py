@@ -19,7 +19,7 @@ import shutil
 from functools import partial
 from platform import system as operatingsystem
 from subprocess import call
-
+import urllib.request
 import numpy as np
 
 try:
@@ -27,8 +27,8 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, \
-    QLabel, QGridLayout, QAction, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
+from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QPushButton, \
+    QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 import qdarkstyle
 from webbrowser import open as wbopen
@@ -249,6 +249,8 @@ class MainWindows(QMainWindow):
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
 
+        # soft_information_dialog
+        self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
         # set theme
         if self.settings.value('theme') == "dark":
             self.setthemedark()
@@ -570,6 +572,11 @@ class MainWindows(QMainWindow):
         helpm.setStatusTip(self.tr('Get help to use the programme'))
         helpm.triggered.connect(self.open_help)
 
+        # Menu to obtain help and program version
+        aboutm = QAction(self.tr('About'), self)
+        aboutm.setStatusTip(self.tr('Get information software'))
+        aboutm.triggered.connect(self.get_information_soft)
+
         # preferences
         preferences_action = QAction(self.tr('Preferences'), self)
         preferences_action.triggered.connect(self.open_preferences)
@@ -652,6 +659,7 @@ class MainWindows(QMainWindow):
         fileMenu_language.addAction(lAction2)
         fileMenu_language.addAction(lAction3)
         fileMenu_help.addAction(helpm)
+        fileMenu_help.addAction(aboutm)
 
         if not right_menu:
             # add the status and progress bar
@@ -1077,6 +1085,7 @@ class MainWindows(QMainWindow):
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_dialog.save_preferences()
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
+        self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()
@@ -1822,6 +1831,10 @@ class MainWindows(QMainWindow):
         filename_help = os.path.join(os.getcwd(), "doc", "_build", "html", "index.html")
         wbopen(filename_help)
 
+    def get_information_soft(self):
+        # show the pref
+        self.soft_information_dialog.show()
+
     def process_alive(self, close=True, isalive=False):
         """
         method to close all multiprocess of data (hydro, substrate, merge and calc hab) if they are alive.
@@ -2464,6 +2477,82 @@ class EmptyTab(QWidget):
         """
         print('Text Text and MORE Text')
 
+
+class SoftInformationDialog(QDialog):
+    """
+    The class which support the creation and management of the output. It is notably used to select the options to
+    create the figures.
+
+    """
+    send_log = pyqtSignal(str, name='send_log')
+    """
+    A PyQtsignal used to write the log.
+    """
+
+    def __init__(self, path_prj, name_prj, name_icon, actual_version):
+
+        super().__init__()
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        self.name_icon = name_icon
+        self.actual_version = actual_version
+        self.init_iu()
+
+    def init_iu(self):
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
+
+        """ WIDGETS """
+        actual_version_label_title = QLabel(self.tr('Actual'))
+        actual_version_label = QLabel(str(self.actual_version))
+
+        last_version_label_title = QLabel(self.tr('Last'))
+        self.last_version_label = QLabel("-")
+
+        self.close_button = QPushButton(self.tr("Ok"))
+        self.close_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Expanding)
+        self.close_button.clicked.connect(self.close_dialog)
+
+        """ LAYOUT """
+        # versions layout
+        layout_general_options = QFormLayout()
+        general_options_group = QGroupBox(self.tr("HABBY version"))
+        general_options_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        general_options_group.setLayout(layout_general_options)
+        layout_general_options.addRow(actual_version_label_title, actual_version_label)
+        layout_general_options.addRow(last_version_label_title, self.last_version_label)
+
+        # general
+        layout = QVBoxLayout(self)
+        layout.addWidget(general_options_group)
+        layout.addWidget(self.close_button)
+        #layout.setAlignment(Qt.AlignRight)
+        self.setWindowTitle(self.tr("About"))
+        self.setWindowIcon(QIcon(self.name_icon))
+
+    def get_last_version_number_from_github(self):
+        last_version_str = "unknown"
+        try:
+            url_github = 'https://api.github.com/repos/YannIrstea/habby/tags'
+            with urllib.request.urlopen(url_github) as response:
+                html = response.read()
+                last_version_str = eval(html)[0]["name"][1:]
+                self.last_version_label.setText(last_version_str)
+        except:
+            print("no internet access")
+            self.last_version_label.setText(last_version_str)
+
+    def showEvent(self, event):
+        # do stuff here
+        self.get_last_version_number_from_github()
+        event.accept()
+
+    def close_dialog(self):
+        self.close()
 
 if __name__ == '__main__':
     pass

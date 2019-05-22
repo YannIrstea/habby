@@ -24,6 +24,10 @@ import multiprocessing
 import os
 
 
+global HABBY_VERSION
+HABBY_VERSION = 0.24
+
+
 def main():
     """
     This is the main for HABBY. If no argument is given, the PyQt interface
@@ -35,7 +39,6 @@ def main():
     the function from HABBY.
     """
     # set version
-    VERSION = 0.25
 
     # graphical user interface is called if no argument
     if len(sys.argv) == 1:
@@ -54,7 +57,7 @@ def main():
         app.processEvents()
 
         # create windows
-        ex = main_window_GUI.MainWindows(VERSION)
+        ex = main_window_GUI.MainWindows(HABBY_VERSION)
         app.setActiveWindow(ex)
 
         # close the splash screen
@@ -74,7 +77,7 @@ def main():
         namedir = 'result_cmd3'
         path_bio = './biology'
         # find the best path_prj
-        settings = QSettings('irstea', 'HABBY' + str(VERSION))
+        settings = QSettings('irstea', 'HABBY' + str(HABBY_VERSION))
         name_prj = settings.value('name_prj')
         path_prj = settings.value('path_prj')
         proj_def = False
