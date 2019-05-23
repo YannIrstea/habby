@@ -26,7 +26,7 @@ try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from PyQt5.QtCore import QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
+from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
 from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
@@ -1998,7 +1998,7 @@ class CentralW(QWidget):
 
         super().__init__()
         self.msg2 = QMessageBox()
-        self.tab_widget = QTabWidget()
+        self.tab_widget = QTabWidget(self)
         self.name_prj_c = name_prj
         self.path_prj_c = path_prj
 
@@ -2082,12 +2082,34 @@ class CentralW(QWidget):
         # update plot item in plot tab
         self.tab_widget.currentChanged.connect(self.update_plot_items_in_plot_tab)
 
+        self.keyboard_change_tab_filter = AltTabPressEater()
+        self.tab_widget.installEventFilter(self.keyboard_change_tab_filter)
+        self.keyboard_change_tab_filter.next_signal.connect(self.next_tab)
+        self.keyboard_change_tab_filter.previous_signal.connect(self.previous_tab)
+        self.tab_widget.setFocus()
+
         # layout
         self.layoutc = QGridLayout()
         self.layoutc.addWidget(self.tab_widget, 1, 0)
         self.layoutc.addWidget(self.l1, 2, 0)
         self.layoutc.addWidget(self.tracking_journal_QTextEdit, 3, 0)
         self.setLayout(self.layoutc)
+
+    def previous_tab(self):
+        max_tab = self.tab_widget.count() - 1
+        current_tab_index = self.tab_widget.currentIndex()
+        if current_tab_index == 0:
+            self.tab_widget.setCurrentIndex(max_tab)
+        else:
+            self.tab_widget.setCurrentIndex(current_tab_index - 1)
+
+    def next_tab(self):
+        max_tab = self.tab_widget.count() - 1
+        current_tab_index = self.tab_widget.currentIndex()
+        if current_tab_index < max_tab:
+            self.tab_widget.setCurrentIndex(current_tab_index + 1)
+        else:
+            self.tab_widget.setCurrentIndex(0)
 
     def scrolldown_log(self):
         """
@@ -2478,6 +2500,22 @@ class EmptyTab(QWidget):
         print('Text Text and MORE Text')
 
 
+class AltTabPressEater(QObject):
+    next_signal = pyqtSignal()
+    previous_signal = pyqtSignal()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.KeyPress and event.key() == 16777217:
+            self.next_signal.emit()
+            return True # eat alt+tab or alt+shift+tab key
+        elif event.type() == QEvent.KeyPress and event.key() == 16777218:
+            self.previous_signal.emit()
+            return True  # eat alt+tab or alt+shift+tab key
+        else:
+            # standard event processing
+            return QObject.eventFilter(self, obj, event)
+
+
 class SoftInformationDialog(QDialog):
     """
     The class which support the creation and management of the output. It is notably used to select the options to
@@ -2553,6 +2591,7 @@ class SoftInformationDialog(QDialog):
 
     def close_dialog(self):
         self.close()
+
 
 if __name__ == '__main__':
     pass
