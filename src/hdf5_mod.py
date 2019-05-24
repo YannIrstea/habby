@@ -262,7 +262,7 @@ class Hdf5Management:
             self.nb_unit = len(self.units_name)
 
     # HYDRAULIC
-    def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description):
+    def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description, fig_opt):
         """
         :param data_2d: data 2d dict with keys :
         'tin' : list by reach, sub list by units and sub list of numpy array type int
@@ -417,6 +417,12 @@ class Hdf5Management:
 
         # reload to add new data to attributes
         self.load_hdf5_hyd(whole_profil=True)
+
+        # exports
+        self.export_mesh_shp(fig_opt)
+        self.export_point_shp(fig_opt)
+        self.export_stl(fig_opt)
+        self.export_paraview(fig_opt)
 
     def load_hdf5_hyd(self, units_index="all", whole_profil=False):
         # open an hdf5
@@ -686,7 +692,7 @@ class Hdf5Management:
         self.data_description = sub_description_system
 
     # HABITAT
-    def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description):
+    def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description, fig_opt):
         # model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d
         attributes_to_remove = ("hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type", "hdf5_type")
 
@@ -791,7 +797,7 @@ class Hdf5Management:
         # save XML
         self.save_xml("Habitat")  # uppercase for xml
 
-        # reload to add new data to attributes
+        # reload to set data to attributes
         self.load_hdf5_hab(whole_profil=True)
 
     def load_hdf5_hab(self, units_index="all", fish_names="all", whole_profil=False, convert_to_coarser_dom=False):
@@ -1051,9 +1057,14 @@ class Hdf5Management:
         self.load_hdf5_hab(convert_to_coarser_dom=True)
 
     # EXPORT SHP
-    def export_mesh_whole_profile_shp(self, fig_opt):
-        if fig_opt['shape_output'] == "True":
-
+    def export_mesh_shp(self, fig_opt):
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        # DATA 2D WHOLE PROFILE
+        if fig_opt['mesh_whole_profile'][index]:
             # for all reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                 # for all units (selected or all)
@@ -1116,8 +1127,8 @@ class Hdf5Management:
                     # Continue if the inner loop wasn't broken.
                     continue
 
-    def export_mesh_shp(self, fig_opt):
-        if fig_opt['shape_output'] == "True":
+        # DATA 2D
+        if fig_opt['mesh_units'][index]:
             # init
             fish_names = []
 
@@ -1275,52 +1286,59 @@ class Hdf5Management:
                                     print("Warning : Can't write .prj from EPSG code :",
                                           self.data_description["hyd_epsg_code"])
 
-    def export_point_shp(self, fig_opt, data_2d_whole_profile, data_2d):
-        if fig_opt['shape_output'] == "True":
-            if data_2d_whole_profile:
-                name_shp = self.basename_output[0][0] + "_whole_profile_point.shp"
+    def export_point_shp(self, fig_opt):
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        # DATA 2D WHOLE PROFILE
+        if fig_opt['point_whole_profile'][index]:
+            name_shp = self.basename_output[0][0] + "_whole_profile_point.shp"
 
-                # for each mesh
-                w = shapefile.Writer(shapefile.POINTZ)
-                w.autoBalance = 1
-                w.field('elevation', 'F', 50, 8)
+            # for each mesh
+            w = shapefile.Writer(shapefile.POINTZ)
+            w.autoBalance = 1
+            w.field('elevation', 'F', 50, 8)
 
-                # for each point
-                for point_num in range(0, len(self.data_2d_whole["xy"][0][0])):
-                    # data geom (get the triangle coordinates)
-                    x = self.data_2d_whole["xy"][0][0][point_num][0]
-                    y = self.data_2d_whole["xy"][0][0][point_num][1]
-                    z = self.data_2d_whole["z"][0][0][point_num][0]
-                    w.point(x=x, y=y, z=z, shapeType=11)  # the double [[]] is important or it bugs, but why?
-                    data_here = [z]
-                    w.record(*data_here)
+            # for each point
+            for point_num in range(0, len(self.data_2d_whole["xy"][0][0])):
+                # data geom (get the triangle coordinates)
+                x = self.data_2d_whole["xy"][0][0][point_num][0]
+                y = self.data_2d_whole["xy"][0][0][point_num][1]
+                z = self.data_2d_whole["z"][0][0][point_num][0]
+                w.point(x=x, y=y, z=z, shapeType=11)  # the double [[]] is important or it bugs, but why?
+                data_here = [z]
+                w.record(*data_here)
 
-                # filename
-                if fig_opt['erase_id'] == 'True':  # erase file if exist ?
-                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                        try:
-                            os.remove(os.path.join(self.path_shp, name_shp))
-                        except PermissionError:
-                            print(
-                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                            return
-                else:
-                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                        name_shp = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
-                            "%d_%m_%Y_at_%H_%M_%S") + '.shp'
-
-                # write file
-                w.save(os.path.join(self.path_shp, name_shp))
-
-                # write .prj
-                if self.data_description["hyd_epsg_code"] != "unknown":
+            # filename
+            if fig_opt['erase_id'] == 'True':  # erase file if exist ?
+                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                     try:
-                        string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
-                        open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj", "w").write(string_prj)
-                    except:
-                        print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+                        os.remove(os.path.join(self.path_shp, name_shp))
+                    except PermissionError:
+                        print(
+                            'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                        return
+            else:
+                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                    name_shp = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + '.shp'
 
-            if data_2d:
+            # write file
+            w.save(os.path.join(self.path_shp, name_shp))
+
+            # write .prj
+            if self.data_description["hyd_epsg_code"] != "unknown":
+                try:
+                    string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
+                    open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj", "w").write(string_prj)
+                except:
+                    print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+
+
+            # DATA 2D
+            if fig_opt['point_units'][index]:
                 # for each reach
                 for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                     # get units list
@@ -1379,6 +1397,160 @@ class Hdf5Management:
                             except:
                                 print("Warning : Can't write .prj from EPSG code :",
                                       self.data_description["hyd_epsg_code"])
+
+    # EXPORT 3D
+    def export_stl(self, fig_opt):
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        if fig_opt['elevation_whole_profile'][index]:
+            """ create stl whole profile (to see topography) """
+            # vertical_exageration
+
+            # for all reach
+            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                # for all units (selected or all)
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    if self.data_description['hyd_unit_wholeprofile'] == "all":
+                        name_file = self.basename + "_" + self.reach_name[reach_num] + "_all_wholeprofile_mesh.stl"
+                    else:
+                        name_file = self.basename_output[reach_num][unit_num] + "_wholeprofile_mesh.stl"
+
+                    # get data
+                    xy = self.data_2d_whole["xy"][reach_num][unit_num]
+                    if fig_opt["vertical_exaggeration"] <= 0:
+                        z = self.data_2d_whole["z"][reach_num][unit_num]
+                    if fig_opt["vertical_exaggeration"] > 0:
+                        z = self.data_2d_whole["z"][reach_num][unit_num] * fig_opt["vertical_exaggeration"]
+                    faces = self.data_2d_whole["tin"][reach_num][unit_num]
+                    vertices = np.column_stack([xy, z])
+                    # Create the mesh
+                    stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+                    for i, f in enumerate(faces):
+                        for j in range(3):
+                            stl_file.vectors[i][j] = vertices[f[j], :]
+                    # Write the mesh to file "cube.stl"
+                    stl_file.save(os.path.join(self.path_visualisation,
+                                               name_file))
+
+            # if data_2d:
+            #     """ create stl water level (to see water level on topography) """
+            #     # get units list
+            #     unit_names = self.data_description["hyd_unit_list"]
+            #     # for each reach
+            #     for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+            #         # for each unit
+            #         for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+            #             # get data
+            #             xy = self.data_2d["xy"][reach_num][unit_num]
+            #             # with warnings.catch_warnings():
+            #             #     warnings.filterwarnings('error')
+            #             try:
+            #                 z = (self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10
+            #             except Warning:
+            #                 print('oh no!')
+            #             faces = self.data_2d["tin"][reach_num][unit_num]
+            #             vertices = np.column_stack([xy, z])
+            #             # Create the mesh
+            #             stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+            #             for i, f in enumerate(faces):
+            #                 for j in range(3):
+            #                     stl_file.vectors[i][j] = vertices[f[j], :]
+            #             # Write the mesh to file "cube.stl"
+            #             name_file = self.basename_output[reach_num][unit_num] + "_waterlevel.stl"
+            #             stl_file.save(os.path.join(self.path_visualisation,
+            #                                        name_file))
+
+    def export_paraview(self, fig_opt):
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        if fig_opt['variables_units'][index]:
+            file_names_all = []
+
+            if self.extension == ".hab":
+                # format the name of species and stage
+                name_fish = self.data_description["hab_fish_list"].split(", ")
+                for id, n in enumerate(name_fish):
+                    name_fish[id] = n.replace('_', ' ')
+
+            # for each reach
+            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                file_names_all = []
+                # for each unit
+                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                    # create one vtu file by time step
+                    x = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
+                    y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
+                    try:
+                        if fig_opt["vertical_exaggeration"] <= 0:
+                            z = np.ascontiguousarray(self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num])
+                        if fig_opt["vertical_exaggeration"] > 0:
+                            z = np.ascontiguousarray((
+                            self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * fig_opt["vertical_exaggeration"])
+                    except Warning:
+                        print('oh no!')
+
+                    connectivity = np.reshape(self.data_2d["tin"][reach_num][unit_num],
+                                              (len(self.data_2d["tin"][reach_num][unit_num]) * 3,))
+                    offsets = np.arange(3, len(self.data_2d["tin"][reach_num][unit_num]) * 3 + 3, 3)
+                    offsets = np.array(list(map(int, offsets)))
+                    cell_types = np.zeros(len(self.data_2d["tin"][reach_num][unit_num]), ) + 5  # triangle
+                    cell_types = np.array(list((map(int, cell_types))))
+
+                    cellData = {}
+
+                    # fish
+                    if self.extension == ".hab":
+                        for fish_name in self.data_description["hab_fish_list"].split(", "):
+                            newkey = "HV " + fish_name
+                            cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
+                        # substrate
+                        cellData["sub_coarser"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[0]
+                        cellData["sub_dominant"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[1]
+
+                    # hydrau data creation for each mesh
+                    v_mean_mesh_list = []
+                    h_mean_mesh_list = []
+                    for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                        node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                        node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
+                        node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                        # data attributes
+                        v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
+                        v2 = self.data_2d["v"][reach_num][unit_num][node2]
+                        v3 = self.data_2d["v"][reach_num][unit_num][node3]
+                        v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
+                        v_mean_mesh_list.append(v_mean_mesh)
+                        h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
+                        h2 = self.data_2d["h"][reach_num][unit_num][node2]
+                        h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                        h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
+                        h_mean_mesh_list.append(h_mean_mesh)
+
+                    cellData['height'] = np.array(h_mean_mesh_list)
+                    cellData['velocity'] = np.array(v_mean_mesh_list)
+
+                    # create the grid and the vtu files
+                    name_file = os.path.join(self.path_visualisation, self.basename_output[reach_num][unit_num])
+                    if fig_opt["erase_id"] == "True":
+                        if os.path.isfile(name_file):
+                            os.remove(name_file)
+                    file_names_all.append(name_file + ".vtu")
+                    hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
+                                                 cellData)
+
+                # create the "grouping" file to read all time step together
+                name_here = self.basename + "_" + self.reach_name[reach_num] + '.pvd'
+                file_names_all = list(map(os.path.basename, file_names_all))
+                if fig_opt["erase_id"] == "True":
+                    if os.path.isfile(name_here):
+                        os.remove(name_here)
+                paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all)
 
     # EXPORT TXT
     def export_spu_txt(self, fig_opt):
@@ -1598,142 +1770,6 @@ class Hdf5Management:
                     plt.savefig(filename)
                 except PermissionError:
                     print('Warning: Close .pdf to update fish information')
-
-    # EXPORT 3D
-    def export_stl(self, fig_opt, data_2d_whole_profile, data_2d):
-        if fig_opt['stl'] == "True":
-            if data_2d_whole_profile:
-                """ create stl whole profile (to see topography) """
-                # for all reach
-                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                    # for all units (selected or all)
-                    for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                        if self.data_description['hyd_unit_wholeprofile'] == "all":
-                            name_file = self.basename + "_" + self.reach_name[reach_num] + "_all_wholeprofile_mesh.stl"
-                        else:
-                            name_file = self.basename_output[reach_num][unit_num] + "_wholeprofile_mesh.stl"
-
-                        # get data
-                        xy = self.data_2d_whole["xy"][reach_num][unit_num]
-                        z = self.data_2d_whole["z"][reach_num][unit_num] * 10
-                        faces = self.data_2d_whole["tin"][reach_num][unit_num]
-                        vertices = np.column_stack([xy, z])
-                        # Create the mesh
-                        stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-                        for i, f in enumerate(faces):
-                            for j in range(3):
-                                stl_file.vectors[i][j] = vertices[f[j], :]
-                        # Write the mesh to file "cube.stl"
-                        stl_file.save(os.path.join(self.path_visualisation,
-                                                   name_file))
-
-            if data_2d:
-                """ create stl water level (to see water level on topography) """
-                # get units list
-                unit_names = self.data_description["hyd_unit_list"]
-                # for each reach
-                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                    # for each unit
-                    for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                        # get data
-                        xy = self.data_2d["xy"][reach_num][unit_num]
-                        # with warnings.catch_warnings():
-                        #     warnings.filterwarnings('error')
-                        try:
-                            z = (self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10
-                        except Warning:
-                            print('oh no!')
-                        faces = self.data_2d["tin"][reach_num][unit_num]
-                        vertices = np.column_stack([xy, z])
-                        # Create the mesh
-                        stl_file = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-                        for i, f in enumerate(faces):
-                            for j in range(3):
-                                stl_file.vectors[i][j] = vertices[f[j], :]
-                        # Write the mesh to file "cube.stl"
-                        name_file = self.basename_output[reach_num][unit_num] + "_waterlevel.stl"
-                        stl_file.save(os.path.join(self.path_visualisation,
-                                                   name_file))
-
-    def export_paraview(self, fig_opt):
-        if fig_opt['paraview'] == "True":
-            file_names_all = []
-
-            # format the name of species and stage
-            name_fish = self.data_description["hab_fish_list"].split(", ")
-            for id, n in enumerate(name_fish):
-                name_fish[id] = n.replace('_', ' ')
-
-            # for each reach
-            for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                file_names_all = []
-                # for each unit
-                for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                    # create one vtu file by time step
-                    x = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
-                    y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
-                    try:
-                        z = np.ascontiguousarray(
-                            (self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * 10)
-                    except Warning:
-                        print('oh no!')
-
-                    connectivity = np.reshape(self.data_2d["tin"][reach_num][unit_num],
-                                              (len(self.data_2d["tin"][reach_num][unit_num]) * 3,))
-                    offsets = np.arange(3, len(self.data_2d["tin"][reach_num][unit_num]) * 3 + 3, 3)
-                    offsets = np.array(list(map(int, offsets)))
-                    cell_types = np.zeros(len(self.data_2d["tin"][reach_num][unit_num]), ) + 5  # triangle
-                    cell_types = np.array(list((map(int, cell_types))))
-
-                    # fish
-                    cellData = {}
-                    for fish_name in self.data_description["hab_fish_list"].split(", "):
-                        newkey = "HV " + fish_name
-                        cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
-
-                    # substrate
-                    cellData["sub_coarser"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[0]
-                    cellData["sub_dominant"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[1]
-
-                    # hydrau data creation for each mesh
-                    v_mean_mesh_list = []
-                    h_mean_mesh_list = []
-                    for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                        node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                        node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
-                        node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
-                        # data attributes
-                        v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
-                        v2 = self.data_2d["v"][reach_num][unit_num][node2]
-                        v3 = self.data_2d["v"][reach_num][unit_num][node3]
-                        v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
-                        v_mean_mesh_list.append(v_mean_mesh)
-                        h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
-                        h2 = self.data_2d["h"][reach_num][unit_num][node2]
-                        h3 = self.data_2d["h"][reach_num][unit_num][node3]
-                        h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
-                        h_mean_mesh_list.append(h_mean_mesh)
-
-                    cellData['height'] = np.array(h_mean_mesh_list)
-                    cellData['velocity'] = np.array(v_mean_mesh_list)
-
-                    # create the grid and the vtu files
-                    name_file = os.path.join(self.path_visualisation, self.basename_output[reach_num][unit_num])
-                    if fig_opt["erase_id"] == "True":
-                        if os.path.isfile(name_file):
-                            os.remove(name_file)
-                    file_names_all.append(name_file + ".vtu")
-                    hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
-                                                 cellData)
-
-                # create the "grouping" file to read all time step together
-                name_here = self.basename + "_" + self.reach_name[reach_num] + '.pvd'
-                file_names_all = list(map(os.path.basename, file_names_all))
-                if fig_opt["erase_id"] == "True":
-                    if os.path.isfile(name_here):
-                        os.remove(name_here)
-                paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all)
-
 
 #################################################################
 

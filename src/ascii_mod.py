@@ -169,36 +169,13 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     if not sub_presence:
         hdf5.create_hdf5_hyd(data_2d,
                              data_2d_whole_profile,
-                             hyd_description)
+                             hyd_description,
+                             fig_opt)
     if sub_presence:
         hdf5.create_hdf5_hab(data_2d,
                              data_2d_whole_profile,
-                             hyd_description)
-
-    # progress
-    progress_value.value = 92
-
-    # export_mesh_whole_profile_shp
-    hdf5.export_mesh_whole_profile_shp(fig_opt)
-
-    # progress
-    progress_value.value = 96
-
-    # export shape
-    hdf5.export_mesh_shp(fig_opt)
-
-    # progress
-    progress_value.value = 98
-
-    # export_point_shp
-    hdf5.export_point_shp(fig_opt,
-                          data_2d_whole_profile=True,
-                          data_2d=False)
-
-    # export stl
-    hdf5.export_stl(fig_opt,
-                    data_2d_whole_profile=True,
-                    data_2d=False)
+                             hyd_description,
+                             fig_opt)
 
     # progress
     progress_value.value = 100

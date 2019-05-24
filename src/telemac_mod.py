@@ -239,32 +239,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(description_from_indexHYDRAU_file[hyd_file]["path_prj"],
                                        description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])
-        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description)
-
-        # progress
-        progress_value.value = 92
-
-        # export_mesh_whole_profile_shp
-        hdf5.export_mesh_whole_profile_shp(fig_opt)
-
-        # progress
-        progress_value.value = 96
-
-        # export shape
-        hdf5.export_mesh_shp(fig_opt)
-
-        # progress
-        progress_value.value = 98
-
-        # export_point_shp
-        hdf5.export_point_shp(fig_opt,
-                        data_2d_whole_profile=True,
-                        data_2d=False)
-
-        # export stl
-        hdf5.export_stl(fig_opt,
-                       data_2d_whole_profile=True,
-                       data_2d=False)
+        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, fig_opt)
 
         # progress
         progress_value.value = 100

@@ -14,9 +14,9 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
+from PyQt5.QtWidgets import QFrame, QSizePolicy, QSpacerItem, QGroupBox, QDialog, QPushButton, QLabel, QGridLayout, \
     QLineEdit, QComboBox, QMessageBox, QFormLayout, QCheckBox
 
 try:
@@ -62,10 +62,11 @@ class PreferenceWindow(QDialog):
         fig_dict = load_fig_option(self.path_prj, self.name_prj)
 
         """ WIDGETS """
+        """ general widgets """
         # cut_2d_grid
         self.cut_2d_grid_label = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
         self.cut_2d_grid_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['CutMeshPartialyDry'] == 'True':  # is a string not a boolean
+        if fig_dict['CutMeshPartialyDry']:  # is a string not a boolean
             self.cut_2d_grid_checkbox.setChecked(True)
         else:
             self.cut_2d_grid_checkbox.setChecked(False)
@@ -77,51 +78,83 @@ class PreferenceWindow(QDialog):
         # erase_data
         self.erase_data_label = QLabel(self.tr('Erase file if exist'))
         self.erase_data_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['erase_id'] == 'True':  # is a string not a boolean
+        if fig_dict['erase_id']:  # is a string not a boolean
             self.erase_data_checkbox.setChecked(True)
         else:
             self.erase_data_checkbox.setChecked(False)
 
-        # detailed_text_out
-        detailed_text_out_label = QLabel(self.tr('Detailed text (.txt)'))
-        self.detailed_text_out_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['text_output'] == 'True':  # is a string not a boolean
-            self.detailed_text_out_checkbox.setChecked(True)
-        else:
-            self.detailed_text_out_checkbox.setChecked(False)
-        
-        # shape_out
-        shape_out_label = QLabel(self.tr('Shapefile (.shp)'))
-        self.shape_out_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['shape_output'] == 'True':  # is a string not a boolean
-            self.shape_out_checkbox.setChecked(True)
-        else:
-            self.shape_out_checkbox.setChecked(False)
+        """ outputs widgets """
+        self.mesh_whole_profile_hyd = QCheckBox("")
+        self.mesh_whole_profile_hyd.setObjectName("mesh_whole_profile_hyd")
 
-        # 3d_stl
-        stl_out_label = QLabel(self.tr('3D stereolithography (.stl)'))
-        self.stl_out_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['stl'] == 'True':  # is a string not a boolean
-            self.stl_out_checkbox.setChecked(True)
-        else:
-            self.stl_out_checkbox.setChecked(False)
+        self.point_whole_profile_hyd = QCheckBox("")
+        self.point_whole_profile_hyd.setObjectName("point_whole_profile_hyd")
 
-        # paraview_out
-        paraview_out_label = QLabel(self.tr('3D Paraview (.pvd, .vtu)'))
-        self.paraview_out_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['paraview'] == 'True':  # is a string not a boolean
-            self.paraview_out_checkbox.setChecked(True)
-        else:
-            self.paraview_out_checkbox.setChecked(False)
-        
-        # fish_info
-        fish_info_label = QLabel(self.tr('Fish Information (.pdf)'))
-        self.fish_info_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['fish_info'] == 'True':  # is a string not a boolean
-            self.fish_info_checkbox.setChecked(True)
-        else:
-            self.fish_info_checkbox.setChecked(False)
-        
+        self.mesh_units_hyd = QCheckBox("")
+        self.mesh_units_hab = QCheckBox("")
+        self.mesh_units_hyd.setObjectName("mesh_units_hyd")
+        self.mesh_units_hab.setObjectName("mesh_units_hab")
+
+        self.point_units_hyd = QCheckBox("")
+        self.point_units_hab = QCheckBox("")
+        self.point_units_hyd.setObjectName("point_units_hyd")
+        self.point_units_hab.setObjectName("point_units_hab")
+
+        vertical_exaggeration = QLabel("3D vertical exaggeration")
+        self.vertical_exaggeration_lineedit = QLineEdit("10")
+        self.vertical_exaggeration_lineedit.setAlignment(Qt.AlignCenter)
+        self.vertical_exaggeration_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        self.vertical_exaggeration_lineedit.setFixedHeight(self.point_units_hyd.sizeHint().height())
+        self.vertical_exaggeration_lineedit.setFixedWidth(75)
+
+        self.elevation_whole_profile_hyd = QCheckBox("")
+        self.elevation_whole_profile_hyd.setObjectName("elevation_whole_profile_hyd")
+
+        self.variables_units_hyd = QCheckBox("")
+        self.variables_units_hab = QCheckBox("")
+        self.variables_units_hyd.setObjectName("variables_units_hyd")
+        self.variables_units_hab.setObjectName("variables_units_hab")
+
+        self.detailled_text_hyd = QCheckBox("")
+        self.detailled_text_hab = QCheckBox("")
+        self.detailled_text_hyd.setObjectName("detailled_text_hyd")
+        self.detailled_text_hab.setObjectName("detailled_text_hab")
+
+        self.fish_information_hab = QCheckBox("")
+        self.fish_information_hab.setObjectName("fish_information_hab")
+
+        self.checkbox_list = [self.mesh_whole_profile_hyd,
+                              self.point_whole_profile_hyd,
+                              self.mesh_units_hyd,
+                              self.mesh_units_hab,
+                              self.point_units_hyd,
+                              self.point_units_hab,
+                              self.elevation_whole_profile_hyd,
+                              self.variables_units_hyd,
+                              self.variables_units_hab,
+                              self.detailled_text_hyd,
+                              self.detailled_text_hab,
+                              self.fish_information_hab]
+        self.checkbox_list_set = [checkbox.objectName()[:-4] for checkbox in self.checkbox_list]
+        self.checkbox_list_set = list(set(self.checkbox_list_set))
+
+        # check uncheck
+        list_done = []
+        for checkbox in self.checkbox_list:
+            type = checkbox.objectName()[-3:]
+            if type == "hyd":
+                index = 0
+            if type == "hab":
+                index = 1
+            print(checkbox.objectName(), fig_dict[checkbox.objectName()[:-4]])
+            if fig_dict[checkbox.objectName()[:-4]][index] and checkbox.objectName()[:-4] not in list_done:  # hyd
+                list_done.append(checkbox.objectName()[:-4])
+                checkbox.setChecked(True)
+            if checkbox.objectName()[:-4] not in list_done:  #hab
+                list_done.append(checkbox.objectName()[:-4])
+                checkbox.setChecked(False)
+
+        """ figure widgets """
         # fig_size
         fig_size_label = QLabel(self.tr('Figure Size [cm]'), self)
         self.fig_size_lineedit = QLineEdit(str(fig_dict['width']) + ',' + str(fig_dict['height']))
@@ -153,7 +186,7 @@ class PreferenceWindow(QDialog):
         # grid
         grid_label = QLabel(self.tr('Grid'), self)
         self.grid_checkbox = QCheckBox("", self)
-        if fig_dict['grid'] == 'True':  # is a string not a boolean
+        if fig_dict['grid']:  # is a string not a boolean
             self.grid_checkbox.setChecked(True)
         else:
             self.grid_checkbox.setChecked(False)
@@ -178,7 +211,7 @@ class PreferenceWindow(QDialog):
         # marquers_hab_fig
         marquers_hab_fig_label = QLabel(self.tr('Markers for habitat figures'))
         self.marquers_hab_fig_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['marker'] == 'True':  # is a string not a boolean
+        if fig_dict['marker']:  # is a string not a boolean
             self.marquers_hab_fig_checkbox.setChecked(True)
         else:
             self.marquers_hab_fig_checkbox.setChecked(False)
@@ -191,27 +224,73 @@ class PreferenceWindow(QDialog):
         self.close_pref_button.clicked.connect(self.close_preferences)
 
         """ LAYOUT """
-        # general
+        # general options
         layout_general_options = QFormLayout()
         general_options_group = QGroupBox(self.tr("General"))
         general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         general_options_group.setLayout(layout_general_options)
         layout_general_options.addRow(self.cut_2d_grid_label, self.cut_2d_grid_checkbox)
         layout_general_options.addRow(min_height_label, self.min_height_lineedit)
+        layout_general_options.addRow(self.erase_data_label, self.erase_data_checkbox)  # , Qt.AlignLeft
 
-        # exports
-        layout_available_exports = QFormLayout()
+        # exports options
+        self.layout_available_exports = QGridLayout()
         available_exports_group = QGroupBox(self.tr("Output"))
-        available_exports_group.setStyleSheet('QGroupBox {font-weight: bold;}')
-        available_exports_group.setLayout(layout_available_exports)
-        layout_available_exports.addRow(self.erase_data_label, self.erase_data_checkbox)  # , Qt.AlignLeft
-        layout_available_exports.addRow(detailed_text_out_label, self.detailed_text_out_checkbox)
-        layout_available_exports.addRow(shape_out_label, self.shape_out_checkbox)
-        layout_available_exports.addRow(stl_out_label, self.stl_out_checkbox)
-        layout_available_exports.addRow(paraview_out_label, self.paraview_out_checkbox)
-        layout_available_exports.addRow(fish_info_label, self.fish_info_checkbox)
+        self.doubleclick_check_uncheck_filter = DoubleClicOutputGroup()
+        available_exports_group.installEventFilter(self.doubleclick_check_uncheck_filter)
+        self.doubleclick_check_uncheck_filter.double_clic_signal.connect(self.check_uncheck_checkboxs)
 
-        # figure
+        available_exports_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        available_exports_group.setLayout(self.layout_available_exports)
+
+        # row 0
+        self.layout_available_exports.addWidget(QLabel(".hyd"), 0, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(QLabel(".hab"), 0, 3, Qt.AlignCenter)
+        # row 1
+        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 1, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh whole profile")), 1, 1)
+        self.layout_available_exports.addWidget(self.mesh_whole_profile_hyd, 1, 2, Qt.AlignCenter)
+        # row 2
+        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 2, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Point whole profile")), 2, 1)
+        self.layout_available_exports.addWidget(self.point_whole_profile_hyd, 2, 2, Qt.AlignCenter)
+        # row 3
+        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 3, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh units")), 3, 1)
+        self.layout_available_exports.addWidget(self.mesh_units_hyd, 3, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(self.mesh_units_hab, 3, 3, Qt.AlignCenter)
+        # row 4
+        self.layout_available_exports.addWidget(QLabel("Shapefile (.shp)"), 4, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Point units")), 4, 1)
+        self.layout_available_exports.addWidget(self.point_units_hyd, 4, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(self.point_units_hab, 4, 3, Qt.AlignCenter)
+        # row 5
+        self.layout_available_exports.addWidget(QHLine(), 5, 0, 1, 4)
+        # row 6
+        self.layout_available_exports.addWidget(vertical_exaggeration, 6, 0, 1, 2)
+        self.layout_available_exports.addWidget(self.vertical_exaggeration_lineedit, 6, 2, 1, 2, Qt.AlignCenter)
+        # row 7
+        self.layout_available_exports.addWidget(QLabel("3D (.stl)"), 7, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Mesh whole profile")), 7, 1)
+        self.layout_available_exports.addWidget(self.elevation_whole_profile_hyd, 7, 2, Qt.AlignCenter)
+        # row 8
+        self.layout_available_exports.addWidget(QLabel("3D (.pvd, .vtu)"), 8, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Variables units")), 8, 1)
+        self.layout_available_exports.addWidget(self.variables_units_hyd, 8, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(self.variables_units_hab, 8, 3, Qt.AlignCenter)
+        # row 9
+        self.layout_available_exports.addWidget(QHLine(), 9, 0, 1, 4)
+        # row 10
+        self.layout_available_exports.addWidget(QLabel("Text (.txt)"), 10, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Detailled txt file")), 10, 1)
+        self.layout_available_exports.addWidget(self.detailled_text_hyd, 10, 2, Qt.AlignCenter)
+        self.layout_available_exports.addWidget(self.detailled_text_hab, 10, 3, Qt.AlignCenter)
+        # row 11
+        self.layout_available_exports.addWidget(QLabel("Text (.pdf)"), 11, 0)
+        self.layout_available_exports.addWidget(QLabel(self.tr("Fish informations")), 11, 1)
+        self.layout_available_exports.addWidget(self.fish_information_hab, 11, 3, Qt.AlignCenter)
+
+        # figure options
         layout_figures = QFormLayout()
         figures_group = QGroupBox(self.tr("Figures"))
         figures_group.setStyleSheet('QGroupBox {font-weight: bold;}')
@@ -234,10 +313,16 @@ class PreferenceWindow(QDialog):
         layout.addWidget(figures_group, 0, 1, 3, 2)
         layout.addWidget(self.save_pref_button, 3, 1)  # , 1, 1
         layout.addWidget(self.close_pref_button, 3, 2)  # , 1, 1
-        layout.setAlignment(Qt.AlignTop)
 
         self.setWindowTitle(self.tr("Preferences"))
         self.setWindowIcon(QIcon(self.name_icon))
+
+    def check_uncheck_checkboxs(self):
+        # uncheck all
+        if self.mesh_whole_profile_hyd.isChecked():
+            [checkbox.setChecked(False) for checkbox in self.checkbox_list]
+        else:
+            [checkbox.setChecked(True) for checkbox in self.checkbox_list]
 
     def save_preferences(self):
         """
@@ -311,38 +396,21 @@ class PreferenceWindow(QDialog):
             fig_dict['marker'] = True
         else:
             fig_dict['marker'] = False
+
         # outputs
-        if self.detailed_text_out_checkbox.isChecked():
-            self.send_log.emit('Error: Text Output cannot be on and off at the same time. \n')
-        if self.detailed_text_out_checkbox.isChecked():
-            fig_dict['text_output'] = True
-        else:
-            fig_dict['text_output'] = False
-        if self.shape_out_checkbox.isChecked():
-            self.send_log.emit('Error: Shapefile output cannot be on and off at the same time. \n')
-        if self.shape_out_checkbox.isChecked():
-            fig_dict['shape_output'] = True
-        else:
-            fig_dict['shape_output'] = False
+        for checkbox in self.checkbox_list:
+            type = checkbox.objectName()[-3:]
+            if type == "hyd":
+                index = 0
+            if type == "hab":
+                index = 1
+            if checkbox.isChecked():
+                fig_dict[checkbox.objectName()[:-4]][index] = True
+            else:
+                fig_dict[checkbox.objectName()[:-4]][index] = False
+        # vertical exageration
+        fig_dict['vertical_exaggeration'] = int(self.vertical_exaggeration_lineedit.text())
 
-        if self.paraview_out_checkbox.isChecked():
-            self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
-        if self.paraview_out_checkbox.isChecked():
-            fig_dict['paraview'] = True
-        else:
-            fig_dict['paraview'] = False
-
-        if self.stl_out_checkbox.isChecked():
-            self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
-        if self.stl_out_checkbox.isChecked():
-            fig_dict['stl'] = True
-        else:
-            fig_dict['stl'] = False
-
-        if self.fish_info_checkbox.isChecked():
-            fig_dict['fish_info'] = True
-        else:
-            fig_dict['fish_info'] = False
         # other option
         try:
             fig_dict['min_height_hyd'] = float(self.min_height_lineedit.text())
@@ -387,14 +455,15 @@ class PreferenceWindow(QDialog):
                 reso1 = root.find(".//Resolution")
                 fish1 = root.find(".//FishNameType")
                 marker1 = root.find(".//Marker")
-                text1 = root.find(".//TextOutput")
-                shape1 = root.find(".//ShapeOutput")
-                para1 = root.find(".//ParaviewOutput")
-                stl1 = root.find(".//stlOutput")
+
+                for checkbox_name in self.checkbox_list_set:
+                    locals()[checkbox_name] = root.find(".//" + checkbox_name)
+
+                vertical_exaggeration1 = root.find(".//vertical_exaggeration")
+
                 langfig1 = root.find(".//LangFig")
                 hopt1 = root.find(".//MinHeight")
                 CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
-                fishinfo1 = root.find(".//FishInfo")
                 erase1 = root.find(".//EraseId")
             else:  # save in case no fig option exist
                 child1 = ET.SubElement(root, 'Figure_Option')
@@ -409,14 +478,13 @@ class PreferenceWindow(QDialog):
                 reso1 = ET.SubElement(child1, "Resolution")
                 fish1 = ET.SubElement(child1, "FishNameType")
                 marker1 = ET.SubElement(child1, "Marker")
-                text1 = ET.SubElement(child1, "TextOutput")
-                shape1 = ET.SubElement(child1, "ShapeOutput")
-                para1 = ET.SubElement(child1, "ParaviewOutput")
-                stl1 = ET.SubElement(child1, "stlOutput")
+
+                for checkbox_name in self.checkbox_list_set:
+                    locals()[checkbox_name] = ET.SubElement(child1, checkbox_name)
+                vertical_exaggeration1 = ET.SubElement(child1, "vertical_exaggeration")
                 langfig1 = ET.SubElement(child1, "LangFig")
                 hopt1 = ET.SubElement(child1, "MinHeight")
                 CutMeshPartialyDry = ET.SubElement(child1, "CutMeshPartialyDry")
-                fishinfo1 = ET.SubElement(child1, "FishInfo")
                 erase1 = ET.SubElement(child1, "EraseId")
             width1.text = str(fig_dict['width'])
             height1.text = str(fig_dict['height'])
@@ -435,13 +503,20 @@ class PreferenceWindow(QDialog):
             if langfig1 is None:
                 langfig1 = ET.SubElement(child1, "LangFig")
             langfig1.text = str(fig_dict['language'])
-            text1.text = str(fig_dict['text_output'])
-            shape1.text = str(fig_dict['shape_output'])
-            para1.text = str(fig_dict['paraview'])
-            stl1.text = str(fig_dict['stl'])
+
+            for checkbox_name in self.checkbox_list_set:
+                locals()[checkbox_name].text = str(fig_dict[checkbox_name])
+            if vertical_exaggeration1 is None:
+                vertical_exaggeration1 = ET.SubElement(child1, "vertical_exaggeration")
+            vertical_exaggeration1.text = str(fig_dict["vertical_exaggeration"])
+            # text1.text = str(fig_dict['text_output'])
+            # shape1.text = str(fig_dict['shape_output'])
+            # para1.text = str(fig_dict['paraview'])
+            # stl1.text = str(fig_dict['stl'])
+            # fishinfo1.text = str(fig_dict['fish_info'])
+
             hopt1.text = str(fig_dict['min_height_hyd'])
             CutMeshPartialyDry.text = str(fig_dict['CutMeshPartialyDry'])
-            fishinfo1.text = str(fig_dict['fish_info'])
             erase1.text = str(fig_dict['erase_id'])
             doc.write(fname)
 
@@ -518,14 +593,18 @@ def load_fig_option(path_prj, name_prj):
             marker1 = root.find(".//Marker")
             reso1 = root.find(".//Resolution")
             fish1 = root.find(".//FishNameType")
-            text1 = root.find(".//TextOutput")
-            shape1 = root.find(".//ShapeOutput")
-            para1 = root.find(".//ParaviewOutput")
-            stl1 = root.find(".//stlOutput")
+            mesh_whole_profile = root.find(".//mesh_whole_profile")
+            point_whole_profile = root.find(".//point_whole_profile")
+            mesh_units = root.find(".//mesh_units")
+            point_units = root.find(".//point_units")
+            vertical_exaggeration = root.find(".//vertical_exaggeration")
+            elevation_whole_profile = root.find(".//elevation_whole_profile")
+            variables_units = root.find(".//variables_units")
+            detailled_text = root.find(".//detailled_text")
+            fish_information = root.find(".//fish_information")
             langfig1 = root.find(".//LangFig")
             hopt1 = root.find(".//MinHeight")
             CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
-            fishinfo1 = root.find(".//FishInfo")
             erase1 = root.find(".//EraseId")
             try:
                 if width1 is not None:
@@ -550,22 +629,30 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['resolution'] = int(reso1.text)
                 if fish1 is not None:
                     fig_dict['fish_name_type'] = fish1.text
-                if text1 is not None:
-                    fig_dict['text_output'] = text1.text
-                if shape1 is not None:
-                    fig_dict['shape_output'] = shape1.text
-                if para1 is not None:
-                    fig_dict['paraview'] = para1.text
-                if stl1 is not None:
-                    fig_dict['stl'] = stl1.text
+                if mesh_whole_profile is not None:
+                    fig_dict['mesh_whole_profile'] = eval(mesh_whole_profile.text)
+                if point_whole_profile is not None:
+                    fig_dict['point_whole_profile'] = eval(point_whole_profile.text)
+                if mesh_units is not None:
+                    fig_dict['mesh_units'] = eval(mesh_units.text)
+                if point_units is not None:
+                    fig_dict['point_units'] = eval(point_units.text)
+                if vertical_exaggeration is not None:
+                    fig_dict['vertical_exaggeration'] = int(vertical_exaggeration.text)
+                if elevation_whole_profile is not None:
+                    fig_dict['elevation_whole_profile'] = eval(elevation_whole_profile.text)
+                if variables_units is not None:
+                    fig_dict['variables_units'] = eval(variables_units.text)
+                if detailled_text is not None:
+                    fig_dict['detailled_text'] = eval(detailled_text.text)
+                if fish_information is not None:
+                    fig_dict['fish_information'] = eval(fish_information.text)
                 if langfig1 is not None:
                     fig_dict['language'] = int(langfig1.text)
                 if hopt1 is not None:
                     fig_dict['min_height_hyd'] = float(hopt1.text)
                 if CutMeshPartialyDry is not None:
                     fig_dict['CutMeshPartialyDry'] = CutMeshPartialyDry.text
-                if fish1 is not None:
-                    fig_dict['fish_info'] = fishinfo1.text
                 if erase1 is not None:
                     fig_dict['erase_id'] = erase1.text
             except ValueError:
@@ -585,24 +672,49 @@ def create_default_figoption():
     fig_dict['color_map2'] = 'jet'
     fig_dict['font_size'] = 12
     fig_dict['line_width'] = 1
-    fig_dict['grid'] = 'False'
+    fig_dict['grid'] = False
     fig_dict['format'] = 3
     fig_dict['resolution'] = 800
     fig_dict['fish_name_type'] = 0
-    fig_dict['text_output'] = 'True'
-    fig_dict['shape_output'] = 'True'
-    fig_dict['paraview'] = 'True'
-    fig_dict['stl'] = 'True'
-    fig_dict['fish_info'] = 'True'
+
+    fig_dict['mesh_whole_profile'] = [True, False]
+    fig_dict['point_whole_profile'] = [True, False]
+    fig_dict['mesh_units'] = [True, True]
+    fig_dict['point_units'] = [True, True]
+    fig_dict['vertical_exaggeration'] = 10
+    fig_dict['elevation_whole_profile'] = [True, True]
+    fig_dict['variables_units'] = [True, True]
+    fig_dict['detailled_text'] = [True, True]
+    fig_dict['fish_information'] = [True, True]
+
     # this is dependant on the language of the application not the user choice in the output tab
     fig_dict['language'] = 0  # 0 english, 1 french
     fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
-    fig_dict['CutMeshPartialyDry'] = 'True'
-    fig_dict['marker'] = 'True'  # Add point to line plot
-    fig_dict['erase_id'] = 'True'
+    fig_dict['CutMeshPartialyDry'] = True
+    fig_dict['marker'] = True  # Add point to line plot
+    fig_dict['erase_id'] = True
     fig_dict['type_plot'] = 'display'
 
     return fig_dict
+
+
+class QHLine(QFrame):
+    def __init__(self):
+        super(QHLine, self).__init__()
+        self.setFrameShape(QFrame.HLine)
+        self.setFrameShadow(QFrame.Sunken)
+
+
+class DoubleClicOutputGroup(QObject):
+    double_clic_signal = pyqtSignal()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonDblClick:
+            self.double_clic_signal.emit()
+            return True  # eat double click
+        else:
+            # standard event processing
+            return QObject.eventFilter(self, obj, event)
 
 
 if __name__ == '__main__':
