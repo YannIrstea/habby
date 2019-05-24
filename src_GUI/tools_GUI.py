@@ -61,7 +61,7 @@ class ToolsTab(QScrollArea):
 
         # interpolation group
         self.interpolation_group = InterpolationGroup(self.path_prj, self.name_prj, self.send_log)
-        self.interpolation_group.setChecked(False)
+        self.interpolation_group.setChecked(True)
 
         # other tool
         self.newtool_group = OtherToolToCreate(self.path_prj, self.name_prj, self.send_log)
@@ -136,6 +136,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
         habitat_filenames_qlabel = QLabel(self.tr('Select an habitat file'))
         self.hab_filenames_qcombobox = QComboBox()
         self.hab_filenames_qcombobox.currentIndexChanged.connect(self.names_hab_change)
+        habitat_reach_qlabel = QLabel(self.tr("Select a reach if not done"))
+        self.hab_reach_qcombobox = QComboBox()
+        self.hab_reach_qcombobox.currentIndexChanged.connect(self.reach_hab_change)
         unit_min_title_qlabel = QLabel(self.tr("unit min :"))
         unit_max_title_qlabel = QLabel(self.tr("unit max :"))
         unit_type_title_qlabel = QLabel(self.tr("unit type :"))
@@ -152,6 +155,8 @@ class InterpolationGroup(QGroupBoxCollapsible):
         available_firstlayout.setAlignment(Qt.AlignTop)
         available_firstlayout.addWidget(habitat_filenames_qlabel)
         available_firstlayout.addWidget(self.hab_filenames_qcombobox)
+        available_firstlayout.addWidget(habitat_reach_qlabel)
+        available_firstlayout.addWidget(self.hab_reach_qcombobox)
         units_info_gridlayout = QGridLayout()
         available_firstlayout.addLayout(units_info_gridlayout)  # stretch factor
         available_firstlayout.addWidget(fish_available_qlabel)
@@ -276,10 +281,31 @@ class InterpolationGroup(QGroupBoxCollapsible):
             # create hdf5 class to get hdf5 inforamtions
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
             hdf5.open_hdf5_file()
+            self.hab_reach_qcombobox.clear()
+            if len(hdf5.reach_name) == 1:
+                reach_names = hdf5.reach_name
+            else:
+                reach_names = [""] + hdf5.reach_name
+            self.hab_reach_qcombobox.addItems(reach_names)
+
+    def reach_hab_change(self):
+        print("reach change")
+        hdf5name = self.hab_filenames_qcombobox.currentText()
+        reach_name = self.hab_reach_qcombobox.currentText()
+        # no file
+        if not reach_name:
+            # clean
+            self.disable_and_clean_group_widgets(False)
+        # file
+        if reach_name:
+            # clean
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
+            hdf5.open_hdf5_file()
             unit_type = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd unit type")]
             fish_list = hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hab fish list")].split(", ")
             fish_list.sort()
-            units_name = hdf5.units_name
+            reach_index = hdf5.reach_name.index(reach_name)
+            units_name = hdf5.units_name[reach_index]
 
             # hab
             if fish_list != [""]:
@@ -354,6 +380,9 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
         hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
 
+        # get reach_name
+        reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+
         # check matching units for interpolation
         valid, text = tools_mod.check_matching_units(hdf5.data_description, types)
 
@@ -363,6 +392,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
         if valid:
             data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
                                                                                          fish_names,
+                                                                                         reach_index,
                                                                                          chronicle,
                                                                                          types,
                                                                                          rounddata=True)
@@ -441,9 +471,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
         hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
 
+        reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+
         # recompute
         data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
                                                                                          fish_names,
+                                                                                         reach_index,
                                                                                          chronicle,
                                                                                          types,
                                                                                          False)
@@ -490,9 +523,12 @@ class InterpolationGroup(QGroupBoxCollapsible):
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
         hdf5.load_hdf5_hab(whole_profil=False, fish_names=fish_names)
 
+        reach_index = hdf5.reach_name.index(self.hab_reach_qcombobox.currentText())
+
         # recompute interpolation
         data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_description,
                                                                                          fish_names,
+                                                                                         reach_index,
                                                                                          chronicle,
                                                                                          types,
                                                                                          False)

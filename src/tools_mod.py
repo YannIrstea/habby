@@ -117,7 +117,7 @@ def check_matching_units(data_description, types):
         return False, " Desired units type is different from available units type : " + unit_chronicle_type + " != " + unit_hdf5_type
 
 
-def compute_interpolation(data_description, fish_names, chronicle, types, rounddata=True):
+def compute_interpolation(data_description, fish_names, reach_num, chronicle, types, rounddata=True):
     # check if date
     if "date" in types.keys():
         date_presence = True
@@ -126,14 +126,13 @@ def compute_interpolation(data_description, fish_names, chronicle, types, roundd
 
     # get hdf5 model
     inter_data_model = dict()
-    inter_data_model["unit"] = np.array(list(map(float, data_description["hyd_unit_list"].split(", "))))
-    for reach_num in range(int(data_description["hyd_reach_number"])):
-        wet_area = np.array(list(map(float, data_description["total_wet_area"][reach_num])))
-        # map by fish
-        for fish_index, fish_name in enumerate(fish_names):
-            spu = np.array(list(map(float, data_description["total_WUA_area"][fish_name][reach_num])))
-            inter_data_model["hv_" + fish_name] = spu / wet_area
-            inter_data_model["spu_" + fish_name] = spu
+    inter_data_model["unit"] = data_description["hyd_unit_list"][reach_num]
+    wet_area = np.array(list(map(float, data_description["total_wet_area"][reach_num])))
+    # map by fish
+    for fish_index, fish_name in enumerate(fish_names):
+        spu = np.array(list(map(float, data_description["total_WUA_area"][fish_name][reach_num])))
+        inter_data_model["hv_" + fish_name] = spu / wet_area
+        inter_data_model["spu_" + fish_name] = spu
 
     # copy chonicle to interpolated
     chronicle_interpolated = deepcopy(chronicle)

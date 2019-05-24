@@ -248,7 +248,6 @@ class MainWindows(QMainWindow):
         # preferences
         preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
         self.preferences_dialog = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj, self.name_icon)
-
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
         # set theme

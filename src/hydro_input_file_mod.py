@@ -184,7 +184,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 if os.path.isfile(os.path.join(folder_path, file_from_indexfile)):
                     selectedfiles_textfiles_match[i] = True
                 else:
-                    return "Error: " + file_from_indexfile + " doesn't exist in " + folder_path
+                    return "Error: " + file_from_indexfile + " doesn't exist in " + folder_path, None
 
         # check conditions
         if all(selectedfiles_textfiles_match):
@@ -263,7 +263,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             unit_name_from_index_file = data_index_file[headers[discharge_index]]
             # check if lenght of two loading units
             if len(unit_name_from_file) > len(unit_name_from_index_file):
-                return "Error: units number from indexHYDRAU inferior than TELEMAC selected."
+                return "Error: units number from indexHYDRAU inferior than TELEMAC selected.", None
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -293,14 +293,16 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         """ CASE 1.b """
         if hydrau_case == "1.b":
             # get units name from file
-            filename_path = os.path.join(folder_path, data_index_file["filename"][0])
+            filename_path = os.path.join(folder_path, namefile)
             nbtimes, unit_name_from_file = get_time_step(filename_path, model_type)
             # get units name from indexHYDRAU.txt file
             unit_name_from_index_file = data_index_file[headers[time_index]]
 
             # check if lenght of two loading units
             if unit_name_from_index_file[0] not in unit_name_from_file:
-                return "Error: " + unit_name_from_index_file + " doesn't exist in telemac file"
+                return "Error: " + unit_name_from_index_file + " doesn't exist in telemac file", None
+            else:
+                unit_index = unit_name_from_file.index(unit_name_from_index_file[0])
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -308,9 +310,8 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 reach_name = "unknown"
 
             # hydrau_description
-            hydrau_description["filename_source"] = ", ".join(data_index_file[headers[0]])
-            hydrau_description["unit_list"] = data_index_file[headers[discharge_index]]
-            hydrau_description["unit_list_full"] = unit_name_from_index_file
+            hydrau_description["unit_list"] = [data_index_file[headers[discharge_index]][unit_index]]
+            hydrau_description["unit_list_full"] = [data_index_file[headers[discharge_index]][unit_index]]
             hydrau_description["unit_list_tf"] = []
             hydrau_description["unit_number"] = str(1)
             hydrau_description["unit_type"] = "discharge [" + discharge_unit + "]"
@@ -331,11 +332,11 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 else:
                     if nbtimes > 1:
                         return "Error: file " + file + " contain more than one time step (timestep :" \
-                               + str(unit_name_from_file) + ")"
+                               + str(unit_name_from_file) + ")", None
 
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexHYDRAU files"
+                return "Error: selected files are different from indexHYDRAU files", None
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -364,11 +365,11 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 unit_name_from_index_file = data_index_file[headers[time_index]][rowindex]
                 # check if lenght of two loading units
                 if unit_name_from_index_file not in unit_name_from_file:
-                    return "Error: " + unit_name_from_index_file + "don't exist in" + file
+                    return "Error: " + unit_name_from_index_file + "don't exist in" + file, None
 
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexHYDRAU files"
+                return "Error: selected files are different from indexHYDRAU files", None
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -396,7 +397,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexHYDRAU files"
+                return "Error: selected files are different from indexHYDRAU files", None
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -438,7 +439,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                                                             from_unit_index:to_unit_index + 1]
                     except ValueError:
                         return "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
-                               data_index_file[headers[0]][0]
+                               data_index_file[headers[0]][0], None
                 else:
                     unit_name_from_index_file2.append(element_unit)
             timestep_to_select = []
@@ -450,7 +451,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
 
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexHYDRAU files"
+                return "Error: selected files are different from indexHYDRAU files", None
 
             if reach_presence:
                 reach_name = data_index_file[headers[reach_index]][0]
@@ -473,7 +474,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if hydrau_case == "4.a":
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexHYDRAU files"
+                return "Error: selected files are different from indexHYDRAU files", None
 
             # hydrau_description for several file
             hydrau_description_multiple = []
@@ -518,7 +519,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
         if hydrau_case == "4.b":
             # selected files same than indexHYDRAU file
             if not selectedfiles_textfiles_matching:
-                return "Error: selected files are different from indexHYDRAU files"
+                return "Error: selected files are different from indexHYDRAU files", None
 
             # hydrau_description for several file
             hydrau_description_multiple = []
@@ -542,7 +543,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                         except ValueError:
 
                             return "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
-                                   data_index_file[headers[0]][i]
+                                   data_index_file[headers[0]][i], None
                     else:
                         unit_name_from_index_file2.append(element_unit)
 

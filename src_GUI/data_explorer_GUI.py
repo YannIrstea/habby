@@ -229,7 +229,7 @@ class DataExplorerFrame(QFrame):
         # ATTRIBUTE GROUP
         attributes_layout = QVBoxLayout()
         attributes_layout.addWidget(self.hdf5_attributes_qtableview)
-        attributes_group = QGroupBox(self.tr("file informations"))
+        attributes_group = QGroupBox(self.tr("File informations"))
         attributes_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         attributes_group.setLayout(attributes_layout)
 
