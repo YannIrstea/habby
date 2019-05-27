@@ -799,6 +799,8 @@ class Hdf5Management:
 
         # reload to set data to attributes
         self.load_hdf5_hab(whole_profil=True)
+        self.export_mesh_shp(fig_opt)
+        self.export_point_shp(fig_opt)
 
     def load_hdf5_hab(self, units_index="all", fish_names="all", whole_profil=False, convert_to_coarser_dom=False):
         # open an hdf5
@@ -952,7 +954,7 @@ class Hdf5Management:
             self.data_2d = data_2d
             self.data_description = data_description
 
-    def add_fish_hab(self, vh_cell, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh):
+    def add_fish_hab(self, vh_cell, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, fig_opt, path_bio):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -1055,6 +1057,11 @@ class Hdf5Management:
 
         # reload to add new data to attributes
         self.load_hdf5_hab(convert_to_coarser_dom=True)
+        self.export_mesh_shp(fig_opt)
+        self.export_point_shp(fig_opt)
+        self.export_paraview(fig_opt)
+        self.export_spu_txt(fig_opt)
+        self.export_pdf(path_bio, fig_opt)
 
     # EXPORT SHP
     def export_mesh_shp(self, fig_opt):
@@ -1223,7 +1230,10 @@ class Hdf5Management:
                             # conveyance
                             conveyance = v_mean_mesh * h_mean_mesh
                             # i_whole_profile
-                            i_whole_profile = self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0]
+                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["sub"][reach_num][unit_num]):
+                                i_whole_profile = 0
+                            else:
+                                i_whole_profile = self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0]
                             # data geom (get the triangle coordinates)
                             p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
                                 float(self.data_2d["z"][reach_num][unit_num][node1])])
@@ -1420,10 +1430,7 @@ class Hdf5Management:
 
                     # get data
                     xy = self.data_2d_whole["xy"][reach_num][unit_num]
-                    if fig_opt["vertical_exaggeration"] <= 0:
-                        z = self.data_2d_whole["z"][reach_num][unit_num]
-                    if fig_opt["vertical_exaggeration"] > 0:
-                        z = self.data_2d_whole["z"][reach_num][unit_num] * fig_opt["vertical_exaggeration"]
+                    z = self.data_2d_whole["z"][reach_num][unit_num] * fig_opt["vertical_exaggeration"]
                     faces = self.data_2d_whole["tin"][reach_num][unit_num]
                     vertices = np.column_stack([xy, z])
                     # Create the mesh
@@ -1487,11 +1494,8 @@ class Hdf5Management:
                     x = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 0])
                     y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
                     try:
-                        if fig_opt["vertical_exaggeration"] <= 0:
-                            z = np.ascontiguousarray(self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num])
-                        if fig_opt["vertical_exaggeration"] > 0:
-                            z = np.ascontiguousarray((
-                            self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * fig_opt["vertical_exaggeration"])
+                        z = np.ascontiguousarray((
+                        self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * fig_opt["vertical_exaggeration"])
                     except Warning:
                         print('oh no!')
 
@@ -1554,87 +1558,86 @@ class Hdf5Management:
 
     # EXPORT TXT
     def export_spu_txt(self, fig_opt):
-        if fig_opt['text_output'] == "True":
-            path_txt = os.path.join(self.data_description["path_project"], "output", "text")
-            if not os.path.exists(path_txt):
-                print('Error: the path to the text file is not found. Text files not created \n')
+        path_txt = os.path.join(self.data_description["path_project"], "output", "text")
+        if not os.path.exists(path_txt):
+            print('Error: the path to the text file is not found. Text files not created \n')
 
-            name_base = self.basename
-            sim_name = self.units_name
-            fish_names = self.data_description["hab_fish_list"].split(", ")
-            unit_type = self.data_description["hyd_unit_type"][
-                        self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
-                            "hyd_unit_type"].find(']')]
+        name_base = self.basename
+        sim_name = self.units_name
+        fish_names = self.data_description["hab_fish_list"].split(", ")
+        unit_type = self.data_description["hyd_unit_type"][
+                    self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
+                        "hyd_unit_type"].find(']')]
 
-            if not fig_opt['erase_id'] == "True":
-                if fig_opt['language'] == 0:
-                    name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                else:
-                    name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+        if not fig_opt['erase_id'] == "True":
+            if fig_opt['language'] == 0:
+                name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
             else:
-                if fig_opt['language'] == 0:
-                    name = 'wua_' + name_base + '.txt'
-                else:
-                    name = 'spu_' + name_base + '.txt'
-                if os.path.isfile(os.path.join(path_txt, name)):
-                    try:
-                        os.remove(os.path.join(path_txt, name))
-                    except PermissionError:
-                        print('Error: Could not modify text file as it is open in another program. \n')
-                        return
+                name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+        else:
+            if fig_opt['language'] == 0:
+                name = 'wua_' + name_base + '.txt'
+            else:
+                name = 'spu_' + name_base + '.txt'
+            if os.path.isfile(os.path.join(path_txt, name)):
+                try:
+                    os.remove(os.path.join(path_txt, name))
+                except PermissionError:
+                    print('Error: Could not modify text file as it is open in another program. \n')
+                    return
 
-            name = os.path.join(path_txt, name)
+        name = os.path.join(path_txt, name)
 
-            # open text to write
-            with open(name, 'wt', encoding='utf-8') as f:
+        # open text to write
+        with open(name, 'wt', encoding='utf-8') as f:
 
-                # header 1
-                if fig_opt['language'] == 0:
-                    header = 'reach\tunit\treach_area'
-                else:
-                    header = 'troncon\tunit\taire_troncon'
-                if fig_opt['language'] == 0:
-                    header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
-                else:
-                    header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
-                    header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
-                header += '\n'
-                f.write(header)
-                # header 2
-                header = '[]\t[' + unit_type + ']\t[m2]'
-                header += "".join(['\t[]' for _ in range(len(fish_names))])
-                header += "".join(['\t[m2]' for _ in range(len(fish_names))])
-                header += '\n'
-                f.write(header)
-                # header 3
-                header = 'all\tall\tall '
-                for fish_name in fish_names * 2:
-                    header += '\t' + fish_name.replace(' ', '_')
-                header += '\n'
-                f.write(header)
+            # header 1
+            if fig_opt['language'] == 0:
+                header = 'reach\tunit\treach_area'
+            else:
+                header = 'troncon\tunit\taire_troncon'
+            if fig_opt['language'] == 0:
+                header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
+            else:
+                header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                header += "".join(['\tSPU' + str(i) for i in range(len(fish_names))])
+            header += '\n'
+            f.write(header)
+            # header 2
+            header = '[]\t[' + unit_type + ']\t[m2]'
+            header += "".join(['\t[]' for _ in range(len(fish_names))])
+            header += "".join(['\t[m2]' for _ in range(len(fish_names))])
+            header += '\n'
+            f.write(header)
+            # header 3
+            header = 'all\tall\tall '
+            for fish_name in fish_names * 2:
+                header += '\t' + fish_name.replace(' ', '_')
+            header += '\n'
+            f.write(header)
 
-                for reach_num in range(0, len(self.data_description["total_wet_area"])):
-                    for unit_num in range(0, len(self.data_description["total_wet_area"][reach_num])):
-                        area_reach = self.data_description["total_wet_area"][reach_num][unit_num]
-                        if not sim_name:
-                            data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
-                        else:
-                            data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(area_reach)
-                        # HV
-                        for fish_name in fish_names:
-                            try:
-                                wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
-                                data_here += '\t' + str(float(wua_fish) / float(area_reach))
-                            except TypeError:
-                                data_here += '\t' + 'NaN'
-                        # WUA
-                        for fish_name in fish_names:
+            for reach_num in range(0, len(self.data_description["total_wet_area"])):
+                for unit_num in range(0, len(self.data_description["total_wet_area"][reach_num])):
+                    area_reach = self.data_description["total_wet_area"][reach_num][unit_num]
+                    if not sim_name:
+                        data_here = str(reach_num) + '\t' + str(unit_num) + '\t' + str(area_reach)
+                    else:
+                        data_here = str(reach_num) + '\t' + str(sim_name[reach_num][unit_num]) + '\t' + str(area_reach)
+                    # HV
+                    for fish_name in fish_names:
+                        try:
                             wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
-                            data_here += '\t' + str(wua_fish)
+                            data_here += '\t' + str(float(wua_fish) / float(area_reach))
+                        except TypeError:
+                            data_here += '\t' + 'NaN'
+                    # WUA
+                    for fish_name in fish_names:
+                        wua_fish = self.data_description["total_WUA_area"][fish_name][reach_num][unit_num]
+                        data_here += '\t' + str(wua_fish)
 
-                        data_here += '\n'
-                        f.write(data_here)
+                    data_here += '\n'
+                    f.write(data_here)
 
     def export_pdf(self, path_bio, fig_opt):
         """
@@ -1652,7 +1655,12 @@ class Hdf5Management:
             (usually other_outputs)
         :param fig_opt: the figure options (contain the chosen language)
         """
-        if fig_opt['fish_info'] == "True":
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        if fig_opt['fish_information'][index]:
             # get data
             xmlfiles = self.data_description["hab_fish_pref_list"].split(", ")
             stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")

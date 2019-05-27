@@ -106,6 +106,7 @@ class PreferenceWindow(QDialog):
         self.vertical_exaggeration_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         self.vertical_exaggeration_lineedit.setFixedHeight(self.point_units_hyd.sizeHint().height())
         self.vertical_exaggeration_lineedit.setFixedWidth(75)
+        self.vertical_exaggeration_lineedit.setText(str(fig_dict["vertical_exaggeration"]))
 
         self.elevation_whole_profile_hyd = QCheckBox("")
         self.elevation_whole_profile_hyd.setObjectName("elevation_whole_profile_hyd")
@@ -135,23 +136,17 @@ class PreferenceWindow(QDialog):
                               self.detailled_text_hyd,
                               self.detailled_text_hab,
                               self.fish_information_hab]
-        self.checkbox_list_set = [checkbox.objectName()[:-4] for checkbox in self.checkbox_list]
-        self.checkbox_list_set = list(set(self.checkbox_list_set))
+        self.checkbox_list_set = list(set([checkbox.objectName()[:-4] for checkbox in self.checkbox_list]))
 
         # check uncheck
-        list_done = []
         for checkbox in self.checkbox_list:
             type = checkbox.objectName()[-3:]
             if type == "hyd":
                 index = 0
             if type == "hab":
                 index = 1
-            if fig_dict[checkbox.objectName()[:-4]][index] and checkbox.objectName()[:-4] not in list_done:  # hyd
-                list_done.append(checkbox.objectName()[:-4])
-                checkbox.setChecked(True)
-            if checkbox.objectName()[:-4] not in list_done:  #hab
-                list_done.append(checkbox.objectName()[:-4])
-                checkbox.setChecked(False)
+            checkbox.setChecked(fig_dict[checkbox.objectName()[:-4]][index])
+
 
         """ figure widgets """
         # fig_size
@@ -370,8 +365,6 @@ class PreferenceWindow(QDialog):
                 self.send_log.emit('Error: Line width should be an integer. \n')
         # grid
         if self.grid_checkbox.isChecked():
-            self.send_log.emit('Error: Grid cannot be on and off at the same time. \n')
-        if self.grid_checkbox.isChecked():
             fig_dict['grid'] = True
         else:
             fig_dict['grid'] = False
@@ -407,8 +400,16 @@ class PreferenceWindow(QDialog):
                 fig_dict[checkbox.objectName()[:-4]][index] = True
             else:
                 fig_dict[checkbox.objectName()[:-4]][index] = False
-        # vertical exageration
-        fig_dict['vertical_exaggeration'] = int(self.vertical_exaggeration_lineedit.text())
+
+        # vertical_exaggeration
+        try:
+            int(self.vertical_exaggeration_lineedit.text())
+            if int(self.vertical_exaggeration_lineedit.text()) < 1:
+                self.send_log.emit("Error: Vertical exaggeration value must be superior than 1. Value set to 1.")
+                fig_dict['vertical_exaggeration'] = 1
+        except:
+            self.send_log.emit("Error: Vertical exaggeration value is not integer. Value set to 1.")
+            fig_dict['vertical_exaggeration'] = 1
 
         # other option
         try:
@@ -420,8 +421,6 @@ class PreferenceWindow(QDialog):
         else:
             fig_dict['erase_id'] = False
         # CutMeshPartialyDry
-        if self.cut_2d_grid_checkbox.isChecked():
-            self.send_log.emit('Error: Paraview cannot be on and off at the same time. \n')
         if self.cut_2d_grid_checkbox.isChecked():
             fig_dict['CutMeshPartialyDry'] = True
         else:

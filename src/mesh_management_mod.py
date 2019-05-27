@@ -25,6 +25,7 @@ import triangle
 import matplotlib.pyplot as plt
 import shapefile
 
+
 def quadrangles_to_triangles(ikle4,xy,z,h,v):
     """
     this fucntion call the quadrangles hydraulic description and transforme it into a triangular description
@@ -152,21 +153,10 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
 
     # create hdf5 hab
     hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5merge)
-    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, data_description)
+    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, data_description, fig_opt)
 
     # progress
-    progress_value.value = 93
-
-    # export shapefile
-    hdf5.export_mesh_shp(fig_opt)
-
-    # progress
-    progress_value.value = 97
-
-    # export stl
-    hdf5.export_stl(fig_opt,
-                       data_2d_whole_profile=True,
-                       data_2d=False)
+    progress_value.value = 100
 
     if not print_cmd:
         sys.stdout = sys.__stdout__

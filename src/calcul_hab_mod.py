@@ -108,34 +108,14 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     for fish_ind, fish_name in enumerate(fish_names):
         fish_names[fish_ind] = fish_name + "_" + stages_chosen[fish_ind]
 
-    # saving hdf5 data of the habitat value
-    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh)
-
-    # progress
-    progress_value.value = 80
-
-    # text output
-    hdf5.export_spu_txt(fig_opt)
-
-    # progress
-    progress_value.value = 85
-
-    # shape output
-    hdf5.export_mesh_shp(fig_opt)
-
     # progress
     progress_value.value = 90
 
-    # shape output
-    hdf5.export_paraview(fig_opt)
+    # saving hdf5 data of the habitat value
+    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, fig_opt, path_bio)
 
     # progress
-    progress_value.value = 95
-
-    hdf5.export_pdf(path_bio, fig_opt)
-
-    # progress
-    progress_value.value = 98
+    progress_value.value = 100
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
@@ -190,7 +170,7 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stage
 
     # progress
     prog = progress_value.value
-    delta = (80 - 20) / len(bio_names)
+    delta = (90 - 20) / len(bio_names)
 
     # for each suitability curve
     for idx, bio_name in enumerate(bio_names):
@@ -304,7 +284,7 @@ def calc_hab_norm(data_2d, hab_description, pref_vel, pref_height, pref_sub, pro
         spu_all = []
         # progress
         prog = progress_value.value
-        delta = (80 - prog) / len(data_2d["h"][reach_num])
+        delta = (90 - prog) / len(data_2d["h"][reach_num])
         # for each unit
         for unit_num in range(len(data_2d["h"][reach_num])):
             # height_t = height[t]
