@@ -25,7 +25,7 @@ import os
 
 
 global HABBY_VERSION
-HABBY_VERSION = 0.24
+HABBY_VERSION = 0.25
 
 
 def main():

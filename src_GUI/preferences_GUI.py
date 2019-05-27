@@ -146,7 +146,6 @@ class PreferenceWindow(QDialog):
                 index = 0
             if type == "hab":
                 index = 1
-            print(checkbox.objectName(), fig_dict[checkbox.objectName()[:-4]])
             if fig_dict[checkbox.objectName()[:-4]][index] and checkbox.objectName()[:-4] not in list_done:  # hyd
                 list_done.append(checkbox.objectName()[:-4])
                 checkbox.setChecked(True)

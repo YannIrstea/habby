@@ -23,7 +23,7 @@ from scipy.spatial import Voronoi
 from random import uniform
 import triangle as tr
 from random import randrange
-from shapely.geometry import MultiPoint, Polygon, Point
+#from shapely.geometry import MultiPoint, Polygon, Point
 from PyQt5.QtWidgets import QMessageBox
 from src import hdf5_mod
 from src.tools_mod import get_prj_from_epsg_web
