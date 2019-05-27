@@ -23,6 +23,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
     QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QFrame
 from PyQt5.QtGui import QFont
+import matplotlib.pyplot as plt
 import sys
 import os
 from io import StringIO
@@ -794,7 +795,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.path_im = self.find_path_im_est()
         fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, fig_opt)
-        self.show_fig.emit()
+        plt.show()
+        #self.show_fig.emit()
         path_txt = self.find_path_text_est()
 
         # text file

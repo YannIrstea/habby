@@ -15,6 +15,8 @@ https://github.com/YannIrstea/habby
 
 """
 from io import StringIO
+import matplotlib.pyplot as plt
+
 import os
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
@@ -952,7 +954,8 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         if len(self.mystathab.q_all) > 0:
             self.mystathab.savefig_stahab(False)
-            self.show_fig.emit()
+            plt.show()
+            #self.show_fig.emit()
         else:
 
             self.send_log.emit('Error: No data found for figures. \n')

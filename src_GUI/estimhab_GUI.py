@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 from src import estimhab_mod
 import glob
+import matplotlib.pyplot as plt
 
 try:
     import xml.etree.cElementTree as ET
@@ -728,7 +729,8 @@ class EstimhabW(StatModUseful):
 
         # we always do a figure for estmihab
         if path_im != 'no_path':
-            self.show_fig.emit()
+            plt.show()
+            #self.show_fig.emit()
 
 
 if __name__ == '__main__':
