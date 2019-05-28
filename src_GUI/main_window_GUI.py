@@ -753,9 +753,9 @@ class MainWindows(QMainWindow):
         newAction.setStatusTip(self.tr('Create a new project'))
         newAction.triggered.connect(self.new_project)
 
-        seeAction = QAction(icon_see, self.tr('See files of the current project'), self)
-        seeAction.setStatusTip(self.tr('See the existing file of a project and open them.'))
-        seeAction.triggered.connect(self.see_file)
+        self.seeAction = QAction(icon_see, self.tr('See files of the current project'), self)
+        self.seeAction.setStatusTip(self.tr('See the existing file of a project and open them.'))
+        self.seeAction.triggered.connect(self.see_file)
 
         closeAction = QAction(icon_closefig, self.tr('Close figure windows'), self)
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
@@ -773,7 +773,7 @@ class MainWindows(QMainWindow):
         # create the toolbar
         self.toolbar.addAction(newAction)
         self.toolbar.addAction(openAction)
-        self.toolbar.addAction(seeAction)
+        self.toolbar.addAction(self.seeAction)
         self.toolbar.addAction(closeAction)
         self.toolbar.addWidget(spacer_toolbar)
         self.toolbar.addAction(self.kill_process)
@@ -1524,12 +1524,24 @@ class MainWindows(QMainWindow):
         """
         This function allows the user to see the files in the project folder and to open them.
         """
-        if self.operatingsystemactual == 'Linux':
-            call(["xdg-open", os.path.normpath(self.path_prj)])
-        if self.operatingsystemactual == 'Windows':
-            call(['explorer', os.path.normpath(self.path_prj)])
-        if self.operatingsystemactual == 'Darwin':
-            call(['open', os.path.normpath(self.path_prj)])
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ShiftModifier:
+            # habby
+            if self.operatingsystemactual == 'Linux':
+                call(["xdg-open", os.path.normpath(os.getcwd())])
+            if self.operatingsystemactual == 'Windows':
+                call(['explorer', os.path.normpath(os.getcwd())])
+            if self.operatingsystemactual == 'Darwin':
+                call(['open', os.path.normpath(os.getcwd())])
+        else:
+            if self.operatingsystemactual == 'Linux':
+                call(["xdg-open", os.path.normpath(self.path_prj)])
+            if self.operatingsystemactual == 'Windows':
+                call(['explorer', os.path.normpath(self.path_prj)])
+            if self.operatingsystemactual == 'Darwin':
+                call(['open', os.path.normpath(self.path_prj)])
+
+
 
     def save_project_estimhab(self):
         """
