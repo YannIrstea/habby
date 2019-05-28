@@ -753,9 +753,9 @@ class MainWindows(QMainWindow):
         newAction.setStatusTip(self.tr('Create a new project'))
         newAction.triggered.connect(self.new_project)
 
-        seeAction = QAction(icon_see, self.tr('See files of the current project'), self)
-        seeAction.setStatusTip(self.tr('See the existing file of a project and open them.'))
-        seeAction.triggered.connect(self.see_file)
+        self.seeAction = QAction(icon_see, self.tr('See files of the current project'), self)
+        self.seeAction.setStatusTip(self.tr('See the existing file of a project and open them.'))
+        self.seeAction.triggered.connect(self.see_file)
 
         closeAction = QAction(icon_closefig, self.tr('Close figure windows'), self)
         closeAction.setStatusTip(self.tr('Close all open figure windows'))
@@ -773,7 +773,7 @@ class MainWindows(QMainWindow):
         # create the toolbar
         self.toolbar.addAction(newAction)
         self.toolbar.addAction(openAction)
-        self.toolbar.addAction(seeAction)
+        self.toolbar.addAction(self.seeAction)
         self.toolbar.addAction(closeAction)
         self.toolbar.addWidget(spacer_toolbar)
         self.toolbar.addAction(self.kill_process)
@@ -1344,7 +1344,6 @@ class MainWindows(QMainWindow):
                     self.tr("You do not have the permission to write in this folder. Choose another folder. \n"))
                 self.msg2.setStandardButtons(QMessageBox.Ok)
                 self.msg2.show()
-                return
 
         # check if there is not another project with the same path_name
         fname = os.path.join(self.createnew.e2.text(), name_prj_here, name_prj_here + '.xml')
@@ -1494,7 +1493,7 @@ class MainWindows(QMainWindow):
         """
 
         # load the xml file
-        filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
+        filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.xml'))
 
         try:
             try:
@@ -1524,12 +1523,22 @@ class MainWindows(QMainWindow):
         """
         This function allows the user to see the files in the project folder and to open them.
         """
-        if self.operatingsystemactual == 'Linux':
-            call(["xdg-open", os.path.normpath(self.path_prj)])
-        if self.operatingsystemactual == 'Windows':
-            call(['explorer', os.path.normpath(self.path_prj)])
-        if self.operatingsystemactual == 'Darwin':
-            call(['open', os.path.normpath(self.path_prj)])
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ShiftModifier:
+            # habby
+            if self.operatingsystemactual == 'Linux':
+                call(["xdg-open", os.path.normpath(os.getcwd())])
+            if self.operatingsystemactual == 'Windows':
+                call(['explorer', os.path.normpath(os.getcwd())])
+            if self.operatingsystemactual == 'Darwin':
+                call(['open', os.path.normpath(os.getcwd())])
+        else:
+            if self.operatingsystemactual == 'Linux':
+                call(["xdg-open", os.path.normpath(self.path_prj)])
+            if self.operatingsystemactual == 'Windows':
+                call(['explorer', os.path.normpath(self.path_prj)])
+            if self.operatingsystemactual == 'Darwin':
+                call(['open', os.path.normpath(self.path_prj)])
 
     def save_project_estimhab(self):
         """
@@ -1954,7 +1963,7 @@ class CreateNewProjectDialog(QWidget):
                                                     )  # check for invalid null parameter on Linux git
         dir_name = os.path.normpath(dir_name)
         # os.getenv('HOME')
-        if dir_name != '':  # cancel case
+        if dir_name != '.':  # cancel case
             self.e2.setText(dir_name)
             self.send_log.emit('New folder selected for the project.')
 
@@ -2332,9 +2341,9 @@ class CentralW(QWidget):
             else:
                 self.tracking_journal_QTextEdit.textCursor().insertHtml(
                     "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
-                shutil.copy(os.path.join('src_GUI', 'log0.txt'),
+                shutil.copy(os.path.join('files_dep', 'log0.txt'),
                             os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
-                shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
+                shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
                             os.path.join(self.path_prj_c, 'restart_' + self.name_prj_c + '.log'))
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write("    name_project = " + self.name_prj_c + "'\n")

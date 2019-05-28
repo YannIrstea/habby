@@ -127,7 +127,8 @@ def main():
                   + '. Habby needs write permission \n.')
 
         # create an empty project if not existing before
-        filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
+        filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.xml'))
+
         if not os.path.isdir(path_prj):
             os.makedirs(path_prj)
         if not os.path.isfile(os.path.join(path_prj, name_prj + '.xml')):

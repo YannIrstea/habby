@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<root>
+-<Fish>
+<CdAppelTaxon SchemeAgencyID="SANDRE">---</CdAppelTaxon>
+<LatinName>Guilde chenal</LatinName>
+-<ComNames>
+<ComName Language="French">Guilde chenal</ComName>
+<ComName Language="English">Midstream guild</ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="ONEMA">---</CdAlternative>
+</Fish>
+<Pref_courbe>
+</Pref_courbe>
+
+<estimhab>
+<stage> all_stage </stage>
+<coeff_q> +0.32 -2.87 </coeff_q>
+<func_q> 0 </func_q>
+<coeff_const> 1.352 0.713 0.160 </coeff_const> 
+<var_const> 7 4 </var_const>
+</estimhab>
+
+</root>
+
