@@ -55,8 +55,9 @@ class Stathab:
         self.vclass_all = []  # volume of each velocity classes
         self.hclass_all = []  # surface height for all classes
         self.rclass_all = []  # granulo surface for all classes
-        self.h_all = []  # total height of all the reaches
-        self.w_all = []  # total width of all the reaches
+        self.h_all = []  # mean height of all the reaches
+        self.v_all = []   # mean velocity of all the reaches
+        self.w_all = []  # mean width of all the reaches
         self.q_all = []  # discharge
         self.fish_chosen = np.array([])  # the name of the fish
         self.riverint = 0  # the river type (0 temperate, 1 tropicale univartiate, 2 tropical bivariate)
@@ -603,8 +604,12 @@ class Stathab:
         code_fish = self.fish_chosen
         [datah_all, datav_all] = load_pref_trop_uni(code_fish, path_bio)
         nb_fish = len(datah_all)
-        pref_v_all = np.zeros((nb_reach, nb_fish, nbclaq))
-        pref_h_all = np.zeros((nb_reach, nb_fish, nbclaq))
+        hv_hv = np.zeros((nb_reach, nb_fish, nbclaq))
+        wua_hv = np.zeros((nb_reach, nb_fish, nbclaq))
+        hv_h = np.zeros((nb_reach, nb_fish, nbclaq))
+        hv_v = np.zeros((nb_reach, nb_fish, nbclaq))
+        wua_h = np.zeros((nb_reach, nb_fish, nbclaq))
+        wua_v = np.zeros((nb_reach, nb_fish, nbclaq))
         if nb_fish == 0:
             print('Error: No fish found \n')
             return
@@ -617,6 +622,7 @@ class Stathab:
 
             qmod = np.zeros((nbclaq, 1))
             hmod = np.zeros((nbclaq, 1))
+            vmod = np.zeros((nbclaq, 1))
             wmod = np.zeros((nbclaq, 1))
             try:
                 qwh_r = self.qwh[r]
@@ -639,6 +645,7 @@ class Stathab:
                 ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
                 wmod[qind] = ws
                 vs = np.exp(lnqs) / (hs * ws)
+                vmod[qind] = vs
 
                 # get dist h
                 [h_dist, h_born] = self.dist_h_trop(vs, hs, self.data_ii[r][0])
@@ -650,19 +657,19 @@ class Stathab:
                     # to be checked
                     pref_h = np.interp(h_born, datah_all[f][:, 0], datah_all[f][:, 1])
                     pref_v = np.interp(v_born, datav_all[f][:, 0], datav_all[f][:, 1])
-                    h_index = np.sum(pref_h * h_dist)
-                    v_index = np.sum(pref_v * v_dist)
-                    pref_h_all[r, f, qind] = h_index * ws
-                    pref_v_all[r, f, qind] = v_index * ws * hs
+                    hv_dist=np.outer(h_dist* v_dist)
+                    pref_hv=np.outer(pref_h* pref_v)
+                    hv_hv[r, f, qind]=np.sum(hv_dist*pref_hv)
+                    wua_hv[r, f, qind]=hv_hv[r, f, qind]* ws #WUA/m of river
+                    hv_h[r, f, qind] = np.sum(pref_h * h_dist)
+                    hv_v[r, f, qind] = np.sum(pref_v * v_dist)
+                    wua_h[r, f, qind] =hv_h[r, f, qind]* ws #WUA/m of river
+                    wua_v[r, f, qind] =hv_v[r, f, qind]* ws #WUA/m of river
                 self.h_all.append(hmod)
+                self.v_all.append(vmod)
                 self.w_all.append(wmod)
                 self.q_all.append(qmod)
-
-        # why?
-        if by_vol:
-            self.j_all = pref_v_all
-        else:
-            self.j_all = pref_h_all
+        self.j_all={'hv_hv':hv_hv,'wua_hv':wua_hv,'hv_h':hv_h,'wua_h':wua_h,'hv_v':hv_v,'wua_v':wua_v}
 
         self.load_ok = True
 
@@ -696,6 +703,7 @@ class Stathab:
 
             qmod = np.zeros((nbclaq, 1))
             hmod = np.zeros((nbclaq, 1))
+            vmod = np.zeros((nbclaq, 1))
             wmod = np.zeros((nbclaq, 1))
             try:
                 qwh_r = self.qwh[r]
@@ -717,6 +725,7 @@ class Stathab:
                 ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
                 wmod[qind] = ws
                 vs = np.exp(lnqs) / (hs * ws)
+                vmod[qind] = vs
 
                 # get dist h
                 [h_dist, h_born] = self.dist_h_trop(vs, hs, self.data_ii[r][0])
@@ -740,9 +749,11 @@ class Stathab:
                     h_born2 = np.squeeze(np.tile(h_born, (1, rep_num)))
                     point_vh = np.array([v_born2, h_born2]).T
                     pref_here = interpolate.griddata(data_pref[:, :2], data_pref[:, 2], point_vh, method='linear')
-
-                    self.j_all[r, f, qind] = np.sum(pref_here * biv_dist.T) * ws * hs
+                    hv_hv[r, f, qind] = np.sum(pref_here * biv_dist.T)
+                    wua_hv[r, f, qind] =hv_hv[r, f, qind]* ws
+                    self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv}
                 self.h_all.append(hmod)
+                self.v_all.append(vmod)
                 self.w_all.append(wmod)
                 self.q_all.append(qmod)
 

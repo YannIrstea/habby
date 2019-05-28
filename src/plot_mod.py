@@ -912,7 +912,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     unit_name = []
     if len(area_all) == 1:
         for unit_index in data_description["units_index"]:
-            unit_name.append(data_description["hyd_unit_list"][unit_index])
+            unit_name.append(data_description["hyd_unit_list"][0][unit_index])
     if len(area_all) > 1:
         for unit_index in data_description["units_index"]:
             unit_name.append(str(data_description["hyd_unit_list"][reach_num][unit_index]))
