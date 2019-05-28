@@ -9,7 +9,7 @@ ECHO if build\pyinstaller folder exist, remove it
 if exist build\pyinstaller rmdir /Q /S build\pyinstaller
 
 ECHO pyinstaller
-pyinstaller --icon=translation\habby_icon.ico --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --name=habby habby.py
+pyinstaller --icon=translation\habby_icon.ico --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --windowed --name=habby habby.py
 
 ECHO if build folder exist, remove it
 if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp
