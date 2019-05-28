@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<root>
+-<Fish>
+<CdAppelTaxon SchemeAgencyID="SANDRE">---</CdAppelTaxon>
+<LatinName>Guilde mouille</LatinName>
+-<ComNames>
+<ComName Language="French">Guilde mouille</ComName>
+<ComName Language="English">Pool guild</ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="ONEMA">---</CdAlternative>
+</Fish>
+<Pref_courbe>
+</Pref_courbe>
+
+<estimhab>
+<stage> all_stage </stage>
+<coeff_q> +3.53 -11.09 </coeff_q>
+<func_q> 1 </func_q>
+<coeff_const> 0.026 -0.039 0.013 </coeff_const> 
+<var_const> 5 4 </var_const>
+</estimhab>
+
+</root>
+
