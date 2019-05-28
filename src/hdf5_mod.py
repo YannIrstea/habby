@@ -1230,7 +1230,7 @@ class Hdf5Management:
                             # conveyance
                             conveyance = v_mean_mesh * h_mean_mesh
                             # i_whole_profile
-                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["sub"][reach_num][unit_num]):
+                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
                                 i_whole_profile = 0
                             else:
                                 i_whole_profile = self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0]
