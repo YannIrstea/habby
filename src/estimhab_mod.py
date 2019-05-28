@@ -112,6 +112,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     re = q_all / (10 * w_all)
     re50 = q50 / (10 * l50)
 
+    # TODO: add column data : h_all, w_all, vel
+
     # extra-data related to q50
     fr50 = q50 / (9.81 ** 0.5 * h50 ** 1.5 * l50)
     dh50 = substrat / h50
@@ -235,8 +237,8 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
         txt_header += '\n[m3/sec]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
-        np.savetxt(os.path.join(path_txt, name_pict + '.txt'), data.T, newline=os.linesep, header=txt_header,
-                   delimiter='\t')
+        np.savetxt(os.path.join(path_txt, name_pict + '.txt'), data.T, header=txt_header,
+                   delimiter='\t')  # , newline=os.linesep
 
         # text file input
         txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
@@ -249,7 +251,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
         for n in fish_name:
             txtin += n + '\t'
         txtin = txtin[:-1]
-        txtin += '\n'
+        #txtin += '\n'
         txtin += 'Output file:\t' + name_pict + '.txt\n'
         with open(os.path.join(path_txt, name_input + '.txt'), 'wt') as f:
             f.write(txtin)
