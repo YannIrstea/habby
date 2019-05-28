@@ -1562,7 +1562,7 @@ def habby_restart(file_comm, name_prj, path_prj, path_bio):
                         if not os.path.isdir(path_prj):
                             os.mkdir(path_prj)
                         if not os.path.isfile(os.path.join(path_prj, name_prj + '.xml')):
-                            filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
+                            filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.xml'))
                             copyfile(filename_empty, os.path.join(path_prj, name_prj + '.xml'))
 
                     else:

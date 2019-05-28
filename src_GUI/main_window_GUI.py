@@ -1344,7 +1344,6 @@ class MainWindows(QMainWindow):
                     self.tr("You do not have the permission to write in this folder. Choose another folder. \n"))
                 self.msg2.setStandardButtons(QMessageBox.Ok)
                 self.msg2.show()
-                return
 
         # check if there is not another project with the same path_name
         fname = os.path.join(self.createnew.e2.text(), name_prj_here, name_prj_here + '.xml')
@@ -1494,7 +1493,7 @@ class MainWindows(QMainWindow):
         """
 
         # load the xml file
-        filename_empty = os.path.abspath('src_GUI/empty_proj.xml')
+        filename_empty = os.path.abspath(os.path.join('files_dep', 'empty_proj.xml'))
 
         try:
             try:
@@ -1540,8 +1539,6 @@ class MainWindows(QMainWindow):
                 call(['explorer', os.path.normpath(self.path_prj)])
             if self.operatingsystemactual == 'Darwin':
                 call(['open', os.path.normpath(self.path_prj)])
-
-
 
     def save_project_estimhab(self):
         """
@@ -2344,9 +2341,9 @@ class CentralW(QWidget):
             else:
                 self.tracking_journal_QTextEdit.textCursor().insertHtml(
                     "<FONT COLOR='#FF8C00'> WARNING: Log file not found. New log created. </br> <br>")
-                shutil.copy(os.path.join('src_GUI', 'log0.txt'),
+                shutil.copy(os.path.join('files_dep', 'log0.txt'),
                             os.path.join(self.path_prj_c, self.name_prj_c + '.log'))
-                shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'),
+                shutil.copy(os.path.join('files_dep', 'restart_log0.txt'),
                             os.path.join(self.path_prj_c, 'restart_' + self.name_prj_c + '.log'))
                 with open(pathname_logfile, "a", encoding='utf8') as myfile:
                     myfile.write("    name_project = " + self.name_prj_c + "'\n")

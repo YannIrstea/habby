@@ -47,8 +47,8 @@ def create_project_structure(path_prj, logon, version, username_prj, descri_prj,
 
     # create the log files by copying the existing "basic" log files (log0.txt and restart_log0.txt)
     if name_prj != '':
-        shutil.copy(os.path.join('src_GUI', 'log0.txt'), os.path.join(path_prj, name_prj + '.log'))
-        shutil.copy(os.path.join('src_GUI', 'restart_log0.txt'), os.path.join(path_prj,
+        shutil.copy(os.path.join('files_dep', 'log0.txt'), os.path.join(path_prj, name_prj + '.log'))
+        shutil.copy(os.path.join('files_dep', 'restart_log0.txt'), os.path.join(path_prj,
                                                                               'restart_' + name_prj +
                                                                               '.log'))
     # more precise info
