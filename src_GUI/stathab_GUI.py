@@ -274,14 +274,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         load_from_txt_gui() when done.
 
         """
-        # # get last path
-        # if self.dir_name:
-        #     model_path = self.read_attribute_xml(self.attributexml[0])  # path spe
-        # elif self.read_attribute_xml("Path_last_file_loaded") != self.path_prj:
-        #     model_path = self.read_attribute_xml("Path_last_file_loaded")  # path last
-        # else:
-        #     model_path = self.path_prj  # path proj
-
         # get the directory
         self.dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.dir_name)
         if self.dir_name == '':  # cancel case

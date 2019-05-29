@@ -116,18 +116,18 @@ def read_fstress_hdf5(hdf5_name, hdf5_path):
     :return:[[q,w,h], [q,w,h]] for each river, [qmin,qmax] for each river, the river names, and the selected fish
 
     """
-    failload = [-99], [-99], ['-99'], ['-99']
     river_name = []
     qhw = []
     qrange = []
     fish_name = []
 
     # open hdf5 with check
-    h5_filename_path = os.path.join(hdf5_path, hdf5_name)
-    h5file = hdf5_mod.open_hdf5_(h5_filename_path, "read")
-    if h5file is None:
+    h5file, failload = hdf5_mod.open_hdf5_(hdf5_name, hdf5_path, "read")
+    if failload:
         print('Error: hdf5 file could not be open. \n')
         return failload
+    else:
+        failload = [-99], [-99], ['-99'], ['-99']
 
     # read the number of rivers
     try:
