@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 import sys
 from src_GUI import main_window_GUI
 from src import func_for_cmd_mod
+from src.config_data_habby_mod import ConfigHabby
 from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QMessageBox
@@ -38,7 +39,9 @@ def main():
     For more complicated case, one can directly do a python script using
     the function from HABBY.
     """
-    # set version
+    # config habby
+
+    config_habby = ConfigHabby()
 
     # graphical user interface is called if no argument
     if len(sys.argv) == 1:
@@ -57,7 +60,8 @@ def main():
         app.processEvents()
 
         # create windows
-        ex = main_window_GUI.MainWindows(HABBY_VERSION)
+        ex = main_window_GUI.MainWindows(HABBY_VERSION,
+                                         config_habby)
         app.setActiveWindow(ex)
 
         # close the splash screen

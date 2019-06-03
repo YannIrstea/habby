@@ -80,7 +80,7 @@ class MainWindows(QMainWindow):
     We show the created widget.
     """
 
-    def __init__(self, version):
+    def __init__(self, version, config_habby):
 
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
@@ -89,57 +89,65 @@ class MainWindows(QMainWindow):
         # CAREFUL also change the version in habby.py for the command line version
         self.version = version
 
+        # config_habby
+        self.config_habby = config_habby
+
         # operating system
         self.operatingsystemactual = operatingsystem()
 
         # load user setting
-        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
-        name_prj_set = self.settings.value('name_prj')
-        # print(name_prj_set)
-        name_path_set = self.settings.value('path_prj')
-        # print(name_path_set)
-        language_set = self.settings.value('language_code')
+        # self.settings = QSettings('irstea', 'HABBY' + str(self.version))
+        # name_prj_set = self.settings.value('name_prj')
+        # # print(name_prj_set)
+        # name_path_set = self.settings.value('path_prj')
+        # # print(name_path_set)
+        # language_set = self.settings.value('language_code')
+        name_prj_set = self.config_habby.data["name_prj"]
+        name_path_set = self.config_habby.data["path_prj"]
+        language_set = self.config_habby.data["language"]
+        self.actual_theme = self.config_habby.data["theme"]
 
-        # to erase setting of older version
-        # add here the number of older version whose setting must be erased because they are not compatible
-        # it should be managed by innosetup, but do not work always
-        self.oldversion = [1.1]
-        for v in self.oldversion:
-            if v != self.version:
-                self.oldsettings = QSettings('irstea', 'HABBY' + str(v))
-            self.oldsettings.clear()
+        # # to erase setting of older version
+        # # add here the number of older version whose setting must be erased because they are not compatible
+        # # it should be managed by innosetup, but do not work always
+        # self.oldversion = [0.24]
+        # for v in self.oldversion:
+        #     if v != self.version:
+        #         self.oldsettings = QSettings('irstea', 'HABBY' + str(v))
+        #     self.oldsettings.clear()
 
-        # recent project: list of string
-        recent_projects_set = self.settings.value('recent_project_name')
-        recent_projects_path_set = self.settings.value('recent_project_path')
-        if recent_projects_set is not None:
+        # # recent project: list of string
+        # recent_projects_set = self.settings.value('recent_project_name')
+        # recent_projects_path_set = self.settings.value('recent_project_path')
+        recent_projects_set = self.config_habby.data["recent_project_name"]
+        recent_projects_path_set = self.config_habby.data["recent_project_path"]
+        if recent_projects_set:
             if len(recent_projects_set) > self.nb_recent:
-                self.settings.setValue('recent_project_name', recent_projects_set[-self.nb_recent + 1:])
-                self.settings.setValue('recent_project_path', recent_projects_path_set[-self.nb_recent + 1:])
-        del self.settings
+                self.config_habby.data["recent_project_name"] = recent_projects_set[-self.nb_recent + 1:]
+                self.config_habby.data["recent_project_path"] = recent_projects_path_set[-self.nb_recent + 1:]
+                self.config_habby.save_data()
 
         # set up translation
         self.languageTranslator = QTranslator()
         self.path_trans = os.path.abspath('translation')
         self.file_langue = [r'Zen_EN.qm', r'Zen_FR.qm', r'Zen_ES.qm']
-        if language_set:
-            try:
-                self.lang = int(language_set)  # need integer there
-            except ValueError:
+        try:  # english, french, spanish
+            if language_set == "english":
                 self.lang = 0
-        else:
+            if language_set == "french":
+                self.lang = 1
+            if language_set == "spanish":
+                self.lang = 2
+        except:
             self.lang = 0
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
         self.languageTranslator = QTranslator()
-        self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
+        self.languageTranslator.load(self.file_langue[self.lang], self.path_trans)
         self.app.installTranslator(self.languageTranslator)
 
         # prepare the attributes, careful if change the Qsetting!
         self.msg2 = QMessageBox()
-        self.physic_tabs = True
-        self.stat_tabs = False
-        self.research_tabs = False
         if name_path_set:
             self.name_prj = name_prj_set
         else:
@@ -164,7 +172,6 @@ class MainWindows(QMainWindow):
         self.username_prj = "NoUserName"
         self.descri_prj = ""
         self.does_it_work = True
-        self.actual_theme = "classic"
 
         # the path to the biological data by default (HABBY force the user to use this path)
         self.path_bio_default = os.path.join("biology", "models")
@@ -177,15 +184,8 @@ class MainWindows(QMainWindow):
         else:
             lang_bio = 'English'
 
-        # set geometry
-        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
-
-        if self.settings.value('selected_tabs'):
-            self.physic_tabs, self.stat_tabs, self.research_tabs = list(map(eval, self.settings.value('selected_tabs').split(", ")))
-        else:
-            self.physic_tabs = True
-            self.stat_tabs = False
-            self.research_tabs = False
+        # set selected tabs
+        self.physic_tabs, self.stat_tabs, self.research_tabs = self.config_habby.data["selected_tabs"]
 
         self.central_widget = CentralW(self.physic_tabs,
                                        self.stat_tabs,
@@ -211,15 +211,8 @@ class MainWindows(QMainWindow):
         self.setWindowIcon(QIcon(self.name_icon))
 
         # position theme
-        if not self.settings.value('wind_position'):
-            self.setGeometry(50, 75, 950, 720)
-        if self.settings.value('wind_position'):
-            windows_position_x, windows_position_y, windows_position_w, windows_position_h = list(
-                map(int, self.settings.value('wind_position').split(",")))
-            if windows_position_x != 0:
-                self.setGeometry(windows_position_x, windows_position_y, windows_position_w, windows_position_h)
-            if windows_position_x == 0:  # must be full screen but we dont want
-                self.setGeometry(50, 75, 950, 720)
+        wind_position_x, wind_position_y, wind_position_w, wind_position_h = self.config_habby.data["wind_position"]
+        self.setGeometry(wind_position_x, wind_position_y, wind_position_w, wind_position_h)
 
         # create the menu bar
         self.my_menu_bar()
@@ -253,18 +246,10 @@ class MainWindows(QMainWindow):
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
         # set theme
-        if self.settings.value('theme') == "dark":
-            self.setthemedark()
-        else:
+        if self.actual_theme == "classic":
             self.setthemeclassic()
-
-        # set check menu
-        if self.settings.value('theme') == "dark":
-            self.setthemedark()
         else:
-            self.setthemeclassic()
-
-        del self.settings
+            self.setthemedark()
 
         self.check_concurrency()
         self.show()
@@ -302,17 +287,14 @@ class MainWindows(QMainWindow):
         # close all process data (security)
         self.process_alive(close=True, isalive=False)
 
-        # save theme and windows position
-        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
-        self.settings.setValue('wind_position', ",".join(
-            [str(self.geometry().x()), str(self.geometry().y()), str(self.geometry().width()),
-             str(self.geometry().height())]))
-        self.settings.setValue('theme', self.actual_theme)
-        selected_tabs = ", ".join([str(self.physic_tabs),
-                                   str(self.stat_tabs),
-                                   str(self.research_tabs)])
-        self.settings.setValue('selected_tabs', selected_tabs)
-        del self.settings
+        # save settings
+        self.config_habby.data["wind_position"] = (self.geometry().x(),
+                                                   self.geometry().y(),
+                                                   self.geometry().width(),
+                                                   self.geometry().height())
+        self.config_habby.data["theme"] = self.actual_theme
+        self.config_habby.data["selected_tabs"] = (self.physic_tabs, self.stat_tabs, self.research_tabs)
+        self.config_habby.save_data()
 
         os._exit(1)
 
@@ -406,41 +388,45 @@ class MainWindows(QMainWindow):
         self.app = QApplication.instance()
         self.app.removeTranslator(self.languageTranslator)
         self.languageTranslator = QTranslator()
-        self.languageTranslator.load(self.file_langue[int(self.lang)], self.path_trans)
+        self.languageTranslator.load(self.file_langue[self.lang], self.path_trans)
         self.app.installTranslator(self.languageTranslator)
 
         # recreate new widget
-        if self.central_widget.tab_widget.count() == 1:
-            self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
-        else:
-            self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
-            #if self.physic_tabs:
-            self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
-            if ind_hydrau_tab != 0:
-                self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
-            self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
-            self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
-            self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
-            self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
-            #if self.stat_tabs:
-            self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
-            self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
-            self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
+        self.recreate_tabs_attributes()
+        # if self.central_widget.tab_widget.count() == 1:
+        #     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
+        # else:
+        #     self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
+        #     #if self.physic_tabs:
+        #     self.central_widget.hydro_tab = hydro_sub_GUI.Hydro2W(self.path_prj, self.name_prj)
+        #     if ind_hydrau_tab != 0:
+        #         self.central_widget.hydro_tab.mod.setCurrentIndex(ind_hydrau_tab)
+        #     self.central_widget.substrate_tab = hydro_sub_GUI.SubstrateW(self.path_prj, self.name_prj)
+        #     self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+        #     self.central_widget.data_explorer_tab = data_explorer_GUI.DataExplorerTab(self.path_prj, self.name_prj)
+        #     self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
+        #     #if self.stat_tabs:
+        #     self.central_widget.statmod_tab = estimhab_GUI.EstimhabW(self.path_prj, self.name_prj)
+        #     self.central_widget.stathab_tab = stathab_GUI.StathabW(self.path_prj, self.name_prj)
+        #     self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
 
 
-            # pass the info to the bio info tab
-            # to be modified if a new language is added !
-            if nb_lang == 0:
+        # pass the info to the bio info tab
+        # to be modified if a new language is added !
+        if nb_lang == 0:
+            if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'English'
-            elif nb_lang == 1:
+        elif nb_lang == 1:
+            if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'French'
-            # elif nb_lang == 2:  # to be added if the xml preference files are also in spanish
-            #     self.central_widget.bioinfo_tab.lang = 'Spanish'
-            else:
+        # elif nb_lang == 2:  # to be added if the xml preference files are also in spanish
+        #     self.central_widget.bioinfo_tab.lang = 'Spanish'
+        else:
+            if hasattr(self.central_widget, "bioinfo_tab"):
                 self.central_widget.bioinfo_tab.lang = 'English'
 
-            # write the new language in the figure option to be able to get the title, axis in the right language
-            preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
+        # write the new language in the figure option to be able to get the title, axis in the right language
+        preferences_GUI.set_lang_fig(self.lang, self.path_prj, self.name_prj)
 
         # set the central widget
         for i in range(self.central_widget.tab_widget.count(), -1, -1):
@@ -475,9 +461,14 @@ class MainWindows(QMainWindow):
         self.central_widget.l1.setText(self.tr('Habby says:'))
 
         # update user option to remember the language
-        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
-        self.settings.setValue('language_code', self.lang)
-        del self.settings
+        if self.lang == 0:
+            language = "english"
+        if self.lang == 1:
+            language = "french"
+        if self.lang == 2:
+            language = "spanish"
+        self.config_habby.data["language"] = language
+        self.config_habby.save_data()
 
         #  right click
         self.create_menu_right_clic()
@@ -558,15 +549,15 @@ class MainWindows(QMainWindow):
         closeim.setShortcut('Ctrl+B')
 
         # Menu to choose the language
-        lAction1 = QAction(self.tr('&English'), self)
-        lAction1.setStatusTip(self.tr('click here for English'))
-        lAction1.triggered.connect(lambda: self.setlangue(0))  # lambda because of the argument
-        lAction2 = QAction(self.tr('&French'), self)
-        lAction2.setStatusTip(self.tr('click here for French'))
-        lAction2.triggered.connect(lambda: self.setlangue(1))
-        lAction3 = QAction(self.tr('&Spanish'), self)
-        lAction3.setStatusTip(self.tr('click here for Spanish'))
-        lAction3.triggered.connect(lambda: self.setlangue(2))
+        self.english_action = QAction(self.tr('&English'), self, checkable=True)
+        self.english_action.setStatusTip(self.tr('click here for English'))
+        self.english_action.triggered.connect(lambda: self.setlangue(0))  # lambda because of the argument
+        self.french_action = QAction(self.tr('&French'), self, checkable=True)
+        self.french_action.setStatusTip(self.tr('click here for French'))
+        self.french_action.triggered.connect(lambda: self.setlangue(1))
+        self.spanish_action = QAction(self.tr('&Spanish'), self, checkable=True)
+        self.spanish_action.setStatusTip(self.tr('click here for Spanish'))
+        self.spanish_action.triggered.connect(lambda: self.setlangue(2))
 
         # Menu to obtain help and program version
         helpm = QAction(self.tr('Developper Help'), self)
@@ -602,8 +593,21 @@ class MainWindows(QMainWindow):
         self.darkthemeaction = QAction(self.tr('dark'), self, checkable=True)
         self.darkthemeaction.triggered.connect(self.setthemedark)
 
-        # print("right_menu : ", right_menu)
-        # print("self.actual_theme : ", self.actual_theme)
+        # language
+        if self.lang == 0:
+            self.english_action.setChecked(True)
+            self.french_action.setChecked(False)
+            self.spanish_action.setChecked(False)
+        if self.lang == 1:
+            self.english_action.setChecked(False)
+            self.french_action.setChecked(True)
+            self.spanish_action.setChecked(False)
+        if self.lang == 2:
+            self.english_action.setChecked(False)
+            self.french_action.setChecked(False)
+            self.spanish_action.setChecked(True)
+
+        # theme
         if self.actual_theme == "classic":
             self.classicthemeaction.setChecked(True)
             self.darkthemeaction.setChecked(False)
@@ -656,9 +660,9 @@ class MainWindows(QMainWindow):
         self.fileMenu_tabs.addAction(self.statisticmodelaction)
         self.fileMenu_tabs.addAction(self.researchmodelaction)
         fileMenu_settings.addAction(preferences_action)
-        fileMenu_language.addAction(lAction1)
-        fileMenu_language.addAction(lAction2)
-        fileMenu_language.addAction(lAction3)
+        fileMenu_language.addAction(self.english_action)
+        fileMenu_language.addAction(self.french_action)
+        fileMenu_language.addAction(self.spanish_action)
         fileMenu_help.addAction(helpm)
         fileMenu_help.addAction(aboutm)
 
@@ -685,6 +689,8 @@ class MainWindows(QMainWindow):
         self.actual_theme = "classic"
         self.my_menu_bar()
         self.my_menu_bar(True)
+        self.config_habby.data["theme"] = self.actual_theme
+        self.config_habby.save_data()
 
     def setthemedark(self):
         #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
@@ -695,6 +701,8 @@ class MainWindows(QMainWindow):
             QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
         self.my_menu_bar()
         self.my_menu_bar(True)
+        self.config_habby.data["theme"] = self.actual_theme
+        self.config_habby.save_data()
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
 
@@ -871,10 +879,6 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.fstress_tab = fstress_GUI.FstressW(self.path_prj, self.name_prj)
 
-        else:
-            print('Error: Could not find the project saved just now. \n')
-            return
-
     def save_project(self):
         """
         A function to save the xml file with the information on the project
@@ -938,9 +942,8 @@ class MainWindows(QMainWindow):
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
 
         # update user option and re-do (the whole) menu
-        self.settings = QSettings('irstea', 'HABBY' + str(self.version))
-        self.settings.setValue('name_prj', self.name_prj)
-        self.settings.setValue('path_prj', self.path_prj)
+        self.config_habby.data["name_prj"] = self.name_prj
+        self.config_habby.data["path_prj"] = self.path_prj
 
         # save name and path of project in the list of recent project
         if self.name_prj not in self.recent_project:
@@ -953,14 +956,14 @@ class MainWindows(QMainWindow):
                         self.recent_project_path[ind[0]]):  # linux windows path
                     self.recent_project.append(self.name_prj)
                     self.recent_project_path.append(self.path_prj)
-        self.settings.setValue('recent_project_name', self.recent_project)
-        self.settings.setValue('recent_project_path', self.recent_project_path)
-        del self.settings
+        self.config_habby.data["recent_project_name"] = self.recent_project
+        self.config_habby.data["recent_project_path"] = self.recent_project_path
+        self.config_habby.save_data()
+
         self.my_menu_bar()
 
         # if new projet or project move
         if not os.path.isfile(fname):
-
             path_last_file_loaded_child = project_manag_mod.create_project_structure(self.path_prj,
                                                        self.central_widget.logon,
                                                        self.version,
@@ -1521,24 +1524,22 @@ class MainWindows(QMainWindow):
 
     def see_file(self):
         """
-        This function allows the user to see the files in the project folder and to open them.
+        This function open an explorer with different paths (project folder, habby folder, AppData folder)
         """
         modifiers = QApplication.keyboardModifiers()
-        if modifiers == Qt.ShiftModifier:
-            # habby
-            if self.operatingsystemactual == 'Linux':
-                call(["xdg-open", os.path.normpath(os.getcwd())])
-            if self.operatingsystemactual == 'Windows':
-                call(['explorer', os.path.normpath(os.getcwd())])
-            if self.operatingsystemactual == 'Darwin':
-                call(['open', os.path.normpath(os.getcwd())])
+        if modifiers == Qt.ControlModifier:
+            path_choosen = os.path.normpath(self.config_habby.dirs.user_config_dir)
+        elif modifiers == Qt.ShiftModifier:
+            path_choosen = os.path.normpath(os.getcwd())
         else:
-            if self.operatingsystemactual == 'Linux':
-                call(["xdg-open", os.path.normpath(self.path_prj)])
-            if self.operatingsystemactual == 'Windows':
-                call(['explorer', os.path.normpath(self.path_prj)])
-            if self.operatingsystemactual == 'Darwin':
-                call(['open', os.path.normpath(self.path_prj)])
+            path_choosen = os.path.normpath(self.path_prj)
+
+        if self.operatingsystemactual == 'Windows':
+            call(['explorer', path_choosen])
+        elif self.operatingsystemactual == 'Linux':
+            call(["xdg-open", path_choosen])
+        elif self.operatingsystemactual == 'Darwin':
+            call(['open', path_choosen])
 
     def save_project_estimhab(self):
         """
