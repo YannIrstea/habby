@@ -23,7 +23,7 @@ from scipy.spatial import Voronoi
 from random import uniform
 import triangle as tr
 from random import randrange
-#from shapely.geometry import MultiPoint, Polygon, Point
+from shapely.geometry import MultiPoint, Polygon, Point
 from PyQt5.QtWidgets import QMessageBox
 from src import hdf5_mod
 from src.tools_mod import get_prj_from_epsg_web
@@ -901,37 +901,37 @@ def load_sub_txt(filename, path, sub_mapping_method, sub_classification_code, su
     regions, vertices = voronoi_finite_polygons_2d(vor, 200)
 
     # create extent from points
-    rect_extent = point_in[:, 0].min(), point_in[:, 1].min(), point_in[:, 0].max(), point_in[:, 1].max()
+    #rect_extent = point_in[:, 0].min(), point_in[:, 1].min(), point_in[:, 0].max(), point_in[:, 1].max()
 
     # clip from point extent + 200m
-    regions, vertices = clip_polygons_from_rect(regions, vertices, rect_extent)
+    #regions, vertices = clip_polygons_from_rect(regions, vertices, rect_extent)
 
     # convex_hull buffer to cut polygons
-    # list_points = [Point(i) for i in point_in]
-    # convex_hull = MultiPoint(list_points).convex_hull.buffer(200)
-    #
-    # # for each polyg voronoi
-    # list_polyg = []
-    # for region in regions:
-    #     polygon = vertices[region]
-    #     shape = list(polygon.shape)
-    #     shape[0] += 1
-    #     list_polyg.append(Polygon(np.append(polygon, polygon[0]).reshape(*shape)).intersection(convex_hull))
-    #
-    # # find one sub data by polyg
-    # if len(list_polyg) == 0:
-    #     print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
-    #     return False
-    #
-    # sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_class_number)]
-    #
-    # for e in range(0, len(list_polyg)):
-    #     polygon = list_polyg[e]
-    #     centerx = np.float64(polygon.centroid.x)
-    #     centery = np.float64(polygon.centroid.y)
-    #     nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
-    #     for k in range(sub_class_number):
-    #         sub_array2[k][e] = sub_array[k][nearest_ind]
+    list_points = [Point(i) for i in point_in]
+    convex_hull = MultiPoint(list_points).convex_hull.buffer(200)
+
+    # for each polyg voronoi
+    list_polyg = []
+    for region in regions:
+        polygon = vertices[region]
+        shape = list(polygon.shape)
+        shape[0] += 1
+        list_polyg.append(Polygon(np.append(polygon, polygon[0]).reshape(*shape)).intersection(convex_hull))
+
+    # find one sub data by polyg
+    if len(list_polyg) == 0:
+        print('Error the substrate does not create a meangiful grid. Please add more substrate points. \n')
+        return False
+
+    sub_array2 = [np.zeros(len(list_polyg), ) for i in range(sub_class_number)]
+
+    for e in range(0, len(list_polyg)):
+        polygon = list_polyg[e]
+        centerx = np.float64(polygon.centroid.x)
+        centery = np.float64(polygon.centroid.y)
+        nearest_ind = np.argmin(np.sqrt((x - centerx) ** 2 + (y - centery) ** 2))
+        for k in range(sub_class_number):
+            sub_array2[k][e] = sub_array[k][nearest_ind]
 
     sub_array2 = [np.zeros(len(regions), ) for i in range(sub_class_number)]
 
