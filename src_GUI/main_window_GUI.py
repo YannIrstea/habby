@@ -91,6 +91,8 @@ class MainWindows(QMainWindow):
 
         # config_habby
         self.config_habby = config_habby
+        # self.config_habby.send_log.connect(self.central_widget.write_log)
+        self.config_habby.create_config_habby_structure()
 
         # operating system
         self.operatingsystemactual = operatingsystem()
@@ -125,7 +127,7 @@ class MainWindows(QMainWindow):
             if len(recent_projects_set) > self.nb_recent:
                 self.config_habby.data["recent_project_name"] = recent_projects_set[-self.nb_recent + 1:]
                 self.config_habby.data["recent_project_path"] = recent_projects_path_set[-self.nb_recent + 1:]
-                self.config_habby.save_data()
+                #self.config_habby.save_json()
 
         # set up translation
         self.languageTranslator = QTranslator()
@@ -294,7 +296,7 @@ class MainWindows(QMainWindow):
                                                    self.geometry().height())
         self.config_habby.data["theme"] = self.actual_theme
         self.config_habby.data["selected_tabs"] = (self.physic_tabs, self.stat_tabs, self.research_tabs)
-        self.config_habby.save_data()
+        self.config_habby.save_json()
 
         os._exit(1)
 
@@ -467,8 +469,9 @@ class MainWindows(QMainWindow):
             language = "french"
         if self.lang == 2:
             language = "spanish"
-        self.config_habby.data["language"] = language
-        self.config_habby.save_data()
+        if self.config_habby.data["language"] != language:
+            self.config_habby.data["language"] = language
+            self.config_habby.save_json()
 
         #  right click
         self.create_menu_right_clic()
@@ -689,8 +692,9 @@ class MainWindows(QMainWindow):
         self.actual_theme = "classic"
         self.my_menu_bar()
         self.my_menu_bar(True)
-        self.config_habby.data["theme"] = self.actual_theme
-        self.config_habby.save_data()
+        if self.config_habby.data["theme"] != self.actual_theme:
+            self.config_habby.data["theme"] = self.actual_theme
+            self.config_habby.save_json()
 
     def setthemedark(self):
         #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
@@ -701,8 +705,9 @@ class MainWindows(QMainWindow):
             QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
         self.my_menu_bar()
         self.my_menu_bar(True)
-        self.config_habby.data["theme"] = self.actual_theme
-        self.config_habby.save_data()
+        if self.config_habby.data["theme"] != self.actual_theme:
+            self.config_habby.data["theme"] = self.actual_theme
+            self.config_habby.save_json()
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
 
@@ -788,7 +793,7 @@ class MainWindows(QMainWindow):
 
     def open_preferences(self):
         # show the pref
-        self.preferences_dialog.show()
+        self.preferences_dialog.open_preferences()
         # # witdh_for_checkbox_alignement
         witdh_for_checkbox_alignement = self.preferences_dialog.cut_2d_grid_label.size().width()
         self.preferences_dialog.erase_data_label.setMinimumWidth(witdh_for_checkbox_alignement)
@@ -958,7 +963,7 @@ class MainWindows(QMainWindow):
                     self.recent_project_path.append(self.path_prj)
         self.config_habby.data["recent_project_name"] = self.recent_project
         self.config_habby.data["recent_project_path"] = self.recent_project_path
-        self.config_habby.save_data()
+        self.config_habby.save_json()
 
         self.my_menu_bar()
 
@@ -1528,7 +1533,7 @@ class MainWindows(QMainWindow):
         """
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ControlModifier:
-            path_choosen = os.path.normpath(self.config_habby.dirs.user_config_dir)
+            path_choosen = os.path.normpath(self.config_habby.user_config_habby_path)
         elif modifiers == Qt.ShiftModifier:
             path_choosen = os.path.normpath(os.getcwd())
         else:
