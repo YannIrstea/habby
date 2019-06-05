@@ -171,7 +171,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
 
         """ Required data """
         # sequence layout
-        fromsequence_group = QGroupBox(self.tr("from a sequence"))
+        fromsequence_group = QGroupBox(self.tr("from a sequence (press ENTER once the data has been entered)"))
         from_qlabel = QLabel(self.tr('from'))
         self.from_qlineedit = QLineEdit()
         self.from_qlineedit.returnPressed.connect(self.display_required_units_from_sequence)
@@ -352,6 +352,13 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.create_model_array_and_display(chonicle_from_seq, types_from_seq, source="seq")
 
     def display_required_units_from_txtfile(self):
+        # is fish ?
+        selection = self.fish_available_qlistwidget.selectedItems()
+        fish_names = [item.text() for item in selection]
+        if fish_names == [""] or fish_names == []:
+            self.send_log.emit('Error: There no selected fish.')
+            return
+
         # find the filename based on user choice
         filename_path = QFileDialog.getOpenFileName(self,
                                                     self.tr("Select file"),
@@ -562,8 +569,16 @@ class OtherToolToCreate(QGroupBoxCollapsible):
         self.setTitle(self.tr("New tools to come"))
         hbox_layout = QHBoxLayout()
         spacer = QSpacerItem(1, 50)
+        self.qpushbutton_test = QPushButton("test")
+        self.qpushbutton_test.clicked.connect(self.test_function_dev)
         hbox_layout.addItem(spacer)
+        hbox_layout.addWidget(self.qpushbutton_test)
         self.setLayout(hbox_layout)
+
+    def test_function_dev(self):
+        print("aaaa")
+        1 / 0
+        print("bbbb")
 
 
 class MyTableModel(QStandardItemModel):
