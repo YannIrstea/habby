@@ -125,7 +125,6 @@ class MainWindows(QMainWindow):
             if len(recent_projects_set) > self.nb_recent:
                 self.config_habby.data["recent_project_name"] = recent_projects_set[-self.nb_recent + 1:]
                 self.config_habby.data["recent_project_path"] = recent_projects_path_set[-self.nb_recent + 1:]
-                #self.config_habby.save_json()
 
         # set up translation
         self.languageTranslator = QTranslator()
@@ -294,7 +293,7 @@ class MainWindows(QMainWindow):
                                                    self.geometry().height())
         self.config_habby.data["theme"] = self.actual_theme
         self.config_habby.data["selected_tabs"] = (self.physic_tabs, self.stat_tabs, self.research_tabs)
-        self.config_habby.save_json()
+        self.config_habby.save_config_json()
 
         os._exit(1)
 
@@ -469,7 +468,7 @@ class MainWindows(QMainWindow):
             language = "spanish"
         if self.config_habby.data["language"] != language:
             self.config_habby.data["language"] = language
-            self.config_habby.save_json()
+            self.config_habby.save_config_json()
 
         #  right click
         self.create_menu_right_clic()
@@ -692,7 +691,7 @@ class MainWindows(QMainWindow):
         self.my_menu_bar(True)
         if self.config_habby.data["theme"] != self.actual_theme:
             self.config_habby.data["theme"] = self.actual_theme
-            self.config_habby.save_json()
+            self.config_habby.save_config_json()
 
     def setthemedark(self):
         #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
@@ -705,7 +704,7 @@ class MainWindows(QMainWindow):
         self.my_menu_bar(True)
         if self.config_habby.data["theme"] != self.actual_theme:
             self.config_habby.data["theme"] = self.actual_theme
-            self.config_habby.save_json()
+            self.config_habby.save_config_json()
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
 
@@ -961,7 +960,7 @@ class MainWindows(QMainWindow):
                     self.recent_project_path.append(self.path_prj)
         self.config_habby.data["recent_project_name"] = self.recent_project
         self.config_habby.data["recent_project_path"] = self.recent_project_path
-        self.config_habby.save_json()
+        self.config_habby.save_config_json()
 
         self.my_menu_bar()
 

@@ -409,6 +409,31 @@ def create_and_fill_database(path_bio, name_database, attribute):
             Please check the biology folder.\n')
 
 
+def get_biomodels_informations_for_database(path_xml):
+    # open the file
+    try:
+        try:
+            docxml = ET.parse(path_xml)
+            root = docxml.getroot()
+        except IOError:
+            print("Warning: the xml file does not exist \n")
+            return
+    except ET.ParseError:
+        print("Warning: the xml file is not well-formed.\n")
+        return
+
+    # stage_and_size
+    stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
+    # ModelType
+    ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
+    # MadeBy
+    MadeBy = root.find('.//MadeBy').text
+    # CdAlternative
+    CdAlternative = root.find('.//CdAlternative').text
+
+    return stage_and_size, ModelType, MadeBy, CdAlternative
+
+
 def execute_request(path_bio, name_database, request):
     """
     This function execute the SQL request given in the string called request.
