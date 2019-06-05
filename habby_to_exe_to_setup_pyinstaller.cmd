@@ -9,7 +9,7 @@ ECHO if build\pyinstaller folder exist, remove it
 if exist build\pyinstaller rmdir /Q /S build\pyinstaller
 
 ECHO pyinstaller ##  --windowed remove console --add-binary C:\users\quentin.royer\documents\taf\environnements_virtuels\env_habby_dev\lib\site-packages\shapely\DLLs\geos.dll;geos.dll 
-pyinstaller --icon=translation\habby_icon.ico --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --name=habby habby.py
+pyinstaller --icon=translation\habby_icon.ico --windowed --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --name=habby habby.py
 
 ECHO if build folder exist, remove it
 if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp
