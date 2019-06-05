@@ -91,8 +91,6 @@ class MainWindows(QMainWindow):
 
         # config_habby
         self.config_habby = config_habby
-        # self.config_habby.send_log.connect(self.central_widget.write_log)
-        self.config_habby.create_config_habby_structure()
 
         # operating system
         self.operatingsystemactual = operatingsystem()
