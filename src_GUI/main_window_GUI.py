@@ -45,7 +45,10 @@ from src_GUI import data_explorer_GUI
 from src_GUI import tools_GUI
 from src_GUI import calc_hab_GUI
 from src_GUI import fstress_GUI
+from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src import project_manag_mod
+from habby import HABBY_VERSION
+from habby import CONFIG_HABBY
 
 
 class MainWindows(QMainWindow):
@@ -80,17 +83,17 @@ class MainWindows(QMainWindow):
     We show the created widget.
     """
 
-    def __init__(self, version, config_habby):
+    def __init__(self):
 
         # the maximum number of recent project shown in the menu. if changement here modify self.my_menu_bar
         self.nb_recent = 5
 
         # the version number of habby
         # CAREFUL also change the version in habby.py for the command line version
-        self.version = version
+        self.version = HABBY_VERSION
 
-        # config_habby
-        self.config_habby = config_habby
+        # CONFIG_HABBY
+        self.config_habby = CONFIG_HABBY
 
         # operating system
         self.operatingsystemactual = operatingsystem()
@@ -244,6 +247,10 @@ class MainWindows(QMainWindow):
 
         # soft_information_dialog
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
+
+        # bio_model_explorer_dialog
+        self.bio_model_explorer_dialog = BioModelExplorerWindow(self.path_prj, self.name_prj, self.name_icon)
+
         # set theme
         if self.actual_theme == "classic":
             self.setthemeclassic()

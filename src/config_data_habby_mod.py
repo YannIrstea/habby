@@ -21,6 +21,7 @@ except ImportError:
 import json
 import os
 import shutil
+
 from appdirs import AppDirs
 
 from src import bio_info_mod
@@ -30,6 +31,7 @@ class ConfigHabby:
     """
     The class ConfigHabby manage habby user configuration
     """
+
     def __init__(self):
         # default config data
         self.data = dict(language="english",  # english, french, spanish
@@ -41,35 +43,43 @@ class ConfigHabby:
                          theme="classic",  # classic, dark
                          wind_position=(50, 75, 950, 720))  # X position, Y position, height, width
         # biological models
-        self.path_bio = os.path.join("biology", "models") # path to biological
-        self.biological_models_dict = dict(country=[],               # sortable
-                                      aquatic_animal_type=[],   # sortable
-                                      model_type=[],            # sortable
-                                      stage_and_size=[],        # sortable
-                                      guild=[],                 # sortable
-                                      xml_origine=[],           # sortable
-                                      made_by=[],               # sortable
-                                      code_alternative=[],      # sortable
-                                      path_xml=[],              # unsortable
-                                      path_png=[]               # unsortable
-                                      )
+        self.path_bio = os.path.join("biology", "models")  # path to biological
+        # biological_models_dict
+        self.biological_models_dict = dict()
+        # biological_models_dict_set
+        self.biological_models_dict_set = dict(country=[],
+                                      aquatic_animal_type=[],
+                                      model_type=[],
+                                      stage_and_size=[],
+                                      guild=[],
+                                      xml_origine=[],
+                                      made_by=[],
+                                      code_alternative=[])
+
         # folders Irstea/HABBY
         appauthor = "Irstea"
         appname = "HABBY"
         self.user_config_habby_path = AppDirs(appname, appauthor).user_config_dir
         self.user_config_habby_file_path = os.path.join(self.user_config_habby_path, "habby_config.json")
-        self.user_config_biology_models = os.path.join(self.user_config_habby_path, "biology", "models")
-        self.user_config_biology_models_database = os.path.join(self.user_config_biology_models, "models_db.json")
+        self.user_config_biology_models = os.path.join(self.user_config_habby_path, "biology", "user_models")
+        self.user_config_biology_models_database = os.path.join(self.user_config_habby_path, "biology",
+                                                                "models_db.json")
         self.user_config_temp_path = os.path.join(self.user_config_habby_path, "temp")
         self.user_config_log_path = os.path.join(self.user_config_habby_path, "log")
         self.user_config_crashlog_file = os.path.join(self.user_config_habby_path, "log", "habby_crash.log")
+        # get list of xml files
+        self.models_from_habby = sorted(
+            [f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".xml" in f])
+        self.picture_from_habby = sorted(
+            [f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".png" in f])
+        self.models_from_user_appdata = sorted([f for f in os.listdir(self.user_config_biology_models) if
+                                                os.path.isfile(
+                                                    os.path.join(self.user_config_biology_models, f)) and ".xml" in f])
+        self.picture_from_user_appdata = sorted([f for f in os.listdir(self.user_config_biology_models) if
+                                                 os.path.isfile(
+                                                     os.path.join(self.user_config_biology_models, f)) and ".png" in f])
 
-    def create_config_habby_structure(self):
-        self.create_appdata_folders()
-        self.create_default_or_load_config_habby()
-        self.create_biology_models_json()
-        self.create_empty_temp()
-
+    """ GENERAL """
     def create_appdata_folders(self):
         # user_config_habby_file_path
         if not os.path.isdir(self.user_config_habby_path):
@@ -84,60 +94,131 @@ class ConfigHabby:
         if not os.path.isdir(self.user_config_log_path):
             os.mkdir(self.user_config_log_path)
 
-    def create_default_or_load_config_habby(self):
-        if not os.path.isfile(self.user_config_habby_file_path):  # check if config file exist
-            self.save_config_json()  # create it
+    """ MODEL BIO """
+    def create_or_update_biology_models_json(self):
+        # if exist
+        if os.path.isfile(self.user_config_crashlog_file):
+            self.check_need_update_biology_models_json()
+        # if not exist
         else:
-            self.load_config_json()  # load it
+            self.create_biology_models_json()
+
+    def check_need_update_biology_models_json(self):
+        # init
+        path_xml = False
+        modification_date = False
+
+        # create_biology_models_dict
+        biological_models_dict = self.create_biology_models_dict()
+
+        # load existing json
+        self.load_biology_models_json()
+
+        # check == filename
+        if biological_models_dict["path_xml"] != self.biological_models_dict["path_xml"]:
+            path_xml = True
+
+        # check == date
+        if biological_models_dict["modification_date"] != self.biological_models_dict["modification_date"]:
+            modification_date = True
+
+        # check condition
+        if path_xml or modification_date:  # update json
+            self.create_biology_models_json()
+
+    def load_biology_models_json(self):
+        # load_biology_models_json
+        with open(self.user_config_biology_models_database, "r") as read_file:
+            self.biological_models_dict = json.load(read_file)
+
+        # compute set
+        for filter in self.biological_models_dict_set.keys():
+            self.biological_models_dict_set[filter] = sorted(list(set(self.biological_models_dict[filter])))
 
     def create_biology_models_json(self):
-        models_from_habby = sorted([f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".xml" in f])
-        picture_from_habby = sorted([f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".png" in f])
-        models_from_user_appdata = sorted([f for f in os.listdir(self.user_config_biology_models) if os.path.isfile(os.path.join(self.path_bio, f)) and ".xml" in f])
-        picture_from_user_appdata = sorted([f for f in os.listdir(self.user_config_biology_models) if os.path.isfile(os.path.join(self.path_bio, f)) and ".png" in f])
+        # create_biology_models_dict
+        biological_models_dict = self.create_biology_models_dict()
+
+        # save database
+        with open(self.user_config_biology_models_database, "wt") as write_file:
+            json.dump(biological_models_dict, write_file)
+
+    def create_biology_models_dict(self):
+        # biological_models_dict
+        biological_models_dict = dict(country=[],  # sortable
+                                      aquatic_animal_type=[],  # sortable
+                                      model_type=[],  # sortable
+                                      stage_and_size=[],  # sortable
+                                      guild=[],  # sortable
+                                      xml_origine=[],  # sortable
+                                      made_by=[],  # sortable
+                                      code_alternative=[],  # sortable
+                                      modification_date=[],  # unsortable
+                                      latin_name=[],  # unsortable
+                                      path_xml=[],  # unsortable
+                                      path_png=[]  # unsortable
+                                      )
 
         # for each source
-        for xml_origine in ["habby", "user"]:
+        for xml_origine in ["user", "habby"]:
             if xml_origine == "habby":
-                xml_list = models_from_habby
-                png_list = picture_from_habby
+                xml_list = self.models_from_habby
+                png_list = self.picture_from_habby
+                path_bio = self.path_bio
             if xml_origine == "user":
-                xml_list = models_from_user_appdata
-                png_list = picture_from_user_appdata
+                xml_list = self.models_from_user_appdata
+                png_list = self.picture_from_user_appdata
+                path_bio = self.user_config_biology_models
 
             # for each xml file
             for file_ind, xml_filename in enumerate(xml_list):
                 # get path
-                path_xml = os.path.join(self.path_bio, xml_filename)
-                path_png = os.path.join(self.path_bio, png_list[file_ind])
+                path_xml = os.path.join(path_bio, xml_filename)
+                path_png = os.path.join(path_bio, png_list[file_ind])
                 # get_biomodels_informations_for_database
-                stage_and_size, ModelType, MadeBy, CdAlternative = bio_info_mod.get_biomodels_informations_for_database(path_xml)
+                information_model_dict = bio_info_mod.get_biomodels_informations_for_database(path_xml)
+
                 # for each stage
-                for stage in stage_and_size:
+                for stage in information_model_dict["stage_and_size"]:
                     # save data sortable
-                    self.biological_models_dict["country"].append("France")  # TODO: get real info
-                    self.biological_models_dict["aquatic_animal_type"].append("fish")  # TODO: get real info
-                    self.biological_models_dict["model_type"].append(ModelType)
-                    self.biological_models_dict["stage_and_size"].append(stage)
-                    self.biological_models_dict["guild"].append("mono")  # TODO: get real info
-                    self.biological_models_dict["xml_origine"].append(xml_origine)
-                    self.biological_models_dict["made_by"].append(MadeBy)
+                    biological_models_dict["country"].append("France")  # TODO: get real info
+                    biological_models_dict["aquatic_animal_type"].append("fish")  # TODO: get real info
+                    biological_models_dict["model_type"].append(information_model_dict["ModelType"])
+                    biological_models_dict["stage_and_size"].append(stage)
+                    biological_models_dict["guild"].append("mono")  # TODO: get real info
+                    biological_models_dict["xml_origine"].append(xml_origine)
+                    biological_models_dict["made_by"].append(information_model_dict["MadeBy"])
                     # last sortable
-                    self.biological_models_dict["code_alternative"].append(CdAlternative)
+                    biological_models_dict["code_alternative"].append(information_model_dict["CdAlternative"])
                     # save data unsortable
-                    self.biological_models_dict["path_xml"].append(path_xml)
-                    self.biological_models_dict["path_png"].append(path_png)
+                    biological_models_dict["modification_date"].append(information_model_dict["modification_date"])
+                    biological_models_dict["latin_name"].append(information_model_dict["LatinName"])
+                    biological_models_dict["path_xml"].append(path_xml)
+                    biological_models_dict["path_png"].append(path_png)
 
-        with open(self.user_config_biology_models_database, "wt") as write_file:
-            json.dump(self.biological_models_dict, write_file)
+        return biological_models_dict
 
+    """ TEMP FOLDER """
     def create_empty_temp(self):
         try:
             shutil.rmtree(self.user_config_temp_path)  # remove folder (and its files)
             os.mkdir(self.user_config_temp_path)  # recreate folder (empty)
         except:
             print("Error: Can't remove temps files. They are opened by another programme. Close them "
-                               "and try again.")
+                  "and try again.")
+
+    """ CONFIG """
+    def create_config_habby_structure(self):
+        self.create_appdata_folders()
+        self.create_default_or_load_config_habby()
+        self.create_or_update_biology_models_json()
+        self.create_empty_temp()
+
+    def create_default_or_load_config_habby(self):
+        if not os.path.isfile(self.user_config_habby_file_path):  # check if config file exist
+            self.save_config_json()  # create it
+        else:
+            self.load_config_json()  # load it
 
     def save_config_json(self):
         with open(self.user_config_habby_file_path, "wt") as write_file:
@@ -146,5 +227,3 @@ class ConfigHabby:
     def load_config_json(self):
         with open(self.user_config_habby_file_path, "r") as read_file:
             self.data = json.load(read_file)
-
-

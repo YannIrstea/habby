@@ -94,12 +94,18 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
         self.p = Process(target=None)  # second process
+
         self.init_iu()
 
     def init_iu(self):
         """
         Used in the initialization by __init__()
         """
+        # insist on white background color (for linux, mac)
+        self.setAutoFillBackground(True)
+        p = self.palette()
+        p.setColor(self.backgroundRole(), Qt.white)
+        self.setPalette(p)
 
         # the available merged data
         l0 = QLabel(self.tr('<b> Substrate and hydraulic data </b>'))
@@ -107,19 +113,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # create lists with the possible fishes
         # right buttons for both QListWidget managed in the MainWindows class
-        l1 = QLabel(self.tr('<b> Available Fish and Guild </b>'))
-        l2 = QLabel(self.tr('<b> Selected Fish and Guild </b>'))
-        self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        selected_fish_label = QLabel(self.tr('<b> Selected models </b>'))
+        self.explore_bio_model_pushbutton = QPushButton(self.tr('Explore biological models'))
+        self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
+
         self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        # show information about the fish
-        self.list_f.itemClicked.connect(self.show_info_fish_avai)
-        self.list_s.itemClicked.connect(self.show_info_fish_sel)
-        self.list_f.itemActivated.connect(self.show_info_fish_avai)
-        self.list_s.itemActivated.connect(self.show_info_fish_sel)
-        # shwo info if movement of the arrow key
-        self.list_f.itemSelectionChanged.connect(self.show_info_fish)
-        self.list_s.itemSelectionChanged.connect(lambda: self.show_info_fish(True))
-        self.list_f.setMinimumWidth(280)
+
 
         # run habitat value
         self.l9 = QLabel(self.tr(' <b> Options for the computation </b>'))
@@ -130,71 +129,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab.setStyleSheet("background-color: #47B5E6; color: black")
         self.runhab.clicked.connect(self.run_habitat_value)
 
-        # info on preference curve
-        l4 = QLabel(self.tr('<b> Information on the suitability curve</b> (Right click on fish name)'))
-        l5 = QLabel(self.tr('Latin Name: '))
-        self.com_name = QLabel()
-        l7 = QLabel(self.tr('ONEMA fish code: '))
-        self.fish_code = QLabel('')
-        l8 = QLabel(self.tr('Description:'))
-        self.descr = QTextEdit(self)  # where the log is show
-        self.descr.setReadOnly(True)
-        self.pref_curve = QPushButton(self.tr('Show suitability curve'))
-        self.pref_curve.clicked.connect(self.show_pref)
-
-        # insist on white background color (for linux, mac)
-        self.setAutoFillBackground(True)
-        p = self.palette()
-        p.setColor(self.backgroundRole(), Qt.white)
-        self.setPalette(p)
-
-        # image fish
-        self.pic = QLabel()
-
-        # hydrosignature
-        self.hs = QPushButton(self.tr('Show Measurement Conditions (Hydrosignature)'))
-        self.hs.clicked.connect(self.show_hydrosignature)
-
-        # fill in list of fish
-        sys.stdout = self.mystdout = StringIO()
-        self.data_fish = bio_info_mod.load_xml_name(self.path_bio, self.attribute_acc)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-        # order data fish by alphabetical order on the first column
-        ind = self.data_fish[:, 0].argsort()
-        self.data_fish = self.data_fish[ind, :]
-        self.list_f.addItems(self.data_fish[:, 0])
-
-        # erase fish selection
-        self.butdel = QPushButton(self.tr("Erase All Selection"))
-        self.butdel.clicked.connect(self.remove_all_fish)
-
-        # fish selected fish
-        self.add_sel_fish()
-        if self.list_s.count() == 0:
-            self.runhab.setDisabled(True)
-            self.runhab.setStyleSheet("background-color: #47B5E6")
-        else:
-            self.runhab.setStyleSheet("background-color: #47B5E6; color: white; font: bold")
-
-        # search possibility
-        l3 = QLabel(self.tr('<b> Search biological models </b>'))
-        self.keys = QComboBox()
-        self.keys.addItems(self.attribute_acc[:-1])
-        self.keys.currentIndexChanged.connect(self.get_autocompletion)
-        l02 = QLabel(" = ")
-        l02.setAlignment(Qt.AlignCenter)
-        self.cond1 = QLineEdit()
-        self.cond1.returnPressed.connect(self.next_completion)
-        # self.cond1.returnPressed.connect(self.select_fish)
-        self.bs = QPushButton(self.tr('Select suitability curve'))
-        self.bs.clicked.connect(self.select_fish)
-        # add auto-completion
-        self.completer = QCompleter()
-        self.model = QStringListModel()
-        self.completer.setModel(self.model)
-        self.cond1.setCompleter(self.completer)
-        self.get_autocompletion()
 
         # fill hdf5 list
         self.update_merge_list()
@@ -207,224 +141,21 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
 
-        self.layout4.addWidget(l1, 2, 0)
-        self.layout4.addWidget(l2, 2, 2)
-        self.layout4.addWidget(self.list_f, 3, 0, 3, 2)
-        self.layout4.addWidget(self.list_s, 3, 2, 3, 1)
+        self.layout4.addWidget(selected_fish_label, 2, 0)
+        self.layout4.addWidget(self.explore_bio_model_pushbutton, 2, 1)
+        self.layout4.addWidget(self.list_s, 3, 0, 3, 2)
 
-        self.layout4.addWidget(l4, 6, 0, 1, 3)
-        self.layout4.addWidget(l5, 7, 0)
-        self.layout4.addWidget(self.com_name, 7, 1)
-        self.layout4.addWidget(l7, 8, 0)
-        self.layout4.addWidget(self.fish_code, 8, 1)
-        self.layout4.addWidget(l8, 9, 0)
-        self.layout4.addWidget(self.descr, 9, 1, 3, 2)  # in fact self.descr is in self.scoll
-        self.layout4.addWidget(self.pic, 11, 0)
         self.layout4.addWidget(self.l9, 3, 3)
         self.layout4.addWidget(self.choice_run, 4, 3)
         self.layout4.addWidget(self.runhab, 5, 3)
-        self.layout4.addWidget(self.pref_curve, 9, 3)
-        self.layout4.addWidget(self.hs, 10, 3)
-        self.layout4.addWidget(self.butdel, 2, 3)
-
-        self.layout4.addWidget(l3, 12, 0)
-        self.layout4.addWidget(self.keys, 13, 0)
-        self.layout4.addWidget(l02, 13, 1)
-        self.layout4.addWidget(self.cond1, 13, 2)
-        self.layout4.addWidget(self.bs, 13, 3)
 
         # self.setLayout(self.layout4)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
-    def next_completion(self):
-        """
-        A small function to use the enter key to select the fish with auto-completion.
-        Adapted from https://stackoverflow.com/questions/9044001/qcompleter-and-tab-key
-        It would be nice to make it work with tab also but it is quite complcated because the tab key is already used by
-        PyQt to go from one windows to the next.
-        """
-        index = self.completer.currentIndex()
-        self.completer.popup().setCurrentIndex(index)
-        start = self.completer.currentRow()
-        if not self.completer.setCurrentRow(start + 1):
-            self.completer.setCurrentRow(0)
-
-        self.select_fish()
-
-    def get_autocompletion(self):
-        """
-        This function updates the auto-complexton model as a function of the QComboxBox next to it with support for
-        upper and lower case.
-        """
-        ind = self.keys.currentIndex()
-
-        if ind == 0:
-            string_all = list(set(list(self.data_fish[:, 1]) + list([item.lower() for item in self.data_fish[:, 1]]) +
-                                  list([item.upper() for item in self.data_fish[:, 1]])))
-        elif ind == 1:
-            string_all = list(set(list(self.data_fish[:, 3]) + [item.lower() for item in self.data_fish[:, 3]] +
-                                  [item.upper() for item in self.data_fish[:, 3]]))
-        elif ind == 2:
-            string_all = list(set(list(self.data_fish[:, 4]) + [item.lower() for item in self.data_fish[:, 4]] +
-                                  [item.upper() for item in self.data_fish[:, 4]]))
-        elif ind == 3:
-            string_all = list(set(list(self.data_fish[:, 5]) + [item.lower() for item in self.data_fish[:, 5]] +
-                                  [item.upper() for item in self.data_fish[:, 5]]))
-        elif ind == 4:
-            string_all = list(set(list(self.data_fish[:, 6]) + [item.lower() for item in self.data_fish[:, 6]] +
-                                  [item.upper() for item in self.data_fish[:, 6]]))
-        elif ind == 5:
-            string_all = list(set(list(self.data_fish[:, 7]) + [item.lower() for item in self.data_fish[:, 7]] +
-                                  [item.upper() for item in self.data_fish[:, 7]]))
-        else:
-            string_all = ''
-
-        self.model.setStringList(string_all)
-
-    def show_info_fish(self, select=False):
-        """
-        This function shows the useful information concerning the selected fish on the GUI.
-
-        :param select:If False, the selected items comes from the QListWidgetcontaining the available fish.
-                      If True, the items comes the QListWidget with the selected fish
-        """
-
-        # get the file
-        if not select:
-            i1 = self.list_f.currentItem()  # show the info concerning the one selected fish
-            if not i1:
-                return
-            self.ind_current = self.list_f.currentRow()
-        else:
-            found_it = False
-            i1 = self.list_s.currentItem()
-            if not i1:
-                return
-            for m in range(0, self.list_f.count()):
-                self.list_f.setCurrentRow(m)
-                if i1.text() == self.list_f.currentItem().text():
-                    self.ind_current = m
-                    found_it = True
-                    break
-            if not found_it:
-                self.ind_current = None
-
-        if i1 is None:
-            return
-
-        name_fish = i1.text()
-        name_fish = name_fish.split(':')[0]
-        i = np.where(self.data_fish[:, 7] == name_fish)[0]
-        if len(i) > 0:
-            xmlfile = os.path.join(self.path_bio, self.data_fish[i[0], 2])
-        else:
-            return
-
-        # open the file
-        try:
-            try:
-                docxml = ET.parse(xmlfile)
-                root = docxml.getroot()
-            except IOError:
-                print("Warning: the xml file does not exist \n")
-                return
-        except ET.ParseError:
-            print("Warning: the xml file is not well-formed.\n")
-            return
-
-        # get the data code ONEMA
-        # for the moment only one code alternativ possible
-        data = root.find('.//CdAlternative')
-        if data is not None:
-            if data.attrib['OrgCdAlternative']:
-                if data.attrib['OrgCdAlternative'] == 'ONEMA':
-                    self.fish_code.setText(data.text)
-
-        # get the latin name
-        data = root.find('.//LatinName')
-        if data is not None:
-            self.com_name.setText(data.text)
-
-        # get the description
-        data = root.findall('.//Description')
-        if len(data) > 0:
-            found = False
-            for d in data:
-                if d.attrib['Language'] == self.lang:
-                    self.descr.setText(d.text[2:-1])
-                    found = True
-            if not found:
-                self.descr.setText(data[0].text[2:-1])
-
-        # get the image fish
-        data = root.find('.//Image')
-        if data is not None:
-            self.imfish = os.path.join(os.getcwd(), self.path_im_bio, data.text)
-            name_imhere = os.path.join(os.getcwd(), self.path_im_bio, data.text)
-            if os.path.isfile(name_imhere):
-                # use full ABSOLUTE path to the image, not relative
-                self.pic.setPixmap(QPixmap(name_imhere).scaled(200, 90, Qt.KeepAspectRatio))  # 800 500
-            else:
-                self.pic.clear()
-        else:
-            self.pic.clear()
-
-    def show_info_fish_sel(self):
-        """
-        This function shows the useful information concerning the already selected fish on the GUI and
-        remove fish from the list of selected fish. This is what happens when the user click on the
-        second QListWidget (the one called selected fish and guild).
-        """
-
-        self.show_info_fish(True)
-        self.remove_fish()
-        # Enable the button
-        if self.list_s.count() > 0:
-            self.runhab.setEnabled(True)
-        else:
-            self.runhab.setEnabled(False)
-
-    def show_info_fish_avai(self):
-        """
-        This function shows the useful information concerning the available fish on the GUI and
-        add the fish to  the selected fish This is what happens when the user click on the
-        first QListWidget (the one called available fish).
-        """
-
-        self.show_info_fish(False)
-        self.add_fish()
-        if self.list_s.count() > 0:
-            self.runhab.setEnabled(True)
-        else:
-            self.runhab.setEnabled(False)
-
-    def show_hydrosignature(self):
-        """
-        This function make the link with function in bio_info_mod.py which allows to load and plot the data related
-        to the hydrosignature.
-        """
-
-        # get the file
-        i = self.list_f.currentRow()
-        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
-
-        # get data
-        sys.stdout = self.mystdout = StringIO()  # out to GUI
-        data = bio_info_mod.get_hydrosignature(xmlfile)
-        sys.stdout = sys.__stdout__  # reset to console
-        self.send_err_log()
-        if isinstance(data, np.ndarray):
-            # do the plot
-            if not hasattr(self, 'plot_process_list'):
-                self.plot_process_list = MyProcessList()
-            state = Value("i", 0)
-            hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
-                                             args=(state,
-                                                   data,
-                                                   self.data_fish[i, 0]))
-            self.plot_process_list.append((hydrosignature_process, state))
+    def open_bio_model_explorer(self):
+        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer()
 
     def select_fish(self):
         """
@@ -508,45 +239,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     # TODO : It will be deleted from the .xml file.
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
-
-    def show_pref(self):
-        """
-        This function shows the image of the preference curve of the selected xml file. For this it calls, the functions
-        read_pref and figure_pref of bio_info_mod.py. Hence, this function justs makes the link between the GUI and
-        the functions effectively doing the image.
-        """
-
-        if self.ind_current is None:
-            self.send_log.emit("Warning: No fish selected to create suitability curves.")
-            return
-
-        # get the file
-        i = self.ind_current  # show the info concerning the one selected fish
-        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
-
-        # open the pref
-        sys.stdout = self.mystdout = StringIO()
-        [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-        # plot the pref
-        fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-
-        # do the plot
-        if not hasattr(self, 'plot_process_list'):
-            self.plot_process_list = MyProcessList()
-        state = Value("i", 0)
-        curve_process = Process(target=plot_mod.plot_suitability_curve,
-                                         args=(state,
-                                               h_all,
-                                               vel_all,
-                                               sub_all,
-                                               code_fish,
-                                               name_fish,
-                                               stages,
-                                               False,
-                                               fig_dict))
-        self.plot_process_list.append((curve_process, state))
 
     def run_habitat_value(self):
         """

@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import sqlite3
 import time
+from datetime import datetime
 from multiprocessing import Value
 
 from src import hdf5_mod
@@ -430,8 +431,19 @@ def get_biomodels_informations_for_database(path_xml):
     MadeBy = root.find('.//MadeBy').text
     # CdAlternative
     CdAlternative = root.find('.//CdAlternative').text
+    # LatinName
+    LatinName = root.find(".//LatinName").text
+    # modification_date
+    modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
+    # to dict
+    information_model_dict = dict(stage_and_size=stage_and_size,
+                                  ModelType=ModelType,
+                                  MadeBy=MadeBy,
+                                  CdAlternative=CdAlternative,
+                                  LatinName=LatinName,
+                                  modification_date=modification_date)
 
-    return stage_and_size, ModelType, MadeBy, CdAlternative
+    return information_model_dict
 
 
 def execute_request(path_bio, name_database, request):
