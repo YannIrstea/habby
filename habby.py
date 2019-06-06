@@ -27,6 +27,9 @@ import traceback
 
 global HABBY_VERSION
 HABBY_VERSION = 0.25
+global CONFIG_HABBY
+CONFIG_HABBY = ConfigHabby()
+CONFIG_HABBY.create_config_habby_structure()
 
 
 def crash_management_output(error_type, error_value, error_traceback):
@@ -37,12 +40,10 @@ def crash_management_output(error_type, error_value, error_traceback):
     :param error_traceback:
     :return:
     """
-    # config habby
-    config_habby = ConfigHabby()
     # print to consol
     traceback.print_exception(error_type, error_value, error_traceback)
     # write to crash_log file
-    with open(config_habby.user_config_crashlog_file, 'w') as f:
+    with open(CONFIG_HABBY.user_config_crashlog_file, 'w') as f:
         f.write(''.join(traceback.format_tb(error_traceback))
                 + str(error_type).split("'")[1] + ": "
                 + str(error_value))
@@ -60,8 +61,6 @@ def main():
     For more complicated case, one can directly do a python script using
     the function from HABBY.
     """
-    config_habby = ConfigHabby()
-    config_habby.create_config_habby_structure()
 
     # graphical user interface is called if no argument
     if len(sys.argv) == 1:
@@ -79,8 +78,7 @@ def main():
         app.processEvents()
 
         # create windows
-        ex = main_window_GUI.MainWindows(HABBY_VERSION,
-                                         config_habby)
+        ex = main_window_GUI.MainWindows()
         app.setActiveWindow(ex)
 
         # close the splash screen
