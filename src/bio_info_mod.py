@@ -1046,9 +1046,9 @@ def main():
 
     # test to load the pref from PRF
     # path = \
-    #   r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part1-Multispe1998'
+    #   r'D:\Diane_work\show_curve_pushbutton\EVHA\CourbesPref1\PREF-part1-Multispe1998'
     # path = \
-    # r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
+    # r'D:\Diane_work\show_curve_pushbutton\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
     # filenames = load_hdf5.get_all_filename(path, '.PRF')
     # for i in range(0, len(filenames)):
     #     [height, vel, sub, code_fish, name_fish, stade, descri] = \
@@ -1068,7 +1068,7 @@ def main():
 
     # test comparison
     # path_xml = r'C:\Users\diane.von-gunten\HABBY\biology'
-    # path_evha = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF_ALL'
+    # path_evha = r'D:\Diane_work\show_curve_pushbutton\EVHA\CourbesPref1\PREF_ALL'
     # test_evah_xml_pref(path_xml, path_evha)
 
     # test for pdf report

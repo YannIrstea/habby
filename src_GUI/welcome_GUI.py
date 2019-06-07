@@ -120,7 +120,7 @@ class WelcomeW(QScrollArea):
         self.pic.setMaximumSize(1000, 200)
         # use full ABSOLUTE path to the image, not relative
         self.pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(800, 500))  # 800 500
-        # pic.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
+        # animal_picture_label.setPixmap(QPixmap(os.path.join(os.getcwd(), self.imname)).scaled(150, 150))  # 800 500
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
