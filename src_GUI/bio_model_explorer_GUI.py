@@ -219,7 +219,7 @@ class BioModelFilterTab(QScrollArea):
     def createDicoSelect(self):
         self.DicoSelect = dict()
         for i, ky in enumerate(self.biological_models_dict_gui['orderedKeys']):
-            print(ky)
+            #print(ky)
             if self.biological_models_dict_gui['orderedKeysmultilist'][i]:
                 s1 = sorted({x for l in self.biological_models_dict_gui[ky] for x in l})
             else:
@@ -248,30 +248,25 @@ class BioModelFilterTab(QScrollArea):
             lky = [selection_item.text() for selection_item in selection]
             lky = set(lky)
             self.DicoSelect[ky][1] = [x in lky for x in self.DicoSelect[ky][0]]
-            # if multi
-            if self.biological_models_dict_gui['orderedKeysmultilist'][self.biological_models_dict_gui['orderedKeys'].index(ky)]:
-                sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[ky]]
-            # if solo
-            else:
-                sky = [x in lky for x in self.biological_models_dict_gui[ky]]
+
+        self.biological_models_dict_gui['selected'] = np.ones((len(self.biological_models_dict_gui['selected']),), dtype=bool)
+        for iky in range(next_key_ind):
+            kyi=self.biological_models_dict_gui['orderedKeys'][iky]
+            lky={x for x,y in zip(self.DicoSelect[kyi][0],self.DicoSelect[kyi][1]) if y}
+            if self.biological_models_dict_gui['orderedKeysmultilist'][iky]: # if multi
+                sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[kyi]]
+            else: # if solo
+                sky = [x in lky for x in self.biological_models_dict_gui[kyi]]
             self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'], np.array(sky))
-            for i in range(next_key_ind, len(self.biological_models_dict_gui['orderedKeys'])):
-                self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][i]][2] = False  # all subkeys are off
-            self.DicoSelect[ky][2]=True #paranoia
-            #print('modeles choisis', self.biological_models_dict_gui['selected'])
-            #print(self.DicoSelect)
-
-            # launch next key
-            self.ResultToSelected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
-        # no selection
-        else:
-            self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][actual_key_ind]][2] = True
+            self.DicoSelect[kyi][2]=True
+        if next_key_ind != len(self.biological_models_dict_gui['orderedKeys']):
             for indice in range(next_key_ind, len(self.biological_models_dict_gui['orderedKeys'])):
-                listwidget = eval("self." + self.biological_models_dict_gui['orderedKeys'][next_key_ind] + "_listwidget")
-                self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][next_key_ind]][2] = False    # all subkeys are off
+                listwidget = eval("self." + self.biological_models_dict_gui['orderedKeys'][indice] + "_listwidget")
+                self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][indice]][2] = False    # all subkeys are off
                 listwidget.clear()
-
-
+                print("clear", self.biological_models_dict_gui['orderedKeys'][indice])
+            if selection :
+                self.ResultToSelected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
 
     def ResultToSelected(self, ky):
         sp = [x for x, y in zip(self.biological_models_dict_gui[ky], list(self.biological_models_dict_gui['selected'])) if y]
@@ -281,15 +276,13 @@ class BioModelFilterTab(QScrollArea):
             sp = set(sp)
         # print(sp)
         self.DicoSelect[ky][1] = [x in sp for x in self.DicoSelect[ky][0]]
-        self.DicoSelect[ky][2] = True  # the key is on 
+        self.DicoSelect[ky][2] = False  # the key is off
         # print(self.DicoSelect)
         # display
         listwidget = eval("self." + ky + "_listwidget")
-        if self.DicoSelect[ky][2]:
-            for ind, bo in enumerate(self.DicoSelect[ky][1]):
-                if bo:
-                    listwidget.addItem(self.DicoSelect[ky][0][ind])
-        aa = 1
+        for ind, bo in enumerate(self.DicoSelect[ky][1]):
+            if bo:
+                listwidget.addItem(self.DicoSelect[ky][0][ind])
 
 
 

@@ -69,6 +69,8 @@ class ConfigHabby:
         self.user_config_temp_path = os.path.join(self.user_config_habby_path, "temp")
         self.user_config_log_path = os.path.join(self.user_config_habby_path, "log")
         self.user_config_crashlog_file = os.path.join(self.user_config_habby_path, "log", "habby_crash.log")
+        # create_appdata_folders
+        self.create_appdata_folders()
         # get list of xml files
         self.models_from_habby = sorted(
             [f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".xml" in f])
