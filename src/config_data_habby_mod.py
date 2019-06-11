@@ -139,6 +139,7 @@ class ConfigHabby:
                                       xml_origine=[],  # sortable
                                       made_by=[],  # sortable
                                       code_alternative=[],  # sortable
+                                      cd_biological_model=[],  # unsortable
                                       modification_date=[],  # unsortable
                                       latin_name=[],  # unsortable
                                       path_xml=[],  # unsortable
@@ -191,10 +192,17 @@ class ConfigHabby:
                 # last sortable
                 biological_models_dict["code_alternative"].append(information_model_dict["CdAlternative"])
                 # save data unsortable
+                biological_models_dict["cd_biological_model"].append(information_model_dict["CdBiologicalModel"])
                 biological_models_dict["modification_date"].append(information_model_dict["modification_date"])
                 biological_models_dict["latin_name"].append(information_model_dict["LatinName"])
                 biological_models_dict["path_xml"].append(path_xml)
                 biological_models_dict["path_png"].append(path_png)
+
+        # sort by latin name
+        indice_sorted = [biological_models_dict["latin_name"].index(x) for x in sorted(biological_models_dict["latin_name"])]
+        for key in biological_models_dict.keys():
+            for ind_num, ind_ind in enumerate(indice_sorted):
+                biological_models_dict[key][ind_num] = biological_models_dict[key][ind_ind]
 
         return biological_models_dict
 
@@ -227,8 +235,6 @@ class ConfigHabby:
         self.biological_models_dict["selected"] = np.ones(len(self.biological_models_dict["country"]), dtype=bool)
         self.biological_models_dict["orderedKeys"] = ["country", "aquatic_animal_type", "model_type", "stage_and_size",
                                     "guild", "xml_origine", "made_by", "code_alternative"]
-#
-
 
     # TEMP FOLDER
     def create_empty_temp(self):
