@@ -237,33 +237,41 @@ class BioModelFilterTab(QScrollArea):
                         listwidget.addItem(self.DicoSelect[key][0][ind])
 
     def ResultFromSelected(self, ky):
+        print("ResultFromSelected", ky)
         # get selected
         listwidget = eval("self." + ky + "_listwidget")
         selection = listwidget.selectedItems()
-        next_key_ind = self.biological_models_dict_gui['orderedKeys'].index(ky) + 1
+        actual_key_ind = self.biological_models_dict_gui['orderedKeys'].index(ky)
+        next_key_ind = actual_key_ind + 1
         if selection:
             # selected_values_list
             lky = [selection_item.text() for selection_item in selection]
             lky = set(lky)
             self.DicoSelect[ky][1] = [x in lky for x in self.DicoSelect[ky][0]]
+            # if multi
             if self.biological_models_dict_gui['orderedKeysmultilist'][self.biological_models_dict_gui['orderedKeys'].index(ky)]:
                 sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[ky]]
+            # if solo
             else:
                 sky = [x in lky for x in self.biological_models_dict_gui[ky]]
             self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'], np.array(sky))
             for i in range(next_key_ind, len(self.biological_models_dict_gui['orderedKeys'])):
                 self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][i]][2] = False  # all subkeys are off
-            # self.DicoSelect[ky][2]=True "paranoia
+            self.DicoSelect[ky][2]=True #paranoia
             #print('modeles choisis', self.biological_models_dict_gui['selected'])
             #print(self.DicoSelect)
 
             # launch next key
             self.ResultToSelected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
+        # no selection
         else:
+            self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][actual_key_ind]][2] = True
             for indice in range(next_key_ind, len(self.biological_models_dict_gui['orderedKeys'])):
                 listwidget = eval("self." + self.biological_models_dict_gui['orderedKeys'][next_key_ind] + "_listwidget")
-                self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][next_key_ind]][2] = True    # the key is off
+                self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][next_key_ind]][2] = False    # all subkeys are off
                 listwidget.clear()
+
+
 
     def ResultToSelected(self, ky):
         sp = [x for x, y in zip(self.biological_models_dict_gui[ky], list(self.biological_models_dict_gui['selected'])) if y]
