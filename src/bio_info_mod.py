@@ -423,6 +423,8 @@ def get_biomodels_informations_for_database(path_xml):
         print("Warning: the xml file is not well-formed.\n")
         return
 
+    # CdBiologicalModel
+    CdBiologicalModel = root.find('.//CdBiologicalModel').text
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
     # ModelType
@@ -436,7 +438,8 @@ def get_biomodels_informations_for_database(path_xml):
     # modification_date
     modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
     # to dict
-    information_model_dict = dict(stage_and_size=stage_and_size,
+    information_model_dict = dict(CdBiologicalModel=CdBiologicalModel,
+                                  stage_and_size=stage_and_size,
                                   ModelType=ModelType,
                                   MadeBy=MadeBy,
                                   CdAlternative=CdAlternative,

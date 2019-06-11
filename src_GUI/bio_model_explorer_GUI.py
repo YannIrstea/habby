@@ -79,6 +79,11 @@ class BioModelExplorerWindow(QDialog):
         self.tab_widget.addTab(self.bio_model_filter_tab, self.tr("Model filter"))
         self.tab_widget.addTab(self.bio_model_infoselection_tab, self.tr("Model selected"))
 
+        self.bio_model_filter_tab.createDicoSelect()
+        self.bio_model_infoselection_tab.get_selection_user(self.bio_model_filter_tab.DicoSelect)
+        self.bio_model_infoselection_tab.fill_available_aquatic_animal(self.bio_model_filter_tab.biological_models_dict_gui)
+
+
         self.setGeometry(60, 95, 800, 600)
 
         general_layout = QVBoxLayout(self)
@@ -377,6 +382,7 @@ class BioModelInfoSelection(QScrollArea):
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
         self.init_iu()
+        self.lang = 0
 
     def init_iu(self):
         # insist on white background color (for linux, mac)
@@ -391,8 +397,17 @@ class BioModelInfoSelection(QScrollArea):
         # available_aquatic_animal
         available_aquatic_animal_label = QLabel(self.tr("Available aquiatic animal"))
         self.available_aquatic_animal_listwidget = QListWidget()
+        self.available_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("available"))
+        self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
+        self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+
+
+
         selected_aquatic_animal_label = QLabel(self.tr("Selected aquatic animal"))
         self.selected_aquatic_animal_listwidget = QListWidget()
+        self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
+        self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # # show information about the fish
         # self.list_s.itemClicked.connect(self.show_info_fish_sel)
@@ -418,6 +433,8 @@ class BioModelInfoSelection(QScrollArea):
         self.description_textedit.setReadOnly(True)
         # image fish
         self.animal_picture_label = QLabel()
+        self.animal_picture_label.setFrameShape(QFrame.Panel)
+        self.animal_picture_label.setAlignment(Qt.AlignCenter)
 
 
         """ GROUP ET LAYOUT """
@@ -464,63 +481,41 @@ class BioModelInfoSelection(QScrollArea):
         self.biological_models_dict_gui = biological_models_dict_gui
 
         # line name
-        for code_alternative in self.selection_dict["code_alternative"]:
-            for stage in self.selection_dict["stage_and_size"]:
-                self.biological_models_dict_gui["latin_name"][0]
+        item_list = []
+        for selected_xml_ind, selected_xml_tf in enumerate(self.biological_models_dict_gui["selected"]):
+            if selected_xml_tf:
+                for selected_stage_ind, selected_stage_tf in enumerate(self.selection_dict["stage_and_size"][1]):
+                    item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " + self.selection_dict["stage_and_size"][0][selected_stage_ind] + " - " + self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
+        self.available_aquatic_animal_listwidget.addItems(item_list)
 
-
-        #
-        self.available_aquatic_animal_listwidget
-
-
-    def next_completion(self):
+    def add_fish(self):
         """
-        A small function to use the enter key to select the fish with auto-completion.
-        Adapted from https://stackoverflow.com/questions/9044001/qcompleter-and-tab-key
-        It would be nice to make it work with tab also but it is quite complcated because the tab key is already used by
-        PyQt to go from one windows to the next.
+        The function is used to select a new fish species (or inverterbrate)
         """
-        index = self.completer.currentIndex()
-        self.completer.popup().setCurrentIndex(index)
-        start = self.completer.currentRow()
-        if not self.completer.setCurrentRow(start + 1):
-            self.completer.setCurrentRow(0)
+        # remove it from available
+        item = self.available_aquatic_animal_listwidget.takeItem(self.available_aquatic_animal_listwidget.currentRow())
+        # clear selection
+        self.available_aquatic_animal_listwidget.clearSelection()
 
-        self.select_fish()
+        if item:
+            # add it to selected
+            self.selected_aquatic_animal_listwidget.addItem(item.text())
 
-    def get_autocompletion(self):
+    def remove_fish(self):
         """
-        This function updates the auto-complexton model as a function of the QComboxBox next to it with support for
-        upper and lower case.
+        The function is used to remove fish species (or inverterbates species)
         """
-        ind = self.keys.currentIndex()
+        # remove it from available
+        item = self.selected_aquatic_animal_listwidget.takeItem(self.selected_aquatic_animal_listwidget.currentRow())
+        # clear selection
+        self.selected_aquatic_animal_listwidget.clearSelection()
 
-        if ind == 0:
-            string_all = list(
-                set(list(self.data_fish[:, 1]) + list([item.lower() for item in self.data_fish[:, 1]]) +
-                    list([item.upper() for item in self.data_fish[:, 1]])))
-        elif ind == 1:
-            string_all = list(set(list(self.data_fish[:, 3]) + [item.lower() for item in self.data_fish[:, 3]] +
-                                  [item.upper() for item in self.data_fish[:, 3]]))
-        elif ind == 2:
-            string_all = list(set(list(self.data_fish[:, 4]) + [item.lower() for item in self.data_fish[:, 4]] +
-                                  [item.upper() for item in self.data_fish[:, 4]]))
-        elif ind == 3:
-            string_all = list(set(list(self.data_fish[:, 5]) + [item.lower() for item in self.data_fish[:, 5]] +
-                                  [item.upper() for item in self.data_fish[:, 5]]))
-        elif ind == 4:
-            string_all = list(set(list(self.data_fish[:, 6]) + [item.lower() for item in self.data_fish[:, 6]] +
-                                  [item.upper() for item in self.data_fish[:, 6]]))
-        elif ind == 5:
-            string_all = list(set(list(self.data_fish[:, 7]) + [item.lower() for item in self.data_fish[:, 7]] +
-                                  [item.upper() for item in self.data_fish[:, 7]]))
-        else:
-            string_all = ''
+        if item:
+            # add it to available
+            self.available_aquatic_animal_listwidget.addItem(item.text())
 
-        self.model.setStringList(string_all)
-
-    def show_info_fish(self, select=False):
+    def show_info_fish(self, listwidget_source):
         """
         This function shows the useful information concerning the selected fish on the GUI.
 
@@ -528,36 +523,18 @@ class BioModelInfoSelection(QScrollArea):
                       If True, the items comes the QListWidget with the selected fish
         """
 
+        listwidget = eval("self." + listwidget_source + "_aquatic_animal_listwidget")
+
         # get the file
-        if not select:
-            i1 = self.list_f.currentItem()  # show the info concerning the one selected fish
-            if not i1:
-                return
-            self.ind_current = self.list_f.currentRow()
-        else:
-            found_it = False
-            i1 = self.list_s.currentItem()
-            if not i1:
-                return
-            for m in range(0, self.list_f.count()):
-                self.list_f.setCurrentRow(m)
-                if i1.text() == self.list_f.currentItem().text():
-                    self.ind_current = m
-                    found_it = True
-                    break
-            if not found_it:
-                self.ind_current = None
-
-        if i1 is None:
+        i1 = listwidget.currentItem()  # show the info concerning the one selected fish
+        if not i1:
             return
 
-        name_fish = i1.text()
-        name_fish = name_fish.split(':')[0]
-        i = np.where(self.data_fish[:, 7] == name_fish)[0]
-        if len(i) > 0:
-            xmlfile = os.path.join(self.path_bio, self.data_fish[i[0], 2])
-        else:
-            return
+        cd_biological_model = i1.text()
+        cd_biological_model = cd_biological_model.split(' - ')[-1]
+        i = self.biological_models_dict_gui["cd_biological_model"].index(cd_biological_model)
+        xmlfile = self.biological_models_dict_gui["path_xml"][i]
+        pngfile = self.biological_models_dict_gui["path_png"][i]
 
         # open the file
         try:
@@ -595,73 +572,11 @@ class BioModelInfoSelection(QScrollArea):
             if not found:
                 self.description_textedit.setText(data[0].text[2:-1])
 
-        # get the image fish
-        data = root.find('.//Image')
-        if data is not None:
-            self.imfish = os.path.join(os.getcwd(), self.path_im_bio, data.text)
-            name_imhere = os.path.join(os.getcwd(), self.path_im_bio, data.text)
-            if os.path.isfile(name_imhere):
-                # use full ABSOLUTE path to the image, not relative
-                self.animal_picture_label.setPixmap(QPixmap(name_imhere).scaled(200, 90, Qt.KeepAspectRatio))  # 800 500
-            else:
-                self.animal_picture_label.clear()
+        if os.path.isfile(pngfile):
+            self.animal_picture_label.clear()
+            self.animal_picture_label.setPixmap(QPixmap(pngfile).scaled(self.animal_picture_label.size() * 0.95, Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
         else:
             self.animal_picture_label.clear()
-
-    def show_info_fish_sel(self):
-        """
-        This function shows the useful information concerning the already selected fish on the GUI and
-        remove fish from the list of selected fish. This is what happens when the user click on the
-        second QListWidget (the one called selected fish and guild).
-        """
-
-        self.show_info_fish(True)
-        self.remove_fish()
-        # Enable the button
-        if self.list_s.count() > 0:
-            self.runhab.setEnabled(True)
-        else:
-            self.runhab.setEnabled(False)
-
-    def show_info_fish_avai(self):
-        """
-        This function shows the useful information concerning the available fish on the GUI and
-        add the fish to  the selected fish This is what happens when the user click on the
-        first QListWidget (the one called available fish).
-        """
-
-        self.show_info_fish(False)
-        self.add_fish()
-        if self.list_s.count() > 0:
-            self.runhab.setEnabled(True)
-        else:
-            self.runhab.setEnabled(False)
-
-    def show_hydrosignature(self):
-        """
-        This function make the link with function in bio_info_mod.py which allows to load and plot the data related
-        to the hydrosignature.
-        """
-
-        # get the file
-        i = self.list_f.currentRow()
-        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
-
-        # get data
-        sys.stdout = self.mystdout = StringIO()  # out to GUI
-        data = bio_info_mod.get_hydrosignature(xmlfile)
-        sys.stdout = sys.__stdout__  # reset to console
-        self.send_err_log()
-        if isinstance(data, np.ndarray):
-            # do the plot
-            if not hasattr(self, 'plot_process_list'):
-                self.plot_process_list = MyProcessList()
-            state = Value("i", 0)
-            hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
-                                             args=(state,
-                                                   data,
-                                                   self.data_fish[i, 0]))
-            self.plot_process_list.append((hydrosignature_process, state))
 
     def show_pref(self):
         """
@@ -701,3 +616,30 @@ class BioModelInfoSelection(QScrollArea):
                                       False,
                                       fig_dict))
         self.plot_process_list.append((curve_process, state))
+
+    def show_hydrosignature(self):
+        """
+        This function make the link with function in bio_info_mod.py which allows to load and plot the data related
+        to the hydrosignature.
+        """
+
+        # get the file
+        i = self.list_f.currentRow()
+        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
+
+        # get data
+        sys.stdout = self.mystdout = StringIO()  # out to GUI
+        data = bio_info_mod.get_hydrosignature(xmlfile)
+        sys.stdout = sys.__stdout__  # reset to console
+        self.send_err_log()
+        if isinstance(data, np.ndarray):
+            # do the plot
+            if not hasattr(self, 'plot_process_list'):
+                self.plot_process_list = MyProcessList()
+            state = Value("i", 0)
+            hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
+                                             args=(state,
+                                                   data,
+                                                   self.data_fish[i, 0]))
+            self.plot_process_list.append((hydrosignature_process, state))
+
