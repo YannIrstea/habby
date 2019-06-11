@@ -8,8 +8,8 @@ set /p VarQuestion= Do you want to create an installer after the creation of the
 ECHO if build\pyinstaller folder exist, remove it
 if exist build\pyinstaller rmdir /Q /S build\pyinstaller
 
-ECHO pyinstaller ##  --windowed get error output
-pyinstaller --icon=translation\habby_icon.ico --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --windowed --specpath=build\pyinstaller\temp --name=habby habby.py
+ECHO pyinstaller ##  --windowed remove console --add-binary C:\users\quentin.royer\documents\taf\environnements_virtuels\env_habby_dev\lib\site-packages\shapely\DLLs\geos.dll;geos.dll 
+pyinstaller --icon=translation\habby_icon.ico --windowed --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --name=habby habby.py
 
 ECHO if build folder exist, remove it
 if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp
@@ -22,17 +22,16 @@ robocopy model_hydro build\pyinstaller\habby\model_hydro /E
 robocopy translation build\pyinstaller\habby\translation /E
 robocopy files_dep build\pyinstaller\habby\files_dep /E
 
-ECHO run executable to see errors
-cd build\pyinstaller\habby\
-habby.exe
-cd ..\..\..
-ECHO executable created in ..\habby\build\pyinstaller
+if %VarQuestion%== n ECHO run executable to see errors
+if %VarQuestion%== n cd build\pyinstaller\habby\
+if %VarQuestion%== n habby.exe
+if %VarQuestion%== n cd ..\..\..
+if %VarQuestion%== n ECHO executable created in ..\habby\build\pyinstaller
 
-if %VarQuestion%== n ECHO executable created (not setup)
-if %VarQuestion%== y ECHO Setup running..
+if %VarQuestion%== n ECHO Executable successfully created (not setup)
+if %VarQuestion%== y ECHO Executable successfully created and setup file creating..
 if %VarQuestion%== y start "" /w "C:\Program Files (x86)\Inno Script Studio\isstudio.exe" -compile setup_from_pyinstaller.iss
-if %VarQuestion%== y ECHO Setup successfully created in ..\habby\build\pyinstaller
-if not %VarQuestion%== n ECHO Setup not started
+if %VarQuestion%== y ECHO Setup successfully created
 
 :: Get console open to see details
 @pause 

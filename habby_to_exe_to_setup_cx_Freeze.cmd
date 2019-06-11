@@ -16,6 +16,7 @@ robocopy biology build\cx_Freeze\exe.win-amd64-3.6\biology /E
 robocopy doc build\cx_Freeze\exe.win-amd64-3.6\doc /E
 robocopy model_hydro build\cx_Freeze\exe.win-amd64-3.6\model_hydro /E
 robocopy translation build\cx_Freeze\exe.win-amd64-3.6\translation /E
+robocopy files_dep build\pyinstaller\habby\files_dep /E
 
 ECHO run executable to see errors
 cd build\cx_Freeze\exe.win-amd64-3.6

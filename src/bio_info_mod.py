@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import sqlite3
 import time
+from datetime import datetime
 from multiprocessing import Value
 
 from src import hdf5_mod
@@ -407,6 +408,42 @@ def create_and_fill_database(path_bio, name_database, attribute):
     if not found_one:
         print('Error: No preference file could be read.\
             Please check the biology folder.\n')
+
+
+def get_biomodels_informations_for_database(path_xml):
+    # open the file
+    try:
+        try:
+            docxml = ET.parse(path_xml)
+            root = docxml.getroot()
+        except IOError:
+            print("Warning: the xml file does not exist \n")
+            return
+    except ET.ParseError:
+        print("Warning: the xml file is not well-formed.\n")
+        return
+
+    # stage_and_size
+    stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
+    # ModelType
+    ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
+    # MadeBy
+    MadeBy = root.find('.//MadeBy').text
+    # CdAlternative
+    CdAlternative = root.find('.//CdAlternative').text
+    # LatinName
+    LatinName = root.find(".//LatinName").text
+    # modification_date
+    modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
+    # to dict
+    information_model_dict = dict(stage_and_size=stage_and_size,
+                                  ModelType=ModelType,
+                                  MadeBy=MadeBy,
+                                  CdAlternative=CdAlternative,
+                                  LatinName=LatinName,
+                                  modification_date=modification_date)
+
+    return information_model_dict
 
 
 def execute_request(path_bio, name_database, request):
@@ -1009,9 +1046,9 @@ def main():
 
     # test to load the pref from PRF
     # path = \
-    #   r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part1-Multispe1998'
+    #   r'D:\Diane_work\show_curve_pushbutton\EVHA\CourbesPref1\PREF-part1-Multispe1998'
     # path = \
-    # r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
+    # r'D:\Diane_work\show_curve_pushbutton\EVHA\CourbesPref1\PREF-part2-Lamourouxetal1999'
     # filenames = load_hdf5.get_all_filename(path, '.PRF')
     # for i in range(0, len(filenames)):
     #     [height, vel, sub, code_fish, name_fish, stade, descri] = \
@@ -1031,7 +1068,7 @@ def main():
 
     # test comparison
     # path_xml = r'C:\Users\diane.von-gunten\HABBY\biology'
-    # path_evha = r'D:\Diane_work\pref_curve\EVHA\CourbesPref1\PREF_ALL'
+    # path_evha = r'D:\Diane_work\show_curve_pushbutton\EVHA\CourbesPref1\PREF_ALL'
     # test_evah_xml_pref(path_xml, path_evha)
 
     # test for pdf report

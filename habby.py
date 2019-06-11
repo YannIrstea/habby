@@ -17,15 +17,38 @@ https://github.com/YannIrstea/habby
 import sys
 from src_GUI import main_window_GUI
 from src import func_for_cmd_mod
+from src.config_data_habby_mod import ConfigHabby
 from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QMessageBox
 import multiprocessing
 import os
-
+import traceback
 
 global HABBY_VERSION
 HABBY_VERSION = 0.25
+global CONFIG_HABBY
+CONFIG_HABBY = ConfigHabby()
+CONFIG_HABBY.create_config_habby_structure()
+
+
+def crash_management_output(error_type, error_value, error_traceback):
+    """
+    catch exception before crashes program write it in habby_crash.log
+    :param error_type:
+    :param error_value:
+    :param error_traceback:
+    :return:
+    """
+    # print to consol
+    traceback.print_exception(error_type, error_value, error_traceback)
+    # write to crash_log file
+    with open(CONFIG_HABBY.user_config_crashlog_file, 'w') as f:
+        f.write(''.join(traceback.format_tb(error_traceback))
+                + str(error_type).split("'")[1] + ": "
+                + str(error_value))
+    # exit python
+    raise SystemExit
 
 
 def main():
@@ -38,7 +61,6 @@ def main():
     For more complicated case, one can directly do a python script using
     the function from HABBY.
     """
-    # set version
 
     # graphical user interface is called if no argument
     if len(sys.argv) == 1:
@@ -48,7 +70,6 @@ def main():
         # create app
         app = QApplication(sys.argv)
 
-
         # Create and display the splash screen
         splash_pix = QPixmap('translation/habby_icon.png')
         splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
@@ -57,7 +78,7 @@ def main():
         app.processEvents()
 
         # create windows
-        ex = main_window_GUI.MainWindows(HABBY_VERSION)
+        ex = main_window_GUI.MainWindows()
         app.setActiveWindow(ex)
 
         # close the splash screen
@@ -159,6 +180,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # necessary to freeze the application with parallel process
-    multiprocessing.freeze_support()
+    sys.excepthook = crash_management_output  # catch exception before crashes program write it in habby_crash.log
+    multiprocessing.freeze_support()  # necessary to freeze the application with parallel process
     main()

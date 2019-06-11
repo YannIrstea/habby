@@ -44,6 +44,7 @@ class PreferenceWindow(QDialog):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.name_icon = name_icon
+        self.is_modification = False
         # list with the available color map
         self.namecmap = ['coolwarm', 'jet', 'magma', 'viridis', 'inferno', 'plasma', 'Blues',
                          'Greens', 'Greys', 'Oranges', 'Purples',
@@ -57,31 +58,20 @@ class PreferenceWindow(QDialog):
         p = self.palette()
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
-        
-        # read actual figure option
-        fig_dict = load_fig_option(self.path_prj, self.name_prj)
 
         """ WIDGETS """
         """ general widgets """
         # cut_2d_grid
         self.cut_2d_grid_label = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
         self.cut_2d_grid_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['CutMeshPartialyDry']:  # is a string not a boolean
-            self.cut_2d_grid_checkbox.setChecked(True)
-        else:
-            self.cut_2d_grid_checkbox.setChecked(False)
-            
+
         # min_height
         min_height_label = QLabel(self.tr('2D minimum water height [m]'))
-        self.min_height_lineedit = QLineEdit(str(fig_dict['min_height_hyd']))
+        self.min_height_lineedit = QLineEdit("")
 
         # erase_data
         self.erase_data_label = QLabel(self.tr('Erase file if exist'))
         self.erase_data_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['erase_id']:  # is a string not a boolean
-            self.erase_data_checkbox.setChecked(True)
-        else:
-            self.erase_data_checkbox.setChecked(False)
 
         """ outputs widgets """
         self.mesh_whole_profile_hyd = QCheckBox("")
@@ -106,7 +96,6 @@ class PreferenceWindow(QDialog):
         self.vertical_exaggeration_lineedit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
         self.vertical_exaggeration_lineedit.setFixedHeight(self.point_units_hyd.sizeHint().height())
         self.vertical_exaggeration_lineedit.setFixedWidth(75)
-        self.vertical_exaggeration_lineedit.setText(str(fig_dict["vertical_exaggeration"]))
 
         self.elevation_whole_profile_hyd = QCheckBox("")
         self.elevation_whole_profile_hyd.setObjectName("elevation_whole_profile_hyd")
@@ -124,92 +113,67 @@ class PreferenceWindow(QDialog):
         self.fish_information_hab = QCheckBox("")
         self.fish_information_hab.setObjectName("fish_information_hab")
 
-        self.checkbox_list = [self.mesh_whole_profile_hyd,
-                              self.point_whole_profile_hyd,
-                              self.mesh_units_hyd,
-                              self.mesh_units_hab,
-                              self.point_units_hyd,
-                              self.point_units_hab,
-                              self.elevation_whole_profile_hyd,
-                              self.variables_units_hyd,
-                              self.variables_units_hab,
-                              self.detailled_text_hyd,
-                              self.detailled_text_hab,
-                              self.fish_information_hab]
-        self.checkbox_list_set = list(set([checkbox.objectName()[:-4] for checkbox in self.checkbox_list]))
+        self.output_checkbox_list = [self.mesh_whole_profile_hyd,
+                                     self.point_whole_profile_hyd,
+                                     self.mesh_units_hyd,
+                                     self.mesh_units_hab,
+                                     self.point_units_hyd,
+                                     self.point_units_hab,
+                                     self.elevation_whole_profile_hyd,
+                                     self.variables_units_hyd,
+                                     self.variables_units_hab,
+                                     self.detailled_text_hyd,
+                                     self.detailled_text_hab,
+                                     self.fish_information_hab]
 
-        # check uncheck
-        for checkbox in self.checkbox_list:
-            type = checkbox.objectName()[-3:]
-            if type == "hyd":
-                index = 0
-            if type == "hab":
-                index = 1
-            checkbox.setChecked(fig_dict[checkbox.objectName()[:-4]][index])
-
+        self.checkbox_list_set = list(set([checkbox.objectName()[:-4] for checkbox in self.output_checkbox_list]))
 
         """ figure widgets """
         # fig_size
         fig_size_label = QLabel(self.tr('Figure Size [cm]'), self)
-        self.fig_size_lineedit = QLineEdit(str(fig_dict['width']) + ',' + str(fig_dict['height']))
+        self.fig_size_lineedit = QLineEdit("")
 
         # color_map
         color_map_label = QLabel(self.tr('Color Map 1'), self)
         self.color_map_combobox = QComboBox()
         self.color_map_combobox.addItems(self.namecmap)
-        namecmap1 = fig_dict['color_map1']
-        index = self.color_map_combobox.findText(namecmap1)
-        self.color_map_combobox.setCurrentIndex(index)
-        
+
         # color_map2
         color_map2_label = QLabel(self.tr('Color Map 2'), self)
         self.color_map2_combobox = QComboBox()
         self.color_map2_combobox.addItems(self.namecmap)
-        namecmap1 = fig_dict['color_map2']
-        index = self.color_map_combobox.findText(namecmap1)
-        self.color_map2_combobox.setCurrentIndex(index)
-        
+
         # font_size
         font_size_label = QLabel(self.tr('Font Size'), self)
-        self.font_size_lineedit = QLineEdit(str(fig_dict['font_size']))
+        self.font_size_lineedit = QLineEdit("")
 
         # line_width
         line_width_label = QLabel(self.tr('Line Width'), self)
-        self.line_width_lineedit = QLineEdit(str(fig_dict['line_width']))
+        self.line_width_lineedit = QLineEdit("")
 
         # grid
         grid_label = QLabel(self.tr('Grid'), self)
         self.grid_checkbox = QCheckBox("", self)
-        if fig_dict['grid']:  # is a string not a boolean
-            self.grid_checkbox.setChecked(True)
-        else:
-            self.grid_checkbox.setChecked(False)
 
         # fig_forma
         fig_format_label = QLabel(self.tr('Figure Format'))
         self.fig_format_combobox = QComboBox()
         self.fig_format_combobox.addItems(['png and pdf', 'png', 'jpg', 'pdf', self.tr('do not save figures')])
-        self.fig_format_combobox.setCurrentIndex(int(fig_dict['format']))
-        
+
         # resolution
         resolution_label = QLabel(self.tr('Resolution [dpi]'))
-        self.resolution_lineedit = QLineEdit(str(fig_dict['resolution']))
-        
+        self.resolution_lineedit = QLineEdit("")
+
         # type_fishname
         type_fishname_label = QLabel(self.tr('Type of fish name'))
         self.type_fishname_combobox = QComboBox()
         self.type_fishname_combobox.addItems([self.tr('Latin Name'), self.tr('French Common Name'), self.tr('English Common Name'),
                                               self.tr('Code ONEMA')])  # order matters here, add stuff at the end!
-        self.type_fishname_combobox.setCurrentIndex(int(fig_dict['fish_name_type']))
-        
+
         # marquers_hab_fig
         marquers_hab_fig_label = QLabel(self.tr('Markers for habitat figures'))
         self.marquers_hab_fig_checkbox = QCheckBox(self.tr(''))
-        if fig_dict['marker']:  # is a string not a boolean
-            self.marquers_hab_fig_checkbox.setChecked(True)
-        else:
-            self.marquers_hab_fig_checkbox.setChecked(False)
-       
+
         # save
         self.save_pref_button = QPushButton(self.tr('Save and close'))
         self.save_pref_button.clicked.connect(self.save_preferences)
@@ -232,7 +196,7 @@ class PreferenceWindow(QDialog):
         available_exports_group = QGroupBox(self.tr("Output"))
         self.doubleclick_check_uncheck_filter = DoubleClicOutputGroup()
         available_exports_group.installEventFilter(self.doubleclick_check_uncheck_filter)
-        self.doubleclick_check_uncheck_filter.double_clic_signal.connect(self.check_uncheck_checkboxs)
+        self.doubleclick_check_uncheck_filter.double_clic_signal.connect(self.check_uncheck_all_checkboxs_at_once)
 
         available_exports_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         available_exports_group.setLayout(self.layout_available_exports)
@@ -311,12 +275,107 @@ class PreferenceWindow(QDialog):
         self.setWindowTitle(self.tr("Preferences"))
         self.setWindowIcon(QIcon(self.name_icon))
 
-    def check_uncheck_checkboxs(self):
+    def connect_modifications_signal(self):
+        self.cut_2d_grid_checkbox.stateChanged.connect(self.set_modification_presence)
+        self.min_height_lineedit.textChanged.connect(self.set_modification_presence)
+        self.erase_data_checkbox.stateChanged.connect(self.set_modification_presence)
+        self.vertical_exaggeration_lineedit.textChanged.connect(self.set_modification_presence)
+        for checkbox in self.output_checkbox_list:
+            checkbox.stateChanged.connect(self.set_modification_presence)
+        self.fig_size_lineedit.textChanged.connect(self.set_modification_presence)
+        self.color_map_combobox.currentIndexChanged.connect(self.set_modification_presence)
+        self.color_map2_combobox.currentIndexChanged.connect(self.set_modification_presence)
+        self.font_size_lineedit.textChanged.connect(self.set_modification_presence)
+        self.line_width_lineedit.textChanged.connect(self.set_modification_presence)
+        self.grid_checkbox.stateChanged.connect(self.set_modification_presence)
+        self.fig_format_combobox.currentIndexChanged.connect(self.set_modification_presence)
+        self.resolution_lineedit.textChanged.connect(self.set_modification_presence)
+        self.type_fishname_combobox.currentIndexChanged.connect(self.set_modification_presence)
+        self.marquers_hab_fig_checkbox.stateChanged.connect(self.set_modification_presence)
+
+    def set_pref_gui_from_dict(self):
+        # read actual figure option
+        fig_dict = load_fig_option(self.path_prj, self.name_prj)
+
+        # min_height_hyd
+        self.min_height_lineedit.setText(str(fig_dict['min_height_hyd']))
+
+        # CutMeshPartialyDry
+        if fig_dict['CutMeshPartialyDry']:  # is a string not a boolean
+            self.cut_2d_grid_checkbox.setChecked(True)
+        else:
+            self.cut_2d_grid_checkbox.setChecked(False)
+
+        # erase_id
+        if fig_dict['erase_id']:  # is a string not a boolean
+            self.erase_data_checkbox.setChecked(True)
+        else:
+            self.erase_data_checkbox.setChecked(False)
+
+        # vertical_exaggeration
+        self.vertical_exaggeration_lineedit.setText(str(fig_dict["vertical_exaggeration"]))
+
+        # check uncheck output checkboxs
+        for checkbox in self.output_checkbox_list:
+            type = checkbox.objectName()[-3:]
+            if type == "hyd":
+                index = 0
+            if type == "hab":
+                index = 1
+            checkbox.setChecked(fig_dict[checkbox.objectName()[:-4]][index])
+
+        # color_map
+        self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(fig_dict['color_map1']))
+        self.color_map2_combobox.setCurrentIndex(self.color_map_combobox.findText(fig_dict['color_map2']))
+
+        # fig_size
+        self.fig_size_lineedit.setText(str(fig_dict['width']) + ',' + str(fig_dict['height']))
+
+        # font size
+        self.font_size_lineedit.setText(str(fig_dict['font_size']))
+
+        # line_width
+        self.line_width_lineedit.setText(str(fig_dict['line_width']))
+
+        # grid
+        if fig_dict['grid']:  # is a string not a boolean
+            self.grid_checkbox.setChecked(True)
+        else:
+            self.grid_checkbox.setChecked(False)
+
+        # format
+        self.fig_format_combobox.setCurrentIndex(int(fig_dict['format']))
+
+        # resolution
+        self.resolution_lineedit.setText(str(fig_dict['resolution']))
+
+        # fish_name_type
+        self.type_fishname_combobox.setCurrentIndex(int(fig_dict['fish_name_type']))
+
+        # marker
+        if fig_dict['marker']:  # is a string not a boolean
+            self.marquers_hab_fig_checkbox.setChecked(True)
+        else:
+            self.marquers_hab_fig_checkbox.setChecked(False)
+
+    def open_preferences(self):
+        self.set_pref_gui_from_dict()
+        self.connect_modifications_signal()
+        self.check_modifications_presence()
+        self.show()
+
+    def check_modifications_presence(self):
+        self.is_modification = False
+
+    def set_modification_presence(self):
+        self.is_modification = True
+
+    def check_uncheck_all_checkboxs_at_once(self):
         # uncheck all
         if self.mesh_whole_profile_hyd.isChecked():
-            [checkbox.setChecked(False) for checkbox in self.checkbox_list]
+            [checkbox.setChecked(False) for checkbox in self.output_checkbox_list]
         else:
-            [checkbox.setChecked(True) for checkbox in self.checkbox_list]
+            [checkbox.setChecked(True) for checkbox in self.output_checkbox_list]
 
     def save_preferences(self):
         """
@@ -327,6 +386,18 @@ class PreferenceWindow(QDialog):
         If you change things here, it is necessary to start a new project as the old projects will not be compatible.
         For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
         """
+        # really user want to save ?
+        if self.is_modification:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Preferences modified"))
+            self.msg2.setText(self.tr("Do you really want to save and close new preferences ?"))
+            self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            res = self.msg2.exec_()
+
+            # delete
+            if res == QMessageBox.No:
+                return
+
         # get default option for security
         fig_dict = create_default_figoption()
 
@@ -390,7 +461,7 @@ class PreferenceWindow(QDialog):
             fig_dict['marker'] = False
 
         # outputs
-        for checkbox in self.checkbox_list:
+        for checkbox in self.output_checkbox_list:
             type = checkbox.objectName()[-3:]
             if type == "hyd":
                 index = 0
@@ -518,11 +589,26 @@ class PreferenceWindow(QDialog):
             erase1.text = str(fig_dict['erase_id'])
             doc.write(fname)
 
-        self.send_log.emit('# The new options for the figures are saved.')
-        self.send_log.emit('# Modifications of figure options.')
+        self.send_log.emit('# Preferences saved.')
         self.close()
 
     def close_preferences(self):
+        # really user want to save ?
+        if self.is_modification:
+            self.msg2.setIcon(QMessageBox.Warning)
+            self.msg2.setWindowTitle(self.tr("Preferences modified"))
+            self.msg2.setText(self.tr("Do you really want to close preferences without saving your changes ?"))
+            self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            res = self.msg2.exec_()
+
+            # delete
+            if res == QMessageBox.Yes:
+                self.send_log.emit('Preferences not saved.')
+                self.close()
+                return
+            if res == QMessageBox.No:
+                return
+
         # close window if opened
         self.close()
 
