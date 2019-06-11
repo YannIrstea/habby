@@ -209,8 +209,8 @@ def load_ascii_model(filename, path_prj):
     ftin = open(ftinn, 'w', encoding='utf8')
     kk, reachnumber, nbunitforall, nbreachsub = 0, 0, 0, 0
     msg, unit_type = '', ''
-    lunitall = []  # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches  or nbreaches elements
-    bq_per_reach, bsub = False, False
+    lunitall = []  # a list of  [list of Q or t] per reach
+    bq_per_reach, bsub,bmeshconstant = False, False, True
     sub_classification_code, sub_classification_method = '', ''
     nbsubinfo = 0
     for i, ligne in enumerate(fi):
