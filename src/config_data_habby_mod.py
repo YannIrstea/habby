@@ -238,7 +238,7 @@ class ConfigHabby:
                 self.biological_models_dict["orderedKeysmultilist"].append(False)
         self.biological_models_dict["selected"] = np.ones(len(self.biological_models_dict["country"]), dtype=bool)
         self.biological_models_dict["orderedKeys"] = ["country", "aquatic_animal_type", "model_type", "stage_and_size",
-                                    "guild", "xml_origine", "made_by", "code_alternative"]
+                                    "guild", "xml_origine", "made_by"]
 
     # TEMP FOLDER
     def create_empty_temp(self):
