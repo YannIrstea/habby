@@ -432,7 +432,7 @@ def get_biomodels_informations_for_database(path_xml):
     # MadeBy
     MadeBy = root.find('.//MadeBy').text
     # CdAlternative
-    CdAlternative = root.find('.//CdAlternative').text
+    CdAlternative = [root.find('.//CdAlternative').text]
     # LatinName
     LatinName = root.find(".//LatinName").text
     # modification_date
