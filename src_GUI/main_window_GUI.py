@@ -249,7 +249,9 @@ class MainWindows(QMainWindow):
         self.soft_information_dialog = SoftInformationDialog(self.path_prj, self.name_prj, self.name_icon, self.version)
 
         # bio_model_explorer_dialog
-        self.bio_model_explorer_dialog = BioModelExplorerWindow(self.path_prj, self.name_prj, self.name_icon)
+        self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
+                                                                self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+        self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
 
         # set theme
         if self.actual_theme == "classic":

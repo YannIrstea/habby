@@ -19,7 +19,7 @@ from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QStringListModel
 from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QGridLayout, QLineEdit, QMessageBox, QTabWidget,\
     QComboBox, QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QCompleter, QTextEdit
-from PyQt5.QtGui import QPixmap, QIcon
+from PyQt5.QtGui import QPixmap, QIcon, QFont
 from multiprocessing import Process, Queue, Value
 import os
 import sys
@@ -39,6 +39,7 @@ from src import hdf5_mod
 from src import plot_mod
 from src_GUI import preferences_GUI
 from habby import CONFIG_HABBY
+from src_GUI.data_explorer_GUI import MyProcessList
 
 
 class BioModelExplorerWindow(QDialog):
@@ -50,19 +51,19 @@ class BioModelExplorerWindow(QDialog):
     A PyQtsignal used to write the log.
     """
 
-    def __init__(self, path_prj, name_prj, name_icon):
-
-        super().__init__()
+    def __init__(self, parent, path_prj, name_prj, name_icon, plot_process_list):
+        super().__init__(parent)
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.name_icon = name_icon
         self.msg2 = QMessageBox()
         self.path_bio = CONFIG_HABBY.path_bio
+        self.plot_process_list = plot_process_list
         # filters index
 
         # tabs
         self.bio_model_filter_tab = BioModelFilterTab(path_prj, name_prj)
-        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj)
+        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj, plot_process_list)
         self.bio_model_filter_tab.send_selection.connect(self.bio_model_infoselection_tab.get_selection_user)
         self.bio_model_filter_tab.send_fill.connect(self.bio_model_infoselection_tab.fill_available_aquatic_animal)
 
@@ -92,7 +93,10 @@ class BioModelExplorerWindow(QDialog):
         self.setWindowIcon(QIcon(self.name_icon))
 
     def open_bio_model_explorer(self):
+        #
+
         # fill_country_filter
+        self.setGeometry(60, 95, 800, 600)
         self.bio_model_filter_tab.fill_country_filter()
         self.show()
 
@@ -101,6 +105,7 @@ class BioModelFilterTab(QScrollArea):
     """
      This class contains the tab with Graphic production biological information (the curves of preference).
      """
+    send_log = pyqtSignal(str, name='send_log')
     send_selection = pyqtSignal(object, name='send_selection')
     send_fill = pyqtSignal(object, name='send_fill')
     """
@@ -166,7 +171,7 @@ class BioModelFilterTab(QScrollArea):
         # code_alternative
         code_alternative_label = QLabel(self.tr("Code alternative"))
         self.code_alternative_listwidget = QListWidget()
-        self.code_alternative_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][7])
+        #self.code_alternative_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][7])
         #self.code_alternative_listwidget.itemSelectionChanged.connect(self.get_available_aquatic_animal)
         invertebrate_label = QLabel("Invertebrate available")
         # invertebrate
@@ -377,12 +382,14 @@ class BioModelInfoSelection(QScrollArea):
     A PyQt signal to send the log.
     """
 
-    def __init__(self, path_prj, name_prj):
+    def __init__(self, path_prj, name_prj, plot_process_list):
         super().__init__()
         self.tab_name = "model_selected"
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
+        self.plot_process_list = plot_process_list
+        self.selected_fish_cd_biological_model = None
         self.msg2 = QMessageBox()
         self.init_iu()
         self.lang = 0
@@ -439,7 +446,6 @@ class BioModelInfoSelection(QScrollArea):
         self.animal_picture_label.setFrameShape(QFrame.Panel)
         self.animal_picture_label.setAlignment(Qt.AlignCenter)
 
-
         """ GROUP ET LAYOUT """
         # aquatic_animal
         #self.aquatic_animal_group = QGroupBox("")
@@ -488,7 +494,8 @@ class BioModelInfoSelection(QScrollArea):
         for selected_xml_ind, selected_xml_tf in enumerate(self.biological_models_dict_gui["selected"]):
             if selected_xml_tf:
                 for selected_stage_ind, selected_stage_tf in enumerate(self.selection_dict["stage_and_size"][1]):
-                    item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " + self.selection_dict["stage_and_size"][0][selected_stage_ind] + " - " + self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
+                    if self.selection_dict["stage_and_size"][0][selected_stage_ind] in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
+                        item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " + self.selection_dict["stage_and_size"][0][selected_stage_ind] + " - " + self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
         self.available_aquatic_animal_listwidget.addItems(item_list)
 
@@ -497,13 +504,20 @@ class BioModelInfoSelection(QScrollArea):
         The function is used to select a new fish species (or inverterbrate)
         """
         # remove it from available
-        item = self.available_aquatic_animal_listwidget.takeItem(self.available_aquatic_animal_listwidget.currentRow())
+        #item = self.available_aquatic_animal_listwidget.takeItem(self.available_aquatic_animal_listwidget.currentRow())
+
+        # get item
+        selected_item = self.available_aquatic_animal_listwidget.selectedItems()[0]
+        font = QFont()
+        font.setBold(True)
+        selected_item.setFont(font)
+
         # clear selection
         self.available_aquatic_animal_listwidget.clearSelection()
 
-        if item:
+        if selected_item:
             # add it to selected
-            self.selected_aquatic_animal_listwidget.addItem(item.text())
+            self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
 
     def remove_fish(self):
         """
@@ -514,9 +528,16 @@ class BioModelInfoSelection(QScrollArea):
         # clear selection
         self.selected_aquatic_animal_listwidget.clearSelection()
 
-        if item:
-            # add it to available
-            self.available_aquatic_animal_listwidget.addItem(item.text())
+        # create normal font
+        font = QFont()
+        font.setBold(False)
+
+        # identify which one and remove bold
+        for item_index in range(self.available_aquatic_animal_listwidget.count()):
+            item_loop = self.available_aquatic_animal_listwidget.item(item_index)
+            if item_loop.text() == item.text():
+                item_loop.setFont(font)
+        item = None
 
     def show_info_fish(self, listwidget_source):
         """
@@ -533,9 +554,10 @@ class BioModelInfoSelection(QScrollArea):
         if not i1:
             return
 
-        cd_biological_model = i1.text()
-        cd_biological_model = cd_biological_model.split(' - ')[-1]
-        i = self.biological_models_dict_gui["cd_biological_model"].index(cd_biological_model)
+        self.selected_fish_cd_biological_model = i1.text()
+        self.selected_fish_cd_biological_model = self.selected_fish_cd_biological_model.split(' - ')[-1]
+        i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
+
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
         pngfile = self.biological_models_dict_gui["path_png"][i]
 
@@ -588,19 +610,16 @@ class BioModelInfoSelection(QScrollArea):
         the functions effectively doing the image.
         """
 
-        if self.ind_current is None:
+        if not self.selected_fish_cd_biological_model:
             self.send_log.emit("Warning: No fish selected to create suitability curves.")
             return
 
         # get the file
-        i = self.ind_current  # show the info concerning the one selected fish
-        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
+        i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
+        xmlfile = self.biological_models_dict_gui["path_xml"][i]
 
         # open the pref
-        sys.stdout = self.mystdout = StringIO()
         [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile)
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
         # plot the pref
         fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
 
@@ -626,15 +645,17 @@ class BioModelInfoSelection(QScrollArea):
         to the hydrosignature.
         """
 
+        if not self.selected_fish_cd_biological_model:
+            self.send_log.emit("Warning: No fish selected to hydrosignature.")
+            return
+
         # get the file
-        i = self.list_f.currentRow()
-        xmlfile = os.path.join(self.path_bio, self.data_fish[i, 2])
+        i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
+        fishname = self.biological_models_dict_gui["latin_name"][i]
+        xmlfile = self.biological_models_dict_gui["path_xml"][i]
 
         # get data
-        sys.stdout = self.mystdout = StringIO()  # out to GUI
         data = bio_info_mod.get_hydrosignature(xmlfile)
-        sys.stdout = sys.__stdout__  # reset to console
-        self.send_err_log()
         if isinstance(data, np.ndarray):
             # do the plot
             if not hasattr(self, 'plot_process_list'):
@@ -643,6 +664,6 @@ class BioModelInfoSelection(QScrollArea):
             hydrosignature_process = Process(target=plot_mod.plot_hydrosignature,
                                              args=(state,
                                                    data,
-                                                   self.data_fish[i, 0]))
+                                                   fishname))
             self.plot_process_list.append((hydrosignature_process, state))
 
