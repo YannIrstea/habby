@@ -2026,12 +2026,12 @@ class CentralW(QWidget):
         self.path_prj_c = path_prj
 
         self.welcome_tab = welcome_GUI.WelcomeW(path_prj, name_prj)
+        self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
         if os.path.isfile(os.path.join(self.path_prj_c, self.name_prj_c + '.xml')):
             self.statmod_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
             self.hydro_tab = hydro_sub_GUI.Hydro2W(path_prj, name_prj)
             self.substrate_tab = hydro_sub_GUI.SubstrateW(path_prj, name_prj)
             self.stathab_tab = stathab_GUI.StathabW(path_prj, name_prj)
-            self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
             self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
             self.fstress_tab = fstress_GUI.FstressW(path_prj, name_prj)
