@@ -254,6 +254,10 @@ class BioModelFilterTab(QScrollArea):
         self.dicoselect['fish_code_alternative'] = [skyf, [True] * len(skyf), False]
         self.dicoselect['inv_code_alternative'] = [skyi, [True] * len(skyi), False]
 
+    def fill_country_filter(self):
+        # country
+        self.country_listwidget.addItems(CONFIG_HABBY.biological_models_dict_set["country"])
+
     def first_fill_widget(self):
         for key in self.dicoselect.keys():
             listwidget = eval("self." + key + "_listwidget")
@@ -267,7 +271,7 @@ class BioModelFilterTab(QScrollArea):
         ky = self.sender().objectName()
         print("ResultFromSelected", ky)
         # get selected
-        listwidget = eval("self." + ky + "_listwidget")
+        listwidget = self.sender()
         selection = listwidget.selectedItems()
         actual_key_ind = self.biological_models_dict_gui['orderedKeys'].index(ky)
         next_key_ind = actual_key_ind + 1
@@ -296,35 +300,23 @@ class BioModelFilterTab(QScrollArea):
                     listwidget.clear()
                     listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
                     print("clear", self.biological_models_dict_gui['orderedKeys'][indice], listwidget.objectName())
-            #TODO deconnect Clear  and reconnect 'fish_code_alternative' and 'inv_code_alternative'
-            self.fish_code_alternative_listwidget.clear()
-            self.inv_code_alternative_listwidget.clear()
-
-
+            self.cleardispatch()
             if selection:
                 self.ResultToSelected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
         else:
             if selection:
                 self.ResultToSelectedDispatch()
+            else:
+                self.cleardispatch()
 
-    def ResultFromSelectedDispatch(self):
-        print("------------------------------")
-        ky = self.sender().objectName()
-        print("ResultFromSelected", ky)
-
-    def ResultToSelectedDispatch(self):
-        sp = [x for x, y in zip(self.biological_models_dict_gui['code_alternative'],
-                                list(self.biological_models_dict_gui['selected']))
-              if y]
-        sp = {x for y in sp for x in y}
-        for ky in ['fish_code_alternative','inv_code_alternative']:
-            self.dicoselect[ky][1] = [x in sp for x in self.dicoselect[ky][0]]
-            self.dicoselect[ky][2] = False  # the key is off
-            listwidget = eval("self." + ky + "_listwidget")
-            for ind, bo in enumerate(self.dicoselect[ky][1]):
-                if bo:
-                    listwidget.addItem(self.dicoselect[ky][0][ind])
-
+    def cleardispatch(self):
+        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
+            listwidget = eval("self." + kyi + "_listwidget")
+            self.dicoselect[kyi[2]] = False  # all subkeys are off
+            if listwidget.count() != 0:
+                listwidget.disconnect()
+                listwidget.clear()
+                listwidget.itemSelectionChanged.connect(self.ResultFromSelectedDispatch)
 
     def ResultToSelected(self, ky):
         print("ResultToSelected", ky)
@@ -343,11 +335,47 @@ class BioModelFilterTab(QScrollArea):
             if bo:
                 listwidget.addItem(self.dicoselect[ky][0][ind])
 
+    def ResultFromSelectedDispatch(self):
+        print("------------------------------")
+        ky = self.sender().objectName() #'fish_code_alternative' or 'inv_code_alternative']:
+        print("ResultFromSelected", ky)
+        listwidget = self.sender()
+        selection = listwidget.selectedItems()
+        self.biological_models_dict_gui['selected'] = np.ones((len(self.biological_models_dict_gui['selected']),), dtype=bool)
+        for iky in range(len(self.biological_models_dict_gui['orderedKeys'])):
+            kyi = self.biological_models_dict_gui['orderedKeys'][iky]
+            lky = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
+            if self.biological_models_dict_gui['orderedKeysmultilist'][iky]:  # if multi
+                sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[kyi]]
+            else:  # if solo
+                sky = [x in lky for x in self.biological_models_dict_gui[kyi]]
+            self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'],
+                                                                         np.array(sky))
+            self.dicoselect[kyi][2] = True
+        if selection:
+            # selected_values_list
+            lky = {selection_item.text() for selection_item in selection}
+            self.dicoselect[ky][1] = [x in lky for x in self.dicoselect[ky][0]]
+            sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui['code_alternative']]
+            self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'],
+                                                                     np.array(sky))
+            self.dicoselect[ky][2] = True
 
 
-    def fill_country_filter(self):
-        # country
-        self.country_listwidget.addItems(CONFIG_HABBY.biological_models_dict_set["country"])
+
+
+    def ResultToSelectedDispatch(self):
+        sp = [x for x, y in zip(self.biological_models_dict_gui['code_alternative'],
+                                list(self.biological_models_dict_gui['selected']))
+              if y]
+        sp = {x for y in sp for x in y}
+        for kyi in ['fish_code_alternative','inv_code_alternative']:
+            self.dicoselect[kyi][1] = [x in sp for x in self.dicoselect[kyi][0]]
+            self.dicoselect[kyi][2] = False  # the key is off
+            listwidget = eval("self." + kyi + "_listwidget")
+            for ind, bo in enumerate(self.dicoselect[kyi][1]):
+                if bo:
+                    listwidget.addItem(self.dicoselect[kyi][0][ind])
 
     def get_available_aquatic_animal(self):
         # last sort
