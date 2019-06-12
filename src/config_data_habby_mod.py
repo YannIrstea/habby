@@ -203,8 +203,10 @@ class ConfigHabby:
         # sort by latin name
         indice_sorted = [biological_models_dict["latin_name"].index(x) for x in sorted(biological_models_dict["latin_name"])]
         for key in biological_models_dict.keys():
+            key_list = []
             for ind_num, ind_ind in enumerate(indice_sorted):
-                biological_models_dict[key][ind_num] = biological_models_dict[key][ind_ind]
+                key_list.append(biological_models_dict[key][ind_ind])
+            biological_models_dict[key] = key_list
 
         return biological_models_dict
 

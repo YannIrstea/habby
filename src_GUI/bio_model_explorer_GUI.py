@@ -268,9 +268,12 @@ class BioModelFilterTab(QScrollArea):
             for indice in range(next_key_ind, len(self.biological_models_dict_gui['orderedKeys'])):
                 listwidget = eval("self." + self.biological_models_dict_gui['orderedKeys'][indice] + "_listwidget")
                 self.DicoSelect[self.biological_models_dict_gui['orderedKeys'][indice]][2] = False    # all subkeys are off
-                listwidget.clear()
-                print("clear", self.biological_models_dict_gui['orderedKeys'][indice])
-            if selection :
+                if listwidget.count() != 0:
+                    listwidget.disconnect()
+                    listwidget.clear()
+                    listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(listwidget.objectName()))
+                    print("clear", self.biological_models_dict_gui['orderedKeys'][indice])
+            if selection:
                 self.ResultToSelected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
 
     def ResultToSelected(self, ky):
