@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWi
     QComboBox, QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QCompleter, QTextEdit
 from PyQt5.QtGui import QPixmap, QIcon, QFont
+from functools import partial
 from multiprocessing import Process, Queue, Value
 import os
 import sys
@@ -137,57 +138,49 @@ class BioModelFilterTab(QScrollArea):
         country_label = QLabel(self.tr("Country"))
         self.country_listwidget = QListWidget()
         self.country_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][0])
-        self.country_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.country_listwidget.objectName()))
+        self.country_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
         # aquatic_animal_type
         aquatic_animal_type_label = QLabel(self.tr("Aquatic animal type"))
         self.aquatic_animal_type_listwidget = QListWidget()
         self.aquatic_animal_type_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][1])
-        self.aquatic_animal_type_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.aquatic_animal_type_listwidget.objectName()))
+        self.aquatic_animal_type_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
         # model_type
         model_type_label = QLabel(self.tr("Model type"))
         self.model_type_listwidget = QListWidget()
         self.model_type_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][2])
-        self.model_type_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.model_type_listwidget.objectName()))
+        self.model_type_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
         # stage_and_size
         stage_and_size_label = QLabel(self.tr("Stage and size"))
         self.stage_and_size_listwidget = QListWidget()
         self.stage_and_size_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][3])
-        self.stage_and_size_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.stage_and_size_listwidget.objectName()))
+        self.stage_and_size_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
         # guild
         guild_label = QLabel(self.tr("Guild"))
         self.guild_listwidget = QListWidget()
         self.guild_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][4])
-        self.guild_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.guild_listwidget.objectName()))
+        self.guild_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
         # origine
         xml_origine_label = QLabel(self.tr("Origine"))
         self.xml_origine_listwidget = QListWidget()
         self.xml_origine_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][5])
-        self.xml_origine_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.xml_origine_listwidget.objectName()))
+        self.xml_origine_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
         # made_by
         made_by_label = QLabel(self.tr("Made by"))
         self.made_by_listwidget = QListWidget()
         self.made_by_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][6])
-        self.made_by_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.made_by_listwidget.objectName()))
-<<<<<<< HEAD
-        # code_alternative
-        code_alternative_label = QLabel(self.tr("Code alternative"))
-        self.code_alternative_listwidget = QListWidget()
-        #self.code_alternative_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][7])
-        #self.code_alternative_listwidget.itemSelectionChanged.connect(self.get_available_aquatic_animal)
-        invertebrate_label = QLabel("Invertebrate available")
-=======
+        self.made_by_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+
         # fish_code_alternative
         fish_code_alternative_label = QLabel(self.tr("fish code alternative"))
         self.fish_code_alternative_listwidget = QListWidget()
         self.fish_code_alternative_listwidget.setObjectName("fish_code_alternative")
-        self.fish_code_alternative_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.fish_code_alternative_listwidget.objectName()))
+        self.fish_code_alternative_listwidget.itemSelectionChanged.connect(self.ResultFromSelectedDispatch)
 
->>>>>>> 0e41cf3c846fd4b5cf24832b8e6144d500ee0213
         # invertebrate
         inv_code_alternative_label = QLabel("Invertebrate code alternative")
         self.inv_code_alternative_listwidget = QListWidget()
         self.inv_code_alternative_listwidget.setObjectName("inv_code_alternative")
-        self.inv_code_alternative_listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(self.inv_code_alternative_listwidget.objectName()))
+        self.inv_code_alternative_listwidget.itemSelectionChanged.connect(self.ResultFromSelectedDispatch)
 
         # filters_list_widget
         self.filters_list_widget = [self.country_listwidget, self.aquatic_animal_type_listwidget, self.model_type_listwidget,
@@ -269,8 +262,9 @@ class BioModelFilterTab(QScrollArea):
                     if bo:
                         listwidget.addItem(self.dicoselect[key][0][ind])
 
-    def ResultFromSelected(self, ky):
+    def ResultFromSelected(self):
         print("------------------------------")
+        ky = self.sender().objectName()
         print("ResultFromSelected", ky)
         # get selected
         listwidget = eval("self." + ky + "_listwidget")
@@ -300,7 +294,7 @@ class BioModelFilterTab(QScrollArea):
                 if listwidget.count() != 0:
                     listwidget.disconnect()
                     listwidget.clear()
-                    listwidget.itemSelectionChanged.connect(lambda: self.ResultFromSelected(listwidget.objectName()))
+                    listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
                     print("clear", self.biological_models_dict_gui['orderedKeys'][indice], listwidget.objectName())
             #TODO deconnect Clear  and reconnect 'fish_code_alternative' and 'inv_code_alternative'
             self.fish_code_alternative_listwidget.clear()
@@ -312,6 +306,11 @@ class BioModelFilterTab(QScrollArea):
         else:
             if selection:
                 self.ResultToSelectedDispatch()
+
+    def ResultFromSelectedDispatch(self):
+        print("------------------------------")
+        ky = self.sender().objectName()
+        print("ResultFromSelected", ky)
 
     def ResultToSelectedDispatch(self):
         sp = [x for x, y in zip(self.biological_models_dict_gui['code_alternative'],
