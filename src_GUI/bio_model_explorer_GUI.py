@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 from io import StringIO
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QStringListModel
-from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QGridLayout, QLineEdit, QMessageBox, QTabWidget,\
+from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, QLineEdit, QMessageBox, QTabWidget,\
     QComboBox, QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QCompleter, QTextEdit
 from PyQt5.QtGui import QPixmap, QIcon, QFont
@@ -65,9 +65,6 @@ class BioModelExplorerWindow(QDialog):
         # tabs
         self.bio_model_filter_tab = BioModelFilterTab(path_prj, name_prj)
         self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj, plot_process_list)
-        self.bio_model_filter_tab.send_selection.connect(self.bio_model_infoselection_tab.get_selection_user)
-        self.bio_model_filter_tab.send_fill.connect(self.bio_model_infoselection_tab.fill_available_aquatic_animal)
-
         self.init_iu()
 
     def init_iu(self):
@@ -82,9 +79,8 @@ class BioModelExplorerWindow(QDialog):
         self.tab_widget.addTab(self.bio_model_infoselection_tab, self.tr("Model selected"))
 
         self.bio_model_filter_tab.createDicoSelect()
-        self.bio_model_infoselection_tab.get_selection_user(self.bio_model_filter_tab.dicoselect)
-        self.bio_model_infoselection_tab.fill_available_aquatic_animal(self.bio_model_filter_tab.biological_models_dict_gui)
 
+        self.tab_widget.currentChanged.connect(self.load_model_selected_to_available)
 
         self.setGeometry(60, 95, 800, 600)
 
@@ -94,12 +90,24 @@ class BioModelExplorerWindow(QDialog):
         self.setWindowIcon(QIcon(self.name_icon))
 
     def open_bio_model_explorer(self):
-        #
+        # mainwindow
+        mainwindow_center = self.nativeParentWidget().geometry().center()
 
-        # fill_country_filter
         self.setGeometry(60, 95, 800, 600)
+        rect_geom = self.frameGeometry()
+        rect_geom.moveCenter(mainwindow_center)
+        self.move(rect_geom.topLeft())
+        # fill_country_filter
         self.bio_model_filter_tab.fill_country_filter()
         self.show()
+
+    def load_model_selected_to_available(self):
+        if self.tab_widget.currentIndex() == 1:  # model selected tab
+            dicoselect = self.bio_model_filter_tab.dicoselect
+            biological_models_dict_gui = self.bio_model_filter_tab.biological_models_dict_gui
+            self.bio_model_infoselection_tab.dicoselect = dicoselect
+            self.bio_model_infoselection_tab.biological_models_dict_gui = biological_models_dict_gui
+            self.bio_model_infoselection_tab.fill_available_aquatic_animal()
 
 
 class BioModelFilterTab(QScrollArea):
@@ -349,27 +357,6 @@ class BioModelFilterTab(QScrollArea):
         # country
         self.country_listwidget.addItems(CONFIG_HABBY.biological_models_dict_set["country"])
 
-    def get_available_aquatic_animal(self):
-        # last sort
-        self.fill_filters(self.code_alternative_listwidget.objectName())
-
-        # new dict
-        selection_dict = dict(country=[],  # sortable
-             aquatic_animal_type=[],  # sortable
-             model_type=[],  # sortable
-             stage_and_size=[],  # sortable
-             guild=[],  # sortable
-             xml_origine=[],  # sortable
-             made_by=[],  # sortable
-             code_alternative=[])
-
-        # get selection
-        for filter_listwidget in self.filters_list_widget:
-            selection_dict[filter_listwidget.objectName()] = [selection_item.text() for selection_item in filter_listwidget.selectedItems()]
-
-        self.send_selection.emit(selection_dict)
-        self.send_fill.emit(self.biological_models_dict_gui)
-
 
 class BioModelInfoSelection(QScrollArea):
     """
@@ -409,19 +396,11 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
         self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-
-
         selected_aquatic_animal_label = QLabel(self.tr("Selected aquatic animal"))
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
         self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-
-        # # show information about the fish
-        # self.list_s.itemClicked.connect(self.show_info_fish_sel)
-        # self.list_s.itemActivated.connect(self.show_info_fish_sel)
-        # # shwo info if movement of the arrow key
-        # self.list_s.itemSelectionChanged.connect(lambda: self.show_info_fish(True))
 
         # latin_name
         latin_name_title_label = QLabel(self.tr('Latin Name: '))
@@ -438,11 +417,20 @@ class BioModelInfoSelection(QScrollArea):
         # description
         description_title_label = QLabel(self.tr('Description:'))
         self.description_textedit = QTextEdit(self)  # where the log is show
+        self.description_textedit.setFrameShape(QFrame.NoFrame)
         self.description_textedit.setReadOnly(True)
         # image fish
         self.animal_picture_label = QLabel()
-        self.animal_picture_label.setFrameShape(QFrame.Panel)
+        #self.animal_picture_label.setFrameShape(QFrame.Panel)
         self.animal_picture_label.setAlignment(Qt.AlignCenter)
+
+        # add
+        self.add_selected_to_main_pushbutton = QPushButton(self.tr("Validate selected models"))
+        self.add_selected_to_main_pushbutton.clicked.connect(self.add_selected_to_main)
+
+        # quit
+        self.quit_biological_model_explorer_pushbutton = QPushButton(self.tr("Close"))
+        self.quit_biological_model_explorer_pushbutton.clicked.connect(self.quit_biological_model_explorer)
 
         """ GROUP ET LAYOUT """
         # aquatic_animal
@@ -466,6 +454,12 @@ class BioModelInfoSelection(QScrollArea):
         self.information_curve_layout.addWidget(self.description_textedit, 2, 1)
         self.information_curve_layout.addWidget(self.animal_picture_label, 2, 2)
 
+        # valid_close_layout
+        valid_close_layout = QHBoxLayout()
+        valid_close_layout.setAlignment(Qt.AlignRight)
+        valid_close_layout.addWidget(self.add_selected_to_main_pushbutton)
+        valid_close_layout.addWidget(self.quit_biological_model_explorer_pushbutton)
+
         """ GENERAL """
         # tools frame
         tools_frame = QFrame()
@@ -477,23 +471,18 @@ class BioModelInfoSelection(QScrollArea):
         global_layout = QVBoxLayout(self)
         global_layout.addLayout(self.aquatic_animal_layout)
         global_layout.addWidget(self.information_curve_group)
+        global_layout.addLayout(valid_close_layout)
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
 
-    def get_selection_user(self, selection_dict):
-        self.selection_dict = selection_dict
-
-    def fill_available_aquatic_animal(self, biological_models_dict_gui):
-        # get data
-        self.biological_models_dict_gui = biological_models_dict_gui
-
+    def fill_available_aquatic_animal(self):
         # line name
         item_list = []
         for selected_xml_ind, selected_xml_tf in enumerate(self.biological_models_dict_gui["selected"]):
             if selected_xml_tf:
-                for selected_stage_ind, selected_stage_tf in enumerate(self.selection_dict["stage_and_size"][1]):
-                    if self.selection_dict["stage_and_size"][0][selected_stage_ind] in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
-                        item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " + self.selection_dict["stage_and_size"][0][selected_stage_ind] + " - " + self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
+                for selected_stage_ind, selected_stage_tf in enumerate(self.dicoselect["stage_and_size"][1]):
+                    if self.dicoselect["stage_and_size"][0][selected_stage_ind] in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
+                        item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " + self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " + self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
         self.available_aquatic_animal_listwidget.addItems(item_list)
 
@@ -665,3 +654,8 @@ class BioModelInfoSelection(QScrollArea):
                                                    fishname))
             self.plot_process_list.append((hydrosignature_process, state))
 
+    def add_selected_to_main(self):
+        print(self.sender())
+
+    def quit_biological_model_explorer(self):
+        self.parent().parent().parent().close()
