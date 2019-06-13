@@ -761,7 +761,7 @@ def create_default_figoption():
     fig_dict['resolution'] = 800
     fig_dict['fish_name_type'] = 0
 
-    fig_dict['mesh_whole_profile'] = [False, False]
+    fig_dict['mesh_whole_profile'] = [False, True]
     fig_dict['point_whole_profile'] = [False, False]
     fig_dict['mesh_units'] = [False, False]
     fig_dict['point_units'] = [False, False]
