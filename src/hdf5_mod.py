@@ -1056,7 +1056,7 @@ class Hdf5Management:
         self.file_object.close()
 
         # reload to add new data to attributes
-        self.load_hdf5_hab(convert_to_coarser_dom=True)
+        self.load_hdf5_hab(convert_to_coarser_dom=False, whole_profil=True)
         self.export_mesh_shp(fig_opt)
         self.export_point_shp(fig_opt)
         self.export_paraview(fig_opt)
@@ -1143,7 +1143,7 @@ class Hdf5Management:
             if self.hdf5_type == "habitat":
                 fish_names = self.data_description["hab_fish_list"].split(", ")
                 if fish_names != ['']:
-                    pref_list = self.data_description["hab_fish_pref_list"].split(", ")
+                    shortname_list = self.data_description["hab_fish_shortname_list"].split(", ")
                     stage_list = self.data_description["hab_fish_stage_list"].split(", ")
                 else:
                     fish_names = []
@@ -1173,8 +1173,7 @@ class Hdf5Management:
                                 w.fields = w.fields[:6]
                                 # add fish field
                                 for fish_num, _ in enumerate(fish_names):
-                                    column_name = os.path.splitext(pref_list[fish_num])[0].upper() + stage_list[
-                                        fish_num]
+                                    column_name = shortname_list[fish_num]
                                     w.field(column_name, 'F', 50, 8)
                                 # add fish data for each mesh (line in attributes shp)
                                 for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
@@ -1208,8 +1207,7 @@ class Hdf5Management:
                             # fish
                             if fish_names:
                                 for fish_num, _ in enumerate(fish_names):
-                                    column_name = os.path.splitext(pref_list[fish_num])[0].upper() + stage_list[
-                                        fish_num]
+                                    column_name = shortname_list[fish_num]
                                     w.field(column_name, 'F', 50, 8)
 
                         # for each mesh
@@ -1513,9 +1511,17 @@ class Hdf5Management:
                         for fish_name in self.data_description["hab_fish_list"].split(", "):
                             newkey = "HV " + fish_name
                             cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
-                        # substrate
-                        cellData["sub_coarser"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[0]
-                        cellData["sub_dominant"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[1]
+                        # sub
+                        if self.data_description["sub_classification_method"] == 'coarser-dominant':
+                            cellData["sub_coarser"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[0]
+                            cellData["sub_dominant"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[1]
+                        if self.data_description["sub_classification_method"] == 'percentage':
+                            if self.data_description["sub_classification_code"] == "Cemagref":
+                                sub_class_number = 8
+                            if self.data_description["sub_classification_code"] == "Sandre":
+                                sub_class_number = 12
+                            for i in range(sub_class_number):
+                                cellData['S' + str(i + 1)] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[i]
 
                     # hydrau data creation for each mesh
                     v_mean_mesh_list = []
@@ -1564,7 +1570,7 @@ class Hdf5Management:
 
         name_base = self.basename
         sim_name = self.units_name
-        fish_names = self.data_description["hab_fish_list"].split(", ")
+        fish_names = self.data_description["hab_fish_shortname_list"].split(", ")
         unit_type = self.data_description["hyd_unit_type"][
                     self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
                         "hyd_unit_type"].find(']')]

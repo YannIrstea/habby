@@ -91,7 +91,6 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
                  path_hdf5,
                  pref_list,
                  stages_chosen,
-                 path_bio,
                  run_choice,
                  progress_value)
 
@@ -99,7 +98,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     if vh_all_t_sp == [-99]:
         if q:
             sys.stdout = sys.__stdout__
-            q.put([mystdout, [-99], [-99], [-99], [-99], [-99]])
+            q.put(mystdout)
             return
         else:
             return
@@ -126,7 +125,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
         return
 
 
-def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stages, path_bio, opt, progress_value):
+def calc_hab(data_2d, data_description, merge_name, path_merge, xmlfile, stages, opt, progress_value):
     """
     This function calculates the habitat value. It loads substrate and hydrology data from an hdf5 files and it loads
     the biology data from the xml files. It is possible to have more than one stage by xml file (usually the three
@@ -150,11 +149,11 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stage
     area_c_all_t = []  # area by cell for each reach each time step
     found_stage = 0
 
-    if len(bio_names) != len(stages):
+    if len(xmlfile) != len(stages):
         print('Error: Number of stage and species is not coherent. \n')
         return failload
 
-    if len(bio_names) == 0:
+    if len(xmlfile) == 0:
         print('Error: No fish species chosen. \n')
         return failload
 
@@ -170,13 +169,13 @@ def calc_hab(data_2d, data_description, merge_name, path_merge, bio_names, stage
 
     # progress
     prog = progress_value.value
-    delta = (90 - 20) / len(bio_names)
+    delta = (90 - 20) / len(xmlfile)
 
     # for each suitability curve
-    for idx, bio_name in enumerate(bio_names):
+    for idx, bio_name in enumerate(xmlfile):
         # load bio data
-        xmlfile = os.path.join(path_bio, bio_name)
-        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(xmlfile)
+        #xmlfile = os.path.join(path_bio, bio_name)
+        [pref_height, pref_vel, pref_sub, code_fish, name_fish, stade_bios] = bio_info_mod.read_pref(bio_name)
         if pref_height == [-99]:
             print('Error: preference file could not be loaded. \n')
             return failload
