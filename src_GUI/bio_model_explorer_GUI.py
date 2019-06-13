@@ -14,29 +14,23 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from io import StringIO
-from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QStringListModel
-from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, QLineEdit, QMessageBox, QTabWidget,\
-    QComboBox, QAbstractItemView, \
-    QSizePolicy, QScrollArea, QFrame, QDialog, QCompleter, QTextEdit
-from PyQt5.QtGui import QPixmap, QIcon, QFont
-from functools import partial
-from multiprocessing import Process, Queue, Value
 import os
-import sys
+from multiprocessing import Process, Value
+
 import numpy as np
-from operator import concat
-from functools import reduce
+from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtGui import QPixmap, QIcon, QFont
+from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, \
+    QMessageBox, QTabWidget, \
+    QAbstractItemView, \
+    QSizePolicy, QScrollArea, QFrame, QDialog, QTextEdit
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
 
-
 from src import bio_info_mod
-from src_GUI import estimhab_GUI
-from src import calcul_hab_mod
-from src import hdf5_mod
 from src import plot_mod
 from src_GUI import preferences_GUI
 from habby import CONFIG_HABBY
@@ -45,7 +39,7 @@ from src_GUI.data_explorer_GUI import MyProcessList
 
 class BioModelExplorerWindow(QDialog):
     """
-    BioModelExplorerWindow
+    This class contain the window Biological model selector (QDialog) which contain two tabs.
     """
     send_log = pyqtSignal(str, name='send_log')
     send_fill = pyqtSignal(str, name='send_fill')
@@ -77,9 +71,9 @@ class BioModelExplorerWindow(QDialog):
 
         self.tab_widget = QTabWidget()
         self.tab_widget.addTab(self.bio_model_filter_tab, self.tr("Model filter"))
-        self.tab_widget.addTab(self.bio_model_infoselection_tab, self.tr("Model selected"))
+        self.tab_widget.addTab(self.bio_model_infoselection_tab, self.tr("Model selection"))
 
-        self.bio_model_filter_tab.createDicoSelect()
+        self.bio_model_filter_tab.create_dico_select()
 
         self.tab_widget.currentChanged.connect(self.load_model_selected_to_available)
 
@@ -87,7 +81,7 @@ class BioModelExplorerWindow(QDialog):
 
         general_layout = QVBoxLayout(self)
         general_layout.addWidget(self.tab_widget)
-        self.setWindowTitle(self.tr("Biological model explorer"))
+        self.setWindowTitle(self.tr("Biological model selector"))
         self.setWindowIcon(QIcon(self.name_icon))
 
     def open_bio_model_explorer(self, source_str):
@@ -116,8 +110,8 @@ class BioModelExplorerWindow(QDialog):
 
 class BioModelFilterTab(QScrollArea):
     """
-     This class contains the tab with Graphic production biological information (the curves of preference).
-     """
+    This class contain first tab (Model filter).
+    """
     send_log = pyqtSignal(str, name='send_log')
     send_selection = pyqtSignal(object, name='send_selection')
     """
@@ -131,7 +125,7 @@ class BioModelFilterTab(QScrollArea):
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
         self.biological_models_dict_gui = CONFIG_HABBY.biological_models_dict.copy()
-        self.createDicoSelect()
+        self.create_dico_select()
         self.init_iu()
 
     def init_iu(self):
@@ -148,55 +142,58 @@ class BioModelFilterTab(QScrollArea):
         country_label = QLabel(self.tr("Country"))
         self.country_listwidget = QListWidget()
         self.country_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][0])
-        self.country_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+        self.country_listwidget.itemSelectionChanged.connect(self.result_from_selected)
         # aquatic_animal_type
         aquatic_animal_type_label = QLabel(self.tr("Aquatic animal type"))
         self.aquatic_animal_type_listwidget = QListWidget()
         self.aquatic_animal_type_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][1])
-        self.aquatic_animal_type_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+        self.aquatic_animal_type_listwidget.itemSelectionChanged.connect(self.result_from_selected)
         # model_type
         model_type_label = QLabel(self.tr("Model type"))
         self.model_type_listwidget = QListWidget()
         self.model_type_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][2])
-        self.model_type_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+        self.model_type_listwidget.itemSelectionChanged.connect(self.result_from_selected)
         # stage_and_size
         stage_and_size_label = QLabel(self.tr("Stage and size"))
         self.stage_and_size_listwidget = QListWidget()
         self.stage_and_size_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][3])
-        self.stage_and_size_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+        self.stage_and_size_listwidget.itemSelectionChanged.connect(self.result_from_selected)
         # guild
         guild_label = QLabel(self.tr("Guild"))
         self.guild_listwidget = QListWidget()
         self.guild_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][4])
-        self.guild_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+        self.guild_listwidget.itemSelectionChanged.connect(self.result_from_selected)
         # origine
         xml_origine_label = QLabel(self.tr("Origine"))
         self.xml_origine_listwidget = QListWidget()
         self.xml_origine_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][5])
-        self.xml_origine_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+        self.xml_origine_listwidget.itemSelectionChanged.connect(self.result_from_selected)
         # made_by
         made_by_label = QLabel(self.tr("Made by"))
         self.made_by_listwidget = QListWidget()
         self.made_by_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][6])
-        self.made_by_listwidget.itemSelectionChanged.connect(self.ResultFromSelected)
+        self.made_by_listwidget.itemSelectionChanged.connect(self.result_from_selected)
 
         # fish_code_alternative
-        fish_code_alternative_label = QLabel(self.tr("fish code alternative"))
+        fish_code_alternative_label = QLabel(self.tr("Fish"))
         self.fish_code_alternative_listwidget = QListWidget()
         self.fish_code_alternative_listwidget.setObjectName("fish_code_alternative")
-        self.fish_code_alternative_listwidget.itemSelectionChanged.connect(self.ResultFromSelectedDispatch)
+        self.fish_code_alternative_listwidget.itemSelectionChanged.connect(self.result_from_selected_dispatch)
 
         # invertebrate
-        inv_code_alternative_label = QLabel("Invertebrate code alternative")
+        inv_code_alternative_label = QLabel("Invertebrate")
         self.inv_code_alternative_listwidget = QListWidget()
         self.inv_code_alternative_listwidget.setObjectName("inv_code_alternative")
-        self.inv_code_alternative_listwidget.itemSelectionChanged.connect(self.ResultFromSelectedDispatch)
+        self.inv_code_alternative_listwidget.itemSelectionChanged.connect(self.result_from_selected_dispatch)
 
         # filters_list_widget
-        self.filters_list_widget = [self.country_listwidget, self.aquatic_animal_type_listwidget, self.model_type_listwidget,
+        self.filters_list_widget = [self.country_listwidget, self.aquatic_animal_type_listwidget,
+                                    self.model_type_listwidget,
                                     self.stage_and_size_listwidget, self.guild_listwidget, self.xml_origine_listwidget,
-                                    self.made_by_listwidget, self.fish_code_alternative_listwidget, self.inv_code_alternative_listwidget]
-        [filter_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection) for filter_listwidget in self.filters_list_widget]
+                                    self.made_by_listwidget, self.fish_code_alternative_listwidget,
+                                    self.inv_code_alternative_listwidget]
+        [filter_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection) for filter_listwidget in
+         self.filters_list_widget]
         # filters names
         self.filters_list_name = [filter_listwidget.objectName() for filter_listwidget in self.filters_list_widget]
 
@@ -220,7 +217,7 @@ class BioModelFilterTab(QScrollArea):
         self.filter_layout.addWidget(self.made_by_listwidget, 1, 6)
 
         # last filters
-        self.last_filter_group = QGroupBox(self.tr("Last filters"))
+        self.last_filter_group = QGroupBox(self.tr("Code alternative filter"))
         self.last_filter_layout = QGridLayout(self.last_filter_group)
         self.last_filter_layout.addWidget(fish_code_alternative_label, 0, 0)
         self.last_filter_layout.addWidget(self.fish_code_alternative_listwidget, 1, 0)
@@ -241,10 +238,10 @@ class BioModelFilterTab(QScrollArea):
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
 
-    def createDicoSelect(self):
+    def create_dico_select(self):
         self.dicoselect = dict()
         for i, ky in enumerate(self.biological_models_dict_gui['orderedKeys']):
-            #print(ky)
+            # print(ky)
             if self.biological_models_dict_gui['orderedKeysmultilist'][i]:
                 s1 = sorted({x for l in self.biological_models_dict_gui[ky] for x in l})
             else:
@@ -252,10 +249,10 @@ class BioModelFilterTab(QScrollArea):
             s2 = [True] * len(s1)
             self.dicoselect[ky] = [s1, s2, True]
         self.dicoselect[self.biological_models_dict_gui['orderedKeys'][0]][2] = True
-        #dispatching 'code_alternative' into 'fish_code_alternative' and 'inv_code_alternative'
-        lkyf,lkyi=[],[]
+        # dispatching 'code_alternative' into 'fish_code_alternative' and 'inv_code_alternative'
+        lkyf, lkyi = [], []
         for i, item in enumerate(self.biological_models_dict_gui['code_alternative']):
-            if self.biological_models_dict_gui['aquatic_animal_type'][i]=='fish':
+            if self.biological_models_dict_gui['aquatic_animal_type'][i] == 'fish':
                 lkyf.append(item)
             else:
                 lkyi.append(item)
@@ -268,13 +265,17 @@ class BioModelFilterTab(QScrollArea):
         """
         this function build or rebuild the view of the biological models selected from the dicoselect  and
         biological_models_dict_gui dictionnaries
-        :return:
         """
-        l=[]
-        for  ky in self.dicoselect.keys():
+        # clean
+        self.clear_filter(True)
+        self.clear_filter_dispatch(True)
+
+        # fill
+        l = []
+        for ky in self.dicoselect.keys():
             l.append(ky)
-        bio_models_selected = np.ones((len(self.biological_models_dict_gui['selected']),),dtype=bool)
-        for i,ky in enumerate(self.dicoselect.keys()):
+        bio_models_selected = np.ones((len(self.biological_models_dict_gui['selected']),), dtype=bool)
+        for i, ky in enumerate(self.dicoselect.keys()):
             if not self.dicoselect[ky][2]:
                 return
             listwidget = eval("self." + ky + "_listwidget")
@@ -282,23 +283,23 @@ class BioModelFilterTab(QScrollArea):
             if ky == 'country':
                 for itemx in self.dicoselect[ky][0]:
                     listwidget.addItem(itemx)
-            lky=set()
+            lky = set()
             for index in range(listwidget.count()):
-                ii=self.dicoselect[ky][0].index(listwidget.item(index).text())
+                ii = self.dicoselect[ky][0].index(listwidget.item(index).text())
                 if self.dicoselect[ky][1][ii]:
                     listwidget.item(index).setSelected(True)
                     lky.add(self.dicoselect[ky][0][ii])
             listwidget.blockSignals(False)
-            if i<len(l)-2: #not next ky in ['fish_code_alternative','inv_code_alternative']
+            if i < len(l) - 2:  # not next ky in ['fish_code_alternative','inv_code_alternative']
                 if self.biological_models_dict_gui['orderedKeysmultilist'][i]:  # if multi
                     sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[ky]]
                 else:  # if solo
                     sky = [x in lky for x in self.biological_models_dict_gui[ky]]
-                bio_models_selected= np.logical_and(bio_models_selected, np.array(sky))
+                bio_models_selected = np.logical_and(bio_models_selected, np.array(sky))
             if i < len(l) - 3:  # not next ky in ['fish_code_alternative','inv_code_alternative']
-                kynext=l[i + 1]
+                kynext = l[i + 1]
                 sp = [x for x, y in zip(self.biological_models_dict_gui[kynext], list(bio_models_selected)) if y]
-                if self.biological_models_dict_gui['orderedKeysmultilist'][i+1]:
+                if self.biological_models_dict_gui['orderedKeysmultilist'][i + 1]:
                     sp = {x for y in sp for x in y}
                 else:
                     sp = set(sp)
@@ -308,7 +309,7 @@ class BioModelFilterTab(QScrollArea):
                     if item in sp:
                         listwidget.addItem(item)
                 listwidget.blockSignals(False)
-            if  i == len(l) - 3:
+            if i == len(l) - 3:
                 sp = [x for x, y in zip(self.biological_models_dict_gui['code_alternative'],
                                         list(bio_models_selected)) if y]
                 sp = {x for y in sp for x in y}
@@ -317,30 +318,39 @@ class BioModelFilterTab(QScrollArea):
                     if self.dicoselect[kyi][2]:
                         listwidget = eval("self." + kyi + "_listwidget")
                         listwidget.blockSignals(True)
-                        inditem=-1
+                        inditem = -1
                         for ind, item in enumerate(self.dicoselect[kyi][0]):
                             if item in sp:
                                 listwidget.addItem(item)
-                                inditem+=1
+                                inditem += 1
                                 if self.dicoselect[kyi][1][ind]:
                                     listwidget.item(inditem).setSelected(True)
                         listwidget.blockSignals(False)
                 return
 
+    def clear_filter(self, first_time=False):
+        """
+        clearing 'fish_code_alternative' and 'inv_code_alternative' associated listwidgets
+        """
+        for kyi in self.biological_models_dict_gui['orderedKeys']:
+            listwidget = eval("self." + kyi + "_listwidget")
+            if not first_time:
+                self.dicoselect[kyi][2] = False  # all subkeys are off
+            if listwidget.count() != 0:
+                listwidget.blockSignals(True)
+                listwidget.clear()
+                listwidget.blockSignals(False)
 
-
-    def ResultFromSelected(self):
+    def result_from_selected(self):
         """
         building the view selection of biological models
         after selection in a 'regular' ' key/filter/listwidgets
         determining  the biological_models_dict_gui['selected']
-        :return:
         """
         ky = self.sender().objectName()
         # get selected
         listwidget = self.sender()
         selection = listwidget.selectedItems()
-
 
         actual_key_ind = self.biological_models_dict_gui['orderedKeys'].index(ky)
         next_key_ind = actual_key_ind + 1
@@ -349,61 +359,52 @@ class BioModelFilterTab(QScrollArea):
             lky = {selection_item.text() for selection_item in selection}
             self.dicoselect[ky][1] = [x in lky for x in self.dicoselect[ky][0]]
 
-        self.biological_models_dict_gui['selected'] = np.ones((len(self.biological_models_dict_gui['selected']),), dtype=bool)
+        self.biological_models_dict_gui['selected'] = np.ones((len(self.biological_models_dict_gui['selected']),),
+                                                              dtype=bool)
         for iky in range(next_key_ind):
-            kyi=self.biological_models_dict_gui['orderedKeys'][iky]
-            lky={x for x,y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
-            if self.biological_models_dict_gui['orderedKeysmultilist'][iky]: # if multi
+            kyi = self.biological_models_dict_gui['orderedKeys'][iky]
+            lky = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
+            if self.biological_models_dict_gui['orderedKeysmultilist'][iky]:  # if multi
                 sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[kyi]]
-            else: # if solo
+            else:  # if solo
                 sky = [x in lky for x in self.biological_models_dict_gui[kyi]]
-            self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'], np.array(sky))
-            self.dicoselect[kyi][2]=True
+            self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'],
+                                                                         np.array(sky))
+            self.dicoselect[kyi][2] = True
         if next_key_ind != len(self.biological_models_dict_gui['orderedKeys']):
             for indice in range(next_key_ind, len(self.biological_models_dict_gui['orderedKeys'])):
-                #print("loop key", self.biological_models_dict_gui['orderedKeys'][indice])
+                # print("loop key", self.biological_models_dict_gui['orderedKeys'][indice])
                 listwidget = eval("self." + self.biological_models_dict_gui['orderedKeys'][indice] + "_listwidget")
-                self.dicoselect[self.biological_models_dict_gui['orderedKeys'][indice]][2] = False    # all subkeys are off
+                self.dicoselect[self.biological_models_dict_gui['orderedKeys'][indice]][
+                    2] = False  # all subkeys are off
                 if listwidget.count() != 0:
                     listwidget.blockSignals(True)
                     listwidget.clear()
                     listwidget.blockSignals(False)
-                    #print("clear", self.biological_models_dict_gui['orderedKeys'][indice], listwidget.objectName())
-            self.cleardispatch()
+                    # print("clear", self.biological_models_dict_gui['orderedKeys'][indice], listwidget.objectName())
+            self.clear_filter_dispatch()
             if selection:
-                self.ResultToSelected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
+                self.result_to_selected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
         else:
             if selection:
-                self.ResultToSelectedDispatch()
+                self.result_to_selected_dispatch()
             else:
-                self.cleardispatch()
+                self.clear_filter_dispatch()
         if ky == "country" and not selection:
             self.biological_models_dict_gui['selected'] = np.zeros((len(self.biological_models_dict_gui['selected']),),
                                                                    dtype=bool)
 
-    def cleardispatch(self):
-        """
-         clearing 'fish_code_alternative' and 'inv_code_alternative' associated listwidgets
-        :return:
-        """
-        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
-            listwidget = eval("self." + kyi + "_listwidget")
-            self.dicoselect[kyi][2] = False  # all subkeys are off
-            if listwidget.count() != 0:
-                listwidget.blockSignals(True)
-                listwidget.clear()
-                listwidget.blockSignals(False)
-
-    def ResultToSelected(self, ky):
+    def result_to_selected(self, ky):
         """
         building the view selection of biological models
         after selection adding items in the following key
         :param ky: a dictionnary key belonging both to biological_models_dict_gui and dicoselect dictionnaries and used to name listwidget associated
-        :return:
         """
-        #print("ResultToSelected", ky)
-        sp = [x for x, y in zip(self.biological_models_dict_gui[ky], list(self.biological_models_dict_gui['selected'])) if y]
-        if self.biological_models_dict_gui['orderedKeysmultilist'][self.biological_models_dict_gui['orderedKeys'].index(ky)]:
+        # print("result_to_selected", ky)
+        sp = [x for x, y in zip(self.biological_models_dict_gui[ky], list(self.biological_models_dict_gui['selected']))
+              if y]
+        if self.biological_models_dict_gui['orderedKeysmultilist'][
+            self.biological_models_dict_gui['orderedKeys'].index(ky)]:
             sp = {x for y in sp for x in y}
         else:
             sp = set(sp)
@@ -418,17 +419,30 @@ class BioModelFilterTab(QScrollArea):
                 listwidget.addItem(self.dicoselect[ky][0][ind])
         listwidget.selectAll()
 
-    def ResultFromSelectedDispatch(self):
+    def clear_filter_dispatch(self, first_time=False):
+        """
+        clearing 'fish_code_alternative' and 'inv_code_alternative' associated listwidgets
+        """
+        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
+            listwidget = eval("self." + kyi + "_listwidget")
+            if not first_time:
+                self.dicoselect[kyi][2] = False  # all subkeys are off
+            if listwidget.count() != 0:
+                listwidget.blockSignals(True)
+                listwidget.clear()
+                listwidget.blockSignals(False)
+
+    def result_from_selected_dispatch(self):
         """
         building the view selection of biological models
         after selection in the ' key/filter 'fish_code_alternative' or 'inv_code_alternative' key/listwidgets
         determining  the biological_models_dict_gui['selected']
-        :return:
         """
-        ky = self.sender().objectName() #'fish_code_alternative' or 'inv_code_alternative']:
+        ky = self.sender().objectName()  # 'fish_code_alternative' or 'inv_code_alternative']:
         listwidget = self.sender()
         selection = listwidget.selectedItems()
-        self.biological_models_dict_gui['selected'] = np.ones((len(self.biological_models_dict_gui['selected']),), dtype=bool)
+        self.biological_models_dict_gui['selected'] = np.ones((len(self.biological_models_dict_gui['selected']),),
+                                                              dtype=bool)
         for iky in range(len(self.biological_models_dict_gui['orderedKeys'])):
             kyi = self.biological_models_dict_gui['orderedKeys'][iky]
             lky = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
@@ -440,17 +454,17 @@ class BioModelFilterTab(QScrollArea):
                                                                          np.array(sky))
             self.dicoselect[kyi][2] = True
         for kyi in ['fish_code_alternative', 'inv_code_alternative']:
-            if kyi!= ky:
+            if kyi != ky:
                 lkyi = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
                 skyi = [len(lkyi & x) != 0 for x in self.biological_models_dict_gui['code_alternative']]
         lkyj = {selection_item.text() for selection_item in selection}
         self.dicoselect[ky][1] = [x in lkyj for x in self.dicoselect[ky][0]]
         skyj = [len(lkyj & x) != 0 for x in self.biological_models_dict_gui['code_alternative']]
-        askyj=np.logical_or(np.array(skyi),np.array(skyj))
-        self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'],askyj)
+        askyj = np.logical_or(np.array(skyi), np.array(skyj))
+        self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'], askyj)
         self.dicoselect[ky][2] = True
 
-    def ResultToSelectedDispatch(self):
+    def result_to_selected_dispatch(self):
         """
         building the view selection of biological models
         after selection in the last 'regular' key/filter adding items in 'fish_code_alternative','inv_code_alternative' key/listwidgets
@@ -460,7 +474,7 @@ class BioModelFilterTab(QScrollArea):
                                 list(self.biological_models_dict_gui['selected']))
               if y]
         sp = {x for y in sp for x in y}
-        for kyi in ['fish_code_alternative','inv_code_alternative']:
+        for kyi in ['fish_code_alternative', 'inv_code_alternative']:
             self.dicoselect[kyi][1] = [x in sp for x in self.dicoselect[kyi][0]]
             self.dicoselect[kyi][2] = False  # the key is off
             listwidget = eval("self." + kyi + "_listwidget")
@@ -470,10 +484,12 @@ class BioModelFilterTab(QScrollArea):
             listwidget.selectAll()
 
 
+
+
 class BioModelInfoSelection(QScrollArea):
     """
-     This class contains the tab with Graphic production biological information (the curves of preference).
-     """
+    This class contain second tab (Model selection).
+    """
     send_log = pyqtSignal(object, name='send_log')
     """
     A PyQt signal to send the log.
@@ -503,17 +519,17 @@ class BioModelInfoSelection(QScrollArea):
 
         """ WIDGET """
         # available_aquatic_animal
-        available_aquatic_animal_label = QLabel(self.tr("Available models"))
+        self.available_aquatic_animal_label = QLabel(self.tr("Available models") + " (0)")
         self.available_aquatic_animal_listwidget = QListWidget()
         self.available_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("available"))
         self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
         self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        selected_aquatic_animal_label = QLabel(self.tr("Selected models"))
+        self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
-        #self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
         latin_name_title_label = QLabel(self.tr('Latin Name: '))
@@ -535,7 +551,7 @@ class BioModelInfoSelection(QScrollArea):
         self.description_textedit.setReadOnly(True)
         # image fish
         self.animal_picture_label = QLabel()
-        #self.animal_picture_label.setFrameShape(QFrame.Panel)
+        # self.animal_picture_label.setFrameShape(QFrame.Panel)
         self.animal_picture_label.setAlignment(Qt.AlignCenter)
 
         # add
@@ -549,13 +565,13 @@ class BioModelInfoSelection(QScrollArea):
         """ GROUP ET LAYOUT """
         # aquatic_animal
         self.aquatic_animal_layout = QGridLayout()
-        self.aquatic_animal_layout.addWidget(available_aquatic_animal_label, 0, 0)
+        self.aquatic_animal_layout.addWidget(self.available_aquatic_animal_label, 0, 0)
         self.aquatic_animal_layout.addWidget(self.available_aquatic_animal_listwidget, 1, 0)
-        self.aquatic_animal_layout.addWidget(selected_aquatic_animal_label, 0, 1)
+        self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_label, 0, 1)
         self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_listwidget, 1, 1)
 
         # information_curve
-        self.information_curve_group = QGroupBox("Suitability curve informations")
+        self.information_curve_group = QGroupBox("Suitability curve information")
         self.information_curve_layout = QGridLayout(self.information_curve_group)
         self.information_curve_layout.addWidget(latin_name_title_label, 0, 0)
         self.information_curve_layout.addWidget(self.latin_name_label, 0, 1)
@@ -589,17 +605,21 @@ class BioModelInfoSelection(QScrollArea):
         tools_frame.setLayout(global_layout)
 
     def fill_available_aquatic_animal(self):
-        print("fill_available_aquatic_animal")
         self.available_aquatic_animal_listwidget.clear()
         # line name
         item_list = []
         for selected_xml_ind, selected_xml_tf in enumerate(self.biological_models_dict_gui["selected"]):
             if selected_xml_tf:
                 for selected_stage_ind, selected_stage_tf in enumerate(self.dicoselect["stage_and_size"][1]):
-                    if self.dicoselect["stage_and_size"][0][selected_stage_ind] in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
-                        item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " + self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " + self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
+                    if self.dicoselect["stage_and_size"][0][selected_stage_ind] in \
+                            self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
+                        item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " +
+                                         self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " +
+                                         self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
         self.available_aquatic_animal_listwidget.addItems(item_list)
+        # change qlabel
+        self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(len(item_list)) + ")")
 
     def add_fish(self):
         """
@@ -617,7 +637,10 @@ class BioModelInfoSelection(QScrollArea):
         if selected_item and selected_item.text() not in self.selected_aquatic_animal_list:
             # add it to selected
             self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
+            # add it to list
             self.selected_aquatic_animal_list.append(selected_item.text())
+        # change qlabel
+        self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(len(self.selected_aquatic_animal_list)) + ")")
 
     def remove_fish(self):
         """
@@ -625,6 +648,9 @@ class BioModelInfoSelection(QScrollArea):
         """
         # remove it from available
         item = self.selected_aquatic_animal_listwidget.takeItem(self.selected_aquatic_animal_listwidget.currentRow())
+        # remove it from list
+        self.selected_aquatic_animal_list.pop(self.selected_aquatic_animal_list.index(item.text()))
+
         # clear selection
         self.selected_aquatic_animal_listwidget.clearSelection()
 
@@ -637,7 +663,8 @@ class BioModelInfoSelection(QScrollArea):
             item_loop = self.available_aquatic_animal_listwidget.item(item_index)
             if item_loop.text() == item.text():
                 item_loop.setFont(font)
-        item = None
+        # change qlabel
+        self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(len(self.selected_aquatic_animal_list)) + ")")
 
     def show_info_fish(self, listwidget_source):
         """
@@ -699,7 +726,8 @@ class BioModelInfoSelection(QScrollArea):
 
         if os.path.isfile(pngfile):
             self.animal_picture_label.clear()
-            self.animal_picture_label.setPixmap(QPixmap(pngfile).scaled(self.animal_picture_label.size() * 0.95, Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
+            self.animal_picture_label.setPixmap(QPixmap(pngfile).scaled(self.animal_picture_label.size() * 0.95,
+                                                                        Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
         else:
             self.animal_picture_label.clear()
 
@@ -778,14 +806,13 @@ class BioModelInfoSelection(QScrollArea):
 
         # create dict
         self.item_dict = dict(source_str=source_str,
-                         item_text_list=item_text_list)
+                              item_text_list=item_text_list)
 
         # emit signal
         self.nativeParentWidget().send_fill.emit("")
 
         # close window
         self.quit_biological_model_explorer()
-
 
     def quit_biological_model_explorer(self):
         self.parent().parent().parent().close()
