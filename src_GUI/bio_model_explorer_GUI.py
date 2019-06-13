@@ -358,7 +358,8 @@ class BioModelFilterTab(QScrollArea):
             # selected_values_list
             lky = {selection_item.text() for selection_item in selection}
             self.dicoselect[ky][1] = [x in lky for x in self.dicoselect[ky][0]]
-
+        else:
+            self.dicoselect[ky][1] = [False]*len(self.dicoselect[ky][1])
         self.biological_models_dict_gui['selected'] = np.ones((len(self.biological_models_dict_gui['selected']),),
                                                               dtype=bool)
         for iky in range(next_key_ind):
