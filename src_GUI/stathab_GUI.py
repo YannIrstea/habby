@@ -103,6 +103,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.riverint = 0  # the type of river (default 0, tropical river 1, tropical river bivarate 2)
         self.rivtype_str = [self.tr('Temperate River - Default'), self.tr('Tropical River - Univariate'),
                             self.tr('Tropical River - Bivariate')]
+        self.selected_aquatic_animal_list = []
 
         self.init_iu()
 
@@ -165,9 +166,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         l2 = QLabel(self.tr("Reaches"))
         self.l3 = QLabel(self.tr("File found"))
         self.l4 = QLabel(self.tr("File still needed"))
-        l5 = QLabel(self.tr("Available Fish"))
-        l6 = QLabel(self.tr("Selected Fish"))
-        self.fishall = QPushButton(self.tr('Select all fishes'))
+        l6 = QLabel(self.tr("Selected models"))
+        #self.fishall = QPushButton(self.tr('Select all fishes'))
         # not used anymore (not really helpful). I let it ehre anyway for completness.
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Save and run Stathab"))
@@ -189,6 +189,10 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.rivtype.setCurrentIndex(self.riverint)
         self.mystathab.riverint = self.riverint
 
+        # explore_bio_model
+        self.explore_bio_model_pushbutton = QPushButton(self.tr('Choose biological models'))
+        self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
+
         # avoid list which look too big or too small
         size_max = self.frameGeometry().height() / 2.5
         self.list_needed.setMaximumHeight(size_max)
@@ -203,12 +207,12 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.runb.clicked.connect(self.run_stathab_gui)
         self.list_re.itemClicked.connect(self.reach_selected)
         self.list_f.itemClicked.connect(self.add_fish)
-        self.list_s.itemClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_listwidget.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
-        self.list_s.itemActivated.connect(self.remove_fish)
-        self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.selected_aquatic_animal_listwidget.itemActivated.connect(self.remove_fish)
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.fishall.clicked.connect(self.add_all_fish)
+        #self.fishall.clicked.connect(self.add_all_fish)
         self.rivtype.currentIndexChanged.connect(self.change_riv_type)
 
         # update label and list
@@ -254,13 +258,12 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.list_file, 2, 1)
         self.layout.addWidget(self.list_needed, 2, 2)
         self.layout.addWidget(self.rivtype, 3, 2)
-        self.layout.addWidget(l5, 4, 0)
-        self.layout.addWidget(l6, 4, 1)
+        self.layout.addWidget(l6, 4, 0)
         # self.layout.addWidget(loadhdf5b, 5, 2)
-        self.layout.addWidget(self.list_f, 5, 0, 2, 1)
-        self.layout.addWidget(self.list_s, 5, 1, 2, 1)
+        self.layout.addWidget(self.selected_aquatic_animal_listwidget, 5, 0, 2, 1)
         self.layout.addWidget(self.runb, 6, 2)
-        self.layout.addWidget(self.fishall, 7, 1)
+        self.layout.addWidget(self.explore_bio_model_pushbutton, 7, 0)
+        #self.layout.addWidget(self.fishall, 7, 1)
         self.layout.addWidget(self.butfig, 7, 2)
 
         # self.setLayout(self.layout3)
@@ -284,7 +287,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.list_s.clear()
+        self.selected_aquatic_animal_listwidget.clear()
         self.list_needed.clear()
         self.list_f.clear()
         self.fish_selected = []
@@ -323,6 +326,17 @@ class StathabW(estimhab_GUI.StatModUseful):
             # fill the lists with the existing files
             self.load_from_txt_gui()
 
+    def open_bio_model_explorer(self):
+        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("stat_hab")
+
+    def fill_selected_models_listwidets(self, new_item_text_list):
+        # add new item if not exist
+        for item_str in new_item_text_list:
+            if item_str not in self.fish_selected:
+                # add it to selected
+                self.selected_aquatic_animal_listwidget.addItem(item_str)
+                self.fish_selected.append(item_str)
+
     def change_riv_type(self):
         """
         This function manage the changes which needs to happends to the GUI when the user want to pass from
@@ -337,7 +351,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.list_s.clear()
+        self.selected_aquatic_animal_listwidget.clear()
         self.list_needed.clear()
         self.list_f.clear()
         self.fish_selected = []
@@ -644,7 +658,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.list_s.clear()
+        self.selected_aquatic_animal_listwidget.clear()
         self.list_needed.clear()
         self.fish_selected = []
         self.firstitemreach = []
@@ -826,14 +840,14 @@ class StathabW(estimhab_GUI.StatModUseful):
                 if items[i].text() in self.fish_selected:
                     pass
                 else:
-                    self.list_s.addItem(items[i].text())
+                    self.selected_aquatic_animal_listwidget.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
 
                 # order the list (careful QLIstWidget do not order as sort from list)
                 if self.fish_selected:
                     self.fish_selected.sort()
-                    self.list_s.clear()
-                    self.list_s.addItems(self.fish_selected)
+                    self.selected_aquatic_animal_listwidget.clear()
+                    self.selected_aquatic_animal_listwidget.addItems(self.fish_selected)
                     # bold for selected fish
                     font = QFont()
                     font.setItalic(True)
@@ -845,7 +859,7 @@ class StathabW(estimhab_GUI.StatModUseful):
     def run_stathab_gui(self):
         """
         This is the function which calls the function to run the Stathab model.  First it read the list called
-        self.list_s. This is the list with the fishes selected by the user. Then, it calls the function to run
+        self.selected_aquatic_animal_listwidget. This is the list with the fishes selected by the user. Then, it calls the function to run
         stathab and the one to create the figure if the figures were asked by the user. Finally, it writes the log.
         """
         self.send_log.emit('# Run Stathab from loaded data')
@@ -854,7 +868,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.fish_chosen = []
         fish_list = []
         by_vol = True
-        if self.list_s.count() == 0:
+        if self.selected_aquatic_animal_listwidget.count() == 0:
             self.msge.setIcon(QMessageBox.Warning)
             self.msge.setWindowTitle(self.tr("STATHAB"))
             self.msge.setText(self.tr("Unable to load the STATHAB data!"))
@@ -862,8 +876,8 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.msge.show()
             self.send_log.emit('Error: no fish chosen')
             return
-        for i in range(0, self.list_s.count()):
-            fish_item = self.list_s.item(i)
+        for i in range(0, self.selected_aquatic_animal_listwidget.count()):
+            fish_item = self.selected_aquatic_animal_listwidget.item(i)
             fish_item_str = fish_item.text()
             self.mystathab.fish_chosen.append(fish_item_str)
         self.mystathab.path_txt = self.find_path_text_est()

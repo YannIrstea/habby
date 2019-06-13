@@ -48,6 +48,7 @@ class BioModelExplorerWindow(QDialog):
     BioModelExplorerWindow
     """
     send_log = pyqtSignal(str, name='send_log')
+    send_fill = pyqtSignal(str, name='send_fill')
     """
     A PyQtsignal used to write the log.
     """
@@ -89,7 +90,10 @@ class BioModelExplorerWindow(QDialog):
         self.setWindowTitle(self.tr("Biological model explorer"))
         self.setWindowIcon(QIcon(self.name_icon))
 
-    def open_bio_model_explorer(self):
+    def open_bio_model_explorer(self, source_str):
+        # source
+        self.source_str = source_str
+
         # mainwindow
         mainwindow_center = self.nativeParentWidget().geometry().center()
 
@@ -116,7 +120,6 @@ class BioModelFilterTab(QScrollArea):
      """
     send_log = pyqtSignal(str, name='send_log')
     send_selection = pyqtSignal(object, name='send_selection')
-    send_fill = pyqtSignal(object, name='send_fill')
     """
     A PyQt signal to send the log.
     """
@@ -403,6 +406,7 @@ class BioModelInfoSelection(QScrollArea):
         self.name_prj = name_prj
         self.plot_process_list = plot_process_list
         self.selected_fish_cd_biological_model = None
+        self.selected_aquatic_animal_list = []
         self.msg2 = QMessageBox()
         self.init_iu()
         self.lang = 0
@@ -418,17 +422,17 @@ class BioModelInfoSelection(QScrollArea):
 
         """ WIDGET """
         # available_aquatic_animal
-        available_aquatic_animal_label = QLabel(self.tr("Available aquiatic animal"))
+        available_aquatic_animal_label = QLabel(self.tr("Available models"))
         self.available_aquatic_animal_listwidget = QListWidget()
         self.available_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("available"))
         self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
         self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        selected_aquatic_animal_label = QLabel(self.tr("Selected aquatic animal"))
+        selected_aquatic_animal_label = QLabel(self.tr("Selected models"))
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
-        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        #self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
         latin_name_title_label = QLabel(self.tr('Latin Name: '))
@@ -437,13 +441,14 @@ class BioModelInfoSelection(QScrollArea):
         self.show_curve_pushbutton = QPushButton(self.tr('Show suitability curve'))
         self.show_curve_pushbutton.clicked.connect(self.show_pref)
         # code_alternative
-        code_alternative_title_label = QLabel(self.tr('ONEMA fish code: '))
+        code_alternative_title_label = QLabel(self.tr('Code alternative:'))
         self.code_alternative_label = QLabel("")
         # hydrosignature
         self.hydrosignature_pushbutton = QPushButton(self.tr('Show Measurement Conditions (Hydrosignature)'))
         self.hydrosignature_pushbutton.clicked.connect(self.show_hydrosignature)
         # description
         description_title_label = QLabel(self.tr('Description:'))
+        description_title_label.setAlignment(Qt.AlignTop)
         self.description_textedit = QTextEdit(self)  # where the log is show
         self.description_textedit.setFrameShape(QFrame.NoFrame)
         self.description_textedit.setReadOnly(True)
@@ -462,7 +467,6 @@ class BioModelInfoSelection(QScrollArea):
 
         """ GROUP ET LAYOUT """
         # aquatic_animal
-        #self.aquatic_animal_group = QGroupBox("")
         self.aquatic_animal_layout = QGridLayout()
         self.aquatic_animal_layout.addWidget(available_aquatic_animal_label, 0, 0)
         self.aquatic_animal_layout.addWidget(self.available_aquatic_animal_listwidget, 1, 0)
@@ -470,7 +474,7 @@ class BioModelInfoSelection(QScrollArea):
         self.aquatic_animal_layout.addWidget(self.selected_aquatic_animal_listwidget, 1, 1)
 
         # information_curve
-        self.information_curve_group = QGroupBox("")
+        self.information_curve_group = QGroupBox("Suitability curve informations")
         self.information_curve_layout = QGridLayout(self.information_curve_group)
         self.information_curve_layout.addWidget(latin_name_title_label, 0, 0)
         self.information_curve_layout.addWidget(self.latin_name_label, 0, 1)
@@ -518,9 +522,6 @@ class BioModelInfoSelection(QScrollArea):
         """
         The function is used to select a new fish species (or inverterbrate)
         """
-        # remove it from available
-        #item = self.available_aquatic_animal_listwidget.takeItem(self.available_aquatic_animal_listwidget.currentRow())
-
         # get item
         selected_item = self.available_aquatic_animal_listwidget.selectedItems()[0]
         font = QFont()
@@ -530,9 +531,10 @@ class BioModelInfoSelection(QScrollArea):
         # clear selection
         self.available_aquatic_animal_listwidget.clearSelection()
 
-        if selected_item:
+        if selected_item and selected_item.text() not in self.selected_aquatic_animal_list:
             # add it to selected
             self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
+            self.selected_aquatic_animal_list.append(selected_item.text())
 
     def remove_fish(self):
         """
@@ -683,7 +685,24 @@ class BioModelInfoSelection(QScrollArea):
             self.plot_process_list.append((hydrosignature_process, state))
 
     def add_selected_to_main(self):
-        print(self.sender())
+        # source
+        source_str = self.nativeParentWidget().source_str
+
+        # get selected models
+        item_text_list = []
+        for item_index in range(self.selected_aquatic_animal_listwidget.count()):
+            item_text_list.append(self.selected_aquatic_animal_listwidget.item(item_index).text())
+
+        # create dict
+        self.item_dict = dict(source_str=source_str,
+                         item_text_list=item_text_list)
+
+        # emit signal
+        self.nativeParentWidget().send_fill.emit("")
+
+        # close window
+        self.quit_biological_model_explorer()
+
 
     def quit_biological_model_explorer(self):
         self.parent().parent().parent().close()

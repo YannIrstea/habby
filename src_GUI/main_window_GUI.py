@@ -252,6 +252,7 @@ class MainWindows(QMainWindow):
         self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
                                                                 self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
         self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
+        self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
         # set theme
         if self.actual_theme == "classic":
@@ -365,6 +366,16 @@ class MainWindows(QMainWindow):
                     f.write('close')
             except IOError:
                 return
+
+    def fill_selected_models_listwidets(self):
+        # get dict
+        item_dict = self.bio_model_explorer_dialog.bio_model_infoselection_tab.item_dict
+
+        if item_dict["source_str"] == "calc_hab":
+            self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict["item_text_list"])
+
+        if item_dict["source_str"] == "stat_hab":
+            self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict["item_text_list"])
 
     def setlangue(self, nb_lang):
         """
@@ -731,7 +742,7 @@ class MainWindows(QMainWindow):
 
         :param point: Not understood, link with the position of the menu.
         """
-        if self.central_widget.bioinfo_tab.list_s.underMouse():
+        if self.central_widget.bioinfo_tab.selected_aquatic_animal_listwidget.underMouse():
             self.central_widget.bioinfo_tab.show_info_fish(True)
         elif self.central_widget.bioinfo_tab.list_f.underMouse():
             self.central_widget.bioinfo_tab.show_info_fish(False)
@@ -1585,8 +1596,8 @@ class MainWindows(QMainWindow):
 
         # get chosen fish (xml name of the file)
         fish_list = []
-        for i in range(0, self.central_widget.statmod_tab.list_s.count()):
-            fish_item = self.central_widget.statmod_tab.list_s.item(i)
+        for i in range(0, self.central_widget.statmod_tab.selected_aquatic_animal_listwidget.count()):
+            fish_item = self.central_widget.statmod_tab.selected_aquatic_animal_listwidget.item(i)
             fish_item_str = fish_item.text()
             fish_list.append(fish_item_str)
 

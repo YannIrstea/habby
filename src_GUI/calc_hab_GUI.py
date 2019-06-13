@@ -36,6 +36,7 @@ from src import hdf5_mod
 from src import plot_mod
 from src_GUI import preferences_GUI
 from src_GUI.data_explorer_GUI import MyProcessList
+from habby import CONFIG_HABBY
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -93,6 +94,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
+        self.selected_aquatic_animal_list = []
         self.p = Process(target=None)  # second process
 
         self.init_iu()
@@ -114,10 +116,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # create lists with the possible fishes
         # right buttons for both QListWidget managed in the MainWindows class
         selected_fish_label = QLabel(self.tr('<b> Selected models </b>'))
-        self.explore_bio_model_pushbutton = QPushButton(self.tr('Explore biological models'))
+        self.explore_bio_model_pushbutton = QPushButton(self.tr('Choose biological models'))
+        self.explore_bio_model_pushbutton.setObjectName("calc_hab")
         self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
-        self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
 
         # run habitat value
@@ -143,7 +146,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         self.layout4.addWidget(selected_fish_label, 2, 0)
         self.layout4.addWidget(self.explore_bio_model_pushbutton, 2, 1)
-        self.layout4.addWidget(self.list_s, 3, 0, 3, 2)
+        self.layout4.addWidget(self.selected_aquatic_animal_listwidget, 3, 0, 3, 2)
 
         self.layout4.addWidget(self.l9, 3, 3)
         self.layout4.addWidget(self.choice_run, 4, 3)
@@ -155,7 +158,15 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.setWidget(content_widget)
 
     def open_bio_model_explorer(self):
-        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer()
+        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
+
+    def fill_selected_models_listwidets(self, new_item_text_list):
+        # add new item if not exist
+        for item_str in new_item_text_list:
+            if item_str not in self.selected_aquatic_animal_list:
+                # add it to selected
+                self.selected_aquatic_animal_listwidget.addItem(item_str)
+                self.selected_aquatic_animal_list.append(item_str)
 
     def select_fish(self):
         """
@@ -258,29 +269,40 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
         stages_chosen = []
-        name_fish = []
+        name_fish_list = []
         name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
         xmlfiles = []
-        for i in range(0, self.list_s.count()):
-            fish_item = self.list_s.item(i)
-            for j in range(0, self.list_f.count()):
-                if self.data_fish[j][0] == fish_item.text():
-                    pref_list.append(self.data_fish[j][2])
-                    stages_chosen.append(self.data_fish[j][1])
-                    if int(fig_dict['fish_name_type']) == 0:  # latin name
-                        name_fish.append(self.data_fish[j][7])
-                    elif int(fig_dict['fish_name_type']) == 1:  # french common name
-                        name_fish.append(self.data_fish[j][3])
-                    elif int(fig_dict['fish_name_type']) == 2:  # english common name
-                        name_fish.append(self.data_fish[j][4])
-                    elif int(fig_dict['fish_name_type']) == 3:  # code onema
-                        name_fish.append(self.data_fish[j][5])
-                    else:
-                        name_fish.append(self.data_fish[j][5])
-                    name_fish_sh.append(self.data_fish[j][5][:3] + self.data_fish[j][1][:3])
-                    name_fish_sel += fish_item.text() + ','
-                    xmlfiles.append(self.data_fish[j][2])
+        for i in range(0, self.selected_aquatic_animal_listwidget.count()):
+            # get info from list widget
+            fish_item_text = self.selected_aquatic_animal_listwidget.item(i).text()
+            name_fish = fish_item_text.split(":")[0]
+            name_fish_list.append(name_fish)
+            stage, code_bio_model = fish_item_text.split(":")[1].split(" - ")
+            stage = stage.strip()
+            index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+            pref_list.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish])
+            stages_chosen.append(stage)
+            name_fish_sh_text = code_bio_model + "_" + stage
+            name_fish_sh.append(name_fish_sh_text[:8])
+            name_fish_sel += name_fish + ','
+            xmlfiles.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
+            # if self.data_fish[j][0] == fish_item_text:
+            #     #pref_list.append(self.data_fish[j][2])
+            #     #stages_chosen.append(self.data_fish[j][1])
+            #     if int(fig_dict['fish_name_type']) == 0:  # latin name
+            #         name_fish.append(self.data_fish[j][7])
+            #     elif int(fig_dict['fish_name_type']) == 1:  # french common name
+            #         name_fish.append(self.data_fish[j][3])
+            #     elif int(fig_dict['fish_name_type']) == 2:  # english common name
+            #         name_fish.append(self.data_fish[j][4])
+            #     elif int(fig_dict['fish_name_type']) == 3:  # code onema
+            #         name_fish.append(self.data_fish[j][5])
+            #     else:
+            #         name_fish.append(self.data_fish[j][5])
+            #     #name_fish_sh.append(self.data_fish[j][5][:3] + self.data_fish[j][1][:3])
+            #     #name_fish_sel += fish_item.text() + ','
+            #     #xmlfiles.append(self.data_fish[j][2])
 
         # save the selected fish in the xml project file
         try:
@@ -339,7 +361,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.q4 = Queue()
         self.progress_value = Value("i", 0)
         self.p = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
-                                                                          name_fish, name_fish_sh, run_choice,
+                                                                          name_fish_list, name_fish_sh, run_choice,
                                                                           self.path_bio, path_txt, self.progress_value,
                                                                           self.q4, False, fig_dict, path_im_bioa,
                                                                           xmlfiles))

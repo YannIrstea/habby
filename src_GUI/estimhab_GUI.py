@@ -60,7 +60,7 @@ class StatModUseful(QScrollArea):
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
         self.list_f = QListWidget()
-        self.list_s = QListWidget()
+        self.selected_aquatic_animal_listwidget = QListWidget()
         self.msge = QMessageBox()
         self.fish_selected = []
         self.qall = []  # q1 q2 qmin qmax q50. Value cannot be added directly because of stathab.
@@ -84,11 +84,11 @@ class StatModUseful(QScrollArea):
         # order the list (careful QLIstWidget do not order as sort from list)
         if self.fish_selected:
             self.fish_selected.sort()
-            self.list_s.clear()
-            self.list_s.addItems(self.fish_selected)
+            self.selected_aquatic_animal_listwidget.clear()
+            self.selected_aquatic_animal_listwidget.addItems(self.fish_selected)
             # bold for selected fish
             font = QFont()
-            font.setItalic(True)
+            font.setBold(True)
             for i in range(0, self.list_f.count()):
                 for f in self.fish_selected:
                     if f == self.list_f.item(i).text():
@@ -98,14 +98,14 @@ class StatModUseful(QScrollArea):
         """
         The function is used to remove fish species (or inverterbates species)
         """
-        item = self.list_s.takeItem(self.list_s.currentRow())
+        item = self.selected_aquatic_animal_listwidget.takeItem(self.selected_aquatic_animal_listwidget.currentRow())
         try:
             self.fish_selected.remove(item.text())
         except ValueError:
             pass
         # bold for selected fish
         font = QFont()
-        font.setItalic(False)
+        font.setBold(False)
         for i in range(0, self.list_f.count()):
             if item.text() == self.list_f.item(i).text():
                 self.list_f.item(i).setFont(font)
@@ -115,7 +115,7 @@ class StatModUseful(QScrollArea):
         """
         This function removes all fishes from the selected fish
         """
-        self.list_s.clear()
+        self.selected_aquatic_animal_listwidget.clear()
         self.list_f.clear()
         self.fish_selected = []
         self.list_f.addItems(self.data_fish[:, 0])
@@ -413,10 +413,10 @@ class EstimhabW(StatModUseful):
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.itemClicked.connect(self.add_fish)
-        self.list_s.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.list_s.itemClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.selected_aquatic_animal_listwidget.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
-        self.list_s.itemActivated.connect(self.remove_fish)
+        self.selected_aquatic_animal_listwidget.itemActivated.connect(self.remove_fish)
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -460,7 +460,7 @@ class EstimhabW(StatModUseful):
         self.layout3.addWidget(l10, 8, 0)
         self.layout3.addWidget(l11, 8, 1)
         self.layout3.addWidget(self.list_f, 9, 0)
-        self.layout3.addWidget(self.list_s, 9, 1)
+        self.layout3.addWidget(self.selected_aquatic_animal_listwidget, 9, 1)
         self.layout3.addWidget(button1, 10, 2)
         # self.layout3.addWidget(button2, 10, 0)
 
@@ -547,7 +547,7 @@ class EstimhabW(StatModUseful):
                     dataset = list(dataset.values())[0]
                     for i in range(0, len(dataset)):
                         dataset_i = str(dataset[i])
-                        self.list_s.addItem(dataset_i[3:-2])
+                        self.selected_aquatic_animal_listwidget.addItem(dataset_i[3:-2])
                         self.fish_selected.append(dataset_i[3:-2])
 
                     file_estimhab.close()
@@ -615,8 +615,8 @@ class EstimhabW(StatModUseful):
         # get the list of xml file
         fish_list = []
         fish_name2 = []
-        for i in range(0, self.list_s.count()):
-            fish_item = self.list_s.item(i)
+        for i in range(0, self.selected_aquatic_animal_listwidget.count()):
+            fish_item = self.selected_aquatic_animal_listwidget.item(i)
             fish_item_str = fish_item.text()
             for id, f in enumerate(self.filenames[0]):
                 if f == fish_item_str:
