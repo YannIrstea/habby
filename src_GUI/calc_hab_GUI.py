@@ -98,6 +98,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.p = Process(target=None)  # second process
 
         self.init_iu()
+        self.add_sel_fish()
 
     def init_iu(self):
         """
@@ -120,8 +121,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.explore_bio_model_pushbutton.setObjectName("calc_hab")
         self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
-        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.NoSelection)
 
         # run habitat value
         self.l9 = QLabel(self.tr(' <b> Options for the computation </b>'))
@@ -159,6 +159,24 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
+
+    def add_sel_fish(self):
+        """
+        This function loads the xml file and check if some fish were selected before. If yes, we add them to the list
+        """
+        # open the xml file
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            # get the selected fish
+            child = root.find(".//Habitat/Fish_Selected")
+            if child is not None:
+                fish_selected_b = child.text
+                if fish_selected_b is not None:
+                    if ',' in fish_selected_b:
+                        fish_selected_b = fish_selected_b.split(',')
+                        self.fill_selected_models_listwidets(fish_selected_b)
 
     def fill_selected_models_listwidets(self, new_item_text_list):
         # add new item if not exist
@@ -276,6 +294,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         for i in range(0, self.selected_aquatic_animal_listwidget.count()):
             # get info from list widget
             fish_item_text = self.selected_aquatic_animal_listwidget.item(i).text()
+            name_fish_sel += fish_item_text + ","
             name_fish = fish_item_text.split(":")[0]
             name_fish_list.append(name_fish)
             stage, code_bio_model = fish_item_text.split(":")[1].split(" - ")
@@ -285,7 +304,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             stages_chosen.append(stage)
             name_fish_sh_text = code_bio_model + "_" + stage
             name_fish_sh.append(name_fish_sh_text[:8])
-            name_fish_sel += name_fish + ','
+            #name_fish_sel += name_fish + ','
             xmlfiles.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
             # if self.data_fish[j][0] == fish_item_text:
             #     #pref_list.append(self.data_fish[j][2])

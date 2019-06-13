@@ -1570,7 +1570,8 @@ class Hdf5Management:
 
         name_base = self.basename
         sim_name = self.units_name
-        fish_names = self.data_description["hab_fish_shortname_list"].split(", ")
+        fish_shortnames = self.data_description["hab_fish_shortname_list"].split(", ")
+        fish_names = self.data_description["hab_fish_list"].split(", ")
         unit_type = self.data_description["hyd_unit_type"][
                     self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
                         "hyd_unit_type"].find(']')]
@@ -1618,7 +1619,7 @@ class Hdf5Management:
             f.write(header)
             # header 3
             header = 'all\tall\tall '
-            for fish_name in fish_names * 2:
+            for fish_name in fish_shortnames * 2:
                 header += '\t' + fish_name.replace(' ', '_')
             header += '\n'
             f.write(header)
@@ -1670,7 +1671,7 @@ class Hdf5Management:
             # get data
             xmlfiles = self.data_description["hab_fish_pref_list"].split(", ")
             stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
-            path_im_bio = path_bio
+            #path_im_bio = path_bio
             path_out = os.path.join(self.path_prj, "output", "figures")
 
             plt.close()
@@ -1698,7 +1699,7 @@ class Hdf5Management:
             for idx, f in enumerate(xmlfiles):
 
                 # read pref
-                xmlfile = os.path.join(path_bio, f)
+                xmlfile = f
                 [h_all, vel_all, sub_all, code_fish, name_fish, stages] = \
                     bio_info_mod.read_pref(xmlfile)
 
@@ -1706,6 +1707,9 @@ class Hdf5Management:
                 attributes = ['Description', 'Image', 'French_common_name',
                               'English_common_name', ]
                 # careful: description is last data returned
+                path_bio = os.path.dirname(f)
+                path_im_bio = path_bio
+                f = os.path.basename(f)
                 data = bio_info_mod.load_xml_name(path_bio, attributes, [f])
 
                 # create figure
