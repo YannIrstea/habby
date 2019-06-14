@@ -834,7 +834,7 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if fig_opt['marker'] == 'True':
+    if fig_opt['marker']:
         mar = 'o'
     else:
         mar = None

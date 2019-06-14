@@ -1100,7 +1100,7 @@ def cut_2d_grid(ikle, point_all, water_height, velocity, progress_value, delta, 
     elif not True in mikle_keep:  # all meshes are entirely dry
         print('Error: all meshes are entirely dry')
         return failload
-    elif CutMeshPartialyDry == "False":  # only the dry meshes are cut (but not the partially ones)
+    elif not CutMeshPartialyDry:  # only the dry meshes are cut (but not the partially ones)
         mikle_keep = ikle_type != 0
         iklekeep = ikle[mikle_keep, ...]
         ind_whole = ind_whole[mikle_keep, ...]
@@ -2239,10 +2239,6 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
 
     if mesh:
         plt.figure()

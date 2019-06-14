@@ -82,13 +82,12 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
                 #return
-            #description_from_telemac_file["hyd_unit_z_equal"] = "True"
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
             data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
-            if description_from_telemac_file["hyd_unit_z_equal"] == "True":
+            if description_from_telemac_file["hyd_unit_z_equal"]:
                 data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][0])
-            elif description_from_telemac_file["hyd_unit_z_equal"] == "False":
+            elif not description_from_telemac_file["hyd_unit_z_equal"]:
                 for unit_num in range(len(description_from_indexHYDRAU_file[hyd_file]["unit_list"])):
                     data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][unit_num])
 
@@ -231,7 +230,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
         del data_2d_whole_profile['unit_correspondence']
-        if fig_opt["CutMeshPartialyDry"] == "False":
+        if not fig_opt["CutMeshPartialyDry"]:
             namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
             description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
@@ -349,7 +348,7 @@ def load_telemac(namefilet, pathfilet):
     description_from_telemac_file["hyd_unit_list"] = ", ".join(list(map(str, timestep)))
     description_from_telemac_file["hyd_unit_number"] = str(len(list(map(str, timestep))))
     description_from_telemac_file["hyd_unit_type"] = "timestep"
-    description_from_telemac_file["hyd_unit_z_equal"] = str(all_z_equal)
+    description_from_telemac_file["hyd_unit_z_equal"] = all_z_equal
 
     # data 2d dict
     data_2d = dict()

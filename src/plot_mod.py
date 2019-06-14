@@ -53,7 +53,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     plt.rcParams['legend.loc'] = 'best'
     plt.rcParams['lines.linewidth'] = fig_opt['line_width']
     plt.rcParams['axes.grid'] = fig_opt['grid']
-    if fig_opt['marker'] == 'True':
+    if fig_opt['marker']:
         mar = 'o'
     else:
         mar = None
@@ -194,11 +194,6 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
-
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
@@ -312,11 +307,6 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_i
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
-
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
@@ -391,11 +381,6 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
-
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
@@ -491,10 +476,7 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
     mpl.rcParams['pdf.fonttype'] = 42
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
+
 
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
@@ -601,10 +583,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     mpl.rcParams['pdf.fonttype'] = 42
     types_plot = fig_opt['type_plot']
     erase1 = fig_opt['erase_id']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
+
 
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
@@ -762,10 +741,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
     types_plot = fig_opt['type_plot']
     erase1 = fig_opt['erase_id']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
+
 
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
@@ -895,17 +871,12 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if fig_opt['marker'] == 'True':
+    if fig_opt['marker']:
         mar = 'o'
     else:
         mar = None
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase_id = True
-    else:
-        erase_id = False
-
     # prep data
     name_hdf5 = name_hdf5[:-4]
     area_all = list(map(float, data_description["total_wet_area"][reach_num]))
@@ -1114,17 +1085,12 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     format1 = int(fig_opt['format'])
     plt.rcParams['axes.grid'] = fig_opt['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if fig_opt['marker'] == 'True':
+    if fig_opt['marker']:
         mar = 'o'
     else:
         mar = None
     erase1 = fig_opt['erase_id']
     types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase_id = True
-    else:
-        erase_id = False
-
     # prep data
     if len(types.keys()) > 1:  # date
         data_presence = True

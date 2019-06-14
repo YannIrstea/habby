@@ -1045,11 +1045,6 @@ class Stathab:
         plt.rcParams['legend.loc'] = 'best'
         mpl.interactive(True)
         erase1 = self.fig_opt['erase_id']
-        if erase1 == 'True':  # xml in text
-            erase1 = True
-        else:
-            erase1 = False
-
         if len(self.q_all) < len(self.name_reach):
             print('Error: Could not find discharge data. Figure not plotted. \n')
             return
@@ -1201,11 +1196,6 @@ class Stathab:
         # to know if we kept the old file or we erase them
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
         erase1 = self.fig_opt['erase_id']
-        if erase1 == 'True':  # xml in text
-            erase1 = True
-        else:
-            erase1 = False
-
         if not isinstance(self.j_all, np.ndarray):
             print('Error: The suitability index was not in the right format')
             return

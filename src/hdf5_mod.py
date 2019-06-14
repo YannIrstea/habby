@@ -302,7 +302,7 @@ class Hdf5Management:
         ex : 'discharge [m3/s]', 'time [s]'
         'hyd_unit_wholeprofile' : str ("all") if same tin for all unit
                                 list of integer if tin different between units
-        'hyd_unit_z_equal' : str of boolean, 'True' if all z are egual between units, 'False' if the bottom values vary
+        'hyd_unit_z_equal' : boolean if all z are egual between units, 'False' if the bottom values vary
         """
         # create a new hdf5
         self.open_hdf5_file(new=True)
@@ -358,11 +358,11 @@ class Hdf5Management:
                                               shape=[len(data_2d_whole_profile["xy"][reach_num][unit_num]),
                                                      len(data_2d_whole_profile["xy"][reach_num][unit_num][0])],
                                               data=data_2d_whole_profile["xy"][reach_num][unit_num])
-                    if hyd_description["hyd_unit_z_equal"] == "True":
+                    if hyd_description["hyd_unit_z_equal"]:
                         node_group.create_dataset(name="z",
                                                   shape=[len(data_2d_whole_profile["z"][reach_num][0]), 1],
                                                   data=data_2d_whole_profile["z"][reach_num][0])
-                    if hyd_description["hyd_unit_z_equal"] == "False":
+                    if not hyd_description["hyd_unit_z_equal"]:
                         for unit_num2 in range(int(hyd_description["hyd_unit_number"])):
                             unit_group = reach_group.create_group('unit_' + str(unit_num2))
                             node_group = unit_group.create_group('node')
@@ -447,7 +447,7 @@ class Hdf5Management:
             data_2D_whole_profile = dict()
             data_2D_whole_profile["tin"] = []
             data_2D_whole_profile["xy"] = []
-            if hyd_description["hyd_unit_z_equal"] == "True":
+            if hyd_description["hyd_unit_z_equal"]:
                 data_2D_whole_profile["z"] = []
             data_group = 'data_2D_whole_profile'
 
@@ -457,7 +457,7 @@ class Hdf5Management:
                 # for all unit
                 tin_list = []
                 xy_list = []
-                if hyd_description["hyd_unit_z_equal"] == "True":
+                if hyd_description["hyd_unit_z_equal"]:
                     z_list = []
 
                 # for all units (selected or all)
@@ -473,7 +473,7 @@ class Hdf5Management:
                         tin_list.append(self.file_object[mesh_group + "/tin"][:])
                         # node
                         xy_list.append(self.file_object[node_group + "/xy"][:])
-                        if hyd_description["hyd_unit_z_equal"] == "True":
+                        if hyd_description["hyd_unit_z_equal"]:
                             z_list.append(self.file_object[node_group + "/z"][:])
                     except KeyError:
                         print(
@@ -482,7 +482,7 @@ class Hdf5Management:
                         return
                 data_2D_whole_profile["tin"].append(tin_list)
                 data_2D_whole_profile["xy"].append(xy_list)
-                if hyd_description["hyd_unit_z_equal"] == "True":
+                if hyd_description["hyd_unit_z_equal"]:
                     data_2D_whole_profile["z"].append(z_list)
 
         # DATA 2D
@@ -1103,7 +1103,7 @@ class Hdf5Management:
                         w.record(mesh_num)
 
                     # filename
-                    if fig_opt['erase_id'] == 'True':  # erase file if exist ?
+                    if fig_opt['erase_id']:  # erase file if exist ?
                         if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                             try:
                                 os.remove(os.path.join(self.path_shp, name_shp))
@@ -1258,7 +1258,7 @@ class Hdf5Management:
                             w.record(*data_here)
 
                         # filename
-                        if fig_opt['erase_id'] == 'True':  # erase file if exist ?
+                        if fig_opt['erase_id']:  # erase file if exist ?
                             if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                                 try:
                                     os.remove(os.path.join(self.path_shp, name_shp))
@@ -1320,7 +1320,7 @@ class Hdf5Management:
                 w.record(*data_here)
 
             # filename
-            if fig_opt['erase_id'] == 'True':  # erase file if exist ?
+            if fig_opt['erase_id']:  # erase file if exist ?
                 if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                     try:
                         os.remove(os.path.join(self.path_shp, name_shp))
@@ -1380,7 +1380,7 @@ class Hdf5Management:
                             w.record(*data_here)
 
                         # filename
-                        if fig_opt['erase_id'] == 'True':  # erase file if exist ?
+                        if fig_opt['erase_id']:  # erase file if exist ?
                             if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                                 try:
                                     os.remove(os.path.join(self.path_shp, name_shp))
@@ -1547,7 +1547,7 @@ class Hdf5Management:
 
                     # create the grid and the vtu files
                     name_file = os.path.join(self.path_visualisation, self.basename_output[reach_num][unit_num])
-                    if fig_opt["erase_id"] == "True":
+                    if fig_opt["erase_id"]:
                         if os.path.isfile(name_file):
                             os.remove(name_file)
                     file_names_all.append(name_file + ".vtu")
@@ -1557,7 +1557,7 @@ class Hdf5Management:
                 # create the "grouping" file to read all time step together
                 name_here = self.basename + "_" + self.reach_name[reach_num] + '.pvd'
                 file_names_all = list(map(os.path.basename, file_names_all))
-                if fig_opt["erase_id"] == "True":
+                if fig_opt["erase_id"]:
                     if os.path.isfile(name_here):
                         os.remove(name_here)
                 paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all)
@@ -1576,7 +1576,7 @@ class Hdf5Management:
                     self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
                         "hyd_unit_type"].find(']')]
 
-        if not fig_opt['erase_id'] == "True":
+        if not fig_opt['erase_id']:
             if fig_opt['language'] == 0:
                 name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
             else:
@@ -1926,7 +1926,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
     # to know if we have to save a new hdf5
     if save_option is None:
         save_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
-        if save_opt['erase_id'] == 'True':  # xml is all in string
+        if save_opt['erase_id']:  # xml is all in string
             erase_idem = True
         else:
             erase_idem = False
@@ -2165,7 +2165,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
 
     # to know if we have to save a new hdf5
     save_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
-    if save_opt['erase_id'] == 'True':  # xml is all in string
+    if save_opt['erase_id']:  # xml is all in string
         erase_idem = True
     else:
         erase_idem = False

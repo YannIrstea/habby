@@ -76,10 +76,6 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
         plt.rcParams['legend.loc'] = 'best'
     erase1 = fig_opt['erase_id']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
     if not fish_name:
         fish_name = fish_xml
 

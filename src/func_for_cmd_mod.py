@@ -768,7 +768,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
             [mystathab.fish_chosen, coeff_all] = stathab_mod.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
             fig_opt = preferences_GUI.create_default_figoption()
-            fig_opt['erase_id'] = 'True'
+            fig_opt['erase_id'] = True
             mystathab.fig_opt = fig_opt
             mystathab.savetxt_stathab()
             mystathab.savefig_stahab()
@@ -1298,10 +1298,6 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
 
 
         fig_opt = preferences_GUI.create_default_figoption()
-        fig_opt['text_output'] = 'True'
-        fig_opt['shape_output'] = 'True'
-        fig_opt['paraview'] = 'True'
-        fig_opt['erase_id'] = 'True'
 
         # run calculation
         progress_value = Value("i", 0)

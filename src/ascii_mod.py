@@ -150,8 +150,8 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_unit_wholeprofile"] = "all"
-    hyd_description["hyd_unit_z_equal"] = "True"
-    if fig_opt["CutMeshPartialyDry"] == "False":
+    hyd_description["hyd_unit_z_equal"] = True
+    if not fig_opt["CutMeshPartialyDry"]:
         namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
         data_description["hdf5_name"] = namehdf5_old + "_no_cut.hyd"
 

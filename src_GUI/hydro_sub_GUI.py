@@ -1523,10 +1523,6 @@ class HEC_RAS1D(SubHydroW):
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # from the xml
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -1971,10 +1967,6 @@ class Mascaret(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # from the xml
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -2531,10 +2523,6 @@ class Rubar1D(SubHydroW):
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # xml, string
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
         show_all_fig = True
         if path_im != 'no_path':
             self.save_fig = True
@@ -4193,10 +4181,6 @@ class LAMMI(SubHydroW):
         # get the image and load option
         path_im = self.find_path_im()
         self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # saved before in the xml file!
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
         show_all_fig = True
         if not os.path.isdir(self.pathfile[2]):
             self.pathfile[2] = []
@@ -4910,7 +4894,7 @@ class HabbyHdf5(SubHydroW):
 
             # join the two files
             self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-            if self.fig_opt['erase_id'] == 'True':
+            if self.fig_opt['erase_id']:
                 erase_id = True
             else:
                 erase_id = False

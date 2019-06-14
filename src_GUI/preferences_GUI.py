@@ -666,6 +666,26 @@ def load_fig_option(path_prj, name_prj):
         root = doc.getroot()
         child1 = root.find(".//Figure_Option")
         if child1 is not None:  # modify existing option
+            # other
+            langfig1 = root.find(".//LangFig")
+
+            # general
+            CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
+            hopt1 = root.find(".//MinHeight")
+            erase1 = root.find(".//EraseId")
+
+            # output
+            mesh_whole_profile = root.find(".//mesh_whole_profile")
+            point_whole_profile = root.find(".//point_whole_profile")
+            mesh_units = root.find(".//mesh_units")
+            point_units = root.find(".//point_units")
+            vertical_exaggeration = root.find(".//vertical_exaggeration")
+            elevation_whole_profile = root.find(".//elevation_whole_profile")
+            variables_units = root.find(".//variables_units")
+            detailled_text = root.find(".//detailled_text")
+            fish_information = root.find(".//fish_information")
+
+            # figures
             width1 = root.find(".//Width")
             height1 = root.find(".//Height")
             colormap1 = root.find(".//ColorMap1")
@@ -677,42 +697,21 @@ def load_fig_option(path_prj, name_prj):
             marker1 = root.find(".//Marker")
             reso1 = root.find(".//Resolution")
             fish1 = root.find(".//FishNameType")
-            mesh_whole_profile = root.find(".//mesh_whole_profile")
-            point_whole_profile = root.find(".//point_whole_profile")
-            mesh_units = root.find(".//mesh_units")
-            point_units = root.find(".//point_units")
-            vertical_exaggeration = root.find(".//vertical_exaggeration")
-            elevation_whole_profile = root.find(".//elevation_whole_profile")
-            variables_units = root.find(".//variables_units")
-            detailled_text = root.find(".//detailled_text")
-            fish_information = root.find(".//fish_information")
-            langfig1 = root.find(".//LangFig")
-            hopt1 = root.find(".//MinHeight")
-            CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
-            erase1 = root.find(".//EraseId")
+
             try:
-                if width1 is not None:
-                    fig_dict['width'] = float(width1.text)
-                if height1 is not None:
-                    fig_dict['height'] = float(height1.text)
-                if colormap1 is not None:
-                    fig_dict['color_map1'] = colormap1.text
-                if colormap2 is not None:
-                    fig_dict['color_map2'] = colormap2.text
-                if fontsize1 is not None:
-                    fig_dict['font_size'] = int(fontsize1.text)
-                if linewidth1 is not None:
-                    fig_dict['line_width'] = int(linewidth1.text)
-                if grid1 is not None:
-                    fig_dict['grid'] = grid1.text
-                if format1 is not None:
-                    fig_dict['format'] = format1.text
-                if marker1 is not None:
-                    fig_dict['marker'] = marker1.text
-                if reso1 is not None:
-                    fig_dict['resolution'] = int(reso1.text)
-                if fish1 is not None:
-                    fig_dict['fish_name_type'] = fish1.text
+                # other
+                if langfig1 is not None:
+                    fig_dict['language'] = int(langfig1.text)
+
+                # general
+                if CutMeshPartialyDry is not None:
+                    fig_dict['CutMeshPartialyDry'] = eval(CutMeshPartialyDry.text)
+                if hopt1 is not None:
+                    fig_dict['min_height_hyd'] = float(hopt1.text)
+                if erase1 is not None:
+                    fig_dict['erase_id'] = eval(erase1.text)
+
+                # output
                 if mesh_whole_profile is not None:
                     fig_dict['mesh_whole_profile'] = eval(mesh_whole_profile.text)
                 if point_whole_profile is not None:
@@ -731,14 +730,31 @@ def load_fig_option(path_prj, name_prj):
                     fig_dict['detailled_text'] = eval(detailled_text.text)
                 if fish_information is not None:
                     fig_dict['fish_information'] = eval(fish_information.text)
-                if langfig1 is not None:
-                    fig_dict['language'] = int(langfig1.text)
-                if hopt1 is not None:
-                    fig_dict['min_height_hyd'] = float(hopt1.text)
-                if CutMeshPartialyDry is not None:
-                    fig_dict['CutMeshPartialyDry'] = CutMeshPartialyDry.text
-                if erase1 is not None:
-                    fig_dict['erase_id'] = erase1.text
+
+                # figures
+                if width1 is not None:
+                    fig_dict['width'] = float(width1.text)
+                if height1 is not None:
+                    fig_dict['height'] = float(height1.text)
+                if colormap1 is not None:
+                    fig_dict['color_map1'] = colormap1.text
+                if colormap2 is not None:
+                    fig_dict['color_map2'] = colormap2.text
+                if fontsize1 is not None:
+                    fig_dict['font_size'] = int(fontsize1.text)
+                if linewidth1 is not None:
+                    fig_dict['line_width'] = int(linewidth1.text)
+                if grid1 is not None:
+                    fig_dict['grid'] = eval(grid1.text)
+                if format1 is not None:
+                    fig_dict['format'] = format1.text
+                if reso1 is not None:
+                    fig_dict['resolution'] = int(reso1.text)
+                if fish1 is not None:
+                    fig_dict['fish_name_type'] = fish1.text
+                if marker1 is not None:
+                    fig_dict['marker'] = eval(marker1.text)
+
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
 
@@ -747,37 +763,42 @@ def load_fig_option(path_prj, name_prj):
 
 def create_default_figoption():
     """
-    This function creates the default dictionnary of option for the figure.
+    This function creates the default dictionnary of project user preferences.
     """
-    fig_dict = {}
+    # init
+    fig_dict = dict()
+
+    # other
+    fig_dict['language'] = 0  # 0 english, 1 french
+
+    # general
+    fig_dict['CutMeshPartialyDry'] = True  # cut of not mesh partialy wet
+    fig_dict['min_height_hyd'] = 0.001  # node mesh minimum water height consider like dry
+    fig_dict['erase_id'] = True  # erase file (hdf5, outputs) if exist. if not set date/hour in filename
+
+    # output (first element list == for .hyd and second element list == for .hab)
+    fig_dict['mesh_whole_profile'] = [False, False]  # shapefile mesh whole profile
+    fig_dict['point_whole_profile'] = [False, False]  # shapefile point whole profile
+    fig_dict['mesh_units'] = [False, True]  # shapefile mesh by unit
+    fig_dict['point_units'] = [False, False]  # shapefile point by unit
+    fig_dict['vertical_exaggeration'] = 10  # paraview vertical exageration
+    fig_dict['elevation_whole_profile'] = [True, True]  # mesh .stl of topography whole profile (vertical_exaggeration)
+    fig_dict['variables_units'] = [True, True]  # mesh .pvd and .vtu by unit (vertical_exaggeration)
+    fig_dict['detailled_text'] = [True, True]  # .txt with detail values by mesh
+    fig_dict['fish_information'] = [True, True]  # image of fish informations
+
+    # figures
     fig_dict['height'] = 7
     fig_dict['width'] = 10
     fig_dict['color_map1'] = 'coolwarm'
     fig_dict['color_map2'] = 'jet'
     fig_dict['font_size'] = 12
     fig_dict['line_width'] = 1
-    fig_dict['grid'] = False
-    fig_dict['format'] = 3
-    fig_dict['resolution'] = 800
-    fig_dict['fish_name_type'] = 0
-
-    fig_dict['mesh_whole_profile'] = [False, False]
-    fig_dict['point_whole_profile'] = [False, False]
-    fig_dict['mesh_units'] = [False, True]
-    fig_dict['point_units'] = [False, False]
-    fig_dict['vertical_exaggeration'] = 10
-    fig_dict['elevation_whole_profile'] = [True, True]
-    fig_dict['variables_units'] = [True, True]
-    fig_dict['detailled_text'] = [True, True]
-    fig_dict['fish_information'] = [True, True]
-
-    # this is dependant on the language of the application not the user choice in the output tab
-    fig_dict['language'] = 0  # 0 english, 1 french
-    fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
-    fig_dict['CutMeshPartialyDry'] = True
+    fig_dict['grid'] = False  # grid on plot
+    fig_dict['format'] = 3  # png+pdf, png, jpeg, pdf, not saved
+    fig_dict['resolution'] = 800  # dpi
+    fig_dict['fish_name_type'] = 0  # latin_name, french, english, code_alternative
     fig_dict['marker'] = True  # Add point to line plot
-    fig_dict['erase_id'] = True
-    fig_dict['type_plot'] = 'display'
 
     return fig_dict
 
