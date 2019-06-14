@@ -1542,7 +1542,7 @@ class MainWindows(QMainWindow):
 
         self.setWindowTitle(self.tr('HABBY ') + str(self.version))
         # save the project
-        self.save_project()
+        #self.save_project()
 
     def see_file(self):
         """
