@@ -471,8 +471,8 @@ class InterpolationGroup(QGroupBoxCollapsible):
             chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
         # load figure option
-        fig_opt = preferences_GUI.load_fig_option(self.path_prj,
-                                                  self.name_prj)
+        project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
+                                                           self.name_prj)
 
         # load hdf5 data
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
@@ -493,7 +493,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                             hdf5.data_description,
                                             fish_names,
                                             types,
-                                            fig_opt)
+                                            project_preferences)
 
     def export_chronicle(self):
         # get filename
@@ -523,8 +523,8 @@ class InterpolationGroup(QGroupBoxCollapsible):
             chronicle, types = tools_mod.read_chronicle_from_text_file(source)
 
         # load figure option
-        fig_opt = preferences_GUI.load_fig_option(self.path_prj,
-                                                  self.name_prj)
+        project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
+                                                            self.name_prj)
 
         # load hdf5 data
         hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name)
@@ -545,7 +545,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
                                                            vertical_headers,
                                                            hdf5.data_description,
                                                            types,
-                                                           fig_opt)
+                                                           project_preferences)
         if exported:
             self.send_log.emit("Interpolated text file has been exported in 'output/text' project folder.")
         if not exported:

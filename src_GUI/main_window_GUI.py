@@ -1860,7 +1860,7 @@ class MainWindows(QMainWindow):
         try:
             shutil.rmtree(new_project_path)
         except:
-            self.central_widget.write_log.send_log.emit('Error: Old project and its files are opened by another programme.\n'
+            self.central_widget.write_log('Error: Old project and its files are opened by another programme.\n'
                                'Close them and try again.')
 
     def open_help(self):

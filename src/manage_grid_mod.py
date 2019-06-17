@@ -2207,7 +2207,7 @@ def create_dummy_substrate(coord_pro, sqrtnp):
     return ikle_sub, coord_sub
 
 
-def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, velocity=True, height=True,
+def plot_grid_simple(point_all_reach, ikle_all, project_preferences, name_hdf5, mesh=True, velocity=True, height=True,
                      inter_vel_all=[], inter_h_all=[], path_im=[], merge_case=False,
                      time_step=0, sub_pg=[], sub_dom=[]):
     """
@@ -2217,7 +2217,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
 
     :param point_all_reach: the coordinate of the point for this time step. This is given by reaches.
     :param ikle_all:  the connectivity table for this time step. This is given by reaches.
-    :param fig_opt: the dictionary with the different options to create the figures
+    :param project_preferences: the dictionary with the different options to create the figures
     :param inter_vel_all: the velcoity data. This is given by reaches.
     :param inter_h_all: the height data. This is given by reaches.
     :param path_im: the path where the figure should be saved
@@ -2227,18 +2227,18 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
     :param sub_dom: doominat data from the subtrate
     """
     # print(mesh, velocity, height, time_step)
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
 
     # plot the grid, the velcoity and the water height
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = fig_opt['erase_id']
+    erase1 = project_preferences['erase_id']
 
     if mesh:
         plt.figure()
@@ -2281,9 +2281,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                 # to add water value on grid point (usualy to debug)
                 # for idx, c in enumerate(coord_p):
                 #     plt.annotate(str(inter_h_all[r][idx]),c)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.title(name_hdf5[:-3] + " : " + 'Computational Grid - Time Step ' + str(time_step))
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.title(name_hdf5[:-3] + " : " + 'Maillage - Pas de Temps: ' + str(time_step))
         else:
             plt.title(name_hdf5[:-3] + " : " + 'Computational Grid - Time Step ' + str(time_step))
@@ -2298,27 +2298,27 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
                 plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
         else:
             test = calcul_hab_mod.remove_image(suffix, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=fig_opt['resolution'],
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"), dpi=fig_opt['resolution'],
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"), dpi=fig_opt['resolution'],
+                plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"), dpi=project_preferences['resolution'],
                             transparent=True)
         if format1 == 123456:  # "display"
             plt.show()
@@ -2330,14 +2330,14 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
     # plot the interpolated velocity
     bounds = []
     # if time_step == -1:
-    #     if fig_opt['language'] == 0:
+    #     if project_preferences['language'] == 0:
     #         plt.title('Hydraulic Data - Last Time Step')
-    #     elif fig_opt['language'] == 1:
+    #     elif project_preferences['language'] == 1:
     #         plt.title('Données Hydrauliques - Dernier Pas de Temps')
     # else:
-    #     if fig_opt['language'] == 0:
+    #     if project_preferences['language'] == 0:
     #         plt.title('Hydraulic Data - Time Step ' + str(time_step))
-    #     elif fig_opt['language'] == 1:
+    #     elif project_preferences['language'] == 1:
     #         plt.title('Données Hydrauliques - Pas de Temps: ' + str(time_step))
     if velocity:
         if len(inter_vel_all) > 0:  # 0
@@ -2345,7 +2345,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             plt.ticklabel_format(useOffset=False)
             # plt.subplot(2, 1, 1)
             # get colormap limit
-            cm = plt.cm.get_cmap(fig_opt['color_map1'])
+            cm = plt.cm.get_cmap(project_preferences['color_map1'])
             mvc = 0.001
             for r in range(0, len(inter_vel_all)):
                 inter_vel = inter_vel_all[r]
@@ -2365,9 +2365,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                     if r == len(inter_vel_all) - 1:
                         # plt.clim(0, np.nanmax(inter_vel))
                         cbar = plt.colorbar(sc)
-                        if fig_opt['language'] == 0:
+                        if project_preferences['language'] == 0:
                             cbar.ax.set_ylabel('Velocity [m/sec]')
-                        elif fig_opt['language'] == 1:
+                        elif project_preferences['language'] == 1:
                             cbar.ax.set_ylabel('Vitesse [m/sec]')
                         else:
                             cbar.ax.set_ylabel('Velocity [m/sec]')
@@ -2376,9 +2376,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             plt.axis('equal')
             plt.xlabel('x coord []')
             plt.ylabel('y coord []')
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title(name_hdf5[:-3] + " : " + 'Velocity - Time Step: ' + str(time_step))
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title(name_hdf5[:-3] + " : " + 'Vitesse - Pas de Temps: ' + str(time_step))
             else:
                 plt.title(name_hdf5[:-3] + " : " + 'Velocity - Time Step: ' + str(time_step))
@@ -2393,28 +2393,28 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
             else:
                 test = calcul_hab_mod.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
             if format1 == 123456:  # "display"
                 plt.show()
             else:  # "export"
@@ -2431,7 +2431,7 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             plt.ticklabel_format(useOffset=False)
             # color map (the same for al reach)
             mvc = 0.001
-            cm = plt.cm.get_cmap(fig_opt['color_map2'])
+            cm = plt.cm.get_cmap(project_preferences['color_map2'])
             for r in range(0, len(inter_h_all)):
                 inter_h = inter_h_all[r]
                 if len(inter_h) > 0:
@@ -2450,9 +2450,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                                          extend='both')  # extent=(min(point_here[:, 0]), max(point_here[:, 0]), min(point_here[:, 1]), max(point_here[:, 1]))
                     if r == len(inter_h_all) - 1:  # end of loop
                         cbar = plt.colorbar(sc)
-                        if fig_opt['language'] == 0:
+                        if project_preferences['language'] == 0:
                             cbar.ax.set_ylabel('Water depth [m]')
-                        elif fig_opt['language'] == 1:
+                        elif project_preferences['language'] == 1:
                             cbar.ax.set_ylabel("Hauteur d'eau [m]")
                         else:
                             cbar.ax.set_ylabel('Water depth [m]')
@@ -2461,9 +2461,9 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
             plt.axis('equal')
             plt.xlabel('x coord []')
             plt.ylabel('y coord []')
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title(name_hdf5[:-3] + " : " + 'Water depth - Time Step: ' + str(time_step))
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title(name_hdf5[:-3] + " : " + "Hauteur d'eau - Pas de Temps: " + str(time_step))
             else:
                 plt.title(name_hdf5[:-3] + " : " + "Hauteur d'eau - Pas de Temps: " + str(time_step))
@@ -2477,28 +2477,28 @@ def plot_grid_simple(point_all_reach, ikle_all, fig_opt, name_hdf5, mesh=True, v
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
             else:
                 test = calcul_hab_mod.remove_image(suffix, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".png"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".pdf"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, name_hdf5[:-3] + "_" + suffix + ".jpg"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
             if format1 == 123456:  # "display"
                 plt.show()
             else:  # "export"

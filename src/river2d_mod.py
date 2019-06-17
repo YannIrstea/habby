@@ -29,7 +29,7 @@ from src_GUI import preferences_GUI
 
 
 def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
-                              print_cmd=False, fig_opt={}):
+                              print_cmd=False, project_preferences={}):
     """
     This function loads the river2d data and cut the grid to the wet area. Originally, this function was in the class
     River2D() in hydro_GUI_2. This function was added as it was practical to have a second thread to avoid freezing
@@ -45,13 +45,13 @@ def load_river2d_and_cut_grid(name_hdf5, namefiles, paths, name_prj, path_prj, m
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used to send the error back from the second thread (can be used to send other variable too)
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
-    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     """
 
     # minimum water height
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    minwh = fig_opt['min_height_hyd']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    minwh = project_preferences['min_height_hyd']
 
     # creation of array
     xyzhv = []

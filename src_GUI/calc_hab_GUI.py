@@ -282,7 +282,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
         # get the figure options and the type of output to be created
-        fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
@@ -309,13 +309,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # if self.data_fish[j][0] == fish_item_text:
             #     #pref_list.append(self.data_fish[j][2])
             #     #stages_chosen.append(self.data_fish[j][1])
-            #     if int(fig_dict['fish_name_type']) == 0:  # latin name
+            #     if int(project_preferences['fish_name_type']) == 0:  # latin name
             #         name_fish.append(self.data_fish[j][7])
-            #     elif int(fig_dict['fish_name_type']) == 1:  # french common name
+            #     elif int(project_preferences['fish_name_type']) == 1:  # french common name
             #         name_fish.append(self.data_fish[j][3])
-            #     elif int(fig_dict['fish_name_type']) == 2:  # english common name
+            #     elif int(project_preferences['fish_name_type']) == 2:  # english common name
             #         name_fish.append(self.data_fish[j][4])
-            #     elif int(fig_dict['fish_name_type']) == 3:  # code onema
+            #     elif int(project_preferences['fish_name_type']) == 3:  # code onema
             #         name_fish.append(self.data_fish[j][5])
             #     else:
             #         name_fish.append(self.data_fish[j][5])
@@ -382,7 +382,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.p = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
                                                                           name_fish_list, name_fish_sh, run_choice,
                                                                           self.path_bio, path_txt, self.progress_value,
-                                                                          self.q4, False, fig_dict, path_im_bioa,
+                                                                          self.q4, False, project_preferences, path_im_bioa,
                                                                           xmlfiles))
         self.p.name = "Habitat calculation"
         self.p.start()
@@ -415,9 +415,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the langugage
-            fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+            project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
             # send the message
-            if fig_dict['language'] == str(1):
+            if project_preferences['language'] == str(1):
                 # it is necssary to start this string with Process to see it in the Statusbar
                 self.send_log.emit("Processus 'Habitat' fonctionne depuis " + str(round(self.running_time)) + " sec.")
             else:

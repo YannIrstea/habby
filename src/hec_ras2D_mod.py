@@ -26,9 +26,9 @@ from src import hdf5_mod
 from src_GUI import preferences_GUI
 
 
-def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, fig_opt={}):
+def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_value, q=[], print_cmd=False, project_preferences={}):
     # name_hdf5, filename, path, name_prj, path_prj, model_type, nb_dim, path_hdf5, q=[],
-    #                                  print_cmd=False, fig_opt={}
+    #                                  print_cmd=False, project_preferences={}
     """
     This function calls load_hec_ras_2d and the cut_2d_grid function. Hence, it loads the data,
     pass it from cell to node (as data output in hec-ras is by cells) and it cut the grid to
@@ -45,7 +45,7 @@ def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_va
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
-    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
 
     ** Technical comments**
 
@@ -58,9 +58,9 @@ def load_hec_ras_2d_and_cut_grid(description_from_indextelemac_file, progress_va
         sys.stdout = mystdout = StringIO()
 
     # minimum water height
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    minwh = fig_opt['min_height_hyd']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    minwh = project_preferences['min_height_hyd']
 
     # progress
     progress_value.value = 10

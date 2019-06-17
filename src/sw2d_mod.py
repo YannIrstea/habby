@@ -25,7 +25,7 @@ from src import rubar1d2d_mod
 
 
 def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_geo, path_res, path_im, name_prj,
-                              path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, fig_opt={}):
+                              path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, project_preferences={}):
     """
     This function loads the sw2d file, using the function below. Then, it changes the mesh which has triangle and
     quadrilater toward a triangle mesh and it passes the data from cell-centric data to node data using a linear
@@ -45,14 +45,14 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
-    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     :return: none
     """
 
     # get minimum water height
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    minwh = fig_opt['min_height_hyd']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    minwh = project_preferences['min_height_hyd']
 
     # find where we should send the error (cmd or GUI)
     if not print_cmd:

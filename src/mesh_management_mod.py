@@ -111,7 +111,7 @@ def quadrangles_to_triangles(ikle4,xy,z,h,v):
 
 def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5, name_prj, path_prj,
                         model_type, progress_value,
-                        q=[], print_cmd=False, fig_opt=[]):
+                        q=[], print_cmd=False, project_preferences=[]):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
@@ -153,7 +153,7 @@ def merge_grid_and_save(name_hdf5merge, hdf5_name_hyd, hdf5_name_sub, path_hdf5,
 
     # create hdf5 hab
     hdf5 = hdf5_mod.Hdf5Management(path_prj, name_hdf5merge)
-    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, data_description, fig_opt)
+    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_profile, data_description, project_preferences)
 
     # progress
     progress_value.value = 100

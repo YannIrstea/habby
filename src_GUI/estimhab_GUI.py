@@ -692,10 +692,10 @@ class EstimhabW(StatModUseful):
         # run and save
         path_im = self.find_path_im_est()
         path_txt = self.find_path_text_est()
-        fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         sys.stdout = mystdout = StringIO()
         [self.VH, self.SPU] = estimhab_mod.estimhab(q, w, h, q50, qrange, substrate, self.path_bio_estimhab, fish_list,
-                                                    path_im, True, fig_opt, path_txt, fish_name2)
+                                                    path_im, True, project_preferences, path_txt, fish_name2)
         self.save_signal_estimhab.emit()
 
         # log info

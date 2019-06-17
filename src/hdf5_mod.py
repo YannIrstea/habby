@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import shapefile
 from stl import mesh
-
+from shapely.geometry import Polygon
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -97,13 +97,21 @@ class Hdf5Management:
                 self.file_object.attrs[self.extension[1:] + '_filename'] = self.filename
             if not new:
                 self.get_hdf5_attributes()
-                # create basename_output for output files
-                self.basename_output = []
+                # create basename_output_reach_unit for output files
+                self.basename_output_reach_unit = []
                 for reach_num, reach_name in enumerate(self.reach_name):
-                    self.basename_output.append([])
+                    self.basename_output_reach_unit.append([])
                     for unit_num, unit_name in enumerate(self.units_name[reach_num]):
                         unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name).replace(".", "%")
-                        self.basename_output[reach_num].append(self.basename + "_" + reach_name + "_" + str(unit_name2))
+                        self.basename_output_reach_unit[reach_num].append(self.basename + "_" + reach_name + "_" + str(unit_name2))
+                self.units_name_output = []
+                for reach_num, reach_name in enumerate(self.reach_name):
+                    self.units_name_output.append([])
+                    for unit_num, unit_name in enumerate(self.units_name[reach_num]):
+                        unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name).replace(".", "%")
+                        self.units_name_output[reach_num].append(unit_name2)
+
+
 
         except OSError:
             print('Error: the hdf5 file could not be loaded.')
@@ -262,7 +270,7 @@ class Hdf5Management:
             self.nb_unit = len(self.units_name)
 
     # HYDRAULIC
-    def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description, fig_opt):
+    def create_hdf5_hyd(self, data_2d, data_2d_whole_profile, hyd_description, project_preferences):
         """
         :param data_2d: data 2d dict with keys :
         'tin' : list by reach, sub list by units and sub list of numpy array type int
@@ -306,6 +314,9 @@ class Hdf5Management:
         """
         # create a new hdf5
         self.open_hdf5_file(new=True)
+
+        # save dict to attribute
+        self.project_preferences = project_preferences
 
         # create hyd attributes
         for attribute_name, attribute_value in list(hyd_description.items()):
@@ -419,10 +430,12 @@ class Hdf5Management:
         self.load_hdf5_hyd(whole_profil=True)
 
         # exports
-        self.export_mesh_shp(fig_opt)
-        self.export_point_shp(fig_opt)
-        self.export_stl(fig_opt)
-        self.export_paraview(fig_opt)
+        self.export_mesh_shp()
+        self.export_point_shp()
+        self.export_stl()
+        self.export_paraview()
+        self.export_detailled_mesh_txt()
+        self.export_detailled_point_txt()
 
     def load_hdf5_hyd(self, units_index="all", whole_profil=False):
         # open an hdf5
@@ -692,12 +705,15 @@ class Hdf5Management:
         self.data_description = sub_description_system
 
     # HABITAT
-    def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description, fig_opt):
+    def create_hdf5_hab(self, data_2d, data_2d_whole_profile, merge_description, project_preferences):
         # model_type, nb_dim, sim_name, hyd_filename_source, data_2d_whole_profile, data_2d
         attributes_to_remove = ("hyd_unit_list", "hyd_unit_list_full", "sub_unit_list", "sub_unit_number", "sub_reach_number", "sub_unit_type", "hdf5_type")
 
         # create a new hdf5
         self.open_hdf5_file(new=True)
+
+        # save dict to attribute
+        self.project_preferences = project_preferences
 
         # create hab attributes
         for attribute_name, attribute_value in list(merge_description.items()):
@@ -799,8 +815,10 @@ class Hdf5Management:
 
         # reload to set data to attributes
         self.load_hdf5_hab(whole_profil=True)
-        self.export_mesh_shp(fig_opt)
-        self.export_point_shp(fig_opt)
+        self.export_mesh_shp()
+        self.export_point_shp()
+        self.export_paraview()
+        self.export_detailled_point_txt()
 
     def load_hdf5_hab(self, units_index="all", fish_names="all", whole_profil=False, convert_to_coarser_dom=False):
         # open an hdf5
@@ -954,7 +972,7 @@ class Hdf5Management:
             self.data_2d = data_2d
             self.data_description = data_description
 
-    def add_fish_hab(self, vh_cell, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, fig_opt, path_bio):
+    def add_fish_hab(self, vh_cell, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio):
         """
         This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
         velocity and the water height by cell (and not by node)
@@ -968,6 +986,9 @@ class Hdf5Management:
         """
         # open an hdf5
         self.open_hdf5_file(new=False)
+
+        # save dict to attribute
+        self.project_preferences = project_preferences
 
         # load the number of reach
         try:
@@ -1057,29 +1078,25 @@ class Hdf5Management:
 
         # reload to add new data to attributes
         self.load_hdf5_hab(convert_to_coarser_dom=False, whole_profil=True)
-        self.export_mesh_shp(fig_opt)
-        self.export_point_shp(fig_opt)
-        self.export_paraview(fig_opt)
-        self.export_spu_txt(fig_opt)
-        self.export_pdf(path_bio, fig_opt)
+        self.export_mesh_shp()
+        self.export_point_shp()
+        self.export_paraview()
+        self.export_spu_txt()
+        self.export_detailled_mesh_txt()
+        self.export_pdf(path_bio)
 
     # EXPORT SHP
-    def export_mesh_shp(self, fig_opt):
+    def export_mesh_shp(self):
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
         if self.extension == ".hab":
             index = 1
+
         # DATA 2D WHOLE PROFILE
-        if fig_opt['mesh_whole_profile'][index]:
+        if self.project_preferences['mesh_whole_profile'][index]:
             # for all units (selected or all)
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                # name
-                if self.data_description['hyd_unit_wholeprofile'] == "all":
-                    name_shp = self.basename + "_allreachs_allunits_wholeprofile_mesh.shp"
-                else:
-                    name_shp = self.basename + "_allreachs_" + str(unit_num) + "_wholeprofile_mesh.shp"
-
                 # init shapefile creation by unit
                 w = shapefile.Writer(shapefile.POLYGONZ)
                 w.autoBalance = 1
@@ -1105,7 +1122,11 @@ class Hdf5Management:
                         w.record(mesh_num)
 
                 # filename
-                if fig_opt['erase_id']:  # erase file if exist ?
+                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                    name_shp = self.basename + "_allreachs_allunits_wholeprofile_mesh.shp"
+                else:
+                    name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_wholeprofile_mesh.shp"
+                if self.project_preferences['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                         try:
                             os.remove(os.path.join(self.path_shp, name_shp))
@@ -1115,12 +1136,11 @@ class Hdf5Management:
                             return
                 else:
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                        name_shp = self.basename_output[reach_num][unit_num] + "_whole_profile_mesh.shp" \
+                        name_shp = self.basename_output_reach_unit[reach_num][unit_num] + "_whole_profile_mesh.shp" \
                                    + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.shp'
 
                 # write file
                 w.save(os.path.join(self.path_shp, name_shp))
-
                 if self.data_description["hyd_epsg_code"] != "unknown":
                     try:
                         string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
@@ -1128,13 +1148,12 @@ class Hdf5Management:
                             string_prj)
                     except:
                         print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
-
                 # stop loop in this case (if one unit in whole profile)
                 if self.data_description['hyd_unit_wholeprofile'] == "all":
                     break
 
         # DATA 2D
-        if fig_opt['mesh_units'][index]:
+        if self.project_preferences['mesh_units'][index]:
             # init
             fish_names = []
 
@@ -1149,7 +1168,7 @@ class Hdf5Management:
 
             # for each unit
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                name_shp = self.basename + "_allreachs_" + str(unit_num) + "_mesh.shp"
+                name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_mesh.shp"
                 shp_exist = False
 
                 """ create structure """
@@ -1194,13 +1213,6 @@ class Hdf5Management:
                             for fish_num, _ in enumerate(fish_names):
                                 column_name = shortname_list[fish_num]
                                 w.field(column_name, 'F', 50, 8)
-                            # add fish data for each mesh (line in attributes shp)
-                            for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                                for fish_name in fish_names:
-                                    w.records[mesh_num].append(
-                                        self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
-                            name_dbf = os.path.splitext(name_shp)[0] + ".dbf"
-                            w.saveDbf(os.path.join(self.path_shp, name_dbf))
 
                 """ add data """
                 # for each reach
@@ -1264,7 +1276,7 @@ class Hdf5Management:
                                 self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
 
                 # filename
-                if fig_opt['erase_id']:  # erase file if exist ?
+                if self.project_preferences['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                         try:
                             os.remove(os.path.join(self.path_shp, name_shp))
@@ -1307,23 +1319,17 @@ class Hdf5Management:
                             print("Warning : Can't write .prj from EPSG code :",
                                   self.data_description["hyd_epsg_code"])
 
-    def export_point_shp(self, fig_opt):
+    def export_point_shp(self):
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
         if self.extension == ".hab":
             index = 1
         # DATA 2D WHOLE PROFILE
-        if fig_opt['point_whole_profile'][index]:
+        if self.project_preferences['point_whole_profile'][index]:
 
             # for all units (selected or all)
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                # name
-                if self.data_description['hyd_unit_wholeprofile'] == "all":
-                    name_shp = self.basename + "_allreachs_allunits_wholeprofile_point.shp"
-                else:
-                    name_shp = self.basename + "_allreachs_" + str(unit_num) + "_wholeprofile_point.shp"
-
                 # for each mesh
                 w = shapefile.Writer(shapefile.POINTZ)
                 w.autoBalance = 1
@@ -1342,7 +1348,11 @@ class Hdf5Management:
                         w.record(*data_here)
 
                 # filename
-                if fig_opt['erase_id']:  # erase file if exist ?
+                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                    name_shp = self.basename + "_allreachs_allunits_wholeprofile_point.shp"
+                else:
+                    name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_wholeprofile_point.shp"
+                if self.project_preferences['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                         try:
                             os.remove(os.path.join(self.path_shp, name_shp))
@@ -1368,11 +1378,9 @@ class Hdf5Management:
 
 
         # DATA 2D
-        if fig_opt['point_units'][index]:
+        if self.project_preferences['point_units'][index]:
             # for each unit
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                name_shp = self.basename + "_allreachs_" + str(unit_num) + "_point.shp"
-
                 # for each mesh
                 w = shapefile.Writer(shapefile.POINTZ)
                 w.autoBalance = 1
@@ -1396,7 +1404,8 @@ class Hdf5Management:
                         w.record(*data_here)
 
                 # filename
-                if fig_opt['erase_id']:  # erase file if exist ?
+                name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_point.shp"
+                if self.project_preferences['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                         try:
                             os.remove(os.path.join(self.path_shp, name_shp))
@@ -1423,26 +1432,21 @@ class Hdf5Management:
                               self.data_description["hyd_epsg_code"])
 
     # EXPORT 3D
-    def export_stl(self, fig_opt):
+    def export_stl(self):
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
         if self.extension == ".hab":
             index = 1
-        if fig_opt['elevation_whole_profile'][index]:
+        if self.project_preferences['elevation_whole_profile'][index]:
             """ create stl whole profile (to see topography) """
             # for all reach
             for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
                 # for all units (selected or all)
                 for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                    if self.data_description['hyd_unit_wholeprofile'] == "all":
-                        name_file = self.basename + "_" + self.reach_name[reach_num] + "_all_wholeprofile_mesh.stl"
-                    else:
-                        name_file = self.basename_output[reach_num][unit_num] + "_wholeprofile_mesh.stl"
-
                     # get data
                     xy = self.data_2d_whole["xy"][reach_num][unit_num]
-                    z = self.data_2d_whole["z"][reach_num][unit_num] * fig_opt["vertical_exaggeration"]
+                    z = self.data_2d_whole["z"][reach_num][unit_num] * self.project_preferences["vertical_exaggeration"]
                     faces = self.data_2d_whole["tin"][reach_num][unit_num]
                     vertices = np.column_stack([xy, z])
                     # Create the mesh
@@ -1450,22 +1454,41 @@ class Hdf5Management:
                     for i, f in enumerate(faces):
                         for j in range(3):
                             stl_file.vectors[i][j] = vertices[f[j], :]
+                    # filename
+                    if self.data_description['hyd_unit_wholeprofile'] == "all":
+                        name_file = self.basename + "_" + self.reach_name[reach_num] + "_all_wholeprofile_mesh.stl"
+                    else:
+                        name_file = self.basename_output_reach_unit[reach_num][unit_num] + "_wholeprofile_mesh.stl"
+                    if self.project_preferences['erase_id']:  # erase file if exist ?
+                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                            try:
+                                os.remove(os.path.join(self.path_visualisation, name_file))
+                            except PermissionError:
+                                print(
+                                    'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                                return
+                    else:
+                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                            name_file = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
+                                "%d_%m_%Y_at_%H_%M_%S") + '.shp'
                     # Write the mesh to file "cube.stl"
                     stl_file.save(os.path.join(self.path_visualisation,
                                                name_file))
 
-    def export_paraview(self, fig_opt):
+    def export_paraview(self):
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
         if self.extension == ".hab":
             index = 1
-        if fig_opt['variables_units'][index]:
+        if self.project_preferences['variables_units'][index]:
             file_names_all = []
 
             if self.extension == ".hab":
                 # format the name of species and stage
                 name_fish = self.data_description["hab_fish_list"].split(", ")
+                if name_fish == [""]:
+                    name_fish = []
                 for id, n in enumerate(name_fish):
                     name_fish[id] = n.replace('_', ' ')
 
@@ -1481,7 +1504,7 @@ class Hdf5Management:
                     y = np.ascontiguousarray(self.data_2d["xy"][reach_num][unit_num][:, 1])
                     try:
                         z = np.ascontiguousarray((
-                        self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * fig_opt["vertical_exaggeration"])
+                        self.data_2d["z"][reach_num][unit_num] + self.data_2d["h"][reach_num][unit_num]) * self.project_preferences["vertical_exaggeration"])
                     except Warning:
                         print('oh no!')
 
@@ -1496,9 +1519,10 @@ class Hdf5Management:
 
                     # fish
                     if self.extension == ".hab":
-                        for fish_name in self.data_description["hab_fish_list"].split(", "):
-                            newkey = "HV " + fish_name
-                            cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
+                        if name_fish:
+                            for fish_name in self.data_description["hab_fish_list"].split(", "):
+                                newkey = "HV " + fish_name
+                                cellData[newkey] = self.data_2d["hv_data"][fish_name][reach_num][unit_num]
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
                             cellData["sub_coarser"] = np.array(list(zip(*self.data_2d["sub"][reach_num][unit_num])))[0]
@@ -1534,29 +1558,46 @@ class Hdf5Management:
                     cellData['velocity'] = np.array(v_mean_mesh_list)
 
                     # create the grid and the vtu files
-                    name_file = os.path.join(self.path_visualisation, self.basename_output[reach_num][unit_num])
-                    if fig_opt["erase_id"]:
-                        if os.path.isfile(name_file):
-                            os.remove(name_file)
+                    name_file = os.path.join(self.path_visualisation, self.basename_output_reach_unit[reach_num][unit_num])
+                    if self.project_preferences['erase_id']:  # erase file if exist ?
+                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                            try:
+                                os.remove(os.path.join(self.path_visualisation, name_file))
+                            except PermissionError:
+                                print(
+                                    'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                                return
+                    else:
+                        if os.path.isfile(os.path.join(self.path_visualisation, name_file)):
+                            name_file = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
+                                "%d_%m_%Y_at_%H_%M_%S") + '.shp'
                     file_names_all.append(name_file + ".vtu")
                     hl_mod.unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
                                                  cellData)
 
             # create the "grouping" file to read all time step together
-            name_here = self.basename + "_allreachs.pvd"
+            name_here = self.basename + "_allreachs_allunits.pvd"
             file_names_all = list(map(os.path.basename, file_names_all))
-            if fig_opt["erase_id"]:
-                if os.path.isfile(name_here):
-                    os.remove(name_here)
+            if self.project_preferences['erase_id']:  # erase file if exist ?
+                if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
+                    try:
+                        os.remove(os.path.join(self.path_visualisation, name_here))
+                    except PermissionError:
+                        print(
+                            'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                        return
+            else:
+                if os.path.isfile(os.path.join(self.path_visualisation, name_here)):
+                    name_here = self.basename + "_whole_profile_point_r0_t0_" + time.strftime(
+                        "%d_%m_%Y_at_%H_%M_%S") + '.shp'
             paraview_mod.writePVD(os.path.join(self.path_visualisation, name_here), file_names_all, part_timestep_indice)
 
     # EXPORT TXT
-    def export_spu_txt(self, fig_opt):
+    def export_spu_txt(self):
         path_txt = os.path.join(self.data_description["path_project"], "output", "text")
         if not os.path.exists(path_txt):
             print('Error: the path to the text file is not found. Text files not created \n')
 
-        name_base = self.basename
         sim_name = self.units_name
         fish_shortnames = self.data_description["hab_fish_shortname_list"].split(", ")
         fish_names = self.data_description["hab_fish_list"].split(", ")
@@ -1564,16 +1605,16 @@ class Hdf5Management:
                     self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
                         "hyd_unit_type"].find(']')]
 
-        if not fig_opt['erase_id']:
-            if fig_opt['language'] == 0:
-                name = 'wua_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+        if not self.project_preferences['erase_id']:
+            if self.project_preferences['language'] == 0:
+                name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
             else:
-                name = 'spu_' + name_base + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
         else:
-            if fig_opt['language'] == 0:
-                name = 'wua_' + name_base + '.txt'
+            if self.project_preferences['language'] == 0:
+                name = self.basename + '_wua.txt'
             else:
-                name = 'spu_' + name_base + '.txt'
+                name = self.basename + '_spu.txt'
             if os.path.isfile(os.path.join(path_txt, name)):
                 try:
                     os.remove(os.path.join(path_txt, name))
@@ -1587,11 +1628,11 @@ class Hdf5Management:
         with open(name, 'wt', encoding='utf-8') as f:
 
             # header 1
-            if fig_opt['language'] == 0:
+            if self.project_preferences['language'] == 0:
                 header = 'reach\tunit\treach_area'
             else:
                 header = 'troncon\tunit\taire_troncon'
-            if fig_opt['language'] == 0:
+            if self.project_preferences['language'] == 0:
                 header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
                 header += "".join(['\tWUA' + str(i) for i in range(len(fish_names))])
             else:
@@ -1634,9 +1675,196 @@ class Hdf5Management:
                     data_here += '\n'
                     f.write(data_here)
 
-    def export_pdf(self, path_bio, fig_opt):
+    def export_detailled_mesh_txt(self):
         """
-        # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, fig_opt
+        detailled mesh
+        """
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        if self.project_preferences['detailled_text'][index]:
+            path_txt = os.path.join(self.data_description["path_project"], "output", "text")
+            if not os.path.exists(path_txt):
+                print('Error: the path to the text file is not found. Text files not created \n')
+
+            sim_name = self.units_name
+            if self.type_for_xml == "hdf5_habitat":
+                fish_shortnames = self.data_description["hab_fish_shortname_list"].split(", ")
+                fish_names = self.data_description["hab_fish_list"].split(", ")
+            unit_type = self.data_description["hyd_unit_type"][
+                        self.data_description["hyd_unit_type"].find('[') + 1:self.data_description[
+                            "hyd_unit_type"].find(']')]
+
+            # for each unit
+            for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                if not self.project_preferences['erase_id']:
+                    if self.project_preferences['language'] == 0:
+                        name = self.basename + "_detailledmesh_unit" + str(unit_num) + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        name = self.basename + "_mailledetaillee_unit" + str(unit_num) + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                else:
+                    if self.project_preferences['language'] == 0:
+                        name = self.basename + "_detailledmesh_unit" + str(unit_num) + ".txt"
+                    else:
+                        name = self.basename + "_mailledetaillee_unit" + str(unit_num) + ".txt"
+                    if os.path.isfile(os.path.join(path_txt, name)):
+                        try:
+                            os.remove(os.path.join(path_txt, name))
+                        except PermissionError:
+                            print('Error: Could not modify text file as it is open in another program. \n')
+                            return
+
+                name = os.path.join(path_txt, name)
+
+                # open text to write
+                with open(name, 'wt', encoding='utf-8') as f:
+                    # header 1
+                    if self.project_preferences['language'] == 0:
+                        header = 'reach\tarea\tvelocity\theight\tnode1\tnode2\tnode3'
+                    else:
+                        header = 'troncon\tsurface\tvitesse\thauteur\tnoeud1\tnoeud2\tnoeud3'
+
+                    if self.type_for_xml == "hdf5_habitat":
+                        # sub
+                        if self.data_description["sub_classification_method"] == 'coarser-dominant':
+                            header += '\tsub_coarser\tsub_dominant'
+                            sub_class_number = 2
+                        if self.data_description["sub_classification_method"] == 'percentage':
+                            if self.data_description["sub_classification_code"] == "Cemagref":
+                                sub_class_number = 8
+                            if self.data_description["sub_classification_code"] == "Sandre":
+                                sub_class_number = 12
+                            for i in range(sub_class_number):
+                                header += '\tsub_S' + str(i + 1)
+
+                        if self.project_preferences['language'] == 0:
+                            header += "".join(['\tHV' + str(i) for i in range(len(fish_names))])
+                        else:
+                            header += "".join(['\tVH' + str(i) for i in range(len(fish_names))])
+                    header += '\n'
+                    f.write(header)
+                    # header 2
+                    header = '[]\t[m2]\t[m/s]\t[m]\t[]\t[]\t[]'
+                    if self.type_for_xml == "hdf5_habitat":
+                        header += "".join("\t[" + self.data_description["sub_classification_code"] + "]" for _ in range(sub_class_number))
+                        header += "".join(['\t[' + fish + ']' for fish in fish_shortnames])
+                    f.write(header)
+
+                    # for each reach
+                    data_here = ""
+                    for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                        # for each mesh
+                        for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                            node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                            node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
+                            node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                            # data node data
+                            p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
+                                float(self.data_2d["z"][reach_num][unit_num][node1])])
+                            p2 = list(self.data_2d["xy"][reach_num][unit_num][node2].tolist() + [
+                                float(self.data_2d["z"][reach_num][unit_num][node2])])
+                            p3 = list(self.data_2d["xy"][reach_num][unit_num][node3].tolist() + [
+                                float(self.data_2d["z"][reach_num][unit_num][node3])])
+                            v1 = self.data_2d["v"][reach_num][unit_num][node1]
+                            v2 = self.data_2d["v"][reach_num][unit_num][node2]
+                            v3 = self.data_2d["v"][reach_num][unit_num][node3]
+                            h1 = self.data_2d["h"][reach_num][unit_num][node1]
+                            h2 = self.data_2d["h"][reach_num][unit_num][node2]
+                            h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                            # compute velocity
+                            velocity_str = str((v1 + v2 + v3) / 3)
+                            # compute height
+                            height_str = str((h1 + h2 + h3) / 3)
+                            # compute area
+                            triangle_shapely = Polygon([p1, p2, p3, p1])
+                            area_str = str(triangle_shapely.area)
+
+                            data_here += '\n'
+                            data_here += f"{str(reach_num)}\t{area_str}\t{velocity_str}\t{height_str}\t{str(node1)}\t{str(node2)}\t{str(node3)}"
+
+                            if self.type_for_xml == "hdf5_habitat":
+                                sub = self.data_2d["sub"][reach_num][unit_num][mesh_num]
+                                data_here += "\t" + "\t".join(str(e) for e in sub.tolist())
+                                if fish_names:
+                                    for fish_name in fish_names:
+                                        data_here += f"\t{str(self.data_2d['hv_data'][fish_name][reach_num][unit_num][mesh_num])}"
+                    # write file
+                    f.write(data_here)
+
+    def export_detailled_point_txt(self):
+        """
+         detailled mesh
+         """
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+        if self.project_preferences['detailled_text'][index]:
+            path_txt = os.path.join(self.data_description["path_project"], "output", "text")
+            if not os.path.exists(path_txt):
+                print('Error: the path to the text file is not found. Text files not created \n')
+
+            # for each unit
+            for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                if not self.project_preferences['erase_id']:
+                    if self.project_preferences['language'] == 0:
+                        name = self.basename + "_detailledpoint_unit" + str(unit_num) + "_" + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        name = self.basename + "_pointdetaille_unit" + str(unit_num) + "_" + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                else:
+                    if self.project_preferences['language'] == 0:
+                        name = self.basename + "_detailledpoint_unit" + str(unit_num) + ".txt"
+                    else:
+                        name = self.basename + "_pointdetaille_unit" + str(unit_num) + ".txt"
+                    if os.path.isfile(os.path.join(path_txt, name)):
+                        try:
+                            os.remove(os.path.join(path_txt, name))
+                        except PermissionError:
+                            print('Error: Could not modify text file as it is open in another program. \n')
+                            return
+
+                name = os.path.join(path_txt, name)
+
+                # open text to write
+                with open(name, 'wt', encoding='utf-8') as f:
+                    # header 1
+                    if self.project_preferences['language'] == 0:
+                        header = 'reach\tx\ty\tz\tvelocity\theight'
+                    else:
+                        header = 'troncon\tx\ty\tz\tvitesse\thauteur'
+
+                    header += '\n'
+                    f.write(header)
+                    # header 2
+                    header = '[]\t[m]\t[m]\t[m]\t[m/s]\t[m]'
+                    f.write(header)
+
+                    # for each reach
+                    data_here = ""
+                    for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                        # for each point
+                        for point_num in range(0, len(self.data_2d["xy"][reach_num][unit_num])):
+                            # data geom (get the triangle coordinates)
+                            x = str(self.data_2d["xy"][reach_num][unit_num][point_num][0])
+                            y = str(self.data_2d["xy"][reach_num][unit_num][point_num][1])
+                            z = str(self.data_2d["z"][reach_num][unit_num][point_num])
+                            h = str(self.data_2d["h"][reach_num][unit_num][point_num])
+                            v = str(self.data_2d["v"][reach_num][unit_num][point_num])
+
+                            data_here += '\n'
+                            data_here += f"{str(reach_num)}\t{x}\t{y}\t{z}\t{v}\t{h}"
+
+                    # write file
+                    f.write(data_here)
+
+    def export_pdf(self, path_bio):
+        """
+        # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
         This functionc create a pdf with information about the fish.
         It tries to follow the chosen language, but
         the stage name are not translated and the decription are usually
@@ -1648,14 +1876,13 @@ class Hdf5Management:
         :param path_im_bio: the path with the images of the fish
         :param path_out: the path where to save the .pdf file
             (usually other_outputs)
-        :param fig_opt: the figure options (contain the chosen language)
         """
         # INDEX IF HYD OR HAB
         if self.extension == ".hyd":
             index = 0
         if self.extension == ".hab":
             index = 1
-        if fig_opt['fish_information'][index]:
+        if self.project_preferences['fish_information'][index]:
             # get data
             xmlfiles = self.data_description["hab_fish_pref_list"].split(", ")
             stages_chosen = self.data_description["hab_fish_stage_list"].split(", ")
@@ -1703,7 +1930,7 @@ class Hdf5Management:
                 # create figure
                 fake_value = Value("i", 0)
                 [f, axarr] = plot_mod.plot_suitability_curve(fake_value, h_all, vel_all, sub_all, code_fish, name_fish,
-                                                             stages, True, fig_opt)
+                                                             stages, True, self.project_preferences)
 
                 # modification of the orginal preference fig
                 # (0,0) is bottom left - 1 is the end of the page in x and y direction
@@ -1721,23 +1948,23 @@ class Hdf5Management:
                         newax.axis('off')
 
                 # move suptitle
-                if fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
                                weight='bold')
-                elif fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32,
                                weight='bold')
                 else:
                     f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
                                weight='bold')
                 # general info
-                if fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     plt.figtext(0.1, 0.7,
                                 "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
                                 weight='bold', fontsize=32)
                     text_all = name_fish + '\n\n' + data[0][2] \
                                + '\n\n' + code_fish + '\n\n'
-                elif fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     plt.figtext(0.1, 0.7,
                                 "Nom latin :\n\nNom commun :\n\nCode ONEMA:\n\nStade choisi :\n\nDescription :",
                                 weight='bold', fontsize=32)
@@ -1915,7 +2142,7 @@ def save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, p
 
     # to know if we have to save a new hdf5
     if save_option is None:
-        save_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
+        save_opt = preferences_GUI.load_project_preferences(path_prj, name_prj)
         if save_opt['erase_id']:  # xml is all in string
             erase_idem = True
         else:
@@ -2154,7 +2381,7 @@ def save_hdf5_sub(path_hdf5, path_prj, name_prj, sub_array, sub_description_syst
     """
 
     # to know if we have to save a new hdf5
-    save_opt = preferences_GUI.load_fig_option(path_prj, name_prj)
+    save_opt = preferences_GUI.load_project_preferences(path_prj, name_prj)
     if save_opt['erase_id']:  # xml is all in string
         erase_idem = True
     else:

@@ -750,8 +750,8 @@ class BioModelInfoSelection(QScrollArea):
         # open the pref
         [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile)
         # plot the pref
-        fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-
+        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+ 
         # do the plot
         if not hasattr(self, 'plot_process_list'):
             self.plot_process_list = MyProcessList()
@@ -765,7 +765,7 @@ class BioModelInfoSelection(QScrollArea):
                                       name_fish,
                                       stages,
                                       False,
-                                      fig_dict))
+                                      project_preferences))
         self.plot_process_list.append((curve_process, state))
 
     def show_hydrosignature(self):

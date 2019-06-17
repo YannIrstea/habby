@@ -68,7 +68,7 @@ class Stathab:
         self.path_prj = path_prj
         self.name_prj = name_prj
         # get the option for the figure in a dict
-        self.fig_opt = []
+        self.project_preferences = []
         self.path_txt = path_prj  # path where to save the text
 
     def load_stathab_from_txt(self, reachname_file, end_file_reach, name_file_allreach, path):
@@ -1033,18 +1033,18 @@ class Stathab:
 
         """
         # figure option
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        plt.rcParams['figure.figsize'] = self.fig_opt['width'], self.fig_opt['height']
-        plt.rcParams['font.size'] = self.fig_opt['font_size']
-        plt.rcParams['lines.linewidth'] = self.fig_opt['line_width']
-        format = int(self.fig_opt['format'])
-        plt.rcParams['axes.grid'] = self.fig_opt['grid']
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        plt.rcParams['figure.figsize'] = self.project_preferences['width'], self.project_preferences['height']
+        plt.rcParams['font.size'] = self.project_preferences['font_size']
+        plt.rcParams['lines.linewidth'] = self.project_preferences['line_width']
+        format = int(self.project_preferences['format'])
+        plt.rcParams['axes.grid'] = self.project_preferences['grid']
         mpl.rcParams['pdf.fonttype'] = 42
-        if self.fig_opt['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = self.fig_opt['font_size'] - 2
+        if self.project_preferences['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = self.project_preferences['font_size'] - 2
         plt.rcParams['legend.loc'] = 'best'
         mpl.interactive(True)
-        erase1 = self.fig_opt['erase_id']
+        erase1 = self.project_preferences['erase_id']
         if len(self.q_all) < len(self.name_reach):
             print('Error: Could not find discharge data. Figure not plotted. \n')
             return
@@ -1060,11 +1060,11 @@ class Stathab:
 
                 fig = plt.figure()
                 plt.subplot(221)
-                if self.fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     plt.title('Total Volume')
                     plt.ylabel('Volume for 1m of reach [m3]')
                     plt.title('Surface by class for the granulometry')
-                elif self.fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     plt.title('Volume total')
                     plt.ylabel('Volume pour 1m de troncon [m3]')
                 else:
@@ -1073,10 +1073,10 @@ class Stathab:
                     plt.title('Surface by class for the granulometry')
                 plt.plot(qmod, vol)
                 plt.subplot(222)
-                if self.fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     plt.title('Surface by class for the granulometry')
                     plt.ylabel('Surface by class [m$^{2}$]')
-                elif self.fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     plt.title('Surface par classe de granulométrie')
                     plt.ylabel('Surface par classe [m$^{2}$]')
                 else:
@@ -1086,35 +1086,35 @@ class Stathab:
                     plt.plot(qmod, rclass[g], '-', label='Class ' + str(g))
                 lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
                 plt.subplot(223)
-                if self.fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     plt.title('Surface by class for the height')
-                elif self.fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     plt.title('Surface par classe pour la hauteur')
                 else:
                     plt.title('Surface by class for the height')
                 for g in range(0, len(hclass)):
                     plt.plot(qmod, hclass[g, :], '-', label='Class ' + str(g))
                 plt.xlabel('Q [m$^{3}$/sec]')
-                if self.fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     plt.ylabel('Surface by class [m$^{2}$]')
-                elif self.fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     plt.ylabel('Surface par classe [m$^{2}$]')
                 else:
                     plt.ylabel('Surface by class [m$^{2}$]')
                 lgd = plt.legend()
                 plt.subplot(224)
-                if self.fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     plt.title('Volume by class for the velocity')
-                elif self.fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     plt.title('Volume par classe pour la vitesse')
                 else:
                     plt.title('Volume by class for the velocity')
                 for g in range(0, len(vclass)):
                     plt.plot(qmod, vclass[g], '-', label='Class ' + str(g))
                 plt.xlabel('Q [m$^{3}$/sec]')
-                if self.fig_opt['language'] == 0:
+                if self.project_preferences['language'] == 0:
                     plt.ylabel('Volume by Class [m$^{3}$]')
-                elif self.fig_opt['language'] == 1:
+                elif self.project_preferences['language'] == 1:
                     plt.ylabel('Volume par classe [m$^{3}$]')
                 else:
                     plt.ylabel('Volume by Class [m$^{3}$]')
@@ -1132,7 +1132,7 @@ class Stathab:
                         name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                                 "_vel_h_gran_classes" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
                     fig.savefig(os.path.join(self.path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                                dpi=self.fig_opt['resolution'])
+                                dpi=self.project_preferences['resolution'])
                 else:
                     if format == 0 or format == 1:
                         name_fig = os.path.join(self.path_im, self.name_reach[r] + "_vel_h_gran_classes.png")
@@ -1143,7 +1143,7 @@ class Stathab:
                     if os.path.isfile(name_fig):
                         os.remove(name_fig)
                     fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                                dpi=self.fig_opt['resolution'])
+                                dpi=self.project_preferences['resolution'])
 
             # suitability index
             if len(self.fish_chosen) > 1:
@@ -1156,9 +1156,9 @@ class Stathab:
                 plt.plot(qmod, self.j_all[0, 0, :], '-', label=self.fish_chosen[0])
             plt.xlabel('Q [m$^{3}$/sec]')
             plt.ylabel('Index J [ ]')
-            if self.fig_opt['language'] == 0:
+            if self.project_preferences['language'] == 0:
                 plt.title('Suitability index J - ' + self.name_reach[r])
-            elif self.fig_opt['language'] == 1:
+            elif self.project_preferences['language'] == 1:
                 plt.title('Index de suitabilité J - ' + self.name_reach[r])
             else:
                 plt.title('Suitability index J - ' + self.name_reach[r])
@@ -1175,7 +1175,7 @@ class Stathab:
                     name_fig = os.path.join(self.path_im, self.name_reach[r] +
                                             "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                            dpi=self.fig_opt['resolution'], transparent=True)
+                            dpi=self.project_preferences['resolution'], transparent=True)
             else:
                 if format == 0 or format == 1:
                     name_fig = os.path.join(self.path_im, self.name_reach[r] + "_suitability_index.png")
@@ -1186,7 +1186,7 @@ class Stathab:
                 if os.path.isfile(name_fig):
                     os.remove(name_fig)
                 fig.savefig(name_fig, bbox_extra_artists=(lgd,), bbox_inches='tight',
-                            dpi=self.fig_opt['resolution'], transparent=True)
+                            dpi=self.project_preferences['resolution'], transparent=True)
             plt.show()
 
     def savetxt_stathab(self):
@@ -1194,8 +1194,8 @@ class Stathab:
         A function to save the stathab result in .txt form
         """
         # to know if we kept the old file or we erase them
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        erase1 = self.fig_opt['erase_id']
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+        erase1 = self.project_preferences['erase_id']
         if not isinstance(self.j_all, np.ndarray):
             print('Error: The suitability index was not in the right format')
             return
