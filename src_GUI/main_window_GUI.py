@@ -1327,7 +1327,7 @@ class MainWindows(QMainWindow):
         self.end_concurrency()
 
         # open a new Windows to ask for the info for the project
-        self.createnew = CreateNewProjectDialog(self.lang, self.path_trans, self.file_langue, pathprj_old)
+        self.createnew = CreateNewProjectDialog(self.lang, self.physic_tabs, self.stat_tabs, pathprj_old)
         self.createnew.save_project.connect(self.save_project_if_new_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
         self.createnew.show()
@@ -1943,7 +1943,7 @@ class CreateNewProjectDialog(QWidget):
        A PyQt signal used to write the log
     """
 
-    def __init__(self, lang, path_trans, file_langue, oldpath_prj):
+    def __init__(self, lang, physic_tabs, stat_tabs, oldpath_prj):
 
         if oldpath_prj and os.path.isdir(oldpath_prj):
             self.default_fold = os.path.dirname(oldpath_prj)
@@ -1952,6 +1952,8 @@ class CreateNewProjectDialog(QWidget):
         if self.default_fold == '':
             self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
         self.default_name = 'DefaultProj'
+        self.physic_tabs = physic_tabs
+        self.stat_tabs = stat_tabs
         super().__init__()
 
         self.init_iu()
@@ -1972,7 +1974,10 @@ class CreateNewProjectDialog(QWidget):
         self.project_type_combobox = QComboBox()
         self.model_type_list = [self.tr("Physical"), self.tr("Statistical")]
         self.project_type_combobox.addItems(self.model_type_list)
-
+        if self.physic_tabs and not self.stat_tabs:
+            self.project_type_combobox.setCurrentIndex(0)
+        elif self.stat_tabs and not self.physic_tabs:
+            self.project_type_combobox.setCurrentIndex(1)
 
         layoutl = QGridLayout()
         layoutl.addWidget(lg, 0, 0)
