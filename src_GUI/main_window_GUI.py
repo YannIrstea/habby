@@ -27,7 +27,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QPushButton, \
+from PyQt5.QtWidgets import QMainWindow, QComboBox,QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 import qdarkstyle
@@ -1356,6 +1356,13 @@ class MainWindows(QMainWindow):
         can not be in the new_project function as the new_project function call CreateNewProjectDialog().
         """
         name_prj_here = self.createnew.e1.text()
+        project_type = self.createnew.project_type_combobox.currentText()
+        if project_type == "Physical":
+            self.physic_tabs = True
+            self.stat_tabs = False
+        if project_type == "Statistical":
+            self.physic_tabs = False
+            self.stat_tabs = True
 
         # add a new folder
         path_new_fold = os.path.join(self.createnew.e2.text(), name_prj_here)
@@ -1961,6 +1968,11 @@ class CreateNewProjectDialog(QWidget):
         self.button3.clicked.connect(self.save_project)  # is a PyQtSignal
         self.e1.returnPressed.connect(self.save_project)
         self.button3.setStyleSheet("background-color: #47B5E6; color: black")
+        project_type_title_label = QLabel(self.tr("Project type"))
+        self.project_type_combobox = QComboBox()
+        self.model_type_list = [self.tr("Physical"), self.tr("Statistical")]
+        self.project_type_combobox.addItems(self.model_type_list)
+
 
         layoutl = QGridLayout()
         layoutl.addWidget(lg, 0, 0)
@@ -1969,7 +1981,9 @@ class CreateNewProjectDialog(QWidget):
         layoutl.addWidget(button2, 1, 2)
         layoutl.addWidget(l1, 2, 0)
         layoutl.addWidget(self.e1, 2, 1)
-        layoutl.addWidget(self.button3, 2, 2)
+        layoutl.addWidget(project_type_title_label, 3, 0)
+        layoutl.addWidget(self.project_type_combobox, 3, 1)
+        layoutl.addWidget(self.button3, 3, 2)
 
         self.setLayout(layoutl)
 
