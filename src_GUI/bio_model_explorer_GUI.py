@@ -85,8 +85,23 @@ class BioModelExplorerWindow(QDialog):
         self.setWindowIcon(QIcon(self.name_icon))
 
     def open_bio_model_explorer(self, source_str):
+
         # source
         self.source_str = source_str
+
+        # load dicoselect in xml project
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        # geo data
+        child1 = root.find('.//Bio_model_explorer_selection')
+        #print("open", self.name_prj, child1)
+        if child1 is None:
+            self.bio_model_filter_tab.create_dico_select()
+            self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
+        else:
+            self.bio_model_filter_tab.dicoselect = eval(child1.text)
+            self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
 
         # mainwindow
         mainwindow_center = self.nativeParentWidget().geometry().center()
@@ -106,6 +121,9 @@ class BioModelExplorerWindow(QDialog):
             self.bio_model_infoselection_tab.dicoselect = dicoselect
             self.bio_model_infoselection_tab.biological_models_dict_gui = biological_models_dict_gui
             self.bio_model_infoselection_tab.fill_available_aquatic_animal()
+
+    def closeEvent(self, *args, **kwargs):
+        self.bio_model_infoselection_tab.quit_biological_model_explorer()
 
 
 class BioModelFilterTab(QScrollArea):
@@ -485,8 +503,6 @@ class BioModelFilterTab(QScrollArea):
             listwidget.selectAll()
 
 
-
-
 class BioModelInfoSelection(QScrollArea):
     """
     This class contain second tab (Model selection).
@@ -751,7 +767,6 @@ class BioModelInfoSelection(QScrollArea):
         [h_all, vel_all, sub_all, code_fish, name_fish, stages] = bio_info_mod.read_pref(xmlfile)
         # plot the pref
         project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
- 
         # do the plot
         if not hasattr(self, 'plot_process_list'):
             self.plot_process_list = MyProcessList()
@@ -816,4 +831,17 @@ class BioModelInfoSelection(QScrollArea):
         self.quit_biological_model_explorer()
 
     def quit_biological_model_explorer(self):
+        # save dicoselect in xml project
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        # geo data
+        child1 = root.find('.//Bio_model_explorer_selection')
+        if child1 is None:
+            child1 = ET.SubElement(root, 'Bio_model_explorer_selection')
+            child1.text = str(self.dicoselect)
+        else:
+            child1.text = str(self.dicoselect)
+        doc.write(fname)
         self.parent().parent().parent().close()
+
