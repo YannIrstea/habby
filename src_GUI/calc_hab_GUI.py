@@ -420,6 +420,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get the type of option choosen for the habitat calculation
         run_choice = self.general_option_sub_combobox.currentIndex()
+        # TODO: change run choices with sub and hyd
+        run_choice = 0
 
         # only useful if we want to also show the 2d figure in the GUI
         self.hdf5_file = hdf5_file

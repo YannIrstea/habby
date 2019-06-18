@@ -455,7 +455,7 @@ def get_biomodels_informations_for_database(path_xml):
     if "[" in stage_and_size[0]:
         stage_and_size = ["class size"]
     # substrate
-    substrate_type = [stage.attrib['Variables'] for stage in root.findall(".//PreferenceSubstrate")]
+    substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
     if substrate_type == []:
         substrate_type = ["Neglect"]
     # ModelType
@@ -842,23 +842,12 @@ def read_pref(xmlfile):
 
     # velocity
     vel_all = []
-    for s in stages:
+    pref_vel = root.findall(".//PreferenceVelocity")
+    for pref_vel_i in pref_vel:
         vel = [[], []]
-        rea = ".//Stage[@Type='" + s + "']/PreferenceVelocity/Value"
-        vel_data = root.findall(rea)
-        if vel_data is not None:
-            for v in vel_data:
-                try:
-                    data2 = float(v.attrib['p'])
-                    data1 = float(v.attrib['v'])
-                except ValueError:
-                    print('Error: Value cannot be converted to float\
-                                    in the velocity data of the xml file'
-                          + xml_name + '\n')
-                    return failload
-                vel[0].extend([data1])
-                vel[1].extend([data2])
-        else:
+        vel[0] = list(map(float, pref_vel_i.getchildren()[0].text.split(" ")))
+        vel[1] = list(map(float, pref_vel_i.getchildren()[1].text.split(" ")))
+        if not vel[0]:
             print('Error: Velocity data was not found \n')
             return failload
 
@@ -869,30 +858,18 @@ def read_pref(xmlfile):
             return failload
 
         # manage units
-        unit = root.find(".//PreferenceVelocity")
-        vel = change_unit(vel, unit.attrib["Unit"])
-
+        vel = change_unit(vel, pref_vel_i.getchildren()[0].attrib["Unit"])
         vel_all.append(vel)
 
     # height
     h_all = []
-    for s in stages:
+    pref_hei = root.findall(".//PreferenceHeightOfWater")
+    for pref_hei_i in pref_hei:
         height = [[], []]
-        rea = ".//Stage[@Type='" + s + "']/PreferenceHeightOfWater/Value"
-        h_data = root.findall(rea)
-        if h_data is not None:
-            for v in h_data:
-                try:
-                    data2 = float(v.attrib['p'])
-                    data1 = float(v.attrib['hw'])
-                except ValueError:
-                    print('Error: Value cannot be converted to float\
-                     in the height data of the xml file'
-                          + xml_name + '\n')
-                    return failload
-                height[0].extend([data1])
-                height[1].extend([data2])
-        else:
+        height[0] = list(map(float, pref_hei_i.getchildren()[0].text.split(" ")))
+        height[1] = list(map(float, pref_hei_i.getchildren()[1].text.split(" ")))
+
+        if not height[0]:
             print('Error: Height data was not found \n')
             return failload
 
@@ -902,35 +879,21 @@ def read_pref(xmlfile):
                   + xml_name + '.\n')
             return failload
         # manage units
-        unit = root.find(".//PreferenceHeightOfWater")
-        height = change_unit(height, unit.attrib["Unit"])
+        height = change_unit(height,  pref_hei_i.getchildren()[0].attrib["Unit"])
         h_all.append(height)
 
     # substrate
     sub_all = []
-    for s in stages:
+    pref_sub = root.findall(".//PreferenceSubstrate")
+    for pref_sub_i in pref_sub:
         sub = [[], []]
-        rea = ".//Stage[@Type='" + s + "']/PreferenceSubstrate/Value"
-        s_data = root.findall(rea)
-        if len(s_data) > 0:
-            for v in s_data:
-                try:
-                    data2 = float(v.attrib['p'])  # get rif of the s
-                    data1 = float(v.attrib['s'][1:])
-                except ValueError:
-                    print('Error: Value cannot be converted to float\
-                     in the substrate data of the xml file '
-                          + xml_name + '\n')
-                    return failload
-                sub[0].extend([data1])
-                sub[1].extend([data2])
-            unit = root.find(".//PreferenceSubstrate")
-            sub = change_unit(sub, unit.attrib['ClassificationName'])
-            sub_all.append(sub)
-        else:
+        sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
+        sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
+        sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
+        if not sub[0]:
             # case without substrate
             sub = [[0, 1], [1, 1]]
-            sub_all.append(sub)
+        sub_all.append(sub)
 
     return h_all, vel_all, sub_all, code_fish, name_fish, stages
 
