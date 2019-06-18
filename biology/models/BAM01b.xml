@@ -35,19 +35,46 @@ Ambiances où des barbeaux méridionaux ont été prélevés :
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="[0,45[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='7.5' p='1'/><Value hw='12.5' p='0.35'/><Value hw='17.5' p='0.14'/><Value hw='22.5' p='0.14'/><Value hw='27.5' p='0.11'/><Value hw='32.5' p='0.07'/><Value hw='42.5' p='0.08'/><Value hw='47.5' p='0'/><Value hw='90' p='0'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='1'/><Value v='2.5' p='1'/><Value v='7.5' p='0.67'/><Value v='12.5' p='0.23'/><Value v='17.5' p='0.17'/><Value v='32.5' p='0.11'/><Value v='52.5' p='0'/><Value v='90' p='0'/></PreferenceVelocity>
-<PreferenceSubstrate ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser"><Value s='s1' p='0.1'/><Value s='s2' p='0.1'/><Value s='s3' p='0.1'/><Value s='s4' p='0.57'/><Value s='s5' p='0.21'/><Value s='s6' p='1'/><Value s='s7' p='0.4'/><Value s='s8' p='0.1'/></PreferenceSubstrate>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 7.5 12.5 17.5 22.5 27.5 32.5 42.5 47.5 90</HeightOfWaterValues>
+<PreferenceValues>0 1 0.35 0.14 0.14 0.11 0.07 0.08 0 0</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 7.5 12.5 17.5 32.5 52.5 90</VelocityValues>
+<PreferenceValues>1 1 0.67 0.23 0.17 0.11 0 0</PreferenceValues>
+</PreferenceVelocity>
+<PreferenceSubstrate>
+<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+<PreferenceValues>0.1 0.1 0.1 0.57 0.21 1 0.4 0.1</PreferenceValues>
+</PreferenceSubstrate>
 </Stage>
 <Stage Type="[45,120[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='12.5' p='0.46'/><Value hw='27.5' p='0.64'/><Value hw='57.5' p='0.96'/><Value hw='67.5' p='1'/><Value hw='87.5' p='0.8'/><Value hw='90' p='0.8'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='0'/><Value v='12.5' p='0.57'/><Value v='22.5' p='0.57'/><Value v='32.5' p='0.59'/><Value v='42.5' p='0.6'/><Value v='47.5' p='0.87'/><Value v='62.5' p='1'/><Value v='72.5' p='0'/><Value v='90' p='0'/></PreferenceVelocity>
-<PreferenceSubstrate ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser"><Value s='s1' p='0.1'/><Value s='s2' p='0.1'/><Value s='s3' p='0.67'/><Value s='s4' p='0.24'/><Value s='s5' p='0.39'/><Value s='s6' p='0.82'/><Value s='s7' p='0.88'/><Value s='s8' p='1'/></PreferenceSubstrate>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 27.5 57.5 67.5 87.5 90</HeightOfWaterValues>
+<PreferenceValues>0 0.46 0.64 0.96 1 0.8 0.8</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 12.5 22.5 32.5 42.5 47.5 62.5 72.5 90</VelocityValues>
+<PreferenceValues>0 0.57 0.57 0.59 0.6 0.87 1 0 0</PreferenceValues>
+</PreferenceVelocity>
+<PreferenceSubstrate>
+<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+<PreferenceValues>0.1 0.1 0.67 0.24 0.39 0.82 0.88 1</PreferenceValues>
+</PreferenceSubstrate>
 </Stage>
 <Stage Type="[120,270[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='12.5' p='0.24'/><Value hw='37.5' p='0.52'/><Value hw='47.5' p='0.5'/><Value hw='62.5' p='0.93'/><Value hw='82.5' p='1'/><Value hw='90' p='1'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='0'/><Value v='7.5' p='0.38'/><Value v='22.5' p='0.41'/><Value v='32.5' p='0.46'/><Value v='37.5' p='0.51'/><Value v='52.5' p='1'/><Value v='72.5' p='0.96'/><Value v='77.5' p='0'/><Value v='90' p='0'/></PreferenceVelocity>
-<PreferenceSubstrate ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser"><Value s='s1' p='0.1'/><Value s='s2' p='0.1'/><Value s='s3' p='0.23'/><Value s='s4' p='0.18'/><Value s='s5' p='0.18'/><Value s='s6' p='0.53'/><Value s='s7' p='0.72'/><Value s='s8' p='1'/></PreferenceSubstrate>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 37.5 47.5 62.5 82.5 90</HeightOfWaterValues>
+<PreferenceValues>0 0.24 0.52 0.5 0.93 1 1</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 7.5 22.5 32.5 37.5 52.5 72.5 77.5 90</VelocityValues>
+<PreferenceValues>0 0.38 0.41 0.46 0.51 1 0.96 0 0</PreferenceValues>
+</PreferenceVelocity>
+<PreferenceSubstrate>
+<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+<PreferenceValues>0.1 0.1 0.23 0.18 0.18 0.53 0.72 1</PreferenceValues>
+</PreferenceSubstrate>
 </Stage>
 </Stages>
 </ModelType>

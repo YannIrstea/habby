@@ -28,12 +28,24 @@ Référence: CEMAGREF, LHQ. Capra et al., 1998.
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="juvenile">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='5' p='1'/><Value hw='12.5' p='1'/><Value hw='30' p='0.86'/><Value hw='60' p='0.46'/><Value hw='80' p='0.31'/><Value hw='300' p='0.31'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='1'/><Value v='2.5' p='1'/><Value v='12.5' p='0.73'/><Value v='30' p='0.56'/><Value v='60' p='0.18'/><Value v='100' p='0.01'/><Value v='200' p='0'/></PreferenceVelocity>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+<PreferenceValues>0 1 1 0.86 0.46 0.31 0.31</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
+<PreferenceValues>1 1 0.73 0.56 0.18 0.01 0</PreferenceValues>
+</PreferenceVelocity>
 </Stage>
 <Stage Type="adult">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='5' p='0.8'/><Value hw='12.5' p='0.8'/><Value hw='30' p='1'/><Value hw='60' p='0.75'/><Value hw='80' p='0.38'/><Value hw='300' p='0.38'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='0.76'/><Value v='2.5' p='0.76'/><Value v='12.5' p='1'/><Value v='30' p='0.96'/><Value v='60' p='0.67'/><Value v='100' p='0.11'/><Value v='200' p='0'/></PreferenceVelocity>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+<PreferenceValues>0 0.8 0.8 1 0.75 0.38 0.38</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
+<PreferenceValues>0.76 0.76 1 0.96 0.67 0.11 0</PreferenceValues>
+</PreferenceVelocity>
 </Stage>
 </Stages>
 </ModelType>

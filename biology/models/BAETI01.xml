@@ -28,7 +28,10 @@ Genre représenté par 19 espèces en France (OPIE benthos 2019) et est présent
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="larva">
-<Preferenceshearstress Unit="HFST" UnitSymbol="HFST"><Value HFST='0' p='0.13'/><Value HFST='1' p='0.17'/><Value HFST='2' p='0.22'/><Value HFST='3' p='0.29'/><Value HFST='4' p='0.37'/><Value HFST='5' p='0.46'/><Value HFST='6' p='0.56'/><Value HFST='7' p='0.67'/><Value HFST='8' p='0.78'/><Value HFST='9' p='0.87'/><Value HFST='10' p='0.94'/><Value HFST='11' p='0.98'/><Value HFST='12' p='1'/><Value HFST='13' p='0.99'/><Value HFST='14' p='0.96'/><Value HFST='15' p='0.92'/><Value HFST='16' p='0.86'/><Value HFST='17' p='0.80'/><Value HFST='18' p='0.73'/><Value HFST='19' p='0.66'/><Value HFST='20' p='0.59'/></Preferenceshearstress>
+<PreferenceShearStress>
+<ShearStressValues Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</ShearStressValues>
+<PreferenceValues>0.13 0.17 0.22 0.29 0.37 0.46 0.56 0.67 0.78 0.87 0.94 0.98 1 0.99 0.96 0.92 0.86 0.80 0.73 0.66 0.59</PreferenceValues>
+</PreferenceShearStress>
 </Stage>
 </Stages>
 </ModelType>

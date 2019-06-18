@@ -28,9 +28,18 @@ Origine: Traitement de la base de données des 1601 ambiances. Données récolt�
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="all_stages">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='5' p='0.6'/><Value hw='12.5' p='0.6'/><Value hw='30' p='0.6'/><Value hw='60' p='1'/><Value hw='80' p='0.27'/><Value hw='300' p='0.27'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='1'/><Value v='2.5' p='1'/><Value v='12.5' p='0.3'/><Value v='30' p='0.1'/><Value v='60' p='0.45'/><Value v='100' p='0'/><Value v='200' p='0'/></PreferenceVelocity>
-<PreferenceSubstrate ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant"><Value s='s1' p='1'/><Value s='s2' p='1'/><Value s='s3' p='1'/><Value s='s4' p='1'/><Value s='s5' p='0.24'/><Value s='s6' p='0.06'/><Value s='s7' p='0.39'/><Value s='s8' p='0.3'/></PreferenceSubstrate>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
+<PreferenceValues>0 0.6 0.6 0.6 1 0.27 0.27</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
+<PreferenceValues>1 1 0.3 0.1 0.45 0 0</PreferenceValues>
+</PreferenceVelocity>
+<PreferenceSubstrate>
+<SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
+<PreferenceValues>1 1 1 1 0.24 0.06 0.39 0.3</PreferenceValues>
+</PreferenceSubstrate>
 </Stage>
 </Stages>
 </ModelType>

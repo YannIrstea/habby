@@ -37,7 +37,10 @@ http://www.opie-benthos.fr
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="larva">
-<Preferenceshearstress Unit="HFST" UnitSymbol="HFST"><Value HFST='0' p='0.02'/><Value HFST='1' p='0.03'/><Value HFST='2' p='0.05'/><Value HFST='3' p='0.06'/><Value HFST='4' p='0.09'/><Value HFST='5' p='0.12'/><Value HFST='6' p='0.16'/><Value HFST='7' p='0.21'/><Value HFST='8' p='0.26'/><Value HFST='9' p='0.33'/><Value HFST='10' p='0.40'/><Value HFST='11' p='0.47'/><Value HFST='12' p='0.55'/><Value HFST='13' p='0.63'/><Value HFST='14' p='0.71'/><Value HFST='15' p='0.80'/><Value HFST='16' p='0.90'/><Value HFST='17' p='1'/><Value HFST='18' p='1'/><Value HFST='19' p='1'/><Value HFST='20' p='1'/></Preferenceshearstress>
+<PreferenceShearStress>
+<ShearStressValues Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</ShearStressValues>
+<PreferenceValues>0.02 0.03 0.05 0.06 0.09 0.12 0.16 0.21 0.26 0.33 0.40 0.47 0.55 0.63 0.71 0.80 0.90 1 1 1 1</PreferenceValues>
+</PreferenceShearStress>
 </Stage>
 </Stages>
 </ModelType>
