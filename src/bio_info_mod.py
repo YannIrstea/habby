@@ -16,13 +16,14 @@ https://github.com/YannIrstea/habby
 """
 import os
 import re
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 import sqlite3
 import time
 from datetime import datetime
 from multiprocessing import Value
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
 
 from src import hdf5_mod
 from src import plot_mod
@@ -410,6 +411,7 @@ def create_and_fill_database(path_bio, name_database, attribute):
             Please check the biology folder.\n')
 
 
+
 def get_biomodels_informations_for_database(path_xml):
     """
 
@@ -421,7 +423,6 @@ def get_biomodels_informations_for_database(path_xml):
     #  2 <CdBiologicalModel>SIC01 il faut que l'on ait un idenfiant unique monobloc non partagé avec un autre xml! dans habby v appdata </CdBiologicalModel>
     #  3 checker la validité des  modeles de courbes unitSymbol
     #  #  new functionil se peut <Image></Image> pas d'image ou même pas les balises et il faut l'admettre // \\ format possible image jpg ou png
-
 
     # open the file
     try:
@@ -435,10 +436,26 @@ def get_biomodels_informations_for_database(path_xml):
         print("Warning: the xml file is not well-formed.\n")
         return
 
+    # Country
+    country = root.find(".//Country").text
     # CdBiologicalModel
     CdBiologicalModel = root.find('.//CdBiologicalModel').text
+    # aquatic_animal_type
+    if root.find(".//Fish"):
+        aquatic_animal_type = "fish"
+    elif root.find(".//Invertebrate"):
+        aquatic_animal_type = "invertebrate"
+    else:
+        print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
+        return
+    # guild
+    guild = "mono"
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
+    if "[" in stage_and_size[0]:
+        stage_and_size = ["class size"]
+    # substrate
+    substrate_type = [stage.attrib['Variables'] for stage in root.findall(".//PreferenceSubstrate")]
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
     # MadeBy
@@ -449,14 +466,26 @@ def get_biomodels_informations_for_database(path_xml):
     LatinName = root.find(".//LatinName").text
     # modification_date
     modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
+    # image file
+    path_img_prov = root.find(".//Image").text
+    if path_img_prov:
+        path_img = os.path.join(os.path.dirname(path_xml), path_img_prov)
+    else:
+        path_img = None
+
     # to dict
-    information_model_dict = dict(CdBiologicalModel=CdBiologicalModel,
+    information_model_dict = dict(country=country,
+                                  aquatic_animal_type=aquatic_animal_type,
+                                  guild=guild,
+                                  CdBiologicalModel=CdBiologicalModel,
                                   stage_and_size=stage_and_size,
+                                  substrate_type=substrate_type,
                                   ModelType=ModelType,
                                   MadeBy=MadeBy,
                                   CdAlternative=CdAlternative,
                                   LatinName=LatinName,
-                                  modification_date=modification_date)
+                                  modification_date=modification_date,
+                                  path_img=path_img)
 
     return information_model_dict
 

@@ -154,50 +154,31 @@ class ConfigHabby:
                                       modification_date=[],  # unsortable
                                       latin_name=[],  # unsortable
                                       path_xml=[],  # unsortable
-                                      path_png=[])
+                                      path_img=[])
 
         # for each source
         for xml_origine in ["user", "habby"]:
             if xml_origine == "habby":
                 xml_list = self.models_from_habby
-                png_list = self.picture_from_habby
                 path_bio = self.path_bio
             if xml_origine == "user":
                 xml_list = self.models_from_user_appdata
-                png_list = self.picture_from_user_appdata
                 path_bio = self.user_config_biology_models
 
             # for each xml file
             for file_ind, xml_filename in enumerate(xml_list):
                 # get path
                 path_xml = os.path.join(path_bio, xml_filename)
-                path_png = os.path.join(path_bio, png_list[file_ind])
+                # path_png = os.path.join(path_bio, png_list[file_ind])
                 # get_biomodels_informations_for_database
                 information_model_dict = bio_info_mod.get_biomodels_informations_for_database(path_xml)
-                # save data sortable
-                if file_ind == 5:
-                    country = ["Allemagne"]
-                    aquatic_animal_type = "fish"
-                    guild = "mono"
-                elif file_ind == 8:
-                    country = ["Italie", "France"]
-                    aquatic_animal_type = "invertebrate"
-                    guild = "guild"
-                else:
-                    country = ["France"]
-                    aquatic_animal_type = "fish"
-                    guild = "mono"
-                # change text value to class size
-                if "[" in information_model_dict["stage_and_size"][0]:
-                    information_model_dict["stage_and_size"] = ["class size"]
-                else:
-                    information_model_dict["stage_and_size"] = information_model_dict["stage_and_size"]
 
-                biological_models_dict["country"].append(country)  # TODO: get real info
-                biological_models_dict["aquatic_animal_type"].append(aquatic_animal_type)  # TODO: get real info
+                # append in dict
+                biological_models_dict["country"].append(information_model_dict["country"])
+                biological_models_dict["aquatic_animal_type"].append(information_model_dict["aquatic_animal_type"])
                 biological_models_dict["model_type"].append(information_model_dict["ModelType"])
                 biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
-                biological_models_dict["guild"].append(guild)  # TODO: get real info
+                biological_models_dict["guild"].append(information_model_dict["guild"])
                 biological_models_dict["xml_origine"].append(xml_origine)
                 biological_models_dict["made_by"].append(information_model_dict["MadeBy"])
                 # last sortable
@@ -207,7 +188,7 @@ class ConfigHabby:
                 biological_models_dict["modification_date"].append(information_model_dict["modification_date"])
                 biological_models_dict["latin_name"].append(information_model_dict["LatinName"])
                 biological_models_dict["path_xml"].append(path_xml)
-                biological_models_dict["path_png"].append(path_png)
+                biological_models_dict["path_img"].append(information_model_dict["path_img"])
 
         # sort by latin name
         indice_sorted = [biological_models_dict["latin_name"].index(x) for x in sorted(biological_models_dict["latin_name"])]
