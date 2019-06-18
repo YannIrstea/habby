@@ -310,7 +310,7 @@ class BioModelFilterTab(QScrollArea):
             listwidget.blockSignals(False)
             if i < len(l) - 2:  # not next ky in ['fish_code_alternative','inv_code_alternative']
                 if self.biological_models_dict_gui['orderedKeysmultilist'][i]:  # if multi
-                    sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[ky]]
+                    sky = [len(lky & set(x)) != 0 for x in self.biological_models_dict_gui[ky]]
                 else:  # if solo
                     sky = [x in lky for x in self.biological_models_dict_gui[ky]]
                 bio_models_selected = np.logical_and(bio_models_selected, np.array(sky))
@@ -384,7 +384,7 @@ class BioModelFilterTab(QScrollArea):
             kyi = self.biological_models_dict_gui['orderedKeys'][iky]
             lky = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
             if self.biological_models_dict_gui['orderedKeysmultilist'][iky]:  # if multi
-                sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[kyi]]
+                sky = [len(lky & set(x)) != 0 for x in self.biological_models_dict_gui[kyi]]
             else:  # if solo
                 sky = [x in lky for x in self.biological_models_dict_gui[kyi]]
             self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'],
@@ -467,7 +467,7 @@ class BioModelFilterTab(QScrollArea):
             kyi = self.biological_models_dict_gui['orderedKeys'][iky]
             lky = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
             if self.biological_models_dict_gui['orderedKeysmultilist'][iky]:  # if multi
-                sky = [len(lky & x) != 0 for x in self.biological_models_dict_gui[kyi]]
+                sky = [len(lky & set(x)) != 0 for x in self.biological_models_dict_gui[kyi]]
             else:  # if solo
                 sky = [x in lky for x in self.biological_models_dict_gui[kyi]]
             self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'],
@@ -476,10 +476,10 @@ class BioModelFilterTab(QScrollArea):
         for kyi in ['fish_code_alternative', 'inv_code_alternative']:
             if kyi != ky:
                 lkyi = {x for x, y in zip(self.dicoselect[kyi][0], self.dicoselect[kyi][1]) if y}
-                skyi = [len(lkyi & x) != 0 for x in self.biological_models_dict_gui['code_alternative']]
+                skyi = [len(lkyi & set(x)) != 0 for x in self.biological_models_dict_gui['code_alternative']]
         lkyj = {selection_item.text() for selection_item in selection}
         self.dicoselect[ky][1] = [x in lkyj for x in self.dicoselect[ky][0]]
-        skyj = [len(lkyj & x) != 0 for x in self.biological_models_dict_gui['code_alternative']]
+        skyj = [len(lkyj & set(x)) != 0 for x in self.biological_models_dict_gui['code_alternative']]
         askyj = np.logical_or(np.array(skyi), np.array(skyj))
         self.biological_models_dict_gui['selected'] = np.logical_and(self.biological_models_dict_gui['selected'], askyj)
         self.dicoselect[ky][2] = True

@@ -456,6 +456,8 @@ def get_biomodels_informations_for_database(path_xml):
         stage_and_size = ["class size"]
     # substrate
     substrate_type = [stage.attrib['Variables'] for stage in root.findall(".//PreferenceSubstrate")]
+    if substrate_type == []:
+        substrate_type = ["Neglect"]
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
     # MadeBy

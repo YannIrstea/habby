@@ -135,6 +135,10 @@ class ConfigHabby:
         if biological_models_dict["modification_date"] != self.biological_models_dict["modification_date"]:
             modification_date = True
 
+        # check == len(keys)
+        if len(biological_models_dict.keys()) != len(self.biological_models_dict.keys()) - 1:  # -1 because orderedKeys
+            modification_date = True
+
         # check condition
         if path_xml or modification_date:  # update json
             self.create_biology_models_json()
@@ -149,6 +153,7 @@ class ConfigHabby:
                                       guild=[],  # sortable
                                       xml_origine=[],  # sortable
                                       made_by=[],  # sortable
+                                      substrate_type=[],  # sortable
                                       code_alternative=[],  # sortable
                                       cd_biological_model=[],  # unsortable
                                       modification_date=[],  # unsortable
@@ -180,6 +185,7 @@ class ConfigHabby:
                 biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
                 biological_models_dict["guild"].append(information_model_dict["guild"])
                 biological_models_dict["xml_origine"].append(xml_origine)
+                biological_models_dict["substrate_type"].append(information_model_dict["substrate_type"])
                 biological_models_dict["made_by"].append(information_model_dict["MadeBy"])
                 # last sortable
                 biological_models_dict["code_alternative"].append(information_model_dict["CdAlternative"])
@@ -223,7 +229,7 @@ class ConfigHabby:
         for key in self.biological_models_dict_set.keys():
             if type(self.biological_models_dict[key][0]) == list:
                 self.biological_models_dict["orderedKeysmultilist"].append(True)
-                self.biological_models_dict[key] = [set(element) for element in self.biological_models_dict[key]]
+                #self.biological_models_dict[key] = [set(element) for element in self.biological_models_dict[key]]
             else:
                 self.biological_models_dict["orderedKeysmultilist"].append(False)
         self.biological_models_dict["selected"] = np.ones(len(self.biological_models_dict["country"]), dtype=bool)
