@@ -32,7 +32,10 @@ Schmidt-Kloiber, A. & Hering D. (2015): www.freshwaterecology.info - an online t
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="larva">
-<Preferenceshearstress Unit="HFST" UnitSymbol="HFST"><Value HFST='0' p='0.11'/><Value HFST='1' p='0.16'/><Value HFST='2' p='0.21'/><Value HFST='3' p='0.28'/><Value HFST='4' p='0.37'/><Value HFST='5' p='0.48'/><Value HFST='6' p='0.60'/><Value HFST='7' p='0.73'/><Value HFST='8' p='0.84'/><Value HFST='9' p='0.93'/><Value HFST='10' p='0.98'/><Value HFST='11' p='1'/><Value HFST='12' p='0.98'/><Value HFST='13' p='93'/><Value HFST='14' p='0.86'/><Value HFST='15' p='0.78'/><Value HFST='16' p='0.69'/><Value HFST='17' p='0.60'/><Value HFST='18' p='0.51'/><Value HFST='19' p='0.44'/><Value HFST='20' p='0.37'/></Preferenceshearstress>
+<PreferenceShearStress>
+<ShearStressValues Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</ShearStressValues>
+<PreferenceValues>0.11 0.16 0.21 0.28 0.37 0.48 0.60 0.73 0.84 0.93 0.98 1 0.98 93 0.86 0.78 0.69 0.60 0.51 0.44 0.37</PreferenceValues>
+</PreferenceShearStress>
 </Stage>
 </Stages>
 </ModelType>

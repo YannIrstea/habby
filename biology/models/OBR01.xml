@@ -30,16 +30,34 @@ Pas de préférence codee pour le substrat.
 <ModelType Type="univariate suitability index curves">
 <Stages>
 <Stage Type="fry">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='5' p='0.01'/><Value hw='15' p='0.05'/><Value hw='25' p='0.18'/><Value hw='35' p='0.5'/><Value hw='45' p='0.94'/><Value hw='55' p='1'/><Value hw='65' p='0.64'/><Value hw='75' p='0.31'/><Value hw='85' p='0.14'/><Value hw='95' p='0.06'/><Value hw='105' p='0.03'/><Value hw='115' p='0.02'/><Value hw='125' p='0.01'/><Value hw='135' p='0'/><Value hw='145' p='0'/><Value hw='200' p='0'/><Value hw='300' p='0'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='0'/><Value v='5' p='0'/><Value v='15' p='0'/><Value v='25' p='0'/><Value v='35' p='0.01'/><Value v='45' p='0.02'/><Value v='55' p='0.05'/><Value v='65' p='0.11'/><Value v='75' p='0.25'/><Value v='85' p='0.53'/><Value v='95' p='0.89'/><Value v='105' p='1'/><Value v='115' p='0.7'/><Value v='125' p='0.34'/><Value v='135' p='0.13'/><Value v='145' p='0.05'/><Value v='200' p='0'/></PreferenceVelocity>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 15 25 35 45 55 65 75 85 95 105 115 125 135 145 200 300</HeightOfWaterValues>
+<PreferenceValues>0 0.01 0.05 0.18 0.5 0.94 1 0.64 0.31 0.14 0.06 0.03 0.02 0.01 0 0 0 0</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 5 15 25 35 45 55 65 75 85 95 105 115 125 135 145 200</VelocityValues>
+<PreferenceValues>0 0 0 0 0.01 0.02 0.05 0.11 0.25 0.53 0.89 1 0.7 0.34 0.13 0.05 0</PreferenceValues>
+</PreferenceVelocity>
 </Stage>
 <Stage Type="juvenile">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='5' p='0'/><Value hw='15' p='0'/><Value hw='25' p='0.01'/><Value hw='35' p='0.01'/><Value hw='45' p='0.02'/><Value hw='55' p='0.04'/><Value hw='65' p='0.08'/><Value hw='75' p='0.15'/><Value hw='85' p='0.27'/><Value hw='95' p='0.48'/><Value hw='105' p='0.77'/><Value hw='115' p='1'/><Value hw='125' p='0.93'/><Value hw='135' p='0.61'/><Value hw='145' p='0.3'/><Value hw='200' p='0'/><Value hw='300' p='0'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='0'/><Value v='5' p='0.02'/><Value v='15' p='0.04'/><Value v='25' p='0.08'/><Value v='35' p='0.16'/><Value v='45' p='0.29'/><Value v='55' p='0.51'/><Value v='65' p='0.77'/><Value v='75' p='0.98'/><Value v='85' p='1'/><Value v='95' p='0.84'/><Value v='105' p='0.6'/><Value v='115' p='0.39'/><Value v='125' p='0.24'/><Value v='135' p='0.14'/><Value v='145' p='0.08'/><Value v='200' p='0'/></PreferenceVelocity>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 15 25 35 45 55 65 75 85 95 105 115 125 135 145 200 300</HeightOfWaterValues>
+<PreferenceValues>0 0 0 0.01 0.01 0.02 0.04 0.08 0.15 0.27 0.48 0.77 1 0.93 0.61 0.3 0 0</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 5 15 25 35 45 55 65 75 85 95 105 115 125 135 145 200</VelocityValues>
+<PreferenceValues>0 0.02 0.04 0.08 0.16 0.29 0.51 0.77 0.98 1 0.84 0.6 0.39 0.24 0.14 0.08 0</PreferenceValues>
+</PreferenceVelocity>
 </Stage>
 <Stage Type="adult">
-<PreferenceHeightOfWater Unit="Centimeter" UnitSymbol="cm"><Value hw='0' p='0'/><Value hw='5' p='0'/><Value hw='15' p='0'/><Value hw='25' p='0'/><Value hw='35' p='0'/><Value hw='45' p='0'/><Value hw='55' p='0'/><Value hw='65' p='0'/><Value hw='75' p='0'/><Value hw='85' p='0.01'/><Value hw='95' p='0.02'/><Value hw='105' p='0.06'/><Value hw='115' p='0.26'/><Value hw='125' p='0.88'/><Value hw='135' p='1'/><Value hw='145' p='0.27'/><Value hw='200' p='0'/><Value hw='300' p='0'/></PreferenceHeightOfWater>
-<PreferenceVelocity Unit="CentimeterPerSecond" UnitSymbol="cm/s"><Value v='0' p='0'/><Value v='5' p='0.03'/><Value v='15' p='0.05'/><Value v='25' p='0.08'/><Value v='35' p='0.15'/><Value v='45' p='0.26'/><Value v='55' p='0.42'/><Value v='65' p='0.63'/><Value v='75' p='0.87'/><Value v='85' p='1'/><Value v='95' p='0.96'/><Value v='105' p='0.76'/><Value v='115' p='0.51'/><Value v='125' p='0.31'/><Value v='135' p='0.17'/><Value v='145' p='0.09'/><Value v='200' p='0'/></PreferenceVelocity>
+<PreferenceHeightOfWater>
+<HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 15 25 35 45 55 65 75 85 95 105 115 125 135 145 200 300</HeightOfWaterValues>
+<PreferenceValues>0 0 0 0 0 0 0 0 0 0.01 0.02 0.06 0.26 0.88 1 0.27 0 0</PreferenceValues>
+</PreferenceHeightOfWater>
+<PreferenceVelocity>
+<VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 5 15 25 35 45 55 65 75 85 95 105 115 125 135 145 200</VelocityValues>
+<PreferenceValues>0 0.03 0.05 0.08 0.15 0.26 0.42 0.63 0.87 1 0.96 0.76 0.51 0.31 0.17 0.09 0</PreferenceValues>
+</PreferenceVelocity>
 </Stage>
 </Stages>
 </ModelType>
