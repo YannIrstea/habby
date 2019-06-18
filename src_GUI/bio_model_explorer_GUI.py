@@ -406,6 +406,7 @@ class BioModelFilterTab(QScrollArea):
                 self.result_to_selected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
         else:
             if selection:
+                self.clear_filter_dispatch()
                 self.result_to_selected_dispatch()
             else:
                 self.clear_filter_dispatch()
