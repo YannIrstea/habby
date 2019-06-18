@@ -589,7 +589,7 @@ class SubHydroW(QWidget):
         self.polygon_hname = QLineEdit(' ')
         self.p = Process(target=None)  # second process
         self.q = Queue()
-        self.fig_opt = []
+        self.project_preferences = []
         self.running_time = 0
         super().__init__()
 
@@ -1107,10 +1107,10 @@ class SubHydroW(QWidget):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the language
-            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
             self.nativeParentWidget().kill_process.setVisible(True)
             # send the message FRENCH
-            if self.fig_opt['language'] == str(1):
+            if self.project_preferences['language'] == str(1):
                 # MERGE
                 if self.model_type == 'HABITAT':
                     self.send_log.emit(
@@ -1522,11 +1522,7 @@ class HEC_RAS1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # from the xml
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -1549,7 +1545,7 @@ class HEC_RAS1D(SubHydroW):
                                                                                       self.interpo_choice,
                                                                                       path_im, show_all_fig,
                                                                                       self.pro_add, self.q, False,
-                                                                                      self.fig_opt))
+                                                                                      self.project_preferences))
         self.p.name = "HEC-RAS 1D data loading"
         self.p.start()
 
@@ -1747,7 +1743,7 @@ class Rubar2D(SubHydroW):
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # load rubar 2d data, interpolate to node, create grid and save in hdf5 format
         self.q = Queue()
@@ -1760,7 +1756,7 @@ class Rubar2D(SubHydroW):
                                                                                   self.model_type, self.nb_dim,
                                                                                   self.progress_value,
                                                                                   path_hdf5,
-                                                                                  self.q, False, self.fig_opt))
+                                                                                  self.q, False, self.project_preferences))
         self.p.name = "Rubar 2D data loading"
         self.p.start()
 
@@ -1970,11 +1966,7 @@ class Mascaret(SubHydroW):
         # the path where to save the hdf5
         path_hdf5 = self.find_path_hdf5()
         self.name_hdf5 = self.hname.text()
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # from the xml
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if path_im != 'no_path' and show_all_fig:
             self.save_fig = True
@@ -2335,7 +2327,7 @@ class River2D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         for i in range(0, len(self.namefile)):
             # save each name in the project file, empty list on i == 0
@@ -2349,7 +2341,7 @@ class River2D(SubHydroW):
                          args=(self.name_hdf5, self.namefile, self.pathfile,
                                self.name_prj, self.path_prj, self.model_type,
                                self.nb_dim, path_hdf5, self.q, False,
-                               self.fig_opt))
+                               self.project_preferences))
         self.p.name = "River 2D data loading"
         self.p.start()
 
@@ -2530,11 +2522,7 @@ class Rubar1D(SubHydroW):
         path_hdf5 = self.find_path_hdf5()
         self.load_b.setDisabled(True)
         self.name_hdf5 = self.hname.text()
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # xml, string
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if path_im != 'no_path':
             self.save_fig = True
@@ -3058,7 +3046,7 @@ class HEC_RAS2D(SubHydroW):
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3082,7 +3070,7 @@ class HEC_RAS2D(SubHydroW):
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.fig_opt))
+                                   self.project_preferences))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
             self.p = Process(target=hec_ras2D_mod.load_hec_ras_2d_and_cut_grid,
@@ -3090,7 +3078,7 @@ class HEC_RAS2D(SubHydroW):
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.fig_opt))
+                                   self.project_preferences))
         self.p.name = "HEC_RAS2D data loading"
         self.p.start()
 
@@ -3499,7 +3487,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3523,7 +3511,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.fig_opt))
+                                   self.project_preferences))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
             self.p = Process(target=telemac_mod.load_telemac_and_cut_grid,
@@ -3531,7 +3519,7 @@ class TELEMAC(SubHydroW):  # QGroupBox
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.fig_opt))
+                                   self.project_preferences))
         self.p.name = "TELEMAC data loading"
         self.p.start()
 
@@ -3955,7 +3943,7 @@ class ASCII(SubHydroW):  # QGroupBox
         self.name_hdf5 = self.hname.text()
 
         # get minimum water height as we might neglect very low water height
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # block button
         self.load_b.setDisabled(True)  # hydraulic
@@ -3979,7 +3967,7 @@ class ASCII(SubHydroW):  # QGroupBox
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.fig_opt))
+                                   self.project_preferences))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
             self.p = Process(target=ascii_mod.load_ascii_and_cut_grid,
@@ -3987,7 +3975,7 @@ class ASCII(SubHydroW):  # QGroupBox
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.fig_opt))
+                                   self.project_preferences))
         self.p.name = "ASCII data loading"
         self.p.start()
 
@@ -4192,11 +4180,7 @@ class LAMMI(SubHydroW):
         self.name_hdf5 = self.hname.text()
         # get the image and load option
         path_im = self.find_path_im()
-        self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-        # if self.fig_opt['raw_data'] == 'True':  # saved before in the xml file!
-        #     show_all_fig = True
-        # else:
-        #     show_all_fig = False
+        self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
         show_all_fig = True
         if not os.path.isdir(self.pathfile[2]):
             self.pathfile[2] = []
@@ -4205,7 +4189,7 @@ class LAMMI(SubHydroW):
         self.q = Queue()
         self.p = Process(target=lammi_mod.open_lammi_and_create_grid,
                          args=(self.pathfile[0], self.pathfile[1], path_im, self.name_hdf5, self.name_prj, self.path_prj
-                               , path_hdf5, self.pathfile[2], self.fig_opt, show_all_fig, self.namefile[1],
+                               , path_hdf5, self.pathfile[2], self.project_preferences, show_all_fig, self.namefile[1],
                                self.namefile[0], False, self.q, 1, self.model_type))
         self.p.start()
 
@@ -4360,7 +4344,7 @@ class SW2D(SubHydroW):
                                                                           self.path_prj,
                                                                           self.model_type, self.nb_dim, path_hdf5,
                                                                           self.q,
-                                                                          False, self.fig_opt))
+                                                                          False, self.project_preferences))
         self.p.start()
 
         # copy input file
@@ -4581,7 +4565,7 @@ class IBER2D(SubHydroW):
                                self.pathfile[0], self.pathfile[1],
                                path_im, self.name_prj,
                                self.path_prj, self.model_type, self.nb_dim,
-                               path_hdf5, self.q, False, self.fig_opt))
+                               path_hdf5, self.q, False, self.project_preferences))
         self.p.name = "Iber 2D data loading"
         self.p.start()
 
@@ -4909,8 +4893,8 @@ class HabbyHdf5(SubHydroW):
                 return
 
             # join the two files
-            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
-            if self.fig_opt['erase_id'] == 'True':
+            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
+            if self.project_preferences['erase_id']:
                 erase_id = True
             else:
                 erase_id = False
@@ -5563,7 +5547,7 @@ class SubstrateW(SubHydroW):
             sub_epsg_code = self.epsg_polygon_label.text()
             default_values = self.sub_default_values_polygon_label.text()
             self.name_hdf5 = self.polygon_hname.text()
-            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
             # check if we have all files
             name1 = namebase + '.dbf'
@@ -5638,7 +5622,7 @@ class SubstrateW(SubHydroW):
             sub_epsg_code = self.epsg_point_label.text()
             default_values = self.sub_default_values_point_label.text()
             self.name_hdf5 = self.point_hname.text()
-            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
             sys.stdout = self.mystdout = StringIO()  # out to GUI
 
@@ -5702,7 +5686,7 @@ class SubstrateW(SubHydroW):
             sub_classification_method = self.sub_classification_method_constant_label.text()
             sub_constant_values = self.valuesdata_constant_label.text()
             self.name_hdf5 = self.constant_hname.text()
-            self.fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+            self.project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
             constant_values_list = sub_constant_values.split(",")
             sub_array = [[] for i in range(len(constant_values_list))]
@@ -5904,7 +5888,7 @@ class SubstrateW(SubHydroW):
 
         # get if we erase old data or not
         # get the figure options and the type of output to be created
-        fig_opt = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # block button merge
         self.load_b2.setDisabled(True)  # merge
@@ -5926,7 +5910,7 @@ class SubstrateW(SubHydroW):
                                self.progress_value,
                                self.q,
                                False,
-                               fig_opt))
+                               project_preferences))
         self.p.name = "Hydraulic and substrate data merging"
         self.p.start()
 

@@ -29,7 +29,7 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
                                 result_iber2d_file3, result_iber2d_file4,
                                 path_geo, path_res, path_im, name_prj,
                                 path_prj, model_type, nb_dim, path_hdf5,
-                                q=[], print_cmd=False, fig_opt={}):
+                                q=[], print_cmd=False, project_preferences={}):
     """
     This function loads the iber2d file, using the function below.
     Then, it changes the mesh which has triangle and
@@ -57,14 +57,14 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
                 at the end of the thread
     :param print_cmd: If True will print the error and warning to the cmd.
                         If False, send it to the GUI.
-    :param fig_opt: the figure option, used here to get the minimum water
+    :param project_preferences: the figure option, used here to get the minimum water
                     height to have a wet node (can be > 0)
     :return: none
     """
     # get minimum water height
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    minwh = fig_opt['min_height_hyd']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    minwh = project_preferences['min_height_hyd']
 
     # find where we should send the error (cmd or GUI)
     if not print_cmd:

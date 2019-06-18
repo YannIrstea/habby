@@ -767,9 +767,9 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         if riv_int == 0:
             [mystathab.fish_chosen, coeff_all] = stathab_mod.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
-            fig_opt = preferences_GUI.create_default_figoption()
-            fig_opt['erase_id'] = 'True'
-            mystathab.fig_opt = fig_opt
+            project_preferences = preferences_GUI.create_default_project_preferences()
+            project_preferences['erase_id'] = True
+            mystathab.project_preferences = project_preferences
             mystathab.savetxt_stathab()
             mystathab.savefig_stahab()
         elif riv_int == 1:
@@ -1297,11 +1297,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
         #             merge_name = f
 
 
-        fig_opt = preferences_GUI.create_default_figoption()
-        fig_opt['text_output'] = 'True'
-        fig_opt['shape_output'] = 'True'
-        fig_opt['paraview'] = 'True'
-        fig_opt['erase_id'] = 'True'
+        project_preferences = preferences_GUI.create_default_project_preferences()
 
         # run calculation
         progress_value = Value("i", 0)
@@ -1320,7 +1316,7 @@ def all_command(all_arg, name_prj, path_prj, path_bio, option_restart=False, era
                                                                      progress_value,
                                                                      [],
                                                                      True,
-                                                                     fig_opt,
+                                                                     project_preferences,
                                                                      path_prj))
         p.start()
         while p.is_alive():

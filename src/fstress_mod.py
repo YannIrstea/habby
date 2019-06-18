@@ -451,7 +451,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
     #     f.write(name_inv_str)
 
 
-def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt={}):
+def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, project_preferences={}):
     """
     This function creates the figures for Fstress, notably the suitability index as a function of discharge for all
     rivers
@@ -461,17 +461,17 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt={}):
     :param name_inv: The four letter code of each selected invetebrate
     :param path_im: the path where to save the figure
     :param name_river: the name of the river
-    :param fig_opt: the figure option in a dictionnary
+    :param project_preferences: the figure option in a dictionnary
 
     """
 
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     name_fig = 'test_fig'
 
@@ -485,9 +485,9 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt={}):
             plt.plot(qmod, j[e, :], '-', label=name_inv[e])
         plt.xlabel('Q [m$^{3}$/sec]')
         plt.ylabel('Index J [ ]')
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.title('Suitability index J - River: ' + r)
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.title('Index de suitabilité J - Rivère: ' + r)
         else:
             plt.title('Suitability index J - River: ' + r)
@@ -504,11 +504,11 @@ def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, fig_opt={}):
             name_fig = os.path.join(path_im, 'Fstress_' + r +
                                     "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
         fig.savefig(os.path.join(path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                    dpi=fig_opt['resolution'], transparent=True)
+                    dpi=project_preferences['resolution'], transparent=True)
         i += 1
 
 
-def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, fig_opt={}):
+def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_preferences={}):
     """
     This functions compares the output of the C programm of FStress and the output of this script. it is not used
     by HABBY, but it is practical to debug.
@@ -520,13 +520,13 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, fig_opt={}):
     :param path_rre: the path to the C output
     """
 
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
 
     i = 0

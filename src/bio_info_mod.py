@@ -929,7 +929,7 @@ def change_unit(data, unit):
 
 
 def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
-               fig_opt):
+               project_preferences):
     """
     This functionc create a pdf with information about the fish.
     It tries to follow the chosen language, but
@@ -942,7 +942,7 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
     :param path_im_bio: the path with the images of the fish
     :param path_out: the path where to save the .pdf file
         (usually other_outputs)
-    :param fig_opt: the figure options (contain the chosen language)
+    :param project_preferences: the figure options (contain the chosen language)
     """
     plt.close()
     plt.rcParams['figure.figsize'] = 21, 29.7  # a4
@@ -982,7 +982,7 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
         # create figure
         fake_value = Value("i", 0)
         [f, axarr] = plot_mod.plot_suitability_curve(fake_value, h_all, vel_all, sub_all, code_fish, name_fish,
-                                 stages, True, fig_opt)
+                                                     stages, True, project_preferences)
 
         # modification of the orginal preference fig
         # (0,0) is bottom left - 1 is the end of the page in x and y direction
@@ -1000,22 +1000,22 @@ def create_pdf(xmlfiles, stages_chosen, path_bio, path_im_bio, path_out,
                 newax.axis('off')
 
         # move suptitle
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
                        weight='bold')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             f.suptitle('Courbe de préférence', x=0.5, y=0.55, fontsize=32,
                        weight='bold')
         else:
             f.suptitle('Suitability curve', x=0.5, y=0.55, fontsize=32,
                        weight='bold')
         # general info
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.figtext(0.1, 0.7, "Latin name:\n\nCommon Name:\n\nONEMA fish code:\n\nStage chosen:\n\nDescription:",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][2] \
                        + '\n\n' + code_fish + '\n\n'
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.figtext(0.1, 0.7, "Nom latin :\n\nNom commun :\n\nCode ONEMA:\n\nStade choisi :\n\nDescription :",
                         weight='bold', fontsize=32)
             text_all = name_fish + '\n\n' + data[0][1] + '\n\n' \
@@ -1092,9 +1092,9 @@ def main():
     path_out = r'C:\Users\diane.von-gunten\HABBY\biology'
     xmlfiles = ['ABL01.xml', 'ABL01.xml', 'BAM01.xml']
     stages = ['adult', 'juvenile', 'fry']
-    fig_opt = preferences_GUI.create_default_figoption()
-    fig_opt['language'] = 1
-    create_pdf(xmlfiles, stages, path_bio, '', path_out, fig_opt)
+    project_preferences = preferences_GUI.create_default_project_preferences()
+    project_preferences['language'] = 1
+    create_pdf(xmlfiles, stages, path_bio, '', path_out, project_preferences)
 
 
 if __name__ == '__main__':

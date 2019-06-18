@@ -28,7 +28,7 @@ from src_GUI import preferences_GUI
 from src import calcul_hab_mod
 
 
-def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, fig_opt=[]):
+def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade, get_fig=False, project_preferences=[]):
     """
     This function is used to plot the preference curves.
 
@@ -44,20 +44,20 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
     """
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
-        if not fig_opt:
-            fig_opt = preferences_GUI.create_default_figoption()
-        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-        plt.rcParams['font.size'] = fig_opt['font_size']
-        if fig_opt['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+        if not project_preferences:
+            project_preferences = preferences_GUI.create_default_project_preferences()
+        plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+        plt.rcParams['font.size'] = project_preferences['font_size']
+        if project_preferences['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    plt.rcParams['axes.grid'] = fig_opt['grid']
-    if fig_opt['marker'] == 'True':
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    plt.rcParams['axes.grid'] = project_preferences['grid']
+    if project_preferences['marker']:
         mar = 'o'
     else:
         mar = None
-    if fig_opt['language'] == 0:
+    if project_preferences['language'] == 0:
         title_plot = 'Suitability curve \n' + name_fish + ' (' + code_fish + ') '
     else:
         title_plot = 'Courbe de préférence \n' + name_fish + ' (' + code_fish + ') '
@@ -69,7 +69,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         plt.suptitle(title_plot)
         for s in range(0, len(stade)):
             axarr[s, 0].plot(height[s][0], height[s][1], '-b', marker=mar)
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 axarr[s, 0].set_xlabel('Water height [m]')
                 axarr[s, 0].set_ylabel('Coeff. pref. ' + stade[s])
             else:
@@ -78,7 +78,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
             axarr[s, 0].set_ylim([0, 1.1])
 
             axarr[s, 1].plot(vel[s][0], vel[s][1], '-r', marker=mar)
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 axarr[s, 1].set_xlabel('Velocity [m/sec]')
             else:
                 axarr[s, 1].set_xlabel('Vitesse [m/sec]')
@@ -89,7 +89,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
                 # it is accounted for all stages
                 axarr[s, 2].bar(sub[s][0], sub[s][1], facecolor='c',
                                 align='center')
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 axarr[s, 2].set_xlabel('Substrate []')
             else:
                 axarr[s, 2].set_xlabel('Substrat []')
@@ -102,7 +102,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         f.canvas.set_window_title(title_plot)
         plt.suptitle(title_plot)
         axarr[0].plot(height[0][0], height[0][1], '-b', marker=mar)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             axarr[0].set_xlabel('Water height [m]')
             axarr[0].set_ylabel('Coeff. pref. ')
         else:
@@ -111,7 +111,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
         axarr[0].set_ylim([0, 1.1])
 
         axarr[1].plot(vel[0][0], vel[0][1], '-r', marker=mar)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             axarr[1].set_xlabel('Velocity [m/sec]')
         else:
             axarr[1].set_xlabel('Vitesse [m/sec]')
@@ -120,7 +120,7 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
 
         if len(sub[0][0]) > 2:
             axarr[2].bar(sub[0][0], sub[0][1], facecolor='c', align='center')
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             axarr[2].set_xlabel('Substrate []')
         else:
             axarr[2].set_xlabel('Substrat []')
@@ -141,9 +141,9 @@ def plot_suitability_curve(state, height, vel, sub, code_fish, name_fish, stade,
 
 def plot_hydrosignature(state, data, fishname):
     mpl.rcParams['pdf.fonttype'] = 42
-    fig_opt = preferences_GUI.create_default_figoption()
+    project_preferences = preferences_GUI.create_default_project_preferences()
 
-    if fig_opt['language'] == 0:
+    if project_preferences['language'] == 0:
         title_plot = 'Measurement conditions \n' + fishname
     else:
         title_plot = 'Hydrosignature \n' + fishname
@@ -178,32 +178,27 @@ def plot_hydrosignature(state, data, fishname):
     plt.show()
 
 
-def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[], reach_name="", unit_name=0, points=False):
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
+def plot_map_mesh(state, data_xy, data_tin, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, points=False):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
 
     # plot the grid
     plt.rcParams['agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit
     # (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = fig_opt['erase_id']
-    types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
-
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 1:
+    if project_preferences['language'] == 1:
         if not points:
             title = f"{name_hdf5[:-4]} : maillage - {reach_name} - {unit_name} {unit_type}"
             filename = f"{name_hdf5[:-4]}_maillage_{reach_name}_{unit_name}"
@@ -268,23 +263,23 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
         if not erase1:
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
         else:
             test = calcul_hab_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -296,33 +291,28 @@ def plot_map_mesh(state, data_xy, data_tin, fig_opt, data_description, path_im=[
         plt.close()
 
 
-def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_im=[], reach_name="", unit_name=0, ):
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
+def plot_map_elevation(state, data_xy, data_z, project_preferences, data_description, path_im=[], reach_name="", unit_name=0, ):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
 
     # plot the grid
     plt.rcParams[
         'agg.path.chunksize'] = 10000  # due to "OverflowError: Exceeded cell block limit (set 'agg.path.chunksize' rcparam)" with savefig mesh png big file
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = fig_opt['erase_id']
-    types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
-
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 1:
+    if project_preferences['language'] == 1:
         title = f"{name_hdf5[:-4]} : elevation - {reach_name} - {unit_name} {unit_type}"
         filename = f"{name_hdf5[:-4]}_elevation_{reach_name}_{unit_name}"
     else:
@@ -349,23 +339,23 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_i
         if not erase1:
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
         else:
             test = calcul_hab_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:  # [0,1,2,3,4,5] currently existing format
                 return
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -377,31 +367,26 @@ def plot_map_elevation(state, data_xy, data_z, fig_opt, data_description, path_i
         plt.close()
 
 
-def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
+def plot_map_height(state, data_xy, data_tin, project_preferences, data_description, data_h=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
 
     # plot the grid
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = fig_opt['erase_id']
-    types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
-
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 1:
+    if project_preferences['language'] == 1:
         title = f"{name_hdf5[:-4]} : hauteur d'eau - {reach_name} - {unit_name} {unit_type}"
         filename = f"{name_hdf5[:-4]}_profondeur_{reach_name}_{unit_name}"
     else:
@@ -419,7 +404,7 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
         plt.title(title)
         # color map (the same for al reach)
         mvc = 0.001
-        cm = plt.cm.get_cmap(fig_opt['color_map2'])
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
         mv = max(data_h)
         if mv > mvc:
             mvc = mv
@@ -430,9 +415,9 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
         sc = plt.tricontourf(data_xy[:, 0], data_xy[:, 1], data_tin, data_h,
                              cmap=cm, vmin=0, vmax=mvc, levels=bounds, extend='both')
         cbar = plt.colorbar(sc)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             cbar.ax.set_ylabel('Water depth [m]')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             cbar.ax.set_ylabel("Hauteur d'eau [m]")
         else:
             cbar.ax.set_ylabel('Water depth [m]')
@@ -444,27 +429,27 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
             else:
                 test = calcul_hab_mod.remove_image(name_hdf5[:-4] + "_height", path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'],
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                                 transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'],
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
                                 transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'],
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
                                 transparent=True)
 
         # output for plot_GUI
@@ -477,31 +462,28 @@ def plot_map_height(state, data_xy, data_tin, fig_opt, data_description, data_h=
             plt.close()
 
 
-def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
+def plot_map_velocity(state, data_xy, data_tin, project_preferences, data_description, data_v=[], path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
 
     # plot the grid
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     # mpl.rcParams['ps.fonttype'] = 42  # if not commented, not possible to save in eps
     mpl.rcParams['pdf.fonttype'] = 42
-    erase1 = fig_opt['erase_id']
-    types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
+
 
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 1:
+    if project_preferences['language'] == 1:
         title = f"{name_hdf5[:-4]} : vitesse - {reach_name} - {unit_name} {unit_type}"
         filename = f"{name_hdf5[:-4]}_vitesse_{reach_name}_{unit_name}"
     else:
@@ -518,7 +500,7 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
         plt.title(title)
         # get colormap limit
         mvc = 0.001
-        cm = plt.cm.get_cmap(fig_opt['color_map2'])
+        cm = plt.cm.get_cmap(project_preferences['color_map2'])
         mv = max(data_v)
         if mv > mvc:
             mvc = mv
@@ -529,9 +511,9 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
         
         # plt.clim(0, np.nanmax(inter_vel))
         cbar = plt.colorbar(sc)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             cbar.ax.set_ylabel('Velocity [m/sec]')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             cbar.ax.set_ylabel('Vitesse [m/sec]')
         else:
             cbar.ax.set_ylabel('Velocity [m/sec]')
@@ -543,27 +525,27 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
                 if format1 == 0 or format1 == 1:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
                     plt.savefig(os.path.join(path_im, filename + time.strftime(
                         "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                                dpi=fig_opt['resolution'], transparent=True)
+                                dpi=project_preferences['resolution'], transparent=True)
             else:
                 test = calcul_hab_mod.remove_image(filename, path_im, format1)
                 if not test and format1 in [0, 1, 2, 3, 4, 5]:
                     return
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'],
+                    plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                                 transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'],
+                    plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
                                 transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'],
+                    plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
                                 transparent=True)
         # output for plot_GUI
         state.value = 1  # process finished
@@ -575,7 +557,7 @@ def plot_map_velocity(state, data_xy, data_tin, fig_opt, data_description, data_
             plt.close()
 
 
-def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_im, fig_opt={}, reach_name="", unit_name=0.0):
+def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_im, project_preferences={}, reach_name="", unit_name=0.0):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -584,34 +566,31 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     :param ikle: the connectivity table
     :param sub_pg: the information on subtrate by element for the "coarser part"
     :param sub_dom: the information on subtrate by element for the "dominant part"
-    :param fig_opt: the figure option as a doctionnary
+    :param project_preferences: the figure option as a doctionnary
     :param xtxt: if the data was given in txt form, the orignal x data
     :param ytxt: if the data was given in txt form, the orignal y data
     :param subtxt: if the data was given in txt form, the orignal sub data
     :param path_im: the path where to save the figure
     :param reach_num: If we plot more than one reach, this is the reach number
     """
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    types_plot = fig_opt['type_plot']
-    erase1 = fig_opt['erase_id']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
+    types_plot = project_preferences['type_plot']
+    erase1 = project_preferences['erase_id']
+
 
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
            data_description["unit_type"].find('[') + len('['):data_description["unit_type"].find(']')]
 
     # title and filename
-    if fig_opt['language'] == 1:
+    if project_preferences['language'] == 1:
         title_pg = f"Substrate - Plus Gros - {reach_name} - {unit_name} {unit_type}"
         title_dom = f"Substrate - Dominant - {reach_name} - {unit_name} {unit_type}"
         filename_pg_dm = f"{name_hdf5[:-4]}_substrate_{reach_name}_{unit_name}"
@@ -653,7 +632,7 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
     plt.setp(subs.flat, aspect='equal')
     sub1, sub2 = subs
     patches = []
-    cmap = plt.get_cmap(fig_opt['color_map1'])
+    cmap = plt.get_cmap(project_preferences['color_map1'])
     colors_val = np.array(sub_pg)  # convert nfloors to colors that we can use later (cemagref)
     # Set norm to correspond to the data for which
     # the colorbar will be used.
@@ -723,23 +702,23 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
         if not erase1:
             if format == 0 or format == 1:
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                         '.png'), dpi=fig_opt['resolution'], transparent=True)
+                                         '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format == 0 or format == 3:
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                         '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                                         '.pdf'), dpi=project_preferences['resolution'], transparent=True)
             if format == 2:
                 plt.savefig(os.path.join(path_im, filename_pg_dm + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                         '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                                         '.jpg'), dpi=project_preferences['resolution'], transparent=True)
         else:
             test = calcul_hab_mod.remove_image("substrate_coars_dom", path_im, format)
             if not test:
                 return
             if format == 0 or format == 1:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + ".png"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename_pg_dm + ".png"), dpi=project_preferences['resolution'], transparent=True)
             if format == 0 or format == 3:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + ".pdf"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename_pg_dm + ".pdf"), dpi=project_preferences['resolution'], transparent=True)
             if format == 2:
-                plt.savefig(os.path.join(path_im, filename_pg_dm + ".jpg"), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, filename_pg_dm + ".jpg"), dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -751,21 +730,18 @@ def plot_map_substrate(state, coord_p, ikle, sub_array, data_description, path_i
         plt.close()
 
 
-def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description, fig_opt={}, path_im=[], reach_name="", unit_name=0):
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description, project_preferences={}, path_im=[], reach_name="", unit_name=0):
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
-    types_plot = fig_opt['type_plot']
-    erase1 = fig_opt['erase_id']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
+    types_plot = project_preferences['type_plot']
+    erase1 = project_preferences['erase_id']
+
 
     name_hdf5 = data_description["name_hdf5"]
     unit_type = data_description["unit_type"][
@@ -774,7 +750,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
     fish_short_name = data_description["hab_fish_shortname_list"].split(", ")[fish_index]
 
     # title and filename
-    if fig_opt['language'] == 1:
+    if project_preferences['language'] == 1:
         title = f"{name_hdf5[:-4]} : valeur d'habitat\n{fish_name} - {reach_name} - {unit_name} {unit_type}"
         filename = f"{name_hdf5[:-4]}_VH_{fish_short_name}_{reach_name}_{unit_name}"
     else:
@@ -788,7 +764,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
     norm = mpl.colors.Normalize(vmin=0, vmax=1)
 
     # plot the habitat value
-    cmap = plt.get_cmap(fig_opt['color_map2'])
+    cmap = plt.get_cmap(project_preferences['color_map2'])
     # colors = cmap(vh.tolist())
 
     n = len(vh)
@@ -824,9 +800,9 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
     # following gives a basic continuous colorbar with ticks
     # and labels.
     cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-    if fig_opt['language'] == 0:
+    if project_preferences['language'] == 0:
         cb1.set_label('HV []')
-    elif fig_opt['language'] == 1:
+    elif project_preferences['language'] == 1:
         cb1.set_label('VH []')
     else:
         cb1.set_label('HV []')
@@ -837,27 +813,27 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
             if format1 == 0 or format1 == 1:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
                 plt.savefig(os.path.join(path_im, filename + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                            dpi=fig_opt['resolution'], transparent=True)
+                            dpi=project_preferences['resolution'], transparent=True)
         else:
             test = calcul_hab_mod.remove_image(filename, path_im, format1)
             if not test and format1 in [0, 1, 2, 3, 4, 5]:
                 return
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=fig_opt['resolution'],
+                plt.savefig(os.path.join(path_im, filename + ".png"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=fig_opt['resolution'],
+                plt.savefig(os.path.join(path_im, filename + ".pdf"), dpi=project_preferences['resolution'],
                             transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=fig_opt['resolution'],
+                plt.savefig(os.path.join(path_im, filename + ".jpg"), dpi=project_preferences['resolution'],
                             transparent=True)
 
     # output for plot_GUI
@@ -870,7 +846,7 @@ def plot_map_fish_habitat(state, fish_name, coord_p, ikle, vh, data_description,
         plt.close()
 
 
-def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_hdf5, fig_opt={}):
+def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, name_hdf5, project_preferences={}):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -879,33 +855,28 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
     :param spu_all: the "surface pondere utile" (SPU) for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
-    :param fig_opt: the dictionnary with the figure options
+    :param project_preferences: the dictionnary with the figure options
     :param name_hdf5: a string on which to base the name of the files
     :param unit_name: the name of the time steps if not 0,1,2,3
     """
 
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    if fig_opt['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    if project_preferences['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if fig_opt['marker'] == 'True':
+    if project_preferences['marker']:
         mar = 'o'
     else:
         mar = None
-    erase1 = fig_opt['erase_id']
-    types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase_id = True
-    else:
-        erase_id = False
-
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
     # prep data
     name_hdf5 = name_hdf5[:-4]
     area_all = list(map(float, data_description["total_wet_area"][reach_num]))
@@ -943,16 +914,16 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         data_bar2 = np.array(data_bar)
         plt.bar(y_pos, data_bar2)
         plt.xticks(y_pos, [])
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.ylabel('WUA [m^2]')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.ylabel('SPU [m^2]')
         else:
             plt.ylabel('WUA [m^2]')
         #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.title(f'Weighted Usable Area - {reach_name} - {unit_name[0]} {unit_type}')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.title(f'Surface Ponderée Utile - {reach_name} - {unit_name[0]} {unit_type}')
         else:
             plt.title(f'Weighted Usable Area -  {reach_name} - {unit_name[0]} {unit_type}')
@@ -962,17 +933,17 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.bar(y_pos, vh)
         plt.xticks(y_pos, name_fish, rotation=10)
 
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.ylabel('HV (WUA/A) []')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.ylabel('VH (SPU/A) []')
         else:
             plt.ylabel('HV (WUA/A) []')
         #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
         plt.ylim(0, 1)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.title(f'Habitat value - {reach_name} - {unit_name[0]} {unit_type}')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.title(f"Valeur d'Habitat - {reach_name} - {unit_name[0]} {unit_type}")
         else:
             plt.title(f'Habitat value -  - {reach_name} - {unit_name[0]} {unit_type}')
@@ -990,11 +961,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                     return
 
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
     # many time step - lines
     if len(area_all) > 1:
@@ -1004,11 +975,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         for name_fish_value in name_fish_origin:
             y_data_spu = list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num]))
             plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             # plt.xlabel('Computational step [ ]')
             plt.ylabel('WUA [m$^2$]')
             plt.title(f'Weighted Usable Area - {reach_name}')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.ylabel('SPU [m$^2$]')
             plt.title(f'Surface Ponderée Utile - {reach_name}')
         else:
@@ -1033,11 +1004,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
             y_data_hv = [b / m for b,m in zip(list(map(float, data_description["total_WUA_area"][name_fish_value][reach_num])),
                                                         area_all)]
             plt.plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.xlabel('Computational step [' + unit_type + ']')
             plt.ylabel('HV (WUA/A) []')
             plt.title(f'Habitat Value - {reach_name}')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.xlabel('Unité [' + unit_type + ']')
             plt.ylabel('HV (SPU/A) []')
             plt.title(f"Valeur d'habitat - {reach_name}")
@@ -1073,11 +1044,11 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
                 if not test:
                     return
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 1  # process finished
@@ -1089,7 +1060,7 @@ def plot_fish_hv_wua(state, data_description, reach_num, name_fish, path_im, nam
         plt.close()
 
 
-def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, fig_opt):
+def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, data_description, name_fish, types, project_preferences):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -1098,33 +1069,28 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
     :param spu_all: the "surface pondere utile" (SPU) for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
-    :param fig_opt: the dictionnary with the figure options
+    :param project_preferences: the dictionnary with the figure options
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time steps if not 0,1,2,3
     """
 
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    if fig_opt['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    if project_preferences['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if fig_opt['marker'] == 'True':
+    if project_preferences['marker']:
         mar = 'o'
     else:
         mar = None
-    erase1 = fig_opt['erase_id']
-    types_plot = fig_opt['type_plot']
-    if erase1 == 'True':  # xml in text
-        erase_id = True
-    else:
-        erase_id = False
-
+    erase1 = project_preferences['erase_id']
+    types_plot = project_preferences['type_plot']
     # prep data
     if len(types.keys()) > 1:  # date
         data_presence = True
@@ -1163,16 +1129,16 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         data_bar2 = np.array(data_bar)
         plt.bar(y_pos, data_bar2)
         plt.xticks(y_pos, [])
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.ylabel('WUA [m^2]')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.ylabel('SPU [m^2]')
         else:
             plt.ylabel('WUA [m^2]')
         #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.title(f'Surface Ponderée Utile - unité : {sim_name[0]}' + " " + unit_type)
         else:
             plt.title(f'Weighted Usable Area - Computational Step : {sim_name[0]}' + " " + unit_type)
@@ -1182,17 +1148,17 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         plt.bar(y_pos, vh)
         plt.xticks(y_pos, name_fish, rotation=10)
 
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.ylabel('HV (WUA/A) []')
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.ylabel('VH (SPU/A) []')
         else:
             plt.ylabel('HV (WUA/A) []')
         #plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
         plt.ylim(0, 1)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.title(f"Valeur d'Habitat - unité : {sim_name[0]}" + " " + unit_type)
         else:
             plt.title(f'Habitat value - Computational Step : {sim_name[0]}' + " " + unit_type)
@@ -1210,11 +1176,11 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
                     return
 
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
     # many time step - lines
     if len(vertical_headers) > 1:
@@ -1235,10 +1201,10 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         for name_fish_value in name_fish_origin:
             y_data_spu = data_to_table["spu_" + name_fish_value]
             plt.plot(x_data, y_data_spu, label=name_fish_value, marker=mar)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.ylabel('WUA [m$^2$]')
             plt.title('Weighted Usable Area interpolated for the Reach ' + str(0))
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.ylabel('SPU [m$^2$]')
             plt.title(u'Surface Ponderée interpolées pour le troncon ' + str(0))
         else:
@@ -1263,11 +1229,11 @@ def plot_interpolate_chronicle(data_to_table, horiz_headers, vertical_headers, d
         for name_fish_value in name_fish_origin:
             y_data_hv = data_to_table["hv_" + name_fish_value]
             plt.plot(x_data, y_data_hv, label=name_fish_value, marker=mar)
-        if fig_opt['language'] == 0:
+        if project_preferences['language'] == 0:
             plt.xlabel('Desired units [' + unit_type + ']')
             plt.ylabel('HV (WUA/A) []')
             plt.title('Habitat Value interpolated for the Reach ' + str(0))
-        elif fig_opt['language'] == 1:
+        elif project_preferences['language'] == 1:
             plt.xlabel(u'Unité souhaitées [' + unit_type + ']')
             plt.ylabel('HV (SPU/A) []')
             plt.title("Valeur d'habitat interpolée pour le troncon " + str(0))

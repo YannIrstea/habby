@@ -201,7 +201,7 @@ def compute_interpolation(data_description, fish_names, reach_num, chronicle, ty
     return data_to_table, horiz_headers, vertical_headers
 
 
-def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_description, types, fig_opt):
+def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers, data_description, types, project_preferences):
     filename = data_description["hab_filename"]
     path_prj = data_description["path_project"]
     unit_type = types["units"]
@@ -216,7 +216,7 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
             fish_names[fish_num] = fish_name.replace("spu_", "")
 
     # header 1
-    if fig_opt['language'] == 0:
+    if project_preferences['language'] == 0:
         if len(types.keys()) > 1:  # date
             date_type = types["date"]
             header = 'reach\tdate\tunit'
@@ -227,7 +227,7 @@ def export_text_interpolatevalues(data_to_table, horiz_headers, vertical_headers
             header = 'troncon\tdate\tunit'
         else:
             header = 'troncon\tunit'
-    if fig_opt['language'] == 0:
+    if project_preferences['language'] == 0:
         header += "".join(['\tHV' + str(i) for i in range(int(len(fish_names) / 2))])
         header += "".join(['\tWUA' + str(i) for i in range(int(len(fish_names) / 2))])
     else:

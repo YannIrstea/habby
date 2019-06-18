@@ -98,6 +98,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.p = Process(target=None)  # second process
 
         self.init_iu()
+        self.add_sel_fish()
 
     def init_iu(self):
         """
@@ -120,8 +121,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.explore_bio_model_pushbutton.setObjectName("calc_hab")
         self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
-        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.NoSelection)
 
         # run habitat value
         self.l9 = QLabel(self.tr(' <b> Options for the computation </b>'))
@@ -159,6 +159,24 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
+
+    def add_sel_fish(self):
+        """
+        This function loads the xml file and check if some fish were selected before. If yes, we add them to the list
+        """
+        # open the xml file
+        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
+        if os.path.isfile(filename_path_pro):
+            doc = ET.parse(filename_path_pro)
+            root = doc.getroot()
+            # get the selected fish
+            child = root.find(".//Habitat/Fish_Selected")
+            if child is not None:
+                fish_selected_b = child.text
+                if fish_selected_b is not None:
+                    if ',' in fish_selected_b:
+                        fish_selected_b = fish_selected_b.split(',')
+                        self.fill_selected_models_listwidets(fish_selected_b)
 
     def fill_selected_models_listwidets(self, new_item_text_list):
         # add new item if not exist
@@ -264,7 +282,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.send_log.emit(self.tr('# Calculating: habitat value...'))
 
         # get the figure options and the type of output to be created
-        fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+        project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
 
         # get the name of the xml biological file of the selected fish and the stages to be analyzed
         pref_list = []
@@ -276,6 +294,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         for i in range(0, self.selected_aquatic_animal_listwidget.count()):
             # get info from list widget
             fish_item_text = self.selected_aquatic_animal_listwidget.item(i).text()
+            name_fish_sel += fish_item_text + ","
             name_fish = fish_item_text.split(":")[0]
             name_fish_list.append(name_fish)
             stage, code_bio_model = fish_item_text.split(":")[1].split(" - ")
@@ -285,18 +304,18 @@ class BioInfo(estimhab_GUI.StatModUseful):
             stages_chosen.append(stage)
             name_fish_sh_text = code_bio_model + "_" + stage
             name_fish_sh.append(name_fish_sh_text[:8])
-            name_fish_sel += name_fish + ','
+            #name_fish_sel += name_fish + ','
             xmlfiles.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
             # if self.data_fish[j][0] == fish_item_text:
             #     #pref_list.append(self.data_fish[j][2])
             #     #stages_chosen.append(self.data_fish[j][1])
-            #     if int(fig_dict['fish_name_type']) == 0:  # latin name
+            #     if int(project_preferences['fish_name_type']) == 0:  # latin name
             #         name_fish.append(self.data_fish[j][7])
-            #     elif int(fig_dict['fish_name_type']) == 1:  # french common name
+            #     elif int(project_preferences['fish_name_type']) == 1:  # french common name
             #         name_fish.append(self.data_fish[j][3])
-            #     elif int(fig_dict['fish_name_type']) == 2:  # english common name
+            #     elif int(project_preferences['fish_name_type']) == 2:  # english common name
             #         name_fish.append(self.data_fish[j][4])
-            #     elif int(fig_dict['fish_name_type']) == 3:  # code onema
+            #     elif int(project_preferences['fish_name_type']) == 3:  # code onema
             #         name_fish.append(self.data_fish[j][5])
             #     else:
             #         name_fish.append(self.data_fish[j][5])
@@ -363,7 +382,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.p = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
                                                                           name_fish_list, name_fish_sh, run_choice,
                                                                           self.path_bio, path_txt, self.progress_value,
-                                                                          self.q4, False, fig_dict, path_im_bioa,
+                                                                          self.q4, False, project_preferences, path_im_bioa,
                                                                           xmlfiles))
         self.p.name = "Habitat calculation"
         self.p.start()
@@ -396,9 +415,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if self.p.is_alive():
             self.running_time += 0.100  # this is useful for GUI to update the running, should be logical with self.Timer()
             # get the langugage
-            fig_dict = preferences_GUI.load_fig_option(self.path_prj, self.name_prj)
+            project_preferences = preferences_GUI.load_project_preferences(self.path_prj, self.name_prj)
             # send the message
-            if fig_dict['language'] == str(1):
+            if project_preferences['language'] == str(1):
                 # it is necssary to start this string with Process to see it in the Statusbar
                 self.send_log.emit("Processus 'Habitat' fonctionne depuis " + str(round(self.running_time)) + " sec.")
             else:

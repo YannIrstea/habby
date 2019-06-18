@@ -295,25 +295,25 @@ class PreferenceWindow(QDialog):
 
     def set_pref_gui_from_dict(self):
         # read actual figure option
-        fig_dict = load_fig_option(self.path_prj, self.name_prj)
+        project_preferences = load_project_preferences(self.path_prj, self.name_prj)
 
         # min_height_hyd
-        self.min_height_lineedit.setText(str(fig_dict['min_height_hyd']))
+        self.min_height_lineedit.setText(str(project_preferences['min_height_hyd']))
 
         # CutMeshPartialyDry
-        if fig_dict['CutMeshPartialyDry']:  # is a string not a boolean
+        if project_preferences['CutMeshPartialyDry']:  # is a string not a boolean
             self.cut_2d_grid_checkbox.setChecked(True)
         else:
             self.cut_2d_grid_checkbox.setChecked(False)
 
         # erase_id
-        if fig_dict['erase_id']:  # is a string not a boolean
+        if project_preferences['erase_id']:  # is a string not a boolean
             self.erase_data_checkbox.setChecked(True)
         else:
             self.erase_data_checkbox.setChecked(False)
 
         # vertical_exaggeration
-        self.vertical_exaggeration_lineedit.setText(str(fig_dict["vertical_exaggeration"]))
+        self.vertical_exaggeration_lineedit.setText(str(project_preferences["vertical_exaggeration"]))
 
         # check uncheck output checkboxs
         for checkbox in self.output_checkbox_list:
@@ -322,38 +322,38 @@ class PreferenceWindow(QDialog):
                 index = 0
             if type == "hab":
                 index = 1
-            checkbox.setChecked(fig_dict[checkbox.objectName()[:-4]][index])
+            checkbox.setChecked(project_preferences[checkbox.objectName()[:-4]][index])
 
         # color_map
-        self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(fig_dict['color_map1']))
-        self.color_map2_combobox.setCurrentIndex(self.color_map_combobox.findText(fig_dict['color_map2']))
+        self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(project_preferences['color_map1']))
+        self.color_map2_combobox.setCurrentIndex(self.color_map_combobox.findText(project_preferences['color_map2']))
 
         # fig_size
-        self.fig_size_lineedit.setText(str(fig_dict['width']) + ',' + str(fig_dict['height']))
+        self.fig_size_lineedit.setText(str(project_preferences['width']) + ',' + str(project_preferences['height']))
 
         # font size
-        self.font_size_lineedit.setText(str(fig_dict['font_size']))
+        self.font_size_lineedit.setText(str(project_preferences['font_size']))
 
         # line_width
-        self.line_width_lineedit.setText(str(fig_dict['line_width']))
+        self.line_width_lineedit.setText(str(project_preferences['line_width']))
 
         # grid
-        if fig_dict['grid']:  # is a string not a boolean
+        if project_preferences['grid']:  # is a string not a boolean
             self.grid_checkbox.setChecked(True)
         else:
             self.grid_checkbox.setChecked(False)
 
         # format
-        self.fig_format_combobox.setCurrentIndex(int(fig_dict['format']))
+        self.fig_format_combobox.setCurrentIndex(int(project_preferences['format']))
 
         # resolution
-        self.resolution_lineedit.setText(str(fig_dict['resolution']))
+        self.resolution_lineedit.setText(str(project_preferences['resolution']))
 
         # fish_name_type
-        self.type_fishname_combobox.setCurrentIndex(int(fig_dict['fish_name_type']))
+        self.type_fishname_combobox.setCurrentIndex(int(project_preferences['fish_name_type']))
 
         # marker
-        if fig_dict['marker']:  # is a string not a boolean
+        if project_preferences['marker']:  # is a string not a boolean
             self.marquers_hab_fig_checkbox.setChecked(True)
         else:
             self.marquers_hab_fig_checkbox.setChecked(False)
@@ -399,7 +399,7 @@ class PreferenceWindow(QDialog):
                 return
 
         # get default option for security
-        fig_dict = create_default_figoption()
+        project_preferences = create_default_project_preferences()
 
         # get the data and check validity
         # fig_size
@@ -407,8 +407,8 @@ class PreferenceWindow(QDialog):
         if fig_size:
             fig_size = fig_size.split(',')
             try:
-                fig_dict['width'] = np.float(fig_size[0])
-                fig_dict['height'] = np.float(fig_size[1])
+                project_preferences['width'] = np.float(fig_size[0])
+                project_preferences['height'] = np.float(fig_size[1])
             except IndexError:
                 self.send_log.emit('Error: The size of the figure should be in the format: num1,num2.\n')
             except ValueError:
@@ -416,49 +416,49 @@ class PreferenceWindow(QDialog):
         # color map
         c1 = str(self.color_map_combobox.currentText())
         if c1:
-            fig_dict['color_map1'] = c1
+            project_preferences['color_map1'] = c1
         c2 = str(self.color_map2_combobox.currentText())
         if c2:
-            fig_dict['color_map2'] = c2
+            project_preferences['color_map2'] = c2
         # font size
         font_size = self.font_size_lineedit.text()
         if font_size:
             try:
-                fig_dict['font_size'] = int(font_size)
+                project_preferences['font_size'] = int(font_size)
             except ValueError:
                 self.send_log.emit('Error: Font size should be an integer. \n')
         # line width
         line_width = self.line_width_lineedit.text()
         if line_width:
             try:
-                fig_dict['line_width'] = int(line_width)
+                project_preferences['line_width'] = int(line_width)
             except ValueError:
                 self.send_log.emit('Error: Line width should be an integer. \n')
         # grid
         if self.grid_checkbox.isChecked():
-            fig_dict['grid'] = True
+            project_preferences['grid'] = True
         else:
-            fig_dict['grid'] = False
+            project_preferences['grid'] = False
         # format
-        fig_dict['format'] = str(self.fig_format_combobox.currentIndex())
+        project_preferences['format'] = str(self.fig_format_combobox.currentIndex())
         # resolution
         try:
-            fig_dict['resolution'] = int(self.resolution_lineedit.text())
+            project_preferences['resolution'] = int(self.resolution_lineedit.text())
         except ValueError:
             self.send_log.emit('Error: the resolution should be an integer. \n')
-        if fig_dict['resolution'] < 0:
+        if project_preferences['resolution'] < 0:
             self.send_log.emit('Error: The resolution should be higher than zero \n')
             return
-        if fig_dict['resolution'] > 2000:
+        if project_preferences['resolution'] > 2000:
             self.send_log.emit('Warning: The resolution is higher than 2000 dpi. Figures might be very large.\n')
 
         # fish name type
-        fig_dict['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())
+        project_preferences['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())
         # marker
         if self.marquers_hab_fig_checkbox.isChecked():
-            fig_dict['marker'] = True
+            project_preferences['marker'] = True
         else:
-            fig_dict['marker'] = False
+            project_preferences['marker'] = False
 
         # outputs
         for checkbox in self.output_checkbox_list:
@@ -468,34 +468,34 @@ class PreferenceWindow(QDialog):
             if type == "hab":
                 index = 1
             if checkbox.isChecked():
-                fig_dict[checkbox.objectName()[:-4]][index] = True
+                project_preferences[checkbox.objectName()[:-4]][index] = True
             else:
-                fig_dict[checkbox.objectName()[:-4]][index] = False
+                project_preferences[checkbox.objectName()[:-4]][index] = False
 
         # vertical_exaggeration
         try:
-            int(self.vertical_exaggeration_lineedit.text())
+            project_preferences['vertical_exaggeration'] = int(self.vertical_exaggeration_lineedit.text())
             if int(self.vertical_exaggeration_lineedit.text()) < 1:
                 self.send_log.emit("Error: Vertical exaggeration value must be superior than 1. Value set to 1.")
-                fig_dict['vertical_exaggeration'] = 1
+                project_preferences['vertical_exaggeration'] = 1
         except:
             self.send_log.emit("Error: Vertical exaggeration value is not integer. Value set to 1.")
-            fig_dict['vertical_exaggeration'] = 1
+            project_preferences['vertical_exaggeration'] = 1
 
         # other option
         try:
-            fig_dict['min_height_hyd'] = float(self.min_height_lineedit.text())
+            project_preferences['min_height_hyd'] = float(self.min_height_lineedit.text())
         except ValueError:
             self.send_log.emit('Error: Minimum Height should be a number')
         if self.erase_data_checkbox.isChecked():
-            fig_dict['erase_id'] = True
+            project_preferences['erase_id'] = True
         else:
-            fig_dict['erase_id'] = False
+            project_preferences['erase_id'] = False
         # CutMeshPartialyDry
         if self.cut_2d_grid_checkbox.isChecked():
-            fig_dict['CutMeshPartialyDry'] = True
+            project_preferences['CutMeshPartialyDry'] = True
         else:
-            fig_dict['CutMeshPartialyDry'] = False
+            project_preferences['CutMeshPartialyDry'] = False
 
         # save the data in the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -555,38 +555,38 @@ class PreferenceWindow(QDialog):
                 hopt1 = ET.SubElement(child1, "MinHeight")
                 CutMeshPartialyDry = ET.SubElement(child1, "CutMeshPartialyDry")
                 erase1 = ET.SubElement(child1, "EraseId")
-            width1.text = str(fig_dict['width'])
-            height1.text = str(fig_dict['height'])
-            colormap1.text = fig_dict['color_map1']
-            colormap2.text = fig_dict['color_map2']
-            fontsize1.text = str(fig_dict['font_size'])
-            linewidth1.text = str(fig_dict['line_width'])
-            grid1.text = str(fig_dict['grid'])
-            format1.text = str(fig_dict['format'])
-            reso1.text = str(fig_dict['resolution'])
+            width1.text = str(project_preferences['width'])
+            height1.text = str(project_preferences['height'])
+            colormap1.text = project_preferences['color_map1']
+            colormap2.text = project_preferences['color_map2']
+            fontsize1.text = str(project_preferences['font_size'])
+            linewidth1.text = str(project_preferences['line_width'])
+            grid1.text = str(project_preferences['grid'])
+            format1.text = str(project_preferences['format'])
+            reso1.text = str(project_preferences['resolution'])
             # usually not useful, but should be added to new options for comptability with older project
             if fish1 is None:
                 fish1 = ET.SubElement(child1, "FishNameType")
-            fish1.text = str(fig_dict['fish_name_type'])
-            marker1.text = str(fig_dict['marker'])
+            fish1.text = str(project_preferences['fish_name_type'])
+            marker1.text = str(project_preferences['marker'])
             if langfig1 is None:
                 langfig1 = ET.SubElement(child1, "LangFig")
-            langfig1.text = str(fig_dict['language'])
+            langfig1.text = str(project_preferences['language'])
 
             for checkbox_name in self.checkbox_list_set:
-                locals()[checkbox_name].text = str(fig_dict[checkbox_name])
+                locals()[checkbox_name].text = str(project_preferences[checkbox_name])
             if vertical_exaggeration1 is None:
                 vertical_exaggeration1 = ET.SubElement(child1, "vertical_exaggeration")
-            vertical_exaggeration1.text = str(fig_dict["vertical_exaggeration"])
-            # text1.text = str(fig_dict['text_output'])
-            # shape1.text = str(fig_dict['shape_output'])
-            # para1.text = str(fig_dict['paraview'])
-            # stl1.text = str(fig_dict['stl'])
-            # fishinfo1.text = str(fig_dict['fish_info'])
+            vertical_exaggeration1.text = str(project_preferences["vertical_exaggeration"])
+            # text1.text = str(project_preferences['text_output'])
+            # shape1.text = str(project_preferences['shape_output'])
+            # para1.text = str(project_preferences['paraview'])
+            # stl1.text = str(project_preferences['stl'])
+            # fishinfo1.text = str(project_preferences['fish_info'])
 
-            hopt1.text = str(fig_dict['min_height_hyd'])
-            CutMeshPartialyDry.text = str(fig_dict['CutMeshPartialyDry'])
-            erase1.text = str(fig_dict['erase_id'])
+            hopt1.text = str(project_preferences['min_height_hyd'])
+            CutMeshPartialyDry.text = str(project_preferences['CutMeshPartialyDry'])
+            erase1.text = str(project_preferences['erase_id'])
             doc.write(fname)
 
         self.send_log.emit('# Preferences saved.')
@@ -641,11 +641,11 @@ def set_lang_fig(nb_lang, path_prj, name_prj):
             doc.write(fname)
 
 
-def load_fig_option(path_prj, name_prj):
+def load_project_preferences(path_prj, name_prj):
     """
     This function loads the figure option saved in the xml file and create a dictionnary will be given to the functions
     which create the figures to know the different options chosen by the user. If the options are not written, this
-    function uses data by default which are in the fonction create_default_fig_options().
+    function uses data by default which are in the fonction create_default_project_preferences().
 
     :param path_prj: the path to the xml project file
     :param name_prj: the name to this file
@@ -653,7 +653,7 @@ def load_fig_option(path_prj, name_prj):
 
     """
 
-    fig_dict = create_default_figoption()
+    project_preferences = create_default_project_preferences()
     fname = os.path.join(path_prj, name_prj + '.xml')
     if not os.path.isfile(fname) and name_prj != '':  # no project exists
         pass
@@ -666,6 +666,26 @@ def load_fig_option(path_prj, name_prj):
         root = doc.getroot()
         child1 = root.find(".//Figure_Option")
         if child1 is not None:  # modify existing option
+            # other
+            langfig1 = root.find(".//LangFig")
+
+            # general
+            CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
+            hopt1 = root.find(".//MinHeight")
+            erase1 = root.find(".//EraseId")
+
+            # output
+            mesh_whole_profile = root.find(".//mesh_whole_profile")
+            point_whole_profile = root.find(".//point_whole_profile")
+            mesh_units = root.find(".//mesh_units")
+            point_units = root.find(".//point_units")
+            vertical_exaggeration = root.find(".//vertical_exaggeration")
+            elevation_whole_profile = root.find(".//elevation_whole_profile")
+            variables_units = root.find(".//variables_units")
+            detailled_text = root.find(".//detailled_text")
+            fish_information = root.find(".//fish_information")
+
+            # figures
             width1 = root.find(".//Width")
             height1 = root.find(".//Height")
             colormap1 = root.find(".//ColorMap1")
@@ -677,109 +697,110 @@ def load_fig_option(path_prj, name_prj):
             marker1 = root.find(".//Marker")
             reso1 = root.find(".//Resolution")
             fish1 = root.find(".//FishNameType")
-            mesh_whole_profile = root.find(".//mesh_whole_profile")
-            point_whole_profile = root.find(".//point_whole_profile")
-            mesh_units = root.find(".//mesh_units")
-            point_units = root.find(".//point_units")
-            vertical_exaggeration = root.find(".//vertical_exaggeration")
-            elevation_whole_profile = root.find(".//elevation_whole_profile")
-            variables_units = root.find(".//variables_units")
-            detailled_text = root.find(".//detailled_text")
-            fish_information = root.find(".//fish_information")
-            langfig1 = root.find(".//LangFig")
-            hopt1 = root.find(".//MinHeight")
-            CutMeshPartialyDry = root.find(".//CutMeshPartialyDry")
-            erase1 = root.find(".//EraseId")
+
             try:
-                if width1 is not None:
-                    fig_dict['width'] = float(width1.text)
-                if height1 is not None:
-                    fig_dict['height'] = float(height1.text)
-                if colormap1 is not None:
-                    fig_dict['color_map1'] = colormap1.text
-                if colormap2 is not None:
-                    fig_dict['color_map2'] = colormap2.text
-                if fontsize1 is not None:
-                    fig_dict['font_size'] = int(fontsize1.text)
-                if linewidth1 is not None:
-                    fig_dict['line_width'] = int(linewidth1.text)
-                if grid1 is not None:
-                    fig_dict['grid'] = grid1.text
-                if format1 is not None:
-                    fig_dict['format'] = format1.text
-                if marker1 is not None:
-                    fig_dict['marker'] = marker1.text
-                if reso1 is not None:
-                    fig_dict['resolution'] = int(reso1.text)
-                if fish1 is not None:
-                    fig_dict['fish_name_type'] = fish1.text
-                if mesh_whole_profile is not None:
-                    fig_dict['mesh_whole_profile'] = eval(mesh_whole_profile.text)
-                if point_whole_profile is not None:
-                    fig_dict['point_whole_profile'] = eval(point_whole_profile.text)
-                if mesh_units is not None:
-                    fig_dict['mesh_units'] = eval(mesh_units.text)
-                if point_units is not None:
-                    fig_dict['point_units'] = eval(point_units.text)
-                if vertical_exaggeration is not None:
-                    fig_dict['vertical_exaggeration'] = int(vertical_exaggeration.text)
-                if elevation_whole_profile is not None:
-                    fig_dict['elevation_whole_profile'] = eval(elevation_whole_profile.text)
-                if variables_units is not None:
-                    fig_dict['variables_units'] = eval(variables_units.text)
-                if detailled_text is not None:
-                    fig_dict['detailled_text'] = eval(detailled_text.text)
-                if fish_information is not None:
-                    fig_dict['fish_information'] = eval(fish_information.text)
+                # other
                 if langfig1 is not None:
-                    fig_dict['language'] = int(langfig1.text)
-                if hopt1 is not None:
-                    fig_dict['min_height_hyd'] = float(hopt1.text)
+                    project_preferences['language'] = int(langfig1.text)
+
+                # general
                 if CutMeshPartialyDry is not None:
-                    fig_dict['CutMeshPartialyDry'] = CutMeshPartialyDry.text
+                    project_preferences['CutMeshPartialyDry'] = eval(CutMeshPartialyDry.text)
+                if hopt1 is not None:
+                    project_preferences['min_height_hyd'] = float(hopt1.text)
                 if erase1 is not None:
-                    fig_dict['erase_id'] = erase1.text
+                    project_preferences['erase_id'] = eval(erase1.text)
+
+                # output
+                if mesh_whole_profile is not None:
+                    project_preferences['mesh_whole_profile'] = eval(mesh_whole_profile.text)
+                if point_whole_profile is not None:
+                    project_preferences['point_whole_profile'] = eval(point_whole_profile.text)
+                if mesh_units is not None:
+                    project_preferences['mesh_units'] = eval(mesh_units.text)
+                if point_units is not None:
+                    project_preferences['point_units'] = eval(point_units.text)
+                if vertical_exaggeration is not None:
+                    project_preferences['vertical_exaggeration'] = int(vertical_exaggeration.text)
+                if elevation_whole_profile is not None:
+                    project_preferences['elevation_whole_profile'] = eval(elevation_whole_profile.text)
+                if variables_units is not None:
+                    project_preferences['variables_units'] = eval(variables_units.text)
+                if detailled_text is not None:
+                    project_preferences['detailled_text'] = eval(detailled_text.text)
+                if fish_information is not None:
+                    project_preferences['fish_information'] = eval(fish_information.text)
+
+                # figures
+                if width1 is not None:
+                    project_preferences['width'] = float(width1.text)
+                if height1 is not None:
+                    project_preferences['height'] = float(height1.text)
+                if colormap1 is not None:
+                    project_preferences['color_map1'] = colormap1.text
+                if colormap2 is not None:
+                    project_preferences['color_map2'] = colormap2.text
+                if fontsize1 is not None:
+                    project_preferences['font_size'] = int(fontsize1.text)
+                if linewidth1 is not None:
+                    project_preferences['line_width'] = int(linewidth1.text)
+                if grid1 is not None:
+                    project_preferences['grid'] = eval(grid1.text)
+                if format1 is not None:
+                    project_preferences['format'] = format1.text
+                if reso1 is not None:
+                    project_preferences['resolution'] = int(reso1.text)
+                if fish1 is not None:
+                    project_preferences['fish_name_type'] = fish1.text
+                if marker1 is not None:
+                    project_preferences['marker'] = eval(marker1.text)
+
             except ValueError:
                 print('Error: Figure Options are not of the right type.\n')
 
-    return fig_dict
+    return project_preferences
 
 
-def create_default_figoption():
+def create_default_project_preferences():
     """
-    This function creates the default dictionnary of option for the figure.
+    This function creates the default dictionnary of project user preferences.
     """
-    fig_dict = {}
-    fig_dict['height'] = 7
-    fig_dict['width'] = 10
-    fig_dict['color_map1'] = 'coolwarm'
-    fig_dict['color_map2'] = 'jet'
-    fig_dict['font_size'] = 12
-    fig_dict['line_width'] = 1
-    fig_dict['grid'] = False
-    fig_dict['format'] = 3
-    fig_dict['resolution'] = 800
-    fig_dict['fish_name_type'] = 0
+    # init
+    project_preferences = dict()
 
-    fig_dict['mesh_whole_profile'] = [False, True]
-    fig_dict['point_whole_profile'] = [False, False]
-    fig_dict['mesh_units'] = [False, False]
-    fig_dict['point_units'] = [False, False]
-    fig_dict['vertical_exaggeration'] = 10
-    fig_dict['elevation_whole_profile'] = [True, True]
-    fig_dict['variables_units'] = [True, True]
-    fig_dict['detailled_text'] = [True, True]
-    fig_dict['fish_information'] = [True, True]
+    # other
+    project_preferences['language'] = 0  # 0 english, 1 french
 
-    # this is dependant on the language of the application not the user choice in the output tab
-    fig_dict['language'] = 0  # 0 english, 1 french
-    fig_dict['min_height_hyd'] = 0.001  # water height under 1mm is not accounted for
-    fig_dict['CutMeshPartialyDry'] = True
-    fig_dict['marker'] = True  # Add point to line plot
-    fig_dict['erase_id'] = True
-    fig_dict['type_plot'] = 'display'
+    # general
+    project_preferences['CutMeshPartialyDry'] = True  # cut of not mesh partialy wet
+    project_preferences['min_height_hyd'] = 0.001  # node mesh minimum water height consider like dry
+    project_preferences['erase_id'] = True  # erase file (hdf5, outputs) if exist. if not set date/hour in filename
 
-    return fig_dict
+    # output (first element list == for .hyd and second element list == for .hab)
+    project_preferences['mesh_whole_profile'] = [False, False]  # shapefile mesh whole profile
+    project_preferences['point_whole_profile'] = [False, False]  # shapefile point whole profile
+    project_preferences['mesh_units'] = [False, True]  # shapefile mesh by unit
+    project_preferences['point_units'] = [False, False]  # shapefile point by unit
+    project_preferences['vertical_exaggeration'] = 10  # paraview vertical exageration
+    project_preferences['elevation_whole_profile'] = [True, True]  # mesh .stl of topography whole profile (vertical_exaggeration)
+    project_preferences['variables_units'] = [True, True]  # mesh .pvd and .vtu by unit (vertical_exaggeration)
+    project_preferences['detailled_text'] = [True, True]  # .txt with detail values by mesh
+    project_preferences['fish_information'] = [True, True]  # image of fish informations
+
+    # figures
+    project_preferences['height'] = 7
+    project_preferences['width'] = 10
+    project_preferences['color_map1'] = 'coolwarm'
+    project_preferences['color_map2'] = 'jet'
+    project_preferences['font_size'] = 12
+    project_preferences['line_width'] = 1
+    project_preferences['grid'] = False  # grid on plot
+    project_preferences['format'] = 3  # png+pdf, png, jpeg, pdf, not saved
+    project_preferences['resolution'] = 800  # dpi
+    project_preferences['fish_name_type'] = 0  # latin_name, french, english, code_alternative
+    project_preferences['marker'] = True  # Add point to line plot
+
+    return project_preferences
 
 
 class QHLine(QFrame):

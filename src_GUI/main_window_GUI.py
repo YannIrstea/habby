@@ -27,7 +27,7 @@ try:
 except ImportError:
     import xml.etree.ElementTree as ET
 from PyQt5.QtCore import QEvent, QObject, QTranslator, pyqtSignal, QSettings, Qt, pyqtRemoveInputHook
-from PyQt5.QtWidgets import QMainWindow, QDialog, QApplication, QWidget, QPushButton, \
+from PyQt5.QtWidgets import QMainWindow, QComboBox,QDialog, QApplication, QWidget, QPushButton, \
     QLabel, QGridLayout, QAction, QFormLayout, QVBoxLayout, QGroupBox, QSizePolicy, QTabWidget, QLineEdit, QTextEdit, QFileDialog, QMessageBox, QInputDialog, QMenu, QToolBar, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QTextCursor
 import qdarkstyle
@@ -866,16 +866,22 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.tools_tab = tools_GUI.ToolsTab(self.path_prj, self.name_prj)
 
-            # if hasattr(self.central_widget, "output_tab"):
-            #     if not self.central_widget.output_tab:
-            #         self.central_widget.output_tab = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
-            #         self.central_widget.output_tab.save_preferences()
-            #     else:
-            #         self.central_widget.output_tab.__init__(self.path_prj, self.name_prj)
-            #         self.central_widget.output_tab.save_preferences()
-            # else:
-            #     self.central_widget.output_tab = preferences_GUI.PreferenceWindow(self.path_prj, self.name_prj)
-            #     self.central_widget.output_tab.save_preferences()
+            if hasattr(self, "bio_model_explorer_dialog"):
+                if not self.bio_model_explorer_dialog:
+                    self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+                    self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
+                        self.central_widget.write_log)
+                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+                else:
+                    self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon,
+                                                            self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+            else:
+                self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon,
+                                                                    self.central_widget.data_explorer_tab.data_explorer_frame.plot_process_list)
+                self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(
+                    self.central_widget.write_log)
+                self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
             if hasattr(self.central_widget, "statmod_tab"):
                 if not self.central_widget.statmod_tab:
@@ -1327,7 +1333,7 @@ class MainWindows(QMainWindow):
         self.end_concurrency()
 
         # open a new Windows to ask for the info for the project
-        self.createnew = CreateNewProjectDialog(self.lang, self.path_trans, self.file_langue, pathprj_old)
+        self.createnew = CreateNewProjectDialog(self.lang, self.physic_tabs, self.stat_tabs, pathprj_old)
         self.createnew.save_project.connect(self.save_project_if_new_project)
         self.createnew.send_log.connect(self.central_widget.write_log)
         self.createnew.show()
@@ -1356,6 +1362,13 @@ class MainWindows(QMainWindow):
         can not be in the new_project function as the new_project function call CreateNewProjectDialog().
         """
         name_prj_here = self.createnew.e1.text()
+        project_type = self.createnew.project_type_combobox.currentText()
+        if project_type == "Physical":
+            self.physic_tabs = True
+            self.stat_tabs = False
+        if project_type == "Statistical":
+            self.physic_tabs = False
+            self.stat_tabs = True
 
         # add a new folder
         path_new_fold = os.path.join(self.createnew.e2.text(), name_prj_here)
@@ -1542,7 +1555,7 @@ class MainWindows(QMainWindow):
 
         self.setWindowTitle(self.tr('HABBY ') + str(self.version))
         # save the project
-        self.save_project()
+        #self.save_project()
 
     def see_file(self):
         """
@@ -1853,7 +1866,7 @@ class MainWindows(QMainWindow):
         try:
             shutil.rmtree(new_project_path)
         except:
-            self.central_widget.write_log.send_log.emit('Error: Old project and its files are opened by another programme.\n'
+            self.central_widget.write_log('Error: Old project and its files are opened by another programme.\n'
                                'Close them and try again.')
 
     def open_help(self):
@@ -1936,7 +1949,7 @@ class CreateNewProjectDialog(QWidget):
        A PyQt signal used to write the log
     """
 
-    def __init__(self, lang, path_trans, file_langue, oldpath_prj):
+    def __init__(self, lang, physic_tabs, stat_tabs, oldpath_prj):
 
         if oldpath_prj and os.path.isdir(oldpath_prj):
             self.default_fold = os.path.dirname(oldpath_prj)
@@ -1945,6 +1958,8 @@ class CreateNewProjectDialog(QWidget):
         if self.default_fold == '':
             self.default_fold = os.path.join(os.path.expanduser("~"), "HABBY_projects")
         self.default_name = 'DefaultProj'
+        self.physic_tabs = physic_tabs
+        self.stat_tabs = stat_tabs
         super().__init__()
 
         self.init_iu()
@@ -1961,6 +1976,14 @@ class CreateNewProjectDialog(QWidget):
         self.button3.clicked.connect(self.save_project)  # is a PyQtSignal
         self.e1.returnPressed.connect(self.save_project)
         self.button3.setStyleSheet("background-color: #47B5E6; color: black")
+        project_type_title_label = QLabel(self.tr("Project type"))
+        self.project_type_combobox = QComboBox()
+        self.model_type_list = [self.tr("Physical"), self.tr("Statistical")]
+        self.project_type_combobox.addItems(self.model_type_list)
+        if self.physic_tabs and not self.stat_tabs:
+            self.project_type_combobox.setCurrentIndex(0)
+        elif self.stat_tabs and not self.physic_tabs:
+            self.project_type_combobox.setCurrentIndex(1)
 
         layoutl = QGridLayout()
         layoutl.addWidget(lg, 0, 0)
@@ -1969,7 +1992,9 @@ class CreateNewProjectDialog(QWidget):
         layoutl.addWidget(button2, 1, 2)
         layoutl.addWidget(l1, 2, 0)
         layoutl.addWidget(self.e1, 2, 1)
-        layoutl.addWidget(self.button3, 2, 2)
+        layoutl.addWidget(project_type_title_label, 3, 0)
+        layoutl.addWidget(self.project_type_combobox, 3, 1)
+        layoutl.addWidget(self.button3, 3, 2)
 
         self.setLayout(layoutl)
 

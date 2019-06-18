@@ -33,7 +33,7 @@ from src_GUI import preferences_GUI
 
 
 def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_names, name_fish_sh, run_choice, path_bio,
-                        path_txt, progress_value, q=[], print_cmd=False, fig_opt={},
+                        path_txt, progress_value, q=[], print_cmd=False, project_preferences={},
                         path_im_bio='', xmlfiles=[]):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
@@ -56,7 +56,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     :param path_im_bio: the path where are the image of the fish
     :param q: used in the second thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
-    :param fig_opt: the options to crete the figure if save_fig1d is True
+    :param project_preferences: the options to crete the figure if save_fig1d is True
     :param xmlfiles: the list of the xml file (only useful to get the preference curve report, so not used by habby_cmd)
 
     ** Technical comments**
@@ -77,8 +77,8 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     hdf5.load_hdf5_hab()
 
     # fig options
-    if not fig_opt:
-        fig_opt = preferences_GUI.load_fig_option(hdf5.path_prj, hdf5.name_prj)
+    if not project_preferences:
+        project_preferences = preferences_GUI.load_project_preferences(hdf5.path_prj, hdf5.name_prj)
 
     # progress
     progress_value.value = 20
@@ -111,7 +111,7 @@ def calc_hab_and_output(hdf5_file, path_hdf5, pref_list, stages_chosen, fish_nam
     progress_value.value = 90
 
     # saving hdf5 data of the habitat value
-    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, fig_opt, path_bio)
+    hdf5.add_fish_hab(vh_all_t_sp, area_all, spu_all, fish_names, pref_list, stages_chosen, name_fish_sh, project_preferences, path_bio)
 
     # progress
     progress_value.value = 100
@@ -806,7 +806,7 @@ def save_hab_shape(data_2d, hab_description, vh_data, vel_data, height_data, nam
             w.save(os.path.join(path_shp, name1))
 
 
-def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={}, sim_name=[], erase_id=False,
+def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, project_preferences={}, sim_name=[], erase_id=False,
                      do_save=True):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
@@ -816,25 +816,25 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
     :param spu_all: the "surface pondere utile" (SPU) for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
-    :param fig_opt: the dictionnary with the figure options
+    :param project_preferences: the dictionnary with the figure options
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time steps if not 0,1,2,3
     :param erase_id: If True, figure from identical simuation are erased
     :param do_save: If False, the figure is not saved, but the figure is returned to be used for something else
     """
 
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    if fig_opt['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    if project_preferences['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if fig_opt['marker'] == 'True':
+    if project_preferences['marker']:
         mar = 'o'
     else:
         mar = None
@@ -872,16 +872,16 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 data_bar2 = np.array(data_bar)
                 plt.bar(y_pos, data_bar2, 0.5)
                 plt.xticks(y_pos + 0.25, name_fish)
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.ylabel('WUA [m^2]')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.ylabel('SPU [m^2]')
             else:
                 plt.ylabel('WUA [m^2]')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title('Surface Ponderée Utile pour le Troncon: ' + str(r))
             else:
                 plt.title('Weighted Usable Area for the Reach ' + str(r))
@@ -891,17 +891,17 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 data_bar2 = np.array(data_bar)
                 plt.bar(y_pos, data_bar2 / area_all[-1][r], 0.5)
                 plt.xticks(y_pos + 0.25, name_fish)
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.ylabel('HV (WUA/A) []')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.ylabel('VH (SPU/A) []')
             else:
                 plt.ylabel('HV (WUA/A) []')
             plt.xlim((y_pos[0] - 0.1, y_pos[-1] + 0.8))
             plt.ylim(0, 1)
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title('Habitat value for the Reach ' + str(r))
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title("Valeur d'Habitat:  " + str(r))
             else:
                 plt.title('Habitat value for the Reach ' + str(r))
@@ -915,11 +915,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
             plt.tight_layout()
             if do_save:
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
         # many time step - lines
         if len(area_all[reach_num]) >= 2:
@@ -958,11 +958,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
 
 
 
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('WUA [m$^2$]')
                 plt.title('Weighted Usable Area for the Reach ' + str(reach_num))
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('SPU [m$^2$]')
                 plt.title('Surface Ponderée pour le troncon ' + str(reach_num))
@@ -1009,11 +1009,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
 
                 plt.plot(x_data, y_data_vh, label=name_fish[fish_num], marker=mar)
 
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.xlabel('Computational step [ ]')
                 plt.ylabel('HV (WUA/A) []')
                 plt.title('Habitat Value for the Reach ' + str(reach_num))
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.xlabel('Pas de temps/débit [ ]')
                 plt.ylabel('HV (SPU/A) []')
                 plt.title("Valeur d'habitat pour le troncon " + str(reach_num))
@@ -1043,11 +1043,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                     return
             if do_save:
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
             # all reach
             if nb_reach > 1:
@@ -1056,11 +1056,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 fig.add_subplot(211)
                 for s in range(0, len(spu_all)):
                     plt.plot(t_all_s, sum_data_spu[s][t_all_s], label=name_fish[s], marker=mar)
-                if fig_opt['language'] == 0:
+                if project_preferences['language'] == 0:
                     plt.xlabel('Computational step or discharge')
                     plt.ylabel('WUA [m^2]')
                     plt.title('Weighted Usable Area for All Reaches')
-                elif fig_opt['language'] == 1:
+                elif project_preferences['language'] == 1:
                     plt.xlabel('Pas de temps/débit')
                     plt.ylabel('SPU [m^2]')
                     plt.title('Surface Ponderée pour tous les Troncons')
@@ -1084,11 +1084,11 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                 fig.add_subplot(212)
                 for s in range(0, len(spu_all)):
                     plt.plot(t_all, sum_data_spu_div[s][t_all], label=name_fish[s], marker=mar)
-                if fig_opt['language'] == 0:
+                if project_preferences['language'] == 0:
                     plt.xlabel('Computational step or discharge ')
                     plt.ylabel('HV (WUA/A) []')
                     plt.title('Habitat Value For All Reaches')
-                elif fig_opt['language'] == 1:
+                elif project_preferences['language'] == 1:
                     plt.xlabel('Pas de temps/débit')
                     plt.ylabel('HV (SPU/A) []')
                     plt.title("Valeurs d'Habitat Pour Tous Les Troncons")
@@ -1118,17 +1118,17 @@ def save_hab_fig_spu(area_all, spu_all, name_fish, path_im, name_base, fig_opt={
                         return
                 if do_save:
                     if format1 == 0 or format1 == 1:
-                        plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                        plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                     if format1 == 0 or format1 == 3:
-                        plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                        plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
                     if format1 == 2:
-                        plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                        plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
         if not do_save:
             return fig
 
 
-def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, fig_opt={}, time_step=[-1],
+def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, name_base, project_preferences={}, time_step=[-1],
                    sim_name=[], save_fig=True, erase_id=False):
     """
     This function creates 2D map of the habitat value for each species at
@@ -1140,20 +1140,20 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
     :param path_im: the path where to save the figure
     :param name_fish: the name and stage of the studied species
     :param name_base: the string on which to base the figure name
-    :param fig_opt: the dictionnary with the figure options
+    :param project_preferences: the dictionnary with the figure options
     :param time_step: which time step should be plotted
     :param sim_name: the name of the time step if not 0,1,2,3
     :param save_fig: If True the figure is saved
 
     """
 
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make them editable in Adobe Illustrator
 
     b = 0
@@ -1202,7 +1202,7 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             vh = vh_t[r]
 
                             # plot the habitat value
-                            cmap = plt.get_cmap(fig_opt['color_map2'])
+                            cmap = plt.get_cmap(project_preferences['color_map2'])
                             colors = cmap(vh)
                             if sp == 0:  # for optimization (the grid is always the same for each species)
                                 n = len(vh)
@@ -1233,18 +1233,18 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                                 plt.ylabel('y coord []')
                                 if t == -1:
                                     if not sim_name:
-                                        if fig_opt['language'] == 0:
+                                        if project_preferences['language'] == 0:
                                             plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
-                                        elif fig_opt['language'] == 1:
+                                        elif project_preferences['language'] == 1:
                                             plt.title(
                                                 "Valeur d'Habitat pour " + name_fish[sp] + '- Dernière Simulation')
                                         else:
                                             plt.title('Habitat Value of ' + name_fish[sp] + '- Last Computational Step')
                                     else:
-                                        if fig_opt['language'] == 0:
+                                        if project_preferences['language'] == 0:
                                             plt.title('Habitat Value of ' + name_fish[sp] + '- Computational Step: ' +
                                                       sim_name[-1])
-                                        elif fig_opt['language'] == 1:
+                                        elif project_preferences['language'] == 1:
                                             plt.title(
                                                 "Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
                                                 sim_name[-1])
@@ -1253,18 +1253,18 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                                                       sim_name[-1])
                                 else:
                                     if not sim_name:
-                                        if fig_opt['language'] == 0:
+                                        if project_preferences['language'] == 0:
                                             plt.title(
                                                 'Habitat Value of ' + name_fish[sp] + '- Computational Step: ' + str(t))
-                                        elif fig_opt['language'] == 1:
+                                        elif project_preferences['language'] == 1:
                                             plt.title(
                                                 "Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: '
                                                 + str(t))
                                     else:
-                                        if fig_opt['language'] == 0:
+                                        if project_preferences['language'] == 0:
                                             plt.title('Habitat Value of ' + name_fish[sp] + '- Copmutational Step: '
                                                       + sim_name[t - 1])
-                                        elif fig_opt['language'] == 1:
+                                        elif project_preferences['language'] == 1:
                                             plt.title(
                                                 "Valeur d'Habitat pour " + name_fish[sp] + '- Pas de temps/débit: ' +
                                                 sim_name[t - 1])
@@ -1280,9 +1280,9 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                             # following gives a basic continuous colorbar with ticks
                             # and labels.
                             cb1 = mpl.colorbar.ColorbarBase(ax1, cmap=cmap, norm=norm, orientation='vertical')
-                            if fig_opt['language'] == 0:
+                            if project_preferences['language'] == 0:
                                 cb1.set_label('HV []')
-                            elif fig_opt['language'] == 1:
+                            elif project_preferences['language'] == 1:
                                 cb1.set_label('VH []')
                             else:
                                 cb1.set_label('HV []')
@@ -1316,17 +1316,17 @@ def save_vh_fig_2d(name_merge_hdf5, path_hdf5, vh_all_t_sp, path_im, name_fish, 
                                 return
 
                         if format1 == 0 or format1 == 1:
-                            plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=fig_opt['resolution'],
+                            plt.savefig(os.path.join(path_im, name_fig + '.png'), dpi=project_preferences['resolution'],
                                         transparent=True)
                         if format1 == 0 or format1 == 3:
-                            plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=fig_opt['resolution'],
+                            plt.savefig(os.path.join(path_im, name_fig + '.pdf'), dpi=project_preferences['resolution'],
                                         transparent=True)
                         if format1 == 2:
-                            plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=fig_opt['resolution'],
+                            plt.savefig(os.path.join(path_im, name_fig + '.jpg'), dpi=project_preferences['resolution'],
                                         transparent=True)
 
 
-def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all_t, fig_opt, path_im, timestep,
+def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_all_t, project_preferences, path_im, timestep,
                     name_base, sim_name=[], erase_id=False):
     """
     This function plots an historgram of the hydraulic and substrate data for the selected timestep. This historgramm
@@ -1337,20 +1337,20 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
     :param vel_c_all_t: the velcoity for all reach all time step by cell
     :param height_c_all_t: the water height for all reach all time step by cell
     :param area_c_all_t: the aire of cells for all reach, all time step
-    :param fig_opt: the figure options
+    :param project_preferences: the figure options
     :param path_im: the path where to save the images
     :param timestep: a list with the time step to be plotted
     :param name_base: the base on which to form the figure name
     :param sim_name: the name of the time steps when not 0,1,2,3
     :param erase_id: If True, we erase a figure with an identical name
     """
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make fifgure ediable in adobe illustrator
 
     if max(timestep) - 1 > len(sim_name):
@@ -1393,7 +1393,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             # velocity
             fig.add_subplot(221)
             plt.hist(vel_app, 20, weights=area_app, facecolor='blue')
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 if t == -1:
                     plt.suptitle('Hydraulic Data - Last Computational Step - ' + name_base)
                 else:
@@ -1401,7 +1401,7 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 plt.title('Velocity by Cells')
                 plt.xlabel('velocity [m/sec]')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 if t == -1:
                     plt.suptitle('Histogramme de Données Hydrauliques - Dernier Pas de Temps/Débit - ' + name_base)
                 else:
@@ -1421,11 +1421,11 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             # height
             fig.add_subplot(222)
             plt.hist(height_app, 20, weights=area_app, facecolor='aquamarine')
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title('Height by cells')
                 plt.xlabel('velocity [m/sec]')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title("Hauteur d'eau par cellule")
                 plt.xlabel('hauteur [m]')
                 plt.ylabel('fréquence')
@@ -1436,11 +1436,11 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             # substrate
             fig.add_subplot(224)
             plt.hist(sub_pg_app, weights=area_app, facecolor='lightblue', bins=np.arange(0.5, 8.5))
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title('Coarser substrate data')
                 plt.xlabel('substrate - code cemagref')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title('Données de substrat - Plus gros')
                 plt.xlabel('substrat - code cemagref')
                 plt.ylabel('fréquence')
@@ -1452,11 +1452,11 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
             fig.add_subplot(223)
             q_unit = np.array(vel_app) * np.array(height_app)
             plt.hist(q_unit, 20, weights=area_app, facecolor='deepskyblue')
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title('Elementary flow')
                 plt.xlabel('v * h * 1m [m$^{3}$/sec]')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title('Début unitaire')
                 plt.xlabel('v * h * 1m [m$^{3}$/sec]')
                 plt.ylabel('fréquence')
@@ -1492,14 +1492,14 @@ def plot_hist_hydro(hdf5_file, path_hdf5, vel_c_all_t, height_c_all_t, area_c_al
                 if not test:
                     return
             if format1 == 0 or format1 == 1:
-                plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 0 or format1 == 3:
-                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
             if format1 == 2:
-                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
 
-def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, timestep, name_base, sim_name=[],
+def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, project_preferences, path_im, timestep, name_base, sim_name=[],
                       erase_id=False):
     """
     This function plot the historgram of the habitat value for the slected species and time step. This historgramm
@@ -1508,7 +1508,7 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
     :param vh_all_t_sp: The habitat value by cell by reach by time step by species
     :param area_c_all_t: the area of each cell
     :param name_fish: the name of the fish chosen
-    :param fig_opt: the figure options
+    :param project_preferences: the figure options
     :param path_im: the path where to save the images
     :param timestep: a list with the time step to be plotted
     :param name_base: the base on which to form the figure name
@@ -1518,13 +1518,13 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
     spu_all = []
     area_all = []
 
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-    plt.rcParams['font.size'] = fig_opt['font_size']
-    plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-    format1 = int(fig_opt['format'])
-    plt.rcParams['axes.grid'] = fig_opt['grid']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+    plt.rcParams['font.size'] = project_preferences['font_size']
+    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+    format1 = int(project_preferences['format'])
+    plt.rcParams['axes.grid'] = project_preferences['grid']
     mpl.rcParams['pdf.fonttype'] = 42  # to make figure ediable in adobe illustrator
 
     if max(timestep) - 1 > len(sim_name):
@@ -1551,12 +1551,12 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
             if p == 0:
                 fig = plt.figure()
                 fig.add_subplot(221)  # why (22p) does not work?
-                if fig_opt['language'] == 0:
+                if project_preferences['language'] == 0:
                     if t == -1:
                         plt.suptitle('Habitat Data - Last Computational Step - ' + name_base)
                     else:
                         plt.suptitle('Habitat Data - Computational Step: ' + str(t) + ' - ' + name_base)
-                elif fig_opt['language'] == 1:
+                elif project_preferences['language'] == 1:
                     if t == -1:
                         plt.suptitle("Histogramme de Données d'Habitat - Dernier Pas de Temps/Débit - " + name_base)
                     else:
@@ -1574,11 +1574,11 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
             if p == 3:
                 fig.add_subplot(224)
             plt.hist(spu_all, weights=area_all, facecolor='lightblue', bins=np.arange(-0.05, 1.05, 0.1))
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.title('Habitat Value ' + name_fish[s])
                 plt.xlabel('habitat value [ ]')
                 plt.ylabel('number of occurence')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.title("Valeur d'Habitat " + name_fish[s])
                 plt.xlabel("valeur d'habitat [ ] ")
                 plt.ylabel('fréquence')
@@ -1616,11 +1616,11 @@ def plot_hist_biology(vh_all_t_sp, area_c_all_t, name_fish, fig_opt, path_im, ti
                     if not test:
                         return
                 if format1 == 0 or format1 == 1:
-                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.png'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 0 or format1 == 3:
-                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
                 if format1 == 2:
-                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+                    plt.savefig(os.path.join(path_im, name + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
 
 
 def remove_image(name, path, format1):

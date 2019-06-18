@@ -28,7 +28,7 @@ from src import manage_grid_mod
 from src_GUI import preferences_GUI
 
 
-def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value, q=[], print_cmd=False, fig_opt={}):
+def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value, q=[], print_cmd=False, project_preferences={}):
     """
     This function calls the function load_telemac and call the function cut_2d_grid(). Orginally, this function
     was part of the TELEMAC class in Hydro_GUI_2.py but it was separated to be able to have a second thread, which
@@ -46,15 +46,15 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             all timestep are selected (from cmd command).
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
-    :param fig_opt: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     """
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
     # minimum water height
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    minwh = fig_opt['min_height_hyd']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    minwh = project_preferences['min_height_hyd']
 
     # progress
     progress_value.value = 10
@@ -82,13 +82,12 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
             if data_2d_telemac == [-99] and description_from_telemac_file == [-99]:
                 q.put(mystdout)
                 #return
-            #description_from_telemac_file["hyd_unit_z_equal"] = "True"
             data_2d_whole_profile["tin"][0].append(data_2d_telemac["tin"])
             data_2d_whole_profile["xy_center"][0].append(data_2d_telemac["xy_center"])
             data_2d_whole_profile["xy"][0].append(data_2d_telemac["xy"])
-            if description_from_telemac_file["hyd_unit_z_equal"] == "True":
+            if description_from_telemac_file["hyd_unit_z_equal"]:
                 data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][0])
-            elif description_from_telemac_file["hyd_unit_z_equal"] == "False":
+            elif not description_from_telemac_file["hyd_unit_z_equal"]:
                 for unit_num in range(len(description_from_indexHYDRAU_file[hyd_file]["unit_list"])):
                     data_2d_whole_profile["z"][0].append(data_2d_telemac["z"][unit_num])
 
@@ -196,7 +195,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                                                                                             unit_num],
                                                                                         progress_value,
                                                                                         delta,
-                                                                                        fig_opt[
+                                                                                        project_preferences[
                                                                                             "CutMeshPartialyDry"],
                                                                                         minwh)
             if not isinstance(tin_data, np.ndarray):
@@ -231,7 +230,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
         del data_2d_whole_profile['unit_correspondence']
-        if fig_opt["CutMeshPartialyDry"] == "False":
+        if not project_preferences["CutMeshPartialyDry"]:
             namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
             exthdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[1]
             description_from_indexHYDRAU_file[hyd_file]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
@@ -239,7 +238,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         # create hdf5
         hdf5 = hdf5_mod.Hdf5Management(description_from_indexHYDRAU_file[hyd_file]["path_prj"],
                                        description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])
-        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, fig_opt)
+        hdf5.create_hdf5_hyd(data_2d, data_2d_whole_profile, hyd_description, project_preferences)
 
         # progress
         progress_value.value = 100
@@ -349,7 +348,7 @@ def load_telemac(namefilet, pathfilet):
     description_from_telemac_file["hyd_unit_list"] = ", ".join(list(map(str, timestep)))
     description_from_telemac_file["hyd_unit_number"] = str(len(list(map(str, timestep))))
     description_from_telemac_file["hyd_unit_type"] = "timestep"
-    description_from_telemac_file["hyd_unit_z_equal"] = str(all_z_equal)
+    description_from_telemac_file["hyd_unit_z_equal"] = all_z_equal
 
     # data 2d dict
     data_2d = dict()

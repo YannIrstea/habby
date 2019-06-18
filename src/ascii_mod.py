@@ -28,7 +28,7 @@ from src import mesh_management_mod
 from src_GUI import preferences_GUI
 
 
-def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, fig_opt={}):
+def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
@@ -36,9 +36,9 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     path_prj = hydrau_description["path_prj"]
     sub_presence = False # no substrate init
     # minimum water height
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
-    minwh = fig_opt['min_height_hyd']
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
+    minwh = project_preferences['min_height_hyd']
 
     # progress
     progress_value.value = 10
@@ -97,7 +97,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                     data_2d_from_ascii["v"][reach_num][unit_num],
                     progress_value,
                     delta,
-                    fig_opt["CutMeshPartialyDry"],
+                    project_preferences["CutMeshPartialyDry"],
                     minwh)
 
                 if not isinstance(tin_data, np.ndarray):
@@ -150,8 +150,8 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
     hyd_description["hyd_unit_wholeprofile"] = "all"
-    hyd_description["hyd_unit_z_equal"] = "True"
-    if fig_opt["CutMeshPartialyDry"] == "False":
+    hyd_description["hyd_unit_z_equal"] = True
+    if not project_preferences["CutMeshPartialyDry"]:
         namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
         data_description["hdf5_name"] = namehdf5_old + "_no_cut.hyd"
 
@@ -170,12 +170,12 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         hdf5.create_hdf5_hyd(data_2d,
                              data_2d_whole_profile,
                              hyd_description,
-                             fig_opt)
+                             project_preferences)
     if sub_presence:
         hdf5.create_hdf5_hab(data_2d,
                              data_2d_whole_profile,
                              hyd_description,
-                             fig_opt)
+                             project_preferences)
 
     # progress
     progress_value.value = 100

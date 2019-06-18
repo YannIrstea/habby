@@ -123,7 +123,7 @@ def habitat_to_vtu(file_name_base, path_out, path_hdf5, name_hdf5, vh_all_t_sp, 
         file_names_all = []
 
 
-def writePVD(fileName, fileNames):
+def writePVD(fileName, fileNames, part_timestep_indice):
     """
     This function write the file which indicates to paraview how to group the file. This "grouping" file is pvd file.
     With this file, paraview can open all the time steps together with one clic. This function is heavily inspired
@@ -148,9 +148,9 @@ def writePVD(fileName, fileNames):
 
     for i in range(len(fileNames)):
         dataSet = pvd.createElementNS("VTK", "DataSet")
-        dataSet.setAttribute("timestep", str(i))
+        dataSet.setAttribute("timestep", str(part_timestep_indice[i][1]))
         dataSet.setAttribute("group", "")
-        dataSet.setAttribute("part", "0")
+        dataSet.setAttribute("part", str(part_timestep_indice[i][0]))
         dataSet.setAttribute("file", str(fileNames[i]))
         collection.appendChild(dataSet)
 

@@ -643,9 +643,9 @@ class DataExplorerFrame(QFrame):
             self.plot_production_stoped = False
 
             # figure option
-            fig_opt = preferences_GUI.load_fig_option(self.path_prj,
-                                                      self.name_prj)
-            fig_opt['type_plot'] = export_type  # "display", "export", "both"
+            project_preferences = preferences_GUI.load_project_preferences(self.path_prj,
+                                                               self.name_prj)
+            project_preferences['type_plot'] = export_type  # "display", "export", "both"
 
             # init
             fish_names = [variable for variable in variables if variable not in self.variables_to_remove]
@@ -714,7 +714,7 @@ class DataExplorerFrame(QFrame):
                                                                      fish_names,
                                                                      path_im,
                                                                      name_hdf5,
-                                                                     fig_opt))
+                                                                     project_preferences))
                             self.plot_process_list.append((plot_hab_fig_spu_process, state))
 
                         # for each desired units ==> maps
@@ -727,7 +727,7 @@ class DataExplorerFrame(QFrame):
                                                            args=(state,
                                                                  hdf5.data_2d["xy"][reach_num][unit_num],
                                                                  hdf5.data_2d["tin"][reach_num][unit_num],
-                                                                 fig_opt,
+                                                                 project_preferences,
                                                                  data_description,
                                                                  path_im,
                                                                  reach_name,
@@ -740,7 +740,7 @@ class DataExplorerFrame(QFrame):
                                                            args=(state,
                                                                  hdf5.data_2d["xy"][reach_num][unit_num],
                                                                  hdf5.data_2d["tin"][reach_num][unit_num],
-                                                                 fig_opt,
+                                                                 project_preferences,
                                                                  data_description,
                                                                  path_im,
                                                                  reach_name,
@@ -753,7 +753,7 @@ class DataExplorerFrame(QFrame):
                                                            args=(state,
                                                                  hdf5.data_2d["xy"][reach_num][unit_num],
                                                                  hdf5.data_2d["z"][reach_num][unit_num],
-                                                                 fig_opt,
+                                                                 project_preferences,
                                                                  data_description,
                                                                  path_im,
                                                                  reach_name,
@@ -765,7 +765,7 @@ class DataExplorerFrame(QFrame):
                                                              args=(state,
                                                                    hdf5.data_2d["xy"][reach_num][unit_num],
                                                                    hdf5.data_2d["tin"][reach_num][unit_num],
-                                                                   fig_opt,
+                                                                   project_preferences,
                                                                    data_description,
                                                                    hdf5.data_2d["h"][reach_num][unit_num],
                                                                    path_im,
@@ -778,7 +778,7 @@ class DataExplorerFrame(QFrame):
                                                                args=(state,
                                                                      hdf5.data_2d["xy"][reach_num][unit_num],
                                                                      hdf5.data_2d["tin"][reach_num][unit_num],
-                                                                     fig_opt,
+                                                                     project_preferences,
                                                                      data_description,
                                                                      hdf5.data_2d["v"][reach_num][unit_num],
                                                                      path_im,
@@ -794,7 +794,7 @@ class DataExplorerFrame(QFrame):
                                                                      hdf5.data_2d["sub"][reach_num][unit_num],
                                                                      data_description,
                                                                      path_im,
-                                                                     fig_opt,
+                                                                     project_preferences,
                                                                      reach_name,
                                                                      units[unit_num]))
                                     self.plot_process_list.append((susbtrat_process, state))
@@ -810,7 +810,7 @@ class DataExplorerFrame(QFrame):
                                                                             hdf5.data_2d["tin"][reach_num][unit_num],
                                                                             hdf5.data_2d["hv_data"][fish_name][reach_num][unit_num],
                                                                             data_description,
-                                                                            fig_opt,
+                                                                            project_preferences,
                                                                             path_im,
                                                                             reach_name,
                                                                             units[unit_num]))

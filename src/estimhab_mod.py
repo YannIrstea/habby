@@ -23,7 +23,7 @@ from src_GUI import preferences_GUI
 import matplotlib as mpl
 
 
-def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, path_im, pict=False, fig_opt={},
+def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, path_im, pict=False, project_preferences={},
              path_txt=[], fish_name=''):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
@@ -39,7 +39,7 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     :param path_bio: the path to the xml file with the information on the fishes
     :param fish_xml: the name of the xml file to be analyzed
     :param pict: if true the figure is shown. If false, the figure is not shown
-    :param fig_opt: a dictionnary with the figure option
+    :param project_preferences: a dictionnary with the figure option
     :param path_txt: the path where to send the text data
     :param fish_name: the name fo the fish to be analysed (if not there, use the xml name)
     :return: habitat value and useful surface (VH and SPU) as a function of discharge
@@ -64,22 +64,18 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
     Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
     a text file.
     """
-    if not fig_opt:
-        fig_opt = preferences_GUI.create_default_figoption()
+    if not project_preferences:
+        project_preferences = preferences_GUI.create_default_project_preferences()
     if pict:
-        plt.rcParams['figure.figsize'] = fig_opt['width'], fig_opt['height']
-        plt.rcParams['font.size'] = fig_opt['font_size']
-        plt.rcParams['lines.linewidth'] = fig_opt['line_width']
-        format1 = int(fig_opt['format'])
-        plt.rcParams['axes.grid'] = fig_opt['grid']
-        if fig_opt['font_size'] > 7:
-            plt.rcParams['legend.fontsize'] = fig_opt['font_size'] - 2
+        plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
+        plt.rcParams['font.size'] = project_preferences['font_size']
+        plt.rcParams['lines.linewidth'] = project_preferences['line_width']
+        format1 = int(project_preferences['format'])
+        plt.rcParams['axes.grid'] = project_preferences['grid']
+        if project_preferences['font_size'] > 7:
+            plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
         plt.rcParams['legend.loc'] = 'best'
-    erase1 = fig_opt['erase_id']
-    if erase1 == 'True':  # xml in text
-        erase1 = True
-    else:
-        erase1 = False
+    erase1 = project_preferences['erase_id']
     if not fish_name:
         fish_name = fish_xml
 
@@ -163,16 +159,16 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
         VH_f = const * part_q
         SPU_f = VH_f * w_all * 100
         if pict:
-            if not fig_opt:
-                fig_opt = preferences_GUI.create_default_figoption()
+            if not project_preferences:
+                project_preferences = preferences_GUI.create_default_project_preferences()
 
             plt.subplot(2, 1, 1)
             plt.grid(True)
             plt.plot(q_all, VH_f, color=c[f])
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.xlabel('Discharge [m$^{3}$/sec]')
                 plt.ylabel('Habitat Value[]')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.xlabel('Débit [m$^{3}$/sec]')
                 plt.ylabel('Valeur habitat []')
             else:
@@ -184,10 +180,10 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
             plt.subplot(2, 1, 2)
             plt.grid(True)
             plt.plot(q_all, SPU_f, color=c[f])
-            if fig_opt['language'] == 0:
+            if project_preferences['language'] == 0:
                 plt.xlabel('Discharge [m$^{3}$/sec]')
                 plt.ylabel('WUA by 100 m')
-            elif fig_opt['language'] == 1:
+            elif project_preferences['language'] == 1:
                 plt.xlabel('Débit [m$^{3}$/sec]')
                 plt.ylabel('SPU par 100 m')
             else:
@@ -220,11 +216,11 @@ def estimhab(qmes, width, height, q50, qrange, substrat, path_bio, fish_xml, pat
 
         # save image
         if format1 == 0 or format1 == 1:
-            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=fig_opt['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, name_pict + '.png'), dpi=project_preferences['resolution'], transparent=True)
         if format1 == 0 or format1 == 3:
-            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=fig_opt['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, name_pict + '.pdf'), dpi=project_preferences['resolution'], transparent=True)
         if format1 == 2:
-            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=fig_opt['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, name_pict + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
             # plt.show()
 
         # text files output
