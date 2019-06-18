@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <BiologicalModel>
 <CdBiologicalModel>OBR01</CdBiologicalModel>
+<Country>France</Country>
 <MadeBy>Irstea Former Cemagref</MadeBy>
 <Fish>
 <CdAppelTaxon SchemeAgencyID="SANDRE">2247</CdAppelTaxon>

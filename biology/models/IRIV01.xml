@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+<CdBiologicalModel>IRIV01</CdBiologicalModel>
+<Country>France</Country>
+<MadeBy>Irstea Former Cemagref</MadeBy>
+<Invertebrate>
+<CdAppelTaxon SchemeAgencyID="SANDRE">148</CdAppelTaxon>
+<LatinName>Isoperla rivulorum (Curtis, 1827)</LatinName>
+<ComNames>
+  <ComName Language="French">Perles</ComName>
+  <ComName Language="English">Stoneflies</ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="Irstea Lyon">IRIV</CdAlternative >
+</Invertebrate>
+<General>
+<CreationYear>2019</CreationYear>
+<Description Language="French">
+<![CDATA[
+Origine: 
+Réanalyse des données Doledec et al. (2007) et Merigoux et al. (2009) avec ajouts de données issues du suivi RHONECO et Lignon du Forêz.
+Référence: Forcellini et al. (2019, in prep)
+La courbe d'Isoperla rivulorum est issue de données récoltées dans une rivière Allemande entre 1990 et 1992: Prien (rivière de montagne).
+Espèces médio-sud européenne (Aubert, 1986), présente entre 800 mètres et 2900 mètres (freshwaterecology.info; Graf et al. 2019). Espèce notée en liste rouge pour l'Allemagne (Reusch, H. & Weinzierl, A., 1998).
+Remarque: Courbe construite sur une gamme de valeur d'habitat allant de l'hémisphère 0 à 17. Une valeur de 1 a été attribuée aux hémisphères de 18 à 20 (expertise).
+
+Doledec, S., Lamouroux, N., Fuchs, U., & Merigoux, S. (2007). Modelling the hydraulic preferences of benthic macroinvertebrates in small European streams. Freshwater Biology, 52(1), 145-164.
+Mérigoux, S., Lamouroux, N., Olivier, J. M., & Doledec, S. (2009). Invertebrate hydraulic preferences and predicted impacts of changes in discharge in a large river. Freshwater Biology, 54(6), 1343-1356.
+Aubert, J. (1986). Les Plécoptères des Alpes Françaises. In Annales de la Société entomologique de France (Vol. 22, No. 1, pp. 81-104). Société entomologique de France.
+Graf, W., Lorenz, A.W., Tierno de Figueroa, J.M., Lücke, S., López-Rodríguez, M.J., Murphy, J. & Schmidt-Kloiber, A. (2019): Dataset "Plecoptera". www.freshwaterecology.info - the taxa and autecology database for freshwater organisms, version 7.0 (accessed on 04.06.2019).
+Reusch, H. & Weinzierl, A. (1998): Rote Liste der Steinfliegen (Plecoptera). In: Rote Liste gefährdeter Tiere Deutschlands. Schriftenreihe für Landschaftspflege und Naturschutz. Bundesamt für Naturschutz 55: 255-259.
+Schmidt-Kloiber, A. & Hering D. (2015): www.freshwaterecology.info - an online tool that unifies, standardises and codifies more than 20,000 European freshwater organisms and their ecological preferences. Ecological Indicators 53: 271-282. doi: 10.1016/j.ecolind.2015.02.007.
+http://www.opie-benthos.fr
+]]>
+</Description>
+<Image>IRIV01.jpg</Image>
+</General>
+<ModelType Type="univariate suitability index curves">
+<Stages>
+<Stage Type="larva">
+<Preferenceshearstress Unit="HFST" UnitSymbol="HFST"><Value HFST='0' p='0.02'/><Value HFST='1' p='0.03'/><Value HFST='2' p='0.05'/><Value HFST='3' p='0.06'/><Value HFST='4' p='0.09'/><Value HFST='5' p='0.12'/><Value HFST='6' p='0.16'/><Value HFST='7' p='0.21'/><Value HFST='8' p='0.26'/><Value HFST='9' p='0.33'/><Value HFST='10' p='0.40'/><Value HFST='11' p='0.47'/><Value HFST='12' p='0.55'/><Value HFST='13' p='0.63'/><Value HFST='14' p='0.71'/><Value HFST='15' p='0.80'/><Value HFST='16' p='0.90'/><Value HFST='17' p='1'/><Value HFST='18' p='1'/><Value HFST='19' p='1'/><Value HFST='20' p='1'/></Preferenceshearstress>
+</Stage>
+</Stages>
+</ModelType>
+</BiologicalModel>

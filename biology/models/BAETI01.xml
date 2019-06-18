@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+<CdBiologicalModel>BAETI01</CdBiologicalModel>
+<Country>France</Country>
+<MadeBy>Irstea Former Cemagref</MadeBy>
+<Invertebrate>
+<CdAppelTaxon SchemeAgencyID="SANDRE">364</CdAppelTaxon>
+<LatinName>Baetis Leach, 1815</LatinName>
+<ComNames>
+  <ComName Language="French"></ComName>
+  <ComName Language="English"></ComName>
+</ComNames>
+<CdAlternative OrgCdAlternative="Irstea Lyon">BAETI</CdAlternative >
+</Invertebrate>
+<General>
+<CreationYear>2019</CreationYear>
+<Description Language="French">
+<![CDATA[
+Origine: 
+Réanalyse des données Doledec et al. (2007) et Merigoux et al. (2009) avec ajouts de données issues du suivi RHONECO et Lignon du Forêz.
+Référence: Forcellini et al. (2019, in prep).
+Genre représenté par 19 espèces en France (OPIE benthos 2019) et est présent de l'eucrenal au littoral(freshwaterecology.info; Buffagni et al., 2019).
+10 espèces sont notées en liste rouge dans 3 pays européens (Allemagne, République tchèque, France)(freshwaterecology.info).
+ ]]>
+</Description>
+<Image></Image>
+</General>
+<ModelType Type="univariate suitability index curves">
+<Stages>
+<Stage Type="larva">
+<Preferenceshearstress Unit="HFST" UnitSymbol="HFST"><Value HFST='0' p='0.13'/><Value HFST='1' p='0.17'/><Value HFST='2' p='0.22'/><Value HFST='3' p='0.29'/><Value HFST='4' p='0.37'/><Value HFST='5' p='0.46'/><Value HFST='6' p='0.56'/><Value HFST='7' p='0.67'/><Value HFST='8' p='0.78'/><Value HFST='9' p='0.87'/><Value HFST='10' p='0.94'/><Value HFST='11' p='0.98'/><Value HFST='12' p='1'/><Value HFST='13' p='0.99'/><Value HFST='14' p='0.96'/><Value HFST='15' p='0.92'/><Value HFST='16' p='0.86'/><Value HFST='17' p='0.80'/><Value HFST='18' p='0.73'/><Value HFST='19' p='0.66'/><Value HFST='20' p='0.59'/></Preferenceshearstress>
+</Stage>
+</Stages>
+</ModelType>
+</BiologicalModel>

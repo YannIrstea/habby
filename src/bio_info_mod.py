@@ -411,6 +411,18 @@ def create_and_fill_database(path_bio, name_database, attribute):
 
 
 def get_biomodels_informations_for_database(path_xml):
+    """
+
+    :param path_xml:
+    :return:
+    """
+    # TODO:
+    #  1 <CdAlternative ....>il faut absolument une info là monobloc</CdAlternative >
+    #  2 <CdBiologicalModel>SIC01 il faut que l'on ait un idenfiant unique monobloc non partagé avec un autre xml! dans habby v appdata </CdBiologicalModel>
+    #  3 checker la validité des  modeles de courbes unitSymbol
+    #  #  new functionil se peut <Image></Image> pas d'image ou même pas les balises et il faut l'admettre // \\ format possible image jpg ou png
+
+
     # open the file
     try:
         try:

@@ -35,6 +35,15 @@ class ConfigHabby:
     """
 
     def __init__(self):
+        # biological models allowed by HABBY dict
+        self.biological_models_requirements_dict = dict(ModelType=["univariate suitability index curves"],
+                                                        #
+                                                        UnitVariable=[["PreferenceHeightOfWater","HeightOfWaterClasses"], ["PreferenceVelocity","VelocityClasses"] ],
+                                                        UnitSymbol=[["m", "cm"], ["m/s", "cm/s"]],
+                                                        UnitFactor = [[1,0.01],[1,0.01]])
+
+
+
         # default config data
         self.data = dict(language="english",  # english, french, spanish
                          name_prj="",
