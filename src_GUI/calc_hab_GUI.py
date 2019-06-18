@@ -16,10 +16,10 @@ https://github.com/YannIrstea/habby
 """
 from io import StringIO
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QStringListModel
-from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QLineEdit, \
-    QComboBox, QAbstractItemView, \
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QLineEdit, QHBoxLayout,\
+    QComboBox, QAbstractItemView, QListWidget, QTableWidget,\
     QSizePolicy, QScrollArea, QFrame, QCompleter, QTextEdit
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QStandardItemModel, QStandardItem
 from multiprocessing import Process, Queue, Value
 import os
 import sys
@@ -83,8 +83,20 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # stage have to be the first attribute !
         self.attribute_acc = ['Stage', 'French_common_name', 'English_common_name', 'Code_ONEMA', 'Code_Sandre',
                               'LatinName', 'CdBiologicalModel']
-        self.all_run_choice = [self.tr('Coarser Substrate'), self.tr('Dominant Substrate'), self.tr('By Percentage'),
-                               self.tr('Neglect Substrate')]
+        self.all_hyd_choice = [self.tr("Default"),
+                               self.tr("User"),
+                               self.tr('HV'),
+                               self.tr('H'),
+                               self.tr('V'),
+                               self.tr('HEM'),
+                               self.tr("Neglect")]
+        self.all_sub_choice = [self.tr("Default"),
+                               self.tr("User"),
+                               self.tr("Coarser-Dominant"),
+                               self.tr('Coarser'),
+                               self.tr('Dominant'),
+                               self.tr('Percentage'),
+                               self.tr('Neglect')]
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
         self.text_ini = []  # the text with the tooltip
         # self.name_database = 'pref_bio.db'
@@ -116,22 +128,32 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # create lists with the possible fishes
         # right buttons for both QListWidget managed in the MainWindows class
-        selected_fish_label = QLabel(self.tr('<b> Selected models </b>'))
-        self.explore_bio_model_pushbutton = QPushButton(self.tr('Choose biological models'))
+        self.explore_bio_model_pushbutton = QPushButton(self.tr('Add models'))
         self.explore_bio_model_pushbutton.setObjectName("calc_hab")
         self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
-        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.NoSelection)
+        self.remove_all_bio_model_pushbutton = QPushButton(self.tr("Remove all models"))
+        self.remove_all_bio_model_pushbutton.clicked.connect(self.remove_all_fish)
 
-        # run habitat value
-        self.l9 = QLabel(self.tr(' <b> Options for the computation </b>'))
-        self.l9.setAlignment(Qt.AlignBottom)
-        self.choice_run = QComboBox()
-        self.choice_run.addItems(self.all_run_choice)
+        # 1 column
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.NoSelection)
+        self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
         self.runhab.setStyleSheet("background-color: #47B5E6; color: black")
         self.runhab.clicked.connect(self.run_habitat_value)
-
+        # 2 column
+        self.hyd_mode_qtablewidget = QTableWidget()
+        #self.hyd_mode_qtablewidget.setSelectionMode(QAbstractItemView.NoSelection)
+        self.general_option_hyd_combobox = QComboBox()
+        self.general_option_hyd_combobox.addItems(self.all_hyd_choice)
+        # 3 column
+        self.sub_mode_qtablewidget = QTableWidget()
+        self.sub_mode_qtablewidget.setColumnCount(1)
+        self.sub_mode_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.sub_mode_qtablewidget.verticalHeader().setVisible(False)
+        self.sub_mode_qtablewidget.horizontalHeader().setVisible(False)
+        self.general_option_sub_combobox = QComboBox()
+        self.general_option_sub_combobox.addItems(self.all_sub_choice)
 
         # fill hdf5 list
         self.update_merge_list()
@@ -144,14 +166,22 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
 
-        self.layout4.addWidget(selected_fish_label, 2, 0)
-        self.layout4.addWidget(self.explore_bio_model_pushbutton, 2, 1)
-        self.layout4.addWidget(self.selected_aquatic_animal_listwidget, 3, 0, 3, 2)
 
-        self.layout4.addWidget(self.l9, 3, 3)
-        self.layout4.addWidget(self.choice_run, 4, 3)
-        self.layout4.addWidget(self.runhab, 5, 3)
-
+        # 1 column
+        layout_choose_or_remove = QHBoxLayout()
+        layout_choose_or_remove.addWidget(self.explore_bio_model_pushbutton)
+        layout_choose_or_remove.addWidget(self.remove_all_bio_model_pushbutton)
+        self.layout4.addLayout(layout_choose_or_remove, 2, 0)
+        self.layout4.addWidget(self.selected_aquatic_animal_listwidget, 3, 0)
+        self.layout4.addWidget(self.runhab, 4, 0)
+        # 2 column
+        self.layout4.addWidget(QLabel(self.tr("hydraulic mode")), 2, 1)
+        self.layout4.addWidget(self.hyd_mode_qtablewidget, 3, 1)
+        self.layout4.addWidget(self.general_option_hyd_combobox, 4, 1)
+        # 3 column
+        self.layout4.addWidget(QLabel(self.tr("substrate mode")), 2, 2)
+        self.layout4.addWidget(self.sub_mode_qtablewidget, 3, 2)
+        self.layout4.addWidget(self.general_option_sub_combobox, 4, 2)
         # self.setLayout(self.layout4)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
@@ -178,44 +208,61 @@ class BioInfo(estimhab_GUI.StatModUseful):
                         fish_selected_b = fish_selected_b.split(',')
                         self.fill_selected_models_listwidets(fish_selected_b)
 
-    def fill_selected_models_listwidets(self, new_item_text_list):
-        # add new item if not exist
-        for item_str in new_item_text_list:
-            if item_str not in self.selected_aquatic_animal_list:
-                # add it to selected
-                self.selected_aquatic_animal_listwidget.addItem(item_str)
-                self.selected_aquatic_animal_list.append(item_str)
+    def remove_fish(self):
+        """
+        The function is used to remove fish species (or inverterbates species)
+        """
+        item = self.selected_aquatic_animal_listwidget.takeItem(self.selected_aquatic_animal_listwidget.currentRow())
+        try:
+            self.selected_aquatic_animal_list.remove(item.text())
+        except ValueError:
+            pass
+        item = None
 
-    def select_fish(self):
+    def remove_all_fish(self):
         """
-        This function selects the fish which corresponds at the chosen criteria by the user. The type of criteria
-        is given in the list self.keys and the criteria is given in self.cond1. The condition should exactly
-        match the criteria. Signs such as * do not work.
+        This function removes all fishes from the selected fish
         """
-        # get item s to be selected
-        i = self.keys.currentIndex()  # item type
-        cond = self.cond1.text()
-        if i == 0:
-            i = -1  # i +2=1 for the key called 'stage' which is on the second colum of self.data_type
-        data_fish_here = []
-        for f in self.data_fish[:, i + 2]:
-            data_fish_here.append(f.lower())
-        data_fish_here = np.array(data_fish_here)
-        if cond.lower() in data_fish_here:
-            inds = np.where(data_fish_here == cond.lower())[0]
-            self.runhab.setEnabled(True)
-        else:
-            self.send_log.emit(self.tr('Warning: No suitability curve found for the last selection.'))
-            return
-        # get the new selection
-        for ind in inds:
-            for i in range(0, self.list_f.count()):
-                item = self.list_f.item(i)
-                if item.text() == self.data_fish[ind, 0]:
-                    break
-            self.list_f.setCurrentRow(i)
-            # add the fish to the QListView
-            self.add_fish()
+        self.selected_aquatic_animal_listwidget.clear()
+        self.selected_aquatic_animal_list = []
+
+    def fill_selected_models_listwidets(self, new_item_text_list):
+        # total_item
+        self.selected_aquatic_animal_list = sorted(list(set(new_item_text_list + self.selected_aquatic_animal_list)))
+        total_item = len(self.selected_aquatic_animal_list)
+
+        # clear selected_aquatic_animal_listwidget
+        self.selected_aquatic_animal_listwidget.clear()
+        self.selected_aquatic_animal_listwidget.addItem("aaa")
+        default_rowheight = self.selected_aquatic_animal_listwidget.sizeHintForRow(0)
+        self.selected_aquatic_animal_listwidget.clear()
+
+        # clear selected_aquatic_animal_listwidget
+        self.sub_mode_qtablewidget.clear()
+        self.sub_mode_qtablewidget.setRowCount(total_item)
+
+        # add new item if not exist
+        for index, item_str in enumerate(self.selected_aquatic_animal_list):
+            # get info
+            name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(item_str)
+            index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+            # get stage index
+            index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+
+            # get default_substrate_type
+            default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
+            default_substrate_type_index = self.all_sub_choice.index(default_substrate_type)
+            # create combobox
+            item_combobox = QComboBox()
+            item_combobox.addItems(self.all_sub_choice)
+            item_combobox.setCurrentIndex(default_substrate_type_index)
+            # add combobox item
+            self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
+            print(index, default_rowheight)
+            self.sub_mode_qtablewidget.setRowHeight(index, default_rowheight)
+
+            # add it to selected
+            self.selected_aquatic_animal_listwidget.addItem(item_str)
 
     def update_merge_list(self):
         """
@@ -269,6 +316,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
 
+    def get_name_stage_codebio_fromstr(self, item_str):
+        name_fish = item_str.split(":")[0]
+        stage, code_bio_model = item_str.split(":")[1].split(" - ")
+        stage = stage.strip()
+        return name_fish, stage, code_bio_model
+
     def run_habitat_value(self):
         """
         This function runs HABBY to get the habitat value based on the data in a "merged" hdf5 file and the chosen
@@ -294,11 +347,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         for i in range(0, self.selected_aquatic_animal_listwidget.count()):
             # get info from list widget
             fish_item_text = self.selected_aquatic_animal_listwidget.item(i).text()
+            name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(fish_item_text)
             name_fish_sel += fish_item_text + ","
-            name_fish = fish_item_text.split(":")[0]
             name_fish_list.append(name_fish)
-            stage, code_bio_model = fish_item_text.split(":")[1].split(" - ")
-            stage = stage.strip()
             index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
             pref_list.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish])
             stages_chosen.append(stage)
@@ -368,7 +419,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         path_para = self.find_path_output_est("Path_Visualisation")
 
         # get the type of option choosen for the habitat calculation
-        run_choice = self.choice_run.currentIndex()
+        run_choice = self.general_option_sub_combobox.currentIndex()
 
         # only useful if we want to also show the 2d figure in the GUI
         self.hdf5_file = hdf5_file
