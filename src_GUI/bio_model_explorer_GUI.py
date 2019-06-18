@@ -406,6 +406,7 @@ class BioModelFilterTab(QScrollArea):
                 self.result_to_selected(self.biological_models_dict_gui['orderedKeys'][next_key_ind])
         else:
             if selection:
+                self.clear_filter_dispatch()
                 self.result_to_selected_dispatch()
             else:
                 self.clear_filter_dispatch()
@@ -703,7 +704,7 @@ class BioModelInfoSelection(QScrollArea):
         i = self.biological_models_dict_gui["cd_biological_model"].index(self.selected_fish_cd_biological_model)
 
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
-        pngfile = self.biological_models_dict_gui["path_png"][i]
+        img_file = self.biological_models_dict_gui["path_img"][i]
 
         # open the file
         try:
@@ -741,12 +742,17 @@ class BioModelInfoSelection(QScrollArea):
             if not found:
                 self.description_textedit.setText(data[0].text[2:-1])
 
-        if os.path.isfile(pngfile):
-            self.animal_picture_label.clear()
-            self.animal_picture_label.setPixmap(QPixmap(pngfile).scaled(self.animal_picture_label.size() * 0.95,
-                                                                        Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
+        if img_file:
+            if os.path.isfile(img_file):
+                self.animal_picture_label.clear()
+                self.animal_picture_label.setPixmap(QPixmap(img_file).scaled(self.animal_picture_label.size() * 0.95,
+                                                                            Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
+            else:
+                self.animal_picture_label.clear()
+                self.animal_picture_label.setText(self.tr("no image file"))
         else:
             self.animal_picture_label.clear()
+            self.animal_picture_label.setText(self.tr("no image file"))
 
     def show_pref(self):
         """
