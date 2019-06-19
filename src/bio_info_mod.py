@@ -442,12 +442,19 @@ def get_biomodels_informations_for_database(path_xml):
     # MadeBy
     MadeBy = root.find('.//MadeBy').text
     # guild
-    guild = root.find(".//Guild")
-    if guild:
+    guild_element = root.find(".//Guild")
+    if guild_element:
         guild = "guild"
     else:
         guild = "mono"
-
+    if guild == "guild":
+        # get all fish guild code alternative
+        CdAlternative = guild_element.getchildren()[0].text
+        CdAlternativefishs = [guild_element.getchildren()[i].find("CdAlternative").text for i in [1, len(guild_element.getchildren()) - 1]]
+        CdAlternative = [CdAlternative + " (" + ", ".join(CdAlternativefishs) + ")"]
+    else:
+        # CdAlternative
+        CdAlternative = [root.find('.//CdAlternative').text]
 
     # aquatic_animal_type
     if root.find(".//Fish"):
@@ -467,10 +474,12 @@ def get_biomodels_informations_for_database(path_xml):
         substrate_type = ["Neglect"]
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
-    # CdAlternative
-    CdAlternative = [root.find('.//CdAlternative').text]
+
     # LatinName
-    LatinName = root.find(".//LatinName").text
+    if guild == "guild":
+        LatinName = "noname"
+    else:
+        LatinName = root.find(".//LatinName").text
     # modification_date
     modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
     # image file
