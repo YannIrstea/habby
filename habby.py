@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import sys
 from src_GUI import main_window_GUI
 from src import func_for_cmd_mod
-from src.config_data_habby_mod import ConfigHabby
+from src.config_data_habby_mod import CONFIG_HABBY
 from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QMessageBox
@@ -27,9 +27,6 @@ import traceback
 
 global HABBY_VERSION
 HABBY_VERSION = 0.25
-global CONFIG_HABBY
-CONFIG_HABBY = ConfigHabby()
-CONFIG_HABBY.create_config_habby_structure()
 
 
 def crash_management_output(error_type, error_value, error_traceback):

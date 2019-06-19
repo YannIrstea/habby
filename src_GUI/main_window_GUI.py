@@ -48,7 +48,7 @@ from src_GUI import fstress_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src import project_manag_mod
 from habby import HABBY_VERSION
-from habby import CONFIG_HABBY
+from src.config_data_habby_mod import CONFIG_HABBY
 
 
 class MainWindows(QMainWindow):

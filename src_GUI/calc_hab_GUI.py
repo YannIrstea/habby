@@ -14,29 +14,23 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from io import StringIO
-from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QStringListModel
-from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QLineEdit, QHBoxLayout,\
-    QComboBox, QAbstractItemView, QListWidget, QTableWidget,\
-    QSizePolicy, QScrollArea, QFrame, QCompleter, QTextEdit
-from PyQt5.QtGui import QPixmap, QStandardItemModel, QStandardItem
-from multiprocessing import Process, Queue, Value
 import os
-import sys
-import numpy as np
+from multiprocessing import Process, Queue, Value
+
+from PyQt5.QtCore import pyqtSignal, Qt, QTimer
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
+    QComboBox, QAbstractItemView, QTableWidget, \
+    QSizePolicy, QFrame
 
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
     import xml.etree.ElementTree as ET
-from src import bio_info_mod
 from src_GUI import estimhab_GUI
 from src import calcul_hab_mod
 from src import hdf5_mod
-from src import plot_mod
 from src_GUI import preferences_GUI
-from src_GUI.data_explorer_GUI import MyProcessList
-from habby import CONFIG_HABBY
+from src.config_data_habby_mod import CONFIG_HABBY
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -143,7 +137,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.runhab.clicked.connect(self.run_habitat_value)
         # 2 column
         self.hyd_mode_qtablewidget = QTableWidget()
-        #self.hyd_mode_qtablewidget.setSelectionMode(QAbstractItemView.NoSelection)
+        # self.hyd_mode_qtablewidget.setSelectionMode(QAbstractItemView.NoSelection)
         self.general_option_hyd_combobox = QComboBox()
         self.general_option_hyd_combobox.addItems(self.all_hyd_choice)
         # 3 column
@@ -165,7 +159,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4 = QGridLayout(content_widget)
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
-
 
         # 1 column
         layout_choose_or_remove = QHBoxLayout()
@@ -355,7 +348,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             stages_chosen.append(stage)
             name_fish_sh_text = code_bio_model + "_" + stage
             name_fish_sh.append(name_fish_sh_text[:8])
-            #name_fish_sel += name_fish + ','
+            # name_fish_sel += name_fish + ','
             xmlfiles.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
             # if self.data_fish[j][0] == fish_item_text:
             #     #pref_list.append(self.data_fish[j][2])
@@ -432,11 +425,12 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.timer.start(100)  # to refresh progress info
         self.q4 = Queue()
         self.progress_value = Value("i", 0)
-        self.p = Process(target=calcul_hab_mod.calc_hab_and_output, args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
-                                                                          name_fish_list, name_fish_sh, run_choice,
-                                                                          self.path_bio, path_txt, self.progress_value,
-                                                                          self.q4, False, project_preferences, path_im_bioa,
-                                                                          xmlfiles))
+        self.p = Process(target=calcul_hab_mod.calc_hab_and_output,
+                         args=(hdf5_file, path_hdf5, pref_list, stages_chosen,
+                               name_fish_list, name_fish_sh, run_choice,
+                               self.path_bio, path_txt, self.progress_value,
+                               self.q4, False, project_preferences, path_im_bioa,
+                               xmlfiles))
         self.p.name = "Habitat calculation"
         self.p.start()
 
@@ -475,7 +469,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 self.send_log.emit("Processus 'Habitat' fonctionne depuis " + str(round(self.running_time)) + " sec.")
             else:
                 # it is necssary to start this string with Process to see it in the Statusbar
-                self.send_log.emit("Process 'Habitat' is alive and run since " + str(round(self.running_time)) + " sec.")
+                self.send_log.emit(
+                    "Process 'Habitat' is alive and run since " + str(round(self.running_time)) + " sec.")
             self.nativeParentWidget().progress_bar.setValue(int(self.progress_value.value))
             self.nativeParentWidget().kill_process.setVisible(True)
 
@@ -488,7 +483,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # give the possibility of sending a new simulation
             self.runhab.setDisabled(False)
 
-            self.send_log.emit(self.tr('Habitat calculation is finished (computation time = ') + str(round(self.running_time)) + " s).")
+            self.send_log.emit(self.tr('Habitat calculation is finished (computation time = ') + str(
+                round(self.running_time)) + " s).")
             self.send_log.emit(self.tr("Figures can be displayed/exported from 'Data explorer' tab."))
 
             # put the timer back to zero and clear status bar

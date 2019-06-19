@@ -33,7 +33,7 @@ except ImportError:
 from src import bio_info_mod
 from src import plot_mod
 from src_GUI import preferences_GUI
-from habby import CONFIG_HABBY
+from src.config_data_habby_mod import CONFIG_HABBY
 from src_GUI.data_explorer_GUI import MyProcessList
 
 
