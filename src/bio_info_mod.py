@@ -411,7 +411,6 @@ def create_and_fill_database(path_bio, name_database, attribute):
             Please check the biology folder.\n')
 
 
-
 def get_biomodels_informations_for_database(path_xml):
     """
 
@@ -436,10 +435,20 @@ def get_biomodels_informations_for_database(path_xml):
         print("Warning: the xml file is not well-formed.\n")
         return
 
-    # Country
-    country = root.find(".//Country").text
     # CdBiologicalModel
     CdBiologicalModel = root.find('.//CdBiologicalModel').text
+    # Country
+    country = root.find(".//Country").text
+    # MadeBy
+    MadeBy = root.find('.//MadeBy').text
+    # guild
+    guild = root.find(".//Guild")
+    if guild:
+        guild = "guild"
+    else:
+        guild = "mono"
+
+
     # aquatic_animal_type
     if root.find(".//Fish"):
         aquatic_animal_type = "fish"
@@ -448,8 +457,6 @@ def get_biomodels_informations_for_database(path_xml):
     else:
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
         return
-    # guild
-    guild = "mono"
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
     if "[" in stage_and_size[0]:
@@ -460,8 +467,6 @@ def get_biomodels_informations_for_database(path_xml):
         substrate_type = ["Neglect"]
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
-    # MadeBy
-    MadeBy = root.find('.//MadeBy').text
     # CdAlternative
     CdAlternative = [root.find('.//CdAlternative').text]
     # LatinName
@@ -553,6 +558,8 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
     :return: the list of stage/fish species with the info from [name for GUi,
         s, xmlfilename, attribute_acc without s]
     """
+    import sys
+    sys.stdout = sys.__stdout__
     stages = []
 
     if not preffiles:
@@ -608,7 +615,10 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                     for bi in b:
                         try:
                             if bi.attrib['Language'] == att_langue[0]:
-                                data[i] = bi.text.strip()
+                                if bi.text:
+                                    data[i] = bi.text.strip()
+                                else:
+                                    data[i] = "-"
                         except KeyError:
                             all_ok = False
                             break
@@ -628,7 +638,11 @@ def load_xml_name(path_bio, attributes, preffiles=[]):
                 data[i] = root.find(".//" + att)
                 # None is null for python 3
                 if data[i] is not None:
-                    data[i] = data[i].text.strip()
+                    print("data[i]", preffile, data[i])
+                    if data[i].text:
+                        data[i] = data[i].text.strip()
+                    else:
+                        data[i] = "-"
             i += 1
         if not all_ok:
             break
@@ -831,8 +845,7 @@ def read_pref(xmlfile):
     code_fish = root.find('.//CdAlternative')
     if code_fish is not None:
         if code_fish.attrib['OrgCdAlternative']:
-            if code_fish.attrib['OrgCdAlternative'] == 'ONEMA':
-                code_fish = code_fish.text.strip()
+            code_fish = code_fish.text.strip()
 
     # get the latin name of the fish
     name_fish = root.find(".//LatinName")
@@ -885,15 +898,19 @@ def read_pref(xmlfile):
     # substrate
     sub_all = []
     pref_sub = root.findall(".//PreferenceSubstrate")
-    for pref_sub_i in pref_sub:
-        sub = [[], []]
-        sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
-        sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
-        sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
-        if not sub[0]:
-            # case without substrate
-            sub = [[0, 1], [1, 1]]
-        sub_all.append(sub)
+    if pref_sub:
+        for pref_sub_i in pref_sub:
+            sub = [[], []]
+            sub[0] = list(map(float, [element[1:] for element in pref_sub_i.getchildren()[0].text.split(" ")]))
+            sub[1] = list(map(float, pref_sub_i.getchildren()[1].text.split(" ")))
+            sub = change_unit(sub, pref_sub_i.getchildren()[0].attrib['ClassificationName'])
+            if not sub[0]:
+                # case without substrate
+                sub = [[0, 1], [1, 1]]
+            sub_all.append(sub)
+    else:
+        for i in range(len(stages)):
+            sub_all.append([[0, 1], [1, 1]])
 
     return h_all, vel_all, sub_all, code_fish, name_fish, stages
 
