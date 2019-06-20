@@ -24,6 +24,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWi
     QMessageBox, QTabWidget, \
     QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QTextEdit
+from subprocess import call
+from platform import system as operatingsystem
 
 try:
     import xml.etree.cElementTree as ET
@@ -568,9 +570,11 @@ class BioModelInfoSelection(QScrollArea):
         self.description_textedit.setFrameShape(QFrame.NoFrame)
         self.description_textedit.setReadOnly(True)
         # image fish
-        self.animal_picture_label = QLabel()
+        self.animal_picture_label = ClickLabel()
+        self.animal_picture_label.setStyleSheet("QLabel { background-color : white; color : black; }");
         # self.animal_picture_label.setFrameShape(QFrame.Panel)
         self.animal_picture_label.setAlignment(Qt.AlignCenter)
+        self.animal_picture_label.clicked.connect(self.open_explorer_on_picture_path)
 
         # add
         self.add_selected_to_main_pushbutton = QPushButton(self.tr("Validate selected models"))
@@ -706,6 +710,10 @@ class BioModelInfoSelection(QScrollArea):
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
         img_file = self.biological_models_dict_gui["path_img"][i]
 
+        # from dict
+        self.code_alternative_label.setText(self.biological_models_dict_gui["code_alternative"][i][0])
+        self.latin_name_label.setText(self.biological_models_dict_gui["latin_name"][i])
+
         # open the file
         try:
             try:
@@ -718,20 +726,7 @@ class BioModelInfoSelection(QScrollArea):
             print("Warning: the xml file is not well-formed.\n")
             return
 
-        # get the data code ONEMA
-        # for the moment only one code alternativ possible
-        data = root.find('.//CdAlternative')
-        if data is not None:
-            if data.attrib['OrgCdAlternative']:
-                if data.attrib['OrgCdAlternative'] == 'ONEMA':
-                    self.code_alternative_label.setText(data.text)
-
-        # get the latin name
-        data = root.find('.//LatinName')
-        if data is not None:
-            self.latin_name_label.setText(data.text)
-
-        # get the description
+        # get the description from xml
         data = root.findall('.//Description')
         if len(data) > 0:
             found = False
@@ -747,12 +742,26 @@ class BioModelInfoSelection(QScrollArea):
                 self.animal_picture_label.clear()
                 self.animal_picture_label.setPixmap(QPixmap(img_file).scaled(self.animal_picture_label.size() * 0.95,
                                                                             Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
+                self.animal_picture_path = img_file
             else:
                 self.animal_picture_label.clear()
                 self.animal_picture_label.setText(self.tr("no image file"))
+                self.animal_picture_path = None
         else:
             self.animal_picture_label.clear()
             self.animal_picture_label.setText(self.tr("no image file"))
+            self.animal_picture_path = None
+
+    def open_explorer_on_picture_path(self):
+        if self.animal_picture_path:
+            path_choosen = os.path.normpath(self.animal_picture_path)
+
+            if operatingsystem() == 'Windows':
+                call(['explorer', path_choosen])
+            elif operatingsystem() == 'Linux':
+                call(["xdg-open", path_choosen])
+            elif operatingsystem() == 'Darwin':
+                call(['open', path_choosen])
 
     def show_pref(self):
         """
@@ -851,3 +860,10 @@ class BioModelInfoSelection(QScrollArea):
         doc.write(fname)
         self.parent().parent().parent().close()
 
+
+class ClickLabel(QLabel):
+    clicked = pyqtSignal()
+
+    def mousePressEvent(self, event):
+        self.clicked.emit()
+        QLabel.mousePressEvent(self, event)
