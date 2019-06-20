@@ -541,14 +541,21 @@ class BioModelInfoSelection(QScrollArea):
         # available_aquatic_animal
         self.available_aquatic_animal_label = QLabel(self.tr("Available models") + " (0)")
         self.available_aquatic_animal_listwidget = QListWidget()
+        self.available_aquatic_animal_listwidget.setObjectName("available_aquatic_animal")
         self.available_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("available"))
         self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
         self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.available_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
+        self.available_aquatic_animal_listwidget.setAcceptDrops(False)
 
         self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
         self.selected_aquatic_animal_listwidget = QListWidget()
+        self.selected_aquatic_animal_listwidget.setObjectName("selected_aquatic_animal")
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
+        self.selected_aquatic_animal_listwidget.setAcceptDrops(True)
+        self.selected_aquatic_animal_listwidget.itemChanged.connect(self.add_fish)
         # self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
@@ -643,24 +650,50 @@ class BioModelInfoSelection(QScrollArea):
         # change qlabel
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(len(item_list)) + ")")
 
-    def add_fish(self):
+    def add_fish(self, selected_item=None):
         """
         The function is used to select a new fish species (or inverterbrate)
         """
-        # get item
-        selected_item = self.available_aquatic_animal_listwidget.selectedItems()[0]
+        object_name = self.sender().objectName()
         font = QFont()
-        font.setBold(True)
-        selected_item.setFont(font)
 
-        # clear selection
-        self.available_aquatic_animal_listwidget.clearSelection()
+        if object_name == "selected_aquatic_animal":  # drag and drop one by one
+            print("drag and drop")
+            # set bold in available
+            item_selection_list = self.available_aquatic_animal_listwidget.selectedItems()
+            for selected_item in item_selection_list:
+                print(selected_item.text())
+                font.setBold(True)
+                selected_item.setFont(font)
 
-        if selected_item and selected_item.text() not in self.selected_aquatic_animal_list:
-            # add it to selected
-            self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
-            # add it to list
-            self.selected_aquatic_animal_list.append(selected_item.text())
+            # clear selection
+            self.available_aquatic_animal_listwidget.clearSelection()
+
+
+            # remove bold in selected
+            font.setBold(False)
+            selected_item.setFont(font)
+            if selected_item.text() not in self.selected_aquatic_animal_list:
+                # add it to list
+                self.selected_aquatic_animal_list.append(selected_item.text())
+
+        if object_name == "available_aquatic_animal":  # double click
+            print("double clicked")
+            # get item
+            item_selection_list = self.available_aquatic_animal_listwidget.selectedItems()
+            for selected_item in item_selection_list:
+                font.setBold(True)
+                selected_item.setFont(font)
+
+                # clear selection
+                self.available_aquatic_animal_listwidget.clearSelection()
+
+                if selected_item and selected_item.text() not in self.selected_aquatic_animal_list:
+                    # add it to selected
+                    self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
+                    # add it to list
+                    self.selected_aquatic_animal_list.append(selected_item.text())
+
         # change qlabel
         self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(len(self.selected_aquatic_animal_list)) + ")")
 
