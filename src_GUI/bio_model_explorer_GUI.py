@@ -24,6 +24,8 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWi
     QMessageBox, QTabWidget, \
     QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QTextEdit
+from subprocess import call
+from platform import system as operatingsystem
 
 try:
     import xml.etree.cElementTree as ET
@@ -33,7 +35,7 @@ except ImportError:
 from src import bio_info_mod
 from src import plot_mod
 from src_GUI import preferences_GUI
-from habby import CONFIG_HABBY
+from src.config_data_habby_mod import CONFIG_HABBY
 from src_GUI.data_explorer_GUI import MyProcessList
 
 
@@ -539,15 +541,22 @@ class BioModelInfoSelection(QScrollArea):
         # available_aquatic_animal
         self.available_aquatic_animal_label = QLabel(self.tr("Available models") + " (0)")
         self.available_aquatic_animal_listwidget = QListWidget()
+        self.available_aquatic_animal_listwidget.setObjectName("available_aquatic_animal")
         self.available_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("available"))
         self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
         self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.available_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
+        self.available_aquatic_animal_listwidget.setAcceptDrops(False)
 
         self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
         self.selected_aquatic_animal_listwidget = QListWidget()
+        self.selected_aquatic_animal_listwidget.setObjectName("selected_aquatic_animal")
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
-        # self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.selected_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
+        self.selected_aquatic_animal_listwidget.setAcceptDrops(True)
+        self.selected_aquatic_animal_listwidget.itemChanged.connect(self.add_fish)
+        # self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
         latin_name_title_label = QLabel(self.tr('Latin Name: '))
@@ -568,9 +577,11 @@ class BioModelInfoSelection(QScrollArea):
         self.description_textedit.setFrameShape(QFrame.NoFrame)
         self.description_textedit.setReadOnly(True)
         # image fish
-        self.animal_picture_label = QLabel()
+        self.animal_picture_label = ClickLabel()
+        self.animal_picture_label.setStyleSheet("QLabel { background-color : white; color : black; }");
         # self.animal_picture_label.setFrameShape(QFrame.Panel)
         self.animal_picture_label.setAlignment(Qt.AlignCenter)
+        self.animal_picture_label.clicked.connect(self.open_explorer_on_picture_path)
 
         # add
         self.add_selected_to_main_pushbutton = QPushButton(self.tr("Validate selected models"))
@@ -639,24 +650,50 @@ class BioModelInfoSelection(QScrollArea):
         # change qlabel
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(len(item_list)) + ")")
 
-    def add_fish(self):
+    def add_fish(self, selected_item=None):
         """
         The function is used to select a new fish species (or inverterbrate)
         """
-        # get item
-        selected_item = self.available_aquatic_animal_listwidget.selectedItems()[0]
+        object_name = self.sender().objectName()
         font = QFont()
-        font.setBold(True)
-        selected_item.setFont(font)
 
-        # clear selection
-        self.available_aquatic_animal_listwidget.clearSelection()
+        if object_name == "selected_aquatic_animal":  # drag and drop one by one
+            print("drag and drop")
+            # set bold in available
+            item_selection_list = self.available_aquatic_animal_listwidget.selectedItems()
+            for selected_item in item_selection_list:
+                print(selected_item.text())
+                font.setBold(True)
+                selected_item.setFont(font)
 
-        if selected_item and selected_item.text() not in self.selected_aquatic_animal_list:
-            # add it to selected
-            self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
-            # add it to list
-            self.selected_aquatic_animal_list.append(selected_item.text())
+            # clear selection
+            self.available_aquatic_animal_listwidget.clearSelection()
+
+
+            # remove bold in selected
+            font.setBold(False)
+            selected_item.setFont(font)
+            if selected_item.text() not in self.selected_aquatic_animal_list:
+                # add it to list
+                self.selected_aquatic_animal_list.append(selected_item.text())
+
+        if object_name == "available_aquatic_animal":  # double click
+            print("double clicked")
+            # get item
+            item_selection_list = self.available_aquatic_animal_listwidget.selectedItems()
+            for selected_item in item_selection_list:
+                font.setBold(True)
+                selected_item.setFont(font)
+
+                # clear selection
+                self.available_aquatic_animal_listwidget.clearSelection()
+
+                if selected_item and selected_item.text() not in self.selected_aquatic_animal_list:
+                    # add it to selected
+                    self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
+                    # add it to list
+                    self.selected_aquatic_animal_list.append(selected_item.text())
+
         # change qlabel
         self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(len(self.selected_aquatic_animal_list)) + ")")
 
@@ -706,6 +743,10 @@ class BioModelInfoSelection(QScrollArea):
         xmlfile = self.biological_models_dict_gui["path_xml"][i]
         img_file = self.biological_models_dict_gui["path_img"][i]
 
+        # from dict
+        self.code_alternative_label.setText(self.biological_models_dict_gui["code_alternative"][i][0])
+        self.latin_name_label.setText(self.biological_models_dict_gui["latin_name"][i])
+
         # open the file
         try:
             try:
@@ -718,20 +759,7 @@ class BioModelInfoSelection(QScrollArea):
             print("Warning: the xml file is not well-formed.\n")
             return
 
-        # get the data code ONEMA
-        # for the moment only one code alternativ possible
-        data = root.find('.//CdAlternative')
-        if data is not None:
-            if data.attrib['OrgCdAlternative']:
-                if data.attrib['OrgCdAlternative'] == 'ONEMA':
-                    self.code_alternative_label.setText(data.text)
-
-        # get the latin name
-        data = root.find('.//LatinName')
-        if data is not None:
-            self.latin_name_label.setText(data.text)
-
-        # get the description
+        # get the description from xml
         data = root.findall('.//Description')
         if len(data) > 0:
             found = False
@@ -747,12 +775,26 @@ class BioModelInfoSelection(QScrollArea):
                 self.animal_picture_label.clear()
                 self.animal_picture_label.setPixmap(QPixmap(img_file).scaled(self.animal_picture_label.size() * 0.95,
                                                                             Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
+                self.animal_picture_path = img_file
             else:
                 self.animal_picture_label.clear()
                 self.animal_picture_label.setText(self.tr("no image file"))
+                self.animal_picture_path = None
         else:
             self.animal_picture_label.clear()
             self.animal_picture_label.setText(self.tr("no image file"))
+            self.animal_picture_path = None
+
+    def open_explorer_on_picture_path(self):
+        if self.animal_picture_path:
+            path_choosen = os.path.normpath(self.animal_picture_path)
+
+            if operatingsystem() == 'Windows':
+                call(['explorer', path_choosen])
+            elif operatingsystem() == 'Linux':
+                call(["xdg-open", path_choosen])
+            elif operatingsystem() == 'Darwin':
+                call(['open', path_choosen])
 
     def show_pref(self):
         """
@@ -851,3 +893,10 @@ class BioModelInfoSelection(QScrollArea):
         doc.write(fname)
         self.parent().parent().parent().close()
 
+
+class ClickLabel(QLabel):
+    clicked = pyqtSignal()
+
+    def mousePressEvent(self, event):
+        self.clicked.emit()
+        QLabel.mousePressEvent(self, event)
