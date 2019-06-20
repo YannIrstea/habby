@@ -437,23 +437,27 @@ def get_biomodels_informations_for_database(path_xml):
 
     # CdBiologicalModel
     CdBiologicalModel = root.find('.//CdBiologicalModel').text
+
     # Country
     country = root.find(".//Country").text
+
     # MadeBy
     MadeBy = root.find('.//MadeBy').text
+
     # guild
     guild_element = root.find(".//Guild")
     if guild_element:
         guild = "guild"
     else:
         guild = "mono"
+
+    # CdAlternative
     if guild == "guild":
         # get all fish guild code alternative
         CdAlternative = guild_element.getchildren()[0].text
         CdAlternativefishs = [guild_element.getchildren()[i].find("CdAlternative").text for i in [1, len(guild_element.getchildren()) - 1]]
         CdAlternative = [CdAlternative + " (" + ", ".join(CdAlternativefishs) + ")"]
     else:
-        # CdAlternative
         CdAlternative = [root.find('.//CdAlternative').text]
 
     # aquatic_animal_type
@@ -464,24 +468,54 @@ def get_biomodels_informations_for_database(path_xml):
     else:
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
         return
+
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
     if "[" in stage_and_size[0]:
         stage_and_size = ["class size"]
+
+    # hydraulic_type
+    hydraulic_type = []
+    for index_stage, stage in enumerate(root.findall(".//Stage")):
+        hydraulic_type.append([])
+        height_presence = False
+        velocity_presence = False
+        shear_presence = False
+        if stage.findall(".//HeightOfWaterValues"):
+            height_presence = True
+        if stage.findall(".//VelocityValues"):
+            velocity_presence = True
+        if stage.findall(".//ShearStressValues"):
+            shear_presence = True
+        # compile infor
+        if height_presence and velocity_presence:
+            hydraulic_type[index_stage] = "HV"
+        if height_presence and not velocity_presence:
+            hydraulic_type[index_stage] = "H"
+        if not height_presence and velocity_presence:
+            hydraulic_type[index_stage] = "V"
+        if shear_presence:
+            hydraulic_type[index_stage] = "HEM"
+        if not height_presence and not velocity_presence and not shear_presence:
+            hydraulic_type[index_stage] = "Neglect"
+
     # substrate
     substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
     if substrate_type == []:
         substrate_type = ["Neglect"]
+
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
 
     # LatinName
     if guild == "guild":
-        LatinName = "noname"
+        LatinName = "guild"
     else:
         LatinName = root.find(".//LatinName").text
+
     # modification_date
     modification_date = str(datetime.fromtimestamp(os.path.getmtime(path_xml)))[:-7]
+
     # image file
     path_img_prov = root.find(".//Image").text
     if path_img_prov:
@@ -495,6 +529,7 @@ def get_biomodels_informations_for_database(path_xml):
                                   guild=guild,
                                   CdBiologicalModel=CdBiologicalModel,
                                   stage_and_size=stage_and_size,
+                                  hydraulic_type=hydraulic_type,
                                   substrate_type=substrate_type,
                                   ModelType=ModelType,
                                   MadeBy=MadeBy,

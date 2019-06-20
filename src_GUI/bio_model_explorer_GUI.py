@@ -549,7 +549,7 @@ class BioModelInfoSelection(QScrollArea):
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
-        # self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        # self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
         latin_name_title_label = QLabel(self.tr('Latin Name: '))

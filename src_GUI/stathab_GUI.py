@@ -207,10 +207,10 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.runb.clicked.connect(self.run_stathab_gui)
         self.list_re.itemClicked.connect(self.reach_selected)
         self.list_f.itemClicked.connect(self.add_fish)
-        self.selected_aquatic_animal_listwidget.itemClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
-        self.selected_aquatic_animal_listwidget.itemActivated.connect(self.remove_fish)
-        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         #self.fishall.clicked.connect(self.add_all_fish)
         self.rivtype.currentIndexChanged.connect(self.change_riv_type)
@@ -260,7 +260,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.layout.addWidget(self.rivtype, 3, 2)
         self.layout.addWidget(l6, 4, 0)
         # self.layout.addWidget(loadhdf5b, 5, 2)
-        self.layout.addWidget(self.selected_aquatic_animal_listwidget, 5, 0, 2, 1)
+        self.layout.addWidget(self.selected_aquatic_animal_qtablewidget, 5, 0, 2, 1)
         self.layout.addWidget(self.runb, 6, 2)
         self.layout.addWidget(self.explore_bio_model_pushbutton, 7, 0)
         #self.layout.addWidget(self.fishall, 7, 1)
@@ -287,7 +287,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.selected_aquatic_animal_listwidget.clear()
+        self.selected_aquatic_animal_qtablewidget.clear()
         self.list_needed.clear()
         self.list_f.clear()
         self.fish_selected = []
@@ -334,7 +334,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         for item_str in new_item_text_list:
             if item_str not in self.fish_selected:
                 # add it to selected
-                self.selected_aquatic_animal_listwidget.addItem(item_str)
+                self.selected_aquatic_animal_qtablewidget.addItem(item_str)
                 self.fish_selected.append(item_str)
 
     def change_riv_type(self):
@@ -351,7 +351,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.selected_aquatic_animal_listwidget.clear()
+        self.selected_aquatic_animal_qtablewidget.clear()
         self.list_needed.clear()
         self.list_f.clear()
         self.fish_selected = []
@@ -658,7 +658,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
         self.list_file.clear()
-        self.selected_aquatic_animal_listwidget.clear()
+        self.selected_aquatic_animal_qtablewidget.clear()
         self.list_needed.clear()
         self.fish_selected = []
         self.firstitemreach = []
@@ -840,14 +840,14 @@ class StathabW(estimhab_GUI.StatModUseful):
                 if items[i].text() in self.fish_selected:
                     pass
                 else:
-                    self.selected_aquatic_animal_listwidget.addItem(items[i].text())
+                    self.selected_aquatic_animal_qtablewidget.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
 
                 # order the list (careful QLIstWidget do not order as sort from list)
                 if self.fish_selected:
                     self.fish_selected.sort()
-                    self.selected_aquatic_animal_listwidget.clear()
-                    self.selected_aquatic_animal_listwidget.addItems(self.fish_selected)
+                    self.selected_aquatic_animal_qtablewidget.clear()
+                    self.selected_aquatic_animal_qtablewidget.addItems(self.fish_selected)
                     # bold for selected fish
                     font = QFont()
                     font.setItalic(True)
@@ -859,7 +859,7 @@ class StathabW(estimhab_GUI.StatModUseful):
     def run_stathab_gui(self):
         """
         This is the function which calls the function to run the Stathab model.  First it read the list called
-        self.selected_aquatic_animal_listwidget. This is the list with the fishes selected by the user. Then, it calls the function to run
+        self.selected_aquatic_animal_qtablewidget. This is the list with the fishes selected by the user. Then, it calls the function to run
         stathab and the one to create the figure if the figures were asked by the user. Finally, it writes the log.
         """
         self.send_log.emit('# Run Stathab from loaded data')
@@ -868,7 +868,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.fish_chosen = []
         fish_list = []
         by_vol = True
-        if self.selected_aquatic_animal_listwidget.count() == 0:
+        if self.selected_aquatic_animal_qtablewidget.count() == 0:
             self.msge.setIcon(QMessageBox.Warning)
             self.msge.setWindowTitle(self.tr("STATHAB"))
             self.msge.setText(self.tr("Unable to load the STATHAB data!"))
@@ -876,8 +876,8 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.msge.show()
             self.send_log.emit('Error: no fish chosen')
             return
-        for i in range(0, self.selected_aquatic_animal_listwidget.count()):
-            fish_item = self.selected_aquatic_animal_listwidget.item(i)
+        for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
+            fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
             fish_item_str = fish_item.text()
             self.mystathab.fish_chosen.append(fish_item_str)
         self.mystathab.path_txt = self.find_path_text_est()

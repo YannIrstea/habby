@@ -742,7 +742,7 @@ class MainWindows(QMainWindow):
 
         :param point: Not understood, link with the position of the menu.
         """
-        if self.central_widget.bioinfo_tab.selected_aquatic_animal_listwidget.underMouse():
+        if self.central_widget.bioinfo_tab.selected_aquatic_animal_qtablewidget.underMouse():
             self.central_widget.bioinfo_tab.show_info_fish(True)
         elif self.central_widget.bioinfo_tab.list_f.underMouse():
             self.central_widget.bioinfo_tab.show_info_fish(False)
@@ -1609,8 +1609,8 @@ class MainWindows(QMainWindow):
 
         # get chosen fish (xml name of the file)
         fish_list = []
-        for i in range(0, self.central_widget.statmod_tab.selected_aquatic_animal_listwidget.count()):
-            fish_item = self.central_widget.statmod_tab.selected_aquatic_animal_listwidget.item(i)
+        for i in range(0, self.central_widget.statmod_tab.selected_aquatic_animal_qtablewidget.count()):
+            fish_item = self.central_widget.statmod_tab.selected_aquatic_animal_qtablewidget.item(i)
             fish_item_str = fish_item.text()
             fish_list.append(fish_item_str)
 

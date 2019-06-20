@@ -17,10 +17,10 @@ https://github.com/YannIrstea/habby
 import os
 from multiprocessing import Process, Queue, Value
 
-from PyQt5.QtCore import pyqtSignal, Qt, QTimer
+from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QSize
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
     QComboBox, QAbstractItemView, QTableWidget, \
-    QSizePolicy, QFrame
+    QSizePolicy, QFrame, QListWidgetItem
 
 try:
     import xml.etree.cElementTree as ET
@@ -130,19 +130,29 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.remove_all_bio_model_pushbutton.clicked.connect(self.remove_all_fish)
 
         # 1 column
-        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.NoSelection)
-        self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget = QTableWidget()
+        self.selected_aquatic_animal_qtablewidget.setColumnCount(1)
+        self.selected_aquatic_animal_qtablewidget.horizontalHeader().setStretchLastSection(True)
+        self.selected_aquatic_animal_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.selected_aquatic_animal_qtablewidget.verticalHeader().setVisible(False)
+        self.selected_aquatic_animal_qtablewidget.horizontalHeader().setVisible(False)
+        self.selected_aquatic_animal_qtablewidget.cellDoubleClicked.connect(self.remove_fish)
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
         self.runhab.setStyleSheet("background-color: #47B5E6; color: black")
         self.runhab.clicked.connect(self.run_habitat_value)
         # 2 column
         self.hyd_mode_qtablewidget = QTableWidget()
-        # self.hyd_mode_qtablewidget.setSelectionMode(QAbstractItemView.NoSelection)
+        self.hyd_mode_qtablewidget.setColumnCount(1)
+        self.hyd_mode_qtablewidget.horizontalHeader().setStretchLastSection(True)
+        self.hyd_mode_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.hyd_mode_qtablewidget.verticalHeader().setVisible(False)
+        self.hyd_mode_qtablewidget.horizontalHeader().setVisible(False)
         self.general_option_hyd_combobox = QComboBox()
         self.general_option_hyd_combobox.addItems(self.all_hyd_choice)
         # 3 column
         self.sub_mode_qtablewidget = QTableWidget()
         self.sub_mode_qtablewidget.setColumnCount(1)
+        self.sub_mode_qtablewidget.horizontalHeader().setStretchLastSection(True)
         self.sub_mode_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.sub_mode_qtablewidget.verticalHeader().setVisible(False)
         self.sub_mode_qtablewidget.horizontalHeader().setVisible(False)
@@ -160,13 +170,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(l0, 0, 0)
         self.layout4.addWidget(self.m_all, 0, 1, 1, 2)
 
+        layout_prov = QHBoxLayout()
+        layout_prov.addWidget(self.explore_bio_model_pushbutton)
+        layout_prov.addWidget(self.remove_all_bio_model_pushbutton)
+        self.layout4.addLayout(layout_prov, 1, 0)
+
         # 1 column
-        layout_choose_or_remove = QHBoxLayout()
-        layout_choose_or_remove.addWidget(self.explore_bio_model_pushbutton)
-        layout_choose_or_remove.addWidget(self.remove_all_bio_model_pushbutton)
-        self.layout4.addLayout(layout_choose_or_remove, 2, 0)
-        self.layout4.addWidget(self.selected_aquatic_animal_listwidget, 3, 0)
-        self.layout4.addWidget(self.runhab, 4, 0)
+        self.layout4.addWidget(QLabel(self.tr("Biological models choosen")), 2, 0)
+        self.layout4.addWidget(self.selected_aquatic_animal_qtablewidget, 3, 0)
         # 2 column
         self.layout4.addWidget(QLabel(self.tr("hydraulic mode")), 2, 1)
         self.layout4.addWidget(self.hyd_mode_qtablewidget, 3, 1)
@@ -175,10 +186,24 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(QLabel(self.tr("substrate mode")), 2, 2)
         self.layout4.addWidget(self.sub_mode_qtablewidget, 3, 2)
         self.layout4.addWidget(self.general_option_sub_combobox, 4, 2)
-        # self.setLayout(self.layout4)
+
+        self.layout4.addWidget(self.runhab, 5, 2)
+
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
+
+        # load dicoselect in xml project
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        # geo data
+        child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
+        if child1 is None:
+            self.selected_aquatic_animal_list = []
+        else:
+            self.selected_aquatic_animal_list = eval(child1.text)
+            self.fill_selected_models_listwidets([])
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
@@ -205,18 +230,28 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         The function is used to remove fish species (or inverterbates species)
         """
-        item = self.selected_aquatic_animal_listwidget.takeItem(self.selected_aquatic_animal_listwidget.currentRow())
-        try:
-            self.selected_aquatic_animal_list.remove(item.text())
-        except ValueError:
-            pass
-        item = None
+        # row index
+        row_index = self.selected_aquatic_animal_qtablewidget.currentRow()
+        item_text = self.selected_aquatic_animal_qtablewidget.cellWidget(row_index, 0).text()
+        # model listwidget
+        self.selected_aquatic_animal_qtablewidget.model().removeRow(row_index)
+        # hyd tablewidget
+        self.hyd_mode_qtablewidget.model().removeRow(row_index)
+        # sub tablewidget
+        self.sub_mode_qtablewidget.model().removeRow(row_index)
+        # list
+        self.selected_aquatic_animal_list.remove(item_text)
 
     def remove_all_fish(self):
         """
         This function removes all fishes from the selected fish
         """
-        self.selected_aquatic_animal_listwidget.clear()
+        self.selected_aquatic_animal_qtablewidget.clear()
+        self.selected_aquatic_animal_qtablewidget.setRowCount(0)
+        self.hyd_mode_qtablewidget.clear()
+        self.hyd_mode_qtablewidget.setRowCount(0)
+        self.sub_mode_qtablewidget.clear()
+        self.sub_mode_qtablewidget.setRowCount(0)
         self.selected_aquatic_animal_list = []
 
     def fill_selected_models_listwidets(self, new_item_text_list):
@@ -224,23 +259,40 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_list = sorted(list(set(new_item_text_list + self.selected_aquatic_animal_list)))
         total_item = len(self.selected_aquatic_animal_list)
 
-        # clear selected_aquatic_animal_listwidget
-        self.selected_aquatic_animal_listwidget.clear()
-        self.selected_aquatic_animal_listwidget.addItem("aaa")
-        default_rowheight = self.selected_aquatic_animal_listwidget.sizeHintForRow(0)
-        self.selected_aquatic_animal_listwidget.clear()
+        # clear selected_aquatic_animal_qtablewidget
+        self.selected_aquatic_animal_qtablewidget.clear()
+        self.selected_aquatic_animal_qtablewidget.setRowCount(total_item)
 
-        # clear selected_aquatic_animal_listwidget
+        # clear sub_mode_qtablewidget
+        self.hyd_mode_qtablewidget.clear()
+        self.hyd_mode_qtablewidget.setRowCount(total_item)
+
+        # clear sub_mode_qtablewidget
         self.sub_mode_qtablewidget.clear()
         self.sub_mode_qtablewidget.setRowCount(total_item)
 
         # add new item if not exist
         for index, item_str in enumerate(self.selected_aquatic_animal_list):
+            # add label item
+            self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, QLabel(item_str))
+            self.selected_aquatic_animal_qtablewidget.setRowHeight(index, 27)
+
             # get info
             name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(item_str)
             index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
             # get stage index
             index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+
+            # get default_hydraulic_type
+            default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
+            default_hydraulic_type_index = self.all_hyd_choice.index(default_hydraulic_type)
+            # create combobox
+            item_combobox = QComboBox()
+            item_combobox.addItems(self.all_hyd_choice)
+            item_combobox.setCurrentIndex(default_hydraulic_type_index)
+            # add combobox item
+            self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
+            self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
             # get default_substrate_type
             default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
@@ -251,11 +303,21 @@ class BioInfo(estimhab_GUI.StatModUseful):
             item_combobox.setCurrentIndex(default_substrate_type_index)
             # add combobox item
             self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
-            print(index, default_rowheight)
-            self.sub_mode_qtablewidget.setRowHeight(index, default_rowheight)
+            self.sub_mode_qtablewidget.setRowHeight(index, 27)
 
-            # add it to selected
-            self.selected_aquatic_animal_listwidget.addItem(item_str)
+        # save in xml project
+        fname = os.path.join(self.path_prj, self.name_prj + '.xml')
+        doc = ET.parse(fname)
+        root = doc.getroot()
+        # geo data
+        child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
+        if child1 is None:
+            child1 = ET.SubElement(root, 'selected_aquatic_animal_list_calc_hab')
+            child1.text = str(self.selected_aquatic_animal_list)
+        else:
+            child1.text = str(self.selected_aquatic_animal_list)
+        doc.write(fname)
+
 
     def update_merge_list(self):
         """
@@ -337,9 +399,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
         xmlfiles = []
-        for i in range(0, self.selected_aquatic_animal_listwidget.count()):
+        for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
             # get info from list widget
-            fish_item_text = self.selected_aquatic_animal_listwidget.item(i).text()
+            fish_item_text = self.selected_aquatic_animal_qtablewidget.item(i).text()
             name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(fish_item_text)
             name_fish_sel += fish_item_text + ","
             name_fish_list.append(name_fish)

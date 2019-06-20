@@ -109,10 +109,10 @@ class FstressW(estimhab_GUI.StatModUseful):
         l11 = QLabel(self.tr('Selected Species'))
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.list_f.itemClicked.connect(self.add_fish)
-        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.selected_aquatic_animal_listwidget.itemClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
         self.list_f.itemActivated.connect(self.add_fish)
-        self.selected_aquatic_animal_listwidget.itemActivated.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
         self.fishall = QPushButton(self.tr('Select all species'), self)
         self.fishall.clicked.connect(self.add_all_fish)
 
@@ -168,7 +168,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.layout3.addWidget(l10, 11, 0)
         self.layout3.addWidget(l11, 11, 1)
         self.layout3.addWidget(self.list_f, 12, 0)
-        self.layout3.addWidget(self.selected_aquatic_animal_listwidget, 12, 1)
+        self.layout3.addWidget(self.selected_aquatic_animal_qtablewidget, 12, 1)
         self.layout3.addWidget(self.fishall, 13, 0)
         self.layout3.addWidget(self.button1, 13, 2)
         # self.layout3.addWidget(self.button2, 13, 1)
@@ -303,14 +303,14 @@ class FstressW(estimhab_GUI.StatModUseful):
                 if items[i].text() in self.fish_selected:
                     pass
                 else:
-                    self.selected_aquatic_animal_listwidget.addItem(items[i].text())
+                    self.selected_aquatic_animal_qtablewidget.addItem(items[i].text())
                     self.fish_selected.append(items[i].text())
 
                     # order the list (careful QLIstWidget do not order as sort from list)
                     if self.fish_selected:
                         self.fish_selected.sort()
-                        self.selected_aquatic_animal_listwidget.clear()
-                        self.selected_aquatic_animal_listwidget.addItems(self.fish_selected)
+                        self.selected_aquatic_animal_qtablewidget.clear()
+                        self.selected_aquatic_animal_qtablewidget.addItems(self.fish_selected)
                         # bold for selected fish
                         font = QFont()
                         font.setItalic(True)
@@ -689,8 +689,8 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # get the name of the selected fish
         fish_list = []
-        for i in range(0, self.selected_aquatic_animal_listwidget.count()):
-            fish_item = self.selected_aquatic_animal_listwidget.item(i)
+        for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
+            fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
             # if latin name
             fish_item_latin = fish_item.text()
             foundlatin = False

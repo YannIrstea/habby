@@ -25,7 +25,6 @@ import multiprocessing
 import os
 import traceback
 
-global HABBY_VERSION
 HABBY_VERSION = 0.25
 
 

@@ -35,7 +35,6 @@ class ConfigHabby:
     """
 
     def __init__(self):
-        print("__init__")
         # biological models allowed by HABBY dict
         self.biological_models_requirements_dict = dict(ModelType=["univariate suitability index curves"],
                                                         #
@@ -82,7 +81,6 @@ class ConfigHabby:
 
     # GENERAL
     def create_config_habby_structure(self):
-        print("create_config_habby_structure")
         # CONFIG
         self.create_appdata_folders()
         self.create_empty_temp()
@@ -92,7 +90,6 @@ class ConfigHabby:
 
     # CONFIG
     def create_appdata_folders(self):
-        print("create_appdata_folders")
         # user_config_habby_file_path
         if not os.path.isdir(self.user_config_habby_path):
             os.makedirs(self.user_config_habby_path)
@@ -147,7 +144,6 @@ class ConfigHabby:
             self.format_biology_models_dict_togui()
 
     def create_biology_models_dict(self):
-        print("------------create_biology_models_dict--------------------")
         self.get_list_xml_model_files()
 
         # biological_models_dict
@@ -155,6 +151,7 @@ class ConfigHabby:
                                       aquatic_animal_type=[],  # sortable
                                       model_type=[],  # sortable
                                       stage_and_size=[],  # sortable
+                                      hydraulic_type=[],  # sortable
                                       guild=[],  # sortable
                                       xml_origine=[],  # sortable
                                       made_by=[],  # sortable
@@ -186,6 +183,7 @@ class ConfigHabby:
                 biological_models_dict["aquatic_animal_type"].append(information_model_dict["aquatic_animal_type"])
                 biological_models_dict["model_type"].append(information_model_dict["ModelType"])
                 biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
+                biological_models_dict["hydraulic_type"].append(information_model_dict["hydraulic_type"])
                 biological_models_dict["guild"].append(information_model_dict["guild"])
                 biological_models_dict["xml_origine"].append(xml_origine)
                 biological_models_dict["substrate_type"].append(information_model_dict["substrate_type"])
