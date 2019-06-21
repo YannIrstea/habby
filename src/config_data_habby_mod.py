@@ -233,13 +233,12 @@ class ConfigHabby:
 
         # check condition
         if self.modified:  # update json
-            print("modified")
             # get differences
             self.diff_list = ""
             for key in biological_models_dict_from_json:
                 set_old = set(list(map(str, biological_models_dict_from_json[key])))
                 set_new = set(list(map(str, self.biological_models_dict[key])))
-                set_diff = set_old - set_new
+                set_diff = set_new - set_old
                 if set_diff:
                     self.diff_list += str(set_diff) + ", "
             self.create_biology_models_json()

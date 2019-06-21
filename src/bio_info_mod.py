@@ -472,7 +472,7 @@ def get_biomodels_informations_for_database(path_xml):
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
     if "[" in stage_and_size[0]:
-        stage_and_size = ["class size"]
+        stage_and_size = ["class size"] * len(stage_and_size)
 
     # hydraulic_type
     hydraulic_type = []
@@ -502,7 +502,7 @@ def get_biomodels_informations_for_database(path_xml):
     # substrate
     substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
     if substrate_type == []:
-        substrate_type = ["Neglect"]
+        substrate_type = ["Neglect"] * len(stage_and_size)
 
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]

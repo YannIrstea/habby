@@ -544,15 +544,21 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
         self.available_aquatic_animal_listwidget.setDefaultDropAction(Qt.MoveAction)
         self.available_aquatic_animal_listwidget.setAcceptDrops(True)
+        self.available_aquatic_animal_listwidget.setSortingEnabled(True)
+        self.available_aquatic_animal_listwidget.itemChanged.connect(self.count_models_listwidgets)
+
 
         self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.setObjectName("selected_aquatic_animal")
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         #self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.selected_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
+        self.selected_aquatic_animal_listwidget.setDefaultDropAction(Qt.MoveAction)
         self.selected_aquatic_animal_listwidget.setAcceptDrops(True)
-        self.selected_aquatic_animal_listwidget.itemChanged.connect(self.add_fish)
+        self.selected_aquatic_animal_listwidget.setSortingEnabled(True)
+        self.selected_aquatic_animal_listwidget.itemChanged.connect(self.count_models_listwidgets)
         # self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
@@ -647,44 +653,13 @@ class BioModelInfoSelection(QScrollArea):
         # change qlabel
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(len(item_list)) + ")")
 
-    def add_fish(self, selected_item=None):
+    def count_models_listwidgets(self):
         """
         The function is used to select a new fish species (or inverterbrate)
         """
-        object_name = self.sender().objectName()
-        font = QFont()
+        self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(self.available_aquatic_animal_listwidget.count()) + ")")
+        self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(self.selected_aquatic_animal_listwidget.count()) + ")")
 
-        if object_name == "selected_aquatic_animal":  # drag and drop one by one
-            print("drag and drop")
-            # set bold in available
-            item_selection_list = self.available_aquatic_animal_listwidget.selectedItems()
-            for selected_item in item_selection_list:
-                #print(selected_item.text())
-                #font.setBold(True)
-                #selected_item.setFont(font)
-                if selected_item.text() not in self.selected_aquatic_animal_list:
-                    # add it to list
-                    self.selected_aquatic_animal_list.append(selected_item.text())
-
-        if object_name == "available_aquatic_animal":  # double click
-            print("double clicked")
-            # get item
-            item_selection_list = self.available_aquatic_animal_listwidget.selectedItems()
-            for selected_item in item_selection_list:
-                font.setBold(True)
-                selected_item.setFont(font)
-
-                # clear selection
-                self.available_aquatic_animal_listwidget.clearSelection()
-
-                if selected_item and selected_item.text() not in self.selected_aquatic_animal_list:
-                    # add it to selected
-                    self.selected_aquatic_animal_listwidget.addItem(selected_item.text())
-                    # add it to list
-                    self.selected_aquatic_animal_list.append(selected_item.text())
-
-        # change qlabel
-        self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(len(self.selected_aquatic_animal_list)) + ")")
 
     def remove_fish(self):
         """
