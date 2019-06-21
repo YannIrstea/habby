@@ -242,7 +242,6 @@ class ConfigHabby:
 
         # check condition
         if self.modified:  # update json
-            print("modified")
             # get differences
             self.diff_list = ""
             for key in biological_models_dict_from_json:
