@@ -87,7 +87,6 @@ class BioModelExplorerWindow(QDialog):
         self.setWindowIcon(QIcon(self.name_icon))
 
     def open_bio_model_explorer(self, source_str):
-
         # source
         self.source_str = source_str
 
@@ -98,7 +97,9 @@ class BioModelExplorerWindow(QDialog):
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
         #print("open", self.name_prj, child1)
-        if child1 is None:
+        if CONFIG_HABBY.modified:
+            self.send_log.emit("Warning: Biological models database has been modified. \n" + CONFIG_HABBY.diff_list)
+        if not child1 or CONFIG_HABBY.modified:
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
         else:
@@ -543,16 +544,17 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget = QListWidget()
         self.available_aquatic_animal_listwidget.setObjectName("available_aquatic_animal")
         self.available_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("available"))
-        self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
+        #self.available_aquatic_animal_listwidget.itemDoubleClicked.connect(self.add_fish)
         self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.available_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
-        self.available_aquatic_animal_listwidget.setAcceptDrops(False)
+        self.available_aquatic_animal_listwidget.setDefaultDropAction(Qt.MoveAction)
+        self.available_aquatic_animal_listwidget.setAcceptDrops(True)
 
         self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
         self.selected_aquatic_animal_listwidget = QListWidget()
         self.selected_aquatic_animal_listwidget.setObjectName("selected_aquatic_animal")
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
-        self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
+        #self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
         self.selected_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
         self.selected_aquatic_animal_listwidget.setAcceptDrops(True)
         self.selected_aquatic_animal_listwidget.itemChanged.connect(self.add_fish)
@@ -662,20 +664,12 @@ class BioModelInfoSelection(QScrollArea):
             # set bold in available
             item_selection_list = self.available_aquatic_animal_listwidget.selectedItems()
             for selected_item in item_selection_list:
-                print(selected_item.text())
-                font.setBold(True)
-                selected_item.setFont(font)
-
-            # clear selection
-            self.available_aquatic_animal_listwidget.clearSelection()
-
-
-            # remove bold in selected
-            font.setBold(False)
-            selected_item.setFont(font)
-            if selected_item.text() not in self.selected_aquatic_animal_list:
-                # add it to list
-                self.selected_aquatic_animal_list.append(selected_item.text())
+                #print(selected_item.text())
+                #font.setBold(True)
+                #selected_item.setFont(font)
+                if selected_item.text() not in self.selected_aquatic_animal_list:
+                    # add it to list
+                    self.selected_aquatic_animal_list.append(selected_item.text())
 
         if object_name == "available_aquatic_animal":  # double click
             print("double clicked")
