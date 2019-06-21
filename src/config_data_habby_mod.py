@@ -59,15 +59,6 @@ class ConfigHabby:
         self.path_bio = os.path.join("biology", "models")  # path to biological
         # biological_models_dict
         self.biological_models_dict = dict()
-        # biological_models_dict_set
-        self.biological_models_dict_set = dict(country=[],
-                                      aquatic_animal_type=[],
-                                      model_type=[],
-                                      stage_and_size=[],
-                                      guild=[],
-                                      xml_origine=[],
-                                      made_by=[],
-                                      code_alternative=[])
 
         # folders Irstea/HABBY
         appauthor = "Irstea"
@@ -215,19 +206,19 @@ class ConfigHabby:
             json.dump(self.biological_models_dict, write_file)
 
     def format_biology_models_dict_togui(self):
+        # orderedKeys that MUST ! correspond to listwidgets filtersnames
+        self.biological_models_dict["orderedKeys"] = ["country", "aquatic_animal_type", "model_type", "stage_and_size",
+                                                      "guild", "xml_origine", "made_by"]
+
         # new key orderedKeysmultilist for gui
         self.biological_models_dict["orderedKeysmultilist"] = []
 
         # format for gui
-        for key in self.biological_models_dict_set.keys():
+        for key in self.biological_models_dict["orderedKeys"]:
             if type(self.biological_models_dict[key][0]) == list:
                 self.biological_models_dict["orderedKeysmultilist"].append(True)
-                #self.biological_models_dict[key] = [set(element) for element in self.biological_models_dict[key]]
             else:
                 self.biological_models_dict["orderedKeysmultilist"].append(False)
-        self.biological_models_dict["selected"] = np.ones(len(self.biological_models_dict["country"]), dtype=bool)
-        self.biological_models_dict["orderedKeys"] = ["country", "aquatic_animal_type", "model_type", "stage_and_size",
-                                    "guild", "xml_origine", "made_by"]
 
     def check_need_update_biology_models_json(self):
         # create_biology_models_dict
