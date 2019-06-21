@@ -87,7 +87,6 @@ class BioModelExplorerWindow(QDialog):
         self.setWindowIcon(QIcon(self.name_icon))
 
     def open_bio_model_explorer(self, source_str):
-
         # source
         self.source_str = source_str
 
@@ -98,7 +97,9 @@ class BioModelExplorerWindow(QDialog):
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
         #print("open", self.name_prj, child1)
-        if child1 is None:
+        if CONFIG_HABBY.modified:
+            self.send_log.emit("Warning: Biological models database has been modified. \n" + CONFIG_HABBY.diff_list)
+        if not child1 or CONFIG_HABBY.modified:
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
         else:

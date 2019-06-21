@@ -35,6 +35,8 @@ class ConfigHabby:
     """
 
     def __init__(self):
+        # state
+        self.modified = False
         # biological models allowed by HABBY dict
         self.biological_models_requirements_dict = dict(ModelType=["univariate suitability index curves"],
                                                         #
@@ -228,30 +230,27 @@ class ConfigHabby:
                                     "guild", "xml_origine", "made_by"]
 
     def check_need_update_biology_models_json(self):
-        # init
-        path_xml = False
-        modification_date = False
-
         # create_biology_models_dict
         self.create_biology_models_dict()
 
         # load existing json
         biological_models_dict_from_json = self.load_biology_models_json()
 
-        # check == filename
-        if biological_models_dict_from_json["path_xml"] != self.biological_models_dict["path_xml"]:
-            path_xml = True
-
-        # check == date
-        if biological_models_dict_from_json["modification_date"] != self.biological_models_dict["modification_date"]:
-            modification_date = True
-
-        # check == len(keys)
-        if len(biological_models_dict_from_json.keys()) != len(self.biological_models_dict.keys()):  # -1 because orderedKeys
-            modification_date = True
+        # check all
+        if biological_models_dict_from_json != self.biological_models_dict:
+            self.modified = True
 
         # check condition
-        if path_xml or modification_date:  # update json
+        if self.modified:  # update json
+            print("modified")
+            # get differences
+            self.diff_list = ""
+            for key in biological_models_dict_from_json:
+                set_old = set(list(map(str, biological_models_dict_from_json[key])))
+                set_new = set(list(map(str, self.biological_models_dict[key])))
+                set_diff = set_old - set_new
+                if set_diff:
+                    self.diff_list += str(set_diff) + ", "
             self.create_biology_models_json()
 
     def load_biology_models_json(self):
