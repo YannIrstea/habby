@@ -126,6 +126,9 @@ class BioModelExplorerWindow(QDialog):
     def closeEvent(self, *args, **kwargs):
         self.bio_model_infoselection_tab.quit_biological_model_explorer()
 
+    def showEvent(self, QShowEvent):
+        self.load_model_selected_to_available()
+
 
 class BioModelFilterTab(QScrollArea):
     """
