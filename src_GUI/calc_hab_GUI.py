@@ -159,6 +159,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.general_option_sub_combobox = QComboBox()
         self.general_option_sub_combobox.addItems(self.all_sub_choice)
 
+        # scroll bar together
+        self.selected_aquatic_animal_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.hyd_mode_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue)
+        self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(
+            self.hyd_mode_qtablewidget.verticalScrollBar().setValue)
+
         # fill hdf5 list
         self.update_merge_list()
 
@@ -317,7 +324,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         else:
             child1.text = str(self.selected_aquatic_animal_list)
         doc.write(fname)
-
 
     def update_merge_list(self):
         """
