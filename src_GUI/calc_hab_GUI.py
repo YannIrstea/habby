@@ -186,7 +186,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         layout_prov.addWidget(self.explore_bio_model_pushbutton)
         layout_prov.addWidget(self.remove_all_bio_model_pushbutton)
         layout_prov.addWidget(self.remove_sel_bio_model_pushbutton)
-        self.layout4.addLayout(layout_prov, 1, 0)
+        self.layout4.addLayout(layout_prov, 1, 0, 1, 2)
 
         # 1 column
         self.layout4.addWidget(QLabel(self.tr("Biological models choosen")), 2, 0)
@@ -500,9 +500,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
         xmlfiles = []
-        for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
+        for i in range(len(self.selected_aquatic_animal_list)):
             # get info from list widget
-            fish_item_text = self.selected_aquatic_animal_qtablewidget.item(i).text()
+            label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
+            fish_item_text = label.text()
             name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(fish_item_text)
             name_fish_sel += fish_item_text + ","
             name_fish_list.append(name_fish)

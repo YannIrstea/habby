@@ -638,13 +638,13 @@ class BioModelInfoSelection(QScrollArea):
 
     def fill_available_aquatic_animal(self):
         self.available_aquatic_animal_listwidget.clear()
+        self.selected_aquatic_animal_listwidget.clear()
         # line name
         item_list = []
         for selected_xml_ind, selected_xml_tf in enumerate(self.dicoselect["selected"]):
             if selected_xml_tf:
                 for selected_stage_ind, selected_stage_tf in enumerate(self.dicoselect["stage_and_size"][1]):
-                    if self.dicoselect["stage_and_size"][0][selected_stage_ind] in \
-                            self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
+                    if selected_stage_tf:
                         item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " +
                                          self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " +
                                          self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
@@ -657,7 +657,7 @@ class BioModelInfoSelection(QScrollArea):
 
     def count_models_listwidgets(self):
         """
-        The function is used to select a new fish species (or inverterbrate)
+        method to count total number of models in twice listwidgets. Sort is automatic but not apply when dra/drop in same listwidget.
         """
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(self.available_aquatic_animal_listwidget.count()) + ")")
         self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(self.selected_aquatic_animal_listwidget.count()) + ")")
@@ -830,12 +830,18 @@ class BioModelInfoSelection(QScrollArea):
 
         # get selected models
         item_text_list = []
+        sub_combobox_index_list = []
+        hyd_combobox_index_list = []
         for item_index in range(self.selected_aquatic_animal_listwidget.count()):
             item_text_list.append(self.selected_aquatic_animal_listwidget.item(item_index).text())
+            sub_combobox_index_list.append([])
+            hyd_combobox_index_list.append([])
 
         # create dict
         self.item_dict = dict(source_str=source_str,
-                              item_text_list=item_text_list)
+                              item_text_list=item_text_list,
+                              sub_combobox_index_list=sub_combobox_index_list,
+                              hyd_combobox_index_list=hyd_combobox_index_list)
 
         # emit signal
         self.nativeParentWidget().send_fill.emit("")
