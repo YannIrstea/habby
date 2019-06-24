@@ -844,7 +844,8 @@ class BioModelInfoSelection(QScrollArea):
 
     def quit_biological_model_explorer(self):
         # convert one key
-        self.dicoselect["selected"] = self.dicoselect["selected"].tolist()
+        dicoselect = self.dicoselect.copy()
+        dicoselect["selected"] = self.dicoselect["selected"].tolist()
 
         # save dicoselect in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -854,9 +855,9 @@ class BioModelInfoSelection(QScrollArea):
         child1 = root.find('.//Bio_model_explorer_selection')
         if child1 is None:
             child1 = ET.SubElement(root, 'Bio_model_explorer_selection')
-            child1.text = str(self.dicoselect)
+            child1.text = str(dicoselect)
         else:
-            child1.text = str(self.dicoselect)
+            child1.text = str(dicoselect)
         doc.write(fname)
         self.parent().parent().parent().close()
 
