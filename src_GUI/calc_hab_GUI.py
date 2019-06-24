@@ -129,6 +129,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.remove_all_bio_model_pushbutton = QPushButton(self.tr("Remove all models"))
         self.remove_all_bio_model_pushbutton.clicked.connect(self.remove_all_fish)
 
+        self.remove_sel_bio_model_pushbutton = QPushButton(self.tr("Remove selected models"))
+        self.remove_sel_bio_model_pushbutton.clicked.connect(self.remove_sel_fish)
+
         # 1 column
         self.selected_aquatic_animal_qtablewidget = QTableWidget()
         self.selected_aquatic_animal_qtablewidget.setColumnCount(1)
@@ -182,6 +185,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         layout_prov = QHBoxLayout()
         layout_prov.addWidget(self.explore_bio_model_pushbutton)
         layout_prov.addWidget(self.remove_all_bio_model_pushbutton)
+        layout_prov.addWidget(self.remove_sel_bio_model_pushbutton)
         self.layout4.addLayout(layout_prov, 1, 0)
 
         # 1 column
@@ -262,6 +266,18 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.clear()
         self.sub_mode_qtablewidget.setRowCount(0)
         self.selected_aquatic_animal_list = []
+
+    def remove_sel_fish(self):
+        # selected items
+        index_to_remove_list = [item.row() for item in self.selected_aquatic_animal_qtablewidget.selectedIndexes()]
+
+        if index_to_remove_list:
+            # add new item if not exist
+            for index in reversed(range(len(self.selected_aquatic_animal_list))):
+                if index in index_to_remove_list:
+                    self.selected_aquatic_animal_qtablewidget.removeRow(index)
+                    self.hyd_mode_qtablewidget.removeRow(index)
+                    self.sub_mode_qtablewidget.removeRow(index)
 
     def set_once_all_hyd_combobox(self):
         default = False
