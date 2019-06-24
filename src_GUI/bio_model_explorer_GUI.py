@@ -95,14 +95,11 @@ class BioModelExplorerWindow(QDialog):
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
         if CONFIG_HABBY.modified:
-            print("modified")
             self.send_log.emit("Warning: Biological models database has been modified. \n" + CONFIG_HABBY.diff_list)
         if child1 is None or CONFIG_HABBY.modified:
-            print("or")
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
         else:
-            print("else")
             self.bio_model_filter_tab.dicoselect = eval(child1.text)
             self.bio_model_filter_tab.dicoselect["selected"] = np.array(self.bio_model_filter_tab.dicoselect["selected"])
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
@@ -546,7 +543,8 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget.setDefaultDropAction(Qt.MoveAction)
         self.available_aquatic_animal_listwidget.setAcceptDrops(True)
         self.available_aquatic_animal_listwidget.setSortingEnabled(True)
-        self.available_aquatic_animal_listwidget.itemChanged.connect(self.count_models_listwidgets)
+        self.available_aquatic_animal_listwidget.model().rowsInserted.connect(self.count_models_listwidgets)
+        self.available_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
 
 
         self.selected_aquatic_animal_label = QLabel(self.tr("Selected models") + " (0)")
@@ -559,7 +557,8 @@ class BioModelInfoSelection(QScrollArea):
         self.selected_aquatic_animal_listwidget.setDefaultDropAction(Qt.MoveAction)
         self.selected_aquatic_animal_listwidget.setAcceptDrops(True)
         self.selected_aquatic_animal_listwidget.setSortingEnabled(True)
-        self.selected_aquatic_animal_listwidget.itemChanged.connect(self.count_models_listwidgets)
+        self.selected_aquatic_animal_listwidget.model().rowsInserted.connect(self.count_models_listwidgets)
+        self.selected_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
         # self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         # latin_name
@@ -650,7 +649,9 @@ class BioModelInfoSelection(QScrollArea):
                                          self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " +
                                          self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
+        self.available_aquatic_animal_listwidget.model().blockSignals(True)
         self.available_aquatic_animal_listwidget.addItems(item_list)
+        self.available_aquatic_animal_listwidget.model().blockSignals(False)
         # change qlabel
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(len(item_list)) + ")")
 
