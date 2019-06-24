@@ -75,8 +75,6 @@ class BioModelExplorerWindow(QDialog):
         self.tab_widget.addTab(self.bio_model_filter_tab, self.tr("Model filter"))
         self.tab_widget.addTab(self.bio_model_infoselection_tab, self.tr("Model selection"))
 
-        self.bio_model_filter_tab.create_dico_select()
-
         self.tab_widget.currentChanged.connect(self.load_model_selected_to_available)
 
         self.setGeometry(60, 95, 800, 600)
@@ -96,14 +94,17 @@ class BioModelExplorerWindow(QDialog):
         root = doc.getroot()
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
-        #print("open", self.name_prj, child1)
         if CONFIG_HABBY.modified:
+            print("modified")
             self.send_log.emit("Warning: Biological models database has been modified. \n" + CONFIG_HABBY.diff_list)
-        if not child1 or CONFIG_HABBY.modified:
+        if child1 is None or CONFIG_HABBY.modified:
+            print("or")
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
         else:
+            print("else")
             self.bio_model_filter_tab.dicoselect = eval(child1.text)
+            self.bio_model_filter_tab.dicoselect["selected"] = np.array(self.bio_model_filter_tab.dicoselect["selected"])
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
 
         # mainwindow
@@ -258,6 +259,7 @@ class BioModelFilterTab(QScrollArea):
         tools_frame.setLayout(global_layout)
 
     def create_dico_select(self):
+        print("create_dico_select")
         self.dicoselect = dict()
         for i, ky in enumerate(self.biological_models_dict_gui['orderedKeys']):
             # print(ky)
@@ -280,7 +282,6 @@ class BioModelFilterTab(QScrollArea):
         self.dicoselect['fish_code_alternative'] = [skyf, [True] * len(skyf), True]
         self.dicoselect['inv_code_alternative'] = [skyi, [True] * len(skyi), True]
         self.dicoselect['selected'] = np.ones((len(self.biological_models_dict_gui['country']),), dtype=bool)
-
 
     def fill_first_time(self):
         """
@@ -660,7 +661,6 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(self.available_aquatic_animal_listwidget.count()) + ")")
         self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(self.selected_aquatic_animal_listwidget.count()) + ")")
 
-
     def remove_fish(self):
         """
         The function is used to remove fish species (or inverterbates species)
@@ -843,6 +843,9 @@ class BioModelInfoSelection(QScrollArea):
         self.quit_biological_model_explorer()
 
     def quit_biological_model_explorer(self):
+        # convert one key
+        self.dicoselect["selected"] = self.dicoselect["selected"].tolist()
+
         # save dicoselect in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
         doc = ET.parse(fname)
