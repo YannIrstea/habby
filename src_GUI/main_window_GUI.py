@@ -743,9 +743,9 @@ class MainWindows(QMainWindow):
 
         :param point: Not understood, link with the position of the menu.
         """
-        if self.central_widget.bioinfo_tab.selected_aquatic_animal_qtablewidget.underMouse():
-            self.central_widget.bioinfo_tab.show_info_fish(True)
-        elif self.central_widget.bioinfo_tab.list_f.underMouse():
+        # if self.central_widget.bioinfo_tab.selected_aquatic_animal_qtablewidget.underMouse():
+        #     self.central_widget.bioinfo_tab.show_info_fish(True)
+        if self.central_widget.bioinfo_tab.list_f.underMouse():
             self.central_widget.bioinfo_tab.show_info_fish(False)
         else:
             self.menu_right.exec_(self.central_widget.mapToGlobal(point))
