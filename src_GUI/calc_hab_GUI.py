@@ -149,6 +149,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hyd_mode_qtablewidget.horizontalHeader().setVisible(False)
         self.general_option_hyd_combobox = QComboBox()
         self.general_option_hyd_combobox.addItems(self.all_hyd_choice)
+        self.general_option_hyd_combobox.currentIndexChanged.connect(self.set_once_all_hyd_combobox)
         # 3 column
         self.sub_mode_qtablewidget = QTableWidget()
         self.sub_mode_qtablewidget.setColumnCount(1)
@@ -158,6 +159,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.horizontalHeader().setVisible(False)
         self.general_option_sub_combobox = QComboBox()
         self.general_option_sub_combobox.addItems(self.all_sub_choice)
+        self.general_option_sub_combobox.currentIndexChanged.connect(self.set_once_all_sub_combobox)
 
         # scroll bar together
         self.selected_aquatic_animal_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -261,6 +263,80 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.setRowCount(0)
         self.selected_aquatic_animal_list = []
 
+    def set_once_all_hyd_combobox(self):
+        default = False
+        new_hyd_str = self.general_option_hyd_combobox.currentText()
+        if new_hyd_str == "User":
+            return
+        if new_hyd_str == "Default":
+            default = True
+        for index, item_str in enumerate(self.selected_aquatic_animal_list):
+            # get combobox
+            combobox = self.hyd_mode_qtablewidget.cellWidget(index, 0)
+            combobox.blockSignals(True)
+            # get item
+            hydraulic_type_available = [combobox.itemText(i) for i in range(combobox.count())]
+            if default:
+                # get default
+                name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(item_str)
+                index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                # get stage index
+                index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+                default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
+                # set positon to combobox
+                self.hyd_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(
+                    hydraulic_type_available.index(default_hydraulic_type))
+            if not default:
+                if new_hyd_str in hydraulic_type_available:
+                    # set positon to combobox
+                    self.hyd_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(hydraulic_type_available.index(new_hyd_str))
+            combobox.blockSignals(False)
+
+    def set_once_all_sub_combobox(self):
+        default = False
+        new_sub_str = self.general_option_sub_combobox.currentText()
+        if new_sub_str == "User":
+            return
+        if new_sub_str == "Default":
+            default = True
+        for index, item_str in enumerate(self.selected_aquatic_animal_list):
+            # get combobox
+            combobox = self.sub_mode_qtablewidget.cellWidget(index, 0)
+            combobox.blockSignals(True)
+            # get item
+            substrate_type_available = [combobox.itemText(i) for i in range(combobox.count())]
+            if default:
+                # get default
+                name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(item_str)
+                index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                # get stage index
+                index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+                default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
+                # set positon to combobox
+                self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(
+                    substrate_type_available.index(default_substrate_type))
+            if not default:
+                if new_sub_str in substrate_type_available:
+                    # set positon to combobox
+                    self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(new_sub_str))
+            combobox.blockSignals(False)
+
+    def change_general_hyd_combobox(self):
+        # get current general sub combobox item
+        current_text = self.general_option_hyd_combobox.currentText()
+        if current_text != "User":
+            self.general_option_hyd_combobox.blockSignals(True)
+            self.general_option_hyd_combobox.setCurrentIndex(1)
+            self.general_option_hyd_combobox.blockSignals(False)
+
+    def change_general_sub_combobox(self):
+        # get current general sub combobox item
+        current_text = self.general_option_sub_combobox.currentText()
+        if current_text != "User":
+            self.general_option_sub_combobox.blockSignals(True)
+            self.general_option_sub_combobox.setCurrentIndex(1)
+            self.general_option_sub_combobox.blockSignals(False)
+
     def fill_selected_models_listwidets(self, new_item_text_list):
         # total_item
         self.selected_aquatic_animal_list = sorted(list(set(new_item_text_list + self.selected_aquatic_animal_list)))
@@ -292,22 +368,25 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # get default_hydraulic_type
             default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
-            default_hydraulic_type_index = self.all_hyd_choice.index(default_hydraulic_type)
+            hydraulic_type_available = CONFIG_HABBY.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
             # create combobox
             item_combobox = QComboBox()
-            item_combobox.addItems(self.all_hyd_choice)
-            item_combobox.setCurrentIndex(default_hydraulic_type_index)
+            item_combobox.addItems(hydraulic_type_available)
+            item_combobox.setCurrentIndex(hydraulic_type_available.index(default_hydraulic_type))
+            item_combobox.currentIndexChanged.connect(self.change_general_hyd_combobox)
             # add combobox item
             self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
             self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
             # get default_substrate_type
             default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
-            default_substrate_type_index = self.all_sub_choice.index(default_substrate_type)
+            substrate_type_available = CONFIG_HABBY.biological_models_dict["substrate_type_available"][index_fish][
+                index_stage]
             # create combobox
             item_combobox = QComboBox()
-            item_combobox.addItems(self.all_sub_choice)
-            item_combobox.setCurrentIndex(default_substrate_type_index)
+            item_combobox.addItems(substrate_type_available)
+            item_combobox.setCurrentIndex(substrate_type_available.index(default_substrate_type))
+            item_combobox.currentIndexChanged.connect(self.change_general_sub_combobox)
             # add combobox item
             self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
             self.sub_mode_qtablewidget.setRowHeight(index, 27)

@@ -145,10 +145,12 @@ class ConfigHabby:
                                       model_type=[],  # sortable
                                       stage_and_size=[],  # sortable
                                       hydraulic_type=[],  # sortable
+                                      hydraulic_type_available=[],  # unsortable
                                       guild=[],  # sortable
                                       xml_origine=[],  # sortable
                                       made_by=[],  # sortable
                                       substrate_type=[],  # sortable
+                                      substrate_type_available=[],  # unsortable
                                       code_alternative=[],  # sortable
                                       cd_biological_model=[],  # unsortable
                                       modification_date=[],  # unsortable
@@ -177,9 +179,11 @@ class ConfigHabby:
                 biological_models_dict["model_type"].append(information_model_dict["ModelType"])
                 biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
                 biological_models_dict["hydraulic_type"].append(information_model_dict["hydraulic_type"])
+                biological_models_dict["hydraulic_type_available"].append(information_model_dict["hydraulic_type_available"])
+                biological_models_dict["substrate_type"].append(information_model_dict["substrate_type"])
+                biological_models_dict["substrate_type_available"].append(information_model_dict["substrate_type_available"])
                 biological_models_dict["guild"].append(information_model_dict["guild"])
                 biological_models_dict["xml_origine"].append(xml_origine)
-                biological_models_dict["substrate_type"].append(information_model_dict["substrate_type"])
                 biological_models_dict["made_by"].append(information_model_dict["MadeBy"])
                 # last sortable
                 biological_models_dict["code_alternative"].append(information_model_dict["CdAlternative"])

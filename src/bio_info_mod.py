@@ -476,8 +476,10 @@ def get_biomodels_informations_for_database(path_xml):
 
     # hydraulic_type
     hydraulic_type = []
+    hydraulic_type_available = []
     for index_stage, stage in enumerate(root.findall(".//Stage")):
         hydraulic_type.append([])
+        hydraulic_type_available.append([])
         height_presence = False
         velocity_presence = False
         shear_presence = False
@@ -498,12 +500,28 @@ def get_biomodels_informations_for_database(path_xml):
             hydraulic_type[index_stage] = "HEM"
         if not height_presence and not velocity_presence and not shear_presence:
             hydraulic_type[index_stage] = "Neglect"
+        # available
+        if height_presence and velocity_presence:
+            hydraulic_type_available[index_stage].append("HV")
+        if height_presence:
+            hydraulic_type_available[index_stage].append("H")
+        if velocity_presence:
+            hydraulic_type_available[index_stage].append("V")
+        if shear_presence:
+            hydraulic_type_available[index_stage].append("HEM")
+        hydraulic_type_available[index_stage].append("Neglect")
 
     # substrate
     substrate_type = [stage.getchildren()[0].attrib["Variables"] for stage in root.findall(".//PreferenceSubstrate")]
     if substrate_type == []:
         substrate_type = ["Neglect"] * len(stage_and_size)
-
+        substrate_type_available = [["Neglect"]] * len(stage_and_size)
+    else:
+        substrate_type_available = [["Coarser-Dominant",
+                               'Coarser',
+                               'Dominant',
+                               'Percentage',
+                               'Neglect']] * len(stage_and_size)
     # ModelType
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
 
@@ -530,7 +548,9 @@ def get_biomodels_informations_for_database(path_xml):
                                   CdBiologicalModel=CdBiologicalModel,
                                   stage_and_size=stage_and_size,
                                   hydraulic_type=hydraulic_type,
+                                  hydraulic_type_available=hydraulic_type_available,
                                   substrate_type=substrate_type,
+                                  substrate_type_available=substrate_type_available,
                                   ModelType=ModelType,
                                   MadeBy=MadeBy,
                                   CdAlternative=CdAlternative,
