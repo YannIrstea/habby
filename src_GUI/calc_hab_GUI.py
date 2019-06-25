@@ -337,9 +337,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.general_option_sub_combobox.blockSignals(False)
 
     def fill_selected_models_listwidets(self, new_item_text_dict):
-        print("------------------------------")
-        print("fill_selected_models_listwidets", new_item_text_dict)
-        print("self.selected_aquatic_animal_dict", self.selected_aquatic_animal_dict)
         if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
             self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].extend(new_item_text_dict["selected_aquatic_animal_list"])
             self.selected_aquatic_animal_dict["hydraulic_mode_list"].extend(new_item_text_dict["hydraulic_mode_list"])
@@ -500,7 +497,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
         xmlfiles = []
-        for i in range(len(self.selected_aquatic_animal_dict)):
+        for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # get info from list widget
             label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
             fish_item_text = label.text()
