@@ -660,6 +660,7 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget.model().blockSignals(False)
         # change qlabel
         self.available_aquatic_animal_label.setText(self.tr("Available models") + " (" + str(len(item_list)) + ")")
+        self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (0)")
 
     def count_models_listwidgets(self):
         """

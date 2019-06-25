@@ -338,9 +338,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
     def fill_selected_models_listwidets(self, new_item_text_dict):
         if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
-            self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].extend(new_item_text_dict["selected_aquatic_animal_list"])
-            self.selected_aquatic_animal_dict["hydraulic_mode_list"].extend(new_item_text_dict["hydraulic_mode_list"])
-            self.selected_aquatic_animal_dict["substrate_mode_list"].extend(new_item_text_dict["substrate_mode_list"])
+            index_to_keep = [new_item_text_dict["selected_aquatic_animal_list"].index(x) for x in new_item_text_dict["selected_aquatic_animal_list"] if x not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]]
+            self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].extend([new_item_text_dict["selected_aquatic_animal_list"][i] for i in index_to_keep])
+            self.selected_aquatic_animal_dict["hydraulic_mode_list"].extend([new_item_text_dict["hydraulic_mode_list"][i] for i in index_to_keep])
+            self.selected_aquatic_animal_dict["substrate_mode_list"].extend([new_item_text_dict["substrate_mode_list"][i] for i in index_to_keep])
             self.selected_aquatic_animal_dict = sort_homogoeneous_dict_list_by_on_key(self.selected_aquatic_animal_dict, "selected_aquatic_animal_list")
 
         # total_item
