@@ -37,6 +37,7 @@ from src import plot_mod
 from src_GUI import preferences_GUI
 from src.config_data_habby_mod import CONFIG_HABBY
 from src_GUI.data_explorer_GUI import MyProcessList
+from src.bio_info_mod import get_name_stage_codebio_fromstr
 
 
 class BioModelExplorerWindow(QDialog):
@@ -648,9 +649,11 @@ class BioModelInfoSelection(QScrollArea):
             if selected_xml_tf:
                 for selected_stage_ind, selected_stage_tf in enumerate(self.dicoselect["stage_and_size"][1]):
                     if selected_stage_tf:
-                        item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " +
-                                         self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " +
-                                         self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
+                        stage_wish = self.dicoselect["stage_and_size"][0][selected_stage_ind]
+                        if stage_wish in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
+                            item_list.append(self.biological_models_dict_gui["latin_name"][selected_xml_ind] + ": " +
+                                             self.dicoselect["stage_and_size"][0][selected_stage_ind] + " - " +
+                                             self.biological_models_dict_gui["cd_biological_model"][selected_xml_ind])
 
         self.available_aquatic_animal_listwidget.model().blockSignals(True)
         self.available_aquatic_animal_listwidget.addItems(item_list)
@@ -832,19 +835,33 @@ class BioModelInfoSelection(QScrollArea):
         source_str = self.nativeParentWidget().source_str
 
         # get selected models
-        item_text_list = []
-        sub_combobox_index_list = []
-        hyd_combobox_index_list = []
+        selected_aquatic_animal_list = []
+        hydraulic_mode_list = []
+        substrate_mode_list = []
         for item_index in range(self.selected_aquatic_animal_listwidget.count()):
-            item_text_list.append(self.selected_aquatic_animal_listwidget.item(item_index).text())
-            sub_combobox_index_list.append([])
-            hyd_combobox_index_list.append([])
+            new_item_to_merge = self.selected_aquatic_animal_listwidget.item(item_index).text()
+            selected_aquatic_animal_list.append(new_item_to_merge)
+            # get info
+            name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(new_item_to_merge)
+            index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+            # get stage index
+            index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+
+            # get default_hydraulic_type
+            default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
+            hydraulic_type_available = CONFIG_HABBY.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
+            hydraulic_mode_list.append(hydraulic_type_available.index(default_hydraulic_type))
+
+            # get default_substrate_type
+            default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
+            substrate_type_available = CONFIG_HABBY.biological_models_dict["substrate_type_available"][index_fish][index_stage]
+            substrate_mode_list.append(substrate_type_available.index(default_substrate_type))
 
         # create dict
         self.item_dict = dict(source_str=source_str,
-                              item_text_list=item_text_list,
-                              sub_combobox_index_list=sub_combobox_index_list,
-                              hyd_combobox_index_list=hyd_combobox_index_list)
+                              selected_aquatic_animal_list=selected_aquatic_animal_list,
+                              hydraulic_mode_list=hydraulic_mode_list,
+                              substrate_mode_list=substrate_mode_list)
 
         # emit signal
         self.nativeParentWidget().send_fill.emit("")

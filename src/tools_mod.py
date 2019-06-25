@@ -299,3 +299,13 @@ def isstranumber(a):
     except:
         bool_a = False
     return bool_a
+
+
+def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
+    indice_sorted = [dict_to_sort[key].index(x) for x in sorted(dict_to_sort[key])]
+    for key in dict_to_sort.keys():
+        key_list = []
+        for ind_num, ind_ind in enumerate(indice_sorted):
+            key_list.append(dict_to_sort[key][ind_ind])
+        dict_to_sort[key] = key_list
+    return dict_to_sort

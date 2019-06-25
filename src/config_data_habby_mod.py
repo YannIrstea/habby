@@ -27,7 +27,7 @@ from functools import reduce
 import numpy as np
 
 from src import bio_info_mod
-
+from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
 
 class ConfigHabby:
     """
@@ -195,14 +195,7 @@ class ConfigHabby:
                 biological_models_dict["path_img"].append(information_model_dict["path_img"])
 
         # sort by latin name
-        indice_sorted = [biological_models_dict["cd_biological_model"].index(x) for x in sorted(biological_models_dict["cd_biological_model"])]
-        for key in biological_models_dict.keys():
-            key_list = []
-            for ind_num, ind_ind in enumerate(indice_sorted):
-                key_list.append(biological_models_dict[key][ind_ind])
-            biological_models_dict[key] = key_list
-
-        self.biological_models_dict = biological_models_dict
+        self.biological_models_dict = sort_homogoeneous_dict_list_by_on_key(biological_models_dict, "cd_biological_model")
 
     def create_biology_models_json(self):
         # save database

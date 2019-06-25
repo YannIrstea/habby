@@ -297,6 +297,9 @@ class MainWindows(QMainWindow):
         # close all process data (security)
         self.process_alive(close=True, isalive=False)
 
+        # save model selection calhab
+        self.central_widget.bioinfo_tab.save_selected_aquatic_animal_list_calc_hab()
+
         # save settings
         self.config_habby.data["wind_position"] = (self.geometry().x(),
                                                    self.geometry().y(),
@@ -373,10 +376,10 @@ class MainWindows(QMainWindow):
         item_dict = self.bio_model_explorer_dialog.bio_model_infoselection_tab.item_dict
 
         if item_dict["source_str"] == "calc_hab":
-            self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict["item_text_list"])
+            self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict)
 
         if item_dict["source_str"] == "stat_hab":
-            self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict["item_text_list"])
+            self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict)
 
     def setlangue(self, nb_lang):
         """
