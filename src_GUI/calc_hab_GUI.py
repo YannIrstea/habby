@@ -103,10 +103,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
-        self.default_color = "blue"
+        self.general_option_hyd_combobox_index = 0
+        self.general_option_sub_combobox_index = 0
+
+        self.default_color = "green" # "#A6C313"  # #A6C313 (green Irstea)
         self.user_color = "black"
-        self.combobox_style_default = "QComboBox:!editable {background: white; color: " + self.default_color + "}"  # font-weight: bold;
-        self.combobox_style_user = "QComboBox:!editable {background: white; color: " + self.user_color + "}"  # font-weight: bold;
+        # "QComboBox:!editable {background: " + self.default_color + "}"  # OK en black edition mais bizar en classic
+        # "background: " + self.default_color # colorize all background
+        # "QComboBox: {background: green; color: " + self.default_color + "}" # nada
+        self.combobox_style_default = "QComboBox:!on {background-color: " + self.default_color + "; border-radius: 1px}"
+        #self.combobox_style_user = "QComboBox:!editable {background: " + self.user_color + "}"  # font-weight: bold;
         self.selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=[],
                                                  hydraulic_mode_list=[],
                                                  substrate_mode_list=[])
@@ -161,8 +167,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hyd_mode_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.hyd_mode_qtablewidget.verticalHeader().setVisible(False)
         self.hyd_mode_qtablewidget.horizontalHeader().setVisible(False)
+
         self.general_option_hyd_combobox = QComboBox()
         self.general_option_hyd_combobox.addItems(self.all_hyd_choice)
+        self.general_option_hyd_combobox.model().item(0).setBackground(QColor(self.default_color))
+        self.general_option_hyd_combobox.setCurrentIndex(self.general_option_hyd_combobox_index)
+        if self.general_option_sub_combobox_index == 0:  # default
+            self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_default)
         self.general_option_hyd_combobox.activated.connect(self.set_once_all_hyd_combobox)
         # 3 column
         self.sub_mode_qtablewidget = QTableWidget()
@@ -171,8 +182,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.sub_mode_qtablewidget.verticalHeader().setVisible(False)
         self.sub_mode_qtablewidget.horizontalHeader().setVisible(False)
+
         self.general_option_sub_combobox = QComboBox()
         self.general_option_sub_combobox.addItems(self.all_sub_choice)
+        self.general_option_sub_combobox.model().item(0).setBackground(QColor(self.default_color))
+        self.general_option_sub_combobox.setCurrentIndex(self.general_option_sub_combobox_index)
+        if self.general_option_sub_combobox_index == 0:  # default
+            self.general_option_sub_combobox.setStyleSheet(self.combobox_style_default)
         self.general_option_sub_combobox.activated.connect(self.set_once_all_sub_combobox)
 
         # scroll bar together
@@ -207,13 +223,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addWidget(self.selected_aquatic_animal_qtablewidget, 3, 0)
         # 2 column
         layout_prov2 = QHBoxLayout()
-        layout_prov2.addWidget(QLabel(self.tr("hydraulic mode :")))
+        layout_prov2.addWidget(QLabel(self.tr("hydraulic mode")))
         layout_prov2.addWidget(self.general_option_hyd_combobox)
         self.layout4.addLayout(layout_prov2, 2, 1)
         self.layout4.addWidget(self.hyd_mode_qtablewidget, 3, 1)
         # 3 column
         layout_prov3 = QHBoxLayout()
-        layout_prov3.addWidget(QLabel(self.tr("substrate mode :")))
+        layout_prov3.addWidget(QLabel(self.tr("substrate mode")))
         layout_prov3.addWidget(self.general_option_sub_combobox)
         self.layout4.addLayout(layout_prov3, 2, 2)
         self.layout4.addWidget(self.sub_mode_qtablewidget, 3, 2)
@@ -237,6 +253,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                      substrate_mode_list=[])
         else:
             self.selected_aquatic_animal_dict = eval(child1.text)
+            self.general_option_hyd_combobox_index = \
+            self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][0]
+            self.general_option_sub_combobox_index = self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][1]
+            # remove key
+            del self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"]
             self.fill_selected_models_listwidets([])
 
     def open_bio_model_explorer(self):
@@ -284,17 +305,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         from hydraulic mode combobox, set all comboboxs in qtablewidget to same mode.
         """
-        print("set_once_all_hyd_combobox")
         default = False
         new_hyd_str = self.general_option_hyd_combobox.currentText()
         if new_hyd_str == "User":
-            self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_user)
+            self.general_option_hyd_combobox.setStyleSheet("")
             return
         if new_hyd_str == "Default":
             default = True
             self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_default)
         else:
-            self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_user)
+            self.general_option_hyd_combobox.setStyleSheet("")
         for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
             # get combobox
             combobox = self.hyd_mode_qtablewidget.cellWidget(index, 0)
@@ -318,17 +338,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         from substrate mode combobox, set all comboboxs in qtablewidget to same mode.
         """
-        print("set_once_all_sub_combobox")
         default = False
         new_sub_str = self.general_option_sub_combobox.currentText()
         if new_sub_str == "User":
-            self.general_option_sub_combobox.setStyleSheet(self.combobox_style_user)
+            self.general_option_sub_combobox.setStyleSheet("")
             return
         if new_sub_str == "Default":
             default = True
             self.general_option_sub_combobox.setStyleSheet(self.combobox_style_default)
         else:
-            self.general_option_sub_combobox.setStyleSheet(self.combobox_style_user)
+            self.general_option_sub_combobox.setStyleSheet("")
         for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
             # get combobox
             combobox = self.sub_mode_qtablewidget.cellWidget(index, 0)
@@ -353,7 +372,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         if one of hydraulic qtablewidget comboboxs changed : color of combobox current item is changed
         """
-        print("change_general_hyd_combobox")
         model_index = int(self.sender().objectName())
         new_hyd_mode_index = self.sender().currentIndex()
         # change color if default choosen
@@ -366,11 +384,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
         default_choice_index = hydraulic_type_available.index(CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage])
         if new_hyd_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
+            #self.sender().setAutoFillBackground(True)
+            #pal = self.sender().palette()
+            #pal.setColor(QPalette.Button, QColor(self.default_color))
+            #self.sender().setPalette(pal)
         else:
-            self.sender().setStyleSheet(self.combobox_style_user)
+            self.sender().setStyleSheet("")
 
     def change_general_hyd_combobox(self):
-        print("change_general_hyd_combobox")
         model_index = int(self.sender().objectName())
         new_hyd_mode_index = self.sender().currentIndex()
         # get current general sub combobox item
@@ -386,7 +407,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         """
         if one of substrate qtablewidget comboboxs changed : color of combobox current item is changed
         """
-        print("color_sub_combobox")
         model_index = int(self.sender().objectName())
         new_sub_mode_index = self.sender().currentIndex()
         # change color if default choosen
@@ -400,10 +420,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if new_sub_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
         else:
-            self.sender().setStyleSheet(self.combobox_style_user)
+            self.sender().setStyleSheet("")
 
     def change_general_sub_combobox(self):
-        print("change_general_sub_combobox")
         model_index = int(self.sender().objectName())
         new_sub_mode_index = self.sender().currentIndex()
         # get current general sub combobox item
@@ -460,9 +479,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
             default_choice_index = hydraulic_type_available.index(CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage])
             if choosen_index == default_choice_index:
                 item_combobox.setStyleSheet(self.combobox_style_default)
+                # pal = item_combobox.palette()
+                # pal.setColor(QPalette.Button, QColor(Qt.green))
+                # pal.setColor(QPalette.Button, QColor(Qt.green))
+                # item_combobox.setPalette(pal)
             else:
-                item_combobox.setStyleSheet(self.combobox_style_user)
-            item_combobox.model().item(default_choice_index).setForeground(QColor(self.default_color))
+                item_combobox.setStyleSheet("")
+            item_combobox.model().item(default_choice_index).setBackground(QColor(self.default_color))
             item_combobox.setCurrentIndex(choosen_index)
             item_combobox.currentIndexChanged.connect(self.color_hyd_combobox)
             item_combobox.activated.connect(self.change_general_hyd_combobox)
@@ -482,8 +505,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if choosen_index == default_choice_index:
                 item_combobox.setStyleSheet(self.combobox_style_default)
             else:
-                item_combobox.setStyleSheet(self.combobox_style_user)
-            item_combobox.model().item(default_choice_index).setForeground(QColor(self.default_color))
+                item_combobox.setStyleSheet("")
+            item_combobox.model().item(default_choice_index).setBackground(QColor(self.default_color))
             item_combobox.setCurrentIndex(choosen_index)
             item_combobox.currentIndexChanged.connect(self.color_sub_combobox)
             item_combobox.activated.connect(self.change_general_sub_combobox)
@@ -493,7 +516,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # general
         self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
-
 
     def save_selected_aquatic_animal_list_calc_hab(self):
         # get hydraulic and substrate mode
@@ -509,7 +531,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # cnvert to dict
         selected_aquatic_animal_list_calc_hab = dict(selected_aquatic_animal_list=self.selected_aquatic_animal_dict["selected_aquatic_animal_list"],
                                                      hydraulic_mode_list=hydraulic_mode_list,
-                                                     substrate_mode_list=substrate_mode_list)
+                                                     substrate_mode_list=substrate_mode_list,
+                                                     general_hyd_sub_combobox_index=[self.general_option_hyd_combobox.currentIndex(),
+                                                                                     self.general_option_sub_combobox.currentIndex()])
 
         # save in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
