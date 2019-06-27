@@ -3962,7 +3962,7 @@ class ASCII(SubHydroW):  # QGroupBox
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
-            self.p = Process(target=telemac_mod.load_ascii_and_cut_grid,
+            self.p = Process(target=ascii_mod.load_ascii_and_cut_grid,
                              args=(self.hydrau_description_multiple,
                                    self.progress_value,
                                    self.q,

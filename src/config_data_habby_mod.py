@@ -21,30 +21,30 @@ except ImportError:
 import json
 import os
 import shutil
-from appdirs import AppDirs
-from operator import concat
-from functools import reduce
-import numpy as np
 
+from habby import AppDataFolders
 from src import bio_info_mod
+from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
 
 
-class ConfigHabby:
+class ConfigHabby(AppDataFolders):
     """
     The class ConfigHabby manage habby user configuration
     """
 
     def __init__(self):
+        super().__init__()
+        print("__init__ConfigHabby")
         # state
         self.modified = False
         # biological models allowed by HABBY dict
         self.biological_models_requirements_dict = dict(ModelType=["univariate suitability index curves"],
                                                         #
-                                                        UnitVariable=[["PreferenceHeightOfWater","HeightOfWaterClasses"], ["PreferenceVelocity","VelocityClasses"] ],
+                                                        UnitVariable=[
+                                                            ["PreferenceHeightOfWater", "HeightOfWaterClasses"],
+                                                            ["PreferenceVelocity", "VelocityClasses"]],
                                                         UnitSymbol=[["m", "cm"], ["m/s", "cm/s"]],
-                                                        UnitFactor = [[1,0.01],[1,0.01]])
-
-
+                                                        UnitFactor=[[1, 0.01], [1, 0.01]])
 
         # default config data
         self.data = dict(language="english",  # english, french, spanish
@@ -60,43 +60,25 @@ class ConfigHabby:
         # biological_models_dict
         self.biological_models_dict = dict()
 
-        # folders Irstea/HABBY
-        appauthor = "Irstea"
-        appname = "HABBY"
-        self.user_config_habby_path = AppDirs(appname, appauthor).user_config_dir
-        self.user_config_habby_file_path = os.path.join(self.user_config_habby_path, "habby_config.json")
-        self.user_config_biology_models = os.path.join(self.user_config_habby_path, "biology", "user_models")
-        self.user_config_biology_models_db_file = os.path.join(self.user_config_habby_path, "biology",
-                                                                "models_db.json")
-        self.user_config_temp_path = os.path.join(self.user_config_habby_path, "temp")
-        self.user_config_log_path = os.path.join(self.user_config_habby_path, "log")
-        self.user_config_crashlog_file = os.path.join(self.user_config_habby_path, "log", "habby_crash.log")
-
     # GENERAL
     def create_config_habby_structure(self):
+        print("create_config_habby_structure")
         # CONFIG
-        self.create_appdata_folders()
         self.create_empty_temp()
-        self.create_default_or_load_config_habby()
+        self.create_or_load_config_habby()
         # MODEL BIO
         self.create_or_update_biology_models_json()
 
     # CONFIG
-    def create_appdata_folders(self):
-        # user_config_habby_file_path
-        if not os.path.isdir(self.user_config_habby_path):
-            os.makedirs(self.user_config_habby_path)
-        # user_config_biology_models
-        if not os.path.isdir(self.user_config_biology_models):
-            os.makedirs(self.user_config_biology_models)
-        # user_config_temp_path
-        if not os.path.isdir(self.user_config_temp_path):
-            os.mkdir(self.user_config_temp_path)
-        # user_config_log_path
-        if not os.path.isdir(self.user_config_log_path):
-            os.mkdir(self.user_config_log_path)
+    def create_empty_temp(self):
+        try:
+            shutil.rmtree(self.user_config_temp_path)  # remove folder (and its files)
+            os.mkdir(self.user_config_temp_path)  # recreate folder (empty)
+        except:
+            print("Error: Can't remove temps files. They are opened by another programme. Close them "
+                  "and try again.")
 
-    def create_default_or_load_config_habby(self):
+    def create_or_load_config_habby(self):
         if not os.path.isfile(self.user_config_habby_file_path):  # check if config file exist
             self.save_config_json()  # create it
         else:
@@ -179,9 +161,11 @@ class ConfigHabby:
                 biological_models_dict["model_type"].append(information_model_dict["ModelType"])
                 biological_models_dict["stage_and_size"].append(information_model_dict["stage_and_size"])
                 biological_models_dict["hydraulic_type"].append(information_model_dict["hydraulic_type"])
-                biological_models_dict["hydraulic_type_available"].append(information_model_dict["hydraulic_type_available"])
+                biological_models_dict["hydraulic_type_available"].append(
+                    information_model_dict["hydraulic_type_available"])
                 biological_models_dict["substrate_type"].append(information_model_dict["substrate_type"])
-                biological_models_dict["substrate_type_available"].append(information_model_dict["substrate_type_available"])
+                biological_models_dict["substrate_type_available"].append(
+                    information_model_dict["substrate_type_available"])
                 biological_models_dict["guild"].append(information_model_dict["guild"])
                 biological_models_dict["xml_origine"].append(xml_origine)
                 biological_models_dict["made_by"].append(information_model_dict["MadeBy"])
@@ -195,14 +179,8 @@ class ConfigHabby:
                 biological_models_dict["path_img"].append(information_model_dict["path_img"])
 
         # sort by latin name
-        indice_sorted = [biological_models_dict["cd_biological_model"].index(x) for x in sorted(biological_models_dict["cd_biological_model"])]
-        for key in biological_models_dict.keys():
-            key_list = []
-            for ind_num, ind_ind in enumerate(indice_sorted):
-                key_list.append(biological_models_dict[key][ind_ind])
-            biological_models_dict[key] = key_list
-
-        self.biological_models_dict = biological_models_dict
+        self.biological_models_dict = sort_homogoeneous_dict_list_by_on_key(biological_models_dict,
+                                                                            "cd_biological_model")
 
     def create_biology_models_json(self):
         # save database
@@ -252,15 +230,6 @@ class ConfigHabby:
         with open(self.user_config_biology_models_db_file, "r") as read_file:
             biological_models_dict = json.load(read_file)
         return biological_models_dict
-
-    # TEMP FOLDER
-    def create_empty_temp(self):
-        try:
-            shutil.rmtree(self.user_config_temp_path)  # remove folder (and its files)
-            os.mkdir(self.user_config_temp_path)  # recreate folder (empty)
-        except:
-            print("Error: Can't remove temps files. They are opened by another programme. Close them "
-                  "and try again.")
 
 
 CONFIG_HABBY = ConfigHabby()

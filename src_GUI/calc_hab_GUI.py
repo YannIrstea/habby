@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 from multiprocessing import Process, Queue, Value
 
+from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QSize
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
     QComboBox, QAbstractItemView, QTableWidget, \
@@ -31,6 +32,8 @@ from src import calcul_hab_mod
 from src import hdf5_mod
 from src_GUI import preferences_GUI
 from src.config_data_habby_mod import CONFIG_HABBY
+from src.bio_info_mod import get_name_stage_codebio_fromstr
+from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
 
 
 class BioInfo(estimhab_GUI.StatModUseful):
@@ -100,11 +103,16 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.plot_new = False
         self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
-        self.selected_aquatic_animal_list = []
+        self.default_color = "blue"
+        self.user_color = "black"
+        self.combobox_style_default = "QComboBox:!editable {background: white; color: " + self.default_color + "}"  # font-weight: bold;
+        self.combobox_style_user = "QComboBox:!editable {background: white; color: " + self.user_color + "}"  # font-weight: bold;
+        self.selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=[],
+                                                 hydraulic_mode_list=[],
+                                                 substrate_mode_list=[])
         self.p = Process(target=None)  # second process
 
         self.init_iu()
-        self.add_sel_fish()
 
     def init_iu(self):
         """
@@ -129,14 +137,20 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.remove_all_bio_model_pushbutton = QPushButton(self.tr("Remove all models"))
         self.remove_all_bio_model_pushbutton.clicked.connect(self.remove_all_fish)
 
+        self.remove_sel_bio_model_pushbutton = QPushButton(self.tr("Remove selected models"))
+        self.remove_sel_bio_model_pushbutton.clicked.connect(self.remove_sel_fish)
+
+        self.remove_duplicate_model_pushbutton = QPushButton(self.tr("Remove duplicates models"))
+        self.remove_duplicate_model_pushbutton.clicked.connect(self.remove_duplicate)
+
         # 1 column
+        self.bio_model_choosen_title_label = QLabel(self.tr("Biological models choosen"))
         self.selected_aquatic_animal_qtablewidget = QTableWidget()
         self.selected_aquatic_animal_qtablewidget.setColumnCount(1)
         self.selected_aquatic_animal_qtablewidget.horizontalHeader().setStretchLastSection(True)
         self.selected_aquatic_animal_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.selected_aquatic_animal_qtablewidget.verticalHeader().setVisible(False)
         self.selected_aquatic_animal_qtablewidget.horizontalHeader().setVisible(False)
-        self.selected_aquatic_animal_qtablewidget.cellDoubleClicked.connect(self.remove_fish)
         self.runhab = QPushButton(self.tr('Compute Habitat Value'))
         self.runhab.setStyleSheet("background-color: #47B5E6; color: black")
         self.runhab.clicked.connect(self.run_habitat_value)
@@ -149,7 +163,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hyd_mode_qtablewidget.horizontalHeader().setVisible(False)
         self.general_option_hyd_combobox = QComboBox()
         self.general_option_hyd_combobox.addItems(self.all_hyd_choice)
-        self.general_option_hyd_combobox.currentIndexChanged.connect(self.set_once_all_hyd_combobox)
+        self.general_option_hyd_combobox.activated.connect(self.set_once_all_hyd_combobox)
         # 3 column
         self.sub_mode_qtablewidget = QTableWidget()
         self.sub_mode_qtablewidget.setColumnCount(1)
@@ -159,14 +173,15 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.horizontalHeader().setVisible(False)
         self.general_option_sub_combobox = QComboBox()
         self.general_option_sub_combobox.addItems(self.all_sub_choice)
-        self.general_option_sub_combobox.currentIndexChanged.connect(self.set_once_all_sub_combobox)
+        self.general_option_sub_combobox.activated.connect(self.set_once_all_sub_combobox)
 
         # scroll bar together
         self.selected_aquatic_animal_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setEnabled(False)
         self.hyd_mode_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.hyd_mode_qtablewidget.verticalScrollBar().setEnabled(False)
         self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue)
-        self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(
-            self.hyd_mode_qtablewidget.verticalScrollBar().setValue)
+        self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(self.hyd_mode_qtablewidget.verticalScrollBar().setValue)
 
         # fill hdf5 list
         self.update_merge_list()
@@ -182,22 +197,30 @@ class BioInfo(estimhab_GUI.StatModUseful):
         layout_prov = QHBoxLayout()
         layout_prov.addWidget(self.explore_bio_model_pushbutton)
         layout_prov.addWidget(self.remove_all_bio_model_pushbutton)
-        self.layout4.addLayout(layout_prov, 1, 0)
+        layout_prov.addWidget(self.remove_sel_bio_model_pushbutton)
+        layout_prov.addWidget(self.remove_duplicate_model_pushbutton)
+        #layout_prov.setAlignment()
+        self.layout4.addLayout(layout_prov, 1, 0, 1, 3, Qt.AlignLeft)
 
         # 1 column
-        self.layout4.addWidget(QLabel(self.tr("Biological models choosen")), 2, 0)
+        self.layout4.addWidget(self.bio_model_choosen_title_label, 2, 0)
         self.layout4.addWidget(self.selected_aquatic_animal_qtablewidget, 3, 0)
         # 2 column
-        self.layout4.addWidget(QLabel(self.tr("hydraulic mode")), 2, 1)
+        layout_prov2 = QHBoxLayout()
+        layout_prov2.addWidget(QLabel(self.tr("hydraulic mode :")))
+        layout_prov2.addWidget(self.general_option_hyd_combobox)
+        self.layout4.addLayout(layout_prov2, 2, 1)
         self.layout4.addWidget(self.hyd_mode_qtablewidget, 3, 1)
-        self.layout4.addWidget(self.general_option_hyd_combobox, 4, 1)
         # 3 column
-        self.layout4.addWidget(QLabel(self.tr("substrate mode")), 2, 2)
+        layout_prov3 = QHBoxLayout()
+        layout_prov3.addWidget(QLabel(self.tr("substrate mode :")))
+        layout_prov3.addWidget(self.general_option_sub_combobox)
+        self.layout4.addLayout(layout_prov3, 2, 2)
         self.layout4.addWidget(self.sub_mode_qtablewidget, 3, 2)
-        self.layout4.addWidget(self.general_option_sub_combobox, 4, 2)
-
         self.layout4.addWidget(self.runhab, 5, 2)
-
+        self.layout4.setColumnStretch(0, 3)
+        self.layout4.setColumnStretch(1, 1)
+        self.layout4.setColumnStretch(2, 1)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
@@ -209,47 +232,18 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # geo data
         child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
         if child1 is None:
-            self.selected_aquatic_animal_list = []
+            self.selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=[],
+                                                     hydraulic_mode_list=[],
+                                                     substrate_mode_list=[])
         else:
-            self.selected_aquatic_animal_list = eval(child1.text)
+            self.selected_aquatic_animal_dict = eval(child1.text)
             self.fill_selected_models_listwidets([])
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
 
-    def add_sel_fish(self):
-        """
-        This function loads the xml file and check if some fish were selected before. If yes, we add them to the list
-        """
-        # open the xml file
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.xml')
-        if os.path.isfile(filename_path_pro):
-            doc = ET.parse(filename_path_pro)
-            root = doc.getroot()
-            # get the selected fish
-            child = root.find(".//Habitat/Fish_Selected")
-            if child is not None:
-                fish_selected_b = child.text
-                if fish_selected_b is not None:
-                    if ',' in fish_selected_b:
-                        fish_selected_b = fish_selected_b.split(',')
-                        self.fill_selected_models_listwidets(fish_selected_b)
-
-    def remove_fish(self):
-        """
-        The function is used to remove fish species (or inverterbates species)
-        """
-        # row index
-        row_index = self.selected_aquatic_animal_qtablewidget.currentRow()
-        item_text = self.selected_aquatic_animal_qtablewidget.cellWidget(row_index, 0).text()
-        # model listwidget
-        self.selected_aquatic_animal_qtablewidget.model().removeRow(row_index)
-        # hyd tablewidget
-        self.hyd_mode_qtablewidget.model().removeRow(row_index)
-        # sub tablewidget
-        self.sub_mode_qtablewidget.model().removeRow(row_index)
-        # list
-        self.selected_aquatic_animal_list.remove(item_text)
+    def remove_duplicate(self):
+        print("remove_duplicate")
 
     def remove_all_fish(self):
         """
@@ -261,53 +255,88 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hyd_mode_qtablewidget.setRowCount(0)
         self.sub_mode_qtablewidget.clear()
         self.sub_mode_qtablewidget.setRowCount(0)
-        self.selected_aquatic_animal_list = []
+        self.selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=[],
+                                                     hydraulic_mode_list=[],
+                                                     substrate_mode_list=[])
+        self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(0) + ")")
+
+    def remove_sel_fish(self):
+        # selected items
+        index_to_remove_list = [item.row() for item in self.selected_aquatic_animal_qtablewidget.selectedIndexes()]
+
+        if index_to_remove_list:
+            # remove items
+            for index in reversed(range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]))):
+                if index in index_to_remove_list:
+                    self.selected_aquatic_animal_qtablewidget.removeRow(index)
+                    self.hyd_mode_qtablewidget.removeRow(index)
+                    self.sub_mode_qtablewidget.removeRow(index)
+
+            # remove element list in dict
+            for key in self.selected_aquatic_animal_dict.keys():
+                for index_to_remove in reversed(index_to_remove_list):
+                    self.selected_aquatic_animal_dict[key].pop(index_to_remove)
+        # total item
+        total_item = self.selected_aquatic_animal_qtablewidget.rowCount()
+        self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
 
     def set_once_all_hyd_combobox(self):
+        """
+        from hydraulic mode combobox, set all comboboxs in qtablewidget to same mode.
+        """
+        print("set_once_all_hyd_combobox")
         default = False
         new_hyd_str = self.general_option_hyd_combobox.currentText()
         if new_hyd_str == "User":
+            self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_user)
             return
         if new_hyd_str == "Default":
             default = True
-        for index, item_str in enumerate(self.selected_aquatic_animal_list):
+            self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_default)
+        else:
+            self.general_option_hyd_combobox.setStyleSheet(self.combobox_style_user)
+        for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
             # get combobox
             combobox = self.hyd_mode_qtablewidget.cellWidget(index, 0)
-            combobox.blockSignals(True)
             # get item
             hydraulic_type_available = [combobox.itemText(i) for i in range(combobox.count())]
             if default:
                 # get default
-                name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(item_str)
+                name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
                 index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
                 # get stage index
                 index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
                 default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
                 # set positon to combobox
-                self.hyd_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(
-                    hydraulic_type_available.index(default_hydraulic_type))
+                self.hyd_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(hydraulic_type_available.index(default_hydraulic_type))
             if not default:
                 if new_hyd_str in hydraulic_type_available:
                     # set positon to combobox
                     self.hyd_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(hydraulic_type_available.index(new_hyd_str))
-            combobox.blockSignals(False)
 
     def set_once_all_sub_combobox(self):
+        """
+        from substrate mode combobox, set all comboboxs in qtablewidget to same mode.
+        """
+        print("set_once_all_sub_combobox")
         default = False
         new_sub_str = self.general_option_sub_combobox.currentText()
         if new_sub_str == "User":
+            self.general_option_sub_combobox.setStyleSheet(self.combobox_style_user)
             return
         if new_sub_str == "Default":
             default = True
-        for index, item_str in enumerate(self.selected_aquatic_animal_list):
+            self.general_option_sub_combobox.setStyleSheet(self.combobox_style_default)
+        else:
+            self.general_option_sub_combobox.setStyleSheet(self.combobox_style_user)
+        for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
             # get combobox
             combobox = self.sub_mode_qtablewidget.cellWidget(index, 0)
-            combobox.blockSignals(True)
             # get item
             substrate_type_available = [combobox.itemText(i) for i in range(combobox.count())]
             if default:
                 # get default
-                name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(item_str)
+                name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
                 index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
                 # get stage index
                 index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
@@ -319,28 +348,83 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 if new_sub_str in substrate_type_available:
                     # set positon to combobox
                     self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(new_sub_str))
-            combobox.blockSignals(False)
+
+    def color_hyd_combobox(self):
+        """
+        if one of hydraulic qtablewidget comboboxs changed : color of combobox current item is changed
+        """
+        print("change_general_hyd_combobox")
+        model_index = int(self.sender().objectName())
+        new_hyd_mode_index = self.sender().currentIndex()
+        # change color if default choosen
+        # get info
+        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
+        index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+        hydraulic_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
+        default_choice_index = hydraulic_type_available.index(CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+        if new_hyd_mode_index == default_choice_index:
+            self.sender().setStyleSheet(self.combobox_style_default)
+        else:
+            self.sender().setStyleSheet(self.combobox_style_user)
 
     def change_general_hyd_combobox(self):
+        print("change_general_hyd_combobox")
+        model_index = int(self.sender().objectName())
+        new_hyd_mode_index = self.sender().currentIndex()
         # get current general sub combobox item
         current_text = self.general_option_hyd_combobox.currentText()
         if current_text != "User":
             self.general_option_hyd_combobox.blockSignals(True)
             self.general_option_hyd_combobox.setCurrentIndex(1)
             self.general_option_hyd_combobox.blockSignals(False)
+            # change in dict
+            self.selected_aquatic_animal_dict["hydraulic_mode_list"][model_index] = new_hyd_mode_index
+
+    def color_sub_combobox(self):
+        """
+        if one of substrate qtablewidget comboboxs changed : color of combobox current item is changed
+        """
+        print("color_sub_combobox")
+        model_index = int(self.sender().objectName())
+        new_sub_mode_index = self.sender().currentIndex()
+        # change color if default choosen
+        # get info
+        item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
+        name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
+        index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+        substrate_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
+        default_choice_index = substrate_type_available.index(CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage])
+        if new_sub_mode_index == default_choice_index:
+            self.sender().setStyleSheet(self.combobox_style_default)
+        else:
+            self.sender().setStyleSheet(self.combobox_style_user)
 
     def change_general_sub_combobox(self):
+        print("change_general_sub_combobox")
+        model_index = int(self.sender().objectName())
+        new_sub_mode_index = self.sender().currentIndex()
         # get current general sub combobox item
         current_text = self.general_option_sub_combobox.currentText()
         if current_text != "User":
             self.general_option_sub_combobox.blockSignals(True)
             self.general_option_sub_combobox.setCurrentIndex(1)
             self.general_option_sub_combobox.blockSignals(False)
+            # change in dict
+            self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
-    def fill_selected_models_listwidets(self, new_item_text_list):
+    def fill_selected_models_listwidets(self, new_item_text_dict):
+        if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
+            index_to_keep = [new_item_text_dict["selected_aquatic_animal_list"].index(x) for x in new_item_text_dict["selected_aquatic_animal_list"] if x not in self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]]
+            self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].extend([new_item_text_dict["selected_aquatic_animal_list"][i] for i in index_to_keep])
+            self.selected_aquatic_animal_dict["hydraulic_mode_list"].extend([new_item_text_dict["hydraulic_mode_list"][i] for i in index_to_keep])
+            self.selected_aquatic_animal_dict["substrate_mode_list"].extend([new_item_text_dict["substrate_mode_list"][i] for i in index_to_keep])
+            self.selected_aquatic_animal_dict = sort_homogoeneous_dict_list_by_on_key(self.selected_aquatic_animal_dict, "selected_aquatic_animal_list")
+
         # total_item
-        self.selected_aquatic_animal_list = sorted(list(set(new_item_text_list + self.selected_aquatic_animal_list)))
-        total_item = len(self.selected_aquatic_animal_list)
+        total_item = len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])
 
         # clear selected_aquatic_animal_qtablewidget
         self.selected_aquatic_animal_qtablewidget.clear()
@@ -355,41 +439,77 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.setRowCount(total_item)
 
         # add new item if not exist
-        for index, item_str in enumerate(self.selected_aquatic_animal_list):
+        for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
             # add label item
             self.selected_aquatic_animal_qtablewidget.setCellWidget(index, 0, QLabel(item_str))
             self.selected_aquatic_animal_qtablewidget.setRowHeight(index, 27)
 
             # get info
-            name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(item_str)
+            name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
             index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
             # get stage index
             index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
 
             # get default_hydraulic_type
-            default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
             hydraulic_type_available = CONFIG_HABBY.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
             # create combobox
             item_combobox = QComboBox()
+            item_combobox.setObjectName(str(index))
             item_combobox.addItems(hydraulic_type_available)
-            item_combobox.setCurrentIndex(hydraulic_type_available.index(default_hydraulic_type))
-            item_combobox.currentIndexChanged.connect(self.change_general_hyd_combobox)
+            choosen_index = self.selected_aquatic_animal_dict["hydraulic_mode_list"][index]
+            default_choice_index = hydraulic_type_available.index(CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+            if choosen_index == default_choice_index:
+                item_combobox.setStyleSheet(self.combobox_style_default)
+            else:
+                item_combobox.setStyleSheet(self.combobox_style_user)
+            item_combobox.model().item(default_choice_index).setForeground(QColor(self.default_color))
+            item_combobox.setCurrentIndex(choosen_index)
+            item_combobox.currentIndexChanged.connect(self.color_hyd_combobox)
+            item_combobox.activated.connect(self.change_general_hyd_combobox)
             # add combobox item
             self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
             self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
             # get default_substrate_type
-            default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
             substrate_type_available = CONFIG_HABBY.biological_models_dict["substrate_type_available"][index_fish][
                 index_stage]
             # create combobox
             item_combobox = QComboBox()
+            item_combobox.setObjectName(str(index))
             item_combobox.addItems(substrate_type_available)
-            item_combobox.setCurrentIndex(substrate_type_available.index(default_substrate_type))
-            item_combobox.currentIndexChanged.connect(self.change_general_sub_combobox)
+            choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
+            default_choice_index = substrate_type_available.index(CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage])
+            if choosen_index == default_choice_index:
+                item_combobox.setStyleSheet(self.combobox_style_default)
+            else:
+                item_combobox.setStyleSheet(self.combobox_style_user)
+            item_combobox.model().item(default_choice_index).setForeground(QColor(self.default_color))
+            item_combobox.setCurrentIndex(choosen_index)
+            item_combobox.currentIndexChanged.connect(self.color_sub_combobox)
+            item_combobox.activated.connect(self.change_general_sub_combobox)
             # add combobox item
             self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
             self.sub_mode_qtablewidget.setRowHeight(index, 27)
+
+        # general
+        self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
+
+
+    def save_selected_aquatic_animal_list_calc_hab(self):
+        # get hydraulic and substrate mode
+        hydraulic_mode_list = []
+        substrate_mode_list = []
+        for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
+            # get combobox
+            combobox_hyd = self.hyd_mode_qtablewidget.cellWidget(index, 0)
+            hydraulic_mode_list.append(combobox_hyd.currentIndex())
+            combobox_sub = self.sub_mode_qtablewidget.cellWidget(index, 0)
+            substrate_mode_list.append(combobox_sub.currentIndex())
+
+        # cnvert to dict
+        selected_aquatic_animal_list_calc_hab = dict(selected_aquatic_animal_list=self.selected_aquatic_animal_dict["selected_aquatic_animal_list"],
+                                                     hydraulic_mode_list=hydraulic_mode_list,
+                                                     substrate_mode_list=substrate_mode_list)
 
         # save in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
@@ -399,9 +519,9 @@ class BioInfo(estimhab_GUI.StatModUseful):
         child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
         if child1 is None:
             child1 = ET.SubElement(root, 'selected_aquatic_animal_list_calc_hab')
-            child1.text = str(self.selected_aquatic_animal_list)
+            child1.text = str(selected_aquatic_animal_list_calc_hab)
         else:
-            child1.text = str(self.selected_aquatic_animal_list)
+            child1.text = str(selected_aquatic_animal_list_calc_hab)
         doc.write(fname)
 
     def update_merge_list(self):
@@ -456,12 +576,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # a signal to indicates to Chronicle_GUI.py to update the merge file
         self.get_list_merge.emit()
 
-    def get_name_stage_codebio_fromstr(self, item_str):
-        name_fish = item_str.split(":")[0]
-        stage, code_bio_model = item_str.split(":")[1].split(" - ")
-        stage = stage.strip()
-        return name_fish, stage, code_bio_model
-
     def run_habitat_value(self):
         """
         This function runs HABBY to get the habitat value based on the data in a "merged" hdf5 file and the chosen
@@ -484,10 +598,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
         name_fish_sh = []  # because max 10 characters in attribute table of shapefile
         name_fish_sel = ''  # for the xml project file
         xmlfiles = []
-        for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
+        for i in range(len(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"])):
             # get info from list widget
-            fish_item_text = self.selected_aquatic_animal_qtablewidget.item(i).text()
-            name_fish, stage, code_bio_model = self.get_name_stage_codebio_fromstr(fish_item_text)
+            label = self.selected_aquatic_animal_qtablewidget.cellWidget(i, 0)
+            fish_item_text = label.text()
+            name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
             name_fish_sel += fish_item_text + ","
             name_fish_list.append(name_fish)
             index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)

@@ -110,10 +110,10 @@ def check_matching_units(data_description, types):
 
     # check matching units type ok
     if unit_hdf5_type == unit_chronicle_type:
-        print("units type match")
+        #print("units type match")
         return True, ""
     if unit_hdf5_type != unit_chronicle_type:
-        print("units type doesn't match")
+        #print("units type doesn't match")
         return False, " Desired units type is different from available units type : " + unit_chronicle_type + " != " + unit_hdf5_type
 
 
@@ -299,3 +299,13 @@ def isstranumber(a):
     except:
         bool_a = False
     return bool_a
+
+
+def sort_homogoeneous_dict_list_by_on_key(dict_to_sort, key):
+    indice_sorted = [dict_to_sort[key].index(x) for x in sorted(dict_to_sort[key])]
+    for key in dict_to_sort.keys():
+        key_list = []
+        for ind_num, ind_ind in enumerate(indice_sorted):
+            key_list.append(dict_to_sort[key][ind_ind])
+        dict_to_sort[key] = key_list
+    return dict_to_sort

@@ -561,6 +561,13 @@ def get_biomodels_informations_for_database(path_xml):
     return information_model_dict
 
 
+def get_name_stage_codebio_fromstr(item_str):
+    name_fish = item_str.split(":")[0]
+    stage, code_bio_model = item_str.split(":")[1].split(" - ")
+    stage = stage.strip()
+    return name_fish, stage, code_bio_model
+
+
 def execute_request(path_bio, name_database, request):
     """
     This function execute the SQL request given in the string called request.
