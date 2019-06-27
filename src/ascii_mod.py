@@ -149,6 +149,7 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_list"] = hydrau_description["unit_list"]
     hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
+
     hyd_description["hyd_unit_wholeprofile"] = "all"
     hyd_description["hyd_unit_z_equal"] = True
     if not project_preferences["CutMeshPartialyDry"]:
@@ -200,7 +201,6 @@ def load_ascii_model(filename, path_prj):
     :param path_prj:
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
     """
-    faiload = False, False
     path = os.path.dirname(filename)
     fnoden, ftinn, fsubn = os.path.join(path, 'wwnode.txt'), os.path.join(path, 'wwtin.txt'), os.path.join(path,
                                                                                                            'wwsub.txt')
@@ -261,7 +261,14 @@ def load_ascii_model(filename, path_prj):
                 lnode = []
                 ltin = []
             else:
-                lreachname.append(('_'.join(ls[1:])))
+                if '_'.join(ls[1:]) == lreachname[-1]:
+                    if bmeshconstant :
+                        msg = ' Structure whith reach description not truly available with variable mesh for each unit'
+                        break
+                    reachnumber -= 1
+                    bmeshconstant = False
+                else:
+                    lreachname.append(('_'.join(ls[1:])))
                 lnode.append((nodei, nodef))
                 ltin.append((tini, tinf))
                 nodei, tini = nodef, tinf
@@ -274,14 +281,20 @@ def load_ascii_model(filename, path_prj):
             if kk != 3 and kk != 4:
                 msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
                 break
-            if bq_per_reach:
+            if bq_per_reach and bmeshconstant:
                 if reachnumber == 1:
                     nbunitforall = nbunit
                 else:
                     if nbunitforall != nbunit:
                         msg = ' the number of units Q[XXX ,Q1,Q2 after REACH must be constant for each reach'
                         break
-            lunitall.append(lunit)
+            if  bmeshconstant or len(lunit)==0:
+                lunitall.append(lunit)
+            else:
+                if nbunit!=1:
+                    msg = ' in case of variable mesh for each reach only one single unit per description is allowed !'
+                    break
+                lunitall[-1].extend(lunit)
             kk = 5
         elif ls[0].lower() == 'x':
             if kk != 5:
@@ -304,9 +317,21 @@ def load_ascii_model(filename, path_prj):
                     if ls[k][0].lower() != 'h' or ls[k + 1][0].lower() != 'v':
                         msg = ' information h or v not found'
                         break
-                    if int(ls[k][1:]) != ik or int(ls[k + 1][1:]) != ik:
+                    if  ls[k][1].lower() == 'u' and ls[k + 1][1].lower() == 'u':
+                        if len(ls)!=5:
+                            msg = ' detecting Varying Mesh but not the right number of information'
+                            break
+                        if bmeshconstant and nbunit!=1:  # or reachnumber!=1)
+                            msg = ' detecting Varying Mesh but the number of unit in this case must be given one by one'
+                            break
+                        bmeshconstant=False
+                    elif int(ls[k][1:]) != ik or int(ls[k + 1][1:]) != ik:
                         msg = ' information number after h or v not found'
                         break
+                    else:
+                        if not bmeshconstant:
+                            msg = ' detecting Varying Mesh but not always'
+                            break
             kk = 6
         elif ls[0].upper() == 'TIN':
             kk = 7
@@ -384,7 +409,6 @@ def load_ascii_model(filename, path_prj):
             fsub.write(ligne)
 
     if msg != '':
-        print('Error:','ligne : ', i, ' {', ligne.rstrip() ,' }', msg)
         fi.close();
         fnode.close();
         ftin.close()
@@ -393,7 +417,7 @@ def load_ascii_model(filename, path_prj):
         if bsub:
             fsub.close();
             os.remove(fsubn)
-        return faiload
+        return 'Error: ligne : '+ str(i)+ ' {'+ ligne.rstrip() +' }'+ msg
 
     lnode.append((nodei, nodef))
     ltin.append((tini, tinf))
@@ -417,8 +441,7 @@ def load_ascii_model(filename, path_prj):
         suball = np.loadtxt(fsubn, dtype=int)
         os.remove(fsubn)
         if len(suball) != len(ikleall):
-            print('Error:','the number of elements given for TIN  and SUBSTRATE description are different')
-            return faiload
+            return 'Error: ' +'the number of elements given for TIN  and SUBSTRATE description are different'
         if sub_classification_method == 'coarser-dominant':
             if sub_classification_code == "Cemagref":
                 if suball.max() > 8 or suball.min() < 1:
@@ -434,8 +457,7 @@ def load_ascii_model(filename, path_prj):
             if (suball100 != 100).all():
                 msg = 'SUBSTRATE percentage But not the all the sums =100 '
         if msg != '':
-            print( 'Error:',msg)
-            return faiload
+            return 'Error: '+ msg
 
     # create empty dict
     data_2d = dict()
@@ -455,8 +477,7 @@ def load_ascii_model(filename, path_prj):
             sub = np.array(suball[ltin[reach_num][0]:ltin[reach_num][1], :])
         nbnodes = len(nodes)
         if ikle.max() != nbnodes - 1:
-            print('Error:','REACH :', lreachname[reach_num], "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
-            return faiload
+            return 'Error:' +' REACH :'+ lreachname[reach_num]+ "max(ikle)!= nbnodes TIN and Nodes number doesn't fit "
         # managing  the 4angles (for triangle last index=-1)
         ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
         ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
@@ -531,18 +552,16 @@ def get_ascii_model_description(file_path):
     :param file_path:
     :return: the reachname list and the unit description (times or discharges)
     """
-    faiload = False
     # file exist ?
     if not os.path.isfile(file_path):
-        print('Error: The ascci text file does not exist. Cannot be loaded.')
-        return faiload
+        return 'Error: The ascci text file does not exist. Cannot be loaded.'
     kk, reachnumber = 0, 0
     msg, unit_type = '', ''
     lunitall = []   # a list of  [list of Q or t] one element if all the Q or t are similar for all reaches
                     # or nbreaches elements
     epsgcode = ''
     bq_per_reach = False
-    bsub =False
+    bsub,bmeshconstant =False,True
     with open(file_path, 'r', encoding='utf8') as fi:
         for i, ligne in enumerate(fi):
             ls = ligne.split()  # NB ls=s.split('\t') ne marche pas s[11]=='/t'-> FALSE
@@ -577,7 +596,7 @@ def get_ascii_model_description(file_path):
                             break
                         bq_per_reach = True
                 unit_type = ls[0]
-                lunit, nbunit = [], 0
+                lunit = []
                 kk = 3
             elif ls[0].upper() == 'REACH':
                 if kk != 2 and kk != 3 and kk < 7:
@@ -587,32 +606,38 @@ def get_ascii_model_description(file_path):
                     msg = ls[0] + ' This structure REACH unit description is forbiden '
                     break
                 reachnumber += 1
+                bmeshconstant=True
                 if reachnumber == 1:
                     lreachname = [('_'.join(ls[1:]))]
                 else:
-                    lreachname.append(('_'.join(ls[1:])))
+                    if '_'.join(ls[1:])== lreachname[-1]:
+                        reachnumber -= 1
+                        bmeshconstant = False
+                    else:
+                        lreachname.append(('_'.join(ls[1:])))
                 kk = 4
             # .................
             elif ls[0].upper() == 'NODES':
                 if kk != 3 and kk != 4:
                     msg = ls[0] + ' but not REACH or Units description (Q[XXX ,Q1,Q2.. or t[XXX,t1,t2  before'
                     break
-                lunitall.append(lunit)
+                if bmeshconstant or len(lunit)==0:
+                    lunitall.append(lunit)
+                else:
+                    lunitall[-1].extend(lunit)
                 kk = 5
             elif ls[0].upper() == 'TIN':
                 kk = 7
             elif ls[0].upper() == 'SUBSTRATE':
                 bsub=True
             elif kk == 3:
-                nbunit += 1
                 if len(ls) != 1:
                     msg = 'unit description but not only one information'
                     break
                 lunit.append(ls[0])
 
         if msg != '':
-            print('Error:','ligne : ', i, ' {', ligne.rstrip() ,' }', msg)
-            return faiload
+            return 'Error: ligne : '+ str(i)+ ' {'+ ligne.rstrip() +' }'+ msg
 
     # create dict
     ascii_description = dict(epsg_code=epsgcode,
