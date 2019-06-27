@@ -100,18 +100,21 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # get units name from file
             if model_type == 'ASCII':
                 ascii_description = ascii_mod.get_ascii_model_description(filename_path)
-                epsg_code = ascii_description["epsg_code"]
-                unit_type = ascii_description["unit_type"]
-                unit_list = ascii_description["unit_list"]
-                unit_list_tf = [list(map(bool, x)) for x in ascii_description["unit_list"]]
-                reach_number = ascii_description["reach_number"]
-                reach_list = ascii_description["reach_list"]
-                sub = ascii_description["sub"]
-                if sub:
-                    warning_list.append("Warning: Substrate data present in the ascii input file. "
-                                        "Data loading will create .hab directly instead of .hyd "
-                                        "(loading button label changed)")
-                nbtimes = len(unit_list[0])
+                if type(ascii_description)==str:
+                    return ascii_description, None
+                else:
+                    epsg_code = ascii_description["epsg_code"]
+                    unit_type = ascii_description["unit_type"]
+                    unit_list = ascii_description["unit_list"]
+                    unit_list_tf = [list(map(bool, x)) for x in ascii_description["unit_list"]]
+                    reach_number = ascii_description["reach_number"]
+                    reach_list = ascii_description["reach_list"]
+                    sub = ascii_description["sub"]
+                    if sub:
+                        warning_list.append("Warning: Substrate data present in the ascii input file. "
+                                            "Data loading will create .hab directly instead of .hyd "
+                                            "(loading button label changed)")
+                    nbtimes = len(unit_list[0])
             else:
                 epsg_code = "unknown"
                 unit_type = "time [s]"
