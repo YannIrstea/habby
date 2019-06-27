@@ -14,37 +14,66 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-import sys
-from src_GUI import main_window_GUI
-from src import func_for_cmd_mod
-from src.config_data_habby_mod import CONFIG_HABBY
-from PyQt5.QtCore import QSettings, Qt
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QSplashScreen, QMessageBox
 import multiprocessing
 import os
+import sys
 import traceback
+
+from PyQt5.QtCore import QSettings, Qt
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QSplashScreen
+from appdirs import AppDirs
 
 HABBY_VERSION = 0.25
 
 
-def crash_management_output(error_type, error_value, error_traceback):
+class AppDataFolders:
     """
-    catch exception before crashes program write it in habby_crash.log
-    :param error_type:
-    :param error_value:
-    :param error_traceback:
-    :return:
+    The class ConfigHabby manage habby user configuration
     """
-    # print to consol
-    traceback.print_exception(error_type, error_value, error_traceback)
-    # write to crash_log file
-    with open(CONFIG_HABBY.user_config_crashlog_file, 'w') as f:
-        f.write(''.join(traceback.format_tb(error_traceback))
-                + str(error_type).split("'")[1] + ": "
-                + str(error_value))
-    # exit python
-    raise SystemExit
+
+    def __init__(self):
+        print("__init__AppDataFolders")
+        # folders Irstea/HABBY
+        appauthor = "Irstea"
+        appname = "HABBY"
+        self.user_config_habby_path = AppDirs(appname, appauthor).user_config_dir
+        self.user_config_habby_file_path = os.path.join(self.user_config_habby_path, "habby_config.json")
+        self.user_config_biology_models = os.path.join(self.user_config_habby_path, "biology", "user_models")
+        self.user_config_biology_models_db_file = os.path.join(self.user_config_habby_path, "biology",
+                                                               "models_db.json")
+        self.user_config_temp_path = os.path.join(self.user_config_habby_path, "temp")
+        self.user_config_log_path = os.path.join(self.user_config_habby_path, "log")
+        self.user_config_crashlog_file = os.path.join(self.user_config_habby_path, "log", "habby_crash.log")
+
+    # CONFIG
+    def create_appdata_folders(self):
+        # user_config_habby_file_path
+        if not os.path.isdir(self.user_config_habby_path):
+            os.makedirs(self.user_config_habby_path)
+        # user_config_biology_models
+        if not os.path.isdir(self.user_config_biology_models):
+            os.makedirs(self.user_config_biology_models)
+        # user_config_temp_path
+        if not os.path.isdir(self.user_config_temp_path):
+            os.mkdir(self.user_config_temp_path)
+        # user_config_log_path
+        if not os.path.isdir(self.user_config_log_path):
+            os.mkdir(self.user_config_log_path)
+
+    def crash_management_output(self, error_type, error_value, error_traceback):
+        """
+        catch exception before crashes program write it in habby_crash.log
+        """
+        # print to consol
+        traceback.print_exception(error_type, error_value, error_traceback)
+        # write to crash_log file
+        with open(self.user_config_crashlog_file, 'w') as f:
+            f.write(''.join(traceback.format_tb(error_traceback))
+                    + str(error_type).split("'")[1] + ": "
+                    + str(error_value))
+        # exit python
+        raise SystemExit
 
 
 def main():
@@ -63,6 +92,7 @@ def main():
         """
         GUI
         """
+        from src_GUI import main_window_GUI
         # create app
         app = QApplication(sys.argv)
 
@@ -90,6 +120,7 @@ def main():
         """
         command line
         """
+        from src import func_for_cmd_mod
         # get path and project name
         namedir = 'result_cmd3'
         path_bio = './biology'
@@ -126,7 +157,7 @@ def main():
 
         # remove if arg
         if path_prj_index and name_prj_index and path_bio_index:
-            sys.argv = [v for i,v in enumerate(sys.argv) if i not in [path_prj_index, name_prj_index, path_bio_index]]
+            sys.argv = [v for i, v in enumerate(sys.argv) if i not in [path_prj_index, name_prj_index, path_bio_index]]
         elif path_prj_index and name_prj_index:
             sys.argv = [v for i, v in enumerate(sys.argv) if i not in [path_prj_index, name_prj_index]]
         elif path_prj_index and not name_prj_index and not path_bio_index:
@@ -176,6 +207,10 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.excepthook = crash_management_output  # catch exception before crashes program write it in habby_crash.log
+    # with parallel process, don't import in this file an instance object
+    # otherwise it will be re-created for each process started (EVIL)
+    appdatafolders = AppDataFolders()
+    appdatafolders.create_appdata_folders()
+    sys.excepthook = appdatafolders.crash_management_output  # catch exception before crashes program write it in habby_crash.log
     multiprocessing.freeze_support()  # necessary to freeze the application with parallel process
     main()
