@@ -110,10 +110,10 @@ def check_matching_units(data_description, types):
 
     # check matching units type ok
     if unit_hdf5_type == unit_chronicle_type:
-        print("units type match")
+        #print("units type match")
         return True, ""
     if unit_hdf5_type != unit_chronicle_type:
-        print("units type doesn't match")
+        #print("units type doesn't match")
         return False, " Desired units type is different from available units type : " + unit_chronicle_type + " != " + unit_hdf5_type
 
 

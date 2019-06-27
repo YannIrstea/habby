@@ -595,7 +595,7 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
             # set actual hydrau_description
             hydrau_description = hydrau_description_multiple
 
-    print("hydrau_case, " + hydrau_case)
+    #print("hydrau_case, " + hydrau_case)
     return hydrau_description, warning_list
 
 

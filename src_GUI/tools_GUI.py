@@ -289,7 +289,7 @@ class InterpolationGroup(QGroupBoxCollapsible):
             self.hab_reach_qcombobox.addItems(reach_names)
 
     def reach_hab_change(self):
-        print("reach change")
+        #print("reach change")
         hdf5name = self.hab_filenames_qcombobox.currentText()
         reach_name = self.hab_reach_qcombobox.currentText()
         # no file
