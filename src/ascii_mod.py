@@ -26,7 +26,7 @@ from src import hdf5_mod
 from src import manage_grid_mod
 from src import mesh_management_mod
 from src_GUI import preferences_GUI
-
+from src.config_data_habby_mod import CONFIG_HABBY
 
 def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=False, project_preferences={}):
     if not print_cmd:
@@ -202,7 +202,8 @@ def load_ascii_model(filename, path_prj):
     :return: data_2d, data_description two dictionnary with elements for writing hdf5 datasets and attribute
     """
     path = os.path.dirname(filename)
-    fnoden, ftinn, fsubn = os.path.join(path, 'wwnode.txt'), os.path.join(path, 'wwtin.txt'), os.path.join(path,
+    path_temp=CONFIG_HABBY.user_config_temp_path
+    fnoden, ftinn, fsubn = os.path.join(path_temp, 'wwnode.txt'), os.path.join(path_temp, 'wwtin.txt'), os.path.join(path_temp,
                                                                                                            'wwsub.txt')
     fi = open(filename, 'r', encoding='utf8')
     fnode = open(fnoden, 'w', encoding='utf8')
