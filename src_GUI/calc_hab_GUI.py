@@ -116,6 +116,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=[],
                                                  hydraulic_mode_list=[],
                                                  substrate_mode_list=[])
+        self.load_selected_aquatic_animal_dict()
+
         self.p = Process(target=None)  # second process
 
         self.init_iu()
@@ -240,28 +242,24 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
+        self.fill_selected_models_listwidets([])
 
-        # load dicoselect in xml project
+    def open_bio_model_explorer(self):
+        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
+
+    def load_selected_aquatic_animal_dict(self):
+        # load selected_aquatic_animal_dict in xml project
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
         doc = ET.parse(fname)
         root = doc.getroot()
         # geo data
         child1 = root.find('.//selected_aquatic_animal_list_calc_hab')
-        if child1 is None:
-            self.selected_aquatic_animal_dict = dict(selected_aquatic_animal_list=[],
-                                                     hydraulic_mode_list=[],
-                                                     substrate_mode_list=[])
-        else:
+        if child1 is not None:
             self.selected_aquatic_animal_dict = eval(child1.text)
-            self.general_option_hyd_combobox_index = \
-            self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][0]
+            self.general_option_hyd_combobox_index = self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][0]
             self.general_option_sub_combobox_index = self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"][1]
             # remove key
             del self.selected_aquatic_animal_dict["general_hyd_sub_combobox_index"]
-            self.fill_selected_models_listwidets([])
-
-    def open_bio_model_explorer(self):
-        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
 
     def remove_duplicate(self):
         print("remove_duplicate")
@@ -400,6 +398,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.general_option_hyd_combobox.blockSignals(True)
             self.general_option_hyd_combobox.setCurrentIndex(1)
             self.general_option_hyd_combobox.blockSignals(False)
+            self.general_option_hyd_combobox.setStyleSheet("")
+
             # change in dict
             self.selected_aquatic_animal_dict["hydraulic_mode_list"][model_index] = new_hyd_mode_index
 
@@ -431,6 +431,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.general_option_sub_combobox.blockSignals(True)
             self.general_option_sub_combobox.setCurrentIndex(1)
             self.general_option_sub_combobox.blockSignals(False)
+            self.general_option_sub_combobox.setStyleSheet("")
             # change in dict
             self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
