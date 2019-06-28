@@ -710,6 +710,7 @@ class MainWindows(QMainWindow):
 
     def setthemeclassic(self):
         self.app.setStyleSheet("")
+        #self.app.setStyle("Fusion")
         self.actual_theme = "classic"
         self.my_menu_bar()
         self.my_menu_bar(True)
@@ -720,6 +721,7 @@ class MainWindows(QMainWindow):
     def setthemedark(self):
         #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
         self.app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+        #self.app.setStyle("fusion")
         self.actual_theme = "dark"
         # other
         self.central_widget.welcome_tab.pic.setPixmap(
