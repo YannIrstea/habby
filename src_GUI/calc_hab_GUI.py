@@ -21,7 +21,7 @@ from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtCore import pyqtSignal, Qt, QTimer, QSize
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, \
     QComboBox, QAbstractItemView, QTableWidget, \
-    QSizePolicy, QFrame, QListWidgetItem
+    QSizePolicy, QFrame, QListWidgetItem, QScrollBar, QCheckBox
 
 try:
     import xml.etree.cElementTree as ET
@@ -106,7 +106,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.general_option_hyd_combobox_index = 0
         self.general_option_sub_combobox_index = 0
 
-        self.default_color = "green" # "#A6C313"  # #A6C313 (green Irstea)
+        self.default_color = "green"  # "#A6C313"  # #A6C313 (green Irstea)
         self.user_color = "black"
         # "QComboBox:!editable {background: " + self.default_color + "}"  # OK en black edition mais bizar en classic
         # "background: " + self.default_color # colorize all background
@@ -169,7 +169,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hyd_mode_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.hyd_mode_qtablewidget.verticalHeader().setVisible(False)
         self.hyd_mode_qtablewidget.horizontalHeader().setVisible(False)
-
         self.general_option_hyd_combobox = QComboBox()
         self.general_option_hyd_combobox.addItems(self.all_hyd_choice)
         self.general_option_hyd_combobox.model().item(0).setBackground(QColor(self.default_color))
@@ -184,7 +183,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.sub_mode_qtablewidget.verticalHeader().setVisible(False)
         self.sub_mode_qtablewidget.horizontalHeader().setVisible(False)
-
         self.general_option_sub_combobox = QComboBox()
         self.general_option_sub_combobox.addItems(self.all_sub_choice)
         self.general_option_sub_combobox.model().item(0).setBackground(QColor(self.default_color))
@@ -193,13 +191,31 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.general_option_sub_combobox.setStyleSheet(self.combobox_style_default)
         self.general_option_sub_combobox.activated.connect(self.set_once_all_sub_combobox)
 
+        # 4 column
+        self.presence_qtablewidget = QTableWidget()
+        self.presence_qtablewidget.setColumnCount(1)
+        self.presence_qtablewidget.horizontalHeader().setStretchLastSection(True)
+        self.presence_qtablewidget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.presence_qtablewidget.verticalHeader().setVisible(False)
+        self.presence_qtablewidget.horizontalHeader().setVisible(False)
+
+        # 5 column
+        self.general_scrollbar = QScrollBar(self.sub_mode_qtablewidget)
+
+
         # scroll bar together
         self.selected_aquatic_animal_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setEnabled(False)
         self.hyd_mode_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.hyd_mode_qtablewidget.verticalScrollBar().setEnabled(False)
-        self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue)
-        self.sub_mode_qtablewidget.verticalScrollBar().valueChanged.connect(self.hyd_mode_qtablewidget.verticalScrollBar().setValue)
+        self.sub_mode_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.sub_mode_qtablewidget.verticalScrollBar().setEnabled(False)
+        self.presence_qtablewidget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.presence_qtablewidget.verticalScrollBar().setEnabled(False)
+        self.general_scrollbar.valueChanged.connect(self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue)
+        self.general_scrollbar.valueChanged.connect(self.hyd_mode_qtablewidget.verticalScrollBar().setValue)
+        self.general_scrollbar.valueChanged.connect(self.sub_mode_qtablewidget.verticalScrollBar().setValue)
+
 
         # fill hdf5 list
         self.update_merge_list()
@@ -235,10 +251,20 @@ class BioInfo(estimhab_GUI.StatModUseful):
         layout_prov3.addWidget(self.general_option_sub_combobox)
         self.layout4.addLayout(layout_prov3, 2, 2)
         self.layout4.addWidget(self.sub_mode_qtablewidget, 3, 2)
+
+        # 4e column
+        self.layout4.addWidget(QLabel(self.tr("Exist in .hab")), 2, 3)
+        self.layout4.addWidget(self.presence_qtablewidget, 3, 3, 1, 1)
+
+
+        # 5e column
+        self.layout4.addWidget(self.general_scrollbar, 3, 4, 1, 1)
+
         self.layout4.addWidget(self.runhab, 5, 2)
-        self.layout4.setColumnStretch(0, 3)
-        self.layout4.setColumnStretch(1, 1)
-        self.layout4.setColumnStretch(2, 1)
+        self.layout4.setColumnStretch(0, 30)
+        self.layout4.setColumnStretch(1, 10)
+        self.layout4.setColumnStretch(2, 10)
+        self.layout4.setColumnStretch(3, 1)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
@@ -458,6 +484,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.sub_mode_qtablewidget.clear()
         self.sub_mode_qtablewidget.setRowCount(total_item)
 
+        # clear presence
+        self.presence_qtablewidget.clear()
+        self.presence_qtablewidget.setRowCount(total_item)
+
         # add new item if not exist
         for index, item_str in enumerate(self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]):
             # add label item
@@ -470,6 +500,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # get stage index
             index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
 
+            """ HYD """
             # get default_hydraulic_type
             hydraulic_type_available = user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
             # create combobox
@@ -494,6 +525,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.hyd_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
             self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
+            """ SUB """
             # get default_substrate_type
             substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][
                 index_stage]
@@ -514,6 +546,15 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # add combobox item
             self.sub_mode_qtablewidget.setCellWidget(index, 0, item_combobox)
             self.sub_mode_qtablewidget.setRowHeight(index, 27)
+
+            """ EXIST """
+            item_checkbox = QCheckBox()
+            item_checkbox.setEnabled(False)
+            item_checkbox.setChecked(False)
+            item_checkbox.setObjectName(str(index))
+            # add item_checkbox
+            self.presence_qtablewidget.setCellWidget(index, 0, item_checkbox)
+            self.presence_qtablewidget.setRowHeight(index, 27)
 
         # general
         self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")

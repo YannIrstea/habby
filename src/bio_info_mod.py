@@ -447,12 +447,12 @@ def get_biomodels_informations_for_database(path_xml):
     # guild
     guild_element = root.find(".//Guild")
     if guild_element:
-        guild = "guild"
+        guild = "@guild"
     else:
         guild = "mono"
 
     # CdAlternative
-    if guild == "guild":
+    if guild == "@guild":
         # get all fish guild code alternative
         CdAlternative = guild_element.getchildren()[0].text
         CdAlternativefishs = [guild_element.getchildren()[i].find("CdAlternative").text for i in [1, len(guild_element.getchildren()) - 1]]
@@ -526,8 +526,8 @@ def get_biomodels_informations_for_database(path_xml):
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
 
     # LatinName
-    if guild == "guild":
-        LatinName = "guild"
+    if guild == "@guild":
+        LatinName = "@guild"
     else:
         LatinName = root.find(".//LatinName").text
 

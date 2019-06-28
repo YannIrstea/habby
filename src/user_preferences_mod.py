@@ -34,7 +34,6 @@ class UserPreferences(AppDataFolders):
 
     def __init__(self):
         super().__init__()
-        print("__init__UserPreferences")
         # state
         self.modified = False
         # biological models allowed by HABBY dict
@@ -69,7 +68,7 @@ class UserPreferences(AppDataFolders):
         # MODEL BIO
         self.create_or_update_biology_models_json()
 
-    # preferences
+    # PREFERENCES
     def create_empty_temp(self):
         try:
             shutil.rmtree(self.user_preferences_temp_path)  # remove folder (and its files)
