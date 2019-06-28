@@ -46,6 +46,7 @@ from src import lammi_mod
 from src import paraview_mod
 from src import hydro_input_file_mod
 from src import ascii_mod
+from src.user_preferences_mod import user_preferences
 
 np.set_printoptions(threshold=np.inf)
 try:
@@ -3954,11 +3955,10 @@ class ASCII(SubHydroW):  # QGroupBox
         # path input
         path_input = self.find_path_input()
 
-        # load the telemac data
+        # load the ascii data
         self.q = Queue()
         self.progress_value = Value("i", 0)
-
-        # check telemac cases
+        # check ascii cases
         if self.hydrau_case == '4.a' or self.hydrau_case == '4.b' or (
                 self.hydrau_case == 'unknown' and self.multi_hdf5):
             # refresh units selection
@@ -3967,7 +3967,8 @@ class ASCII(SubHydroW):  # QGroupBox
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.project_preferences))
+                                   self.project_preferences,
+                                   user_preferences.user_preferences_temp_path))
         else:
             self.hydrau_description["hdf5_name"] = self.name_hdf5
             self.p = Process(target=ascii_mod.load_ascii_and_cut_grid,
@@ -3975,7 +3976,8 @@ class ASCII(SubHydroW):  # QGroupBox
                                    self.progress_value,
                                    self.q,
                                    False,
-                                   self.project_preferences))
+                                   self.project_preferences,
+                                   user_preferences.user_preferences_temp_path))
         self.p.name = "ASCII data loading"
         self.p.start()
 
@@ -3991,14 +3993,14 @@ class ASCII(SubHydroW):  # QGroupBox
             self.p2.start()
 
         # log info
-        self.send_log.emit(self.tr('# Loading: TELEMAC data...'))
+        self.send_log.emit(self.tr('# Loading: ASCII data...'))
         self.send_err_log()
         self.send_log.emit("py    file1=r'" + self.namefile[0] + "'")
         self.send_log.emit("py    path1=r'" + path_input + "'")
         self.send_log.emit(
             "py    selafin_habby1.load_telemac_and_cut_grid('hydro_telemac_log', file1, path1, name_prj, "
-            "path_prj, 'TELEMAC', 2, path_prj, [], True )\n")
-        self.send_log.emit("restart LOAD_TELEMAC")
+            "path_prj, 'ASCII', 2, path_prj, [], True )\n")
+        self.send_log.emit("restart ASCII")
         self.send_log.emit("restart    file1: " + os.path.join(path_input, self.namefile[0]))
 
 

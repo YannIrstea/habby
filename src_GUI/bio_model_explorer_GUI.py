@@ -35,7 +35,7 @@ except ImportError:
 from src import bio_info_mod
 from src import plot_mod
 from src_GUI import preferences_GUI
-from src.config_data_habby_mod import CONFIG_HABBY
+from src.user_preferences_mod import user_preferences
 from src_GUI.data_explorer_GUI import MyProcessList
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 
@@ -56,7 +56,7 @@ class BioModelExplorerWindow(QDialog):
         self.name_prj = name_prj
         self.name_icon = name_icon
         self.msg2 = QMessageBox()
-        self.path_bio = CONFIG_HABBY.path_bio
+        self.path_bio = user_preferences.path_bio
         self.plot_process_list = plot_process_list
         # filters index
 
@@ -95,9 +95,9 @@ class BioModelExplorerWindow(QDialog):
         root = doc.getroot()
         # geo data
         child1 = root.find('.//Bio_model_explorer_selection')
-        if CONFIG_HABBY.modified:
-            self.send_log.emit("Warning: Biological models database has been modified. \n" + CONFIG_HABBY.diff_list)
-        if child1 is None or CONFIG_HABBY.modified:
+        if user_preferences.modified:
+            self.send_log.emit("Warning: Biological models database has been modified. \n" + user_preferences.diff_list)
+        if child1 is None or user_preferences.modified:
             self.bio_model_filter_tab.create_dico_select()
             self.bio_model_infoselection_tab.dicoselect = self.bio_model_filter_tab.dicoselect
         else:
@@ -147,7 +147,7 @@ class BioModelFilterTab(QScrollArea):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.msg2 = QMessageBox()
-        self.biological_models_dict_gui = CONFIG_HABBY.biological_models_dict.copy()
+        self.biological_models_dict_gui = user_preferences.biological_models_dict.copy()
         #self.create_dico_select()
         self.init_iu()
 
@@ -844,18 +844,18 @@ class BioModelInfoSelection(QScrollArea):
             selected_aquatic_animal_list.append(new_item_to_merge)
             # get info
             name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(new_item_to_merge)
-            index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+            index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
             # get stage index
-            index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+            index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
 
             # get default_hydraulic_type
-            default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
-            hydraulic_type_available = CONFIG_HABBY.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
+            default_hydraulic_type = user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage]
+            hydraulic_type_available = user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
             hydraulic_mode_list.append(hydraulic_type_available.index(default_hydraulic_type))
 
             # get default_substrate_type
-            default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
-            substrate_type_available = CONFIG_HABBY.biological_models_dict["substrate_type_available"][index_fish][index_stage]
+            default_substrate_type = user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage]
+            substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][index_stage]
             substrate_mode_list.append(substrate_type_available.index(default_substrate_type))
 
         # create dict

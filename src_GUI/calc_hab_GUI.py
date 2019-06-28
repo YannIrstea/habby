@@ -31,7 +31,7 @@ from src_GUI import estimhab_GUI
 from src import calcul_hab_mod
 from src import hdf5_mod
 from src_GUI import preferences_GUI
-from src.config_data_habby_mod import CONFIG_HABBY
+from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.tools_mod import sort_homogoeneous_dict_list_by_on_key
 
@@ -321,10 +321,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if default:
                 # get default
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-                index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
                 # get stage index
-                index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
-                default_hydraulic_type = CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage]
+                index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
+                default_hydraulic_type = user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage]
                 # set positon to combobox
                 self.hyd_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(hydraulic_type_available.index(default_hydraulic_type))
             if not default:
@@ -354,10 +354,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             if default:
                 # get default
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-                index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+                index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
                 # get stage index
-                index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
-                default_substrate_type = CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage]
+                index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
+                default_substrate_type = user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage]
                 # set positon to combobox
                 self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(
                     substrate_type_available.index(default_substrate_type))
@@ -376,10 +376,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get info
         item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-        index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
-        index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+        index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         hydraulic_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
-        default_choice_index = hydraulic_type_available.index(CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+        default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
         if new_hyd_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
             #self.sender().setAutoFillBackground(True)
@@ -413,10 +413,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # get info
         item_str = self.selected_aquatic_animal_qtablewidget.cellWidget(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-        index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
-        index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+        index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+        index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         substrate_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
-        default_choice_index = substrate_type_available.index(CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage])
+        default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
         if new_sub_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
         else:
@@ -466,18 +466,18 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             # get info
             name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-            index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
+            index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
             # get stage index
-            index_stage = CONFIG_HABBY.biological_models_dict["stage_and_size"][index_fish].index(stage)
+            index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
 
             # get default_hydraulic_type
-            hydraulic_type_available = CONFIG_HABBY.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
+            hydraulic_type_available = user_preferences.biological_models_dict["hydraulic_type_available"][index_fish][index_stage]
             # create combobox
             item_combobox = QComboBox()
             item_combobox.setObjectName(str(index))
             item_combobox.addItems(hydraulic_type_available)
             choosen_index = self.selected_aquatic_animal_dict["hydraulic_mode_list"][index]
-            default_choice_index = hydraulic_type_available.index(CONFIG_HABBY.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+            default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
             if choosen_index == default_choice_index:
                 item_combobox.setStyleSheet(self.combobox_style_default)
                 # pal = item_combobox.palette()
@@ -495,14 +495,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
             self.hyd_mode_qtablewidget.setRowHeight(index, 27)
 
             # get default_substrate_type
-            substrate_type_available = CONFIG_HABBY.biological_models_dict["substrate_type_available"][index_fish][
+            substrate_type_available = user_preferences.biological_models_dict["substrate_type_available"][index_fish][
                 index_stage]
             # create combobox
             item_combobox = QComboBox()
             item_combobox.setObjectName(str(index))
             item_combobox.addItems(substrate_type_available)
             choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
-            default_choice_index = substrate_type_available.index(CONFIG_HABBY.biological_models_dict["substrate_type"][index_fish][index_stage])
+            default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
             if choosen_index == default_choice_index:
                 item_combobox.setStyleSheet(self.combobox_style_default)
             else:
@@ -630,13 +630,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
             name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(fish_item_text)
             name_fish_sel += fish_item_text + ","
             name_fish_list.append(name_fish)
-            index_fish = CONFIG_HABBY.biological_models_dict["cd_biological_model"].index(code_bio_model)
-            pref_list.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish])
+            index_fish = user_preferences.biological_models_dict["cd_biological_model"].index(code_bio_model)
+            pref_list.append(user_preferences.biological_models_dict["path_xml"][index_fish])
             stages_chosen.append(stage)
             name_fish_sh_text = code_bio_model + "_" + stage
             name_fish_sh.append(name_fish_sh_text[:8])
             # name_fish_sel += name_fish + ','
-            xmlfiles.append(CONFIG_HABBY.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
+            xmlfiles.append(user_preferences.biological_models_dict["path_xml"][index_fish].split("\\")[-1])
             # if self.data_fish[j][0] == fish_item_text:
             #     #pref_list.append(self.data_fish[j][2])
             #     #stages_chosen.append(self.data_fish[j][1])

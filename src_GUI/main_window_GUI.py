@@ -48,7 +48,7 @@ from src_GUI import fstress_GUI
 from src_GUI.bio_model_explorer_GUI import BioModelExplorerWindow
 from src import project_manag_mod
 from habby import HABBY_VERSION
-from src.config_data_habby_mod import CONFIG_HABBY
+from src.user_preferences_mod import user_preferences
 
 
 class MainWindows(QMainWindow):
@@ -92,8 +92,8 @@ class MainWindows(QMainWindow):
         # CAREFUL also change the version in habby.py for the command line version
         self.version = HABBY_VERSION
 
-        # CONFIG_HABBY
-        self.config_habby = CONFIG_HABBY
+        # user_preferences
+        self.user_preferences = user_preferences
 
         # operating system
         self.operatingsystemactual = operatingsystem()
@@ -105,10 +105,10 @@ class MainWindows(QMainWindow):
         # name_path_set = self.settings.value('path_prj')
         # # print(name_path_set)
         # language_set = self.settings.value('language_code')
-        name_prj_set = self.config_habby.data["name_prj"]
-        name_path_set = self.config_habby.data["path_prj"]
-        language_set = self.config_habby.data["language"]
-        self.actual_theme = self.config_habby.data["theme"]
+        name_prj_set = self.user_preferences.data["name_prj"]
+        name_path_set = self.user_preferences.data["path_prj"]
+        language_set = self.user_preferences.data["language"]
+        self.actual_theme = self.user_preferences.data["theme"]
 
         # # to erase setting of older version
         # # add here the number of older version whose setting must be erased because they are not compatible
@@ -122,12 +122,12 @@ class MainWindows(QMainWindow):
         # # recent project: list of string
         # recent_projects_set = self.settings.value('recent_project_name')
         # recent_projects_path_set = self.settings.value('recent_project_path')
-        recent_projects_set = self.config_habby.data["recent_project_name"]
-        recent_projects_path_set = self.config_habby.data["recent_project_path"]
+        recent_projects_set = self.user_preferences.data["recent_project_name"]
+        recent_projects_path_set = self.user_preferences.data["recent_project_path"]
         if recent_projects_set:
             if len(recent_projects_set) > self.nb_recent:
-                self.config_habby.data["recent_project_name"] = recent_projects_set[-self.nb_recent + 1:]
-                self.config_habby.data["recent_project_path"] = recent_projects_path_set[-self.nb_recent + 1:]
+                self.user_preferences.data["recent_project_name"] = recent_projects_set[-self.nb_recent + 1:]
+                self.user_preferences.data["recent_project_path"] = recent_projects_path_set[-self.nb_recent + 1:]
 
         # set up translation
         self.languageTranslator = QTranslator()
@@ -187,7 +187,7 @@ class MainWindows(QMainWindow):
             lang_bio = 'English'
 
         # set selected tabs
-        self.physic_tabs, self.stat_tabs, self.research_tabs = self.config_habby.data["selected_tabs"]
+        self.physic_tabs, self.stat_tabs, self.research_tabs = self.user_preferences.data["selected_tabs"]
 
         self.central_widget = CentralW(self.physic_tabs,
                                        self.stat_tabs,
@@ -213,7 +213,7 @@ class MainWindows(QMainWindow):
         self.setWindowIcon(QIcon(self.name_icon))
 
         # position theme
-        wind_position_x, wind_position_y, wind_position_w, wind_position_h = self.config_habby.data["wind_position"]
+        wind_position_x, wind_position_y, wind_position_w, wind_position_h = self.user_preferences.data["wind_position"]
         self.setGeometry(wind_position_x, wind_position_y, wind_position_w, wind_position_h)
 
         # create the menu bar
@@ -301,13 +301,13 @@ class MainWindows(QMainWindow):
         self.central_widget.bioinfo_tab.save_selected_aquatic_animal_list_calc_hab()
 
         # save settings
-        self.config_habby.data["wind_position"] = (self.geometry().x(),
-                                                   self.geometry().y(),
-                                                   self.geometry().width(),
-                                                   self.geometry().height())
-        self.config_habby.data["theme"] = self.actual_theme
-        self.config_habby.data["selected_tabs"] = (self.physic_tabs, self.stat_tabs, self.research_tabs)
-        self.config_habby.save_config_json()
+        self.user_preferences.data["wind_position"] = (self.geometry().x(),
+                                                       self.geometry().y(),
+                                                       self.geometry().width(),
+                                                       self.geometry().height())
+        self.user_preferences.data["theme"] = self.actual_theme
+        self.user_preferences.data["selected_tabs"] = (self.physic_tabs, self.stat_tabs, self.research_tabs)
+        self.user_preferences.save_user_preferences_json()
 
         os._exit(1)
 
@@ -490,9 +490,9 @@ class MainWindows(QMainWindow):
             language = "french"
         if self.lang == 2:
             language = "spanish"
-        if self.config_habby.data["language"] != language:
-            self.config_habby.data["language"] = language
-            self.config_habby.save_config_json()
+        if self.user_preferences.data["language"] != language:
+            self.user_preferences.data["language"] = language
+            self.user_preferences.save_user_preferences_json()
 
         #  right click
         self.create_menu_right_clic()
@@ -714,9 +714,9 @@ class MainWindows(QMainWindow):
         self.actual_theme = "classic"
         self.my_menu_bar()
         self.my_menu_bar(True)
-        if self.config_habby.data["theme"] != self.actual_theme:
-            self.config_habby.data["theme"] = self.actual_theme
-            self.config_habby.save_config_json()
+        if self.user_preferences.data["theme"] != self.actual_theme:
+            self.user_preferences.data["theme"] = self.actual_theme
+            self.user_preferences.save_user_preferences_json()
 
     def setthemedark(self):
         #self.app.setStyleSheet(qdarkgraystyle.load_stylesheet())
@@ -728,9 +728,9 @@ class MainWindows(QMainWindow):
             QPixmap(os.path.join(os.getcwd(), self.central_widget.welcome_tab.imname)).scaled(800, 500))  # 800 500
         self.my_menu_bar()
         self.my_menu_bar(True)
-        if self.config_habby.data["theme"] != self.actual_theme:
-            self.config_habby.data["theme"] = self.actual_theme
-            self.config_habby.save_config_json()
+        if self.user_preferences.data["theme"] != self.actual_theme:
+            self.user_preferences.data["theme"] = self.actual_theme
+            self.user_preferences.save_user_preferences_json()
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left}')
         #self.setStyleSheet('QGroupBox::title {subcontrol-position: top left; subcontrol-origin: margin; left: 7px; padding: 0px 0px 0px 0px;}')
 
@@ -976,8 +976,8 @@ class MainWindows(QMainWindow):
         fname = os.path.join(self.path_prj, self.name_prj + '.xml')
 
         # update user option and re-do (the whole) menu
-        self.config_habby.data["name_prj"] = self.name_prj
-        self.config_habby.data["path_prj"] = self.path_prj
+        self.user_preferences.data["name_prj"] = self.name_prj
+        self.user_preferences.data["path_prj"] = self.path_prj
 
         # save name and path of project in the list of recent project
         if self.name_prj not in self.recent_project:
@@ -990,9 +990,9 @@ class MainWindows(QMainWindow):
                         self.recent_project_path[ind[0]]):  # linux windows path
                     self.recent_project.append(self.name_prj)
                     self.recent_project_path.append(self.path_prj)
-        self.config_habby.data["recent_project_name"] = self.recent_project
-        self.config_habby.data["recent_project_path"] = self.recent_project_path
-        self.config_habby.save_config_json()
+        self.user_preferences.data["recent_project_name"] = self.recent_project
+        self.user_preferences.data["recent_project_path"] = self.recent_project_path
+        self.user_preferences.save_user_preferences_json()
 
         self.my_menu_bar()
 
@@ -1569,7 +1569,7 @@ class MainWindows(QMainWindow):
         """
         modifiers = QApplication.keyboardModifiers()
         if modifiers == Qt.ControlModifier:
-            path_choosen = os.path.normpath(self.config_habby.user_config_habby_path)
+            path_choosen = os.path.normpath(self.user_preferences.user_preferences_habby_path)
         elif modifiers == Qt.ShiftModifier:
             path_choosen = os.path.normpath(os.getcwd())
         else:

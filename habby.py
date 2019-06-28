@@ -29,7 +29,7 @@ HABBY_VERSION = 0.25
 
 class AppDataFolders:
     """
-    The class ConfigHabby manage habby user configuration
+    The class preferencesHabby manage habby user preferences
     """
 
     def __init__(self):
@@ -37,29 +37,29 @@ class AppDataFolders:
         # folders Irstea/HABBY
         appauthor = "Irstea"
         appname = "HABBY"
-        self.user_config_habby_path = AppDirs(appname, appauthor).user_config_dir
-        self.user_config_habby_file_path = os.path.join(self.user_config_habby_path, "habby_config.json")
-        self.user_config_biology_models = os.path.join(self.user_config_habby_path, "biology", "user_models")
-        self.user_config_biology_models_db_file = os.path.join(self.user_config_habby_path, "biology",
+        self.user_preferences_habby_path = AppDirs(appname, appauthor).user_config_dir
+        self.user_preferences_habby_file_path = os.path.join(self.user_preferences_habby_path, "user_preferences.json")
+        self.user_preferences_biology_models = os.path.join(self.user_preferences_habby_path, "biology", "user_models")
+        self.user_preferences_biology_models_db_file = os.path.join(self.user_preferences_habby_path, "biology",
                                                                "models_db.json")
-        self.user_config_temp_path = os.path.join(self.user_config_habby_path, "temp")
-        self.user_config_log_path = os.path.join(self.user_config_habby_path, "log")
-        self.user_config_crashlog_file = os.path.join(self.user_config_habby_path, "log", "habby_crash.log")
+        self.user_preferences_temp_path = os.path.join(self.user_preferences_habby_path, "temp")
+        self.user_preferences_log_path = os.path.join(self.user_preferences_habby_path, "log")
+        self.user_preferences_crashlog_file = os.path.join(self.user_preferences_habby_path, "log", "habby_crash.log")
 
-    # CONFIG
+    # preferences
     def create_appdata_folders(self):
-        # user_config_habby_file_path
-        if not os.path.isdir(self.user_config_habby_path):
-            os.makedirs(self.user_config_habby_path)
-        # user_config_biology_models
-        if not os.path.isdir(self.user_config_biology_models):
-            os.makedirs(self.user_config_biology_models)
-        # user_config_temp_path
-        if not os.path.isdir(self.user_config_temp_path):
-            os.mkdir(self.user_config_temp_path)
-        # user_config_log_path
-        if not os.path.isdir(self.user_config_log_path):
-            os.mkdir(self.user_config_log_path)
+        # user_preferences_habby_file_path
+        if not os.path.isdir(self.user_preferences_habby_path):
+            os.makedirs(self.user_preferences_habby_path)
+        # user_preferences_biology_models
+        if not os.path.isdir(self.user_preferences_biology_models):
+            os.makedirs(self.user_preferences_biology_models)
+        # user_preferences_temp_path
+        if not os.path.isdir(self.user_preferences_temp_path):
+            os.mkdir(self.user_preferences_temp_path)
+        # user_preferences_log_path
+        if not os.path.isdir(self.user_preferences_log_path):
+            os.mkdir(self.user_preferences_log_path)
 
     def crash_management_output(self, error_type, error_value, error_traceback):
         """
@@ -68,7 +68,7 @@ class AppDataFolders:
         # print to consol
         traceback.print_exception(error_type, error_value, error_traceback)
         # write to crash_log file
-        with open(self.user_config_crashlog_file, 'w') as f:
+        with open(self.user_preferences_crashlog_file, 'w') as f:
             f.write(''.join(traceback.format_tb(error_traceback))
                     + str(error_type).split("'")[1] + ": "
                     + str(error_value))
