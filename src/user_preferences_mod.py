@@ -64,19 +64,25 @@ class UserPreferences(AppDataFolders):
     def create_user_preferences_structure(self):
         print("create_user_preferences_structure")
         # preferences
-        self.create_empty_temp()
+        self.create_and_clear_temp_folder()
         self.create_or_load_user_preferences()
         # MODEL BIO
         self.create_or_update_biology_models_json()
 
     # preferences
-    def create_empty_temp(self):
-        try:
-            shutil.rmtree(self.user_preferences_temp_path)  # remove folder (and its files)
+    def create_and_clear_temp_folder(self):
+        # if not exist : craete it
+        if not os.path.isdir(self.user_preferences_temp_path):
             os.mkdir(self.user_preferences_temp_path)  # recreate folder (empty)
-        except:
-            print("Error: Can't remove temps files. They are opened by another programme. Close them "
-                  "and try again.")
+        # if exist : clear content
+        else:
+            try:
+                filesToRemove = [os.path.join(self.user_preferences_temp_path, f) for f in os.listdir(self.user_preferences_temp_path)]
+                for f in filesToRemove:
+                    os.remove(f)
+            except:
+                print("Error: Can't remove temps files. They are opened by another programme. Close them "
+                      "and try again.")
 
     def create_or_load_user_preferences(self):
         if not os.path.isfile(self.user_preferences_habby_file_path):  # check if preferences file exist
