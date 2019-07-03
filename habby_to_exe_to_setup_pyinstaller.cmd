@@ -8,8 +8,9 @@ set /p VarQuestion= Do you want to create an installer after the creation of the
 ECHO if build\pyinstaller folder exist, remove it
 if exist build\pyinstaller rmdir /Q /S build\pyinstaller
 
-ECHO pyinstaller ##  --windowed remove console --add-binary C:\users\quentin.royer\documents\taf\environnements_virtuels\env_habby_dev\lib\site-packages\shapely\DLLs\geos.dll;geos.dll 
-pyinstaller --icon=translation\habby_icon.ico --windowed --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --specpath=build\pyinstaller\temp --name=habby habby.py
+ECHO pyinstaller ##  --windowed remove console  --specpath=pyinstaller_config.spec  --add-binary C:\users\quentin.royer\documents\taf\environnements_virtuels\env_habby_dev\lib\site-packages\shapely\DLLs\geos.dll;geos.dll 
+::pyinstaller --icon=translation\habby_icon.ico --windowed --distpath=build\pyinstaller --workpath=build\pyinstaller\temp --name=habby habby.py
+pyinstaller habby.spec --distpath=build\pyinstaller --workpath=build\pyinstaller\temp
 
 ECHO if build folder exist, remove it
 if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp
