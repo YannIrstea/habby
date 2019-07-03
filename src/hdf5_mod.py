@@ -1458,7 +1458,7 @@ class Hdf5Management:
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
 
                 # filename
-                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                if not self.data_description['hyd_varying_mesh']:
                     name_shp = self.basename + "_allreachs_allunits_wholeprofile_mesh.gpkg"
                 else:
                     name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_wholeprofile_mesh.gpkg"
@@ -1469,7 +1469,7 @@ class Hdf5Management:
                         except PermissionError:
                             print(
                                 'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                            #return
+                            return
                 else:
                     if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                         name_shp = name_shp[:-4] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
@@ -1487,33 +1487,37 @@ class Hdf5Management:
                           'properties': [("ID", "int")]}
 
                 # GPKG
-                with openfiona(os.path.join(self.path_shp, name_shp), "w", "GPKG", schema, crs) as c:
-                    features = []
+                try:
+                    with openfiona(os.path.join(self.path_shp, name_shp), "w", "GPKG", schema, crs) as c:
+                        features = []
 
-                    # for all reach
-                    for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                        # for all reach
+                        for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
 
-                        # for each mesh
-                        for mesh_num in range(0, len(self.data_2d_whole["tin"][reach_num][unit_num])):
-                            node1 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                            node2 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][1]
-                            node3 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][2]
-                            # data geom (get the triangle coordinates)
-                            p1 = list(self.data_2d_whole["xy"][reach_num][unit_num][node1].tolist() + [
-                                float(self.data_2d_whole["z"][reach_num][unit_num][node1])])
-                            p2 = list(self.data_2d_whole["xy"][reach_num][unit_num][node2].tolist() + [
-                                float(self.data_2d_whole["z"][reach_num][unit_num][node2])])
-                            p3 = list(self.data_2d_whole["xy"][reach_num][unit_num][node3].tolist() + [
-                                float(self.data_2d_whole["z"][reach_num][unit_num][node3])])
-                            features.append({
-                                'geometry': {'coordinates': [[p1, p2, p3, p1]], 'type': 'Polygon'},
-                                'properties': {'ID': mesh_num}
-                            })
+                            # for each mesh
+                            for mesh_num in range(0, len(self.data_2d_whole["tin"][reach_num][unit_num])):
+                                node1 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                                node2 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][1]
+                                node3 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][2]
+                                # data geom (get the triangle coordinates)
+                                p1 = list(self.data_2d_whole["xy"][reach_num][unit_num][node1].tolist() + [
+                                    float(self.data_2d_whole["z"][reach_num][unit_num][node1])])
+                                p2 = list(self.data_2d_whole["xy"][reach_num][unit_num][node2].tolist() + [
+                                    float(self.data_2d_whole["z"][reach_num][unit_num][node2])])
+                                p3 = list(self.data_2d_whole["xy"][reach_num][unit_num][node3].tolist() + [
+                                    float(self.data_2d_whole["z"][reach_num][unit_num][node3])])
+                                features.append({
+                                    'geometry': {'coordinates': [[p1, p2, p3, p1]], 'type': 'Polygon'},
+                                    'properties': {'ID': mesh_num}
+                                })
 
-                    c.writerecords(features)
+                        c.writerecords(features)
+                except:
+                    print("ERROR FIONA")
+                    return
 
                 # stop loop in this case (if one unit in whole profile)
-                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                if not self.data_description['hyd_varying_mesh']:
                     break
 
         # DATA 2D

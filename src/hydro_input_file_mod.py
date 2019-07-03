@@ -351,7 +351,6 @@ def get_hydrau_description_from_source(filename_list, path_prj, model_type, nb_d
                 index_to_keep = []
                 for index, selected_file in enumerate(data_index_file["filename"]):
                     if selected_file in [os.path.basename(element) for element in filename_list]:
-                        print("aaa")
                         index_to_keep.append(index)
             for header in headers:
                 data_index_file[header] = [data_index_file[header][index] for index in index_to_keep]
