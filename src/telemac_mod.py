@@ -108,12 +108,12 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                 else:
                     whole_profil_egual_index.append("diff")
         if "diff" in whole_profil_egual_index:  # if "diff" in list : all tin are different (one tin by unit)
-            data_2d_whole_profile["unit_correspondence"] = whole_profil_egual_index
+            data_2d_whole_profile["unit_correspondence"] = True
         if "diff" not in whole_profil_egual_index:  # one tin for all unit
             data_2d_whole_profile["tin"][0] = [data_2d_whole_profile["tin"][0][0]]
             data_2d_whole_profile["xy_center"][0] = [data_2d_whole_profile["xy_center"][0][0]]
             data_2d_whole_profile["xy"][0] = [data_2d_whole_profile["xy"][0][0]]
-            data_2d_whole_profile["unit_correspondence"] = "all"
+            data_2d_whole_profile["unit_correspondence"] = False
 
         # progress from 10 to 90 : from 0 to len(units_index)
         delta = int(80 / int(description_from_indexHYDRAU_file[hyd_file]["unit_number"]))
@@ -164,7 +164,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
                     if unit_wish in unit_list_from_telemac_file:
                         unit_index_list.append(unit_list_from_telemac_file.index(unit_wish))
 
-        if data_2d_whole_profile["unit_correspondence"] == "all":
+        if not data_2d_whole_profile["unit_correspondence"]:
             # conca xy with z value to facilitate the cutting of the grid (interpolation)
             xy = np.insert(data_2d_telemac["xy"],
                            2,
@@ -227,8 +227,15 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_unit_list"] = [description_from_indexHYDRAU_file[hyd_file]["unit_list"]]
         hyd_description["hyd_unit_number"] = description_from_indexHYDRAU_file[hyd_file]["unit_number"]
         hyd_description["hyd_unit_type"] = description_from_indexHYDRAU_file[hyd_file]["unit_type"]
-        hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
+        hyd_description["hyd_varying_mesh"] = data_2d_whole_profile["unit_correspondence"]
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
+
+        if hyd_description["varying_mesh"]:
+            hyd_description["hyd_unit_z_equal"] = False
+        else:
+            # TODO : check if all z values are equal between units
+            hyd_description["hyd_unit_z_equal"] = True
+
         del data_2d_whole_profile['unit_correspondence']
         if not project_preferences["CutMeshPartialyDry"]:
             namehdf5_old = os.path.splitext(description_from_indexHYDRAU_file[hyd_file]["hdf5_name"])[0]
@@ -321,6 +328,7 @@ def load_telemac(namefilet, pathfilet):
         v.append(vt)
         h.append(ht)
         z.append(bt)
+    # TODO: improve check equality
     if all(z[0] == z[nbtimes - 1]):  # first == last
         #print("all z are equal for each time step")
         all_z_equal = True

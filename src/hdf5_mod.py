@@ -308,8 +308,7 @@ class Hdf5Management:
         'hyd_unit_number' : str of units total number
         'hyd_unit_type' : str of units type (discharge or time) with between brackets, the unit symbol ([m3/s], [s], ..)
         ex : 'discharge [m3/s]', 'time [s]'
-        'hyd_unit_wholeprofile' : str ("all") if same tin for all unit
-                                list of integer if tin different between units
+        'hyd_varying_mesh' : boolean
         'hyd_unit_z_equal' : boolean if all z are egual between units, 'False' if the bottom values vary
         """
         # create a new hdf5
@@ -345,10 +344,10 @@ class Hdf5Management:
                 reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
                 # UNIT GROUP
                 nb_whole_profil = int(hyd_description["hyd_unit_number"])
-                if hyd_description["hyd_unit_wholeprofile"] == "all":  # one whole profile for all units
+                if not hyd_description["hyd_varying_mesh"]:  # one whole profile for all units
                     nb_whole_profil = 1
                 for unit_num in range(nb_whole_profil):
-                    if hyd_description["hyd_unit_wholeprofile"] == "all":  # one whole profile for all units
+                    if not hyd_description["hyd_varying_mesh"]:  # one whole profile for all units
                         unit_group = reach_group.create_group('unit_all')
                     else:
                         unit_group = reach_group.create_group('unit_' + str(unit_num))
@@ -373,13 +372,18 @@ class Hdf5Management:
                         node_group.create_dataset(name="z",
                                                   shape=[len(data_2d_whole_profile["z"][reach_num][0]), 1],
                                                   data=data_2d_whole_profile["z"][reach_num][0])
-                    if not hyd_description["hyd_unit_z_equal"]:
-                        for unit_num2 in range(int(hyd_description["hyd_unit_number"])):
-                            unit_group = reach_group.create_group('unit_' + str(unit_num2))
-                            node_group = unit_group.create_group('node')
+                    else:
+                        if not hyd_description["hyd_varying_mesh"]:
+                            for unit_num2 in range(int(hyd_description["hyd_unit_number"])):
+                                unit_group = reach_group.create_group('unit_' + str(unit_num2))
+                                node_group = unit_group.create_group('node')
+                                node_group.create_dataset(name="z",
+                                                          shape=[len(data_2d_whole_profile["z"][reach_num][unit_num2]), 1],
+                                                          data=data_2d_whole_profile["z"][reach_num][unit_num2])
+                        else:
                             node_group.create_dataset(name="z",
-                                                      shape=[len(data_2d_whole_profile["z"][reach_num][unit_num2]), 1],
-                                                      data=data_2d_whole_profile["z"][reach_num][unit_num2])
+                                                      shape=[len(data_2d_whole_profile["z"][reach_num][unit_num]), 1],
+                                                      data=data_2d_whole_profile["z"][reach_num][unit_num])
             # get extent
             xMin = str(min(xMin))
             xMax = str(max(xMax))
@@ -460,7 +464,7 @@ class Hdf5Management:
             data_2D_whole_profile = dict()
             data_2D_whole_profile["tin"] = []
             data_2D_whole_profile["xy"] = []
-            if hyd_description["hyd_unit_z_equal"]:
+            if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
                 data_2D_whole_profile["z"] = []
             data_group = 'data_2D_whole_profile'
 
@@ -470,12 +474,12 @@ class Hdf5Management:
                 # for all unit
                 tin_list = []
                 xy_list = []
-                if hyd_description["hyd_unit_z_equal"]:
+                if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
                     z_list = []
 
                 # for all units (selected or all)
                 for unit_num in units_index:
-                    if hyd_description['hyd_unit_wholeprofile'] == "all":
+                    if not hyd_description['hyd_varying_mesh']:
                         unit_group = reach_group + "/unit_all"
                     else:
                         unit_group = reach_group + "/unit_" + str(unit_num)
@@ -486,7 +490,8 @@ class Hdf5Management:
                         tin_list.append(self.file_object[mesh_group + "/tin"][:])
                         # node
                         xy_list.append(self.file_object[node_group + "/xy"][:])
-                        if hyd_description["hyd_unit_z_equal"]:
+                        if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
+                            # TODO : if hyd_varying_mesh == False and hyd_unit_z_equal == False ==> load each z in whole profile
                             z_list.append(self.file_object[node_group + "/z"][:])
                     except KeyError:
                         print(
@@ -495,7 +500,7 @@ class Hdf5Management:
                         return
                 data_2D_whole_profile["tin"].append(tin_list)
                 data_2D_whole_profile["xy"].append(xy_list)
-                if hyd_description["hyd_unit_z_equal"]:
+                if hyd_description["hyd_unit_z_equal"] or hyd_description["hyd_varying_mesh"]:
                     data_2D_whole_profile["z"].append(z_list)
 
         # DATA 2D
@@ -737,14 +742,14 @@ class Hdf5Management:
             reach_group = data_whole_profile_group.create_group('reach_' + str(reach_num))
 
             # UNIT GROUP
-            if merge_description["hyd_unit_wholeprofile"] == "all":  # one whole profile for all units
+            if not merge_description["hyd_varying_mesh"]:  # one whole profile for all units
                 nb_whole_profil = 1
-            if merge_description["hyd_unit_wholeprofile"] != "all":  # one whole profile by units
+            if merge_description["hyd_varying_mesh"]:  # one whole profile by units
                 nb_whole_profil = int(merge_description["hyd_unit_number"])
             for unit_num in range(nb_whole_profil):
-                if merge_description["hyd_unit_wholeprofile"] == "all":  # one whole profile for all units
+                if not merge_description["hyd_varying_mesh"]:  # one whole profile for all units
                     unit_group = reach_group.create_group('unit_all')
-                if merge_description["hyd_unit_wholeprofile"] != "all":  # one whole profile by units
+                if merge_description["hyd_varying_mesh"]:  # one whole profile by units
                     unit_group = reach_group.create_group('unit_' + str(unit_num))
                 # MESH GROUP
                 mesh_group = unit_group.create_group('mesh')
@@ -863,7 +868,7 @@ class Hdf5Management:
                 xy_list = []
                 z_list = []
                 for unit_num in units_index:
-                    if data_description['hyd_unit_wholeprofile'] == "all":
+                    if not data_description['hyd_varying_mesh']:
                         unit_group = reach_group + "/unit_all"
                     else:
                         unit_group = reach_group + "/unit_" + str(unit_num)
@@ -1122,7 +1127,7 @@ class Hdf5Management:
                         w.record(mesh_num)
 
                 # filename
-                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                if not self.data_description['hyd_varying_mesh']:
                     name_shp = self.basename + "_allreachs_allunits_wholeprofile_mesh.shp"
                 else:
                     name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_wholeprofile_mesh.shp"
@@ -1149,7 +1154,7 @@ class Hdf5Management:
                     except:
                         print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
                 # stop loop in this case (if one unit in whole profile)
-                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                if not self.data_description['hyd_varying_mesh']:
                     break
 
         # DATA 2D
@@ -1348,7 +1353,7 @@ class Hdf5Management:
                         w.record(*data_here)
 
                 # filename
-                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                if not self.data_description['hyd_varying_mesh']:
                     name_shp = self.basename + "_allreachs_allunits_wholeprofile_point.shp"
                 else:
                     name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_wholeprofile_point.shp"
@@ -1455,7 +1460,7 @@ class Hdf5Management:
                         for j in range(3):
                             stl_file.vectors[i][j] = vertices[f[j], :]
                     # filename
-                    if self.data_description['hyd_unit_wholeprofile'] == "all":
+                    if not self.data_description['hyd_varying_mesh']:
                         name_file = self.basename + "_" + self.reach_name[reach_num] + "_all_wholeprofile_mesh.stl"
                     else:
                         name_file = self.basename_output_reach_unit[reach_num][unit_num] + "_wholeprofile_mesh.stl"

@@ -78,8 +78,11 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
         data_2d["v"].append([])
         data_2d["z"].append([])
 
+        # index to remove (from user selection GUI)
+        index_to_remove = []
+
         # for each units
-        for unit_num in reversed(range(len(data_description["unit_list"][reach_num]))):  # reversed for pop
+        for unit_num in range(len(data_description["unit_list"][reach_num])):
             # get unit from according to user selection
             if hydrau_description["unit_list_tf"][reach_num][unit_num]:
 
@@ -121,12 +124,16 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
 
             # erase unit in whole_profile
             else:
-                data_2d_whole_profile["tin"][reach_num].pop(unit_num)
-                data_2d_whole_profile["i_whole_profile"][reach_num].pop(unit_num)
-                data_2d_whole_profile["xy"][reach_num].pop(unit_num)
-                data_2d_whole_profile["h"][reach_num].pop(unit_num)
-                data_2d_whole_profile["v"][reach_num].pop(unit_num)
-                data_2d_whole_profile["z"][reach_num].pop(unit_num)
+                index_to_remove.append(unit_num)
+
+        # index to remove (from user selection GUI)
+        for index in reversed(index_to_remove):
+            data_2d_whole_profile["tin"][reach_num].pop(index)
+            data_2d_whole_profile["i_whole_profile"][reach_num].pop(index)
+            data_2d_whole_profile["xy"][reach_num].pop(index)
+            data_2d_whole_profile["h"][reach_num].pop(index)
+            data_2d_whole_profile["v"][reach_num].pop(index)
+            data_2d_whole_profile["z"][reach_num].pop(index)
 
     # ALL CASE SAVE TO HDF5
     progress_value.value = 90  # progress
@@ -150,8 +157,12 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
     hyd_description["hyd_unit_number"] = hydrau_description["unit_number"]
     hyd_description["hyd_unit_type"] = data_description["unit_type"]
 
-    hyd_description["hyd_unit_wholeprofile"] = "all"
-    hyd_description["hyd_unit_z_equal"] = True
+    hyd_description["hyd_varying_mesh"] = data_description["varying_mesh"]
+    if data_description["varying_mesh"]:
+        hyd_description["hyd_unit_z_equal"] = False
+    else:
+        # TODO : check if all z values are equal between units
+        hyd_description["hyd_unit_z_equal"] = True
     if not project_preferences["CutMeshPartialyDry"]:
         namehdf5_old = os.path.splitext(data_description["hdf5_name"])[0]
         data_description["hdf5_name"] = namehdf5_old + "_no_cut.hyd"
@@ -177,6 +188,8 @@ def load_ascii_and_cut_grid(hydrau_description, progress_value, q=[], print_cmd=
                              data_2d_whole_profile,
                              hyd_description,
                              project_preferences)
+        hdf5.export_stl()
+
 
     # progress
     progress_value.value = 100
@@ -207,8 +220,9 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     fi = open(filename, 'r', encoding='utf8')
     fnode = open(fnoden, 'w', encoding='utf8')
     ftin = open(ftinn, 'w', encoding='utf8')
-    kk, reachnumber, nbunitforall, nbreachsub = 0, 0, 0, 0
-    msg, unit_type = '', ''
+    kk, reachnumber, nbunitforall,nbunitforallvaryingmesh, nbreachsub = 0, 0, 0, 0,0
+    msg, unit_type,sub = '', '',''
+    lunitvaryingmesh=[]
     lunitall = []  # a list of  [list of Q or t] per reach
     bq_per_reach, bsub,bmeshconstant = False, False, True
     sub_classification_code, sub_classification_method = '', ''
@@ -268,7 +282,14 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                     reachnumber -= 1
                     bmeshconstant = False
                 else:
+                    if not bmeshconstant :
+                        lunitall.append(lunitvaryingmesh)
+                        lunitvaryingmesh=[]
                     lreachname.append(('_'.join(ls[1:])))
+                    if reachnumber>2 and nbunitforall !=nbunitforallvaryingmesh:
+                        msg = ' varying mesh  an number of unit per reach not constant'
+                        break
+                    nbunitforallvaryingmesh=0
                 lnode.append((nodei, nodef))
                 ltin.append((tini, tinf))
                 nodei, tini = nodef, tinf
@@ -288,13 +309,18 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                     if nbunitforall != nbunit:
                         msg = ' the number of units Q[XXX ,Q1,Q2 after REACH must be constant for each reach'
                         break
-            if  bmeshconstant or len(lunit)==0:
+            if  bmeshconstant:
                 lunitall.append(lunit)
             else:
                 if nbunit!=1:
                     msg = ' in case of variable mesh for each reach only one single unit per description is allowed !'
                     break
-                lunitall[-1].extend(lunit)
+                if reachnumber == 1:
+                    nbunitforall+=1
+                    if len(lunitall)==1:
+                        del lunitall[0]
+                else:
+                    nbunitforallvaryingmesh+=1
             kk = 5
         elif ls[0].lower() == 'x':
             if kk != 5:
@@ -369,8 +395,9 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                 sub_classification_method = 'percentage'
             if reachnumber == 1:
                 nbsubinfo = len(ls)
-                bsub = True
-                fsub = open(fsubn, 'w', encoding='utf8')
+                if not bsub:
+                    bsub = True
+                    fsub = open(fsubn, 'w', encoding='utf8')
             else:
                 if len(ls) != nbsubinfo:
                     msg = 'sub_classification_method not constant for all reaches'
@@ -386,6 +413,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
                 msg = 'unit description but not numeric information'
                 break
             lunit.append(float(ls[0]))
+            lunitvaryingmesh.append(float(ls[0]))
         elif kk == 6:
             if len(ls) != 3 + 2 * nbunit:
                 msg = 'NODES not the right number of informations waited for'
@@ -408,6 +436,10 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
             tinfsub += 1
             fsub.write(ligne)
 
+    if not bmeshconstant:
+        lunitall.append(lunitvaryingmesh)
+        if reachnumber > 1 and nbunitforall != nbunitforallvaryingmesh:
+            msg = ' varying mesh  an number of unit per reach not constant'
     if msg != '':
         fi.close();
         fnode.close();
@@ -417,7 +449,8 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
         if bsub:
             fsub.close();
             os.remove(fsubn)
-        return 'Error: ligne : '+ str(i)+ ' {'+ ligne.rstrip() +' }'+ msg
+        print('Error: ligne : '+ str(i)+ ' {'+ ligne.rstrip() +' }'+ msg)
+        return False,False
 
     lnode.append((nodei, nodef))
     ltin.append((tini, tinf))
@@ -441,7 +474,8 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
         suball = np.loadtxt(fsubn, dtype=int)
         os.remove(fsubn)
         if len(suball) != len(ikleall):
-            return 'Error: ' +'the number of elements given for TIN  and SUBSTRATE description are different'
+            print('Error: ' +'the number of elements given for TIN  and SUBSTRATE description are different')
+            return False,False
         if sub_classification_method == 'coarser-dominant':
             if sub_classification_code == "Cemagref":
                 if suball.max() > 8 or suball.min() < 1:
@@ -457,7 +491,8 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
             if (suball100 != 100).all():
                 msg = 'SUBSTRATE percentage But not the all the sums =100 '
         if msg != '':
-            return 'Error: '+ msg
+            print('Error: '+ msg)
+            return False,False
 
     # create empty dict
     data_2d = dict()
@@ -471,47 +506,46 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     data_2d["z"] = [[] for _ in range(reachnumber)]
 
     for reach_num in range(reachnumber):
-        nodes = np.array(nodesall[lnode[reach_num][0]:lnode[reach_num][1], :])
-        ikle = np.array(ikleall[ltin[reach_num][0]:ltin[reach_num][1], :])
-        if bsub:
-            sub = np.array(suball[ltin[reach_num][0]:ltin[reach_num][1], :])
-        nbnodes = len(nodes)
-        if ikle.max() != nbnodes - 1:
-            return 'Error:' +' REACH :'+ lreachname[reach_num]+ "max(ikle)!= nbnodes TIN and Nodes number doesn't fit "
-        # managing  the 4angles (for triangle last index=-1)
-        ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
-        ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
-        if bsub:
-            sub4 = sub[np.where(ikle[:, [3]] != -1)[0]]
-            sub = sub[np.where(ikle[:, [3]] == -1)[0]]
-        ikle = ikle3[:, 0:3]
-
-        if len(ikle4):  # partitionning each 4angles in 4 triangles
+        if bmeshconstant:
+            nodes = np.array(nodesall[lnode[reach_num][0]:lnode[reach_num][1], :])
+            ikle = np.array(ikleall[ltin[reach_num][0]:ltin[reach_num][1], :])
+            if bsub:
+                sub = np.array(suball[ltin[reach_num][0]:ltin[reach_num][1], :])
+            nbnodes = len(nodes)
+            if ikle.max() != nbnodes - 1:
+                print('Error:' +' REACH :'+ lreachname[reach_num]+ "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
+                return False,False
+            ikle, nodes, sub=reduce_quadrangles_to_triangles(ikle, nodes,nbunit, bsub, sub)
             for unit_num in range(nbunit):
-                # always obtain the sames ikle3new,xynew,znew only hnew,vnew are differents
-                ikle3new, xynew, znew, hnew, vnew = mesh_management_mod.quadrangles_to_triangles(ikle4, nodes[:, 0:2],
-                                                                                                 nodes[:, 2], nodes[:,
-                                                                                                              2 + unit_num * 2 + 1],
-                                                                                                 nodes[:,
-                                                                                                 2 + unit_num * 2 + 2])
-                if unit_num == 0:
-                    newnodes = np.concatenate((xynew, znew, hnew, vnew), axis=1)
-                else:
-                    newnodes = np.concatenate((newnodes, hnew, vnew), axis=1)
-            ikle = np.append(ikle, ikle3new, axis=0)
-            nodes = np.append(nodes, newnodes, axis=0)
-            if bsub:
-                for i in range(len(ikle4)):
-                    sub = np.append(sub, np.array([sub4[i, :], ] * 4), axis=0)
-        for unit_num in range(nbunit):
-            data_2d["tin"][reach_num].append(ikle)
-            data_2d["i_whole_profile"][reach_num].append(ikle)
-            if bsub:
-                data_2d["sub"][reach_num].append(sub)
-            data_2d["xy"][reach_num].append(nodes[:, :2])
-            data_2d["h"][reach_num].append(nodes[:, 2 + unit_num * 2 + 1])
-            data_2d["v"][reach_num].append(nodes[:, 2 + unit_num * 2 + 2])
-            data_2d["z"][reach_num].append(nodes[:, 2])
+                data_2d["tin"][reach_num].append(ikle)
+                data_2d["i_whole_profile"][reach_num].append(ikle)
+                if bsub:
+                    data_2d["sub"][reach_num].append(sub)
+                data_2d["xy"][reach_num].append(nodes[:, :2])
+                data_2d["h"][reach_num].append(nodes[:, 2 + unit_num * 2 + 1])
+                data_2d["v"][reach_num].append(nodes[:, 2 + unit_num * 2 + 2])
+                data_2d["z"][reach_num].append(nodes[:, 2])
+        else:
+            for unit_num in range(nbunitforall):
+                ilnode=reach_num*nbunitforall+unit_num
+                nodes = np.array(nodesall[lnode[ilnode][0]:lnode[ilnode][1], :])
+                ikle = np.array(ikleall[ltin[ilnode][0]:ltin[ilnode][1], :])
+                if bsub:
+                    sub = np.array(suball[ltin[ilnode][0]:ltin[ilnode][1], :])
+                nbnodes = len(nodes)
+                if ikle.max() != nbnodes - 1:
+                    print('Error:' +' REACH :'+ lreachname[reach_num]+ "max(ikle)!= nbnodes TIN and Nodes number doesn't fit ")
+                    return False,False
+                ikle, nodes, sub=reduce_quadrangles_to_triangles(ikle, nodes,1, bsub, sub)
+                data_2d["tin"][reach_num].append(ikle)
+                data_2d["i_whole_profile"][reach_num].append(ikle)
+                if bsub:
+                    data_2d["sub"][reach_num].append(sub)
+                data_2d["xy"][reach_num].append(nodes[:, :2])
+                data_2d["h"][reach_num].append(nodes[:, 3])
+                data_2d["v"][reach_num].append(nodes[:, 4])
+                data_2d["z"][reach_num].append(nodes[:, 2])
+
 
     data_description = dict(path_prj=path_prj,
                             name_prj=os.path.basename(path_prj),
@@ -531,6 +565,7 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
     data_description["reach_list"] = ", ".join(lreachname)
     data_description["reach_number"] = str(reachnumber)
     data_description["reach_type"] = "river"
+    data_description["varying_mesh"] = not bmeshconstant
     if unit_type.upper()[0] == 'Q':
         data_description["flow_type"] = "continuous flow"
     else:
@@ -541,6 +576,45 @@ def load_ascii_model(filename, path_prj, user_preferences_temp_path):
         data_description["sub_classification_code"] = sub_classification_code  # "Cemagref" / "Sandre"
 
     return data_2d, data_description
+
+
+def reduce_quadrangles_to_triangles(ikle,nodes,nbunit,bsub,sub):
+    """
+    transfoming   a set of triangles and 4angles into only triangles
+    :param ikle:  a numpy array of four column describing the geometry of the quadrangles
+    each line indicate the nodes index of the point describing the 4angles (for triangle last index=-1)
+    :param nodes:  a numpy array x,y,z,h,v,..h,v..h,v
+    :param nbunit:  the number of pair of  column height of water (h) velocity (v)  in the nodes numpy array
+    :param bsub: a boolean True if the substrate description is available
+    :param sub: a numpy array of at least 2 information for the coarser and dominant substrate classes
+    :return:
+    """
+
+    ikle3 = ikle[np.where(ikle[:, [3]] == -1)[0]]
+    ikle4 = ikle[np.where(ikle[:, [3]] != -1)[0]]
+    if bsub:
+        sub4 = sub[np.where(ikle[:, [3]] != -1)[0]]
+        sub = sub[np.where(ikle[:, [3]] == -1)[0]]
+    ikle = ikle3[:, 0:3]
+
+    if len(ikle4):  # partitionning each 4angles in 4 triangles
+        for unit_num in range(nbunit):
+            # always obtain the sames ikle3new,xynew,znew only hnew,vnew are differents
+            ikle3new, xynew, znew, hnew, vnew = mesh_management_mod.quadrangles_to_triangles(ikle4, nodes[:, 0:2],
+                                                                                             nodes[:, 2], nodes[:,
+                                                                                                          2 + unit_num * 2 + 1],
+                                                                                             nodes[:,
+                                                                                             2 + unit_num * 2 + 2])
+            if unit_num == 0:
+                newnodes = np.concatenate((xynew, znew, hnew, vnew), axis=1)
+            else:
+                newnodes = np.concatenate((newnodes, hnew, vnew), axis=1)
+        ikle = np.append(ikle, ikle3new, axis=0)
+        nodes = np.append(nodes, newnodes, axis=0)
+        if bsub:
+            for i in range(len(ikle4)):
+                sub = np.append(sub, np.array([sub4[i, :], ] * 4), axis=0)
+    return ikle,nodes,sub
 
 
 def get_ascii_model_description(file_path):

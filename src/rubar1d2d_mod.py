@@ -843,7 +843,7 @@ def load_rubar2d_and_create_grid(name_hdf5, geofile, tpsfile, pathgeo, pathtps, 
         hyd_description["hyd_unit_list"] = description_from_indextelemac_file[hyd_file]["unit_list"]
         hyd_description["hyd_unit_number"] = description_from_indextelemac_file[hyd_file]["unit_number"]
         hyd_description["hyd_unit_type"] = description_from_indextelemac_file[hyd_file]["unit_type"]
-        hyd_description["hyd_unit_wholeprofile"] = str(data_2d_whole_profile["unit_correspondence"])
+        hyd_description["hyd_varying_mesh"] = str(data_2d_whole_profile["unit_correspondence"])
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
 
         # create hdf5

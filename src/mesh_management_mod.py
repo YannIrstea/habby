@@ -253,7 +253,7 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             extent_intersect = True
 
         # check if whole profile is equal for all timestep
-        if hdf5_hydro.data_description["hyd_unit_wholeprofile"] == 'all':
+        if not hdf5_hydro.data_description["hyd_varying_mesh"]:
             # have to check intersection for only one timestep
             pass
         else:
