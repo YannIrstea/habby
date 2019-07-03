@@ -18,6 +18,7 @@ import multiprocessing
 import os
 import sys
 import traceback
+from datetime import datetime
 
 from PyQt5.QtCore import QSettings, Qt
 from PyQt5.QtGui import QPixmap
@@ -67,11 +68,15 @@ class AppDataFolders:
         """
         # print to consol
         traceback.print_exception(error_type, error_value, error_traceback)
+
+        # text
+        text = datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "\n" + ''.join(traceback.format_tb(error_traceback)) +\
+               str(error_type).split("'")[1] + ": " +\
+               str(error_value)
+
         # write to crash_log file
         with open(self.user_preferences_crashlog_file, 'w') as f:
-            f.write(''.join(traceback.format_tb(error_traceback))
-                    + str(error_type).split("'")[1] + ": "
-                    + str(error_value))
+            f.write(text)
         # exit python
         raise SystemExit
 
