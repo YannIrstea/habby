@@ -25,6 +25,9 @@ import numpy as np
 import shapefile
 from stl import mesh
 from shapely.geometry import Polygon
+from fiona import open as openfiona
+from fiona.crs import from_epsg
+
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -248,6 +251,11 @@ class Hdf5Management:
         fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
         self.fish_list = fish_list
 
+        """ get_hdf5_fish_shortnames """
+        # variables_to_remove = ["mesh", "mesh and points", "points elevation", "height", "velocity", "coarser_dominant"]
+        # fish_list = [x for x in self.variables if x not in variables_to_remove]  # remove variable not present in hdf5
+        # self.fish_list = fish_list
+
         """ get_hdf5_reach_name """
         # units name
         reach_name = []
@@ -430,7 +438,8 @@ class Hdf5Management:
         self.load_hdf5_hyd(whole_profil=True)
 
         # exports
-        self.export_mesh_shp()
+        #self.export_mesh_shp()
+        self.export_mesh_gpkg()
         self.export_point_shp()
         self.export_stl()
         self.export_paraview()
@@ -1172,6 +1181,19 @@ class Hdf5Management:
                 shp_exist = False
 
                 """ create structure """
+                # if exist
+                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                    shp_exist = True
+                    if self.type_for_xml == "hdf5_habitat":
+                        if fish_names:
+                            # read shapefile
+                            w = shapefile.Editor(os.path.join(self.path_shp, name_shp))
+                            # remove fish fields
+                            w.fields = w.fields[:6]
+                            # add fish field
+                            for fish_num, _ in enumerate(fish_names):
+                                column_name = shortname_list[fish_num]
+                                w.field(column_name, 'F', 50, 8)
 
                 # if not exist
                 if not shp_exist or not fish_names:  # not exist or merge case
@@ -1196,20 +1218,6 @@ class Hdf5Management:
                                 w.field('S' + str(i + 1), 'N', 10, 0)
                         # fish
                         if fish_names:
-                            for fish_num, _ in enumerate(fish_names):
-                                column_name = shortname_list[fish_num]
-                                w.field(column_name, 'F', 50, 8)
-
-                # if exist
-                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                    shp_exist = True
-                    if self.type_for_xml == "hdf5_habitat":
-                        if fish_names:
-                            # read shapefile
-                            w = shapefile.Editor(os.path.join(self.path_shp, name_shp))
-                            # remove fish fields
-                            w.fields = w.fields[:6]
-                            # add fish field
                             for fish_num, _ in enumerate(fish_names):
                                 column_name = shortname_list[fish_num]
                                 w.field(column_name, 'F', 50, 8)
@@ -1430,6 +1438,244 @@ class Hdf5Management:
                     except:
                         print("Warning : Can't write .prj from EPSG code :",
                               self.data_description["hyd_epsg_code"])
+
+    # EXPORT GPKG
+    def export_mesh_gpkg(self):
+        # INDEX IF HYD OR HAB
+        if self.extension == ".hyd":
+            index = 0
+        if self.extension == ".hab":
+            index = 1
+
+        # DATA 2D WHOLE PROFILE
+        if self.project_preferences['mesh_whole_profile'][index]:
+            # for all units (selected or all)
+            for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+
+                # filename
+                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                    name_shp = self.basename + "_allreachs_allunits_wholeprofile_mesh.gpkg"
+                else:
+                    name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_wholeprofile_mesh.gpkg"
+                if self.project_preferences['erase_id']:  # erase file if exist ?
+                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                        try:
+                            os.remove(os.path.join(self.path_shp, name_shp))
+                        except PermissionError:
+                            print(
+                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                            #return
+                else:
+                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                        name_shp = name_shp[:-4] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
+
+                # CRS
+                crs = None
+                if self.data_description["hyd_epsg_code"] != "unknown":
+                    try:
+                        crs = from_epsg((int(self.data_description["hyd_epsg_code"])))
+                    except:
+                        print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+
+                # Type and field
+                schema = {'geometry': '3D Polygon',
+                          'properties': [("ID", "int")]}
+
+                # GPKG
+                with openfiona(os.path.join(self.path_shp, name_shp), "w", "GPKG", schema, crs) as c:
+                    features = []
+
+                    # for all reach
+                    for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+
+                        # for each mesh
+                        for mesh_num in range(0, len(self.data_2d_whole["tin"][reach_num][unit_num])):
+                            node1 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                            node2 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][1]
+                            node3 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][2]
+                            # data geom (get the triangle coordinates)
+                            p1 = list(self.data_2d_whole["xy"][reach_num][unit_num][node1].tolist() + [
+                                float(self.data_2d_whole["z"][reach_num][unit_num][node1])])
+                            p2 = list(self.data_2d_whole["xy"][reach_num][unit_num][node2].tolist() + [
+                                float(self.data_2d_whole["z"][reach_num][unit_num][node2])])
+                            p3 = list(self.data_2d_whole["xy"][reach_num][unit_num][node3].tolist() + [
+                                float(self.data_2d_whole["z"][reach_num][unit_num][node3])])
+                            features.append({
+                                'geometry': {'coordinates': [[p1, p2, p3, p1]], 'type': 'Polygon'},
+                                'properties': {'ID': mesh_num}
+                            })
+
+                    c.writerecords(features)
+
+                # stop loop in this case (if one unit in whole profile)
+                if self.data_description['hyd_unit_wholeprofile'] == "all":
+                    break
+
+        # DATA 2D
+        if self.project_preferences['mesh_units'][index]:
+            # init
+            fish_names = []
+
+            # get fish name
+            if self.hdf5_type == "habitat":
+                fish_names = self.data_description["hab_fish_list"].split(", ")
+                if fish_names != ['']:
+                    shortname_list = self.data_description["hab_fish_shortname_list"].split(", ")
+                    stage_list = self.data_description["hab_fish_stage_list"].split(", ")
+                else:
+                    fish_names = []
+
+            # for each unit
+            for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
+                name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_mesh.shp"
+                shp_exist = False
+
+                """ create structure """
+                # if exist
+                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                    shp_exist = True
+                    if self.type_for_xml == "hdf5_habitat":
+                        if fish_names:
+                            # read shapefile
+                            w = shapefile.Editor(os.path.join(self.path_shp, name_shp))
+                            # remove fish fields
+                            w.fields = w.fields[:6]
+                            # add fish field
+                            for fish_num, _ in enumerate(fish_names):
+                                column_name = shortname_list[fish_num]
+                                w.field(column_name, 'F', 50, 8)
+
+                # if not exist
+                if not shp_exist or not fish_names:  # not exist or merge case
+                    # for each mesh
+                    w = shapefile.Writer(shapefile.POLYGONZ)
+                    w.autoBalance = 1
+                    w.field('velocity', 'F', 50, 8)
+                    w.field('height', 'F', 50, 8)
+                    w.field('conveyance', 'F', 50, 8)
+                    w.field('i_whole_pro', 'N', 10, 0)
+                    if self.type_for_xml == "hdf5_habitat":
+                        # sub
+                        if self.data_description["sub_classification_method"] == 'coarser-dominant':
+                            w.field('coarser', 'N', 10, 0)
+                            w.field('dom', 'N', 10, 0)
+                        if self.data_description["sub_classification_method"] == 'percentage':
+                            if self.data_description["sub_classification_code"] == "Cemagref":
+                                sub_class_number = 8
+                            if self.data_description["sub_classification_code"] == "Sandre":
+                                sub_class_number = 12
+                            for i in range(sub_class_number):
+                                w.field('S' + str(i + 1), 'N', 10, 0)
+                        # fish
+                        if fish_names:
+                            for fish_num, _ in enumerate(fish_names):
+                                column_name = shortname_list[fish_num]
+                                w.field(column_name, 'F', 50, 8)
+
+                """ add data """
+                # for each reach
+                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+
+                    # if not exist
+                    if not shp_exist or not fish_names:  # not exist or merge case
+                        # for each mesh
+                        for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                            node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                            node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
+                            node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                            # V
+                            v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
+                            v2 = self.data_2d["v"][reach_num][unit_num][node2]
+                            v3 = self.data_2d["v"][reach_num][unit_num][node3]
+                            v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
+                            # H
+                            h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
+                            h2 = self.data_2d["h"][reach_num][unit_num][node2]
+                            h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                            h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
+                            # conveyance
+                            conveyance = v_mean_mesh * h_mean_mesh
+                            # i_whole_profile
+                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
+                                i_whole_profile = 0
+                            else:
+                                i_whole_profile = self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0]
+                            # data geom (get the triangle coordinates)
+                            p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
+                                float(self.data_2d["z"][reach_num][unit_num][node1])])
+                            p2 = list(self.data_2d["xy"][reach_num][unit_num][node2].tolist() + [
+                                float(self.data_2d["z"][reach_num][unit_num][node2])])
+                            p3 = list(self.data_2d["xy"][reach_num][unit_num][node3].tolist() + [
+                                float(self.data_2d["z"][reach_num][unit_num][node3])])
+                            w.poly(parts=[[p1, p2, p3, p1]],
+                                   shapeType=15)  # the double [[]] is important or it bugs, but why?
+                            if self.type_for_xml == "hdf5_habitat":
+                                sub = self.data_2d["sub"][reach_num][unit_num][mesh_num]
+                                if not fish_names:
+                                    data_here = [v_mean_mesh, h_mean_mesh, conveyance, i_whole_profile, *sub.tolist()]
+                                if fish_names:
+                                    fish_data = []
+                                    for fish_name in fish_names:
+                                        fish_data.append(
+                                            self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
+                                    data_here = [v_mean_mesh, h_mean_mesh, conveyance, i_whole_profile, *sub.tolist(),
+                                                 *fish_data]
+                            else:
+                                data_here = [v_mean_mesh, h_mean_mesh, conveyance, i_whole_profile]
+                            # the * pass tuple to function argument
+                            w.record(*data_here)
+
+                # if exist
+                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                    # add fish data for each mesh (line in attributes shp)
+                    for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                        for fish_name in fish_names:
+                            w.records[mesh_num].append(
+                                self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
+
+                # filename
+                if self.project_preferences['erase_id']:  # erase file if exist ?
+                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                        try:
+                            os.remove(os.path.join(self.path_shp, name_shp))
+                        except PermissionError:
+                            print(
+                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
+                            return
+                else:
+                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                        name_shp = os.path.splitext(name_shp)[0] + '_' + time.strftime(
+                            "%d_%m_%Y_at_%H_%M_%S") + '.shp'
+
+                """ save shapefile """
+                # if not exist
+                if not shp_exist or not fish_names:  # not exist or merge case
+                    w.save(os.path.join(self.path_shp, name_shp))
+
+                # if exist
+                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                    name_dbf = os.path.splitext(name_shp)[0] + ".dbf"
+                    w.saveDbf(os.path.join(self.path_shp, name_dbf))
+
+                # write .prj
+                if self.hdf5_type == "habitat":
+                    if self.data_description["hab_epsg_code"] != "unknown":
+                        try:
+                            string_prj = get_prj_from_epsg_web(int(self.data_description["hab_epsg_code"]))
+                            open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj",
+                                 "w").write(string_prj)
+                        except:
+                            print("Warning : Can't write .prj from EPSG code :",
+                                  self.data_description["hab_epsg_code"])
+                if self.hdf5_type == "hydraulic":
+                    if self.data_description["hyd_epsg_code"] != "unknown":
+                        try:
+                            string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
+                            open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj",
+                                 "w").write(string_prj)
+                        except:
+                            print("Warning : Can't write .prj from EPSG code :",
+                                  self.data_description["hyd_epsg_code"])
 
     # EXPORT 3D
     def export_stl(self):
