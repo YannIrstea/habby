@@ -422,6 +422,7 @@ def get_biomodels_informations_for_database(path_xml):
     #  2 <CdBiologicalModel>SIC01 il faut que l'on ait un idenfiant unique monobloc non partagé avec un autre xml! dans habby v appdata </CdBiologicalModel>
     #  3 checker la validité des  modeles de courbes unitSymbol
     #  #  new functionil se peut <Image></Image> pas d'image ou même pas les balises et il faut l'admettre // \\ format possible image jpg ou png
+    #  4 codebiomodel and stage don't have to contain " " and "_"
 
     # open the file
     try:
@@ -447,12 +448,12 @@ def get_biomodels_informations_for_database(path_xml):
     # guild
     guild_element = root.find(".//Guild")
     if guild_element:
-        guild = "guild"
+        guild = "@guild"
     else:
         guild = "mono"
 
     # CdAlternative
-    if guild == "guild":
+    if guild == "@guild":
         # get all fish guild code alternative
         CdAlternative = guild_element.getchildren()[0].text
         CdAlternativefishs = [guild_element.getchildren()[i].find("CdAlternative").text for i in [1, len(guild_element.getchildren()) - 1]]
@@ -471,8 +472,8 @@ def get_biomodels_informations_for_database(path_xml):
 
     # stage_and_size
     stage_and_size = [stage.attrib['Type'] for stage in root.findall(".//Stage")]
-    if "[" in stage_and_size[0]:
-        stage_and_size = ["class size"] * len(stage_and_size)
+    # if "[" in stage_and_size[0]:
+    #     stage_and_size = ["class_size"] * len(stage_and_size)
 
     # hydraulic_type
     hydraulic_type = []
@@ -526,8 +527,8 @@ def get_biomodels_informations_for_database(path_xml):
     ModelType = [model.attrib['Type'] for model in root.findall(".//ModelType")][0]
 
     # LatinName
-    if guild == "guild":
-        LatinName = "guild"
+    if guild == "@guild":
+        LatinName = "@guild"
     else:
         LatinName = root.find(".//LatinName").text
 
