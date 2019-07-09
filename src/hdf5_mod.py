@@ -25,8 +25,10 @@ import numpy as np
 import shapefile
 from stl import mesh
 from shapely.geometry import Polygon
-from fiona import open as openfiona
-from fiona.crs import from_epsg
+# from fiona import open as openfiona
+# from fiona.crs import from_epsg
+from osgeo import osr
+from osgeo import ogr
 
 try:
     import xml.etree.cElementTree as ET
@@ -442,7 +444,6 @@ class Hdf5Management:
         self.load_hdf5_hyd(whole_profil=True)
 
         # exports
-        #self.export_mesh_shp()
         self.export_mesh_gpkg()
         self.export_point_shp()
         self.export_stl()
@@ -829,7 +830,7 @@ class Hdf5Management:
 
         # reload to set data to attributes
         self.load_hdf5_hab(whole_profil=True)
-        self.export_mesh_shp()
+        self.export_mesh_gpkg()
         self.export_point_shp()
         self.export_paraview()
         self.export_detailled_point_txt()
@@ -1092,7 +1093,7 @@ class Hdf5Management:
 
         # reload to add new data to attributes
         self.load_hdf5_hab(convert_to_coarser_dom=False, whole_profil=True)
-        self.export_mesh_shp()
+        self.export_mesh_gpkg()
         self.export_point_shp()
         self.export_paraview()
         self.export_spu_txt()
@@ -1475,46 +1476,55 @@ class Hdf5Management:
                         name_shp = name_shp[:-4] + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.gpkg'
 
                 # CRS
-                crs = None
+                crs = osr.SpatialReference()
                 if self.data_description["hyd_epsg_code"] != "unknown":
                     try:
-                        crs = from_epsg((int(self.data_description["hyd_epsg_code"])))
+                        crs.ImportFromEPSG(int(self.data_description["hyd_epsg_code"]))
                     except:
                         print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
 
-                # Type and field
-                schema = {'geometry': '3D Polygon',
-                          'properties': [("ID", "int")]}
-
                 # GPKG
-                try:
-                    with openfiona(os.path.join(self.path_shp, name_shp), "w", "GPKG", schema, crs) as c:
-                        features = []
+                driver = ogr.GetDriverByName('GPKG')
+                ds = driver.CreateDataSource(os.path.join(self.path_shp, name_shp))
+                layer = ds.CreateLayer("", crs, ogr.wkbPolygon)
+                layer.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))  # Add one attribute
+                defn = layer.GetLayerDefn()
+                layer.StartTransaction()  # faster
 
-                        # for all reach
-                        for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                # for all reach
+                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
 
-                            # for each mesh
-                            for mesh_num in range(0, len(self.data_2d_whole["tin"][reach_num][unit_num])):
-                                node1 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                                node2 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][1]
-                                node3 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][2]
-                                # data geom (get the triangle coordinates)
-                                p1 = list(self.data_2d_whole["xy"][reach_num][unit_num][node1].tolist() + [
-                                    float(self.data_2d_whole["z"][reach_num][unit_num][node1])])
-                                p2 = list(self.data_2d_whole["xy"][reach_num][unit_num][node2].tolist() + [
-                                    float(self.data_2d_whole["z"][reach_num][unit_num][node2])])
-                                p3 = list(self.data_2d_whole["xy"][reach_num][unit_num][node3].tolist() + [
-                                    float(self.data_2d_whole["z"][reach_num][unit_num][node3])])
-                                features.append({
-                                    'geometry': {'coordinates': [[p1, p2, p3, p1]], 'type': 'Polygon'},
-                                    'properties': {'ID': mesh_num}
-                                })
+                    # for each mesh
+                    for mesh_num in range(0, len(self.data_2d_whole["tin"][reach_num][unit_num])):
+                        node1 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                        node2 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][1]
+                        node3 = self.data_2d_whole["tin"][reach_num][unit_num][mesh_num][2]
+                        # data geom (get the triangle coordinates)
+                        p1 = list(self.data_2d_whole["xy"][reach_num][unit_num][node1].tolist() + [
+                            float(self.data_2d_whole["z"][reach_num][unit_num][node1])])
+                        p2 = list(self.data_2d_whole["xy"][reach_num][unit_num][node2].tolist() + [
+                            float(self.data_2d_whole["z"][reach_num][unit_num][node2])])
+                        p3 = list(self.data_2d_whole["xy"][reach_num][unit_num][node3].tolist() + [
+                            float(self.data_2d_whole["z"][reach_num][unit_num][node3])])
+                        # Create triangle
+                        ring = ogr.Geometry(ogr.wkbLinearRing)
+                        ring.AddPoint(*p1)
+                        ring.AddPoint(*p2)
+                        ring.AddPoint(*p3)
+                        # Create polygon
+                        poly = ogr.Geometry(ogr.wkbPolygon)
+                        poly.AddGeometry(ring)
+                        # Create a new feature
+                        feat = ogr.Feature(defn)
+                        feat.SetField('ID', mesh_num)
+                        # set geometry
+                        feat.SetGeometry(poly)
+                        # create
+                        layer.CreateFeature(feat)
 
-                        c.writerecords(features)
-                except:
-                    print("ERROR FIONA")
-                    return
+                # Save and close everything
+                layer.CommitTransaction()  # faster
+                ds.Destroy()
 
                 # stop loop in this case (if one unit in whole profile)
                 if not self.data_description['hyd_varying_mesh']:
@@ -1522,169 +1532,192 @@ class Hdf5Management:
 
         # DATA 2D
         if self.project_preferences['mesh_units'][index]:
-            # init
-            fish_names = []
-
-            # get fish name
-            if self.hdf5_type == "habitat":
-                fish_names = self.data_description["hab_fish_list"].split(", ")
-                if fish_names != ['']:
-                    shortname_list = self.data_description["hab_fish_shortname_list"].split(", ")
-                    stage_list = self.data_description["hab_fish_stage_list"].split(", ")
-                else:
-                    fish_names = []
-
             # for each unit
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
-                name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_mesh.shp"
+                name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_mesh.gpkg"
                 shp_exist = False
+
+                # init
+                fish_names = []
+
+                # get fish name
+                if self.hdf5_type == "habitat":
+                    fish_names = self.data_description["hab_fish_list"].split(", ")
+                    if fish_names != ['']:
+                        shortname_list = self.data_description["hab_fish_shortname_list"].split(", ")
+                        stage_list = self.data_description["hab_fish_stage_list"].split(", ")
+                    else:
+                        fish_names = []
 
                 """ create structure """
                 # if exist
                 if os.path.isfile(os.path.join(self.path_shp, name_shp)):
                     shp_exist = True
-                    if self.type_for_xml == "hdf5_habitat":
-                        if fish_names:
-                            # read shapefile
-                            w = shapefile.Editor(os.path.join(self.path_shp, name_shp))
-                            # remove fish fields
-                            w.fields = w.fields[:6]
-                            # add fish field
-                            for fish_num, _ in enumerate(fish_names):
-                                column_name = shortname_list[fish_num]
-                                w.field(column_name, 'F', 50, 8)
+                    if fish_names:
+                        driver = ogr.GetDriverByName("GPKG")
+                        ds = driver.Open(os.path.join(self.path_shp, name_shp), update=True)
+                        layer = ds.GetLayer()
+                        layer_defn = layer.GetLayerDefn()
+                        layer_name = layer.GetName()
+                        featureCount = layer.GetFeatureCount()
+                        field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+                        # erase all fish field
+                        for fish_num, _ in enumerate(fish_names):
+                            column_name = shortname_list[fish_num]
+                            if column_name in field_names:
+                                field_index = field_names.index(column_name)
+                                layer.DeleteField(field_index)  # delete all features attribute of specified field
+                        # create all fish field
+                        for fish_num, _ in enumerate(fish_names):
+                            column_name = shortname_list[fish_num]
+                            new_field = ogr.FieldDefn(column_name, ogr.OFTReal)
+                            layer.CreateField(new_field)
 
                 # if not exist
                 if not shp_exist or not fish_names:  # not exist or merge case
-                    # for each mesh
-                    w = shapefile.Writer(shapefile.POLYGONZ)
-                    w.autoBalance = 1
-                    w.field('velocity', 'F', 50, 8)
-                    w.field('height', 'F', 50, 8)
-                    w.field('conveyance', 'F', 50, 8)
-                    w.field('i_whole_pro', 'N', 10, 0)
+                    # CRS
+                    crs = osr.SpatialReference()
+                    if self.hdf5_type == "hydraulic":
+                        if self.data_description["hyd_epsg_code"] != "unknown":
+                            try:
+                                crs.ImportFromEPSG(int(self.data_description["hyd_epsg_code"]))
+
+                            except:
+                                print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+                    if self.hdf5_type == "habitat":
+                        if self.data_description["hab_epsg_code"] != "unknown":
+                            try:
+                                crs.ImportFromEPSG(int(self.data_description["hab_epsg_code"]))
+
+                            except:
+                                print("Warning : Can't write .prj from EPSG code :", self.data_description["hab_epsg_code"])
+
+                    # GPKG
+                    driver = ogr.GetDriverByName('GPKG')
+                    ds = driver.CreateDataSource(os.path.join(self.path_shp, name_shp))
+                    layer = ds.CreateLayer("", crs, ogr.wkbPolygon)
+                    # create fields (no width no precision to be specified with GPKG)
+                    layer.CreateField(ogr.FieldDefn('velocity', ogr.OFTReal))
+                    layer.CreateField(ogr.FieldDefn('height', ogr.OFTReal))
+                    layer.CreateField(ogr.FieldDefn('conveyance', ogr.OFTReal))
+                    layer.CreateField(ogr.FieldDefn('i_whole_pro', ogr.OFTInteger))
+                    defn = layer.GetLayerDefn()
                     if self.type_for_xml == "hdf5_habitat":
                         # sub
                         if self.data_description["sub_classification_method"] == 'coarser-dominant':
-                            w.field('coarser', 'N', 10, 0)
-                            w.field('dom', 'N', 10, 0)
+                            layer.CreateField(ogr.FieldDefn('coarser', ogr.OFTInteger))
+                            layer.CreateField(ogr.FieldDefn('dominant', ogr.OFTInteger))
                         if self.data_description["sub_classification_method"] == 'percentage':
                             if self.data_description["sub_classification_code"] == "Cemagref":
                                 sub_class_number = 8
                             if self.data_description["sub_classification_code"] == "Sandre":
                                 sub_class_number = 12
                             for i in range(sub_class_number):
-                                w.field('S' + str(i + 1), 'N', 10, 0)
+                                layer.CreateField(ogr.FieldDefn('S' + str(i + 1), ogr.OFTInteger))
                         # fish
                         if fish_names:
                             for fish_num, _ in enumerate(fish_names):
                                 column_name = shortname_list[fish_num]
-                                w.field(column_name, 'F', 50, 8)
+                                layer.CreateField(ogr.FieldDefn(column_name, ogr.OFTReal))
+                    layer.StartTransaction()  # faster
 
-                """ add data """
-                # for each reach
-                for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-
+                    """ add data """
                     # if not exist
                     if not shp_exist or not fish_names:  # not exist or merge case
-                        # for each mesh
-                        for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                            node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
-                            node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
-                            node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
-                            # V
-                            v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
-                            v2 = self.data_2d["v"][reach_num][unit_num][node2]
-                            v3 = self.data_2d["v"][reach_num][unit_num][node3]
-                            v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
-                            # H
-                            h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
-                            h2 = self.data_2d["h"][reach_num][unit_num][node2]
-                            h3 = self.data_2d["h"][reach_num][unit_num][node3]
-                            h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
-                            # conveyance
-                            conveyance = v_mean_mesh * h_mean_mesh
-                            # i_whole_profile
-                            if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
-                                i_whole_profile = 0
-                            else:
-                                i_whole_profile = self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0]
-                            # data geom (get the triangle coordinates)
-                            p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
-                                float(self.data_2d["z"][reach_num][unit_num][node1])])
-                            p2 = list(self.data_2d["xy"][reach_num][unit_num][node2].tolist() + [
-                                float(self.data_2d["z"][reach_num][unit_num][node2])])
-                            p3 = list(self.data_2d["xy"][reach_num][unit_num][node3].tolist() + [
-                                float(self.data_2d["z"][reach_num][unit_num][node3])])
-                            w.poly(parts=[[p1, p2, p3, p1]],
-                                   shapeType=15)  # the double [[]] is important or it bugs, but why?
-                            if self.type_for_xml == "hdf5_habitat":
-                                sub = self.data_2d["sub"][reach_num][unit_num][mesh_num]
-                                if not fish_names:
-                                    data_here = [v_mean_mesh, h_mean_mesh, conveyance, i_whole_profile, *sub.tolist()]
-                                if fish_names:
-                                    fish_data = []
-                                    for fish_name in fish_names:
-                                        fish_data.append(
-                                            self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
-                                    data_here = [v_mean_mesh, h_mean_mesh, conveyance, i_whole_profile, *sub.tolist(),
-                                                 *fish_data]
-                            else:
-                                data_here = [v_mean_mesh, h_mean_mesh, conveyance, i_whole_profile]
-                            # the * pass tuple to function argument
-                            w.record(*data_here)
+                        # for each reach
+                        for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                            # for each mesh
+                            for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                                node1 = self.data_2d["tin"][reach_num][unit_num][mesh_num][0]  # node num
+                                node2 = self.data_2d["tin"][reach_num][unit_num][mesh_num][1]
+                                node3 = self.data_2d["tin"][reach_num][unit_num][mesh_num][2]
+                                # V
+                                v1 = self.data_2d["v"][reach_num][unit_num][node1]  # velocity
+                                v2 = self.data_2d["v"][reach_num][unit_num][node2]
+                                v3 = self.data_2d["v"][reach_num][unit_num][node3]
+                                v_mean_mesh = 1.0 / 3.0 * (v1 + v2 + v3)
+                                # H
+                                h1 = self.data_2d["h"][reach_num][unit_num][node1]  # height
+                                h2 = self.data_2d["h"][reach_num][unit_num][node2]
+                                h3 = self.data_2d["h"][reach_num][unit_num][node3]
+                                h_mean_mesh = 1.0 / 3.0 * (h1 + h2 + h3)
+                                # conveyance
+                                conveyance = v_mean_mesh * h_mean_mesh
+                                # i_whole_profile
+                                if len(self.data_2d["i_whole_profile"][reach_num][unit_num]) != len(self.data_2d["tin"][reach_num][unit_num]):
+                                    i_whole_profile = 0
+                                else:
+                                    i_whole_profile = int(self.data_2d["i_whole_profile"][reach_num][unit_num][mesh_num][0])
+                                # data geom (get the triangle coordinates)
+                                p1 = list(self.data_2d["xy"][reach_num][unit_num][node1].tolist() + [
+                                    float(self.data_2d["z"][reach_num][unit_num][node1])])
+                                p2 = list(self.data_2d["xy"][reach_num][unit_num][node2].tolist() + [
+                                    float(self.data_2d["z"][reach_num][unit_num][node2])])
+                                p3 = list(self.data_2d["xy"][reach_num][unit_num][node3].tolist() + [
+                                    float(self.data_2d["z"][reach_num][unit_num][node3])])
+                                # data attrbiutes
+                                if self.type_for_xml == "hdf5_habitat":
+                                    sub = self.data_2d["sub"][reach_num][unit_num][mesh_num].tolist()
+                                    if fish_names:
+                                        fish_data = []
+                                        for fish_name in fish_names:
+                                            fish_data.append(
+                                                self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
 
-                # if exist
-                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                    # add fish data for each mesh (line in attributes shp)
-                    for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                        for fish_name in fish_names:
-                            w.records[mesh_num].append(
-                                self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num])
+                                # Create triangle
+                                ring = ogr.Geometry(ogr.wkbLinearRing)
+                                ring.AddPoint(*p1)
+                                ring.AddPoint(*p2)
+                                ring.AddPoint(*p3)
+                                # Create polygon
+                                poly = ogr.Geometry(ogr.wkbPolygon)
+                                poly.AddGeometry(ring)
+                                # Create a new feature
+                                feat = ogr.Feature(defn)
+                                feat.SetField('velocity', v_mean_mesh)
+                                feat.SetField('height', h_mean_mesh)
+                                feat.SetField('conveyance', conveyance)
+                                feat.SetField('i_whole_pro', i_whole_profile)
+                                if self.type_for_xml == "hdf5_habitat":
+                                    # sub
+                                    if self.data_description["sub_classification_method"] == 'coarser-dominant':
+                                        feat.SetField('coarser', sub[0])
+                                        feat.SetField('dominant', sub[1])
+                                    if self.data_description["sub_classification_method"] == 'percentage':
+                                        for i in range(sub_class_number):
+                                            feat.SetField('S' + str(i + 1), sub[i])
+                                    # fish
+                                    if fish_names:
+                                        for fish_num, _ in enumerate(fish_names):
+                                            column_name = shortname_list[fish_num]
+                                            feat.SetField(column_name, fish_data[fish_num])
+                                # set geometry
+                                feat.SetGeometry(poly)
+                                # create
+                                layer.CreateFeature(feat)
 
-                # filename
-                if self.project_preferences['erase_id']:  # erase file if exist ?
-                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                        try:
-                            os.remove(os.path.join(self.path_shp, name_shp))
-                        except PermissionError:
-                            print(
-                                'Error: The shapefile is currently open in an other program. Could not be re-written \n')
-                            return
+                        # close
+                        layer.CommitTransaction()  # faster
+                        ds.Destroy()
+
+                # if exist and hab
                 else:
-                    if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                        name_shp = os.path.splitext(name_shp)[0] + '_' + time.strftime(
-                            "%d_%m_%Y_at_%H_%M_%S") + '.shp'
-
-                """ save shapefile """
-                # if not exist
-                if not shp_exist or not fish_names:  # not exist or merge case
-                    w.save(os.path.join(self.path_shp, name_shp))
-
-                # if exist
-                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                    name_dbf = os.path.splitext(name_shp)[0] + ".dbf"
-                    w.saveDbf(os.path.join(self.path_shp, name_dbf))
-
-                # write .prj
-                if self.hdf5_type == "habitat":
-                    if self.data_description["hab_epsg_code"] != "unknown":
-                        try:
-                            string_prj = get_prj_from_epsg_web(int(self.data_description["hab_epsg_code"]))
-                            open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj",
-                                 "w").write(string_prj)
-                        except:
-                            print("Warning : Can't write .prj from EPSG code :",
-                                  self.data_description["hab_epsg_code"])
-                if self.hdf5_type == "hydraulic":
-                    if self.data_description["hyd_epsg_code"] != "unknown":
-                        try:
-                            string_prj = get_prj_from_epsg_web(int(self.data_description["hyd_epsg_code"]))
-                            open(os.path.join(self.path_shp, os.path.splitext(name_shp)[0]) + ".prj",
-                                 "w").write(string_prj)
-                        except:
-                            print("Warning : Can't write .prj from EPSG code :",
-                                  self.data_description["hyd_epsg_code"])
+                    if fish_names:
+                        layer.StartTransaction()  # faster
+                        feat_num_all_reach = 0
+                        # for each reach
+                        for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                            # add fish data for each mesh (line in attributes shp)
+                            for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                                feat_num_all_reach += 1
+                                feature = layer.GetFeature(feat_num_all_reach)
+                                for fish_num, fish_name in enumerate(fish_names):
+                                    column_name = shortname_list[fish_num]
+                                    data = self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num]
+                                    feature.SetField(column_name, data)
+                                layer.SetFeature(feature)
+                        layer.CommitTransaction()  # faster
+                        ds.Destroy()
 
     # EXPORT 3D
     def export_stl(self):
