@@ -116,8 +116,6 @@ class Hdf5Management:
                         unit_name2 = self.file_object.attrs["hyd_unit_type"][0] + str(unit_name).replace(".", "%")
                         self.units_name_output[reach_num].append(unit_name2)
 
-
-
         except OSError:
             print('Error: the hdf5 file could not be loaded.')
             self.file_object = None
@@ -1511,6 +1509,7 @@ class Hdf5Management:
                         ring.AddPoint(*p1)
                         ring.AddPoint(*p2)
                         ring.AddPoint(*p3)
+                        ring.AddPoint(*p1)
                         # Create polygon
                         poly = ogr.Geometry(ogr.wkbPolygon)
                         poly.AddGeometry(ring)
@@ -1532,6 +1531,29 @@ class Hdf5Management:
 
         # DATA 2D
         if self.project_preferences['mesh_units'][index]:
+            # CRS
+            crs = osr.SpatialReference()
+            if self.hdf5_type == "hydraulic":
+                if self.data_description["hyd_epsg_code"] != "unknown":
+                    try:
+                        crs.ImportFromEPSG(int(self.data_description["hyd_epsg_code"]))
+
+                    except:
+                        print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
+            if self.hdf5_type == "habitat":
+                if self.data_description["hab_epsg_code"] != "unknown":
+                    try:
+                        crs.ImportFromEPSG(int(self.data_description["hab_epsg_code"]))
+
+                    except:
+                        print("Warning : Can't write .prj from EPSG code :", self.data_description["hab_epsg_code"])
+
+            # name
+            name_shp = self.basename + "_allreachs_allunits_mesh.gpkg"
+            # GPKG
+            driver = ogr.GetDriverByName('GPKG')
+            ds = driver.CreateDataSource(os.path.join(self.path_shp, name_shp))
+
             # for each unit
             for unit_num in range(0, int(self.data_description['hyd_unit_number'])):
                 name_shp = self.basename + "_allreachs_unit" + str(unit_num) + "_mesh.gpkg"
@@ -1550,52 +1572,32 @@ class Hdf5Management:
                         fish_names = []
 
                 """ create structure """
-                # if exist
-                if os.path.isfile(os.path.join(self.path_shp, name_shp)):
-                    shp_exist = True
-                    if fish_names:
-                        driver = ogr.GetDriverByName("GPKG")
-                        ds = driver.Open(os.path.join(self.path_shp, name_shp), update=True)
-                        layer = ds.GetLayer()
-                        layer_defn = layer.GetLayerDefn()
-                        layer_name = layer.GetName()
-                        featureCount = layer.GetFeatureCount()
-                        field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-                        # erase all fish field
-                        for fish_num, _ in enumerate(fish_names):
-                            column_name = shortname_list[fish_num]
-                            if column_name in field_names:
-                                field_index = field_names.index(column_name)
-                                layer.DeleteField(field_index)  # delete all features attribute of specified field
-                        # create all fish field
-                        for fish_num, _ in enumerate(fish_names):
-                            column_name = shortname_list[fish_num]
-                            new_field = ogr.FieldDefn(column_name, ogr.OFTReal)
-                            layer.CreateField(new_field)
+                # # if exist
+                # if os.path.isfile(os.path.join(self.path_shp, name_shp)):
+                #     shp_exist = True
+                #     if fish_names:
+                #         driver = ogr.GetDriverByName("GPKG")
+                #         ds = driver.Open(os.path.join(self.path_shp, name_shp), update=True)
+                #         layer = ds.GetLayer()
+                #         layer_defn = layer.GetLayerDefn()
+                #         layer_name = layer.GetName()
+                #         featureCount = layer.GetFeatureCount()
+                #         field_names = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
+                #         # erase all fish field
+                #         for fish_num, _ in enumerate(fish_names):
+                #             column_name = shortname_list[fish_num]
+                #             if column_name in field_names:
+                #                 field_index = field_names.index(column_name)
+                #                 layer.DeleteField(field_index)  # delete all features attribute of specified field
+                #         # create all fish field
+                #         for fish_num, _ in enumerate(fish_names):
+                #             column_name = shortname_list[fish_num]
+                #             new_field = ogr.FieldDefn(column_name, ogr.OFTReal)
+                #             layer.CreateField(new_field)
 
                 # if not exist
                 if not shp_exist or not fish_names:  # not exist or merge case
-                    # CRS
-                    crs = osr.SpatialReference()
-                    if self.hdf5_type == "hydraulic":
-                        if self.data_description["hyd_epsg_code"] != "unknown":
-                            try:
-                                crs.ImportFromEPSG(int(self.data_description["hyd_epsg_code"]))
-
-                            except:
-                                print("Warning : Can't write .prj from EPSG code :", self.data_description["hyd_epsg_code"])
-                    if self.hdf5_type == "habitat":
-                        if self.data_description["hab_epsg_code"] != "unknown":
-                            try:
-                                crs.ImportFromEPSG(int(self.data_description["hab_epsg_code"]))
-
-                            except:
-                                print("Warning : Can't write .prj from EPSG code :", self.data_description["hab_epsg_code"])
-
-                    # GPKG
-                    driver = ogr.GetDriverByName('GPKG')
-                    ds = driver.CreateDataSource(os.path.join(self.path_shp, name_shp))
-                    layer = ds.CreateLayer("", crs, ogr.wkbPolygon)
+                    layer = ds.CreateLayer(str(unit_num), crs, ogr.wkbPolygon)
                     # create fields (no width no precision to be specified with GPKG)
                     layer.CreateField(ogr.FieldDefn('velocity', ogr.OFTReal))
                     layer.CreateField(ogr.FieldDefn('height', ogr.OFTReal))
@@ -1669,6 +1671,7 @@ class Hdf5Management:
                                 ring.AddPoint(*p1)
                                 ring.AddPoint(*p2)
                                 ring.AddPoint(*p3)
+                                ring.AddPoint(*p1)
                                 # Create polygon
                                 poly = ogr.Geometry(ogr.wkbPolygon)
                                 poly.AddGeometry(ring)
@@ -1696,28 +1699,28 @@ class Hdf5Management:
                                 # create
                                 layer.CreateFeature(feat)
 
-                        # close
-                        layer.CommitTransaction()  # faster
-                        ds.Destroy()
+                    # close layer
+                layer.CommitTransaction()  # faster
 
-                # if exist and hab
-                else:
-                    if fish_names:
-                        layer.StartTransaction()  # faster
-                        feat_num_all_reach = 0
-                        # for each reach
-                        for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
-                            # add fish data for each mesh (line in attributes shp)
-                            for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
-                                feat_num_all_reach += 1
-                                feature = layer.GetFeature(feat_num_all_reach)
-                                for fish_num, fish_name in enumerate(fish_names):
-                                    column_name = shortname_list[fish_num]
-                                    data = self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num]
-                                    feature.SetField(column_name, data)
-                                layer.SetFeature(feature)
-                        layer.CommitTransaction()  # faster
-                        ds.Destroy()
+                # # if exist and hab
+                # else:
+                #     if fish_names:
+                #         layer.StartTransaction()  # faster
+                #         feat_num_all_reach = 0
+                #         # for each reach
+                #         for reach_num in range(0, int(self.data_description['hyd_reach_number'])):
+                #             # add fish data for each mesh (line in attributes shp)
+                #             for mesh_num in range(0, len(self.data_2d["tin"][reach_num][unit_num])):
+                #                 feat_num_all_reach += 1
+                #                 feature = layer.GetFeature(feat_num_all_reach)
+                #                 for fish_num, fish_name in enumerate(fish_names):
+                #                     column_name = shortname_list[fish_num]
+                #                     data = self.data_2d["hv_data"][fish_name][reach_num][unit_num][mesh_num]
+                #                     feature.SetField(column_name, data)
+                #                 layer.SetFeature(feature)
+                #         layer.CommitTransaction()  # faster
+                # close GPKG
+            ds.Destroy()
 
     # EXPORT 3D
     def export_stl(self):
