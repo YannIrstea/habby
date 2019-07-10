@@ -576,9 +576,9 @@ class OtherToolToCreate(QGroupBoxCollapsible):
         self.setLayout(hbox_layout)
 
     def test_function_dev(self):
-        print("aaaa")
+        print("test_function_dev")
         1 / 0
-        print("bbbb")
+        print("test_function_dev")
 
 
 class MyTableModel(QStandardItemModel):

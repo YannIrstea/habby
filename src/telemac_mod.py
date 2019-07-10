@@ -230,7 +230,7 @@ def load_telemac_and_cut_grid(description_from_indexHYDRAU_file, progress_value,
         hyd_description["hyd_varying_mesh"] = data_2d_whole_profile["unit_correspondence"]
         hyd_description["hyd_unit_z_equal"] = description_from_telemac_file["hyd_unit_z_equal"]
 
-        if hyd_description["varying_mesh"]:
+        if hyd_description["hyd_varying_mesh"]:
             hyd_description["hyd_unit_z_equal"] = False
         else:
             # TODO : check if all z values are equal between units
