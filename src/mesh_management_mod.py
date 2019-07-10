@@ -303,13 +303,24 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
 
                     # find intersection betweeen hydrology and substrate
                     [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
-                        find_sub_and_cross(hdf5_sub.data_2d["tin"][reach_num][0],
+                        find_sub_and_cross2(extent_hyd,extent_sub,hdf5_sub.data_2d["tin"][reach_num][0],
                                            hdf5_sub.data_2d["xy"][reach_num][0],
                                            hdf5_sub.data_2d["sub"][reach_num][0],
                                            hdf5_hydro.data_2d["tin"][reach_num][unit_num],
                                            hdf5_hydro.data_2d["xy"][reach_num][unit_num],
                                            progress_value, delta,
                                            first_time)
+                    # [ikle_sub, point_all_sub, data_sub, data_crossing, sub_cell] = \
+                    #     find_sub_and_cross(hdf5_sub.data_2d["tin"][reach_num][0],
+                    #                        hdf5_sub.data_2d["xy"][reach_num][0],
+                    #                        hdf5_sub.data_2d["sub"][reach_num][0],
+                    #                        hdf5_hydro.data_2d["tin"][reach_num][unit_num],
+                    #                        hdf5_hydro.data_2d["xy"][reach_num][unit_num],
+                    #                        progress_value, delta,
+                    #                        first_time)
+
+
+
 
                     # if no intersection found at t==0
                     if len(data_crossing[0]) < 1:
@@ -376,6 +387,117 @@ def merge_grid_hydro_sub(hdf5_name_hyd, hdf5_name_sub, path_prj, progress_value)
             data_2d_merge["z"] = z_all_both
 
     return data_2d_merge, data_2d_whole_merge, merge_description
+
+
+def find_sub_and_cross2(extent_hyd,extent_sub,ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_value, delta, first_time=False):
+    # extent xmin,ymin,xmax,ymax
+    extent_all = [int(min(extent_hyd[0], extent_sub[0]) / 10) * 10-10, int(min(extent_hyd[1], extent_sub[1]) / 10) * 10-10,
+                  int(max(extent_hyd[2], extent_sub[2]) / 10) * 10+10, int(max(extent_hyd[3], extent_sub[3]) / 10) * 10+10]
+    dx,dy,dxy=extent_all[2]-extent_all[0],extent_all[3]-extent_all[1],10
+    nbgridx,nbgridy=int(dx/dxy),int(dy/dxy)
+
+    coord_p_subx = coord_p_sub[:, 0]
+    coord_p_suby = coord_p_sub[:, 1]
+    # for each substrate element get xmin, xmax ,ymin,ymax
+    px = np.array([coord_p_subx[ikle_sub[:, 0]], coord_p_subx[ikle_sub[:, 1]], coord_p_subx[ikle_sub[:, 2]]])
+    py = np.array([coord_p_suby[ikle_sub[:, 0]], coord_p_suby[ikle_sub[:, 1]], coord_p_suby[ikle_sub[:, 2]]])
+    max_px = np.max(px, 0)
+    min_px = np.min(px, 0)
+    max_py = np.max(py, 0)
+    min_py = np.min(py, 0)
+    ixgmin=((min_px-extent_all[0])/dxy +1).astype(int)
+    ixgmax = ((max_px - extent_all[0]) / dxy + 1).astype(int)
+    iygmin = ((min_py - extent_all[1]) / dxy + 1).astype(int)
+    iygmax = ((max_py - extent_all[1]) / dxy + 1).astype(int)
+    repsub = []
+    #build the list of couple (of grid position (by a single number) associata with  substrate element index)
+    for isub in range(len(ikle_sub)):
+        for ix in range(ixgmin[isub],ixgmax[isub]+1):
+            for iy in range(iygmin[isub], iygmax[isub]+1):
+                repsub.append([ix+(iy-1)*nbgridx,isub])
+    arepsub=np.array(repsub)
+    #sort by grid cell index,substrate element index
+    arepsub=arepsub[np.lexsort((arepsub[:, 1], arepsub[:, 0]))]
+
+
+
+    ipnew= len(coord_p)
+
+    #TODO factoriser cf ci-dessus
+    coord_p_hydx = coord_p[:, 0]
+    coord_p_hydy = coord_p[:, 1]
+    px = np.array([coord_p_hydx[ikle[:, 0]], coord_p_hydx[ikle[:, 1]], coord_p_hydx[ikle[:, 2]]])
+    py = np.array([coord_p_hydy[ikle[:, 0]], coord_p_hydy[ikle[:, 1]], coord_p_hydy[ikle[:, 2]]])
+    max_px = np.max(px, 0)
+    min_px = np.min(px, 0)
+    max_py = np.max(py, 0)
+    min_py = np.min(py, 0)
+    ixgmin=((min_px-extent_all[0])/dxy +1).astype(int)
+    ixgmax = ((max_px - extent_all[0]) / dxy + 1).astype(int)
+    iygmin = ((min_py - extent_all[1]) / dxy + 1).astype(int)
+    iygmax = ((max_py - extent_all[1]) / dxy + 1).astype(int)
+
+    for i in range(len(ikle)):
+        lsub=[]
+        for ix in range(ixgmin[i], ixgmax[i] + 1):
+            for iy in range(iygmin[i], iygmax[i] + 1):
+                lsub.append(arepsub[np.ix_(arepsub[:,0]==ix + (iy - 1) * nbgridx , np.array([ False, True]))].tolist()) #list of grid cells indexes
+        ssub={yy for x in lsub for y in x for yy in y} # a set with the list of substrate element index that can intersect the hydraulic mesh
+        pxh = [coord_p_hydx[ikle[i, 0]], coord_p_hydx[ikle[i, 1]], coord_p_hydx[ikle[i, 2]]]
+        pyh = [coord_p_hydy[ikle[i, 0]], coord_p_hydy[ikle[i, 1]], coord_p_hydy[ikle[i, 2]]]
+        for isub in ssub:
+            pxs = [coord_p_subx[ikle_sub[i, 0]], coord_p_subx[ikle_sub[i, 1]], coord_p_subx[ikle_sub[i, 2]]]
+            pys = [coord_p_suby[ikle_sub[i, 0]], coord_p_suby[ikle_sub[i, 1]], coord_p_suby[ikle_sub[i, 2]]]
+
+            #tester si une liste de points sub est à l'interieur ou non de la maille hydraulique renvoyer une liste de booleens
+
+        toto=6
+
+        # inside_trigon(pt, p0, p1, p2):
+        # """
+        # This function check if a point is in a triangle using the barycentric coordinates.
+        #
+        # :param pt: the point to determine if it is in or not
+        # :param p0: the first point of triangle
+        # :param p1: the second point of triangle
+        # :param p2: the third point of triangle
+        # :return: A boolean (Ture if pt inside of triangle)
+        # """
+        # p0x = p0[0]
+        # p0y = p0[1]
+        # p1x = p1[0]
+        # p1y = p1[1]
+        # p2x = p2[0]
+        # p2y = p2[1]
+        #
+        # area = 0.5 * (-p1y * p2x + p0y * (-p1x + p2x) + p0x * (p1y - p2y) + p1x * p2y)
+        # if area != 0:
+        #     s = 1 / (2 * area) * (p0y * p2x - p0x * p2y + (p2y - p0y) * pt[0] + (p0x - p2x) * pt[1])
+        #     t = 1 / (2 * area) * (p0x * p1y - p0y * p1x + (p0y - p1y) * pt[0] + (p1x - p0x) * pt[1])
+        # else:
+        #     return False
+        #
+        # if s >= 0 and t >= 0 and 1 - s - t >= 0:
+        #     return True
+        # else:
+        #     return False
+
+
+
+
+
+
+
+
+
+
+    titi=3
+
+
+
+
+    pass
+
 
 
 def find_sub_and_cross(ikle_sub, coord_p_sub, data_sub, ikle, coord_p, progress_value, delta, first_time=False):
